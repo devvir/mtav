@@ -3,6 +3,7 @@ import laravel from 'laravel-vite-plugin';
 import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
+import i18n from 'laravel-vue-i18n/vite';
 
 export default defineConfig({
     plugins: [
@@ -11,7 +12,9 @@ export default defineConfig({
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
+
         tailwindcss(),
+
         vue({
             template: {
                 transformAssetUrls: {
@@ -20,7 +23,10 @@ export default defineConfig({
                 },
             },
         }),
+
+        i18n(),
     ],
+
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),

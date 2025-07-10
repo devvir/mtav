@@ -3,17 +3,18 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import { trans, currentLocale } from 'laravel-vue-i18n';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: trans('Dashboard'),
         href: '/dashboard',
     },
 ];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="trans('Dashboard')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">

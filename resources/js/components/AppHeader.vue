@@ -14,6 +14,7 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { trans } from 'laravel-vue-i18n';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -34,7 +35,7 @@ const activeItemStyles = computed(
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: trans('Dashboard'),
         href: '/dashboard',
         icon: LayoutGrid,
     },
