@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Family;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,9 +26,12 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->unique()->phoneNumber(),
             'email_verified_at' => now(),
+            'firstname' => $firstname = fake()->firstName(),
+            'lastname' => $lastname = fake()->lastName(),
+            'avatar' => "https://ui-avatars.com/api/?name=$firstname%20$lastname&background=0D8ABC&color=fff",
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
@@ -37,8 +42,27 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(fn () => [ 'email_verified_at' => null ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn () => [ 'is_admin' => true ]);
+    }
+
+    public function withFamily(?Family $family = null): static
+    {
+        $family ??= Family::factory()->create();
+
+        return $this->afterCreating(
+            fn (User $user) => $user->family()->associate($family)->save()
+        );
+    }
+
+    public function withExistingFamily(?Family $family = null): static
+    {
+        $family ??= Family::inRandomOrder()->first();
+
+        return $this->withFamily($family);
     }
 }

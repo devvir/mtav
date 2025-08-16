@@ -112,4 +112,15 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom App Auth configurations
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'superadmins' => array_map(
+        fn ($id) => (int) trim($id),
+        explode(',', env('SUPERADMINS', '1'))
+    ),
 ];
