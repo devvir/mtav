@@ -3,20 +3,20 @@ import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
-        href: '/settings/profile',
+        href: route('profile.edit'),
     },
     {
         title: 'Password',
-        href: '/settings/password',
+        href: route('password.edit'),
     },
     {
         title: 'Appearance',
-        href: '/settings/appearance',
+        href: route('appearance'),
     },
 ];
 

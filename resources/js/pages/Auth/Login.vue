@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 defineProps<{
@@ -25,6 +25,12 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
+</script>
+
+<script lang="ts">
+    export default {
+        layout: null,
+    }
 </script>
 
 <template>
@@ -82,11 +88,6 @@ const submit = () => {
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Log in
                 </Button>
-            </div>
-
-            <div class="text-center text-sm text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
             </div>
         </form>
     </AuthBase>

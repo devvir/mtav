@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 const form = useForm({
@@ -23,7 +23,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
+    <AuthBase title="Create an account" description="Enter the details below to create an account">
         <Head title="Register" />
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">

@@ -10,22 +10,18 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
-import type { BreadcrumbItem, NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import type { Auth, BreadcrumbItemType, NavItem } from '@/types';
+import { usePage } from '@inertiajs/vue3';
+import { trans } from 'laravel-vue-i18n';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { trans } from 'laravel-vue-i18n';
-
-interface Props {
-    breadcrumbs?: BreadcrumbItem[];
-}
-
-const props = withDefaults(defineProps<Props>(), {
-    breadcrumbs: () => [],
-});
 
 const page = usePage();
-const auth = computed(() => page.props.auth);
+
+defineProps<{
+    auth: Auth;
+    breadcrumbs: BreadcrumbItemType;
+}>();
 
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
@@ -103,7 +99,7 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="route('dashboard')" class="flex items-center gap-x-2">
+                <Link :href="route('home')" class="flex items-center gap-x-2">
                     <AppLogo />
                 </Link>
 
@@ -163,22 +159,22 @@ const rightNavItems: NavItem[] = [
                                 class="relative size-10 w-auto rounded-full p-1 focus-within:ring-2 focus-within:ring-primary"
                             >
                                 <Avatar class="size-8 overflow-hidden rounded-full">
-                                    <AvatarImage v-if="auth.user.avatar" :src="auth.user.avatar" :alt="auth.user.name" />
+                                    <AvatarImage v-if="auth?.user?.avatar" :src="auth.user.avatar" :alt="auth.user.name" />
                                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ getInitials(auth.user?.name) }}
+                                        {{ getInitials(auth?.user.name) }}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-56">
-                            <UserMenuContent :user="auth.user" />
+                            <UserMenuContent :user="auth?.user" />
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </div>
         </div>
 
-        <div v-if="props.breadcrumbs.length > 1" class="flex w-full border-b border-sidebar-border/70">
+        <div v-if="breadcrumbs.length > 1" class="flex w-full border-b border-sidebar-border/70">
             <div class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </div>

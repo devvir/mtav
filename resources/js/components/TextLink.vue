@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Method } from '@inertiajs/core';
-import { Link } from '@inertiajs/vue3';
 
 interface Props {
     href: string;

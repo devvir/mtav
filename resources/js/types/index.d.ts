@@ -3,6 +3,7 @@ import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
+    verified: boolean;
 }
 
 export interface BreadcrumbItem {
@@ -19,20 +20,62 @@ export interface NavItem {
 
 export type AppPageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     name: string;
-    quote: { message: string; author: string };
     auth: Auth;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
 };
 
-export interface User {
+export interface JsonResource {
+    allows?: {
+        viewAny: boolean;
+        view: boolean;
+        create: boolean;
+        update: boolean;
+        delete: boolean;
+        restore: boolean;
+        forceDelete: boolean;
+    }
+};
+
+export interface User extends JsonResource {
+    id: number;
+    email: string;
+    name: string;
+    firstname: string;
+    lastname: string | null;
+    is_admin: boolean;
+    is_superadmin: boolean;
+    phone?: string | null;
+    avatar?: string | null;
+    created_at?: string;
+    family?: Family;
+};
+
+export interface Family extends JsonResource {
     id: number;
     name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
+    members?: User[];
     created_at: string;
-    updated_at: string;
+};
+
+export interface Project extends JsonResource {
+    id: number;
+    name: string;
+    status: boolean;
+    created_at: string;
+};
+
+export interface PaginatedResources {
+    data: User[] | Family[] | Project[];
+
+    path: string;
+    current_page: number;
+    last_page: number;
+    next_page_url: number | null;
 }
+
+type PaginatedUsers = PaginatedResources & { data: User[] };
+type PaginatedFamilies = PaginatedResources & { data: Family[] };
+type PaginatedProjects = PaginatedResources & { data: Project[] };
 
 export type BreadcrumbItemType = BreadcrumbItem;
