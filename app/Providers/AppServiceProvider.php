@@ -25,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
         // Superadmins have full access to any action
         Gate::before(fn (User $user) => $user->isSuperAdmin() ?: null);
 
+        // Uncomment to allow undefined policies by default
+        // Gate::after(fn (?User $user) => true);
+
         JsonResource::withoutWrapping();
     }
 }
