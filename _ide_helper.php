@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.22.1.
+ * Generated for Laravel 12.24.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -13505,7 +13505,7 @@ namespace Illuminate\Support\Facades {
          * Reset the number of attempts for the given key.
          *
          * @param string $key
-         * @return mixed
+         * @return bool
          * @static
          */
         public static function resetAttempts($key)
@@ -17843,10 +17843,8 @@ namespace Illuminate\Support\Facades {
         }
 
         /**
+         * @param array<array-key, mixed> $props
          * @see \Inertia\ServiceProvider::registerRouterMacro()
-         * @param mixed $uri
-         * @param mixed $component
-         * @param mixed $props
          * @static
          */
         public static function inertia($uri, $component, $props = [])
@@ -23625,10 +23623,8 @@ namespace Illuminate\Routing {
      */
     class Router {
         /**
+         * @param array<array-key, mixed> $props
          * @see \Inertia\ServiceProvider::registerRouterMacro()
-         * @param mixed $uri
-         * @param mixed $component
-         * @param mixed $props
          * @static
          */
         public static function inertia($uri, $component, $props = [])
@@ -23683,6 +23679,7 @@ namespace  {
     class Arr extends \Illuminate\Support\Arr {}
     class Artisan extends \Illuminate\Support\Facades\Artisan {}
     class Auth extends \Illuminate\Support\Facades\Auth {}
+    class Benchmark extends \Illuminate\Support\Benchmark {}
     class Blade extends \Illuminate\Support\Facades\Blade {}
     class Broadcast extends \Illuminate\Support\Facades\Broadcast {}
     class Bus extends \Illuminate\Support\Facades\Bus {}
