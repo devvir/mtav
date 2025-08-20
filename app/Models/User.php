@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPolicy;
 use BadMethodCallException;
+use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,7 +55,9 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+    use HasPolicy;
     use Notifiable;
+    use ConvertsToJsonResource;
 
     /**
      * The attributes that are mass assignable.
@@ -190,21 +194,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isNotSuperAdmin(): bool
     {
         return ! $this->isSuperAdmin();
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->getKey(),
-            'firstname' => $this->firstname,
-            'lastname' => $this->lastname,
-            'name' => "{$this->firstname} {$this->lastname}",
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'family' => $this->family?->without('members'),
-            'is_admin' => $this->isAdmin(),
-            'is_super_admin' => $this->isSuperAdmin(),
-            'created_at' => $this->created_at?->toDateTimeString(),
-        ];
     }
 }
