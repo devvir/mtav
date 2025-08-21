@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PaginatedFamilies } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     resource: PaginatedFamilies;
 }>();
 </script>

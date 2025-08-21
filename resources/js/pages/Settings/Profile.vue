@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem, type User } from '@/types';
+import { type User } from '@/types';
+import useBreadcrumbs from '@/store/useBreadcrumbs';
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -15,12 +16,12 @@ interface Props {
 
 defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+useBreadcrumbs().set([
     {
         title: 'Profile settings',
         href: route('profile.edit'),
     },
-];
+]);
 
 const page = usePage();
 const user = page.props.auth.user as User;

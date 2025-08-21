@@ -31,7 +31,9 @@ createInertiaApp({
         );
 
         // Use AppLayout only if no layout is defined in the Page (set to null for no Layout)
-        (typeof page.default.layout === 'undefined') && (page.default.layout = AppLayout);
+        if (typeof page.default.layout === 'undefined') {
+            page.default.layout = AppLayout;
+        }
 
         return page;
     },

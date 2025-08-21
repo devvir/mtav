@@ -1,16 +1,9 @@
 <script setup lang="ts">
+import { User } from '@/types';
 
-defineProps({
-    user: {
-        type: Object,
-        required: false,
-        default: {
-            email: null,
-            firstname: null,
-            lastname: null,
-        }
-    },
-});
+defineProps<{
+    user: User,
+}>();
 </script>
 
 <template>

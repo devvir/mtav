@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import User from '@/components/forms/UserForm.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import useProjects from '@/store/useProjects';
 import { Family, Project } from '@/types';
