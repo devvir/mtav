@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Resources;
 use App\Http\Controllers\ResourceController;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProjectController extends ResourceController
 {
@@ -14,10 +15,12 @@ class ProjectController extends ResourceController
     public function index(Request $request)
     {
         $projects = $request->user()->isSuperAdmin()
-            ? Project::paginate()
-            : $request->user()->projects()->active()->paginate();
+            ? Project::query()
+            : $request->user()->projects()->active();
 
-        return inertia('Projects/Index', compact('projects'));
+        return inertia('Projects/Index', [
+            'projects' => Inertia::deepMerge(fn () => $projects->paginate()->withQueryString()),
+        ]);
     }
 
     /**

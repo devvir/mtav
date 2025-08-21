@@ -30,6 +30,7 @@ watch(() => props.pagination, () => {
     <div v-if="forceLoadMore" class="h-screen"></div>
 
     <WhenVisible
+        v-if="pendingResults"
         :params="{ only: [ loadable ], data: { page: pagination.current_page + 1, ...(data ?? {}) } }"
         :always="pendingResults"
         :buffer="200"
