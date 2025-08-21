@@ -19,19 +19,32 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $fullName = trim($this->firstname . ' ' . ($this->lastname ?? ''));
+
         return [
             'id'             => $this->id,
             'email'          => $this->email,
-            'phone'          => $this->phone,
-            'firstname'      => $this->firstname,
-            'lastname'       => $this->lastname,
-            'name'           => trim("{$this->firstname} {$this->lastname}"),
+            'phone'          => $this->phone ?? '',
+            'firstname'      => $this->firstname ?? '',
+            'lastname'       => $this->lastname ?? '',
+            'name'           => $fullName,
+            'avatar'         => $this->resolveAvatar($fullName),
             'is_admin'       => $this->isAdmin(),
             'is_superadmin'  => $this->isSuperAdmin(),
-            'family'         => $this->whenLoaded('family', fn () => [
+            'created_at'     => $this->created_at->toDateTimeString(),
+
+            'family' => $this->whenLoaded('family', fn () => [
                 'id'   => $this->resource->family->id,
                 'name' => $this->resource->family->name,
             ]),
         ];
+    }
+
+    private function resolveAvatar($fullName): string
+    {
+        $urlEncodedName = urlencode($fullName);
+
+        return $this->avatar
+            ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random&rounded=true";
     }
 }

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { Family, Project } from '@/types';
 import { getCurrentProject } from '@/composables/useProjects';
+import { Family, Project } from '@/types';
 import { ComputedRef } from 'vue';
 
-defineProps<{
-    families: Family[];
+const props = defineProps<{
+    family: Family;
 }>();
 
 const currentProject = getCurrentProject() as ComputedRef<Project>;
@@ -16,16 +16,16 @@ useBreadcrumbs().set([
         href: route('projects.show', currentProject.value.id),
     },
     {
-        title: 'Members',
-        href: route('users.index'),
+        title: 'Families',
+        href: route('families.index'),
+    },
+    {
+        title: props.family.name,
+        href: route('families.show', props.family.id),
     },
 ]);
 </script>
 
 <template>
-    <Head title="Members" />
-
-    <UserForm class="mt-10">
-        Register a new Member
-    </UserForm>
+    <Head title="Update Family" />
 </template>

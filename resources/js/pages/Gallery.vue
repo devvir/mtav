@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import useProjects from '@/store/useProjects';
-import { type BreadcrumbItem } from '@/types';
+import { getCurrentProject } from '@/composables/useProjects';
+import useBreadcrumbs from '@/store/useBreadcrumbs';
+import { Project, type BreadcrumbItem } from '@/types';
 import { trans } from 'laravel-vue-i18n';
+import { ComputedRef } from 'vue';
 
-const project = useProjects().current;
+const currentProject = getCurrentProject() as ComputedRef<Project>;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: trans('Gallery'),
-        href: '/gallery',
+        href: route('gallery'),
     },
 ];
 
-if (project) {
+if (currentProject) {
     breadcrumbs.unshift({
-        title: project.name,
-        href: `/projects/${project.id}`,
+        title: currentProject.value.name,
+        href: route('projects.show', currentProject.value.id),
     });
 }
+
+useBreadcrumbs().set(breadcrumbs);
 </script>
 
 <template>

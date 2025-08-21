@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'state' => [
                 'project' => state('project'),
+                'groupMembers' => state('groupMembers'),
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

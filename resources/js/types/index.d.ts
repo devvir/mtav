@@ -40,14 +40,14 @@ export interface JsonResource {
 export interface User extends JsonResource {
     id: number;
     email: string;
+    phone: string;
     name: string;
     firstname: string;
-    lastname: string | null;
+    lastname: string;
+    avatar: string;
     is_admin: boolean;
     is_superadmin: boolean;
-    phone?: string | null;
-    avatar?: string | null;
-    created_at?: string;
+    created_at: string;
     family?: Family;
 };
 

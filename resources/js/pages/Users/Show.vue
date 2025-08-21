@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import DeleteUser from '@/pages/Users/Partials/DeleteUser.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
-import useProjects from '@/store/useProjects';
+import { getCurrentProject } from '@/composables/useProjects';
 import { Project, User } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import { ComputedRef } from 'vue';
 
 const props = defineProps<{
     user: User;
 }>();
 
-const project = useProjects().current as Project;
+const currentProject = getCurrentProject() as ComputedRef<Project>;
 
 useBreadcrumbs().set([
     {
-        title: project.name,
-        href: route('projects.show', project.id),
+        title: currentProject.value.name,
+        href: route('projects.show', currentProject.value.id),
     },
     {
         title: 'Members',

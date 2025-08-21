@@ -6,6 +6,7 @@ use App\Models\Concerns\HasPolicy;
 use BadMethodCallException;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -149,6 +150,23 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $this->projects->where('pivot.active', true)->first();
+    }
+
+    public function scopeAlphabetically(Builder $query): void
+    {
+        $query->orderBy('firstname')->orderBy('lastname');
+    }
+
+    public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
+    {
+        $query
+            ->whereLike('email', "%$q%")
+            ->orWhereLike('phone', "%$q%")
+            ->orWhereLike('firstname', "%$q%")
+            ->orWhereLike('lastname', "%$q%")
+            ->when($searchFamily, fn (Builder $query) => $query
+                ->orWhereHas('family', fn (Builder $query) => $query->whereLike('name', "%$q%")
+            ));
     }
 
     public function joinProject(Project $project): self

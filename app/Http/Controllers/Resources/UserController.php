@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Controllers\ResourceController;
-use App\Http\Requests\CreateMemberRequest;
+use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,41 +16,31 @@ use Inertia\Response;
 class UserController extends ResourceController
 {
     /**
-     * Show the members dashboard.
+     * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $groupedByFamily = $request->boolean('grouped', true);
+        setState('groupMembers', false);
 
-        $families = state('project')->families()
-            ->orderBy('name')
-            ->with(['members' => fn ($query) => $query->orderBy('lastname')->orderBy('firstname')]);
-
-        $members = state('project')->members()
-            ->orderBy('firstname')
-            ->orderBy('lastname')
+        $members = state('project')
+            ->members()->alphabetically()
+            ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true))
             ->with('family:id,name');
 
-        $resourceBuilder = $groupedByFamily ? $families : $members;
-
         return inertia('Users/Index', [
-            'grouped'  => $groupedByFamily,
-            'admins'   => Inertia::optional(fn () => state('project')->admins),
-            'resource' => Inertia::deepMerge(fn () => $resourceBuilder->paginate(24)),
+            'admins'  => Inertia::optional(fn () => state('project')->admins),
+            'members' => Inertia::deepMerge(fn () => $members->paginate(24)->withQueryString()),
+            'q'       => $request->string('q', ''),
         ]);
     }
 
     /**
-     * Show the project details.
+     * Display the specified resource.
      */
-    public function show(Request $request, User $user)
+    public function show(User $user): Response
     {
         return inertia('Users/Show', [
             'user' => $user,
-            'can' => [
-                'delete' => can('update', $user),
-                'delete' => can('delete', $user),
-            ],
         ]);
     }
 
@@ -63,7 +55,7 @@ class UserController extends ResourceController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateMemberRequest $request): RedirectResponse
+    public function store(CreateUserRequest $request): RedirectResponse
     {
         $user = User::create($request->validated());
 
@@ -73,7 +65,25 @@ class UserController extends ResourceController
     }
 
     /**
-     * Delete the user's profile.
+     * Show the form for editing the specified resource.
+     */
+    public function edit(User $user): Response
+    {
+        return inertia('Users.Edit', compact('user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    {
+        User::update($request->validated());
+
+        return to_route('users.show', $user->id);
+    }
+
+    /**
+     * Delete the resource.
      */
     public function destroy(User $user): RedirectResponse
     {

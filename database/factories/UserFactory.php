@@ -29,9 +29,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),
             'email_verified_at' => now(),
-            'firstname' => $firstname = fake()->firstName(),
-            'lastname' => $lastname = fake()->lastName(),
-            'avatar' => "https://ui-avatars.com/api/?name=$firstname%20$lastname&background=0D8ABC&color=fff",
+            'firstname' => fake()->firstName(),
+            'lastname' => fake()->lastName(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];

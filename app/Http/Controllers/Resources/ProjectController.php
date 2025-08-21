@@ -14,8 +14,8 @@ class ProjectController extends ResourceController
     public function index(Request $request)
     {
         $projects = $request->user()->isSuperAdmin()
-            ? Project::all()
-            : $request->user()->projects()->active()->get();
+            ? Project::paginate()
+            : $request->user()->projects()->active()->paginate();
 
         return inertia('Projects/Index', compact('projects'));
     }

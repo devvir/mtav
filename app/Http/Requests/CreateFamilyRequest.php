@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateMemberRequest extends FormRequest
+class CreateFamilyRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -15,9 +14,7 @@ class CreateMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ];
     }
 }

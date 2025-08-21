@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import useProjects from '@/store/useProjects';
-import { Project } from '@/types';
+import { getCurrentProject } from '@/composables/useProjects';
 import { trans } from 'laravel-vue-i18n';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
+import { Project } from '@/types';
+import { ComputedRef } from 'vue';
 
-const project = useProjects().current as Project;
+const currentProject = getCurrentProject() as ComputedRef<Project>;
 
 useBreadcrumbs().set([
     {
-        title: project.name,
-        href: route('projects.show', project.id),
+        title: currentProject.value.name,
+        href: route('projects.show', currentProject.value.id),
     },
     {
         title: trans('Dashboard'),

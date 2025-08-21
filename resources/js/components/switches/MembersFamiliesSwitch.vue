@@ -2,7 +2,7 @@
 
 const props = defineProps<{
     active: boolean;
-    grouped: boolean;
+    routeName: string;
     side: 'left' | 'right';
 }>();
 
@@ -11,10 +11,9 @@ const roundedClass = props.side === 'left' ? 'rounded-l-xl' : 'rounded-r-xl';
 
 <template>
     <Link as="button"
-        class="block py-1 px-3 disabled:cursor-default"
-        :href="route('users.index')"
+        class="block w-full py-1 px-3 disabled:cursor-default"
+        :href="route(routeName)"
         :class="[roundedClass, { 'bg-sidebar hover:bg-accent cursor-pointer': ! active }]"
-        :data="{ grouped }"
         :disabled="active"
         prefetch
     ><slot /></Link>

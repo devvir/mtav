@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Resources\HomeController;
+use App\Http\Controllers\Resources\DashboardController;
 use App\Http\Controllers\Resources\GalleryController;
 use App\Http\Controllers\Resources\LogController;
 use App\Http\Controllers\Resources\UserController;
 use App\Http\Controllers\Resources\ProjectController;
+use App\Http\Controllers\Resources\UnitController;
 use App\Http\Middleware\Auth\ProjectMustBeSelected;
 use Illuminate\Support\Facades\Route;
 
@@ -16,13 +18,12 @@ Route::resource('projects', ProjectController::class)->only('show');
  * Project-based pages
  */
 Route::middleware(ProjectMustBeSelected::class)->group(function () {
-    Route::get('/', HomeController::class)->name('home');
-
+    Route::get('/', DashboardController::class)->name('home');
     Route::get('gallery', GalleryController::class)->name('gallery');
 
     Route::resource('users', UserController::class)->only('index', 'show');
-    Route::resource('families', UserController::class)->only('index', 'show');
-    Route::resource('units', UserController::class)->only('index', 'show');
+    Route::resource('families', FamilyController::class)->only('index', 'show');
+    Route::resource('units', UnitController::class)->only('index', 'show');
     Route::resource('logs', LogController::class)->only('index', 'show');
 });
 
