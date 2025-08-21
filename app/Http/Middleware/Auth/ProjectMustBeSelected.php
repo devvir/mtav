@@ -26,7 +26,7 @@ class ProjectMustBeSelected
         if ($request->user()->isNotSuperAdmin() && $request->user()->projects->count() === 1) {
             setState('project', $request->user()->project);
 
-            return redirect()->route($request->route()->getName() ?? '/');
+            return $next($request);
         }
 
         // Admin/Superadmin requests redirect to the Project index/selection page

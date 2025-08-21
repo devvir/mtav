@@ -40,6 +40,6 @@ class ProfileController
             'email' => $email,
         ])->save();
 
-        return back()->with('success', 'Profile updated!');
+        return to_route('profile.edit')->with('success', 'Profile updated!');
     }
 }
