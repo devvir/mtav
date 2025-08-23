@@ -48,6 +48,9 @@ export interface User extends JsonResource {
     is_admin: boolean;
     is_superadmin: boolean;
     created_at: string;
+    created_ago: string;
+
+    family_id: number | null;
     family?: Family;
 };
 

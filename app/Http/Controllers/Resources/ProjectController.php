@@ -16,7 +16,7 @@ class ProjectController extends ResourceController
     {
         $projects = $request->user()->isSuperAdmin()
             ? Project::query()
-            : $request->user()->projects()->active();
+            : $request->user()->projects();
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate()->withQueryString()),

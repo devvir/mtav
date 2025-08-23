@@ -22,18 +22,20 @@ class UserResource extends JsonResource
         $fullName = trim($this->firstname . ' ' . ($this->lastname ?? ''));
 
         return [
-            'id'             => $this->id,
-            'email'          => $this->email,
-            'phone'          => $this->phone ?? '',
-            'firstname'      => $this->firstname ?? '',
-            'lastname'       => $this->lastname ?? '',
-            'name'           => $fullName,
-            'avatar'         => $this->resolveAvatar($fullName),
-            'is_admin'       => $this->isAdmin(),
-            'is_superadmin'  => $this->isSuperAdmin(),
-            'created_at'     => $this->created_at->toDateTimeString(),
+            'id'            => $this->id,
+            'email'         => $this->email,
+            'phone'         => $this->phone ?? '',
+            'firstname'     => $this->firstname ?? '',
+            'lastname'      => $this->lastname ?? '',
+            'name'          => $fullName,
+            'avatar'        => $this->resolveAvatar($fullName),
+            'is_admin'      => $this->isAdmin(),
+            'is_superadmin' => $this->isSuperAdmin(),
+            'created_at'    => $this->created_at->toDateTimeString(),
+            'created_ago'   => $this->created_at->diffForHumans(),
 
-            'family' => $this->whenLoaded('family', fn () => [
+            'family_id' => $this->family_id,
+            'family'    => $this->whenLoaded('family', fn () => [
                 'id'   => $this->resource->family->id,
                 'name' => $this->resource->family->name,
             ]),

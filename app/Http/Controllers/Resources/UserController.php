@@ -22,14 +22,14 @@ class UserController extends ResourceController
     {
         setState('groupMembers', false);
 
-        $members = state('project')
-            ->members()->alphabetically()
-            ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true))
-            ->with('family:id,name');
+        $pool = state('project') ? state('project')->members() : User::query();
+
+        $members = $pool->alphabetically()->with('family:id,name')
+            ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true));
 
         return inertia('Users/Index', [
             'admins'  => Inertia::optional(fn () => state('project')->admins),
-            'members' => Inertia::deepMerge(fn () => $members->paginate(24)->withQueryString()),
+            'members' => Inertia::deepMerge(fn () => $members->paginate(20)->withQueryString()),
             'q'       => $request->string('q', ''),
         ]);
     }
@@ -39,9 +39,9 @@ class UserController extends ResourceController
      */
     public function show(User $user): Response
     {
-        return inertia('Users/Show', [
-            'user' => $user,
-        ]);
+        $user->load('family');
+
+        return inertia('Users/Show', compact('user'));
     }
 
     /**

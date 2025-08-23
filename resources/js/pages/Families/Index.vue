@@ -16,12 +16,13 @@ const currentProject = getCurrentProject() as ComputedRef<Project>;
 
 useBreadcrumbs().set([
     {
-        title: currentProject.value.name,
-        href: route('projects.show', currentProject.value.id),
+        title: currentProject.value?.name,
+        route: 'projects.show',
+        params: currentProject.value?.id,
     },
     {
         title: 'Families',
-        href: route('families.index'),
+        route: 'families.index',
     },
 ]);
 </script>
@@ -31,7 +32,7 @@ useBreadcrumbs().set([
 
     <AjaxSearch :q="q">
         <template #right>
-            <div class="flex justify-around m-2 p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
+            <div class="flex justify-around p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
                 <MembersFamiliesSwitch side="left" :active="true" route-name="families.index">Families</MembersFamiliesSwitch>
                 <MembersFamiliesSwitch side="right" :active="false" route-name="users.index">Members</MembersFamiliesSwitch>
             </div>
@@ -46,10 +47,14 @@ useBreadcrumbs().set([
             v-for="family in families.data" :key="family.id"
             class="flex-1 px-6 py-4 min-w-62 lg:min-w-96 xl:min-w-72 max-w-[800px] xl:max-w-96 rounded-2xl shadow-lg/45 shadow-blue-400 bg-sidebar border-t border-t-blue-400"
         >
-            <div class="flex justify-end items-center-safe px-3 py-5 border-b border-gray-200 dark:border-gray-700" :title="family.name">
+            <Link
+                :href="route('families.show', family.id)"
+                class="flex justify-end items-center-safe px-3 py-5 border-b border-gray-200 dark:border-gray-700"
+                :title="family.name"
+            >
                 <div class="mr-2 text-sm text-gray-300 dark:text-gray-600">Family</div>
                 <div class="text-2xl truncate">{{ family.name }}</div>
-            </div>
+            </Link>
 
             <div class="flex flex-col justify-between mt-6 mb-3 gap-1">
                 <Link

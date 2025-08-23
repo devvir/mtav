@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::resource('projects', ProjectController::class)->only('show');
 
+Route::resource('users', UserController::class)->only('index', 'show');
+Route::resource('families', FamilyController::class)->only('index', 'show');
+
 /**
  * Project-based pages
  */
@@ -21,8 +24,6 @@ Route::middleware(ProjectMustBeSelected::class)->group(function () {
     Route::get('/', DashboardController::class)->name('home');
     Route::get('gallery', GalleryController::class)->name('gallery');
 
-    Route::resource('users', UserController::class)->only('index', 'show');
-    Route::resource('families', FamilyController::class)->only('index', 'show');
     Route::resource('units', UnitController::class)->only('index', 'show');
     Route::resource('logs', LogController::class)->only('index', 'show');
 });

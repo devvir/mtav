@@ -20,14 +20,15 @@ class FamilyController extends ResourceController
     {
         setState('groupMembers', true);
 
-        $families = state('project')
-            ->families()->orderBy('name')
-            ->when($request->string('q'), fn ($query, $q) => $query->search($q, true))
-            ->with(['members' => fn ($query) => $query->alphabetically()]);
+        $pool = state('project') ? state('project')->families() : Family::query();
+
+        $families = $pool->orderBy('name')
+            ->with(['members' => fn ($query) => $query->alphabetically()])
+            ->when($request->string('q'), fn ($query, $q) => $query->search($q, true));
 
         return inertia('Families/Index', [
             'admins'   => Inertia::optional(fn () => state('project')->admins),
-            'families' => Inertia::deepMerge(fn () => $families->paginate(24)->withQueryString()),
+            'families' => Inertia::deepMerge(fn () => $families->paginate(20)->withQueryString()),
             'q'        => $request->string('q', ''),
         ]);
     }
@@ -37,6 +38,8 @@ class FamilyController extends ResourceController
      */
     public function show(Family $family): Response
     {
+        $family->load('members');
+
         return inertia('Families/Show', compact('family'));
     }
 

@@ -40,18 +40,20 @@ const disabled = computed(
 </script>
 
 <template>
-    <div class="flex-1 p-5 space-y-6 border rounded-md lg:min-w-[600px]">
+    <div class="flex-1 p-5 space-y-8 border rounded-md lg:min-w-[600px]">
         <HeadingSmall title="Delete account" description="Delete this account and all of its resources" />
 
         <div class="p-6 space-y-4 rounded-lg border border-red-100 bg-red-50 dark:border-red-200/10 dark:bg-red-700/10">
             <div class="relative space-y-1 text-red-600 dark:text-red-100">
                 <p class="font-medium">Warning</p>
-                <p class="text-sm">Please proceed with caution, this action cannot be undone.</p>
+                <p class="text-xs">Please proceed with caution, this action cannot be undone.</p>
             </div>
+
             <Dialog>
-                <DialogTrigger as-child>
-                    <Button variant="destructive">Delete account</Button>
+                <DialogTrigger as-child class="mt-6">
+                    <Button variant="destructive" class="hover:cursor-pointer">Delete account</Button>
                 </DialogTrigger>
+
                 <DialogContent>
                     <form class="space-y-8" @submit.prevent="deleteUser">
                         <DialogHeader class="space-y-3">

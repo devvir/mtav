@@ -11,11 +11,12 @@ use Illuminate\Support\Facades\Route;
 Route::resource('projects', ProjectController::class)->only('index', 'edit', 'update');
 Route::post('projects/{project}', SetCurrentProjectController::class)->name('setCurrentProject');
 
+Route::resource('users', UserController::class)->only('create', 'store', 'edit', 'update', 'destroy');
+
 /**
  * Project-based pages
  */
 Route::middleware(ProjectMustBeSelected::class)->group(function () {
-    Route::resource('users', UserController::class)->only('create', 'store', 'edit', 'update', 'destroy');
     Route::resource('families', UserController::class)->only('create', 'store', 'destroy');
     Route::resource('units', UnitController::class)->only('create', 'store', 'edit', 'update', 'destroy');
 

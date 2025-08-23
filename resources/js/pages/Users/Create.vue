@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { Family, Project } from '@/types';
 import { getCurrentProject } from '@/composables/useProjects';
-import { ComputedRef } from 'vue';
+import UserForm from '@/components/forms/UserForm.vue';
 
-defineProps<{
-    families: Family[];
-}>();
+const currentProject = getCurrentProject();
 
-const currentProject = getCurrentProject() as ComputedRef<Project>;
+const breadcrumbs = [];
 
-useBreadcrumbs().set([
-    {
+if (currentProject.value) {
+    breadcrumbs.push({
         title: currentProject.value.name,
         href: route('projects.show', currentProject.value.id),
-    },
-    {
-        title: 'Members',
-        href: route('users.index'),
-    },
-]);
+    });
+};
+
+useBreadcrumbs().set([...breadcrumbs, {
+    title: 'Members',
+    href: route('users.index'),
+}, {
+    title: 'New Member',
+    href: route('users.create'),
+}]);
 </script>
 
 <template>

@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { activeNavItem } from '@/composables/useNavItems';
 import { type NavItem } from '@/types';
-import { usePage } from '@inertiajs/vue3';
 
 defineProps<{
     items: NavItem[];
 }>();
-
-const page = usePage();
 </script>
 
 <template>
     <SidebarGroup class="px-2 py-0">
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
-                <SidebarMenuButton as-child :is-active="item.href === page.url" :tooltip="item.title">
+                <SidebarMenuButton as-child :is-active="item.title == activeNavItem?.title" :tooltip="item.title">
                     <Link :href="item.href" prefetch>
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>

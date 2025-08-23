@@ -2,29 +2,37 @@
 import { User } from '@/types';
 
 defineProps<{
-    user: User,
+    user?: User,
 }>();
 </script>
 
 <template>
     <div class="p-10">
-        <h1 class="mb-8 font-bold"><slot /></h1>
+        <h1 class="mb-8 font-bold">
+            <slot />
+        </h1>
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <form>
                 <div class="mt-4">
                     <label class="block" for="email">Email</label>
-                    <input class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1" id="email" type="email" name="email" required />
+                    <input
+                        class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1"
+                        id="email" type="email" name="email" required />
                 </div>
 
                 <div class="mt-4">
-                    <label class="block" for="name">First Name</label>
-                    <input class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1" id="firstname" name="firstname" required autofocus />
+                    <label class="block" for="firstname">First Name</label>
+                    <input
+                        class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1"
+                        id="firstname" name="firstname" required autofocus />
                 </div>
 
                 <div class="mt-4">
-                    <label class="block" for="name">Last Name</label>
-                    <input class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1" id="lastname" name="firstname" required autofocus />
+                    <label class="block" for="lastname">Last Name</label>
+                    <input
+                        class="w-full shadow-inner bg-gray-100 rounded-lg placeholder-black p-4 border-none block mt-1"
+                        id="lastname" name="lastname" required autofocus />
                 </div>
             </form>
 

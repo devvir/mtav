@@ -2,9 +2,8 @@
 import InfiniteScroll from '@/components/InfiniteScroll.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentProject } from '@/composables/useProjects';
-import { PaginatedUsers, Project } from '@/types';
+import { PaginatedUsers } from '@/types';
 import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.vue';
-import { ComputedRef } from 'vue';
 import AjaxSearch from '@/components/forms/AjaxSearch.vue';
 
 defineProps<{
@@ -12,16 +11,17 @@ defineProps<{
     q: string;
 }>();
 
-const currentProject = getCurrentProject() as ComputedRef<Project>;
+const currentProject = getCurrentProject();
 
 useBreadcrumbs().set([
     {
-        title: currentProject.value.name,
-        href: route('projects.show', currentProject.value.id),
+        title: currentProject.value?.name,
+        route: 'projects.show',
+        params: currentProject.value?.id,
     },
     {
         title: 'Members',
-        href: route('users.index'),
+        route: 'users.index',
     },
 ]);
 </script>
@@ -50,7 +50,11 @@ useBreadcrumbs().set([
                     </div>
                     <div class="flex flex-col items-end justify-center-safe" :title="member.name">
                         <div class="text-xl truncate">{{ member.name }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Family {{  member.family?.name }}</div>
+
+                        <Link
+                            :href="route('families.show', member.family?.id)"
+                             class="mt-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        >Family {{  member.family?.name }}</Link>
                     </div>
                 </div>
 

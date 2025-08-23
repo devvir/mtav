@@ -35,10 +35,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Project extends Model
 {
-    protected $casts = [
-        'active' => 'boolean',
-    ];
-
     /**
      * Units (houses/apartments) defined in this habitational project.
      */
@@ -80,16 +76,6 @@ class Project extends Model
     public function getFamiliesAttribute(): Collection
     {
         return $this->families()->with('members')->get();
-    }
-
-    public function scopeActive(Builder $builder): void
-    {
-        $builder->where('active', true);
-    }
-
-    public function scopeInactive(Builder $builder): void
-    {
-        $builder->where('active', false);
     }
 
     /**

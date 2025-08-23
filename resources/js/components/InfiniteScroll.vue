@@ -33,7 +33,7 @@ watch(() => props.pagination, () => {
         v-if="pendingResults"
         :params="{ only: [ loadable ], data: { page: pagination.current_page + 1, ...(data ?? {}) } }"
         :always="pendingResults"
-        :buffer="200"
+        :buffer="600"
     >
         <template #fallback>
             <div class="flex justify-around my-5">
