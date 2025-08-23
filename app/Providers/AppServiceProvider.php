@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -29,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
         // Gate::after(fn (?User $user) => true);
 
         JsonResource::withoutWrapping();
+
+        if (! app()->environment('production')) {
+            Model::shouldBeStrict();
+        }
     }
 }
