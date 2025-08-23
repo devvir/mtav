@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-    <SidebarGroup class="px-2 py-0">
+    <SidebarGroup class="mt-4 px-2 py-0">
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton as-child :is-active="item.title == activeNavItem?.title" :tooltip="item.title">

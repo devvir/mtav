@@ -28,7 +28,7 @@ class UserController extends ResourceController
             ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true));
 
         return inertia('Users/Index', [
-            'admins'  => Inertia::optional(fn () => state('project')->admins),
+            'admins'  => Inertia::defer(fn () => state('project')->admins ?? []),
             'members' => Inertia::deepMerge(fn () => $members->paginate(20)->withQueryString()),
             'q'       => $request->string('q', ''),
         ]);

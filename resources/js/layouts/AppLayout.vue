@@ -28,6 +28,6 @@ const breadcrumbs = useBreadcrumbs();
         @click="flash.success = null"
         title="Click to hide"
     >
-        <div class="text-green-800 text-sm self-center m-auto">{{  flash.success }}</div>
+        <div class="text-green-800 text-sm self-center m-auto">{{ flash.success }}</div>
     </div>
 </template>

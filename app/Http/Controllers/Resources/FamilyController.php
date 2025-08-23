@@ -27,7 +27,6 @@ class FamilyController extends ResourceController
             ->when($request->string('q'), fn ($query, $q) => $query->search($q, true));
 
         return inertia('Families/Index', [
-            'admins'   => Inertia::optional(fn () => state('project')->admins),
             'families' => Inertia::deepMerge(fn () => $families->paginate(20)->withQueryString()),
             'q'        => $request->string('q', ''),
         ]);

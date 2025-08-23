@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactAdminController;
 use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -23,6 +24,8 @@ Route::resource('families', FamilyController::class)->only('index', 'show');
 Route::middleware(ProjectMustBeSelected::class)->group(function () {
     Route::get('/', DashboardController::class)->name('home');
     Route::get('gallery', GalleryController::class)->name('gallery');
+
+    Route::get('admins/{admin}/contact', [ContactAdminController::class, 'create'])->name('admins.contact');
 
     Route::resource('units', UnitController::class)->only('index', 'show');
     Route::resource('logs', LogController::class)->only('index', 'show');

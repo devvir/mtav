@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/composables/useAuth';
 import { getCurrentProject } from '@/composables/useProjects';
 import { PaginatedProjects, User } from '@/types';
 import { ComputedRef } from 'vue';
-import InfiniteScroll from '@/components/InfiniteScroll.vue';
+import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 
 defineProps<{
     projects: PaginatedProjects;

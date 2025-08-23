@@ -35,10 +35,8 @@ watch(() => props.pagination, () => {
         :always="pendingResults"
         :buffer="600"
     >
-        <template #fallback>
-            <div class="flex justify-around my-5">
-                <span class="text-xs">Loading...</span>
-            </div>
-        </template>
+        <div v-if="pendingResults" class="flex justify-around my-5">
+            <span class="text-xs">Loading...</span>
+        </div>
     </WhenVisible>
 </template>

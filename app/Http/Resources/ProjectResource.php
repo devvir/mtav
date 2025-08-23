@@ -20,7 +20,6 @@ class ProjectResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'active' => $this->when($request->user()?->isSuperAdmin(), $this->active),
             'created_at' => $this->created_at,
         ];
     }

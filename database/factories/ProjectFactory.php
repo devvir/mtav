@@ -24,25 +24,28 @@ class ProjectFactory extends Factory
         ];
     }
 
+    public function configure()
+    {
+        $defaultAdmin = once(fn () => User::firstWhere('email', 'admin@example.com'));
+
+        return $this->afterCreating(
+            fn (Project $project) => $project->addUser($defaultAdmin)
+        );
+    }
+
     public function withMembers(?int $min = null, ?int $max = null): static
     {
         $max ??= $min ?? 10;
         $min ??= 3;
 
-        $defaultAdmin = User::firstWhere('email', 'admin@example.com');
-
-        return $this
-            ->afterCreating(
-                fn (Project $project) => $project->addUser($defaultAdmin)
+        return $this->afterCreating(
+            fn (Project $project) => $project->users()->attach(
+                User::factory()
+                    ->withExistingFamily()
+                    ->count(rand($min, $max))
+                    ->create()
             )
-            ->afterCreating(
-                fn (Project $project) => $project->users()->attach(
-                    User::factory()
-                        ->withExistingFamily()
-                        ->count(rand($min, $max))
-                        ->create()
-                )
-            );
+        );
     }
 
     public function withUnits(?int $min = null, ?int $max = null): static
