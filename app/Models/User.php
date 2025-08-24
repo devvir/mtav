@@ -63,7 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
-            ->withPivot('active')
+            ->wherePivot('active', true)
             ->withTimestamps();
     }
 
@@ -96,6 +96,16 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $this->projects->where('pivot.active', true)->first();
+    }
+
+    public function scopeMembers(Builder $query): void
+    {
+        $query->whereNotNull('family_id')->where('is_admin', false);
+    }
+
+    public function scopeAdmins(Builder $query): void
+    {
+        $query->where('is_admin', true);
     }
 
     public function scopeAlphabetically(Builder $query): void

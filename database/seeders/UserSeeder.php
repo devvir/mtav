@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
             return;
         }
 
-        User::factory()->create([
+        User::factory()->admin()->create([
             'id'         => 1,
             'firstname'  => 'Test',
             'lastname'   => 'Superadmin',

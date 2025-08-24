@@ -11,6 +11,8 @@ class RefreshCsrfTokenController
      */
     public function __invoke(Request $request)
     {
-        $request->session()->regenerateToken();
+        if ($request->user()) {
+            $request->session()->regenerateToken();
+        }
     }
 }

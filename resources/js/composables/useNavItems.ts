@@ -65,7 +65,9 @@ const footerItems: NavItemBuilder[] = [
     },
 ];
 
-const filterOutNavItems = (item: NavItemBuilder): boolean => !! item.if?.value;
+const filterOutNavItems = (item: NavItemBuilder): boolean => {
+    return ! item.if || item.if?.value;
+}
 
 const buildNavItem = (builder: NavItemBuilder): NavItem => {
     const { title, href, icon } = builder;

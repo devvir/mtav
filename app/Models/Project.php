@@ -45,12 +45,12 @@ class Project extends Model
 
     public function members(): BelongsToMany
     {
-        return $this->activeUsers()->whereIsAdmin(false);
+        return $this->activeUsers()->members();
     }
 
     public function admins(): BelongsToMany
     {
-        return $this->activeUsers()->whereIsAdmin(true);
+        return $this->activeUsers()->admins();
     }
 
     public function logs(): HasMany

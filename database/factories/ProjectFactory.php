@@ -45,7 +45,7 @@ class ProjectFactory extends Factory
         return $this->afterCreating(
             fn (Project $project) => $project->users()->attach(
                 User::factory()
-                    ->withExistingFamily()
+                    ->withFamily()
                     ->count(rand($min, $max))
                     ->create()
             )

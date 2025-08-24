@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         updateState('groupMembers', false);
 
-        $pool = Project::current()?->members() ?? User::query();
+        $pool = Project::current()?->members() ?? User::members();
 
         $members = $pool->alphabetically()->with('family:id,name')
             ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true));
