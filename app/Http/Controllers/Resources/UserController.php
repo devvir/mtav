@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,16 +20,16 @@ class UserController extends Controller
      */
     public function index(Request $request): Response
     {
-        setState('groupMembers', false);
+        updateState('groupMembers', false);
 
-        $pool = state('project') ? state('project')->members() : User::query();
+        $pool = Project::current()?->members() ?? User::query();
 
         $members = $pool->alphabetically()->with('family:id,name')
             ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true));
 
         return inertia('Users/Index', [
-            'admins'  => Inertia::defer(fn () => state('project')->admins ?? []),
-            'members' => Inertia::deepMerge(fn () => $members->paginate(20)->withQueryString()),
+            'admins'  => Inertia::defer(fn () => Project::current()?->admins ?? []),
+            'members' => Inertia::deepMerge(fn () => $members->paginate(20)),
             'q'       => $request->string('q', ''),
         ]);
     }

@@ -17,7 +17,7 @@ class UserPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(?User $user)
+    public function viewAny()
     {
         return true;
     }
@@ -25,7 +25,7 @@ class UserPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $authUser, User $user): bool
+    public function view(): bool
     {
         return true;
     }
@@ -53,14 +53,6 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->isAdmin() && $model->deleted_at;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, User $model): bool
-    {
-        return false;
+        return $user->isAdmin() && $model->isSoftDeletable() && $model->deleted_at;
     }
 }

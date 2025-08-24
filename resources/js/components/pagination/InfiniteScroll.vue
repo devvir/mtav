@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { WhenVisible } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { router, WhenVisible } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     loadable: string;
@@ -16,7 +16,7 @@ const props = defineProps<{
 const forceLoadMore = ref(false);
 const pendingResults = computed(() => props.pagination.current_page < props.pagination.last_page);
 
-watch(() => props.pagination, () => {
+router.on('finish', () => {
     window.history.replaceState({}, '', props.pagination.path);
 
     forceLoadMore.value = pendingResults.value;

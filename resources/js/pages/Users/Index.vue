@@ -63,7 +63,7 @@ useBreadcrumbs().set([
                             <div class="text-xl truncate">{{ member.name }}</div>
 
                             <Link
-                                v-if="member.family.loaded"
+                                v-if="member.family?.loaded"
                                 :href="route('families.show', member.family.id)"
                                  class="mt-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             >Family {{ member.family.name }}</Link>

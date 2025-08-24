@@ -17,7 +17,7 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray(Request $_): array
     {
         $fullName = trim($this->firstname . ' ' . ($this->lastname ?? ''));
 
@@ -34,11 +34,24 @@ class UserResource extends JsonResource
             'created_at'    => $this->created_at->toDateTimeString(),
             'created_ago'   => $this->created_at->diffForHumans(),
 
-            'family'    => $this->whenLoaded('family', fn () => [
-                'id'     => $this->resource->family->id,
-                'name'   => $this->resource->family->name,
-                'loaded' => true,
-            ], [ 'id' => $this->family_id ]),
+            ...$this->relationsData(),
+        ];
+    }
+
+    private function relationsData(): array
+    {
+        return [
+            'family'    => $this->whenLoaded(
+                'family',
+                fn () => [
+                    'id'     => $this->resource->family->id,
+                    'name'   => $this->resource->family->name,
+                    'loaded' => true,
+                ],
+                [
+                    'id' => $this->family_id,
+                ]
+            ),
         ];
     }
 

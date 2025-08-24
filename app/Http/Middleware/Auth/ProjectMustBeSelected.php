@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Auth;
 
+use App\Models\Project;
 use BadMethodCallException;
 use Closure;
 use Illuminate\Http\Request;
@@ -13,18 +14,18 @@ class ProjectMustBeSelected
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         // A Project is already selected
-        if (state('project')) {
+        if (Project::current()) {
             return $next($request);
         }
 
         // User has only one Project: set it as current
         if ($request->user()->isNotSuperAdmin() && $request->user()->projects->count() === 1) {
-            setState('project', $request->user()->project);
+            Project::current($request->user()->project);
 
             return $next($request);
         }

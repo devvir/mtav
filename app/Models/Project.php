@@ -3,44 +3,29 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @property int $id
- * @property string $name
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $activeUsers
- * @property-read int|null $active_users_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $admins
- * @property-read int|null $admins_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $members
- * @property-read int|null $members_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Unit> $units
- * @property-read int|null $units_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
- * @property-read int|null $users_count
- * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedAt($value)
- * @property-read Collection $families
- * @mixin \Eloquent
- */
 class Project extends Model
 {
+    public static function current(?Project $project = null): ?Project
+    {
+        return $project
+            ? updateState('project', $project)
+            : state('project');
+    }
+
     /**
      * Units (houses/apartments) defined in this habitational project.
      */
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
+    }
+
+    public function families(): Builder
+    {
+        return Family::whereIn('id', $this->members()->pluck('family_id'));
     }
 
     /**
@@ -68,14 +53,9 @@ class Project extends Model
         return $this->activeUsers()->whereIsAdmin(true);
     }
 
-    public function families(): Builder
+    public function logs(): HasMany
     {
-        return Family::whereIn('id', $this->members()->pluck('family_id'));
-    }
-
-    public function getFamiliesAttribute(): Collection
-    {
-        return $this->families()->with('members')->get();
+        return $this->hasMany(Log::class);
     }
 
     /**

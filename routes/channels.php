@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -14,5 +15,5 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
  * Users may subscribe to their currently selected project's channel.
  */
 Broadcast::channel('App.Models.Project.{id}', function (User $user, int $id) {
-    return $user->isSuperAdmin || state('project')?->id === $id;
+    return $user->isSuperAdmin || Project::current()?->is($id);
 });

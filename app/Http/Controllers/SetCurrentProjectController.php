@@ -15,7 +15,7 @@ class SetCurrentProjectController
             throw new UnauthorizedException('You do not have permission to select this Project.');
         }
 
-        setState('project', $project);
+        Project::current($project);
 
         return back()->with('success', "Switched to Project `{$project->name}`");
     }

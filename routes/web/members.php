@@ -4,12 +4,12 @@ use App\Http\Controllers\ContactAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Resources\FamilyController;
-use App\Http\Controllers\Settings\PasswordController;
-use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Resources\LogController;
-use App\Http\Controllers\Resources\UserController;
 use App\Http\Controllers\Resources\ProjectController;
 use App\Http\Controllers\Resources\UnitController;
+use App\Http\Controllers\Resources\UserController;
+use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Middleware\Auth\ProjectMustBeSelected;
 use Illuminate\Support\Facades\Route;
 
@@ -43,4 +43,3 @@ Route::get('settings/password', [PasswordController::class, 'edit'])->name('pass
 Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
 Route::get('settings/appearance', fn () => inertia('Settings/Appearance'))->name('appearance');
-

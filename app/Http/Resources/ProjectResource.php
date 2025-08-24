@@ -15,7 +15,7 @@ class ProjectResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray(Request $_): array
     {
         return [
             'id' => $this->id,

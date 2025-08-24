@@ -2,26 +2,24 @@
 
 namespace App\Policies;
 
-use App\Models\Unit;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class UnitPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(): bool
     {
-        return false;
+        return true;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Unit $unit): bool
+    public function view(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,38 +27,22 @@ class UnitPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Unit $unit): bool
+    public function update(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Unit $unit): bool
+    public function delete(User $user): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Unit $unit): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Unit $unit): bool
-    {
-        return false;
+        return $user->isAdmin();
     }
 }

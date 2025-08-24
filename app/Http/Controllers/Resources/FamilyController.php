@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Resources;
 use App\Http\Requests\CreateFamilyRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Models\Family;
+use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,16 +18,16 @@ class FamilyController extends Controller
      */
     public function index(Request $request): Response
     {
-        setState('groupMembers', true);
+        updateState('groupMembers', true);
 
-        $pool = state('project') ? state('project')->families() : Family::query();
+        $pool = Project::current()?->families() ?? Family::query();
 
         $families = $pool->orderBy('name')
             ->with(['members' => fn ($query) => $query->alphabetically()])
             ->when($request->string('q'), fn ($query, $q) => $query->search($q, true));
 
         return inertia('Families/Index', [
-            'families' => Inertia::deepMerge(fn () => $families->paginate(20)->withQueryString()),
+            'families' => Inertia::deepMerge(fn () => $families->paginate(20)),
             'q'        => $request->string('q', ''),
         ]);
     }

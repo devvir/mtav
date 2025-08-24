@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Inertia\Response;
 
 class GalleryController
 {
     /**
      * Show the current Project's Gallery.
      */
-    public function __invoke(Request $request)
+    public function __invoke(): Response
     {
         return inertia('Gallery');
     }
