@@ -23,7 +23,7 @@ watchDebounced(
         <div class="flex-1">
             <input
                 v-model="search"
-                class="w-full p-2 rounded-xl bg-blue-200 text-gray-900 text-md"
+                class="w-full px-6 py-2 rounded-3xl text-white focus:text-gray-900 text-md bg-accent focus:bg-blue-200"
                 placeholder="Search..."
 
             />
