@@ -28,6 +28,10 @@ class ProjectFactory extends Factory
     {
         $defaultAdmin = once(fn () => User::firstWhere('email', 'admin@example.com'));
 
+        if (! $defaultAdmin) {
+            return $this;
+        }
+
         return $this->afterCreating(
             fn (Project $project) => $project->addUser($defaultAdmin)
         );

@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\ContactAdminController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Resources\DashboardController;
-use App\Http\Controllers\Resources\GalleryController;
 use App\Http\Controllers\Resources\LogController;
 use App\Http\Controllers\Resources\UserController;
 use App\Http\Controllers\Resources\ProjectController;

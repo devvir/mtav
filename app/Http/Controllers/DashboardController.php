@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Resources;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\ResourceController;
-
-class DashboardController extends ResourceController
+class DashboardController
 {
     /**
      * Show the current Project's Dashboard.

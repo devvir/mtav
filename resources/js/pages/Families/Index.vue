@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentProject } from '@/composables/useProjects';
 import { PaginatedFamilies, Project } from '@/types';

@@ -1,7 +1,6 @@
 <?php
 
-use App\Models\Project;
-use App\Models\User;
+use App\Models\Family;
 use Illuminate\Support\Facades\Config;
 
 test('guests are redirected to the login page', function () {
@@ -12,9 +11,9 @@ test('guests are redirected to the login page', function () {
 test('authenticated users can visit the dashboard', function () {
     Config::set('auth.superadmins', []);
 
-    Project::factory()->create()->addUser(
-        $user = User::factory()->create()
-    );
+    $user = Family::factory()
+        ->withMembers(1)->inProject()->create()
+        ->members()->first();
 
     $this->actingAs($user);
 
