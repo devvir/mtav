@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Http\Controllers\ResourceController;
 use App\Http\Requests\CreateFamilyRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Models\Family;
@@ -11,7 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class FamilyController extends ResourceController
+class FamilyController extends Controller
 {
     /**
      * Display a listing of the resource.

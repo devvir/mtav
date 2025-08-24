@@ -20,7 +20,7 @@ class MustBeAdmin
                 return response()->json(['error' => 'Not Found'], Response::HTTP_NOT_FOUND);
             }
 
-            return redirect()->back();
+            return back();
         }
 
         return $next($request);

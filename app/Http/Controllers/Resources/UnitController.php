@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Http\Controllers\ResourceController;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
-class UnitController extends ResourceController
+class UnitController extends Controller
 {
     /**
      * Show the members dashboard.

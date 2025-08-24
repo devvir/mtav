@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Resources;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Routing\Controller as RoutingController;
 use Illuminate\Support\Str;
 
-abstract class ResourceController extends RoutingController
+abstract class Controller extends RoutingController
 {
     use AuthorizesRequests;
 

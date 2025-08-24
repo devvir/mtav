@@ -18,7 +18,7 @@ useBreadcrumbs().set([...breadcrumbs, {
     title: 'Members',
     href: route('users.index'),
 }, {
-    title: 'New Member',
+    title: 'Registration',
     href: route('users.create'),
 }]);
 </script>

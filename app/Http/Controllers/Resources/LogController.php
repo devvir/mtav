@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Http\Controllers\ResourceController;
 use App\Models\Log;
 use Illuminate\Http\Request;
 
-class LogController extends ResourceController
+class LogController extends Controller
 {
     /**
      * Show the members dashboard.

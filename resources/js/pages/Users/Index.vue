@@ -6,7 +6,7 @@ import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.v
 import AjaxSearch from '@/components/forms/AjaxSearch.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
 import { Deferred } from '@inertiajs/vue3';
-import CallToAction from '@/components/ui/button/CallToAction.vue';
+import AdminIndex from '../Admins/Partials/AdminIndex.vue';
 defineProps<{
     admins?: User[];
     members: PaginatedUsers;
@@ -45,34 +45,7 @@ useBreadcrumbs().set([
             Loading...
         </template>
 
-        <div class="flex flex-col gap-2 mx-8 my-4 rounded-xl bg-sidebar-accent">
-            <div class="flex-1 flex justify-around mt-2 mx-2 p-2 text-lg text-white/70 bg-sidebar/40 rounded-xl">
-                Admins
-            </div>
-
-            <div class="flex flex-wrap justify-center-safe gap-4 mx-6 my-4">
-                <div
-                    v-for="admin in admins" :key="admin.id"
-                    class="flex-1 p-5 md:min-w-[450px] max-w-[600px] rounded-2xl shadow-lg/45 shadow-blue-400 bg-sidebar border-t border-t-blue-400"
-                >
-                    <Link :href="route('users.show', admin.id)">
-                        <div class="flex justify-between items-center-safe gap-8">
-                            <div class="flex justify-start gap-5">
-                                <img :src="admin.avatar" alt="avatar" />
-                                <div class="flex flex-col items-start justify-center-safe" :title="admin.name">
-                                    <div class="text-xl truncate">{{ admin.name }}</div>
-                                    <div class="text-xs truncate">{{ admin.email }}</div>
-                                </div>
-                            </div>
-
-                            <CallToAction variant="default" :href="route('admins.contact', admin.id)">
-                                Contact
-                            </CallToAction>
-                        </div>
-                    </Link>
-                </div>
-            </div>
-        </div>
+        <AdminIndex :admins="admins as User[]" />
     </Deferred>
 
     <InfinitePaginator :pagination="members" loadable="members" :data="{ q }">
@@ -90,15 +63,16 @@ useBreadcrumbs().set([
                             <div class="text-xl truncate">{{ member.name }}</div>
 
                             <Link
-                                :href="route('families.show', member.family?.id)"
+                                v-if="member.family.loaded"
+                                :href="route('families.show', member.family.id)"
                                  class="mt-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                            >Family {{  member.family?.name }}</Link>
+                            >Family {{ member.family.name }}</Link>
                         </div>
                     </div>
 
                     <div class="flex flex-col justify-between flex-wrap mt-3 gap-3 text-sm mb-10">
-                        <div>{{  member.email }}</div>
-                        <div>{{  member.phone }}</div>
+                        <div>{{ member.email }}</div>
+                        <div>{{ member.phone }}</div>
                     </div>
                 </Link>
             </div>

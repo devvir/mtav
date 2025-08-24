@@ -29,8 +29,13 @@ useBreadcrumbs().set(breadcrumbs);
 
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-            <div class="flex h-full justify-center">
-                <h1 class="m-auto text-5xl">TO-DO</h1>
+            <div class="flex flex-wrap justify-center gap-2 h-full">
+                <div
+                    v-for="(_, idx) in Array.from({ length: 20 })" :key="idx"
+                    class="flex rounded-2xl overflow-clip"
+                >
+                    <img :src="`https://picsum.photos/640/420?${idx}`" class="w-[640px] h-[420px]" />
+                </div>
             </div>
         </div>
     </div>

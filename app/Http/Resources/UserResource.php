@@ -34,11 +34,11 @@ class UserResource extends JsonResource
             'created_at'    => $this->created_at->toDateTimeString(),
             'created_ago'   => $this->created_at->diffForHumans(),
 
-            'family_id' => $this->family_id,
             'family'    => $this->whenLoaded('family', fn () => [
-                'id'   => $this->resource->family->id,
-                'name' => $this->resource->family->name,
-            ]),
+                'id'     => $this->resource->family->id,
+                'name'   => $this->resource->family->name,
+                'loaded' => true,
+            ], [ 'id' => $this->family_id ]),
         ];
     }
 

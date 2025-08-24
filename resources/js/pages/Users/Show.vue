@@ -51,10 +51,10 @@ useBreadcrumbs().set([
                 </div>
 
                 <Link
-                    v-if="user.family" :href="route('families.show', user.family.id)"
+                    v-if="user.family.loaded" :href="route('families.show', user.family.id)"
                     class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
                     >
-                    Family: {{ user.family?.name }}
+                    Family: {{ user.family.name }}
                 </Link>
 
                 <div class="mt-4 text-sm text-muted-foreground">Created: {{ user.created_ago }}</div>

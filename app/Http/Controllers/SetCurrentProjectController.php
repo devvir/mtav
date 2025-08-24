@@ -17,6 +17,6 @@ class SetCurrentProjectController
 
         setState('project', $project);
 
-        return redirect()->back()->with('success', "Switched to Project `{$project->name}`");
+        return back()->with('success', "Switched to Project `{$project->name}`");
     }
 }

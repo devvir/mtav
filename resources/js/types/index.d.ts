@@ -50,8 +50,7 @@ export interface User extends JsonResource {
     created_at: string;
     created_ago: string;
 
-    family_id: number | null;
-    family?: Family;
+    family: Family & { loaded?: boolean };
 };
 
 export interface Family extends JsonResource {
@@ -69,7 +68,7 @@ export interface Project extends JsonResource {
 };
 
 export interface PaginatedResources {
-    data: User[] | Family[] | Project[];
+    data: any[];
 
     path: string;
     current_page: number;
@@ -77,8 +76,8 @@ export interface PaginatedResources {
     next_page_url: number | null;
 }
 
-type PaginatedUsers = PaginatedResources & { data: User[] };
-type PaginatedFamilies = PaginatedResources & { data: Family[] };
-type PaginatedProjects = PaginatedResources & { data: Project[] };
+interface PaginatedUsers extends PaginatedResources { data: User[] };
+interface PaginatedFamilies extends PaginatedResources { data: Family[] };
+interface PaginatedProjects extends PaginatedResources { data: Project[] };
 
 export type BreadcrumbItemType = BreadcrumbItem;

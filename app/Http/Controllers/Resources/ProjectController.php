@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Http\Controllers\ResourceController;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class ProjectController extends ResourceController
+class ProjectController extends Controller
 {
     /**
      * Show the project dashboard.
