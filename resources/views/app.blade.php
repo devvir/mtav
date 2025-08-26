@@ -28,6 +28,16 @@
             html.dark {
                 background-color: oklch(0.145 0 0);
             }
+
+            @media ( min-width:  640px ) { html { font-size: 1.1rem } }
+            @media ( min-width:  768px ) { html { font-size: 1.2rem } }
+            @media ( min-width: 1024px ) { html { font-size: 1.3rem } }
+
+            @if (env('APP_DEBUG') && request()->has('b'))
+                * {
+                    border: 1px solid rgba(255, 0, 0, 0.2);
+                }
+            @endif
         </style>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
