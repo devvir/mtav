@@ -23,16 +23,9 @@ class Family extends Model
     {
         $query
             ->whereLike('name', "%$q%")
-            ->when(
-                $searchMembers,
-                fn (Builder $query) => $query->orWhereHas(
-                    'members',
-                    fn (Builder $query) => $query
-                        ->whereLike('email', "%$q%")
-                        ->orWhereLike('phone', "%$q%")
-                        ->orWhereLike('firstname', "%$q%")
-                        ->orWhereLike('lastname', "%$q%")
-                )
-            );
+            ->when($searchMembers, fn (Builder $query) => $query->orWhereHas(
+                'members',
+                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+            ));
     }
 }

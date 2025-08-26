@@ -65,6 +65,13 @@ export interface Project extends JsonResource {
     name: string;
     status: boolean;
     created_at: string;
+
+    admins?: User[],
+    admins_count?: number,
+    members?: User[],
+    members_count?: number,
+    families?: Family[],
+    families_count?: number,
 };
 
 export interface PaginatedResources {

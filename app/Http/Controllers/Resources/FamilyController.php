@@ -24,7 +24,7 @@ class FamilyController extends Controller
 
         $families = $pool->orderBy('name')
             ->with(['members' => fn ($query) => $query->alphabetically()])
-            ->when($request->string('q'), fn ($query, $q) => $query->search($q, true));
+            ->when($request->q, fn ($query, $q) => $query->search($q, searchMembers: true));
 
         return inertia('Families/Index', [
             'families' => Inertia::deepMerge(fn () => $families->paginate(20)),

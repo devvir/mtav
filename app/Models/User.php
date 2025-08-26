@@ -118,15 +118,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $query
             ->whereLike('email', "%$q%")
             ->orWhereLike('phone', "%$q%")
-            ->orWhereLike('firstname', "%$q%")
-            ->orWhereLike('lastname', "%$q%")
-            ->when(
-                $searchFamily,
-                fn (Builder $query) => $query->orWhereHas(
-                    'family',
-                    fn (Builder $query) => $query->whereLike('name', "%$q%")
-                )
-            );
+            ->orWhereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+            ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
+                'family',
+                fn (Builder $query) => $query->whereLike('name', "%$q%")
+            ));
     }
 
     public function joinProject(Project $project): self

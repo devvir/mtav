@@ -25,7 +25,7 @@ class UserController extends Controller
         $pool = Project::current()?->members() ?? User::members();
 
         $members = $pool->alphabetically()->with('family:id,name')
-            ->when($request->string('q'), fn (Builder $query, $q) => $query->search($q, true));
+            ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
 
         return inertia('Users/Index', [
             'admins'  => Inertia::defer(fn () => Project::current()?->admins ?? []),
