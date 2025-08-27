@@ -20,7 +20,7 @@ class FamilyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->lastName(),
+            'name' => $this->faker->lastName() . ' ' . $this->faker->lastName(),
         ];
     }
 

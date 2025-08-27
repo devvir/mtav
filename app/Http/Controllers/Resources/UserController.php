@@ -28,7 +28,6 @@ class UserController extends Controller
             ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
 
         return inertia('Users/Index', [
-            'admins'  => Inertia::defer(fn () => Project::current()?->admins ?? []),
             'members' => Inertia::deepMerge(fn () => $members->paginate(20)),
             'q'       => $request->string('q', ''),
         ]);

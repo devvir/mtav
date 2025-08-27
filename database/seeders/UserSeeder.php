@@ -43,6 +43,12 @@ class UserSeeder extends Seeder
             'email'      => 'orphan@example.com',
         ]);
 
+        User::factory()->withFamily()->create([
+            'firstname'  => 'A Regular User',
+            'lastname'   => 'With a Very Long Name',
+            'email'      => 'longname@example.com',
+        ]);
+
         // Example inactive User (@see DatabaseSeeder for further setup of this User)
         User::factory()->withFamily()->create([
             'firstname'  => 'Inactive',

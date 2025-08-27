@@ -1,20 +1,24 @@
 <script setup lang="ts">
+import { PaginatedResources } from '@/types';
 import InfiniteScroll from './InfiniteScroll.vue';
 
 defineProps<{
     loadable: string;
-    pagination: {
-        current_page: number;
-        last_page: number;
-        next_page_url: number | null;
-        path: string;
-    };
-    data?: object
+    list: PaginatedResources;
+    params?: object;
 }>();
 </script>
 
 <template>
-    <slot />
+    <div class="flex flex-wrap justify-center-safe gap-6 mx-8 my-6">
+        <div v-if="! list.data.length" class="h-xl flex items-center">
+            No results
+        </div>
 
-    <InfiniteScroll :pagination="pagination" :loadable="loadable" :data="data" />
+        <ul v-for="item in list.data" :key="item.id">
+            <li class="h-full"><slot :item="item" /></li>
+        </ul>
+    </div>
+
+    <InfiniteScroll :pagination="list" :loadable="loadable" :params="params" />
 </template>

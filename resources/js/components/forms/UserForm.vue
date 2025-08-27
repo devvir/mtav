@@ -59,7 +59,7 @@ const createUser = () => null; // TODO
 
                 <Button class="p-0 rounded-xl">
                     <Link
-                        as="button" form="users.create" method="POST" :ref="route('users.store')"
+                        as="button" form="users.create" method="POST" :href="route('users.store')"
                         class="cursor-pointer w-full h-full"
                         @submit.prevent="createUser"
                     >

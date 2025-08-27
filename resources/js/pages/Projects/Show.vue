@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentProject } from '@/composables/useProjects';
 import { Project, User } from '@/types';
 import { getCurrentUser } from '@/composables/useAuth';
 import { ComputedRef } from 'vue';
+import AdminIndex from '../Admins/Partials/AdminIndex.vue';
 
 const props = defineProps<{
     project: Project;
@@ -50,6 +50,10 @@ useBreadcrumbs().set(breadcrumbs);
             {{ currentProject ? 'Switch to this Project' : 'Select' }}
         </Link>
 
-        <HeadingSmall v-else title="This is the currently selected project." class="text-sm" />
+        <div v-else class="mt-8 text-base">
+            This is the currently selected project.
+        </div>
     </div>
+
+    <AdminIndex :admins="project.admins as User[]" />
 </template>

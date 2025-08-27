@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
         User::firstWhere('email', 'user@example.com')
             ->joinProject(Project::first());
 
+        User::firstWhere('email', 'longname@example.com')
+            ->joinProject(Project::first());
+
         // Example inactive User (switch from Project #1 to #2)
         User::firstWhere('email', 'inactive@example.com')
             ->joinProject(Project::first())

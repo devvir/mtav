@@ -31,6 +31,9 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
+        $project->load('admins')->loadCount('members');
+        $project->families_count = $project->families()->count();
+
         return inertia('Projects/Show', compact('project'));
     }
 

@@ -1,16 +1,12 @@
 <script setup lang="ts">
+import { PaginationSpec } from '@/types';
 import { router, WhenVisible } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watchEffect } from 'vue';
 
 const props = defineProps<{
     loadable: string;
-    pagination: {
-        current_page: number;
-        last_page: number;
-        next_page_url: number | null;
-        path: string;
-    };
-    data?: object
+    pagination: PaginationSpec;
+    params?: object
 }>();
 
 const activateLoadMore = ref(false);
@@ -26,13 +22,11 @@ watchEffect(() => window.history.replaceState({}, '', props.pagination.path));
 </script>
 
 <template>
-    <slot />
-
     <WhenVisible
         v-if="activateLoadMore"
-        :params="{ only: [ loadable ], data: { page: pagination.current_page + 1, ...(data ?? {}) } }"
+        :params="{ only: [ loadable ], data: { page: pagination.current_page + 1, ...(params ?? {}) } }"
         :always="pendingResults"
-        :buffer="100"
+        :buffer="600"
     />
 
     <div v-if="pendingResults" class="flex justify-around my-5">

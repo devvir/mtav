@@ -14,12 +14,12 @@ const list = computed(
 
 
 <template>
-    <div class="flex flex-col gap-2 mx-8 my-4 rounded-xl bg-sidebar-accent">
-        <div class="flex-1 flex justify-around mt-2 mx-2 p-2 text-lg text-white/70 bg-sidebar/40 rounded-xl">
+    <div class="flex flex-col gap-2 m-4 rounded-xl bg-sidebar-accent/10">
+        <div class="self-center mt-5 mx-2 py-2 px-6 text-lg text-white/70 rounded-xl">
             Admins
         </div>
 
-        <div class="flex flex-wrap justify-center-safe gap-4 mx-6 my-4">
+        <div class="flex flex-wrap justify-center-safe gap-2 mx-6 mb-4 p-3">
             <AdminCard v-for="admin in list" :key="admin.id" :admin="admin" />
         </div>
     </div>

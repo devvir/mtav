@@ -25,7 +25,15 @@ export type AppPageProps<T extends Record<string, unknown> = Record<string, unkn
     sidebarOpen: boolean;
 };
 
+export interface PaginationSpec {
+    path: string;
+    current_page: number;
+    last_page: number;
+    next_page_url: number | null;
+}
+
 export interface JsonResource {
+    id: number,
     allows?: {
         viewAny: boolean;
         view: boolean;
@@ -36,6 +44,10 @@ export interface JsonResource {
         forceDelete: boolean;
     }
 };
+
+export interface PaginatedResources extends PaginationSpec {
+    data: JsonResource[];
+}
 
 export interface User extends JsonResource {
     id: number;
@@ -73,15 +85,6 @@ export interface Project extends JsonResource {
     families?: Family[],
     families_count?: number,
 };
-
-export interface PaginatedResources {
-    data: any[];
-
-    path: string;
-    current_page: number;
-    last_page: number;
-    next_page_url: number | null;
-}
 
 interface PaginatedUsers extends PaginatedResources { data: User[] };
 interface PaginatedFamilies extends PaginatedResources { data: Family[] };

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentUser } from '@/composables/useAuth';
 import { getCurrentProject } from '@/composables/useProjects';
@@ -47,7 +46,9 @@ useBreadcrumbs().set([
             {{ currentProject ? 'Switch to this Project' : 'Select' }}
         </Link>
 
-        <HeadingSmall v-else title="This is the currently selected project." />
+        <div v-else class="mt-4 text-base">
+            This is the currently selected project.
+        </div>
     </div>
 
     <InfiniteScroll :pagination="projects" loadable="projects" />
