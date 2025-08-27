@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router, WhenVisible } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 
 const props = defineProps<{
     loadable: string;
@@ -13,30 +13,29 @@ const props = defineProps<{
     data?: object
 }>();
 
-const forceLoadMore = ref(false);
+const activateLoadMore = ref(false);
 const pendingResults = computed(() => props.pagination.current_page < props.pagination.last_page);
 
-router.on('finish', () => {
-    window.history.replaceState({}, '', props.pagination.path);
+// Make sure next page is laoded even if the last loaded page does not fill the viewport
+onMounted(() => activateLoadMore.value = pendingResults.value);
+router.on('start', () => activateLoadMore.value = false);
+router.on('finish', () => activateLoadMore.value = pendingResults.value);
 
-    forceLoadMore.value = pendingResults.value;
-    setTimeout(() => forceLoadMore.value = false, 500);
-});
+// Keep the query string clean of pagination and search parameters
+watchEffect(() => window.history.replaceState({}, '', props.pagination.path));
 </script>
 
 <template>
     <slot />
 
-    <div v-if="forceLoadMore" class="h-screen"></div>
-
     <WhenVisible
-        v-if="pendingResults"
+        v-if="activateLoadMore"
         :params="{ only: [ loadable ], data: { page: pagination.current_page + 1, ...(data ?? {}) } }"
         :always="pendingResults"
-        :buffer="600"
-    >
-        <div v-if="pendingResults" class="flex justify-around my-5">
-            <span class="text-xs">Loading...</span>
-        </div>
-    </WhenVisible>
+        :buffer="100"
+    />
+
+    <div v-if="pendingResults" class="flex justify-around my-5">
+        <span class="text-xs">Loading...</span>
+    </div>
 </template>
