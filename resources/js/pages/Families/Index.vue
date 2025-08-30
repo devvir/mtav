@@ -2,18 +2,24 @@
 import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentProject } from '@/composables/useProjects';
 import { Family, PaginatedFamilies, Project } from '@/types';
-import { ComputedRef } from 'vue';
+import { ComputedRef, ref } from 'vue';
 import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.vue';
 import AjaxSearch from '@/components/forms/AjaxSearch.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
 import IndexCard from './Partials/IndexCard.vue';
 
-defineProps<{
+const props = defineProps<{
     families: PaginatedFamilies;
     q: string;
 }>();
 
 const currentProject = getCurrentProject() as ComputedRef<Project>;
+
+// WIP
+const list = ref(props.families);
+const filter = (ids: any[]) => {
+    list.value.data = props.families.data.filter(({id}) => ids.includes(id));
+};
 
 useBreadcrumbs().set([
     {
@@ -31,7 +37,7 @@ useBreadcrumbs().set([
 <template>
     <Head title="Families" />
 
-    <AjaxSearch :q="q">
+    <AjaxSearch :q="q" :data="families" @filter="filter">
         <template v-slot:right>
             <div class="flex p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
                 <MembersFamiliesSwitch side="left" :active="true" route-name="families.index">Families</MembersFamiliesSwitch>

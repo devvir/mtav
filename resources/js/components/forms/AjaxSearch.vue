@@ -7,14 +7,23 @@ import { PaginatedResources } from '@/types';
 const props = withDefaults(defineProps<{
     q?: string;
     data?: PaginatedResources;
+    searchable?: string[] | string;
     autofocus?: boolean;
-}>(), { q: '', autofocus: true });
+}>(), { q: '', autofocus: true, searchable: '*' });
+
+// TODO : see if there's a TS way of doing this (as with defineProps)
+const emits = defineEmits([ 'filter' ]);
 
 const search = ref(props.q);
 
 const filter = (q: string): void => {
-    if (props.data && props.data?.total === props.data?.data.length) {
-        // TODO : filter in-place, i.e. without hitting the server
+    // TODO : filter in-place, i.e. without hitting the server
+    if (false && ! q && props.data && props.data?.total === props.data?.data.length) {
+        const filteredIds = props.data?.data.filter(item => {
+            return item.id;
+        }).map(item => item.id);
+
+        emits('filter', filteredIds);
     } else {
         router.reload({ data: { q } });
     }
