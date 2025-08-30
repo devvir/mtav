@@ -29,7 +29,7 @@ watchEffect(() => window.history.replaceState({}, '', props.pagination.path));
         :buffer="600"
     />
 
-    <div v-if="pendingResults" class="flex justify-around my-5">
+    <div v-if="pendingResults" class="flex justify-center my-5">
         <span class="text-xs">Loading...</span>
     </div>
 </template>

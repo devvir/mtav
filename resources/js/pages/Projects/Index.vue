@@ -3,14 +3,19 @@ import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { getCurrentUser } from '@/composables/useAuth';
 import { getCurrentProject } from '@/composables/useProjects';
 import { PaginatedProjects, User } from '@/types';
-import { ComputedRef } from 'vue';
+import { computed, ComputedRef } from 'vue';
 import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 
 defineProps<{
     projects: PaginatedProjects;
 }>();
 
-const currentProject = getCurrentProject();
+// TODO : investigate why I needed to make this a computed property
+// Without it: 1. select project 2. enter details 3. go back to Projects index
+//             The result is that it still shows as if no project was selected
+// When wrapping this inside a computed(), it fixes the issue. But why?
+// Notice that getCurrentProject already returns a computed property :shrug
+const currentProject = computed(() => getCurrentProject().value);
 const currentUser = getCurrentUser() as ComputedRef<User>;
 
 useBreadcrumbs().set([

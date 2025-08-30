@@ -30,6 +30,7 @@ export interface PaginationSpec {
     current_page: number;
     last_page: number;
     next_page_url: number | null;
+    total: number;
 }
 
 export interface JsonResource {

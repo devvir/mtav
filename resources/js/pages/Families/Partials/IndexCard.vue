@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Card from '@/components/shared/Card.vue';
 import { Family } from '@/types';
 
 defineProps<{
@@ -7,8 +8,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex-1 px-6 py-4 h-full min-w-62 lg:min-w-96 xl:min-w-72 max-w-[800px] xl:max-w-96
-                rounded-2xl shadow-lg/45 shadow-blue-400 bg-sidebar border-t border-t-blue-400">
+    <Card class="min-w-62 lg:min-w-96 xl:min-w-72 max-w-[800px] xl:max-w-96">
         <Link
             :href="route('families.show', family.id)"
             class="flex justify-end items-center-safe px-3 py-5 border-b border-gray-200 dark:border-gray-700"
@@ -28,9 +28,11 @@ defineProps<{
             >
                 <div class="flex justify-start items-center-safe gap-3">
                     <img :src="member.avatar" alt="avatar" width="40px" />
-                    <div class=" text-sm truncate">{{ member.name }}</div>
+                    <div class="max-w-32 text-sm truncate" :title="member.name">
+                        {{ member.name }}
+                    </div>
                 </div>
             </Link>
         </div>
-    </div>
+    </Card>
 </template>

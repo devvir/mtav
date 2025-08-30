@@ -17846,6 +17846,56 @@ namespace Illuminate\Support\Facades {
         }
 
         /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @param string $type
+         * @static
+         */
+        public static function api($config = null, $type = 'api')
+        {
+            return \Illuminate\Routing\Router::api($config, $type);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @static
+         */
+        public static function devApi()
+        {
+            return \Illuminate\Routing\Router::devApi();
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function restApi($config = null)
+        {
+            return \Illuminate\Routing\Router::restApi($config);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function inertiaApi($config = null)
+        {
+            return \Illuminate\Routing\Router::inertiaApi($config);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function bladeApi($config = null)
+        {
+            return \Illuminate\Routing\Router::bladeApi($config);
+        }
+
+        /**
          * @param array<array-key, mixed> $props
          * @see \Inertia\ServiceProvider::registerRouterMacro()
          * @static
@@ -23625,6 +23675,56 @@ namespace Illuminate\Routing {
      * @mixin \Illuminate\Routing\RouteRegistrar
      */
     class Router {
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @param string $type
+         * @static
+         */
+        public static function api($config = null, $type = 'api')
+        {
+            return \Illuminate\Routing\Router::api($config, $type);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @static
+         */
+        public static function devApi()
+        {
+            return \Illuminate\Routing\Router::devApi();
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function restApi($config = null)
+        {
+            return \Illuminate\Routing\Router::restApi($config);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function inertiaApi($config = null)
+        {
+            return \Illuminate\Routing\Router::inertiaApi($config);
+        }
+
+        /**
+         * @see \Devvir\InstantApi\Providers\InstantApiServiceProvider::registerMacros()
+         * @param array|null $config
+         * @static
+         */
+        public static function bladeApi($config = null)
+        {
+            return \Illuminate\Routing\Router::bladeApi($config);
+        }
+
         /**
          * @param array<array-key, mixed> $props
          * @see \Inertia\ServiceProvider::registerRouterMacro()

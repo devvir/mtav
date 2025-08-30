@@ -35,9 +35,9 @@ useBreadcrumbs().set([
     <div class="flex flex-wrap justify-center-safe align-middle gap-6 mx-8 h-full">
         <div class="my-auto px-6 py-4 max-w-[800px] rounded-2xl shadow-lg/45 shadow-blue-400 bg-sidebar border-t border-t-blue-400">
             <div class="flex justify-between items-center-safe px-3 py-5 border-b border-gray-200 dark:border-gray-700" :title="user.name">
-                <div class="my-6"><img :src="user.avatar" alt="avatar" width="96" /></div>
+                <img :src="user.avatar" alt="avatar" class="w-12 md:w-18" />
                 <div>
-                    <div class="text-2xl truncate">{{ user.name }}</div>
+                    <div class="max-w-52 md:max-w-86 text-md md:text-xl truncate">{{ user.name }}</div>
                     <div class="text-sm text-muted-foreground">{{ user.email }}</div>
                 </div>
             </div>
@@ -51,9 +51,9 @@ useBreadcrumbs().set([
                 </div>
 
                 <Link
-                    v-if="user.family.loaded" :href="route('families.show', user.family.id)"
+                    v-if="user.family.name" :href="route('families.show', user.family.id)"
                     class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
-                    >
+                >
                     Family: {{ user.family.name }}
                 </Link>
 

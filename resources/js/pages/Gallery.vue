@@ -27,23 +27,14 @@ useBreadcrumbs().set(breadcrumbs);
 <template>
     <Head :title="trans('Gallery')" />
 
-    <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-2">
-        <div class="relative min-h-[100vh] flex-1 rounded-xl md:min-h-min dark:border-sidebar-border">
-            <div class="flex flex-wrap justify-around gap-6 m-8">
-                <figure
-                    v-for="(_, idx) in Array.from({ length: 20 })" :key="idx"
-                    class="flex flex-col"
-                >
-                    <div class="rounded-2xl overflow-clip">
-                        <img :src="`https://picsum.photos/640/420?${idx}`" class="w-full md:w-[640px] md:h-[420px]" />
-                    </div>
+    <div class="flex flex-wrap-reverse justify-around gap-y-8 gap-x-6 my-8 mx-6">
+        <figure v-for="idx in 20" :key="idx" class="flex-1 flex flex-col basis-1/4">
+            <img :src="`https://picsum.photos/640/420?${idx}`" class="rounded-2xl overflow-clip" />
 
-                    <figcaption class="text-sm mt-2 space-y-0.5 max-w-[640px]">
-                        <div class="font-extralight wrap-normal">Some description for this image goes here</div>
-                        <div class="text-sm opacity-60">Posted by <span class="text-sidebar-foreground/60">&lt;some user&gt;</span></div>
-                    </figcaption>
-                </figure>
-            </div>
-        </div>
+            <figcaption class="text-sm mt-2 space-y-0.5 max-w-[640px]">
+                <div class="font-extralight wrap-normal">Some description for this image goes here</div>
+                <div class="text-sm opacity-60">Posted by <span class="text-sidebar-foreground/60">&lt;some user&gt;</span></div>
+            </figcaption>
+        </figure>
     </div>
 </template>

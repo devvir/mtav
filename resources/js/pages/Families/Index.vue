@@ -32,8 +32,8 @@ useBreadcrumbs().set([
     <Head title="Families" />
 
     <AjaxSearch :q="q">
-        <template #right>
-            <div class="flex justify-around p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
+        <template v-slot:right>
+            <div class="flex p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
                 <MembersFamiliesSwitch side="left" :active="true" route-name="families.index">Families</MembersFamiliesSwitch>
                 <MembersFamiliesSwitch side="right" :active="false" route-name="users.index">Members</MembersFamiliesSwitch>
             </div>

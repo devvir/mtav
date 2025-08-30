@@ -10,7 +10,7 @@ withDefaults(defineProps<{
 
 <template>
     <Link :href="route('users.show', user.id)">
-        <Card class="h-full min-w-72 max-w-96">
+        <Card class="min-w-72 max-w-96">
             <template #header>
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-700">
                     <div class="my-6">
@@ -20,9 +20,9 @@ withDefaults(defineProps<{
                         <div class=" max-w-44 text-lg truncate">{{ user.name }}</div>
 
                         <Link
-                            v-if="user.family?.loaded"
+                            v-if="user.family.name"
                             :href="route('families.show', user.family.id)"
-                                class="mt-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                            class="mt-1 text-xs text-gray-500/70 hover:text-gray-700/70 dark:hover:text-gray-300"
                         >Family {{ user.family.name }}</Link>
                     </div>
                 </div>

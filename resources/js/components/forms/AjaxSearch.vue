@@ -2,19 +2,25 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
+import { PaginatedResources } from '@/types';
 
 const props = withDefaults(defineProps<{
-    q?: string,
+    q?: string;
+    data?: PaginatedResources;
     autofocus?: boolean;
 }>(), { q: '', autofocus: true });
 
 const search = ref(props.q);
 
-watchDebounced(
-    search,
-    () => router.reload({ data: { q: search.value.trim() } }),
-    { debounce: 300, maxWait: 1000 }
-);
+const filter = (q: string): void => {
+    if (props.data && props.data?.total === props.data?.data.length) {
+        // TODO : filter in-place, i.e. without hitting the server
+    } else {
+        router.reload({ data: { q } });
+    }
+}
+
+watchDebounced(search, filter, { debounce: 300, maxWait: 1000 });
 
 </script>
 
@@ -24,13 +30,13 @@ watchDebounced(
         <div class="flex-1">
             <input
                 :autofocus="autofocus"
-                v-model="search"
+                v-model.trim="search"
                 class="w-full px-6 py-2 border rounded-2xl text-white text-md bg-accent shadow-blue-400 outline-0
                     focus:text-gray-900 focus:bg-gray-100 focus:border-blue-400 focusshadow-md/60"
                 placeholder="Search..."
-
             />
         </div>
+
         <slot name="right" />
     </div>
 </template>
