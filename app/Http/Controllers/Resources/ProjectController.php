@@ -17,12 +17,17 @@ class ProjectController extends Controller
      */
     public function index(Request $request): Response
     {
-        $projects = $request->user()->isSuperAdmin()
+        $pool = $request->user()->isSuperAdmin()
             ? Project::query()
             : $request->user()->projects();
 
+        $projects = $pool->orderBy('name')
+            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"));
+
+
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate()),
+            'q'        => $request->string('q', ''),
         ]);
     }
 

@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { PaginatedResources } from '@/types';
 import InfiniteScroll from './InfiniteScroll.vue';
+import IndexSearch from './IndexSearch.vue';
 
 defineProps<{
     loadable: string;
     list: PaginatedResources;
-    params?: object;
+    filter: string;
 }>();
 </script>
 
 <template>
+    <IndexSearch :q="filter">
+        <template v-slot:right>
+            <slot name="search-right" />
+        </template>
+    </IndexSearch>
+
     <div class="flex flex-wrap justify-center-safe gap-6 mx-8 my-6">
         <div v-if="! list.data.length" class="h-xl flex items-center">
             No results
@@ -20,5 +27,5 @@ defineProps<{
         </ul>
     </div>
 
-    <InfiniteScroll :pagination="list" :loadable="loadable" :params="params" />
+    <InfiniteScroll :pagination="list" :loadable="loadable" :params="{ q: filter }" />
 </template>

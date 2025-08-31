@@ -5,13 +5,14 @@ import useBreadcrumbs from '@/store/useBreadcrumbs';
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, reactive } from 'vue';
 
-const flash = reactive(usePage().props.flash);
+const page = usePage();
+const breadcrumbs = useBreadcrumbs();
+
+const flash = reactive(page.props.flash);
 
 onMounted(
     () => setTimeout(() => flash.success = null, 3000)
 );
-
-const breadcrumbs = useBreadcrumbs();
 </script>
 
 <template>

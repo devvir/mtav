@@ -35,6 +35,7 @@ export interface PaginationSpec {
 
 export interface JsonResource {
     id: number,
+    created_at: string;
     allows?: {
         viewAny: boolean;
         view: boolean;
@@ -60,7 +61,6 @@ export interface User extends JsonResource {
     avatar: string;
     is_admin: boolean;
     is_superadmin: boolean;
-    created_at: string;
     created_ago: string;
 
     family: Family & { loaded?: boolean };
@@ -70,14 +70,12 @@ export interface Family extends JsonResource {
     id: number;
     name: string;
     members?: User[];
-    created_at: string;
 };
 
 export interface Project extends JsonResource {
     id: number;
     name: string;
     status: boolean;
-    created_at: string;
 
     admins?: User[],
     admins_count?: number,

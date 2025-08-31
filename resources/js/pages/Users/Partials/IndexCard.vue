@@ -2,10 +2,9 @@
 import Card from '@/components/shared/Card.vue';
 import { User } from '@/types';
 
-withDefaults(defineProps<{
+defineProps<{
     user: User;
-    isAdmin?: boolean;
-}>(), { isAdmin: false });
+}>();
 </script>
 
 <template>

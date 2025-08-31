@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Resources\ProjectController;
 use App\Http\Controllers\Resources\UnitController;
 use App\Http\Controllers\Resources\UserController;
@@ -17,7 +18,7 @@ Route::resource('users', UserController::class)->only('create', 'store', 'edit',
  * Project-based pages
  */
 Route::middleware(ProjectMustBeSelected::class)->group(function () {
-    Route::resource('families', UserController::class)->only('create', 'store', 'destroy');
+    Route::resource('families', FamilyController::class)->only('create', 'store', 'destroy');
     Route::resource('units', UnitController::class)->except('index', 'show');
 
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
