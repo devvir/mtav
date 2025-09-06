@@ -15,7 +15,7 @@ defineProps<{
             :title="family.name"
         >
             <div class="mr-2 text-sm text-gray-300 dark:text-gray-600">Family</div>
-            <div class="text-lg truncate">{{ family.name }}</div>
+            <div class="text-xl truncate">{{ family.name }}</div>
         </Link>
 
         <div class="flex flex-col justify-between mt-6 mb-3 gap-1">

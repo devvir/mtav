@@ -39,7 +39,7 @@ useBreadcrumbs().set([
         </template>
 
         <template v-slot:default="{ item }">
-            <IndexCard :family="item as Family" />
+            <IndexCard :family="item as Family" class="mx-auto" />
         </template>
     </InfinitePaginator>
 </template>

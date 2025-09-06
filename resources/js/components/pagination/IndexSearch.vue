@@ -25,7 +25,7 @@ watchDebounced(
             <input
                 :autofocus="autofocus"
                 v-model.trim="search"
-                class="w-full px-6 py-2 shadow-blue-400 focus:shadow-md/60"
+                class="w-full px-6 py-2 focus:shadow-md/70 shadow-blue-500 outline-0"
                 placeholder="Search..."
             />
         </div>

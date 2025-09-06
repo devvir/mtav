@@ -9,14 +9,13 @@ defineProps<{
 
 <template>
     <Link :href="route('users.show', user.id)">
-        <Card class="min-w-72 max-w-96">
+        <Card class="min-w-72 max-w-96 mx-auto">
             <template #header>
                 <div class="flex justify-between border-b border-gray-200 dark:border-gray-700">
-                    <div class="my-6">
-                        <img :src="user.avatar" alt="avatar" />
-                    </div>
-                    <div class="flex flex-col items-end justify-center-safe" :title="user.name">
-                        <div class=" max-w-44 text-lg truncate">{{ user.name }}</div>
+                    <img :src="user.avatar" alt="avatar" class="mr-4" />
+
+                    <div class="flex flex-col items-end justify-center-safe my-4" :title="user.name">
+                        <div class="max-w-46 text-xl truncate">{{ user.name }}</div>
 
                         <Link
                             v-if="user.family.name"

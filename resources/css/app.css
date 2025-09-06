@@ -166,3 +166,13 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+* Base Form styles
+*/
+input {
+    @apply  px-4 py-2
+            border focus:border-blue-400 rounded-2xl
+            text-lg text-white focus:text-gray-900
+            bg-accent focus:bg-gray-100;
+}
