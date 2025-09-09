@@ -17,17 +17,16 @@ defineProps<{
         </template>
     </IndexSearch>
 
-    <div v-if="! list.data.length" class="w-full h-full flex justify-center items-center text-xl">
+    <div v-if="!list.data.length" class="w-full h-full flex justify-center items-center text-xl">
         No results
     </div>
 
-    <ul class="flex flex-wrap justify-evenly gap-6 mx-8 my-6">
-        <TransitionGroup name="fade">
-            <li v-for="item in list.data" :key="item.id" class="flex-1">
-                <slot :item="item" />
-            </li>
-        </TransitionGroup>
-    </ul>
+    <TransitionGroup name="fade" tag="ul"
+        class="flex flex-wrap justify-evenly gap-3 md:gap-4 xl:gap-6 mx-3 md:mx-5 xl:mx-8 my-6">
+        <li v-for="item in list.data" :key="item.id" class="flex-1">
+            <slot :item="item" />
+        </li>
+    </TransitionGroup>
 
     <InfiniteScroll :pagination="list" :loadable="loadable" :params="{ q: filter }" />
 </template>
