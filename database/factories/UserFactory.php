@@ -26,6 +26,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'family_id' => Family::factory(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),
             'firstname' => fake()->firstName(),
@@ -46,22 +47,14 @@ class UserFactory extends Factory
 
     public function admin(): static
     {
-        return $this->state(fn () => [ 'is_admin' => true ]);
+        return $this->state([
+            'is_admin'  => true,
+            'family_id' => null,
+        ]);
     }
 
-    public function withFamily(?Family $family = null): static
+    public function inFamily(Family $family): static
     {
-        $family ??= Family::factory()->create();
-
-        return $this->afterCreating(
-            fn (User $user) => $user->family()->associate($family)->save()
-        );
-    }
-
-    public function withExistingFamily(?Family $family = null): static
-    {
-        $family ??= Family::inRandomOrder()->first();
-
-        return $this->withFamily($family);
+        return $this->state([ 'family_id' => $family->id ]);
     }
 }

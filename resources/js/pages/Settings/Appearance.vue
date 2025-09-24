@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
+import Head from '@/components/Head.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-
-useBreadcrumbs().set([
-    {
-        title: 'Appearance settings',
-        href: route('appearance'),
-    },
-]);
 </script>
 
 <template>
-    <Head title="Appearance settings" />
+  <Head title="Appearance settings" />
 
-    <SettingsLayout>
-        <div class="space-y-6">
-            <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
-            <AppearanceTabs />
-        </div>
-    </SettingsLayout>
+  <Breadcrumbs global>
+    <Breadcrumb route="profile.edit" text="Settings" />
+    <Breadcrumb route="appearance" text="Appearance settings" />
+  </Breadcrumbs>
+
+  <SettingsLayout>
+    <div class="space-y-6">
+      <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
+      <AppearanceTabs />
+    </div>
+  </SettingsLayout>
 </template>

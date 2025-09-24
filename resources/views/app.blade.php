@@ -26,16 +26,13 @@
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(14.1% 0.005 285.823);
             }
-
-            @media ( min-width:  640px ) { html { font-size: 1.1rem } }
-            @media ( min-width:  768px ) { html { font-size: 1.2rem } }
-            @media ( min-width: 1024px ) { html { font-size: 1.3rem } }
 
             @if (env('APP_DEBUG') && request()->has('b'))
                 * {
                     border: 1px solid rgba(255, 0, 0, 0.2);
+                    outline: 1px solid rgba(255, 0, 0, 0.2);
                 }
             @endif
         </style>
@@ -52,7 +49,7 @@
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased">
+    <body class="@container/body font-sans antialiased">
         @inertia
     </body>
 </html>

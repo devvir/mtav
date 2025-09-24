@@ -1,10 +1,12 @@
-import axios from 'axios'
+import axios from 'axios';
 
 export function autoRefreshCsrfToken() {
-    axios.interceptors.response.use();
+  axios.interceptors.response.use();
 
-    axios.interceptors.response.use(response => response, async err => {
-      const status = err.response.status;
+  axios.interceptors.response.use(
+    (response) => response,
+    async (err) => {
+      const status = err.response?.status;
 
       if (status === 419) {
         await axios.post('/csrf-token');
@@ -13,6 +15,6 @@ export function autoRefreshCsrfToken() {
       }
 
       return Promise.reject(err);
-    });
+    },
+  );
 }
-

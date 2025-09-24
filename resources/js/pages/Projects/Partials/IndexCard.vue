@@ -1,41 +1,37 @@
 <script setup lang="ts">
-import { getCurrentUser } from '@/composables/useAuth';
-import { getCurrentProject } from '@/composables/useProjects';
-import { Project, User } from '@/types';
-import { computed, ComputedRef } from 'vue';
-
-// TODO : investigate why I needed to make this a computed property
-// Without it: 1. select project 2. enter details 3. go back to Projects index
-//             The result is that it still shows as if no project was selected
-// When wrapping this inside a computed(), it fixes the issue. But why?
-// Notice that getCurrentProject already returns a computed property :shrug
-const currentProject = computed(() => getCurrentProject().value);
-const currentUser = getCurrentUser() as ComputedRef<User>;
+import Card from '@/components/shared/Card.vue';
+import { currentProject } from '@/composables/useProjects';
+import { _ } from '@/composables/useTranslations';
+import { ModalLink } from '@inertiaui/modal-vue';
+import SelectDeselect from './SelectDeselect.vue';
 
 defineProps<{
-    project: Project;
+  project: Project;
 }>();
 </script>
 
 <template>
-    <div class="h-42 w-84 m-3 bg-black/2 dark:bg-white/2 space-y-4 rounded-lg border p-4 shadow-sm">
-        <p class="text-sm text-muted-foreground">{{ project.name }}</p>
-        <p v-if="!currentUser.is_admin" class="text-sm text-muted-foreground">{{ project.status ? 'Active' : 'Inactive'
-            }}</p>
+  <Card
+    class="group h-full"
+    :class="currentProject?.id === project.id ? 'border border-accent-foreground shadow-none' : ''"
+  >
+    <template v-slot:header>
+      <ModalLink :href="route('projects.show', project.id)" as="button" class="block w-full cursor-pointer text-right">
+        <p class="truncate text-lg" :title="project.name">
+          {{ project.name }}
+        </p>
+        <p class="text-md leading-wide text-muted-foreground/60 @md:text-base @xl:text-sm">
+          {{ project.status ? _('Active') : _('Inactive') }}
+        </p>
+      </ModalLink>
+    </template>
 
-        <Link :href="route('projects.show', project.id)" as="button"
-            class="mr-2 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            prefetch>
-        View Details
-        </Link>
-        <Link v-if="currentProject?.id !== project.id" :href="route('setCurrentProject', project.id)" method="POST"
-            variant="button"
-            class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]">
-        {{ currentProject ? 'Switch to this Project' : 'Select' }}
-        </Link>
+    <ModalLink :href="route('projects.show', project.id)">
+      <div class="my-wide-y border-b border-foreground/10 pb-wide-y">TODO : main project stats</div>
 
-        <div v-else class="mt-4 text-base">
-            This is the currently selected project.
-        </div>
-    </div>
+      <div class="text-center">
+        <SelectDeselect :project="project" :selected="currentProject?.id === project.id" />
+      </div>
+    </ModalLink>
+  </Card>
 </template>

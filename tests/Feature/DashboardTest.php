@@ -12,7 +12,7 @@ test('authenticated users can visit the dashboard', function () {
     Config::set('auth.superadmins', []);
 
     $user = Family::factory()
-        ->withMembers(1)->inProject()->create()
+        ->withMembers()->create()
         ->members()->first();
 
     $this->actingAs($user);

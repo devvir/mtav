@@ -1,31 +1,29 @@
 <script setup lang="ts">
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { PaginatedProjects, Project } from '@/types';
-import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
+import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 import IndexCard from './Partials/IndexCard.vue';
 
 defineProps<{
-    projects: PaginatedProjects;
-    q: string;
+  projects: PaginatedProjects;
+  q: string;
 }>();
-
-useBreadcrumbs().set([
-    {
-        title: 'Projects',
-        href: route('projects.index'),
-    },
-]);
 </script>
 
 <template>
-    <Head title="Projects" />
+  <Head title="Projects" />
 
-    <InfinitePaginator :list="projects" loadable="projects" :filter="q">
-        <template v-slot:default="{ item }">
-            <IndexCard :project="item as Project" />
-        </template>
-    </InfinitePaginator>
+  <Breadcrumbs global>
+    <Breadcrumb route="projects.index" text="Projects" />
+  </Breadcrumbs>
 
-    <InfiniteScroll :pagination="projects" loadable="projects" />
+  <InfinitePaginator :list="projects" loadable="projects" :filter="q">
+    <template v-slot:default="{ item }">
+      <IndexCard :project="item as Project" />
+    </template>
+  </InfinitePaginator>
+
+  <InfiniteScroll :pagination="projects" loadable="projects" />
 </template>

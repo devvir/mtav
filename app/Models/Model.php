@@ -12,4 +12,6 @@ class Model extends EloquentModel
     use ConvertsToJsonResource;
     use HasFactory;
     use HasPolicy;
+
+    protected $guarded = ['id'];
 }

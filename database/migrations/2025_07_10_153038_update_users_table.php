@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('avatar')->nullable()->after('lastname');
             $table->foreignIdFor(Family::class)->nullable()->after('id')->constrained()->nullOnDelete();
             $table->boolean('is_admin')->default(false)->after('remember_token');
+            $table->boolean('darkmode')->nullable()->after('remember_token');
 
             $table->dropColumn('name');
-            $table->string('password')->nullable()->change();
 
             $table->index(['lastname', 'firstname']);
         });

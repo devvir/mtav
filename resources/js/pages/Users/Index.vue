@@ -1,44 +1,35 @@
 <script setup lang="ts">
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { getCurrentProject } from '@/composables/useProjects';
-import { PaginatedUsers, User } from '@/types';
-import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.vue';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
-import IndexCard from './Partials/IndexCard.vue';
+import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.vue';
+import IndexCard from './Crud/IndexCard.vue';
 
 defineProps<{
-    members: PaginatedUsers;
-    q: string;
+  members: PaginatedUsers;
+  q: string;
 }>();
 
-const currentProject = getCurrentProject();
-
-useBreadcrumbs().set([
-    {
-        title: currentProject.value?.name,
-        route: 'projects.show',
-        params: currentProject.value?.id,
-    },
-    {
-        title: 'Members',
-        route: 'users.index',
-    },
-]);
+const gridColsOverrides = {
+  xl: 'xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
+};
 </script>
 
 <template>
-    <Head title="Members" />
+  <Head title="Members" />
 
-    <InfinitePaginator :list="members" loadable="members" :filter="q">
-        <template v-slot:search-right>
-            <div class="flex p-0.5 bg-sidebar-accent rounded-xl text-base border border-card">
-                <MembersFamiliesSwitch side="left" :active="false" route-name="families.index">Families</MembersFamiliesSwitch>
-                <MembersFamiliesSwitch side="right" :active="true" route-name="users.index">Members</MembersFamiliesSwitch>
-            </div>
-        </template>
+  <Breadcrumbs>
+    <Breadcrumb route="users.index" text="Members" />
+  </Breadcrumbs>
 
-        <template v-slot:default="{ item }">
-            <IndexCard :user="item as User" />
-        </template>
-    </InfinitePaginator>
+  <InfinitePaginator :list="members" loadable="members" :filter="q" :gridColsOverrides="gridColsOverrides">
+    <template v-slot:search-right>
+      <MembersFamiliesSwitch />
+    </template>
+
+    <template v-slot:default="{ item }">
+      <IndexCard :user="item as User" />
+    </template>
+  </InfinitePaginator>
 </template>

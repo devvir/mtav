@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
-    public static function current(?Project $project = null): ?Project
+    public static function current(): ?Project
     {
-        return $project
-            ? updateState('project', $project)
-            : state('project');
+        return state('project');
+    }
+
+    public static function setCurrent(?Project $project = null): void
+    {
+        updateState('project', $project);
     }
 
     /**
@@ -23,9 +26,9 @@ class Project extends Model
         return $this->hasMany(Unit::class);
     }
 
-    public function families(): Builder
+    public function families(): HasMany
     {
-        return Family::whereIn('id', $this->members()->pluck('family_id'));
+        return $this->hasMany(Family::class);
     }
 
     /**
@@ -61,9 +64,13 @@ class Project extends Model
     /**
      * Add a user to the project.
      */
-    public function addUser(User $user): self
+    public function addUser(User|int $userOrId): self
     {
-        $this->users()->syncWithPivotValues($user, [ 'active' => true ], detaching: false);
+        $this->users()->syncWithPivotValues(
+            model($userOrId, User::class),
+            [ 'active' => true ],
+            detaching: false
+        );
 
         return $this;
     }
@@ -71,32 +78,39 @@ class Project extends Model
     /**
      * Remove a user from the project.
      */
-    public function removeUser(User $user): self
+    public function removeUser(User|int $userOrId): self
     {
-        $this->members()->updateExistingPivot($user, [ 'active' => false ]);
+        $this->members()->updateExistingPivot(
+            model($userOrId, User::class),
+            [ 'active' => false ]
+        );
 
         return $this;
     }
 
-    public function addFamily(Family $family): self
+    public function hasUser(User|int $userOrId): bool
     {
-        $family->join($this);
+        $userId = $userOrId instanceof User ? $userOrId->id : $userOrId;
 
-        return $this;
+        return $this->users()->where('users.id', $userId)->exists();
     }
 
-    public function hasUser(User $user): bool
+    public function hasMember(User|int $userOrId): bool
     {
-        return $this->users()->where('users.id', $user->id)->exists();
-    }
+        $user = model($userOrId, User::class);
 
-    public function hasMember(User $user): bool
-    {
         return $user->isNotAdmin() && $this->hasUser($user);
     }
 
-    public function hasAdmin(User $user): bool
+    public function hasAdmin(User|int $userOrId): bool
     {
+        $user = model($userOrId, User::class);
+
         return $user->isSuperAdmin() || ($user->isAdmin() && $this->hasUser($user));
+    }
+
+    public function scopeAlphabetically(Builder $query): void
+    {
+        $query->orderBy('name');
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Family;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,9 +17,11 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'project' => 'required|int|exists:' . Project::class . ',id',
+            'family' => 'required|int|exists:' . Family::class . ',id',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
+            'lastname' => 'string|max:255',
         ];
     }
 }

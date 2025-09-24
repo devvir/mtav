@@ -20,26 +20,24 @@ class FamilyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->lastName() . ' ' . $this->faker->lastName(),
+            'name'       => $this->faker->lastName() . ' ' . $this->faker->lastName(),
+            'project_id' => Project::factory(),
         ];
     }
 
-    public function withMembers(?int $min = null, ?int $max = null): static
+    public function withMembers(): static
     {
-        $max ??= $min ?? 4;
-        $min ??= 1;
-
         return $this->afterCreating(
-            fn (Family $family) => User::factory()
-                ->count(rand($min, $max))
-                ->create([ 'family_id' => $family->getKey() ])
+            fn (Family $family) => $family->members()->saveMany(
+                tap(
+                    User::factory()->count(rand(1, 6))->create([ 'family_id' => $family->id ]),
+                    fn ($users) => $family->project->members()->attach($users->pluck('id')))
+            )
         );
     }
 
-    public function inProject(?Project $project = null): static
+    public function inProject(Project $project): static
     {
-        $project ??= Project::inRandomOrder()->first() ?? Project::factory()->create();
-
-        return $this->afterCreating($project->addFamily(...));
+        return $this->state([ 'project_id' => $project->id ]);
     }
 }

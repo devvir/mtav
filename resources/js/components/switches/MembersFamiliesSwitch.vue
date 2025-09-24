@@ -1,20 +1,28 @@
 <script setup lang="ts">
+import { _ } from '@/composables/useTranslations';
+import { useRoute } from 'ziggy-js';
 
-const props = defineProps<{
-    active: boolean;
-    routeName: string;
-    side: 'left' | 'right';
-}>();
-
-const roundedClass = props.side === 'left' ? 'rounded-l-xl' : 'rounded-r-xl';
+const route = useRoute();
+const isActive = (page: string) => route().current(page);
 </script>
 
 <template>
-    <Link as="button"
-        class="block w-full py-1 px-3 disabled:cursor-default"
-        :href="route(routeName)"
-        :class="[roundedClass, { 'bg-sidebar hover:bg-accent cursor-pointer': ! active }]"
-        :disabled="active"
-        prefetch
-    ><slot /></Link>
+  <div class="flex overflow-hidden rounded-2xl border-2 border-foreground/80 @xl:text-sm">
+    <Link
+      v-for="(routeName, label) in { Families: 'families.index', Members: 'users.index' }"
+      :key="routeName"
+      as="button"
+      :href="route(routeName)"
+      prefetch
+      class="block w-full px-4 py-2 transition-colors lg:py-1"
+      :tabindex="isActive(routeName) ? -1 : 0"
+      :class="
+        isActive(routeName)
+          ? 'bg-foreground/80 text-background'
+          : 'cursor-pointer bg-muted text-muted-foreground/85 active:outline-0 hocus:bg-foreground/20'
+      "
+    >
+      {{ _(label) }}
+    </Link>
+  </div>
 </template>

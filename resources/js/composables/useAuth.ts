@@ -1,14 +1,9 @@
-import { Auth, User } from '@/types';
-import { usePage } from '@inertiajs/vue3';
-import { computed, ComputedRef } from 'vue';
-
 const page = usePage();
 
-export const getCurrentUser = (): ComputedRef<User | null> => {
-    return computed(() => page.props.auth.user);
-}
+export const auth = computed(() => page.props.auth);
+export const currentUser = computed<User | null>(() => auth.value.user);
 
-export const getAuth = (): ComputedRef<Auth> => {
-    return computed(() => page.props.auth);
-}
-
+export const iAmAdmin = computed<boolean>(() => auth.value?.user?.is_admin ?? false);
+export const iAmNotAdmin = computed<boolean>(() => !iAmAdmin.value);
+export const iAmSuperadmin = computed<boolean>(() => auth.value?.user?.is_superadmin ?? false);
+export const iAmNotSuperadmin = computed<boolean>(() => !iAmSuperadmin.value);

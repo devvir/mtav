@@ -9,14 +9,21 @@ use Illuminate\Validation\UnauthorizedException;
 
 class SetCurrentProjectController
 {
-    public function __invoke(Request $request, Project $project): RedirectResponse
+    public function set(Request $request, Project $project): RedirectResponse
     {
         if ($request->user()->isNotSuperAdmin() && ! $request->user()->manages($project)) {
             throw new UnauthorizedException('You do not have permission to select this Project.');
         }
 
-        Project::current($project);
+        Project::setCurrent($project);
 
-        return back()->with('success', "Switched to Project `{$project->name}`");
+        return to_route('home');
+    }
+
+    public function unset(): RedirectResponse
+    {
+        Project::setCurrent();
+
+        return redirect()->back();
     }
 }

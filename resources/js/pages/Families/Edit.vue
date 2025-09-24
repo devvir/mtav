@@ -1,31 +1,19 @@
 <script setup lang="ts">
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { getCurrentProject } from '@/composables/useProjects';
-import { Family, Project } from '@/types';
-import { ComputedRef } from 'vue';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 
-const props = defineProps<{
-    family: Family;
+defineProps<{
+  family: Family;
 }>();
-
-const currentProject = getCurrentProject() as ComputedRef<Project>;
-
-useBreadcrumbs().set([
-    {
-        title: currentProject.value.name,
-        href: route('projects.show', currentProject.value.id),
-    },
-    {
-        title: 'Families',
-        href: route('families.index'),
-    },
-    {
-        title: props.family.name,
-        href: route('families.show', props.family.id),
-    },
-]);
 </script>
 
 <template>
-    <Head title="Update Family" />
+  <Head title="Update Family" />
+
+  <Breadcrumbs>
+    <Breadcrumb route="families.index" text="Families" />
+    <Breadcrumb route="families.show" :params="family.id">{{ family.name }}</Breadcrumb>
+    <Breadcrumb route="families.edit" :params="family.id" text="Edit" />
+  </Breadcrumbs>
 </template>

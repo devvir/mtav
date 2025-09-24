@@ -17,6 +17,8 @@ class UserSeeder extends Seeder
             return;
         }
 
+        $firstProject = Project::first();
+
         User::factory()->admin()->create([
             'id'         => 1,
             'firstname'  => 'Test',
@@ -28,32 +30,33 @@ class UserSeeder extends Seeder
             'firstname'  => 'Test',
             'lastname'   => 'Admin',
             'email'      => 'admin@example.com',
-        ]);
+        ])->projects()->attach(Project::pluck('id'));
 
-        User::factory()->withFamily()->create([
+        User::factory()->create([
             'firstname'  => 'Test',
             'lastname'   => 'User',
             'email'      => 'user@example.com',
-        ]);
+        ])->joinProject($firstProject);
 
         // Example orphan User (data inconsistency: no family, no project)
         User::factory()->create([
-            'firstname'  => 'Orphan',
-            'lastname'   => 'User',
+            'firstname'  => 'Test',
+            'lastname'   => 'Orphan',
             'email'      => 'orphan@example.com',
+            'family_id'  => null,
         ]);
 
-        User::factory()->withFamily()->create([
+        User::factory()->create([
             'firstname'  => 'A Regular User',
             'lastname'   => 'With a Very Long Name',
             'email'      => 'longname@example.com',
-        ]);
+        ])->joinProject($firstProject);
 
         // Example inactive User (@see DatabaseSeeder for further setup of this User)
-        User::factory()->withFamily()->create([
-            'firstname'  => 'Inactive',
-            'lastname'   => 'User',
+        User::factory()->create([
+            'firstname'  => 'Test',
+            'lastname'   => 'Inactive',
             'email'      => 'inactive@example.com',
-        ]);
+        ])->joinProject($firstProject)->leaveProject($firstProject);
     }
 }

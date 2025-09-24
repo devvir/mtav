@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\HandleCurrentProject;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,19 +17,26 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'project']);
 
         $middleware->web(append: [
+            HandleCurrentProject::class,
             HandleAppearance::class,
-            HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
         ]);
 
-        $middleware->api(append: [
-            'web',
-        ]);
-
+        $middleware->api(append: [ 'web' ]);
         $middleware->statefulApi();
+
+        $middleware->validateCsrfTokens(except: [
+            'login',
+            'logout',
+            'csrf-token',
+        ]);
+
+        // $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
+        // AuthenticationException::redirectUsing('login');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

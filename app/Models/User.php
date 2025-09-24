@@ -21,17 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable;
     use ConvertsToJsonResource;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'email',
-        'password',
-        'firstname',
-        'lastname',
-    ];
+    protected $guarded = ['id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -58,7 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * All projects that the user is a member of (active or not).
+     * All projects that the user is a member of.
      */
     public function projects(): BelongsToMany
     {
@@ -67,23 +57,10 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
-    public function managedProjects(): BelongsToMany
-    {
-        if ($this->isNotAdmin()) {
-            throw new BadMethodCallException('Only admins can manage projects.');
-        }
-
-        return $this->projects();
-    }
-
     public function manages(Project $project): bool
     {
-        if ($this->isNotAdmin()) {
-            throw new BadMethodCallException('Only admins can manage projects.');
-        }
-
         return $this->isSuperAdmin()
-            || $this->managedProjects->contains($project);
+            || ($this->isAdmin() && $this->projects->contains($project));
     }
 
     /**
@@ -125,9 +102,9 @@ class User extends Authenticatable implements MustVerifyEmail
             ));
     }
 
-    public function joinProject(Project $project): self
+    public function joinProject(Project|int $project): self
     {
-        $project->addUser($this);
+        model($project, Project::class)->addUser($this);
 
         return $this;
     }

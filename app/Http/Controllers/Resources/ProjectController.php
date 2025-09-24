@@ -26,7 +26,7 @@ class ProjectController extends Controller
 
 
         return inertia('Projects/Index', [
-            'projects' => Inertia::deepMerge(fn () => $projects->paginate()),
+            'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
             'q'        => $request->string('q', ''),
         ]);
     }

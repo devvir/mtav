@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +29,7 @@ class UserController extends Controller
             ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
 
         return inertia('Users/Index', [
-            'members' => Inertia::deepMerge(fn () => $members->paginate(20)),
+            'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
             'q'       => $request->string('q', ''),
         ]);
     }
@@ -45,9 +47,18 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return inertia('Users/Create');
+        $familiesPool = Project::current()?->families() ?? Family::query();
+
+        $projectsPool = $request->user()->isSuperAdmin()
+            ? Project::query()
+            : $request->user()->projects();
+
+        return inertia('Users/Create', [
+            'families' => $familiesPool->alphabetically()->get(['id', 'name']),
+            'projects' => $projectsPool->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -55,11 +66,16 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request): RedirectResponse
     {
-        $user = User::create($request->validated());
+        $user = DB::transaction(function () use ($request) {
+            return User::create([
+                ...$request->only(['firstname', 'lastname', 'email']),
+                'family_id' => $request->family ?: null,
+            ])->joinProject($request->project);
+        });
 
         event(new Registered($user));
 
-        return to_route('users.show', $user->id);
+        return redirect()->back();
     }
 
     /**
@@ -67,7 +83,9 @@ class UserController extends Controller
      */
     public function edit(User $user): Response
     {
-        return inertia('Users.Edit', compact('user'));
+        $user->load('family', 'projects');
+
+        return inertia('Users/Edit', compact('user'));
     }
 
     /**
@@ -77,7 +95,7 @@ class UserController extends Controller
     {
         User::update($request->validated());
 
-        return to_route('users.show', $user->id);
+        return redirect()->back();
     }
 
     /**

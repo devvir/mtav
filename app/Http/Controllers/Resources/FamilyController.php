@@ -8,6 +8,7 @@ use App\Models\Family;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,16 +19,18 @@ class FamilyController extends Controller
      */
     public function index(Request $request): Response
     {
+        // TODO : this isn't working (persist Families/Members switch state)
         updateState('groupMembers', true);
 
         $pool = Project::current()?->families() ?? Family::query();
 
-        $families = $pool->orderBy('name')
+        $families = $pool
+            ->alphabetically()
             ->with(['members' => fn ($query) => $query->alphabetically()])
             ->when($request->q, fn ($query, $q) => $query->search($q, searchMembers: true));
 
         return inertia('Families/Index', [
-            'families' => Inertia::deepMerge(fn () => $families->paginate(20)),
+            'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
             'q'        => $request->string('q', ''),
         ]);
     }
@@ -45,9 +48,15 @@ class FamilyController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return inertia('Families/Create');
+        $projectsPool = $request->user()->isSuperAdmin()
+            ? Project::query()
+            : $request->user()->projects();
+
+        return inertia('Families/Create', [
+            'projects' => $projectsPool->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -55,9 +64,12 @@ class FamilyController extends Controller
      */
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
-        $family = Family::create($request->validated());
+        $family = DB::transaction(function () use ($request) {
+            return Family::create(['name' => $request->name])
+                ->join($request->project);
+        });
 
-        return to_route('families.show', $family->id);
+        return redirect()->back();
     }
 
     /**
@@ -65,7 +77,7 @@ class FamilyController extends Controller
      */
     public function edit(Family $family): Response
     {
-        return inertia('Families.Edit', compact('family'));
+        return inertia('Families/Edit', compact('family'));
     }
 
     /**
@@ -75,7 +87,7 @@ class FamilyController extends Controller
     {
         Family::update($request->validated());
 
-        return to_route('families.show', $family->id);
+        return redirect()->back();
     }
 
     /**

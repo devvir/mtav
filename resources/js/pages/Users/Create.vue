@@ -1,32 +1,31 @@
 <script setup lang="ts">
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { getCurrentProject } from '@/composables/useProjects';
-import UserForm from '@/components/forms/UserForm.vue';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import { _ } from '@/composables/useTranslations';
+import CreateUpdate from '@/pages/Users/Crud/CreateUpdate.vue';
 
-const currentProject = getCurrentProject();
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
-const breadcrumbs = [];
-
-if (currentProject.value) {
-    breadcrumbs.push({
-        title: currentProject.value.name,
-        href: route('projects.show', currentProject.value.id),
-    });
-};
-
-useBreadcrumbs().set([...breadcrumbs, {
-    title: 'Members',
-    href: route('users.index'),
-}, {
-    title: 'Registration',
-    href: route('users.create'),
-}]);
+defineProps<{
+  projects: Project[];
+  families: Family[];
+}>();
 </script>
 
 <template>
-    <Head title="Members" />
+  <Head title="Invite Member" />
 
-    <UserForm class="mt-10">
-        Register a new Member
-    </UserForm>
+  <Breadcrumbs>
+    <Breadcrumb route="users.index" text="Members" />
+    <Breadcrumb route="users.create" text="Invite" />
+  </Breadcrumbs>
+
+  <CreateUpdate
+    :title="_('Invite a new Member')"
+    type="create"
+    action="users.store"
+    class="mx-auto size-full max-w-2xl"
+    v-bind="{ families, projects }"
+  />
 </template>

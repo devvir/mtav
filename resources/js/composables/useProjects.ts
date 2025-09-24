@@ -1,14 +1,14 @@
-import { Project } from '@/types';
-import { router, usePage } from '@inertiajs/vue3';
-import { computed, ComputedRef } from 'vue';
-
 const page = usePage();
 
-export const getCurrentProject = (): ComputedRef<Project | null> => {
-    return computed(() => page.props.state.project);
-}
+export const currentProject = computed<Project | null>(() => page.props.state.project);
+export const projectIsSelected = computed(() => !!currentProject.value);
 
 export const setCurrentProject = (project: Project): void => {
-    router.post(route('setCurrentProject', project.id));
-}
+  router.flushAll();
+  router.post(route('setCurrentProject', project.id));
+};
 
+export const resetCurrentProject = (): void => {
+  router.flushAll();
+  router.delete(route('resetCurrentProject'));
+};

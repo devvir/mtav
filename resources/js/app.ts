@@ -1,58 +1,50 @@
 import '../css/app.css';
 
-import type { DefineComponent } from 'vue';
-
-import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
+import { createInertiaApp, Link } from '@inertiajs/vue3';
+import { putConfig, renderApp } from '@inertiaui/modal-vue';
 import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { i18nVue } from 'laravel-vue-i18n';
 import { createPinia } from 'pinia';
-import { createApp, h } from 'vue';
+import type { DefineComponent } from 'vue';
+import { createApp } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { autoRefreshCsrfToken } from './composables/useCsrfToken';
+import AppSidebarLayout from './layouts/app/AppSidebarLayout.vue';
 
-import AppLayout from './layouts/AppLayout.vue';
-
-configureEcho({
-    broadcaster: 'reverb',
-});
-
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'MTAV';
 
 const pinia = createPinia();
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: async (name) => {
-        const page = await resolvePageComponent(
-            `./pages/${name}.vue`,
-            import.meta.glob<DefineComponent>('./pages/**/*.vue')
-        );
+  title: (title) => (title ? `${title} - ${appName}` : appName),
+  resolve: async (name) => {
+    const page = await resolvePageComponent(
+      `./pages/${name}.vue`,
+      import.meta.glob<DefineComponent>('./pages/**/*.vue'),
+    );
 
-        // Use AppLayout only if no layout is defined in the Page (set to null for no Layout)
-        if (typeof page.default.layout === 'undefined') {
-            page.default.layout = AppLayout;
-        }
+    // Use default only if no layout is defined in the Page (use null for no layout)
+    if (typeof page.default.layout === 'undefined') {
+      page.default.layout = AppSidebarLayout;
+    }
 
-        return page;
-    },
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(pinia)
-            .use(ZiggyVue)
-            .use(i18nVue, {
-                resolve: (lang: [key: string]) => import(`../../lang/${lang}.json`),
-            })
-            .component('Link', Link)
-            .component('Head', Head)
-            .mount(el);
-    },
-    progress: {
-        color: '#4B5563',
-        showSpinner: true,
-    },
+    return page;
+  },
+  setup({ el, App, props, plugin }) {
+    createApp({ render: renderApp(App, props) })
+      .use(plugin)
+      .use(pinia)
+      .use(ZiggyVue)
+      .use(autoAnimatePlugin)
+      .component('Link', Link)
+      .mount(el);
+  },
+  progress: {
+    color: '#4B5563',
+    showSpinner: true,
+  },
 });
 
 // This will set light / dark mode on page load...
@@ -60,3 +52,39 @@ initializeTheme();
 
 // Automatically refresh expired CSRF tokens without bothering the user
 autoRefreshCsrfToken();
+
+configureEcho({
+  broadcaster: 'reverb',
+});
+
+putConfig({
+  type: 'modal',
+  modal: {
+    panelClasses: 'modalPanel',
+    paddingClasses: 'modalPadding',
+  },
+  slideover: {
+    maxWidth: 'xl',
+    panelClasses: 'modalPanel modalSlideover',
+    paddingClasses: 'modalPadding',
+  },
+});
+
+/*
+const renderApp = (App, props) => {
+    if (props.resolveComponent) {
+        resolveComponent = props.resolveComponent
+    }
+
+    return () => h(ModalRoot, () => h(App, props))
+}
+
+TODO : overwrite renderApp to automatically wrap the page in a Modal
+       No configuration is required, since the modal config can be passed as props
+       to the ModalLink, and/or set with putConfig(). Event listeners can probably
+       be set using useModal(), and if not... that can also be arranged. For example,
+       having control of the render function, we could emit the events in the root
+       of our Component directly (i.e. the root of the page loaded in the modal).
+       Or, we can add a reference to the Modal in the props, so we can do something
+       like props.modal.on('close'), props.modal.on('message'), etc.
+*/

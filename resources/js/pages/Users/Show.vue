@@ -1,70 +1,62 @@
 <script setup lang="ts">
-import DeleteUser from '@/pages/Users/Partials/DeleteUser.vue';
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { getCurrentProject } from '@/composables/useProjects';
-import { User } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import MaybeModal from '@/components/MaybeModal.vue';
+import Card from '@/components/shared/Card.vue';
+import { _ } from '@/composables/useTranslations';
+import Delete from '@/pages/Users/Crud/Delete.vue';
 
-const props = defineProps<{
-    user: User;
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
+
+defineProps<{
+  user: User;
 }>();
-
-const currentProject = getCurrentProject();
-
-useBreadcrumbs().set([
-    {
-        title: currentProject.value?.name,
-        route: 'projects.show',
-        params: currentProject.value?.id,
-    },
-    {
-        title: 'Members',
-        route: 'users.index',
-    },
-    {
-        title: props.user.name,
-        route: 'users.show',
-        params: props.user.id,
-    },
-]);
 </script>
 
 <template>
-    <Head :title="user.name" />
+  <Head :title="user.name" no-translation />
 
-    <div class="flex flex-wrap justify-center-safe align-middle gap-6 mx-8 h-full">
-        <div class="my-auto px-6 py-4 max-w-[800px] rounded-2xl shadow-lg/45 shadow-blue-400 bg-sidebar border-t border-t-blue-400">
-            <div class="flex justify-between items-center-safe px-3 py-5 border-b border-gray-200 dark:border-gray-700" :title="user.name">
-                <img :src="user.avatar" alt="avatar" class="w-12 md:w-18" />
-                <div>
-                    <div class="max-w-52 md:max-w-86 text-md md:text-xl truncate">{{ user.name }}</div>
-                    <div class="text-sm text-muted-foreground">{{ user.email }}</div>
-                </div>
+  <Breadcrumbs>
+    <Breadcrumb route="users.index" text="Members" />
+    <Breadcrumb route="users.show" :params="user.id">{{ user.name }}</Breadcrumb>
+  </Breadcrumbs>
+
+  <MaybeModal>
+    <div class="flex h-full justify-center">
+      <Card class="size-full">
+        <template v-slot:header>
+          <div class="flex items-center-safe justify-start" :title="user.name">
+            <img :src="user.avatar" alt="avatar" class="mr-wide w-24" />
+            <div class="text-sm leading-wide text-muted-foreground">
+              <div class="truncate text-2xl leading-12">{{ user.name }}</div>
+              <div>{{ user.email }}</div>
+              <div>{{ user.phone ?? 'N/A' }}</div>
             </div>
+          </div>
+        </template>
 
-            <div class="flex flex-col justify-between mt-6 mb-3 px-3 py-5 gap-3 border-b border-gray-200 dark:border-gray-700">
-                <div class="text-sm mb-6 space-y-4">
-                    <div>TODO</div>
-                    <div>family basics</div>
-                    <div>project (iff no project selected) with stats</div>
-                    <div>online status and last activity</div>
-                </div>
+        <div class="mt-6 mb-3 flex flex-col justify-between gap-3 px-3 py-5">
+          <div class="mb-6 space-y-4 text-sm">
+            <div>TODO</div>
+            <div>family basics</div>
+            <div>project (iff no project selected) with stats</div>
+            <div>online status and last activity</div>
+          </div>
 
-                <Link
-                    v-if="user.family.name" :href="route('families.show', user.family.id)"
-                    class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                    Family: {{ user.family.name }}
-                </Link>
+          <Link
+            v-if="user.family.name"
+            :href="route('families.show', user.family.id)"
+            class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            {{ _('Family') }}: {{ user.family.name }}
+          </Link>
 
-                <div class="mt-4 text-sm text-muted-foreground">Created: {{ user.created_ago }}</div>
-            </div>
-
-            <div class="text-sm text-muted-foreground">Phone: {{ user.phone ?? 'N/A' }}</div>
-
-            <div class="flex flex-col justify-between mt-24 mb-4 rounded-md hover:border border-red-500">
-                <DeleteUser v-if="user.allows?.delete" :user="user" />
-            </div>
+          <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ user.created_ago }}</div>
         </div>
+
+        <Delete v-if="user.allows?.delete" :user="user" class="mt-wide border-t border-foreground/10" />
+      </Card>
     </div>
+  </MaybeModal>
 </template>

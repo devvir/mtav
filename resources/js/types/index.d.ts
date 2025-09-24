@@ -1,92 +1,83 @@
-import type { LucideIcon } from 'lucide-vue-next';
-import type { Config } from 'ziggy-js';
-
-export interface Auth {
-    user: User;
-    verified: boolean;
+interface JsonResource {
+  id: number;
+  created_at: string;
+  allows: {
+    viewAny: boolean;
+    view: boolean;
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+    restore: boolean;
+    forceDelete: boolean;
+  };
 }
 
-export interface BreadcrumbItem {
-    title: string;
-    href: string;
+interface PaginationSpec {
+  path: string;
+  current_page: number;
+  last_page: number;
+  next_page_url: number | null;
+  total: number;
 }
 
-export interface NavItem {
-    title: string;
-    href: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
+interface PaginatedResources extends PaginationSpec {
+  data: JsonResource[];
 }
 
-export type AppPageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
-    name: string;
-    auth: Auth;
-    ziggy: Config & { location: string };
-    sidebarOpen: boolean;
-};
+interface User extends JsonResource {
+  id: number;
+  email: string;
+  phone: string;
+  name: string;
+  firstname: string;
+  lastname: string;
+  avatar: string;
+  is_admin: boolean;
+  is_superadmin: boolean;
+  created_ago: string;
 
-export interface PaginationSpec {
-    path: string;
-    current_page: number;
-    last_page: number;
-    next_page_url: number | null;
-    total: number;
+  family: Family & { loaded?: boolean };
+  project?: Project & { loaded?: boolean };
+  projects?: Project[] & { loaded?: boolean };
 }
 
-export interface JsonResource {
-    id: number,
-    created_at: string;
-    allows?: {
-        viewAny: boolean;
-        view: boolean;
-        create: boolean;
-        update: boolean;
-        delete: boolean;
-        restore: boolean;
-        forceDelete: boolean;
-    }
-};
+interface Family extends JsonResource {
+  id: number;
+  name: string;
 
-export interface PaginatedResources extends PaginationSpec {
-    data: JsonResource[];
+  members?: User[];
+  project?: Project & { loaded?: boolean };
 }
 
-export interface User extends JsonResource {
-    id: number;
-    email: string;
-    phone: string;
-    name: string;
-    firstname: string;
-    lastname: string;
-    avatar: string;
-    is_admin: boolean;
-    is_superadmin: boolean;
-    created_ago: string;
+interface Project extends JsonResource {
+  id: number;
+  name: string;
+  status: boolean;
 
-    family: Family & { loaded?: boolean };
-};
+  admins?: User[];
+  admins_count?: number;
+  members?: User[];
+  members_count?: number;
+  families?: Family[];
+  families_count?: number;
+}
 
-export interface Family extends JsonResource {
-    id: number;
-    name: string;
-    members?: User[];
-};
+interface PaginatedUsers extends PaginatedResources {
+  data: User[];
+}
 
-export interface Project extends JsonResource {
-    id: number;
-    name: string;
-    status: boolean;
+interface PaginatedFamilies extends PaginatedResources {
+  data: Family[];
+}
 
-    admins?: User[],
-    admins_count?: number,
-    members?: User[],
-    members_count?: number,
-    families?: Family[],
-    families_count?: number,
-};
+interface PaginatedProjects extends PaginatedResources {
+  data: Project[];
+}
 
-interface PaginatedUsers extends PaginatedResources { data: User[] };
-interface PaginatedFamilies extends PaginatedResources { data: Family[] };
-interface PaginatedProjects extends PaginatedResources { data: Project[] };
-
-export type BreadcrumbItemType = BreadcrumbItem;
+interface NavItem {
+  label: string;
+  route: string;
+  icon: any;
+  onlyIf?: ComputedRef<boolean>;
+  routes?: string[];
+}

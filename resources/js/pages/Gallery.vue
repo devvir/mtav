@@ -1,46 +1,48 @@
 <script setup lang="ts">
-import { getCurrentProject } from '@/composables/useProjects';
-import useBreadcrumbs from '@/store/useBreadcrumbs';
-import { Project, type BreadcrumbItem } from '@/types';
-import { trans } from 'laravel-vue-i18n';
-import { ComputedRef } from 'vue';
-
-const currentProject = getCurrentProject() as ComputedRef<Project>;
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: trans('Gallery'),
-        href: route('gallery'),
-    },
-];
-
-if (currentProject) {
-    breadcrumbs.unshift({
-        title: currentProject.value.name,
-        href: route('projects.show', currentProject.value.id),
-    });
-}
-
-useBreadcrumbs().set(breadcrumbs);
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import CardBox from '@/components/shared/CardBox.vue';
+import { _ } from '@/composables/useTranslations';
 </script>
 
 <template>
+  <Head title="Gallery" />
 
-    <Head :title="trans('Gallery')" />
+  <Breadcrumbs>
+    <Breadcrumb route="gallery" text="Gallery" />
+  </Breadcrumbs>
 
-    <div class="flex flex-wrap justify-around gap-y-8 gap-x-6 my-4 md:my-8 max-2 md:mx-6">
-        <figure v-for="idx in 20" :key="idx"
-            class="flex-1 flex flex-col justify-center items-center p-2 md:p-4 box-border bg-green-900/5 dark:bg-white/3 rounded-3xl">
-            <div class="flex flex-col justify-center min-w-[270px] lg:min-w-[600px]">
-                <img :src="`https://picsum.photos/${Math.floor(Math.random() * 400) + 300}/${Math.floor(Math.random() * 400) + 300}?${idx}`"
-                    class="rounded-2xl object-fit" />
+  <div
+    class="has-image -mb-main-y @container/gallery column-gap-base w-full columns-1 @3xl:columns-2 @5xl:columns-3 @7xl:columns-4"
+  >
+    <CardBox
+      v-for="idx in 20"
+      :key="idx"
+      :tabindex="idx"
+      class="group w-full cursor-pointer overflow-hidden rounded-xl transition-all duration-300 not-hocus:opacity-90 not-active:hocus:scale-101"
+    >
+      <figure class="@container relative flex min-h-[11cqi] flex-col justify-center overflow-hidden">
+        <img
+          :src="`https://picsum.photos/${Math.floor(Math.random() * 400) + 300}/${Math.floor(Math.random() * 400) + 300}?${idx}`"
+          fetchpriority="high"
+          class="max-h-[min(200cqi,80svh)] min-h-[50cqi] w-full object-cover"
+          alt="TODO : use image description here"
+        />
 
-                <figcaption class="text-sm space-y-0.5 mt-3 self-start">
-                    <div class="font-extralight wrap-normal">Some description for this image goes here</div>
-                    <div class="text-sm opacity-60">Posted by <span class="text-sidebar-foreground/60">&lt;some
-                            user&gt;</span></div>
-                </figcaption>
-            </div>
-        </figure>
-    </div>
+        <figcaption
+          class="absolute -bottom-1 w-full bg-muted/80 p-2 text-sm transition-all not-group-hocus:bg-muted/70 not-group-hocus:backdrop-blur-sm"
+        >
+          <div
+            class="transition-transform not-group-hocus:translate-y-[calc(100%-1.5em)] not-group-hocus:truncate group-hocus:line-clamp-3"
+          >
+            {{ 'Some description for this image goes here. '.repeat(Math.floor(Math.random() * 4) + 1) }}
+          </div>
+          <div class="origin-bottom-left scale-85 leading-6 opacity-70">
+            {{ _('Posted by') }} <span class="text-foreground/80">&lt;some user&gt;</span>
+          </div>
+        </figcaption>
+      </figure>
+    </CardBox>
+  </div>
 </template>

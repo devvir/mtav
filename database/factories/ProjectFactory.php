@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Family;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\User;
@@ -37,30 +38,12 @@ class ProjectFactory extends Factory
         );
     }
 
-    public function withMembers(?int $min = null, ?int $max = null): static
+    public function withUnits(): static
     {
-        $max ??= $min ?? 10;
-        $min ??= 3;
+        $units = Unit::factory()->count(random_int(5, 20))->create();
 
         return $this->afterCreating(
-            fn (Project $project) => $project->users()->attach(
-                User::factory()
-                    ->withFamily()
-                    ->count(rand($min, $max))
-                    ->create()
-            )
-        );
-    }
-
-    public function withUnits(?int $min = null, ?int $max = null): static
-    {
-        $max ??= $min ?? 30;
-        $min ??= 10;
-
-        return $this->afterCreating(
-            fn (Project $project) => $project->units()->saveMany(
-                Unit::factory()->count(rand($min, $max))->inProject($project)->create()
-            )
+            fn (Project $project) => $project->units()->saveMany($units)
         );
     }
 }

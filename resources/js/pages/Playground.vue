@@ -1,0 +1,30 @@
+<script setup lang="ts">
+import DropdownSample from '@/components/dropdown/DropdownSample.vue';
+import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import ChartSample from '@/components/playground/chart/ChartSample.vue';
+import I18n from '@/components/playground/I18n.vue';
+</script>
+
+<template>
+  <Head title="Dashboard" />
+
+  <Breadcrumbs>
+    <Breadcrumb route="playground" text="Dev Playground" />
+  </Breadcrumbs>
+
+  <div class="space-y-wide">
+    <div class="rounded-2xl bg-muted p-10 text-center">
+      <I18n />
+    </div>
+
+    <div class="rounded-2xl bg-muted p-10 text-center">
+      <DropdownSample />
+    </div>
+
+    <div class="rounded-2xl bg-muted p-10 text-center">
+      <ChartSample />
+    </div>
+  </div>
+</template>

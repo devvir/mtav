@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             'state' => [
+                'route' => $request->route()?->getName(),
                 'project' => Project::current(),
                 'groupMembers' => state('groupMembers'),
             ],
