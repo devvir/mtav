@@ -13,7 +13,7 @@
   </div>
 </template>
 
-<i18n lang="yaml" locale="es">
+<i18n lang="yaml" locale="es-UY">
 'Dropdown Menu Usage': 'Uso del Menu Desplegable'
 'Provide one or more triggers and one or more content boxes, using the following components': 'Provée uno más disparadores y una o más cajas de contenido, usando estos componentes'
 </i18n>

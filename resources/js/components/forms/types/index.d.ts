@@ -63,6 +63,6 @@ export type SelectSpecs = SingleSelectSpecs | MultipleSelectSpecs;
 
 export type ElementSpecs = InputSpecs | HiddenInputSpecs | SelectSpecs;
 
-export type FormSpecs = { [string]: ElementSpecs };
+export type FormSpecs = { [k: string]: ElementSpecs };
 
 export type FormType = 'create' | 'edit';

@@ -17,7 +17,7 @@ Message: 'Mensaje'
 'Hello World': 'Hola Mundo'
 </i18n>
 
-<i18n lang="yaml" locale="es">
+<i18n lang="yaml" locale="es-UY">
 Message: 'Mensaje'
 ['Hello World']: 'Hola Mundo'
 </i18n>

@@ -45,8 +45,8 @@ interface Family extends JsonResource {
   id: number;
   name: string;
 
+  project: Project & { loaded?: boolean };
   members?: User[];
-  project?: Project & { loaded?: boolean };
 }
 
 interface Project extends JsonResource {
