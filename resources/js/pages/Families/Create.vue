@@ -25,6 +25,6 @@ defineProps<{
     type="create"
     action="families.store"
     class="mx-auto size-full max-w-2xl"
-    :projects="projects"
+    :projects
   />
 </template>

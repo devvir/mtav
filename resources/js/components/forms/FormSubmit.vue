@@ -5,7 +5,7 @@ import { _ } from '@/composables/useTranslations';
 <template>
   <button
     type="submit"
-    class="ml-auto cursor-pointer rounded-md bg-accent px-5 py-2 font-semibold text-accent-foreground hover:bg-accent"
+    class="ml-auto cursor-pointer rounded-md bg-accent px-5 py-2 font-semibold text-accent-foreground hover:bg-accent disabled:opacity-30"
   >
     <slot>{{ _('Submit') }}</slot>
   </button>

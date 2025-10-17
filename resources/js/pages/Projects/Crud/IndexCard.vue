@@ -16,7 +16,7 @@ defineProps<{
     :class="currentProject?.id === project.id ? 'border border-accent-foreground shadow-none' : ''"
   >
     <template v-slot:header>
-      <ModalLink :href="route('projects.show', project.id)" as="button" class="block w-full cursor-pointer text-right">
+      <ModalLink :href="route('projects.show', project.id)" class="block w-full cursor-pointer text-right">
         <p class="truncate text-lg" :title="project.name">
           {{ project.name }}
         </p>

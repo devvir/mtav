@@ -4,7 +4,7 @@ import MaybeModal from '../MaybeModal.vue';
 import FormInput from './FormInput.vue';
 import FormSelect from './FormSelect.vue';
 import FormSubmit from './FormSubmit.vue';
-import { FormSpecs } from './types';
+import { FormSpecs, ValueType } from './types';
 
 const props = defineProps<{
   type: string;
@@ -60,13 +60,14 @@ provide('pauseModalClosing', (pause: boolean = true) => (pauseModalClosing.value
 
         <div class="@container/form grid w-full grid-cols-[auto_1fr] gap-y-4">
           <slot :form="form">
-            <template v-for="({ element, ...def }, name) in specs" :key="name">
+            <template v-for="({ element, ...def }, name) of specs" :key="name">
               <Component
                 :is="name2component(element)"
-                :name="name as string"
+                :name="name as unknown as string"
                 v-bind="{ ...def }"
-                v-model="form[name]"
+                v-model="form[name] as ValueType"
                 :error="form.errors[name]"
+                @input="form.clearErrors(name as unknown as string)"
               />
             </template>
           </slot>
@@ -77,7 +78,7 @@ provide('pauseModalClosing', (pause: boolean = true) => (pauseModalClosing.value
         </aside>
 
         <div class="text-right">
-          <FormSubmit>{{ _(buttonText ?? type2button[props.type]) }}</FormSubmit>
+          <FormSubmit :disabled="form.processing">{{ _(buttonText ?? type2button[props.type]) }}</FormSubmit>
         </div>
       </div>
     </form>

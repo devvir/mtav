@@ -6,6 +6,7 @@ import MaybeModal from '@/components/MaybeModal.vue';
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import Delete from '@/pages/Users/Crud/Delete.vue';
+import ShowWrapper from '../shared/ShowWrapper.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -23,7 +24,7 @@ defineProps<{
   </Breadcrumbs>
 
   <MaybeModal>
-    <div class="flex h-full justify-center">
+    <ShowWrapper>
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center-safe justify-start" :title="user.name">
@@ -57,6 +58,6 @@ defineProps<{
 
         <Delete v-if="user.allows?.delete" :user="user" class="mt-wide border-t border-foreground/10" />
       </Card>
-    </div>
+    </ShowWrapper>
   </MaybeModal>
 </template>

@@ -9,6 +9,7 @@ const props = defineProps<{
   list: PaginatedResources;
   filter: string;
   gridColsOverrides?: { sm?: string; md?: string; lg?: string; xl?: string };
+  featured?: number | string;
 }>();
 
 const gridColsDefaults = {
@@ -42,7 +43,12 @@ const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefau
       class="grid list-none place-items-stretch gap-wide sm:auto-rows-auto"
       :class="gridClasses"
     >
-      <li v-for="item in list.data" :key="item.id" class="h-full transition-all not-hocus:opacity-90 hocus:scale-102">
+      <li
+        v-for="item in list.data"
+        :key="item.id"
+        class="h-full transition-all not-hocus:opacity-90 hocus:scale-102"
+        :class="featured === item.id ? '-order-1 col-start-1 -col-end-1 w-full' : ''"
+      >
         <slot :item="item" />
       </li>
     </TransitionGroup>

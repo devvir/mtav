@@ -30,7 +30,7 @@ const toggle = (action?: OpenAction | CloseAction) => {
 };
 
 const dropdown = useTemplateRef<HTMLElement>('dropdown');
-onClickOutside(dropdown, () => close('click-outside'));
+onClickOutside(dropdown, () => close('click-outside'), { ignore: ['.dropdown-content'] });
 
 watchEffect(() => props.disabled && close('disabled'));
 

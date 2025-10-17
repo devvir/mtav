@@ -4,27 +4,37 @@ import Dropdown from '../dropdown/Dropdown.vue';
 import DropdownContent from '../dropdown/DropdownContent.vue';
 import DropdownTrigger from '../dropdown/DropdownTrigger.vue';
 import FormSelectAddOption from './FormSelectAddOption.vue';
-import { SelectAddOption, ValueType } from './types';
+import { SelectAddOption } from './types';
 
-const selected = defineModel<ValueType>();
-
-const emits = defineEmits<{ 'update:selected': [ValueType] }>();
+const selected = defineModel<(string | number)[]>();
 
 const props = defineProps<{
-  dropdownSlot: string;
+  multiple?: boolean;
   options: { [key: string | number]: string };
   placeholder?: string;
   disabled?: boolean;
   displayId?: boolean;
   create?: SelectAddOption;
+  dropdownSlot: string;
 }>();
 
-const modelLabel = computed(() => (selected.value ? props.options[selected.value as string | number] : ''));
+const modelLabel = computed(() => {
+  if (props.multiple) {
+    return selected.value?.map((value) => props.options[value as string | number]).join(', ') || '';
+  }
 
-const selectOption = (value: string | number, callback: () => void) => {
-  emits('update:selected', value);
+  return selected.value ? props.options[selected.value[0] as string | number] : '';
+});
 
-  callback();
+const toggleOption = (value: string | number, closeModal: () => void) => {
+  if (!props.multiple) {
+    selected.value = [value];
+    closeModal();
+  } else if (selected.value?.includes(value)) {
+    selected.value = selected.value.filter((v) => v !== value);
+  } else {
+    (selected.value as (string | number)[]).push(value);
+  }
 };
 
 const pauseModalClosing = inject('pauseModalClosing') as (pause?: boolean) => void;
@@ -83,12 +93,12 @@ const pauseModalClosing = inject('pauseModalClosing') as (pause?: boolean) => vo
               tabindex="0"
               class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-3 py-1 leading-wide"
               :class="
-                selected === value
+                selected?.includes(value)
                   ? 'bg-accent text-accent-foreground'
                   : 'hover:bg-accent/70 hover:text-accent-foreground not-group-hover:focus:bg-accent/70 not-group-hover:focus:text-accent-foreground'
               "
-              @click="selectOption(value, close)"
-              @keyup.enter="selectOption(value, close)"
+              @click.prevent.stop="toggleOption(value, close)"
+              @keyup.enter="toggleOption(value, close)"
             >
               <div v-if="displayId" class="text-xs opacity-80">id: {{ value }}</div>
               <div :class="{ 'col-span-2': !displayId }">{{ label }}</div>

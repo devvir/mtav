@@ -4,7 +4,7 @@ import FormLabel from './FormLabel.vue';
 import { ValueType } from './types';
 
 const props = defineProps<{
-  model: ValueType;
+  model: ValueType | ValueType[];
   name: string;
   label?: string;
   disabled?: boolean;
@@ -13,6 +13,8 @@ const props = defineProps<{
 
 const id = `${useId()}-${props.name}`;
 const slotAfterId = `after-slot-${id}`;
+
+const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!props.model.length : !!props.model));
 </script>
 
 <template>
@@ -20,7 +22,7 @@ const slotAfterId = `after-slot-${id}`;
     <div
       class="group relative z-1 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border-1 border-background outline-muted-foreground/10 focus-within:outline-blue-400 @md:grid @md:rounded-2xl @md:border-6"
       :class="{
-        'has-valid:outline-green-700/30 has-invalid:not-focus-within:outline-red-600/30': model,
+        'has-valid:outline-green-700/30 has-invalid:not-focus-within:outline-red-600/30': valueProvided,
         'outline-2': !disabled,
       }"
     >
@@ -38,7 +40,7 @@ const slotAfterId = `after-slot-${id}`;
       <div
         class="h-full min-h-12 bg-foreground/80 text-lg font-light text-background outline-0 transition-colors"
         :class="{
-          'has-invalid:text-red-950 has-invalid:not-focus-within:text-red-800': model,
+          'has-invalid:text-red-950 has-invalid:not-focus-within:text-red-800': valueProvided,
           'ring-blue-400 group-hover:bg-muted-foreground/90 focus-within:bg-muted-foreground focus-within:text-muted':
             !disabled,
           'bg-muted-foreground/45 font-extralight': disabled,

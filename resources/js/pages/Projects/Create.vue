@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import Form from '@/components/forms/Form.vue';
-import FormInput from '@/components/forms/FormInput.vue';
-import FormSelect from '@/components/forms/FormSelect.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { _ } from '@/composables/useTranslations';
+import CreateUpdate from './Crud/CreateUpdate.vue';
 
-const tempModel = ref(_('Form under construction'));
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
+
+defineProps<{
+  admins: User[];
+}>();
 </script>
 
 <template>
@@ -18,17 +20,11 @@ const tempModel = ref(_('Form under construction'));
     <Breadcrumb route="projects.create" text="New Project" />
   </Breadcrumbs>
 
-  <Form type="create" action="projects.store" :title="_('Create a new Project')">
-    <FormInput name="name" label="Name" required v-model="tempModel" />
-    <FormInput name="description" label="Description" required v-model="tempModel" />
-    <FormInput name="organization" label="Organization" required v-model="tempModel" />
-    <FormSelect
-      name="admin"
-      label="Admin"
-      :options="{}"
-      required
-      v-model="tempModel"
-      :create="{ target: 'admins.create', legend: 'New Admin' }"
-    />
-  </Form>
+  <CreateUpdate
+    :title="_('Create a new Project')"
+    type="create"
+    action="projects.store"
+    class="mx-auto size-full max-w-2xl"
+    :admins
+  />
 </template>

@@ -20,8 +20,8 @@ class CreateUserRequest extends FormRequest
             'project' => 'required|int|exists:' . Project::class . ',id',
             'family' => 'required|int|exists:' . Family::class . ',id',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'string|max:255',
+            'firstname' => 'required|string|min:2|max:255',
+            'lastname' => 'string|min:2|max:255',
         ];
     }
 }

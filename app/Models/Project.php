@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
 
 class Project extends Model
 {
@@ -73,6 +74,20 @@ class Project extends Model
         );
 
         return $this;
+    }
+
+    /**
+     * Add a user to the project.
+     */
+    public function addAdmin(User|int $userOrId): self
+    {
+        $admin = model($userOrId, User::class);
+
+        if (! $admin->isAdmin()) {
+            throw new InvalidArgumentException('The user must have admin privileges to be added as project admin.');
+        }
+
+        return $this->addUser($admin);
     }
 
     /**

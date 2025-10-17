@@ -4,7 +4,8 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
 import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
-import IndexCard from './Partials/IndexCard.vue';
+import { currentProject } from '@/composables/useProjects';
+import IndexCard from './Crud/IndexCard.vue';
 
 defineProps<{
   projects: PaginatedProjects;
@@ -19,7 +20,7 @@ defineProps<{
     <Breadcrumb route="projects.index" text="Projects" />
   </Breadcrumbs>
 
-  <InfinitePaginator :list="projects" loadable="projects" :filter="q">
+  <InfinitePaginator :list="projects" loadable="projects" :filter="q" :featured="currentProject?.id">
     <template v-slot:default="{ item }">
       <IndexCard :project="item as Project" />
     </template>

@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import Form from '@/components/forms/Form.vue';
-import { FormSpecs, SelectOptions } from '@/components/forms/types';
+import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentProject } from '@/composables/useProjects';
-
-type FormType = 'create' | 'edit';
 
 const props = defineProps<{
   type: FormType;

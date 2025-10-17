@@ -8,7 +8,9 @@ use Illuminate\Support\Collection;
  *
  * @param Model|int|iterable $modelOrId A model instance, its id, or an iterable of either.
  * @param class-string<Model> $modelClass The model class to use for id(s) in $modelOrId.
+ *
  * @return Model|Collection A model instance (or a collection of them if $modelOrId is iterable).
+ *
  * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if any id is invalid.
  */
 function model(Model|int|iterable $modelOrId, string $modelClass): Model|Collection
@@ -18,7 +20,7 @@ function model(Model|int|iterable $modelOrId, string $modelClass): Model|Collect
     }
     return $modelOrId instanceof Model
         ? $modelOrId
-        : ($modelClass)::findOrFail($modelOrId);
+        : $modelClass::findOrFail($modelOrId);
 }
 
 function enumFromValue(string $enumClass, string $value): UnitEnum

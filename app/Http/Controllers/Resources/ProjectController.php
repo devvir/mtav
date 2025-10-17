@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Resources;
 use App\Http\Requests\CreateProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +25,6 @@ class ProjectController extends Controller
 
         $projects = $pool->orderBy('name')
             ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"));
-
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
@@ -47,7 +48,9 @@ class ProjectController extends Controller
      */
     public function create(): Response
     {
-        return inertia('Projects/Create');
+        return inertia('Projects/Create', [
+            'admins' => User::whereIsAdmin(true)->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -55,7 +58,10 @@ class ProjectController extends Controller
      */
     public function store(CreateProjectRequest $request): RedirectResponse
     {
-        $project = Project::create($request->validated());
+        $project = DB::transaction(fn () => tap(
+            Project::query()->create($request->only('name', 'description', 'organization')),
+            fn ($project) => $project->admins()->attach($request->admins)
+        ));
 
         return to_route('projects.show', $project->id);
     }

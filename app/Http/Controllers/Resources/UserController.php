@@ -70,12 +70,13 @@ class UserController extends Controller
             return User::create([
                 ...$request->only(['firstname', 'lastname', 'email']),
                 'family_id' => $request->family ?: null,
+                'password' => bcrypt(random_bytes(16)),
             ])->joinProject($request->project);
         });
 
         event(new Registered($user));
 
-        return redirect()->back();
+        return to_route('users.show', $user->id);
     }
 
     /**
@@ -93,7 +94,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        User::update($request->validated());
+        $user->update($request->validated());
 
         return redirect()->back();
     }

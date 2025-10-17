@@ -9,7 +9,11 @@ const isOpen = inject<boolean>('isOpen');
 </script>
 
 <template>
-  <div role="dropdown" :class="cn(['absolute top-full z-20 w-full', { invisible: !isOpen }], props.class ?? '')">
+  <div
+    class="dropdown-content"
+    role="dropdown"
+    :class="cn(['absolute top-full z-20 w-full', { invisible: !isOpen }], props.class ?? '')"
+  >
     <slot />
   </div>
 </template>

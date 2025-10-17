@@ -64,9 +64,8 @@ class FamilyController extends Controller
      */
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
-        $family = DB::transaction(function () use ($request) {
-            return Family::create(['name' => $request->name])
-                ->join($request->project);
+        DB::transaction(function () use ($request) {
+            Family::create(['name' => $request->name])->join($request->project);
         });
 
         return redirect()->back();
@@ -85,7 +84,7 @@ class FamilyController extends Controller
      */
     public function update(UpdateFamilyRequest $request, Family $family): RedirectResponse
     {
-        Family::update($request->validated());
+        $family->update($request->validated());
 
         return redirect()->back();
     }

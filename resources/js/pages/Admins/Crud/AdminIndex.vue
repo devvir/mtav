@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
-import AdminCard from './AdminCard.vue';
+import IndexCard from './IndexCard.vue';
 
 const props = defineProps<{
   admins: PaginatedUsers | (User[] & { data?: undefined });
@@ -10,13 +10,13 @@ const list = computed(() => props.admins.data ?? props.admins);
 </script>
 
 <template>
-  <div class="flex flex-col gap-base rounded-xl bg-accent/2">
-    <div class="mx-2 self-center rounded-xl px-6 text-lg text-white/70">
+  <div class="flex flex-col gap-2 rounded-b-xl bg-accent/2">
+    <div class="mx-2 px-6 text-lg text-white/20 underline underline-offset-4">
       {{ _('Admins') }}
     </div>
 
-    <div class="mx-6 mb-wide flex flex-wrap justify-center-safe gap-2">
-      <AdminCard v-for="admin in list" :key="admin.id" :admin="admin" />
+    <div class="mx-6 mb-wide space-y-3">
+      <IndexCard v-for="admin in list" :key="admin.id" :admin="admin" class="w-full" />
     </div>
   </div>
 </template>

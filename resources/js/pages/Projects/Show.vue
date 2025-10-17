@@ -3,8 +3,9 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
-import AdminIndex from '../Admins/Partials/AdminIndex.vue';
-import IndexCard from './Partials/IndexCard.vue';
+import AdminIndex from '@/pages/Admins/Crud/AdminIndex.vue';
+import ShowWrapper from '../shared/ShowWrapper.vue';
+import IndexCard from './Crud/IndexCard.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 defineProps<{ project: Project }>();
@@ -19,10 +20,9 @@ defineProps<{ project: Project }>();
   </Breadcrumbs>
 
   <MaybeModal panelClasses="modalPanel close-left backdrop-blur-lg">
-    <div class="flex flex-col">
+    <ShowWrapper>
       <IndexCard :project="project" class="w-full rounded-b-none border-0 shadow-none" />
-
       <AdminIndex :admins="project.admins as User[]" class="w-full flex-1 pt-wide" />
-    </div>
+    </ShowWrapper>
   </MaybeModal>
 </template>

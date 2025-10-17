@@ -3,6 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
+import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
@@ -21,6 +22,8 @@ defineProps<{
   </Breadcrumbs>
 
   <MaybeModal panelClasses="modalPanel close-left">
-    <IndexCard :family class="w-full" />
+    <ShowWrapper>
+      <IndexCard :family />
+    </ShowWrapper>
   </MaybeModal>
 </template>

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Modal, useModal } from '@inertiaui/modal-vue';
 
+const modal = useTemplateRef<any>('modal');
+
+router.on('navigate', () => modal.value?.close());
+
 // TODO : change close-explicitly to custom prop confirmClosing
 // When confirmClosing is true:
 // - disable esc and click-outside (i.e. set closeExplicitly = true)
@@ -8,7 +12,7 @@ import { Modal, useModal } from '@inertiaui/modal-vue';
 </script>
 
 <template>
-  <Modal v-if="useModal()" v-slot="modal">
+  <Modal ref="modal" v-if="useModal()" v-slot="modal">
     <slot v-bind="modal" />
   </Modal>
 

@@ -42,14 +42,27 @@ export interface SelectAddOption {
   legend: string;
 }
 
-export interface SelectSpecs extends CommonElementSpecs {
+export interface CommonSelectSpecs extends CommonElementSpecs {
   element: 'select';
   options: SelectOptions;
-  selected?: string | number | null;
   displayId?: boolean;
   create?: SelectAddOption;
 }
 
+export interface SingleSelectSpecs extends CommonSelectSpecs {
+  multiple?: false;
+  selected?: string | number | null;
+}
+
+export interface MultipleSelectSpecs extends CommonSelectSpecs {
+  multiple: true;
+  selected?: string[] | number[] | [];
+}
+
+export type SelectSpecs = SingleSelectSpecs | MultipleSelectSpecs;
+
 export type ElementSpecs = InputSpecs | HiddenInputSpecs | SelectSpecs;
 
-export type FormSpecs = { [key: string]: ElementSpecs };
+export type FormSpecs = { [string]: ElementSpecs };
+
+export type FormType = 'create' | 'edit';

@@ -12,23 +12,21 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class AdminController extends UserController
+class AdminController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): Response
     {
-        updateState('groupMembers', false);
+        $pool = Project::current()?->admins() ?? User::admins();
 
-        $pool = Project::current()?->members() ?? User::members();
+        $admins = $pool->alphabetically()
+            ->when($request->q, fn ($query, $q) => $query->search($q));
 
-        $members = $pool->alphabetically()->with('family:id,name')
-            ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
-
-        return inertia('Users/Index', [
-            'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
-            'q'       => $request->string('q', ''),
+        return inertia('Admins/Index', [
+            'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
+            'q'      => $request->string('q', ''),
         ]);
     }
 
@@ -45,9 +43,9 @@ class AdminController extends UserController
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request): Response
+    public function create(): Response
     {
-        return inertia('Users/Create');
+        return inertia('Admins/Create');
     }
 
     /**
@@ -65,28 +63,28 @@ class AdminController extends UserController
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user): Response
+    public function edit(User $admin): Response
     {
-        return inertia('Users.Edit', compact('user'));
+        return inertia('Admins.Edit', compact('admin'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $admin): RedirectResponse
     {
-        User::update($request->validated());
+        $admin->update($request->validated());
 
-        return to_route('users.show', $user->id);
+        return to_route('admins.show', $admin->id);
     }
 
     /**
      * Delete the resource.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $admin): RedirectResponse
     {
-        $user->delete();
+        $admin->delete();
 
-        return to_route('users.index');
+        return to_route('admins.index');
     }
 }

@@ -26,6 +26,7 @@ defineProps<{
     type="create"
     action="users.store"
     class="mx-auto size-full max-w-2xl"
-    v-bind="{ families, projects }"
+    :families
+    :projects
   />
 </template>
