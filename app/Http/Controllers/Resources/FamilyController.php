@@ -8,7 +8,6 @@ use App\Models\Family;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,7 +39,7 @@ class FamilyController extends Controller
      */
     public function show(Family $family): Response
     {
-        $family->load('members');
+        $family->load('project', 'members');
 
         return inertia('Families/Show', compact('family'));
     }
@@ -64,11 +63,12 @@ class FamilyController extends Controller
      */
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
-        DB::transaction(function () use ($request) {
-            Family::create(['name' => $request->name])->join($request->project);
-        });
+        $family = Family::create([
+            'name'       => $request->name,
+            'project_id' => $request->project,
+        ]);
 
-        return redirect()->back();
+        return to_route('families.show', $family->id);
     }
 
     /**

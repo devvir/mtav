@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
-import { ModalLink } from '@inertiaui/modal-vue';
+import { ModalLink, useModal } from '@inertiaui/modal-vue';
 
 defineProps<{
   user: User;
@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <Card class="h-full">
     <template v-slot:header>
-      <ModalLink :href="route('users.show', user.id)">
+      <ModalLink :href="route('users.show', user.id)" :class="{ 'pointer-events-none': useModal() }">
         <div class="flex justify-between">
           <img :src="user.avatar" alt="avatar" class="mr-base rounded-full ring ring-muted/25" />
 

@@ -1,6 +1,10 @@
+<script setup lang="ts">
+import { useModal } from '@inertiaui/modal-vue';
+</script>
+
 <template>
   <div class="flex h-full w-full flex-col items-center justify-center">
-    <div class="flex flex-col @max-xl:w-full @lg:min-w-md">
+    <div class="flex flex-col" :class="useModal() ? 'w-full' : '@lg:min-w-md'">
       <slot />
     </div>
   </div>

@@ -6,6 +6,7 @@ import MaybeModal from '@/components/MaybeModal.vue';
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import Delete from '@/pages/Users/Crud/Delete.vue';
+import { ModalLink } from '@inertiaui/modal-vue';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
@@ -45,13 +46,13 @@ defineProps<{
             <div>online status and last activity</div>
           </div>
 
-          <Link
+          <ModalLink
             v-if="user.family.name"
             :href="route('families.show', user.family.id)"
             class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
           >
             {{ _('Family') }}: {{ user.family.name }}
-          </Link>
+          </ModalLink>
 
           <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ user.created_ago }}</div>
         </div>
