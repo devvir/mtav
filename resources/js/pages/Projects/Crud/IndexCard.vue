@@ -32,10 +32,10 @@ defineProps<{
 
     <ModalLink :href="route('projects.show', project.id)" :class="{ 'pointer-events-none': useModal() }">
       <div class="my-wide-y border-b border-foreground/10 pb-wide-y">TODO : main project stats</div>
-
-      <div class="text-center">
-        <SelectDeselect :project="project" :selected="currentProject?.id === project.id" />
-      </div>
     </ModalLink>
+
+    <div class="text-center">
+      <SelectDeselect :project="project" :selected="currentProject?.id === project.id" />
+    </div>
   </Card>
 </template>

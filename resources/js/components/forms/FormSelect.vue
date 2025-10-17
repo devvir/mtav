@@ -28,7 +28,6 @@ watch(
   },
   { deep: true },
 );
-watch(originalModel, () => console.log('model.value', model.value), { deep: true });
 </script>
 
 <template>

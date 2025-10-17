@@ -2,8 +2,6 @@ export const useTranslation = () => {
   const locale = ref<string>(document.documentElement.lang || 'en');
   const translations = ref<Record<string, string>>({});
 
-  console.log(locale.value);
-
   const setLocale = async (newLocale: string): Promise<void> => {
     const newTranslations: Record<string, string> = await import(`../../../lang/${newLocale}.json`);
 
