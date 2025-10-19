@@ -73,9 +73,16 @@ class FamilyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Family $family): Response
+    public function edit(Request $request, Family $family): Response
     {
-        return inertia('Families/Edit', compact('family'));
+        $projectsPool = $request->user()->isSuperAdmin()
+            ? Project::query()
+            : $request->user()->projects();
+
+        return inertia('Families/Edit', [
+            'family' => $family->load('project'),
+            'projects' => $projectsPool->alphabetically()->get(),
+        ]);
     }
 
     /**

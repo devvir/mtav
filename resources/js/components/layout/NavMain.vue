@@ -14,19 +14,19 @@ interface NavItem {
   routes?: string[];
 }
 
-const allNavItems = reactive<NavItem[]>([
+const allNavItems: NavItem[] = [
   {
     label: 'Dashboard',
     route: 'home',
     icon: HomeIcon,
-    onlyIf: projectIsSelected,
+    onlyIf: computed(() => projectIsSelected.value),
     routes: ['home'],
   },
   {
     label: 'Gallery',
     route: 'gallery',
     icon: LayoutGrid,
-    onlyIf: projectIsSelected,
+    onlyIf: computed(() => projectIsSelected.value),
     routes: ['gallery'],
   },
   {
@@ -43,7 +43,7 @@ const allNavItems = reactive<NavItem[]>([
     onlyIf: iAmAdmin,
     routes: ['projects.*'],
   },
-]);
+];
 
 const navItems = computed(() => {
   return allNavItems.filter((item) => item.onlyIf?.value !== false);
@@ -54,6 +54,8 @@ const activeNavItem = computed(() =>
     ({ routes = [] }) => !!routes.map((r) => new RegExp(`^${r}$`)).find((re) => re.test(currentRoute.value)),
   ),
 );
+
+const toVal = (maybeRef: string | ComputedRef<string>) => toValue(maybeRef);
 </script>
 
 <template>
@@ -61,7 +63,11 @@ const activeNavItem = computed(() =>
     <SidebarMenu>
       <SidebarMenuItem v-for="item in navItems" :key="item.label">
         <SidebarMenuButton as-child :is-active="item.label == activeNavItem?.label" :tooltip="item.label">
-          <Link :href="route(item.route)" :class="{ 'pointer-events-none': item.route === currentRoute }" prefetch>
+          <Link
+            :href="route(toVal(item.route))"
+            :class="{ 'pointer-events-none': item.route === currentRoute }"
+            prefetch
+          >
             <component :is="item.icon" />
             <span>{{ _(item.label) }}</span>
           </Link>

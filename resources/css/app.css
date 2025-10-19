@@ -102,7 +102,7 @@
   }
 
   [data-inertiaui-modal-id] .modalPanel {
-    @apply overflow-hidden rounded-lg border-2 border-foreground/15 bg-background/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-md @md:rounded-2xl;
+    @apply rounded-lg border-2 border-foreground/15 bg-background/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-md @md:rounded-2xl;
   }
 
   [data-inertiaui-modal-id] .modalPanel.close-left > *:has(> .im-close-button) {

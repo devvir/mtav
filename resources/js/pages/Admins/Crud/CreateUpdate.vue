@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
-import { currentUser, iAmNotAdmin } from '@/composables/useAuth';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
 
@@ -10,60 +9,38 @@ const props = defineProps<{
   action: string;
   title: string;
   projects: Project[];
-  families: Family[];
-  user?: User; // Edit-only
+  admin?: Admin; // Edit-only
 }>();
 
 const projectOptions: SelectOptions = {};
 props.projects.forEach((project) => (projectOptions[project.id] = project.name));
 
-const familyOptions: SelectOptions = {};
-props.families.forEach((family) => (familyOptions[family.id] = `${_('Family')}: ${family.name}`));
-
 const formSpecs: FormSpecs = {
   project: {
     element: 'select',
     label: 'Project',
-    selected: props.user?.project?.id ?? currentProject.value?.id,
+    selected: props.admin?.project?.id ?? currentProject.value?.id,
     options: projectOptions,
     required: true,
     displayId: true,
     disabled: props.projects.length < 2,
   },
-  family: {
-    element: 'select',
-    label: 'Family',
-    selected: props.user?.family.id,
-    options: familyOptions,
-    required: true,
-    displayId: true,
-    disabled: props.type === 'edit',
-    create: { target: 'families.create', legend: 'Add a new Family' },
-  },
   email: {
     element: 'input',
     label: 'Email',
     type: 'email',
-    value: props.user?.email,
+    value: props.admin?.email,
     autocomplete: false,
     required: true,
   },
-  firstname: { element: 'input', label: 'First Name', value: props.user?.firstname, required: true },
-  lastname: { element: 'input', label: 'Last Name', value: props.user?.lastname },
+  firstname: { element: 'input', label: 'First Name', value: props.admin?.firstname, required: true },
+  lastname: { element: 'input', label: 'Last Name', value: props.admin?.lastname },
 };
-
-/**
- * Members cannot choose project or family; these are set automatically
- */
-if (iAmNotAdmin.value) {
-  formSpecs.project = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  formSpecs.family = { element: 'input', type: 'hidden', value: currentUser.value?.family?.id };
-}
 </script>
 
 <template>
   <Form
-    v-bind="{ type, action, params: props.user?.id, title }"
+    v-bind="{ type, action, params: props.admin?.id, title }"
     :specs="formSpecs"
     buttonText="Invite"
     autocomplete="off"
@@ -78,12 +55,12 @@ if (iAmNotAdmin.value) {
         <li class="list-item leading-tight @md:leading-wide">
           {{
             type === 'edit'
-              ? _('Changes to the email remain on hold until the user confirms them')
-              : _('The user will be sent a link to complete their registration')
+              ? _('Changes to the email remain on hold until the Admin confirms them')
+              : _('The Admin will be sent a link to complete their registration')
           }}
         </li>
         <li class="list-item @md:leading-wide">
-          {{ _('Double-check the email, as it will serve to authenticate the user') }}
+          {{ _('Double-check the email, as it will serve to authenticate the Admin') }}
         </li>
       </ul>
     </template>

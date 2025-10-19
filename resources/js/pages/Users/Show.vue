@@ -7,6 +7,7 @@ import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import Delete from '@/pages/Users/Crud/Delete.vue';
 import { ModalLink } from '@inertiaui/modal-vue';
+import { Edit3Icon } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
@@ -54,6 +55,14 @@ defineProps<{
 
           <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ user.created_ago }}</div>
         </div>
+
+        <ModalLink
+          class="flex items-center-safe justify-end gap-2 border-t pt-base"
+          paddingClasses="p-8"
+          :href="route('users.edit', user.id)"
+        >
+          {{ _('Edit Member') }} <Edit3Icon />
+        </ModalLink>
 
         <Delete v-if="user.allows?.delete" :user="user" class="mt-wide border-t border-foreground/10" />
       </Card>

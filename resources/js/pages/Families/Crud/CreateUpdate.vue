@@ -24,14 +24,14 @@ const formSpecs: FormSpecs = {
     displayId: true,
     disabled: props.projects.length < 2,
   },
-  name: { element: 'input', label: 'Family Name', required: true },
+  name: { element: 'input', label: 'Family Name', value: props.family?.name, required: true },
 };
 </script>
 
 <template>
-  <Form v-bind="{ type, action, title }" :specs="formSpecs" autocomplete="off">
-    <template v-slot:aside>
-      <!-- Explain that moving a family to another project will move all of its members -->
-    </template>
+  <Form v-bind="{ type, action, params: props.family?.id, title }" :specs="formSpecs" autocomplete="off">
+    <!-- <template v-slot:aside>
+      Explain that moving a family to another project will move all of its members
+    </template> -->
   </Form>
 </template>

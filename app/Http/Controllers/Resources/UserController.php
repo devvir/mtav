@@ -56,7 +56,7 @@ class UserController extends Controller
             : $request->user()->projects();
 
         return inertia('Users/Create', [
-            'families' => $familiesPool->alphabetically()->get(['id', 'name']),
+            'families' => $familiesPool->alphabetically()->get(),
             'projects' => $projectsPool->alphabetically()->get(),
         ]);
     }

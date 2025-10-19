@@ -8,7 +8,12 @@ defineProps<{
   name: string;
   label?: string;
   type?: string;
+  disabled?: boolean;
+  required?: boolean;
+  placeholder?: string;
+  autocomplete?: boolean;
 }>();
+console.log('INPUT', useAttrs().value);
 </script>
 
 <template>
@@ -16,7 +21,13 @@ defineProps<{
     <input
       class="w-full p-3 caret-accent-foreground outline-0"
       v-model="model"
-      v-bind="{ id, name, ...$attrs }"
+      :id="id"
+      :name
+      :disabled
+      :required
+      :placeholder
+      :autocomplete="autocomplete ? 'on' : 'off'"
+      :title="JSON.stringify({ ...$attrs })"
       :aria-label="label"
     />
   </FormElement>

@@ -10,6 +10,7 @@ import { FormSpecs, ValueType } from './types';
 const props = defineProps<{
   type: string;
   action: string;
+  params: any;
   title: string;
   specs?: FormSpecs;
   buttonText?: string;
@@ -41,13 +42,13 @@ const form = useForm(formFields);
 const submit = (onSuccess?: () => void) => {
   const method = props.type === 'edit' ? 'put' : 'post';
 
-  form.submit(method, route(props.action), {
+  form.submit(method, route(props.action, props.params), {
     preserveScroll: true,
     preserveState: true,
     onSuccess,
   });
 };
-
+console.log('FORM', useAttrs().value);
 const pauseModalClosing = ref(false);
 
 provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.value = pause));

@@ -20,7 +20,7 @@ const quickActions: QuickAction[] = [
     text: iAmAdmin.value ? 'New User' : 'Invite Family Member',
   },
   { if: iAmSuperadmin, route: 'admins.create', text: 'New Admin' },
-  { if: projectIsSelected, route: 'media.create', text: 'Upload Media' },
+  { if: projectIsSelected, route: 'media.create', text: 'Upload Multimedia' },
   { if: computed(() => projectIsSelected.value && iAmAdmin.value), route: 'events.create', text: 'New Event' },
 ];
 

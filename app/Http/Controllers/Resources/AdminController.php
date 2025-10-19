@@ -43,9 +43,15 @@ class AdminController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return inertia('Admins/Create');
+        $projectsPool = $request->user()->isSuperAdmin()
+            ? Project::query()
+            : $request->user()->projects();
+
+        return inertia('Admins/Create', [
+            'projects' => $projectsPool->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -55,7 +61,7 @@ class AdminController extends Controller
     {
         $user = User::create($request->validated());
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
         return to_route('users.show', $user->id);
     }
@@ -65,7 +71,9 @@ class AdminController extends Controller
      */
     public function edit(User $admin): Response
     {
-        return inertia('Admins.Edit', compact('admin'));
+        $admin->load('projects');
+
+        return inertia('Admins/Edit', compact('admin'));
     }
 
     /**

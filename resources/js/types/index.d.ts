@@ -34,6 +34,7 @@ interface Family extends Resource {
 interface Project extends Resource {
   name: string;
   description: string;
+  organization: string;
   active: boolean;
 
   admins?: User[];

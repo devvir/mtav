@@ -10,6 +10,7 @@ const props = defineProps<{
   disabled?: boolean;
   error?: string;
 }>();
+console.log('FORMELEMENT', useAttrs().value);
 
 const id = `${useId()}-${props.name}`;
 const slotAfterId = `after-slot-${id}`;

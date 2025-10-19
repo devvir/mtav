@@ -4,6 +4,7 @@ import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
+import { Edit3Icon } from 'lucide-vue-next';
 import SelectDeselect from './SelectDeselect.vue';
 
 const props = defineProps<{
@@ -41,6 +42,14 @@ const props = defineProps<{
         >
           {{ project.description }}
         </p>
+      </ModalLink>
+
+      <ModalLink
+        class="flex items-center-safe justify-end gap-2 pt-base"
+        paddingClasses="p-8"
+        :href="route('projects.edit', project.id)"
+      >
+        {{ _('Edit') }} <Edit3Icon />
       </ModalLink>
     </template>
 

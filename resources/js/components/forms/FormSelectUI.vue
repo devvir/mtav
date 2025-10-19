@@ -31,8 +31,8 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
   if (!props.multiple) {
     selected.value = [value];
     closeModal();
-  } else if (selected.value?.includes(value)) {
-    selected.value = selected.value.filter((v) => v !== value);
+  } else if (selected.value?.some((option) => option == value)) {
+    selected.value = selected.value.filter((v) => v != value);
   } else {
     (selected.value as (string | number)[]).push(value);
   }
@@ -94,7 +94,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
               tabindex="0"
               class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-3 py-1 leading-wide"
               :class="
-                selected?.includes(value)
+                selected?.some((option) => option == value)
                   ? 'bg-accent text-accent-foreground'
                   : 'hover:bg-accent/70 hover:text-accent-foreground not-group-hover:focus:bg-accent/70 not-group-hover:focus:text-accent-foreground'
               "

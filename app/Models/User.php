@@ -15,11 +15,12 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
+    use ConvertsToJsonResource;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use HasPolicy;
     use Notifiable;
-    use ConvertsToJsonResource;
 
     protected $guarded = ['id'];
 
@@ -34,8 +35,8 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $casts = [
-        'is_admin'          => 'boolean',
-        'password'          => 'hashed',
+        'is_admin' => 'boolean',
+        'password' => 'hashed',
         'email_verified_at' => 'datetime',
     ];
 
@@ -77,7 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function scopeMembers(Builder $query): void
     {
-        $query->whereNotNull('family_id')->where('is_admin', false);
+        $query->where('is_admin', false);
     }
 
     public function scopeAdmins(Builder $query): void

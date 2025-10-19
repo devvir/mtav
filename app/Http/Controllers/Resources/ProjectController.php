@@ -82,7 +82,10 @@ class ProjectController extends Controller
      */
     public function edit(Project $project): Response
     {
-        return inertia('Projects.Edit', compact('project'));
+        return inertia('Projects/Edit', [
+            'project' => $project->load('admins'),
+            'admins' => User::whereIsAdmin(true)->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -90,7 +93,7 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
-        Project::update($request->validated());
+        $project->update($request->validated());
 
         return to_route('projects.show', $project->id);
     }

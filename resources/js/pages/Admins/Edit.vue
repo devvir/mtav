@@ -2,29 +2,27 @@
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { _ } from '@/composables/useTranslations';
 import CreateUpdate from './Crud/CreateUpdate.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
-
-defineProps<{
-  admins: Admin[];
-}>();
+defineProps<{ admin: Admin }>();
 </script>
 
 <template>
-  <Head title="New Project" />
+  <Head title="Update Admin" />
 
-  <Breadcrumbs global>
-    <Breadcrumb route="projects.index" text="Projects" />
-    <Breadcrumb route="projects.create" text="Create" />
+  <Breadcrumbs>
+    <Breadcrumb route="users.index" text="Members" />
+    <Breadcrumb route="users.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
+    <Breadcrumb route="users.update" :params="admin.id" text="Edit" />
   </Breadcrumbs>
 
   <CreateUpdate
-    :title="_('Create a new Project')"
-    type="create"
-    action="projects.store"
+    title="Update Admin"
+    type="edit"
+    action="admins.update"
     class="mx-auto size-full max-w-2xl"
-    :admins
+    :admin
+    :projects="admin.projects as Project[]"
   />
 </template>

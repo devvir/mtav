@@ -8,7 +8,7 @@ const props = defineProps<{
   type: FormType;
   action: string;
   title: string;
-  admins: User[];
+  admins: Admin[];
   project?: Project; // Edit-only
 }>();
 
@@ -16,15 +16,15 @@ const adminOptions: SelectOptions = {};
 props.admins.forEach((admin) => (adminOptions[admin.id] = `${admin.firstname} ${admin.lastname}`));
 
 const formSpecs: FormSpecs = {
-  name: { element: 'input', label: 'Name', required: true },
-  description: { element: 'input', label: 'Description', required: true },
-  organization: { element: 'input', label: 'Organization', required: true },
+  name: { element: 'input', label: 'Name', value: props.project?.name, required: true },
+  description: { element: 'input', label: 'Description', value: props.project?.description, required: true },
+  organization: { element: 'input', label: 'Organization', value: props.project?.organization },
   admins: {
     element: 'select',
     multiple: true,
     label: 'Admins',
     options: adminOptions,
-    selected: props.project?.admins ? props.project.admins.map((a) => a.id) : [],
+    selected: props.project?.admins?.map((a) => a.id) ?? [],
     create: { target: 'admins.create', legend: 'Create a new Admin' },
     required: true,
   },
@@ -32,5 +32,10 @@ const formSpecs: FormSpecs = {
 </script>
 
 <template>
-  <Form v-bind="{ type, action, title }" :specs="formSpecs" buttonText="Create" autocomplete="off" />
+  <Form
+    v-bind="{ type, action, params: props.project?.id, title }"
+    :specs="formSpecs"
+    buttonText="Create"
+    autocomplete="off"
+  />
 </template>

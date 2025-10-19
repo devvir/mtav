@@ -4,9 +4,8 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import CreateUpdate from './Crud/CreateUpdate.vue';
 
-defineProps<{
-  user: User;
-}>();
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
+defineProps<{ user: User }>();
 </script>
 
 <template>
@@ -23,7 +22,7 @@ defineProps<{
     type="edit"
     action="users.update"
     class="mx-auto size-full max-w-2xl"
-    :user="user"
+    :user
     :families="[user.family]"
     :projects="user.projects as Project[]"
   />

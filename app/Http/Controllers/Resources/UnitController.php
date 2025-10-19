@@ -60,7 +60,7 @@ class UnitController extends Controller
      */
     public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     {
-        Unit::update($request->validated());
+        $unit->update($request->validated());
 
         return to_route('units.show', $unit->id);
     }

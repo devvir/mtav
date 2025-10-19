@@ -36,7 +36,7 @@ class FamilyPolicy
      */
     public function update(User $user, Family $family): bool
     {
-        return $user->family->is($family) || $user->isAdmin();
+        return $user->isAdmin() || $user->family->is($family);
     }
 
     /**

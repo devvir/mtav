@@ -3,7 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { _ } from '@/composables/useTranslations';
-import CreateUpdate from '@/pages/Families/Crud/CreateUpdate.vue';
+import CreateUpdate from './Crud/CreateUpdate.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -13,17 +13,17 @@ defineProps<{
 </script>
 
 <template>
-  <Head title="New Family" />
+  <Head title="New Admin" />
 
   <Breadcrumbs>
-    <Breadcrumb route="families.index" text="Families" />
-    <Breadcrumb route="families.create" text="Create" />
+    <Breadcrumb route="admins.index" text="Admins" />
+    <Breadcrumb route="admins.create" text="Create" />
   </Breadcrumbs>
 
   <CreateUpdate
-    :title="_('Register a new Family')"
+    :title="_('Create a new Admin')"
     type="create"
-    action="families.store"
+    action="admins.store"
     class="mx-auto size-full max-w-2xl"
     :projects
   />

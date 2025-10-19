@@ -20,43 +20,55 @@ class UserSeeder extends Seeder
         $firstProject = Project::first();
 
         User::factory()->admin()->create([
-            'id'         => 1,
-            'firstname'  => 'Test',
-            'lastname'   => 'Superadmin',
-            'email'      => 'superadmin@example.com',
+            'id' => 1,
+            'firstname' => 'Test',
+            'lastname' => 'Superadmin',
+            'email' => 'superadmin@example.com',
         ]);
 
         User::factory()->admin()->create([
-            'firstname'  => 'Test',
-            'lastname'   => 'Admin',
-            'email'      => 'admin@example.com',
+            'firstname' => 'Test',
+            'lastname' => 'Admin',
+            'email' => 'admin@example.com',
         ])->projects()->attach(Project::pluck('id'));
 
+        User::factory()->admin()->create([
+            'firstname' => '1-Project',
+            'lastname' => 'Admin',
+            'email' => 'admin.x1@example.com',
+        ])->projects()->attach(Project::skip(0)->take(1)->pluck('id'));
+
+        User::factory()->admin()->create([
+            'firstname' => '2-Projects',
+            'lastname' => 'Admin',
+            'email' => 'admin.x2@example.com',
+        ])->projects()->attach(Project::skip(1)->take(2)->pluck('id'));
+
         User::factory()->create([
-            'firstname'  => 'Test',
-            'lastname'   => 'User',
-            'email'      => 'user@example.com',
+            'firstname' => 'Test',
+            'lastname' => 'User',
+            'email' => 'user@example.com',
         ])->joinProject($firstProject);
 
         // Example orphan User (data inconsistency: no family, no project)
         User::factory()->create([
-            'firstname'  => 'Test',
-            'lastname'   => 'Orphan',
-            'email'      => 'orphan@example.com',
-            'family_id'  => null,
+            'firstname' => 'Test',
+            'lastname' => 'Orphan',
+            'email' => 'orphan@example.com',
+            'family_id' => null,
         ]);
 
         User::factory()->create([
-            'firstname'  => 'A Regular User',
-            'lastname'   => 'With a Very Long Name',
-            'email'      => 'longname@example.com',
+            'firstname' => 'A Regular User',
+            'lastname' => 'With a Very Long Name',
+            'email' => 'longname@example.com',
         ])->joinProject($firstProject);
 
         // Example inactive User (@see DatabaseSeeder for further setup of this User)
         User::factory()->create([
-            'firstname'  => 'Test',
-            'lastname'   => 'Inactive',
-            'email'      => 'inactive@example.com',
+            'firstname' => 'Test',
+            'lastname' => 'Inactive',
+            'email' => 'inactive@example.com',
         ])->joinProject($firstProject)->leaveProject($firstProject);
     }
 }

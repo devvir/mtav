@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Modal, useModal } from '@inertiaui/modal-vue';
 
+defineProps<{
+  modalClasses?: any;
+  paddingClasses?: any;
+}>();
+
 const modal = useTemplateRef<any>('modal');
 
 router.on('navigate', () => modal.value?.close());
@@ -12,7 +17,7 @@ router.on('navigate', () => modal.value?.close());
 </script>
 
 <template>
-  <Modal ref="modal" v-if="useModal()" v-slot="modal">
+  <Modal ref="modal" v-if="useModal()" v-slot="modal" :modalClasses :paddingClasses>
     <slot v-bind="modal" />
   </Modal>
 
