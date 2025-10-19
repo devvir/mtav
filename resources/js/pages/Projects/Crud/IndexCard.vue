@@ -2,23 +2,30 @@
 import Card from '@/components/shared/Card.vue';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
+import { cn } from '@/lib/utils';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
 import SelectDeselect from './SelectDeselect.vue';
 
-defineProps<{
+const props = defineProps<{
   project: Required<Project>;
+  class?: any;
 }>();
 </script>
 
 <template>
   <Card
-    class="group mx-auto h-full max-w-2xl"
-    :class="currentProject?.id === project.id ? 'border border-accent-foreground shadow-none' : ''"
+    class=""
+    :class="
+      cn(props.class, {
+        'shadow-none ring ring-accent-foreground/70': currentProject?.id === project.id,
+        'opacity-40': !project.active,
+      })
+    "
   >
     <template v-slot:header>
       <ModalLink
-        class="block w-full cursor-pointer text-right"
-        :class="{ 'pointer-events-none': useModal() }"
+        class="block max-w-[calc(100vw-5rem)] cursor-pointer text-right"
+        :class="useModal() ? 'pointer-events-none' : 'h-28'"
         :href="route('projects.show', project.id)"
       >
         <p class="truncate text-xl" :title="project.name">
@@ -28,7 +35,10 @@ defineProps<{
           <span class="uppercase">{{ project.active ? _('Active') : _('Inactive') }}</span>
         </p>
 
-        <p class="mt-base-y line-clamp-3 h-12 text-left text-sm text-foreground/60">
+        <p
+          class="mt-base-y overflow-hidden text-left text-sm text-foreground/60"
+          :class="{ 'line-clamp-2': !useModal() }"
+        >
           {{ project.description }}
         </p>
       </ModalLink>

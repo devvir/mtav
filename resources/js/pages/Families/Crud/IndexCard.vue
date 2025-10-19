@@ -44,7 +44,7 @@ defineProps<{
         <div class="flex items-center-safe justify-start gap-3">
           <!-- TODO: extract component -->
           <img :src="member.avatar" alt="avatar" width="40px" class="rounded-full ring ring-muted/25" />
-          <div class="max-w-32 truncate text-sm" :title="member.name">
+          <div class="truncate text-sm" :title="member.name">
             {{ member.name }}
           </div>
         </div>

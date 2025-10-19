@@ -12,7 +12,7 @@ defineProps<{
 }>();
 
 const gridColsOverrides = {
-  xl: 'xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
+  xl: '@xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
 };
 </script>
 

@@ -13,10 +13,10 @@ const props = defineProps<{
 }>();
 
 const gridColsDefaults = {
-  sm: 'sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))]',
-  md: 'md:grid-cols-[repeat(auto-fill,minmax(338px,1fr))]',
-  lg: 'lg:grid-cols-[repeat(auto-fill,minmax(375px,1fr))]',
-  xl: 'xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
+  sm: '@sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))]',
+  md: '@md:grid-cols-[repeat(auto-fill,minmax(338px,1fr))]',
+  lg: '@lg:grid-cols-[repeat(auto-fill,minmax(375px,1fr))]',
+  xl: '@xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
 };
 
 const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefaults, props.gridColsOverrides ?? {})));
@@ -47,7 +47,7 @@ const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefau
         v-for="item in list.data"
         :key="item.id"
         class="h-full transition-all not-hocus:opacity-90 hocus:scale-102"
-        :class="featured === item.id ? '-order-1 col-start-1 -col-end-1 w-full' : ''"
+        :class="featured === item.id ? 'col-start-1 -col-end-1 row-start-1 w-full pb-base' : ''"
       >
         <slot :item="item" />
       </li>

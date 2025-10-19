@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Family;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\User;
@@ -24,20 +23,20 @@ class ProjectFactory extends Factory
             'name' => $this->faker->company(),
             'description' => $this->faker->sentence(10),
             'organization' => $this->faker->randomElement(['FECOVI', 'FUCVAM', 'SUNCA']),
-            'active' => random_int(0, 100) < 90,
+            'active' => random_int(1, 10) < 8,
         ];
     }
 
     public function configure()
     {
-        $defaultAdmin = once(fn() => User::firstWhere('email', 'admin@example.com'));
+        $defaultAdmin = once(fn () => User::firstWhere('email', 'admin@example.com'));
 
         if (! $defaultAdmin) {
             return $this;
         }
 
         return $this->afterCreating(
-            fn(Project $project) => $project->addUser($defaultAdmin)
+            fn (Project $project) => $project->addUser($defaultAdmin)
         );
     }
 
@@ -46,7 +45,7 @@ class ProjectFactory extends Factory
         $units = Unit::factory()->count(random_int(5, 20))->create();
 
         return $this->afterCreating(
-            fn(Project $project) => $project->units()->saveMany($units)
+            fn (Project $project) => $project->units()->saveMany($units)
         );
     }
 }

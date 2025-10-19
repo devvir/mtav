@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import CardBox from './CardBox.vue';
 
 const props = defineProps<{
-  class?: string;
+  class?: any;
 }>();
 
 const attrs = useAttrs();

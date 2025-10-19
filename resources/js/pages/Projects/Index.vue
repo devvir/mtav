@@ -22,7 +22,7 @@ defineProps<{
 
   <InfinitePaginator :list="projects" loadable="projects" :filter="q" :featured="currentProject?.id">
     <template v-slot:default="{ item }">
-      <IndexCard :project="item as Required<(typeof projects.data)[0]>" />
+      <IndexCard :project="item as Required<(typeof projects.data)[0]>" class="mx-auto max-w-2xl" />
     </template>
   </InfinitePaginator>
 

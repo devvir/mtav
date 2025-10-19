@@ -45,9 +45,9 @@ class ProjectController extends Controller
     {
         $project
             ->load([
-                'admins' => fn ($q) => $q->limit(20),
-                'members' => fn ($q) => $q->limit(20),
-                'families' => fn ($q) => $q->limit(20),
+                'admins' => fn ($q) => $q->limit(10),
+                'members' => fn ($q) => $q->limit(50),
+                'families' => fn ($q) => $q->limit(30),
             ])
             ->loadCount('admins', 'members', 'families');
 

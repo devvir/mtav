@@ -17,7 +17,7 @@ class SetCurrentProjectController
 
         Project::setCurrent($project);
 
-        return to_route('home');
+        return back();
     }
 
     public function unset(): RedirectResponse
