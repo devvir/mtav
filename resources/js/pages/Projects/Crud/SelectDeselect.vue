@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <button
     @click.stop.prevent="selected ? resetCurrentProject() : setCurrentProject(project)"
-    class="inline-flex items-center space-x-2 border px-4 text-sm leading-wide transition-all duration-300 not-group-hover:opacity-90 group-hover:scale-105 hover:px-wide"
+    class="inline-flex items-center space-x-2 border px-4 py-2 leading-wide transition-all duration-300 not-group-hover:opacity-90 group-hover:scale-105 hover:px-wide"
     :class="
       selected
         ? 'rounded-2xl border-current/10 bg-accent text-accent-foreground'

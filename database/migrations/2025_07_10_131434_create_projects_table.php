@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('description');
             $table->string('organization');
+            $table->boolean('active')->default(false);
             $table->timestamps();
         });
 
