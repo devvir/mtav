@@ -4,7 +4,7 @@ import CallToAction from '@/components/ui/button/CallToAction.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  admin: User;
+  admin: Admin;
 }>();
 </script>
 

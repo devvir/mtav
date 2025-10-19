@@ -1,31 +1,9 @@
-interface JsonResource {
+interface Resource {
   id: number;
   created_at: string;
-  allows: {
-    viewAny: boolean;
-    view: boolean;
-    create: boolean;
-    update: boolean;
-    delete: boolean;
-    restore: boolean;
-    forceDelete: boolean;
-  };
 }
 
-interface PaginationSpec {
-  path: string;
-  current_page: number;
-  last_page: number;
-  next_page_url: number | null;
-  total: number;
-}
-
-interface PaginatedResources extends PaginationSpec {
-  data: JsonResource[];
-}
-
-interface User extends JsonResource {
-  id: number;
+interface User extends Resource {
   email: string;
   phone: string;
   name: string;
@@ -41,18 +19,22 @@ interface User extends JsonResource {
   projects?: Project[] & { loaded?: boolean };
 }
 
-interface Family extends JsonResource {
-  id: number;
+interface Admin extends User {
+  family: { id: null };
+}
+
+interface Family extends Resource {
   name: string;
+  avatar: string;
 
   project: Project & { loaded?: boolean };
   members?: User[];
 }
 
-interface Project extends JsonResource {
-  id: number;
+interface Project extends Resource {
   name: string;
-  status: boolean;
+  description: string;
+  active: boolean;
 
   admins?: User[];
   admins_count?: number;
@@ -62,22 +44,20 @@ interface Project extends JsonResource {
   families_count?: number;
 }
 
-interface PaginatedUsers extends PaginatedResources {
-  data: User[];
+interface ApiResource<R extends Resource = Resource> extends R {
+  allows: Record<Policy, boolean>;
 }
 
-interface PaginatedFamilies extends PaginatedResources {
-  data: Family[];
+interface ApiResources<R extends Resource = Resource> {
+  data: ApiResource<R>[];
+
+  path: string;
+  total: number;
+  last_page: number;
+  current_page: number;
+  next_page_url: number | null;
 }
 
-interface PaginatedProjects extends PaginatedResources {
-  data: Project[];
-}
+type ApiDataPage = Exclude<ApiResources, 'data'> & { data: unknown[] };
 
-interface NavItem {
-  label: string;
-  route: string;
-  icon: any;
-  onlyIf?: ComputedRef<boolean>;
-  routes?: string[];
-}
+type Policy = 'viewAny' | 'view' | 'create' | 'update' | 'delete' | 'restore' | 'forceDelete';

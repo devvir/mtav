@@ -8,7 +8,7 @@ import { currentProject } from '@/composables/useProjects';
 import IndexCard from './Crud/IndexCard.vue';
 
 defineProps<{
-  projects: PaginatedProjects;
+  projects: ApiResources<Project>;
   q: string;
 }>();
 </script>
@@ -22,9 +22,9 @@ defineProps<{
 
   <InfinitePaginator :list="projects" loadable="projects" :filter="q" :featured="currentProject?.id">
     <template v-slot:default="{ item }">
-      <IndexCard :project="item as Project" />
+      <IndexCard :project="item as Required<(typeof projects.data)[0]>" />
     </template>
   </InfinitePaginator>
 
-  <InfiniteScroll :pagination="projects" loadable="projects" />
+  <InfiniteScroll :pageSpecs="projects" loadable="projects" />
 </template>

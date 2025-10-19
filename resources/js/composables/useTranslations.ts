@@ -3,7 +3,7 @@ export const useTranslation = () => {
   const translations = ref<Record<string, string>>({});
 
   const setLocale = async (newLocale: string): Promise<void> => {
-    const newTranslations: Record<string, string> = await import(`../../../lang/${newLocale}.json`);
+    const newTranslations: Record<string, string> = (await import(`../../../lang/${newLocale}.json`))?.default;
 
     if (!newTranslations) {
       return console.warn(`Locale '${newLocale}' not found.`);
@@ -15,6 +15,7 @@ export const useTranslation = () => {
 
   const trans = (key: string): string => {
     const dict = translations.value ?? { [key]: key };
+
     return dict[key] || key;
   };
 

@@ -4,6 +4,7 @@ import Dropdown from '../dropdown/Dropdown.vue';
 import DropdownContent from '../dropdown/DropdownContent.vue';
 import DropdownTrigger from '../dropdown/DropdownTrigger.vue';
 import FormSelectAddOption from './FormSelectAddOption.vue';
+import * as keys from './keys';
 import { SelectAddOption } from './types';
 
 const selected = defineModel<(string | number)[]>();
@@ -20,10 +21,10 @@ const props = defineProps<{
 
 const modelLabel = computed(() => {
   if (props.multiple) {
-    return selected.value?.map((value) => props.options[value as string | number]).join(', ') || '';
+    return selected.value?.map((value) => props.options[value]).join(', ') || '';
   }
 
-  return selected.value ? props.options[selected.value[0] as string | number] : '';
+  return selected.value ? props.options[selected.value[0]] : '';
 });
 
 const toggleOption = (value: string | number, closeModal: () => void) => {
@@ -37,7 +38,7 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
   }
 };
 
-const pauseModalClosing = inject('pauseModalClosing') as (pause?: boolean) => void;
+const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) => void;
 </script>
 
 <template>

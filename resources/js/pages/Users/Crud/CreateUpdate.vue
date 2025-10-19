@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Form from '@/components/forms/Form.vue';
+import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentUser, iAmNotAdmin } from '@/composables/useAuth';
 import { currentProject } from '@/composables/useProjects';

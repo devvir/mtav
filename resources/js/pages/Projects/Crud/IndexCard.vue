@@ -6,7 +6,7 @@ import { ModalLink, useModal } from '@inertiaui/modal-vue';
 import SelectDeselect from './SelectDeselect.vue';
 
 defineProps<{
-  project: Project;
+  project: Required<Project>;
 }>();
 </script>
 

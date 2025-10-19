@@ -7,7 +7,7 @@ import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.v
 import IndexCard from './Crud/IndexCard.vue';
 
 defineProps<{
-  members: PaginatedUsers;
+  members: ApiResources<User>;
   q: string;
 }>();
 
@@ -29,7 +29,7 @@ const gridColsOverrides = {
     </template>
 
     <template v-slot:default="{ item }">
-      <IndexCard :user="item as User" />
+      <IndexCard :user="item as (typeof members.data)[0]" />
     </template>
   </InfinitePaginator>
 </template>

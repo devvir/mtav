@@ -15,7 +15,7 @@ const href = computed(() => route(props.route, props.params));
 <template>
   <li v-if="props.text || $slots.default" class="overflow-hidden text-ellipsis whitespace-nowrap">
     <Link v-bind="$attrs" :href="href" :class="{ 'pointer-events-none': noLink }">
-      <slot>{{ _(text as string) }}</slot>
+      <slot>{{ _(<string>text) }}</slot>
     </Link>
   </li>
 </template>

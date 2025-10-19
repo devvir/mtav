@@ -16,8 +16,10 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Project::class)->constrained()->cascadeOnDelete();
             $table->string('name');
+            $table->string('avatar')->nullable();
             $table->timestamps();
 
+            $table->unique(['project_id', 'name']);
         });
     }
 

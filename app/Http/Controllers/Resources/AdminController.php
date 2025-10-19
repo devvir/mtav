@@ -22,10 +22,10 @@ class AdminController extends Controller
         $pool = Project::current()?->admins() ?? User::admins();
 
         $admins = $pool->alphabetically()
-            ->when($request->q, fn ($query, $q) => $query->search($q));
+            ->when($request->q, fn($query, $q) => $query->search($q));
 
         return inertia('Admins/Index', [
-            'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
+            'admins' => Inertia::deepMerge(fn() => $admins->paginate(30)),
             'q'      => $request->string('q', ''),
         ]);
     }
@@ -33,11 +33,11 @@ class AdminController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user): Response
+    public function show(User $admin): Response
     {
-        $user->load('family');
+        $admin->load('projects');
 
-        return inertia('Users/Show', compact('user'));
+        return inertia('Admins/Show', compact('admin'));
     }
 
     /**

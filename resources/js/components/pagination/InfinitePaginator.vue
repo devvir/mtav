@@ -6,7 +6,7 @@ import InfiniteScroll from './InfiniteScroll.vue';
 
 const props = defineProps<{
   loadable: string;
-  list: PaginatedResources;
+  list: ApiResources;
   filter: string;
   gridColsOverrides?: { sm?: string; md?: string; lg?: string; xl?: string };
   featured?: number | string;
@@ -54,7 +54,7 @@ const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefau
     </TransitionGroup>
   </section>
 
-  <InfiniteScroll :pagination="list" :loadable="loadable" :params="{ q: filter }" />
+  <InfiniteScroll :pageSpecs="list" :loadable="loadable" :params="{ q: filter }" />
 </template>
 
 <style scoped>

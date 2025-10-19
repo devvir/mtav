@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Form from '@/components/forms/Form.vue';
+import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings

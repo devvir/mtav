@@ -41,7 +41,7 @@ class UserResource extends JsonResource
     private function relationsData(): array
     {
         return [
-            'family'   => $this->whenLoaded('family', default: [ 'id' => $this->family_id ]),
+            'family'   => $this->whenLoaded('family', default: ['id' => $this->family_id]),
             'projects' => $this->whenLoaded('projects'),
         ];
     }

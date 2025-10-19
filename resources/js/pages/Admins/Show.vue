@@ -7,20 +7,20 @@ import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
-defineProps<{ project: Required<ApiResource<Project>> }>();
+defineProps<{ admin: ApiResource<Admin> }>();
 </script>
 
 <template>
   <Head title="Project" />
 
   <Breadcrumbs global>
-    <Breadcrumb v-if="project.allows?.viewAny" route="projects.index" text="Projects" />
-    <Breadcrumb route="projects.show" :params="project.id">{{ project.name }}</Breadcrumb>
+    <Breadcrumb v-if="admin.allows?.viewAny" route="admins.index" text="Admins" />
+    <Breadcrumb route="admins.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal panelClasses="modalPanel close-left backdrop-blur-lg">
-    <ShowWrapper>
-      <IndexCard :project="project" class="w-full rounded-b-none border-0 shadow-none" />
+  <MaybeModal panelClasses="modalPanel backdrop-blur-lg">
+    <ShowWrapper class="pr-10">
+      <IndexCard :admin class="w-full rounded-b-none border-0 bg-transparent shadow-none" />
     </ShowWrapper>
   </MaybeModal>
 </template>

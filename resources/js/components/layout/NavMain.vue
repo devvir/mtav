@@ -4,9 +4,17 @@ import { iAmAdmin } from '@/composables/useAuth';
 import { projectIsSelected } from '@/composables/useProjects';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
-import { Building2Icon, HomeIcon, LayoutGrid, UsersIcon } from 'lucide-vue-next';
+import { Building2Icon, HomeIcon, LayoutGrid, LucideIcon, UsersIcon } from 'lucide-vue-next';
 
-const allNavItems: NavItem[] = [
+interface NavItem {
+  label: string;
+  route: string | ComputedRef<string>;
+  icon: LucideIcon;
+  onlyIf?: ComputedRef<boolean>;
+  routes?: string[];
+}
+
+const allNavItems = reactive<NavItem[]>([
   {
     label: 'Dashboard',
     route: 'home',
@@ -23,7 +31,7 @@ const allNavItems: NavItem[] = [
   },
   {
     label: 'Members',
-    route: 'families.index',
+    route: computed(() => (usePage().props.state.groupMembers ? 'families.index' : 'users.index')),
     icon: UsersIcon,
     onlyIf: computed(() => projectIsSelected.value || iAmAdmin.value),
     routes: ['families.*', 'members.*', 'users.*'],
@@ -35,7 +43,7 @@ const allNavItems: NavItem[] = [
     onlyIf: iAmAdmin,
     routes: ['projects.*'],
   },
-];
+]);
 
 const navItems = computed(() => {
   return allNavItems.filter((item) => item.onlyIf?.value !== false);

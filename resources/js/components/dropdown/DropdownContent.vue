@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
+import * as keys from './keys';
 
 const props = defineProps<{
   class?: any;
 }>();
 
-const isOpen = inject<boolean>('isOpen');
+const isOpen = inject<boolean>(keys.isOpen);
 </script>
 
 <template>

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
 import { CloseAction, OpenAction } from '.';
+import * as keys from './keys';
 
 const props = defineProps<{
   class?: any;
 }>();
 
-const isOpen = inject('isOpen') as Ref<boolean>;
-const disabled = inject('disabled') as Ref<boolean>;
-const close = inject('close') as (action: CloseAction) => void;
-const toggle = inject('toggle') as (action: OpenAction | CloseAction) => void;
+const isOpen = inject(keys.isOpen) as Ref<boolean>;
+const disabled = inject(keys.disabled) as Ref<boolean>;
+const close = inject(keys.close) as (action: CloseAction) => void;
+const toggle = inject(keys.toggle) as (action: OpenAction | CloseAction) => void;
 
 /**
  * Differentiate between actual mouse clicks and keyboard-triggered clicks (both

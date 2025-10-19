@@ -18,18 +18,17 @@ class FamilyController extends Controller
      */
     public function index(Request $request): Response
     {
-        // TODO : this isn't working (persist Families/Members switch state)
         updateState('groupMembers', true);
 
         $pool = Project::current()?->families() ?? Family::query();
 
         $families = $pool
             ->alphabetically()
-            ->with(['members' => fn ($query) => $query->alphabetically()])
-            ->when($request->q, fn ($query, $q) => $query->search($q, searchMembers: true));
+            ->with(['members' => fn($query) => $query->alphabetically()])
+            ->when($request->q, fn($query, $q) => $query->search($q, searchMembers: true));
 
         return inertia('Families/Index', [
-            'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
+            'families' => Inertia::deepMerge(fn() => $families->paginate(30)),
             'q'        => $request->string('q', ''),
         ]);
     }

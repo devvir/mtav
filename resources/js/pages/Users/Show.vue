@@ -12,7 +12,7 @@ import ShowWrapper from '../shared/ShowWrapper.vue';
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  user: User;
+  user: ApiResource<User>;
 }>();
 </script>
 

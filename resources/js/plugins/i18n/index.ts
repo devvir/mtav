@@ -42,6 +42,26 @@ const i18nPlugin = () => ({
 
     const dict = JSON.stringify(yaml.load(code.trim()));
 
+    // TODO : create a directive v-i18n to handle in-template translations
+    // @see [VueSchool] Vue.js 3 Custom Directives
+    // e.g. <p v-i18n="'my text to translate'"></p>
+    // e.g. <p v-i18n:es="'my text to translate'"></p>
+    // e.g. <p v-i18n:es="translatableVariable"></p>
+    // e.g. <p v-i18n>my text to translate</p>
+    // e.g. <p v-i18n:es>my text to translate</p>
+    // e.g. <p v-i18n:es>{ translatableVariable }</p>
+    //
+    // Ideally, we would use the = form for variables, and the innerHTML
+    // form for literal strings. That way, variables retain their reactivity
+
+    // TODO : extract this logic to an exportable function in another file
+    // Then use a cascade to try:
+    //  1. If there's an i18n block, try to find the key there
+    //  2. If there's no i18n block, or if the key is not there, fallback to
+    //     the external function, that will work as useTranslations' _()
+    //  3. If the key is not found there, then use the original string
+    // The useTranslations composable should then be part of this package,
+    // but it can still be used normally, without installing the plugin
     return `
         const dict = Object.fromEntries(
           Object.entries(${dict})
