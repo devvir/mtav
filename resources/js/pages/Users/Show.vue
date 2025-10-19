@@ -40,10 +40,8 @@ defineProps<{
 
         <div class="mt-6 mb-3 flex flex-col justify-between gap-3 px-3 py-5">
           <div class="mb-6 space-y-4 text-sm">
-            <div>TODO</div>
-            <div>family basics</div>
-            <div>project (iff no project selected) with stats</div>
-            <div>online status and last activity</div>
+            <div>TODO : project (iff current user is admin) with stats</div>
+            <div>TODO : online status and last activity</div>
           </div>
 
           <ModalLink

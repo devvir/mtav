@@ -17,9 +17,13 @@ defineProps<{
         class="text-right"
         :class="{ 'pointer-events-none': useModal() }"
       >
-        <div class="flex items-center justify-end">
-          <div class="mr-2 text-sm text-muted-foreground/50">{{ _('Family') }}</div>
-          <div class="truncate text-xl">{{ family.name }}</div>
+        <div class="flex justify-between">
+          <img :src="family.avatar" alt="avatar" class="ring ring-muted/25" />
+
+          <div class="truncate pl-base text-right">
+            <div class="text-xs text-muted-foreground/50">{{ _('Family') }}</div>
+            <div class="truncate text-xl">{{ family.name }}</div>
+          </div>
         </div>
 
         <slot name="header" />

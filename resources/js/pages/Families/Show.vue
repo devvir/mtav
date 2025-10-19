@@ -3,7 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
-import { locale } from '@/composables/useTranslations';
+import { _, locale } from '@/composables/useTranslations';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
@@ -29,11 +29,13 @@ const longDate = (date: string) =>
     <Breadcrumb route="families.show" :params="family.id">{{ family.name }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal panelClasses="modalPanel close-left">
+  <MaybeModal panelClasses="modalPanel">
     <ShowWrapper>
-      <IndexCard :family>
+      <IndexCard :family class="pt-12">
         <template v-slot:header>
-          <div class="ml-4 text-sm text-muted-foreground/50">Project: {{ family.project.name }}</div>
+          <div class="mt-2 ml-4 text-sm text-muted-foreground/80">
+            <span>{{ _('Project') }}:</span> {{ family.project.name }}
+          </div>
         </template>
 
         <template v-slot:content-before>
@@ -41,7 +43,7 @@ const longDate = (date: string) =>
         </template>
 
         <template v-slot:content-after>
-          <div class="mt-4 border-t border-muted py-base text-muted-foreground/80">
+          <div class="mt-4 border-t border-muted py-base text-right text-sm text-muted-foreground/50">
             Registrada el {{ longDate(family.created_at) }}
           </div>
         </template>
