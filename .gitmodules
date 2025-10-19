@@ -1,0 +1,6 @@
+[submodule "packages/laravel-instant-api"]
+	path = packages/laravel-instant-api
+	url = https://github.com/devvir/laravel-instant-api.git
+[submodule "packages/laravel-resource-tools"]
+	path = packages/laravel-resource-tools
+	url = https://github.com/devvir/laravel-resource-tools.git
