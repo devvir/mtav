@@ -26,11 +26,11 @@ class UserController extends Controller
         $pool = Project::current()?->members() ?? User::members();
 
         $members = $pool->alphabetically()->with('family')
-            ->when($request->q, fn($query, $q) => $query->search($q, searchFamily: true));
+            ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
 
         return inertia('Users/Index', [
-            'members' => Inertia::deepMerge(fn() => $members->paginate(30)),
-            'q'       => $request->string('q', ''),
+            'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
+            'q' => $request->string('q', ''),
         ]);
     }
 

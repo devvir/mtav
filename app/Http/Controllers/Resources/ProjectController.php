@@ -26,15 +26,15 @@ class ProjectController extends Controller
         $projects = $pool->alphabetically()
             ->withCount('admins', 'members', 'families')
             ->with([
-                'admins' => fn($q) => $q->limit(5),
-                'members' => fn($q) => $q->limit(5),
-                'families' => fn($q) => $q->limit(5),
+                'admins' => fn ($q) => $q->limit(5),
+                'members' => fn ($q) => $q->limit(5),
+                'families' => fn ($q) => $q->limit(5),
             ])
-            ->when($request->q, fn($query, $q) => $query->whereLike('name', "%$q%"));
+            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"));
 
         return inertia('Projects/Index', [
-            'projects' => Inertia::deepMerge(fn() => $projects->paginate(30)),
-            'q'        => $request->string('q', ''),
+            'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
+            'q' => $request->string('q', ''),
         ]);
     }
 
@@ -45,9 +45,9 @@ class ProjectController extends Controller
     {
         $project
             ->load([
-                'admins' => fn($q) => $q->limit(20),
-                'members' => fn($q) => $q->limit(20),
-                'families' => fn($q) => $q->limit(20),
+                'admins' => fn ($q) => $q->limit(20),
+                'members' => fn ($q) => $q->limit(20),
+                'families' => fn ($q) => $q->limit(20),
             ])
             ->loadCount('admins', 'members', 'families');
 
@@ -69,9 +69,9 @@ class ProjectController extends Controller
      */
     public function store(CreateProjectRequest $request): RedirectResponse
     {
-        $project = DB::transaction(fn() => tap(
+        $project = DB::transaction(fn () => tap(
             Project::query()->create($request->only('name', 'description', 'organization')),
-            fn($project) => $project->admins()->attach($request->admins)
+            fn ($project) => $project->admins()->attach($request->admins)
         ));
 
         return to_route('projects.show', $project->id);

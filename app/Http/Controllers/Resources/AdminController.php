@@ -22,11 +22,11 @@ class AdminController extends Controller
         $pool = Project::current()?->admins() ?? User::admins();
 
         $admins = $pool->alphabetically()
-            ->when($request->q, fn($query, $q) => $query->search($q));
+            ->when($request->q, fn ($query, $q) => $query->search($q));
 
         return inertia('Admins/Index', [
-            'admins' => Inertia::deepMerge(fn() => $admins->paginate(30)),
-            'q'      => $request->string('q', ''),
+            'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
+            'q' => $request->string('q', ''),
         ]);
     }
 

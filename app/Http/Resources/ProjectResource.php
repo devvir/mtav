@@ -18,11 +18,11 @@ class ProjectResource extends JsonResource
     public function toArray(Request $_): array
     {
         return [
-            'id'          => $this->id,
-            'name'        => $this->name,
+            'id' => $this->id,
+            'name' => $this->name,
             'description' => $this->description,
-            'active'      => $this->active,
-            'created_at'  => $this->created_at,
+            'active' => $this->active,
+            'created_at' => $this->created_at,
 
             ...$this->relationsData(),
         ];
@@ -31,22 +31,22 @@ class ProjectResource extends JsonResource
     private function relationsData(): array
     {
         return [
-            'admins'       => $this->whenLoaded('admins'),
+            'admins' => $this->whenLoaded('admins'),
             'admins_count' => $this->whenCounted(
                 'admins',
-                default: fn() => $this->whenLoaded('admins', fn() => $this->admins?->count())
+                default: fn () => $this->whenLoaded('admins', fn () => $this->admins?->count())
             ),
 
-            'members'       => $this->whenLoaded('members'),
+            'members' => $this->whenLoaded('members'),
             'members_count' => $this->whenCounted(
                 'members',
-                default: fn() => $this->whenLoaded('members', fn() => $this->members?->count())
+                default: fn () => $this->whenLoaded('members', fn () => $this->members?->count())
             ),
 
-            'families'       => $this->whenLoaded('families'),
+            'families' => $this->whenLoaded('families'),
             'families_count' => $this->whenCounted(
                 'families',
-                default: fn() => $this->whenLoaded('families', fn() => $this->families?->count())
+                default: fn () => $this->whenLoaded('families', fn () => $this->families?->count())
             ),
         ];
     }

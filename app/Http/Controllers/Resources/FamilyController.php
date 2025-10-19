@@ -24,12 +24,12 @@ class FamilyController extends Controller
 
         $families = $pool
             ->alphabetically()
-            ->with(['members' => fn($query) => $query->alphabetically()])
-            ->when($request->q, fn($query, $q) => $query->search($q, searchMembers: true));
+            ->with(['members' => fn ($query) => $query->alphabetically()])
+            ->when($request->q, fn ($query, $q) => $query->search($q, searchMembers: true));
 
         return inertia('Families/Index', [
-            'families' => Inertia::deepMerge(fn() => $families->paginate(30)),
-            'q'        => $request->string('q', ''),
+            'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
+            'q' => $request->string('q', ''),
         ]);
     }
 
@@ -63,7 +63,7 @@ class FamilyController extends Controller
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
         $family = Family::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'project_id' => $request->project,
         ]);
 
