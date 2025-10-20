@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\Project;
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -31,20 +32,13 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
-
         return [
             ...parent::share($request),
             ...$this->transient($request),
 
             'name' => config('app.name'),
 
-            'auth' => [
-                'user' => $user ? $user->toResource()->withoutAbilities()->resolve() + [
-                    'can' => $this->globalPolicies($request),
-                ] : null,
-                'verified' => $user ? (bool) $user->email_verified_at : null,
-            ],
+            'auth' => $this->auth($request),
 
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
@@ -54,7 +48,28 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Transient shared data specific to the current application.
+     * Auth-specific shared data.
+     */
+    protected function auth(Request $request): ?array
+    {
+        /** @var \App\Models\User|null $user */
+        $user = $request->user();
+
+        if (! $user) {
+            return compact('user');
+        }
+
+        // Convert to the concrete logged-in type of User: Member or Admin
+        $user = $user->isMember() ? $user->asMember() : $user->asAdmin();
+
+        return ['user' => [
+            ...$user->toResource()->withoutAbilities()->resolve(),
+            'can' => $this->policies(),
+        ]];
+    }
+
+    /**
+     * Transient shared data (state, flash messages).
      */
     protected function transient(Request $request): array
     {
@@ -73,24 +88,22 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
-    protected function globalPolicies(Request $request): array
+    protected function policies(): array
     {
-        $can = $request->user() ? $request->user()->can(...) : fn () => false;
-
         return [
             'create' => [
-                'projects' => $can('create', Project::class),
-                'units' => $can('create', Unit::class),
-                'admins' => $can('create', Admin::class),
-                'families' => $can('create', Family::class),
-                'members' => $can('create', Member::class),
+                'projects' => Gate::allows('create', Project::class),
+                'units' => Gate::allows('create', Unit::class),
+                'admins' => Gate::allows('create', Admin::class),
+                'families' => Gate::allows('create', Family::class),
+                'members' => Gate::allows('create', Member::class),
             ],
             'viewAny' => [
-                'projects' => $can('viewAny', Project::class),
-                'units' => $can('viewAny', Unit::class),
-                'admins' => $can('viewAny', Admin::class),
-                'families' => $can('viewAny', Family::class),
-                'members' => $can('viewAny', Member::class),
+                'projects' => Gate::allows('viewAny', Project::class),
+                'units' => Gate::allows('viewAny', Unit::class),
+                'admins' => Gate::allows('viewAny', Admin::class),
+                'families' => Gate::allows('viewAny', Family::class),
+                'members' => Gate::allows('viewAny', Member::class),
             ],
         ];
     }

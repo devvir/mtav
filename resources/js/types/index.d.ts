@@ -13,6 +13,7 @@ interface User extends Resource {
   firstname: string;
   lastname: string;
   avatar: string;
+  is_verified: boolean;
   is_admin: boolean;
   is_superadmin: boolean;
   created_ago: string;

@@ -82,7 +82,7 @@ onClickOutside(trigger, () => (open.value = false), {
         class="leading-10 text-nowrap"
         :class="action.disabled ? 'disabled-action bg-accent-foreground/70' : 'hocus:bg-accent-foreground/35'"
       >
-        <div v-if="action.disabled" class="pointer-events-none size-full px-4">{{ action.text }}</div>
+        <div v-if="action.disabled" class="pointer-events-none size-full px-4">{{ _(action.text) }}</div>
 
         <ModalLink v-else class="block size-full px-4" :href="route(action.route)" slideover>
           {{ _(action.text) }}

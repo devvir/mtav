@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'lastname' => $this->lastname ?? '',
             'name' => $fullName,
             'avatar' => $this->resolveAvatar($fullName),
+            'is_verified' => (bool) $this->email_verified_at,
             'is_admin' => $this->isAdmin(),
             'is_superadmin' => $this->isSuperAdmin(),
             'created_at' => $this->created_at->toDateTimeString(),

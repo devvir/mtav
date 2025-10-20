@@ -72,7 +72,7 @@ const submit = () => form.patch(route('profile.update'), { preserveScroll: true 
           <InputError class="mt-2" :message="form.errors.email" />
         </div>
 
-        <div v-if="mustVerifyEmail && !auth.verified">
+        <div v-if="mustVerifyEmail && !(auth.user as User).is_verified">
           <p class="-mt-4 text-sm text-muted-foreground">
             {{ _('Your email address is unverified.') }}
             <Link

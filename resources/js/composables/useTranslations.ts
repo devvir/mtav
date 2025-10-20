@@ -3,6 +3,8 @@ export const useTranslation = () => {
   const translations = ref<Record<string, string>>({});
 
   const setLocale = async (newLocale: string): Promise<void> => {
+    newLocale = newLocale.replace('-', '_');
+
     const newTranslations: Record<string, string> = (await import(`../../../lang/${newLocale}.json`))?.default;
 
     if (!newTranslations) {

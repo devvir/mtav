@@ -73,7 +73,7 @@ button.test-btn {
 }
 </style>
 
-<i18n lang="yaml" locale="es-UY">
+<i18n lang="yaml" locale="es_UY">
 Custom Content: 'Contenido personalizado'
 Line: 'Línea'
 'Sample Dropdown: Element after Dropdown': 'Desplegable de Ejemplo: Elemento después del Desplegable'

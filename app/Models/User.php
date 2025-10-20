@@ -105,4 +105,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return ! $this->isSuperAdmin();
     }
+
+    public function isVerified(): bool
+    {
+        return (bool) $this->email_verified_at;
+    }
 }

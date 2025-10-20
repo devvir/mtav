@@ -16,7 +16,8 @@ defineProps<{
 }>();
 
 const longDate = (date: string) =>
-  new Intl.DateTimeFormat(locale.value, {
+  // Intl requires RFC-5646 for the locale (i.e. hyphen not underscore)
+  new Intl.DateTimeFormat(locale.value.replace('_', '-'), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
