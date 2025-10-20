@@ -2,24 +2,26 @@
 
 namespace App\Policies;
 
+use App\Models\Admin;
+use App\Models\Member;
 use App\Models\User;
 
 class UserPolicy
 {
     /**
-     * Determine whether the user can create models.
+     * Call the right policy (MemberPolicy or AdminPolicy) instead.
      */
-    public function create(User $user): bool
+    public function viewAny(User $user): bool
     {
-        return true;
+        return false;
     }
 
     /**
-     * Determine whether the user can view any models.
+     * Call the right policy (MemberPolicy or AdminPolicy) instead.
      */
-    public function viewAny(User $user)
+    public function create(User $user): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -27,7 +29,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $model->isNotAdmin();
+        return $user->can('view', $this->concreteUserType($model));
     }
 
     /**
@@ -35,8 +37,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $model->isNotAdmin()
-            && ($user->isAdmin() || $user->is($model));
+        return $user->can('update', $this->concreteUserType($model));
     }
 
     /**
@@ -44,8 +45,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $model->isNotAdmin()
-            && ($user->isAdmin() || $user->is($model));
+        return $user->can('delete', $this->concreteUserType($model));
     }
 
     /**
@@ -53,7 +53,14 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $model->isNotAdmin() && $user->isAdmin()
-            && $model->isSoftDeletable() && $model->deleted_at;
+        return $user->can('restore', $this->concreteUserType($model));
+    }
+
+    /**
+     * Policies apply to either Members or Admins, never to generic Users.
+     */
+    protected function concreteUserType(User $model): Member|Admin
+    {
+        return $model->isAdmin() ? $model->asAdmin() : $model->asMember();
     }
 }

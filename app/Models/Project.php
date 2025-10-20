@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use InvalidArgumentException;
 
 class Project extends Model
 {
@@ -32,29 +31,18 @@ class Project extends Model
         return $this->hasMany(Family::class);
     }
 
-    /**
-     * All users associated with the project, regardless of their active status or role.
-     */
-    public function users(): BelongsToMany
+    public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(Member::class, 'project_user', relatedPivotKey: 'user_id')
             ->withPivot('active')
             ->withTimestamps();
     }
 
-    public function activeUsers(): BelongsToMany
-    {
-        return $this->users()->wherePivot('active', true);
-    }
-
-    public function members(): BelongsToMany
-    {
-        return $this->activeUsers()->members();
-    }
-
     public function admins(): BelongsToMany
     {
-        return $this->activeUsers()->admins();
+        return $this->belongsToMany(Admin::class, 'project_user', relatedPivotKey: 'user_id')
+            ->withPivot('active')
+            ->withTimestamps();
     }
 
     public function logs(): HasMany
@@ -63,65 +51,60 @@ class Project extends Model
     }
 
     /**
-     * Add a user to the project.
+     * Add a member to the project.
      */
-    public function addUser(User|int $userOrId): self
+    public function addMember(Member|int $memberOrId): self
     {
-        $this->users()->syncWithPivotValues(
-            model($userOrId, User::class),
-            [ 'active' => true ],
+        $this->members()->syncWithPivotValues(
+            model($memberOrId, Member::class),
+            ['active' => true],
             detaching: false
         );
 
         return $this;
     }
 
-    /**
-     * Add a user to the project.
-     */
-    public function addAdmin(User|int $userOrId): self
-    {
-        $admin = model($userOrId, User::class);
-
-        if (! $admin->isAdmin()) {
-            throw new InvalidArgumentException('The user must have admin privileges to be added as project admin.');
-        }
-
-        return $this->addUser($admin);
-    }
-
-    /**
-     * Remove a user from the project.
-     */
-    public function removeUser(User|int $userOrId): self
+    public function removeMember(Member|int $memberOrId): self
     {
         $this->members()->updateExistingPivot(
-            model($userOrId, User::class),
-            [ 'active' => false ]
+            model($memberOrId, Member::class),
+            ['active' => false]
         );
 
         return $this;
     }
 
-    public function hasUser(User|int $userOrId): bool
+    /**
+     * Add an Admin to the project.
+     */
+    public function addAdmin(Admin|int $adminOrId): self
     {
-        $userId = $userOrId instanceof User ? $userOrId->id : $userOrId;
+        $this->admins()->syncWithPivotValues(
+            model($adminOrId, Admin::class),
+            ['active' => true],
+            detaching: false
+        );
 
-        return $this->users()->where('users.id', $userId)->exists();
+        return $this;
     }
 
-    public function hasMember(User|int $userOrId): bool
+    public function hasMember(Member|int $memberOrId): bool
     {
-        $user = model($userOrId, User::class);
+        $memberId = $memberOrId instanceof Member ? $memberOrId->id : $memberOrId;
 
-        return $user->isNotAdmin() && $this->hasUser($user);
+        return $this->members()->where('users.id', $memberId)->exists();
     }
 
-    public function hasAdmin(User|int $userOrId): bool
+    public function hasAdmin(Admin|int $adminOrId): bool
     {
-        $user = model($userOrId, User::class);
+        $adminId = $adminOrId instanceof Admin ? $adminOrId->id : $adminOrId;
 
-        return $user->isSuperAdmin() || ($user->isAdmin() && $this->hasUser($user));
+        return $this->admins()->where('users.id', $adminId)->exists();
+    }
+
+    public function scopeActive(Builder $query): void
+    {
+        $query->where('active', true);
     }
 
     public function scopeAlphabetically(Builder $query): void

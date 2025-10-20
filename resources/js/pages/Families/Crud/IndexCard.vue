@@ -37,7 +37,7 @@ defineProps<{
         v-for="member in family.members"
         :key="member.id"
         class="cursor-pointer rounded-2xl p-1 text-[#1b1b18] hover:bg-accent/40 dark:text-[#EDEDEC]"
-        :href="route('users.show', member.id)"
+        :href="route('members.show', member.id)"
         :title="member.name"
         prefetch="click"
       >

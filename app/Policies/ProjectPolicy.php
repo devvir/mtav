@@ -12,7 +12,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isSuperAdmin() || ($user->isAdmin() && $user->projects->count() > 1);
     }
 
     /**
@@ -20,7 +20,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->isAdmin() || $user->projects->contains($project);
+        return (bool) $user->asAdmin()?->manages($project);
     }
 
     /**
@@ -28,7 +28,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin() && $user->manages($project);
+        return (bool) $user->asAdmin()?->manages($project);
     }
 
     /**
@@ -36,7 +36,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->isAdmin() && $user->manages($project);
+        return (bool) $user->asAdmin()?->manages($project);
     }
 
     /**
@@ -44,7 +44,7 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return $user->isAdmin() && $user->manages($project)
+        return $user->asAdmin()?->manages($project)
             && $project->isSoftDeletable() && $project->deleted_at;
     }
 }

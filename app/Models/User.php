@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPolicy;
-use BadMethodCallException;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,10 +17,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use HasPolicy;
     use Notifiable;
 
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -40,50 +39,29 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * A user may belong to exactly one family or none.
-     */
-    public function family(): BelongsTo
+    public function asMember(): ?Member
     {
-        return $this->belongsTo(Family::class);
+        return $this->is_admin ? null : Member::make($this->getAttributes());
+    }
+
+    public function asAdmin(): ?Admin
+    {
+        return $this->is_admin ? Admin::make($this->getAttributes()) : null;
     }
 
     /**
-     * All projects that the user is a member of.
+     * All projects that the user belongs to.
      */
     public function projects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class)
+        return $this->belongsToMany(Project::class, 'project_user', 'user_id')
             ->wherePivot('active', true)
             ->withTimestamps();
     }
 
-    public function manages(Project $project): bool
+    public function scopeActive(Builder $query): void
     {
-        return $this->isSuperAdmin()
-            || ($this->isAdmin() && $this->projects->contains($project));
-    }
-
-    /**
-     * Get the project that the user is currently an active member of (one or none).
-     */
-    public function getProjectAttribute(): ?Project
-    {
-        if ($this->isAdmin()) {
-            throw new BadMethodCallException('The Project attribute is only available to Members (not Admins).');
-        }
-
-        return $this->projects->where('pivot.active', true)->first();
-    }
-
-    public function scopeMembers(Builder $query): void
-    {
-        $query->where('is_admin', false);
-    }
-
-    public function scopeAdmins(Builder $query): void
-    {
-        $query->where('is_admin', true);
+        $query->wherePivot('active', true);
     }
 
     public function scopeAlphabetically(Builder $query): void
@@ -103,35 +81,14 @@ class User extends Authenticatable implements MustVerifyEmail
             ));
     }
 
-    public function joinProject(Project|int $project): self
+    public function isMember(): bool
     {
-        model($project, Project::class)->addUser($this);
-
-        return $this;
-    }
-
-    public function leaveProject(Project $project): self
-    {
-        $project->removeUser($this);
-
-        return $this;
-    }
-
-    public function switchProject(Project $project): self
-    {
-        if ($this->isAdmin()) {
-            throw new BadMethodCallException('Only regular Members (not Admins) may switch Projects.');
-        }
-
-        $this->project?->removeUser($this);
-        $project->addUser($this);
-
-        return $this;
+        return ! $this->is_admin;
     }
 
     public function isAdmin(): bool
     {
-        return $this->isSuperAdmin() || $this->is_admin;
+        return $this->is_admin;
     }
 
     public function isNotAdmin(): bool

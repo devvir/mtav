@@ -20,7 +20,7 @@ class FamilyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'       => $this->faker->lastName() . ' ' . $this->faker->lastName(),
+            'name' => $this->faker->lastName().' '.$this->faker->lastName(),
             'project_id' => Project::factory(),
         ];
     }
@@ -30,7 +30,7 @@ class FamilyFactory extends Factory
         return $this->afterCreating(
             fn (Family $family) => $family->members()->saveMany(
                 tap(
-                    User::factory()->count(rand(1, 6))->create([ 'family_id' => $family->id ]),
+                    User::factory()->count(rand(1, 6))->create(['family_id' => $family->id]),
                     fn ($users) => $family->project->members()->attach($users->pluck('id')))
             )
         );
@@ -38,6 +38,6 @@ class FamilyFactory extends Factory
 
     public function inProject(Project $project): static
     {
-        return $this->state([ 'project_id' => $project->id ]);
+        return $this->state(['project_id' => $project->id]);
     }
 }

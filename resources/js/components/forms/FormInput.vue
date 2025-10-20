@@ -13,7 +13,6 @@ defineProps<{
   placeholder?: string;
   autocomplete?: boolean;
 }>();
-console.log('INPUT', useAttrs().value);
 </script>
 
 <template>

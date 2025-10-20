@@ -36,7 +36,7 @@ class UnitPolicy
      */
     public function update(User $user, Unit $unit): bool
     {
-        return $user->isAdmin() && $user->manages($unit->project);
+        return $user->asAdmin()?->manages($unit->project);
     }
 
     /**
@@ -44,6 +44,6 @@ class UnitPolicy
      */
     public function delete(User $user, Unit $unit): bool
     {
-        return $user->isAdmin() && $user->manages($unit->project);
+        return $user->asAdmin()?->manages($unit->project);
     }
 }

@@ -2,17 +2,17 @@
 
 namespace App\Policies;
 
-use App\Models\Admin;
+use App\Models\Member;
 use App\Models\User;
 
-class AdminPolicy
+class MemberPolicy
 {
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return true;
     }
 
     /**
@@ -26,7 +26,7 @@ class AdminPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Admin $model): bool
+    public function view(User $user, Member $model): bool
     {
         return true;
     }
@@ -34,23 +34,23 @@ class AdminPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Admin $model): bool
+    public function update(User $user, Member $model): bool
     {
-        return $user->isSuperAdmin() || $user->is($model);
+        return $user->isAdmin() || $user->is($model);
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Admin $model): bool
+    public function delete(User $user, Member $model): bool
     {
-        return $user->isSuperAdmin() || $user->is($model);
+        return $user->isAdmin() || $user->is($model);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Admin $model): bool
+    public function restore(User $user, Member $model): bool
     {
         return $user->isAdmin() && $model->isSoftDeletable() && $model->deleted_at;
     }

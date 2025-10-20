@@ -15,14 +15,14 @@ class Family extends Model
 
     public function members(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Member::class);
     }
 
-    public function addMember(User|int $userOrId): self
+    public function addMember(Member|int $memberOrId): self
     {
-        $user = model($userOrId, User::class);
+        $member = model($memberOrId, Member::class);
 
-        $this->members()->save($user);
+        $this->members()->save($member);
 
         return $this;
     }
@@ -31,7 +31,7 @@ class Family extends Model
     {
         $project = model($projectOrId, Project::class);
 
-        $this->members->each($project->addUser(...));
+        $this->members->each($project->addMember(...));
 
         $this->project()->associate($project)->save();
 

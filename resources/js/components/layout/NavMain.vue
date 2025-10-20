@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/layout/sidebar';
-import { iAmAdmin } from '@/composables/useAuth';
+import { can } from '@/composables/useAuth';
 import { projectIsSelected } from '@/composables/useProjects';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
@@ -8,9 +8,9 @@ import { Building2Icon, HomeIcon, LayoutGrid, LucideIcon, UsersIcon } from 'luci
 
 interface NavItem {
   label: string;
-  route: string | ComputedRef<string>;
+  route: MaybeRef<string>;
   icon: LucideIcon;
-  onlyIf?: ComputedRef<boolean>;
+  onlyIf?: MaybeRef<boolean>;
   routes?: string[];
 }
 
@@ -19,35 +19,33 @@ const allNavItems: NavItem[] = [
     label: 'Dashboard',
     route: 'home',
     icon: HomeIcon,
-    onlyIf: computed(() => projectIsSelected.value),
+    onlyIf: projectIsSelected,
     routes: ['home'],
   },
   {
     label: 'Gallery',
     route: 'gallery',
     icon: LayoutGrid,
-    onlyIf: computed(() => projectIsSelected.value),
+    onlyIf: projectIsSelected,
     routes: ['gallery'],
   },
   {
     label: 'Members',
-    route: computed(() => (usePage().props.state.groupMembers ? 'families.index' : 'users.index')),
+    route: computed(() => (usePage().props.state.groupMembers ? 'families.index' : 'members.index')),
     icon: UsersIcon,
-    onlyIf: computed(() => projectIsSelected.value || iAmAdmin.value),
-    routes: ['families.*', 'members.*', 'users.*'],
+    onlyIf: can.viewAny('members'),
+    routes: ['families.*', 'members.*'],
   },
   {
     label: 'Projects',
     route: 'projects.index',
     icon: Building2Icon,
-    onlyIf: iAmAdmin,
+    onlyIf: can.viewAny('projects'),
     routes: ['projects.*'],
   },
 ];
 
-const navItems = computed(() => {
-  return allNavItems.filter((item) => item.onlyIf?.value !== false);
-});
+const navItems = computed(() => allNavItems.filter((item) => toValue(item.onlyIf) !== false));
 
 const activeNavItem = computed(() =>
   navItems.value.find(
@@ -55,7 +53,7 @@ const activeNavItem = computed(() =>
   ),
 );
 
-const toVal = (maybeRef: string | ComputedRef<string>) => toValue(maybeRef);
+const unpack = (maybeRef: MaybeRef<string>) => toValue(maybeRef);
 </script>
 
 <template>
@@ -64,7 +62,7 @@ const toVal = (maybeRef: string | ComputedRef<string>) => toValue(maybeRef);
       <SidebarMenuItem v-for="item in navItems" :key="item.label">
         <SidebarMenuButton as-child :is-active="item.label == activeNavItem?.label" :tooltip="item.label">
           <Link
-            :href="route(toVal(item.route))"
+            :href="route(unpack(item.route))"
             :class="{ 'pointer-events-none': item.route === currentRoute }"
             prefetch
           >

@@ -5,36 +5,36 @@ import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
-import Delete from '@/pages/Users/Crud/Delete.vue';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Edit3Icon } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
+import Delete from './Crud/Delete.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  user: ApiResource<User>;
+  member: ApiResource<Member>;
 }>();
 </script>
 
 <template>
-  <Head :title="user.name" no-translation />
+  <Head :title="member.name" no-translation />
 
   <Breadcrumbs>
-    <Breadcrumb route="users.index" text="Members" />
-    <Breadcrumb route="users.show" :params="user.id">{{ user.name }}</Breadcrumb>
+    <Breadcrumb route="members.index" text="Members" />
+    <Breadcrumb route="members.show" :params="member.id">{{ member.name }}</Breadcrumb>
   </Breadcrumbs>
 
   <MaybeModal>
     <ShowWrapper>
       <Card class="size-full">
         <template v-slot:header>
-          <div class="flex items-center-safe justify-start" :title="user.name">
-            <img :src="user.avatar" alt="avatar" class="mr-wide w-24" />
+          <div class="flex items-center-safe justify-start" :title="member.name">
+            <img :src="member.avatar" alt="avatar" class="mr-wide w-24" />
             <div class="text-sm leading-wide text-muted-foreground">
-              <div class="truncate text-2xl leading-12">{{ user.name }}</div>
-              <div>{{ user.email }}</div>
-              <div>{{ user.phone ?? 'N/A' }}</div>
+              <div class="truncate text-2xl leading-12">{{ member.name }}</div>
+              <div>{{ member.email }}</div>
+              <div>{{ member.phone ?? 'N/A' }}</div>
             </div>
           </div>
         </template>
@@ -46,26 +46,26 @@ defineProps<{
           </div>
 
           <ModalLink
-            v-if="user.family.name"
-            :href="route('families.show', user.family.id)"
+            v-if="member.family.name"
+            :href="route('families.show', member.family.id)"
             class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
           >
-            {{ _('Family') }}: {{ user.family.name }}
+            {{ _('Family') }}: {{ member.family.name }}
           </ModalLink>
 
-          <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ user.created_ago }}</div>
+          <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ member.created_ago }}</div>
         </div>
 
         <ModalLink
-          v-if="user.allows.update"
+          v-if="member.allows.update"
           class="flex items-center-safe justify-end gap-2 border-t pt-base"
           paddingClasses="p-8"
-          :href="route('users.edit', user.id)"
+          :href="route('members.edit', member.id)"
         >
           {{ _('Edit Member') }} <Edit3Icon />
         </ModalLink>
 
-        <Delete v-if="user.allows?.delete" :user="user" class="mt-wide border-t border-foreground/10" />
+        <Delete v-if="member.allows?.delete" :member class="mt-wide border-t border-foreground/10" />
       </Card>
     </ShowWrapper>
   </MaybeModal>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { iAmAdmin, iAmSuperadmin } from '@/composables/useAuth';
+import { can, iAmAdmin } from '@/composables/useAuth';
 import { projectIsSelected } from '@/composables/useProjects';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
@@ -9,25 +9,26 @@ type QuickAction = {
   route: string;
   text: string;
   disabled?: boolean;
-  if?: ComputedRef<boolean>;
+  if?: MaybeRef<boolean>;
 };
 
 const quickActions: QuickAction[] = [
-  { if: iAmSuperadmin, route: 'projects.create', text: 'New Project' },
-  { if: iAmAdmin, route: 'families.create', text: 'New Family' },
+  { if: can.create('projects'), route: 'projects.create', text: 'New Project' },
+  { if: can.create('families'), route: 'families.create', text: 'New Family' },
   {
-    route: 'users.create',
+    if: can.create('members'),
+    route: 'members.create',
     text: iAmAdmin.value ? 'New User' : 'Invite Family Member',
   },
-  { if: iAmSuperadmin, route: 'admins.create', text: 'New Admin' },
-  { if: projectIsSelected, route: 'media.create', text: 'Upload Multimedia' },
-  { if: computed(() => projectIsSelected.value && iAmAdmin.value), route: 'events.create', text: 'New Event' },
+  { if: can.create('admins'), route: 'admins.create', text: 'New Admin' },
+  { if: projectIsSelected, route: 'media.create', text: 'Upload Multimedia' }, // TODO : can.create('media') when the Media model is added
+  { if: computed(() => projectIsSelected.value && iAmAdmin.value), route: 'events.create', text: 'New Event' }, // TODO : idem, when the Event model is added
 ];
 
 const availableActions = computed(() =>
   quickActions
     .map((a) => ({ ...a, disabled: a.route === currentRoute.value }))
-    .filter((action) => action.if?.value !== false),
+    .filter((action) => toValue(action.if) !== false),
 );
 
 const open = ref(false);

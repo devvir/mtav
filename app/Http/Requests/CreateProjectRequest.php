@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Admin;
+use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Exists;
+use Illuminate\Validation\Rule;
 
 class CreateProjectRequest extends FormRequest
 {
@@ -15,9 +17,16 @@ class CreateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['required', 'string', 'max:255', 'unique:projects,name'],
+            'name' => ['required', 'string', 'max:255', Rule::unique(Project::class, 'name')],
             'description' => ['required', 'string', 'max:65535'],
-            'admins'      => ['required', 'array', new Exists('users', 'id')->where(fn ($query) => $query->where('is_admin', true))],
+            'admins' => [
+                'required',
+                'array',
+                Rule::exists(Admin::class, 'id')
+                    // TODO : check if the where() is necessary, i.e. if it
+                    //        applies Admin's globalScope automatically or not
+                    ->where(fn ($query) => $query->where('is_admin', true)),
+            ],
         ];
     }
 }

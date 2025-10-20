@@ -12,9 +12,9 @@ defineProps<{ admin: Admin }>();
   <Head title="Update Admin" />
 
   <Breadcrumbs>
-    <Breadcrumb route="users.index" text="Members" />
-    <Breadcrumb route="users.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
-    <Breadcrumb route="users.update" :params="admin.id" text="Edit" />
+    <Breadcrumb route="admins.index" text="Admins" />
+    <Breadcrumb route="admins.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
+    <Breadcrumb route="admins.update" :params="admin.id" text="Edit" />
   </Breadcrumbs>
 
   <CreateUpdate

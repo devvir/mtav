@@ -2,7 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Admin;
+use App\Models\Family;
+use App\Models\Member;
 use App\Models\Project;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -36,12 +40,14 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
 
             'auth' => [
-                'user' => $user?->toResource()->withoutAbilities()->resolve(),
+                'user' => $user ? $user->toResource()->withoutAbilities()->resolve() + [
+                    'can' => $this->globalPolicies($request),
+                ] : null,
                 'verified' => $user ? (bool) $user->email_verified_at : null,
             ],
 
             'ziggy' => [
-                ...(new Ziggy())->toArray(),
+                ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
         ];
@@ -64,6 +70,28 @@ class HandleInertiaRequests extends Middleware
             ],
 
             'sidebarOpen' => $request->cookie('sidebar_state', 'true') === 'true',
+        ];
+    }
+
+    protected function globalPolicies(Request $request): array
+    {
+        $can = $request->user() ? $request->user()->can(...) : fn () => false;
+
+        return [
+            'create' => [
+                'projects' => $can('create', Project::class),
+                'units' => $can('create', Unit::class),
+                'admins' => $can('create', Admin::class),
+                'families' => $can('create', Family::class),
+                'members' => $can('create', Member::class),
+            ],
+            'viewAny' => [
+                'projects' => $can('viewAny', Project::class),
+                'units' => $can('viewAny', Unit::class),
+                'admins' => $can('viewAny', Admin::class),
+                'families' => $can('viewAny', Family::class),
+                'members' => $can('viewAny', Member::class),
+            ],
         ];
     }
 }

@@ -3,6 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
+import { can } from '@/composables/useAuth';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
@@ -14,7 +15,7 @@ defineProps<{ project: Required<ApiResource<Project>> }>();
   <Head title="Project" />
 
   <Breadcrumbs global>
-    <Breadcrumb v-if="project.allows?.viewAny" route="projects.index" text="Projects" />
+    <Breadcrumb v-if="can.viewAny('projects')" route="projects.index" text="Projects" />
     <Breadcrumb route="projects.show" :params="project.id">{{ project.name }}</Breadcrumb>
   </Breadcrumbs>
 

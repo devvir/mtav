@@ -1,3 +1,6 @@
+type AppResource = 'projects' | 'units' | 'admins' | 'families' | 'members' | 'logs';
+type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
+
 interface Resource {
   id: number;
   created_at: string;
@@ -13,14 +16,15 @@ interface User extends Resource {
   is_admin: boolean;
   is_superadmin: boolean;
   created_ago: string;
+}
 
+interface Member extends User {
   family: Family & { loaded?: boolean };
   project?: Project & { loaded?: boolean };
-  projects?: Project[] & { loaded?: boolean };
 }
 
 interface Admin extends User {
-  family: { id: null };
+  projects?: Project[] & { loaded?: boolean };
 }
 
 interface Family extends Resource {
@@ -46,7 +50,7 @@ interface Project extends Resource {
 }
 
 interface ApiResource<R extends Resource = Resource> extends R {
-  allows: Record<Policy, boolean>;
+  allows: Record<ResourcePolicy, boolean>;
 }
 
 interface ApiResources<R extends Resource = Resource> {
@@ -60,5 +64,3 @@ interface ApiResources<R extends Resource = Resource> {
 }
 
 type ApiDataPage = Exclude<ApiResources, 'data'> & { data: unknown[] };
-
-type Policy = 'viewAny' | 'view' | 'create' | 'update' | 'delete' | 'restore' | 'forceDelete';

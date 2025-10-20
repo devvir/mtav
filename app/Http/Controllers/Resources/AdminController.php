@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Http\Requests\CreateUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\CreateAdminRequest;
+use App\Http\Requests\UpdateAdminRequest;
+use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -19,7 +20,7 @@ class AdminController extends Controller
      */
     public function index(Request $request): Response
     {
-        $pool = Project::current()?->admins() ?? User::admins();
+        $pool = Project::current()?->admins() ?? Admin::query();
 
         $admins = $pool->alphabetically()
             ->when($request->q, fn ($query, $q) => $query->search($q));
@@ -33,7 +34,7 @@ class AdminController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $admin): Response
+    public function show(Admin $admin): Response
     {
         $admin->load('projects');
 
@@ -57,19 +58,19 @@ class AdminController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateUserRequest $request): RedirectResponse
+    public function store(CreateAdminRequest $request): RedirectResponse
     {
-        $user = User::create($request->validated());
+        $admin = Admin::create($request->validated());
 
-        // event(new Registered($user));
+        // event(new Registered($admin));
 
-        return to_route('users.show', $user->id);
+        return to_route('admins.show', $admin->id);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $admin): Response
+    public function edit(Admin $admin): Response
     {
         $admin->load('projects');
 
@@ -79,7 +80,7 @@ class AdminController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, User $admin): RedirectResponse
+    public function update(UpdateAdminRequest $request, Admin $admin): RedirectResponse
     {
         $admin->update($request->validated());
 

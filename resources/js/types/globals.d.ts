@@ -11,8 +11,15 @@ declare module 'vite/client' {
   }
 }
 
+export interface AuthUser extends User {
+  can: {
+    viewAny: Record<AppResource, boolean>;
+    create: Record<AppResource, boolean>;
+  };
+}
+
 export interface Auth {
-  user: User | null;
+  user: AuthUser | null;
   verified: boolean;
 }
 

@@ -7,7 +7,7 @@ import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.v
 import IndexCard from './Crud/IndexCard.vue';
 
 defineProps<{
-  members: ApiResources<User>;
+  members: ApiResources<Member>;
   q: string;
 }>();
 
@@ -20,7 +20,7 @@ const gridColsOverrides = {
   <Head title="Members" />
 
   <Breadcrumbs>
-    <Breadcrumb route="users.index" text="Members" />
+    <Breadcrumb route="members.index" text="Members" />
   </Breadcrumbs>
 
   <InfinitePaginator :list="members" loadable="members" :filter="q" :gridColsOverrides="gridColsOverrides">
@@ -29,7 +29,7 @@ const gridColsOverrides = {
     </template>
 
     <template v-slot:default="{ item }">
-      <IndexCard :user="item as (typeof members.data)[0]" />
+      <IndexCard :member="item as (typeof members.data)[0]" />
     </template>
   </InfinitePaginator>
 </template>

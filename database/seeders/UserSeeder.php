@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
             'firstname' => 'Test',
             'lastname' => 'User',
             'email' => 'user@example.com',
-        ])->joinProject($firstProject);
+        ])->asMember()->joinProject($firstProject);
 
         // Example orphan User (data inconsistency: no family, no project)
         User::factory()->create([
@@ -62,13 +62,13 @@ class UserSeeder extends Seeder
             'firstname' => 'A Regular User',
             'lastname' => 'With a Very Long Name',
             'email' => 'longname@example.com',
-        ])->joinProject($firstProject);
+        ])->asMember()->joinProject($firstProject);
 
         // Example inactive User (@see DatabaseSeeder for further setup of this User)
         User::factory()->create([
             'firstname' => 'Test',
             'lastname' => 'Inactive',
             'email' => 'inactive@example.com',
-        ])->joinProject($firstProject)->leaveProject($firstProject);
+        ])->asMember()->joinProject($firstProject)->leaveProject($firstProject);
     }
 }

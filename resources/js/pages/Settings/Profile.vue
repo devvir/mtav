@@ -10,13 +10,14 @@ import { Label } from '@/components/ui/label';
 import { auth, currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { AuthUser } from '@/types/globals';
 
 defineProps<{
   mustVerifyEmail: boolean;
   status?: string;
 }>();
 
-const profile = currentUser.value as User; // TODO : Will this break reactivity anywhere if we don't explicitly update page.auth.user?
+const profile = currentUser.value as AuthUser; // TODO : Will this break reactivity anywhere if we don't explicitly update page.auth.user?
 
 const form = useForm({
   email: profile.email,

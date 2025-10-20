@@ -83,7 +83,7 @@ const props = defineProps<{
           v-for="member in project.members"
           :key="member.id"
           :title="member.name"
-          :href="route('users.show', member.id)"
+          :href="route('members.show', member.id)"
         >
           <img :src="member.avatar" alt="avatar" width="40px" class="ring ring-muted/25" />
         </ModalLink>

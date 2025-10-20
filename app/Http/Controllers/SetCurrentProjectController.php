@@ -11,8 +11,8 @@ class SetCurrentProjectController
 {
     public function set(Request $request, Project $project): RedirectResponse
     {
-        if ($request->user()->isNotSuperAdmin() && ! $request->user()->manages($project)) {
-            throw new UnauthorizedException('You do not have permission to select this Project.');
+        if ($request->user()->isNotSuperAdmin() && ! $request->user()->asAdmin()?->manages($project)) {
+            throw new UnauthorizedException('You do not have permission to select a Project.');
         }
 
         Project::setCurrent($project);

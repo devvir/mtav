@@ -7,9 +7,9 @@ use App\Http\Controllers\Resources\AdminController;
 use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Resources\LogController;
 use App\Http\Controllers\Resources\MediaController;
+use App\Http\Controllers\Resources\MemberController;
 use App\Http\Controllers\Resources\ProjectController;
 use App\Http\Controllers\Resources\UnitController;
-use App\Http\Controllers\Resources\UserController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Middleware\Auth\ProjectMustBeSelected;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::resource('projects', ProjectController::class)->only('show');
 Route::resource('admins', AdminController::class)->only('index', 'show');
 
-Route::resource('users', UserController::class)->only('index', 'show', 'create', 'store');
+Route::resource('members', MemberController::class)->only('index', 'show', 'create', 'store');
 Route::resource('families', FamilyController::class)->only('index', 'show', 'edit', 'update');
 
 Route::resource('media', MediaController::class);

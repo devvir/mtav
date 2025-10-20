@@ -11,7 +11,7 @@ const props = defineProps<{
   title: string;
   projects: Project[];
   families: Family[];
-  user?: User; // Edit-only
+  member?: Member; // Edit-only
 }>();
 
 const projectOptions: SelectOptions = {};
@@ -24,7 +24,7 @@ const formSpecs: FormSpecs = {
   project: {
     element: 'select',
     label: 'Project',
-    selected: props.user?.project?.id ?? currentProject.value?.id,
+    selected: props.member?.project?.id ?? currentProject.value?.id,
     options: projectOptions,
     required: true,
     displayId: true,
@@ -33,39 +33,39 @@ const formSpecs: FormSpecs = {
   family: {
     element: 'select',
     label: 'Family',
-    selected: props.user?.family.id,
+    selected: props.member?.family.id,
     options: familyOptions,
     required: true,
     displayId: true,
     disabled: props.type === 'edit',
     create: { target: 'families.create', legend: 'Add a new Family' },
   },
+  firstname: { element: 'input', label: 'First Name', value: props.member?.firstname, required: true },
+  lastname: { element: 'input', label: 'Last Name', value: props.member?.lastname },
   email: {
     element: 'input',
     label: 'Email',
     type: 'email',
-    value: props.user?.email,
+    value: props.member?.email,
     autocomplete: false,
     required: true,
   },
-  firstname: { element: 'input', label: 'First Name', value: props.user?.firstname, required: true },
-  lastname: { element: 'input', label: 'Last Name', value: props.user?.lastname },
 };
 
 /**
  * Members cannot choose project or family; these are set automatically
  */
-if (iAmNotAdmin.value) {
+if (iAmNotAdmin.value || props.type === 'edit') {
   formSpecs.project = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  formSpecs.family = { element: 'input', type: 'hidden', value: currentUser.value?.family?.id };
+  formSpecs.family = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
 }
 </script>
 
 <template>
   <Form
-    v-bind="{ type, action, params: props.user?.id, title }"
+    v-bind="{ type, action, params: props.member?.id, title }"
     :specs="formSpecs"
-    buttonText="Invite"
+    :buttonText="props.type === 'edit' ? undefined : 'Invite'"
     autocomplete="off"
   >
     <template v-slot:aside>

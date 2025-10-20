@@ -9,8 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
-    use WithResourceAbilities;
     use ResourceSubsets;
+    use WithResourceAbilities;
 
     /**
      * Transform the resource into an array.
@@ -19,20 +19,20 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $_): array
     {
-        $fullName = trim($this->firstname . ' ' . ($this->lastname ?? ''));
+        $fullName = trim($this->firstname.' '.($this->lastname ?? ''));
 
         return [
-            'id'            => $this->id,
-            'email'         => $this->email,
-            'phone'         => $this->phone ?? '',
-            'firstname'     => $this->firstname ?? '',
-            'lastname'      => $this->lastname ?? '',
-            'name'          => $fullName,
-            'avatar'        => $this->resolveAvatar($fullName),
-            'is_admin'      => $this->isAdmin(),
+            'id' => $this->id,
+            'email' => $this->email,
+            'phone' => $this->phone ?? '',
+            'firstname' => $this->firstname ?? '',
+            'lastname' => $this->lastname ?? '',
+            'name' => $fullName,
+            'avatar' => $this->resolveAvatar($fullName),
+            'is_admin' => $this->isAdmin(),
             'is_superadmin' => $this->isSuperAdmin(),
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'created_ago'   => $this->created_at->diffForHumans(),
+            'created_at' => $this->created_at->toDateTimeString(),
+            'created_ago' => $this->created_at->diffForHumans(),
 
             ...$this->relationsData(),
         ];
@@ -41,7 +41,6 @@ class UserResource extends JsonResource
     private function relationsData(): array
     {
         return [
-            'family'   => $this->whenLoaded('family', default: ['id' => $this->family_id]),
             'projects' => $this->whenLoaded('projects'),
         ];
     }

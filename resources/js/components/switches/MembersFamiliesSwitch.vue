@@ -9,7 +9,7 @@ const isActive = (page: string) => route().current(page);
 <template>
   <div class="flex overflow-hidden rounded-2xl border-2 border-foreground/80 @xl:text-sm">
     <Link
-      v-for="(routeName, label) in { Families: 'families.index', Members: 'users.index' }"
+      v-for="(routeName, label) in { Families: 'families.index', Members: 'members.index' }"
       :key="routeName"
       as="button"
       :href="route(routeName)"

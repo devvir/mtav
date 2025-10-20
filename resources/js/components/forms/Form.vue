@@ -48,7 +48,7 @@ const submit = (onSuccess?: () => void) => {
     onSuccess,
   });
 };
-console.log('FORM', useAttrs().value);
+
 const pauseModalClosing = ref(false);
 
 provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.value = pause));

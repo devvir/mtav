@@ -12,17 +12,24 @@ defineProps<{
 
 <template>
   <Card>
-    <Link :href="route('users.show', admin.id)">
+    <ModalLink :href="route('admins.show', admin.id)">
       <div class="flex items-center-safe justify-between gap-8">
         <div class="flex justify-start gap-5">
           <img :src="admin.avatar" alt="avatar" />
+
           <div class="flex flex-col items-start justify-center-safe" :title="admin.name">
             <div class="flex items-center-safe justify-end gap-4 truncate text-xl">
               {{ admin.name }}
-              <ModalLink v-if="admin.allows.update" paddingClasses="p-8" :href="route('admins.edit', admin.id)">
+              <ModalLink
+                v-if="admin.allows.update"
+                paddingClasses="p-8"
+                :href="route('admins.edit', admin.id)"
+                @click.stop
+              >
                 <span :title="_('Edit Admin')"><Edit3Icon /></span>
               </ModalLink>
             </div>
+
             <div class="truncate text-xs">{{ admin.email }}</div>
           </div>
         </div>
@@ -31,6 +38,6 @@ defineProps<{
           {{ _('Contact') }}
         </CallToAction>
       </div>
-    </Link>
+    </ModalLink>
   </Card>
 </template>

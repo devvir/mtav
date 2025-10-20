@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Admin;
 use App\Models\Project;
 use App\Models\Unit;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -29,14 +29,14 @@ class ProjectFactory extends Factory
 
     public function configure()
     {
-        $defaultAdmin = once(fn () => User::firstWhere('email', 'admin@example.com'));
+        $defaultAdmin = once(fn () => Admin::firstWhere('email', 'admin@example.com'));
 
         if (! $defaultAdmin) {
             return $this;
         }
 
         return $this->afterCreating(
-            fn (Project $project) => $project->addUser($defaultAdmin)
+            fn (Project $project) => $project->addAdmin($defaultAdmin)
         );
     }
 

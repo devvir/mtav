@@ -16,10 +16,11 @@ const projectOptions: SelectOptions = {};
 props.projects.forEach((project) => (projectOptions[project.id] = project.name));
 
 const formSpecs: FormSpecs = {
-  project: {
+  projects: {
     element: 'select',
-    label: 'Project',
-    selected: props.admin?.project?.id ?? currentProject.value?.id,
+    multiple: true,
+    label: 'Projects',
+    selected: props.admin?.projects?.map((p) => p.id) ?? (currentProject.value ? [currentProject.value?.id] : []),
     options: projectOptions,
     required: true,
     displayId: true,
@@ -39,12 +40,7 @@ const formSpecs: FormSpecs = {
 </script>
 
 <template>
-  <Form
-    v-bind="{ type, action, params: props.admin?.id, title }"
-    :specs="formSpecs"
-    buttonText="Invite"
-    autocomplete="off"
-  >
+  <Form v-bind="{ type, action, params: props.admin?.id, title }" :specs="formSpecs" autocomplete="off">
     <template v-slot:aside>
       <h2
         class="text-xl font-semibold tracking-wider text-accent-foreground uppercase text-shadow-2xs text-shadow-danger/20"

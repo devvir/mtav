@@ -20,7 +20,7 @@ const gridColsOverrides = {
   <Head title="Members" />
 
   <Breadcrumbs>
-    <Breadcrumb route="users.index" text="Members" />
+    <Breadcrumb route="members.index" text="Members" />
   </Breadcrumbs>
 
   <InfinitePaginator :list="admins" loadable="admins" :filter="q" :gridColsOverrides="gridColsOverrides">

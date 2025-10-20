@@ -16,21 +16,21 @@ import { Label } from '@/components/ui/label';
 import { _ } from '@/composables/useTranslations';
 
 const props = defineProps<{
-  user: User;
+  member: Member;
 }>();
 
 const email = ref('');
 const form = useForm({});
 
 const destroy = () => {
-  router.delete(route('users.destroy', props.user.id), {
+  router.delete(route('members.destroy', props.member.id), {
     preserveScroll: true,
     onSuccess: () => form.reset(),
     onFinish: () => form.reset(),
   });
 };
 
-const disabled = computed(() => email.value !== props.user.email || form.processing);
+const disabled = computed(() => email.value !== props.member.email || form.processing);
 </script>
 
 <template>

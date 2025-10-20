@@ -32,10 +32,5 @@ const formSpecs: FormSpecs = {
 </script>
 
 <template>
-  <Form
-    v-bind="{ type, action, params: props.project?.id, title }"
-    :specs="formSpecs"
-    buttonText="Create"
-    autocomplete="off"
-  />
+  <Form v-bind="{ type, action, params: props.project?.id, title }" :specs="formSpecs" autocomplete="off" />
 </template>
