@@ -9,8 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class FamilyResource extends JsonResource
 {
-    use WithResourceAbilities;
     use ResourceSubsets;
+    use WithResourceAbilities;
 
     /**
      * Transform the resource into an array.
@@ -20,11 +20,11 @@ class FamilyResource extends JsonResource
     public function toArray(Request $_): array
     {
         return [
-            'id'            => $this->id,
-            'name'          => $this->name,
-            'avatar'        => $this->resolveAvatar($this->name),
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'created_ago'   => $this->created_at->diffForHumans(),
+            'id' => $this->id,
+            'name' => $this->name,
+            'avatar' => $this->resolveAvatar(),
+            'created_at' => $this->created_at->toDateTimeString(),
+            'created_ago' => $this->created_at->diffForHumans(),
 
             ...$this->relationsData(),
         ];
@@ -38,11 +38,13 @@ class FamilyResource extends JsonResource
         ];
     }
 
-    private function resolveAvatar($name): string
+    private function resolveAvatar(): string
     {
-        $urlEncodedName = urlencode($name);
+        // $urlEncodedName = urlencode($this->name);
 
         return $this->avatar
-            ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random";
+            ?? "https://api.dicebear.com/9.x/identicon/svg?seed=={$this->name}";
+        // ?? "https://i.pravatar.cc/64?u={$this->name}";
+        // ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random";
     }
 }

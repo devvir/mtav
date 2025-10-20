@@ -17,6 +17,9 @@ const gridColsDefaults = {
   md: '@md:grid-cols-[repeat(auto-fill,minmax(338px,1fr))]',
   lg: '@lg:grid-cols-[repeat(auto-fill,minmax(375px,1fr))]',
   xl: '@xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
+  xl2: '@2xl:grid-cols-[repeat(auto-fill,minmax(430px,1fr))]',
+  xl4: '@4xl:grid-cols-[repeat(auto-fill,minmax(460px,1fr))]',
+  xl6: '@6xl:grid-cols-[repeat(auto-fill,minmax(500px,1fr))]',
 };
 
 const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefaults, props.gridColsOverrides ?? {})));

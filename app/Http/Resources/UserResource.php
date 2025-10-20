@@ -28,7 +28,7 @@ class UserResource extends JsonResource
             'firstname' => $this->firstname ?? '',
             'lastname' => $this->lastname ?? '',
             'name' => $fullName,
-            'avatar' => $this->resolveAvatar($fullName),
+            'avatar' => $this->resolveAvatar(),
             'is_verified' => (bool) $this->email_verified_at,
             'is_admin' => $this->isAdmin(),
             'is_superadmin' => $this->isSuperAdmin(),
@@ -46,11 +46,14 @@ class UserResource extends JsonResource
         ];
     }
 
-    private function resolveAvatar($fullName): string
+    private function resolveAvatar(): string
     {
-        $urlEncodedName = urlencode($fullName);
+        // $encodedName = base64_encode($this->fullName);
+        // $urlEncodedName = urlencode($this->fullName);
 
         return $this->avatar
-            ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random&rounded=true";
+            ?? "https://i.pravatar.cc/64?u={$this->email}";
+        // ?? "https://avi.avris.it/letter-64/{$encodedName}.png";
+        // ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random&rounded=true";
     }
 }

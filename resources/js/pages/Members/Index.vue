@@ -23,7 +23,7 @@ const gridColsOverrides = {
     <Breadcrumb route="members.index" text="Members" />
   </Breadcrumbs>
 
-  <InfinitePaginator :list="members" loadable="members" :filter="q" :gridColsOverrides="gridColsOverrides">
+  <InfinitePaginator :list="members" loadable="members" :filter="q" :gridColsOverrides>
     <template v-slot:search-right>
       <MembersFamiliesSwitch />
     </template>

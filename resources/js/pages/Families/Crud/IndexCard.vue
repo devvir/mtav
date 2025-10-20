@@ -18,7 +18,7 @@ defineProps<{
         :class="{ 'pointer-events-none': useModal() }"
       >
         <div class="flex justify-between">
-          <img :src="family.avatar" alt="avatar" class="ring ring-muted/25" />
+          <img :src="family.avatar" alt="avatar" class="w-8 rounded ring ring-muted/25" />
 
           <div class="truncate pl-base text-right">
             <div class="text-xs text-muted-foreground/50">{{ _('Family') }}</div>

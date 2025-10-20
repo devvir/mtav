@@ -56,69 +56,71 @@ const props = defineProps<{
 
     <section class="my-wide-y border-b border-foreground/10 pb-wide-y">
       <div class="mb-base flex-1 text-right text-xs">{{ _('Families') }} ({{ project.families_count }})</div>
-      <div class="flex flex-wrap gap-4">
-        <ModalLink
+
+      <Link class="flex flex-wrap gap-4" :href="route('families.index')">
+        <img
           v-for="family in project.families"
           :key="family.id"
+          :src="family.avatar"
           :title="family.name"
-          :href="route('families.show', family.id)"
-        >
-          <img :src="family.avatar" alt="avatar" width="40px" class="ring ring-muted/25" />
-        </ModalLink>
+          alt="avatar"
+          class="size-6 rounded ring ring-muted/25"
+        />
 
         <div v-if="project.families_count > project.families.length">
-          <svg class="h-10 w-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
+          <svg class="size-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="2" />
             <circle cx="19" cy="12" r="2" />
             <circle cx="5" cy="12" r="2" />
           </svg>
         </div>
-      </div>
+      </Link>
     </section>
 
     <section class="my-wide-y border-b border-foreground/10 pb-wide-y">
       <div class="mb-base flex-1 text-right text-xs">{{ _('Members') }} ({{ project.members_count }})</div>
-      <div class="flex flex-wrap gap-4">
-        <ModalLink
+
+      <Link class="flex flex-wrap gap-4" :href="route('members.index')">
+        <img
           v-for="member in project.members"
           :key="member.id"
+          :src="member.avatar"
           :title="member.name"
-          :href="route('members.show', member.id)"
-        >
-          <img :src="member.avatar" alt="avatar" width="40px" class="ring ring-muted/25" />
-        </ModalLink>
+          alt="avatar"
+          class="size-6 rounded-full ring ring-muted/25"
+        />
 
         <div v-if="project.members_count > project.members.length">
-          <svg class="h-10 w-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
+          <svg class="size-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="2" />
             <circle cx="19" cy="12" r="2" />
             <circle cx="5" cy="12" r="2" />
           </svg>
         </div>
-      </div>
+      </Link>
     </section>
 
-    <section class="border-b border-foreground/10 pb-wide-y">
+    <section class="my-wide-y border-b border-foreground/10 pb-wide-y">
       <div class="mb-base flex-1 text-right text-xs">{{ _('Admins') }} ({{ project.admins_count }})</div>
-      <div class="flex flex-wrap gap-4">
-        <ModalLink
+
+      <Link class="flex flex-wrap gap-4" :href="route('admins.index')">
+        <img
           v-for="admin in project.admins"
           :key="admin.id"
-          class="flex items-center justify-between gap-2 rounded-full border border-current p-1 text-center text-sm font-medium text-accent/80"
-          :href="route('admins.show', admin.id)"
-        >
-          <img :src="admin.avatar" alt="avatar" width="40px" class="ring ring-muted/25" />
-          <span class="px-2">{{ admin.name }}</span>
-        </ModalLink>
+          :src="admin.avatar"
+          :title="admin.name"
+          alt="avatar"
+          class="size-6 rounded ring ring-muted/25"
+        />
 
         <div v-if="project.admins_count > project.admins.length">
-          <svg class="h-10 w-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
+          <svg class="size-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="2" />
             <circle cx="19" cy="12" r="2" />
             <circle cx="5" cy="12" r="2" />
           </svg>
         </div>
-      </div>
+      </Link>
     </section>
 
     <section class="mt-base text-center">
