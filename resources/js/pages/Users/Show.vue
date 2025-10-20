@@ -57,6 +57,7 @@ defineProps<{
         </div>
 
         <ModalLink
+          v-if="user.allows.update"
           class="flex items-center-safe justify-end gap-2 border-t pt-base"
           paddingClasses="p-8"
           :href="route('users.edit', user.id)"

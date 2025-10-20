@@ -12,7 +12,7 @@ import IndexCard from './Crud/IndexCard.vue';
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  family: Family;
+  family: ApiResource<Family>;
 }>();
 
 const longDate = (date: string) =>
@@ -50,6 +50,7 @@ const longDate = (date: string) =>
           </div>
 
           <ModalLink
+            v-if="family.allows.update"
             class="flex items-center-safe justify-end gap-2 border-t pt-base"
             paddingClasses="p-8"
             :href="route('families.edit', family.id)"

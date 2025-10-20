@@ -8,7 +8,7 @@ import { Edit3Icon } from 'lucide-vue-next';
 import SelectDeselect from './SelectDeselect.vue';
 
 const props = defineProps<{
-  project: Required<Project>;
+  project: ApiResource<Required<Project>>;
   class?: any;
 }>();
 </script>
@@ -45,6 +45,7 @@ const props = defineProps<{
       </ModalLink>
 
       <ModalLink
+        v-if="project.allows.update"
         class="flex items-center-safe justify-end gap-2 pt-base"
         paddingClasses="p-8"
         :href="route('projects.edit', project.id)"

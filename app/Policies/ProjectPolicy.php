@@ -28,7 +28,23 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin()
-            && ($project->is(Project::current()) || $user->manages($project));
+        return $user->isAdmin() && $user->manages($project);
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     */
+    public function delete(User $user, Project $project): bool
+    {
+        return $user->isAdmin() && $user->manages($project);
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Project $project): bool
+    {
+        return $user->isAdmin() && $user->manages($project)
+            && $project->isSoftDeletable() && $project->deleted_at;
     }
 }

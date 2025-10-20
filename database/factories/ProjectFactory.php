@@ -23,7 +23,7 @@ class ProjectFactory extends Factory
             'name' => $this->faker->company(),
             'description' => $this->faker->sentence(10),
             'organization' => $this->faker->randomElement(['FECOVI', 'FUCVAM', 'SUNCA']),
-            'active' => random_int(1, 10) < 8,
+            'active' => rand(1, 10) < 8,
         ];
     }
 

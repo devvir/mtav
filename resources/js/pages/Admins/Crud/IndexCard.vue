@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import Card from '@/components/shared/Card.vue';
 import CallToAction from '@/components/ui/button/CallToAction.vue';
-import { iAmSuperadmin } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Edit3Icon } from 'lucide-vue-next';
 
 defineProps<{
-  admin: Admin;
+  admin: ApiResource<Admin>;
 }>();
 </script>
 
@@ -20,7 +19,7 @@ defineProps<{
           <div class="flex flex-col items-start justify-center-safe" :title="admin.name">
             <div class="flex items-center-safe justify-end gap-4 truncate text-xl">
               {{ admin.name }}
-              <ModalLink v-if="iAmSuperadmin" paddingClasses="p-8" :href="route('admins.edit', admin.id)">
+              <ModalLink v-if="admin.allows.update" paddingClasses="p-8" :href="route('admins.edit', admin.id)">
                 <span :title="_('Edit Admin')"><Edit3Icon /></span>
               </ModalLink>
             </div>
