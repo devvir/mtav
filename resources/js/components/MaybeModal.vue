@@ -8,7 +8,8 @@ defineProps<{
 
 const modal = useTemplateRef<any>('modal');
 
-router.on('navigate', () => modal.value?.close());
+const onNavigateDetacher = router.on('navigate', () => modal.value?.close());
+onUnmounted(onNavigateDetacher);
 
 // TODO : change close-explicitly to custom prop confirmClosing
 // When confirmClosing is true:

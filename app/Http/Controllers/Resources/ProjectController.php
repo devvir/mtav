@@ -30,11 +30,13 @@ class ProjectController extends Controller
                 'members' => fn ($q) => $q->limit(5),
                 'families' => fn ($q) => $q->limit(5),
             ])
-            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"));
+            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"))
+            ->unless($request->showAll, fn ($query) => $query->whereActive(true));
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
             'q' => $request->string('q', ''),
+            'all' => $request->integer('showAll'),
         ]);
     }
 

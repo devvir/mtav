@@ -21,8 +21,8 @@ class CreateMemberRequest extends FormRequest
             'project' => ['required', Rule::exists(Project::class, 'id')],
             'family' => ['required', Rule::exists(Family::class, 'id')],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class)],
-            'firstname' => ['required', 'string', 'min:2', 'max:255'],
-            'lastname' => ['nullable', 'string', 'min:2', 'max:255'],
+            'firstname' => ['required', 'string', 'between:2,80'],
+            'lastname' => ['nullable', 'string', 'between:2,80'],
         ];
     }
 }

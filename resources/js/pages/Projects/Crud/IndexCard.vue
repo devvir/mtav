@@ -19,7 +19,7 @@ const props = defineProps<{
     :class="
       cn(props.class, {
         'shadow-none ring ring-accent-foreground/70': currentProject?.id === project.id,
-        'opacity-40': !project.active,
+        '-z-1 opacity-40': !project.active,
       })
     "
   >
