@@ -30,7 +30,7 @@ const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!pr
         v-if="label"
         :forId="id"
         v-bind="{ label, ...$props, ...$attrs }"
-        class="border-background bg-accent-foreground/15 px-1 text-foreground @max-md:px-3 @max-md:py-2 @max-md:pb-1 @md:border-r-8 @md:px-3"
+        class="border-background bg-accent-foreground/30 px-1 text-foreground @max-md:px-3 @max-md:py-2 @max-md:pb-1 @md:border-r-8 @md:px-3"
         :class="{
           'group-focus-within:bg-accent-foreground/50 group-hover:not-group-focus-within:bg-accent-foreground/25':
             !disabled,
@@ -38,11 +38,10 @@ const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!pr
       />
 
       <div
-        class="h-full min-h-12 bg-foreground/80 text-lg font-light text-background outline-0 transition-colors"
+        class="h-full min-h-12 bg-accent text-lg font-light text-accent-foreground opacity-70 outline-0 transition-colors"
         :class="{
           'has-invalid:text-red-950 has-invalid:not-focus-within:text-red-800': valueProvided,
-          'ring-blue-400 group-hover:bg-muted-foreground/90 focus-within:bg-muted-foreground focus-within:text-muted':
-            !disabled,
+          'ring-blue-400 group-hover:opacity-90 focus-within:opacity-100': !disabled,
           'bg-muted-foreground/45 font-extralight': disabled,
         }"
       >

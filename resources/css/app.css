@@ -134,8 +134,8 @@
 }
 
 :root {
-  --background: var(--color-stone-100);
-  --foreground: var(--color-gray-800);
+  --background: hsl(230.17, 20.71%, 85%);
+  --foreground: var(--color-zinc-950);
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(0 0% 3.9%);
   --popover: hsl(0 0% 100%);
@@ -144,17 +144,17 @@
   --primary-foreground: hsl(0 0% 98%);
   --secondary: hsl(0 0% 92.1%);
   --secondary-foreground: hsl(0 0% 9%);
-  --muted: var(--color-stone-300);
+  --muted: hsl(216.17, 55%, 60.49%, 0.85);
   --muted-foreground: var(--color-gray-950);
-  --accent: var(--color-stone-300);
-  --accent-foreground: var(--color-amber-900);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
+  --accent: hsl(210, 60%, 92%, 0.8);
+  --accent-foreground: hsl(21, 93%, 17%);
+  --destructive: hsl(0 40.2% 25.2%);
+  --destructive-foreground: hsl(180 5% 93%);
   --border: hsl(0 0% 92.8%);
   --input: hsl(0 0% 89.8%);
   --ring: hsl(0 0% 3.9%);
   --radius: 0.5rem;
-  --sidebar-background: var(--color-stone-300);
+  --sidebar-background: hsl(220.17, 40.71%, 90%);
   --sidebar-foreground: var(--color-gray-950);
   --sidebar-border: hsl(0 0% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
@@ -162,7 +162,7 @@
 }
 /* cyan, sky, blue, slate, zinc, neutral, stone */
 .dark {
-  --background: var(--color-zinc-950);
+  --background: hsl(240, 20%, 6%);
   --foreground: var(--color-zinc-50);
   --card: hsl(0 0% 3.9%);
   --card-foreground: hsl(0 0% 98%);
@@ -172,12 +172,12 @@
   --primary-foreground: hsl(0 0% 9%);
   --secondary: hsl(0 0% 14.9%);
   --secondary-foreground: hsl(0 0% 98%);
-  --muted: var(--color-stone-800);
+  --muted: hsl(204, 38.57%, 17.5%);
   --muted-foreground: var(--color-stone-100);
-  --accent: var(--color-amber-50);
-  --accent-foreground: var(--color-amber-800);
-  --destructive: hsl(0, 77%, 47%);
-  --destructive-foreground: hsl(0 0% 98%);
+  --accent: hsl(210, 80%, 94%);
+  --accent-foreground: hsl(21, 100%, 14%);
+  --destructive: hsl(0, 70%, 24%, 0.35);
+  --destructive-foreground: hsl(180 10% 85%);
   --border: hsl(0 0% 14.9%);
   --input: hsl(0 0% 14.9%);
   --ring: hsl(0 0% 83.1%);

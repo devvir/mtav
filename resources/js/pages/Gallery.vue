@@ -31,7 +31,7 @@ import { _ } from '@/composables/useTranslations';
         />
 
         <figcaption
-          class="absolute -bottom-1 w-full bg-muted/80 p-2 text-sm transition-all not-group-hocus:bg-muted/70 not-group-hocus:backdrop-blur-sm"
+          class="absolute -bottom-1 w-full bg-muted/90 p-2 text-sm transition-all not-group-hocus:bg-muted/80 not-group-hocus:backdrop-blur-sm"
         >
           <div
             class="transition-transform not-group-hocus:translate-y-[calc(100%-1.5em)] not-group-hocus:truncate group-hocus:line-clamp-3"

@@ -75,7 +75,7 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
           </slot>
         </div>
 
-        <aside v-if="$slots.aside" class="space-y-8 rounded-xl bg-muted/25 px-5 py-4 text-foreground">
+        <aside v-if="$slots.aside" class="space-y-4 rounded-xl bg-muted/15 px-5 py-4 text-foreground">
           <slot name="aside" />
         </aside>
 

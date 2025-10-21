@@ -42,12 +42,10 @@ const formSpecs: FormSpecs = {
 <template>
   <Form v-bind="{ type, action, params: props.admin?.id, title }" :specs="formSpecs" autocomplete="off">
     <template v-slot:aside>
-      <h2
-        class="text-xl font-semibold tracking-wider text-accent-foreground uppercase text-shadow-2xs text-shadow-danger/20"
-      >
+      <h2 class="font-semibold text-foreground/60 uppercase text-shadow-2xs text-shadow-danger/20">
         {{ _('Keep in mind') }}
       </h2>
-      <ul class="list-inside list-disc space-y-1 text-base">
+      <ul class="list-inside list-disc text-base text-foreground/80">
         <li class="list-item leading-tight @md:leading-wide">
           {{
             type === 'edit'

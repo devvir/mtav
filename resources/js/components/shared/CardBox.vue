@@ -11,7 +11,7 @@ const attrs = useAttrs();
 <template>
   <div
     :class="
-      cn('rounded-xl border-t-1 border-muted-foreground/25 bg-muted/25 shadow shadow-muted-foreground/20', props.class)
+      cn('rounded-xl border-t-1 border-muted-foreground/25 bg-muted/80 shadow shadow-muted-foreground/20', props.class)
     "
     v-bind="attrs"
   >

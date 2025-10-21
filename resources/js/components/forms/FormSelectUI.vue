@@ -53,7 +53,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
       <input
         class="pointer-events-none w-full truncate p-3 pr-10 outline-0"
         tabindex="-1"
-        :class="{ 'bg-muted-foreground': isOpen }"
+        :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"
         :placeholder="placeholder ?? _('Click to select an option')"
       />
@@ -85,14 +85,14 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
           />
 
           <ul
-            class="col-span-2 grid max-h-72 auto-rows-auto grid-cols-subgrid gap-0 overflow-auto overflow-y-auto"
+            class="col-span-2 grid max-h-72 auto-rows-auto grid-cols-subgrid gap-0 divide-y-1 divide-foreground/6 overflow-auto overflow-y-auto"
             :class="{ 'mb-18': create }"
           >
             <li
               v-for="(label, value) in options"
               :key="value"
               tabindex="0"
-              class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-3 py-1 leading-wide"
+              class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-3 py-3 text-base"
               :class="
                 selected?.some((option) => option == value)
                   ? 'bg-accent text-accent-foreground'

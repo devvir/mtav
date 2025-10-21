@@ -18,8 +18,8 @@ const props = defineProps<{
     class=""
     :class="
       cn(props.class, {
-        'shadow-none ring ring-accent-foreground/70': currentProject?.id === project.id,
-        '-z-1 opacity-40': !project.active,
+        'shadow-none ring ring-accent': currentProject?.id === project.id,
+        '-z-1 opacity-60': !project.active,
       })
     "
   >
@@ -32,12 +32,12 @@ const props = defineProps<{
         <p class="truncate text-xl" :title="project.name">
           {{ project.name }}
         </p>
-        <p class="text-xs leading-wide tracking-wide text-muted-foreground/40">
+        <p class="text-xs leading-wide tracking-wide text-muted-foreground/60">
           <span class="uppercase">{{ project.active ? _('Active') : _('Inactive') }}</span>
         </p>
 
         <p
-          class="mt-base-y overflow-hidden text-left text-sm text-foreground/60"
+          class="mt-base-y overflow-hidden text-left text-sm text-foreground/75"
           :class="{ 'line-clamp-2': !useModal() }"
         >
           {{ project.description }}
@@ -114,7 +114,7 @@ const props = defineProps<{
         />
 
         <div v-if="project.admins_count > project.admins.length">
-          <svg class="size-10 fill-current stroke-accent-foreground/20 text-muted-foreground/50" viewBox="0 0 24 24">
+          <svg class="size-10 fill-current stroke-accent-foreground/20 text-muted-foreground/40" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="2" />
             <circle cx="19" cy="12" r="2" />
             <circle cx="5" cy="12" r="2" />

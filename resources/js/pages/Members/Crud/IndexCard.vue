@@ -32,7 +32,7 @@ defineProps<{
     </template>
 
     <ModalLink :href="route('members.show', member.id)">
-      <div class="grid gap-3 text-sm opacity-60">
+      <div class="grid gap-3 text-sm opacity-80">
         <div class="truncate">{{ member.email }}</div>
         <div class="truncate">{{ member.phone }}</div>
       </div>

@@ -75,7 +75,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
       "
     />
     <div
-      class="bg-linear-to-b from-background from-25% via-sidebar via-60% to-background to-87% shadow-xl/37 shadow-foreground"
+      class="bg-linear-to-b from-background/70 from-25% via-sidebar via-60% to-background to-87% shadow-xl/37 shadow-foreground"
       :class="
         cn(
           'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',

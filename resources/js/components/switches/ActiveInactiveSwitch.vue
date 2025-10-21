@@ -11,7 +11,7 @@ const inertiaRoute = useRoute();
 </script>
 
 <template>
-  <div class="flex overflow-hidden rounded-2xl border-2 border-foreground/80 @xl:text-sm">
+  <div class="grid grid-cols-[1fr_1fr] overflow-hidden rounded-2xl border-5 border-foreground/80 @xl:text-sm">
     <Link
       v-for="(showAll, label) in { Enabled: 0, All: 1 }"
       :key="showAll"
@@ -22,7 +22,7 @@ const inertiaRoute = useRoute();
       :class="
         !all == !showAll
           ? 'pointer-events-none bg-foreground/80 text-background'
-          : 'cursor-pointer bg-muted text-muted-foreground/85 active:outline-0 hocus:bg-foreground/20'
+          : 'cursor-pointer bg-muted/30 text-muted-foreground/85 active:outline-0 hocus:text-muted-foreground'
       "
     >
       {{ _(label) }}

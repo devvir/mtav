@@ -14,7 +14,7 @@ defineProps<{
   <ModalLink
     :title="_(legend)"
     :href="route(target)"
-    class="flex items-center justify-end bg-linear-to-r from-accent-foreground/10 to-background to-50% px-base tracking-wide text-accent/70 uppercase backdrop-blur-3xl transition-all group-hover:from-accent/15 group-hover:to-background/60 group-hover:font-bold group-hover:text-accent"
+    class="flex items-center justify-end bg-linear-to-r from-accent-foreground/10 to-background to-50% px-base tracking-wide text-foreground/70 uppercase backdrop-blur-3xl transition-all group-hover:from-accent/15 group-hover:to-background/60 group-hover:font-bold group-hover:text-foreground/85"
     :class="{ 'animate-[pulse_2s_ease-in-out_3]': open }"
   >
     {{ _(legend) }}

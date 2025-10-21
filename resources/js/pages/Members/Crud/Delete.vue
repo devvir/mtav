@@ -37,7 +37,7 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
   <div class="flex-1 space-y-wide rounded-md border p-base">
     <HeadingSmall title="Delete account" description="Delete this account and all of its resources" />
 
-    <div class="space-y-wide rounded-lg bg-destructive/4 p-6">
+    <div class="space-y-wide rounded-lg bg-destructive/65 p-6">
       <div class="text-destructive-foreground">
         <p class="text-xl font-bold tracking-wide">{{ _('Warning!') }}</p>
         <p class="text-xs leading-6">{{ _('Please proceed with caution, this action cannot be undone.') }}</p>
@@ -45,13 +45,16 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
 
       <Dialog>
         <DialogTrigger as-child>
-          <Button variant="destructive" class="cursor-pointer !bg-destructive/60">
+          <Button
+            variant="destructive"
+            class="cursor-pointer !bg-destructive text-destructive-foreground ring ring-destructive-foreground"
+          >
             {{ _('Delete account') }}
           </Button>
         </DialogTrigger>
 
         <DialogContent>
-          <form class="space-y-8" @submit.prevent="destroy">
+          <form class="space-y-6" @submit.prevent="destroy">
             <DialogHeader class="space-y-3">
               <DialogTitle>{{ _('Are you sure you want to delete this account?') }}</DialogTitle>
               <DialogDescription>

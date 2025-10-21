@@ -4,6 +4,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import ChartSample from '@/components/playground/chart/ChartSample.vue';
+import SvgBackgrounds from '@/components/playground/chart/SvgBackgrounds.vue';
 import I18n from '@/components/playground/I18n.vue';
 </script>
 
@@ -15,6 +16,10 @@ import I18n from '@/components/playground/I18n.vue';
   </Breadcrumbs>
 
   <div class="space-y-wide">
+    <div class="rounded-2xl bg-muted p-10 text-center">
+      <SvgBackgrounds />
+    </div>
+
     <div class="rounded-2xl bg-muted p-10 text-center">
       <I18n />
     </div>
