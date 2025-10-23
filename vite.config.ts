@@ -47,26 +47,11 @@ export default defineConfig({
     },
   },
 
-  test: {
-    globals: true,
-    clearMocks: true,
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: 'unit',
-          include: ['resources/js/tests/unit/**'],
-          environment: 'node',
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: 'dom',
-          include: ['resources/js/tests/dom/**'],
-          environment: 'jsdom',
-        },
-      },
-    ],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    hmr: {
+      host: 'localhost',
+    },
   },
 });
