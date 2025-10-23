@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

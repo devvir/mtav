@@ -15,14 +15,14 @@ class SetCurrentProjectController
             throw new UnauthorizedException('You do not have permission to select a Project.');
         }
 
-        Project::setCurrent($project);
+        updateState('project', $project);
 
         return back();
     }
 
     public function unset(): RedirectResponse
     {
-        Project::setCurrent();
+        updateState('project', null);
 
         return redirect()->back();
     }

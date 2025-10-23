@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# MTAV Development Environment - Simple Command Router
+# Routes common development tasks to appropriate scripts
+
+set -e
+
+DOCKER_DIR=".docker"
+SCRIPTS_DIR="$DOCKER_DIR/scripts"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_help() {
+    echo -e "${BLUE}MTAV Development Environment${NC}"
+    echo ""
+    echo -e "${GREEN}Simple Commands:${NC}"
+    echo -e "  ${YELLOW}mtav up${NC}           # Start development environment (builds everything on first run)"
+    echo -e "  ${YELLOW}mtav stop${NC}         # Stop containers (keeps containers for quick restart)"
+    echo -e "  ${YELLOW}mtav down${NC}         # Stop and remove containers (clean shutdown)"
+    echo -e "  ${YELLOW}mtav update${NC}       # Update containers and install all dependencies"
+    echo -e "  ${YELLOW}mtav status${NC}       # Show container status and URLs"
+    echo -e "  ${YELLOW}mtav logs${NC}         # Show all logs"
+    echo -e "  ${YELLOW}mtav fresh${NC}        # Complete fresh rebuild (down + build)"
+    echo -e "  ${YELLOW}mtav test${NC}         # Run all tests (frontend + backend) in watch mode"
+    echo -e "  ${YELLOW}mtav test --once${NC}  # Run all tests once and exit"
+    echo ""
+    echo -e "${GREEN}Development Shortcuts:${NC}"
+    echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
+    echo -e "  ${YELLOW}mtav composer <cmd>${NC}    # Composer package manager"
+    echo -e "  ${YELLOW}mtav npm <cmd>${NC}         # NPM package manager"
+    echo -e "  ${YELLOW}mtav shell [container]${NC} # Shell into container (default: php)"
+    echo ""
+    echo -e "${GREEN}New Developer Quick Start:${NC}"
+    echo -e "  1. ${YELLOW}git clone https://github.com/devvir/mtav${NC}"
+    echo -e "  2. ${YELLOW}mtav up${NC}           # Everything will be built and ready"
+    echo -e "  3. Open ${BLUE}http://localhost:8080${NC}"
+    echo ""
+    echo -e "${GREEN}Daily Development:${NC}"
+    echo -e "  ${YELLOW}mtav up${NC}           # Start your day"
+    echo -e "  ${YELLOW}mtav update${NC}       # Update dependencies"
+    echo -e "  ${YELLOW}mtav stop${NC}         # Quick break (containers preserved)"
+    echo -e "  ${YELLOW}mtav down${NC}         # End your day (clean shutdown)"
+    echo ""
+    echo -e "${GREEN}Advanced Commands:${NC}"
+    echo -e "  See ${YELLOW}.docker/scripts/README.md${NC} for detailed script usage"
+    echo ""
+}
+
+# Parse command
+COMMAND="$1"
+shift 2>/dev/null || true
+
+case $COMMAND in
+    up)
+        # Smart up: build on first run, regular up afterwards
+        if [ ! -f .docker/first-run-executed ]; then
+            echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
+            "$SCRIPTS_DIR/env-setup.sh"
+            "$SCRIPTS_DIR/compose.sh" up --build --detach
+            sleep 5
+            "$SCRIPTS_DIR/setup-first.sh"
+            touch .docker/first-run-executed
+            "$SCRIPTS_DIR/status.sh"
+        else
+            echo -e "${GREEN}🚀 Starting development environment...${NC}"
+            "$SCRIPTS_DIR/compose.sh" up --detach "$@"
+            sleep 2
+            "$SCRIPTS_DIR/status.sh"
+        fi
+        ;;
+
+    stop)
+        echo -e "${YELLOW}🛑 Stopping development environment...${NC}"
+        "$SCRIPTS_DIR/compose.sh" stop "$@"
+        ;;
+
+    down)
+        echo -e "${YELLOW}🛑 Stopping and removing containers...${NC}"
+        "$SCRIPTS_DIR/compose.sh" down "$@"
+        ;;
+
+    update)
+        echo -e "${BLUE}🔄 Updating containers and dependencies...${NC}"
+        "$SCRIPTS_DIR/env-setup.sh"
+        "$SCRIPTS_DIR/compose.sh" up --build --detach
+        sleep 5
+        "$SCRIPTS_DIR/setup.sh"
+        "$SCRIPTS_DIR/status.sh"
+        ;;
+
+    fresh)
+        echo -e "${BLUE}🆕 Fresh start: cleaning and rebuilding everything...${NC}"
+        # Remove first-run witness file to trigger full setup
+        rm -f .docker/first-run-executed
+        "$SCRIPTS_DIR/compose.sh" down --volumes
+        # Now run normal up command which will detect first-run and do full setup
+        exec "$0" up
+        ;;      status)
+        "$SCRIPTS_DIR/status.sh"
+        ;;
+
+    logs)
+        echo -e "${BLUE}📋 Showing container logs...${NC}"
+        "$SCRIPTS_DIR/compose.sh" logs -f "$@"
+        ;;
+
+    artisan)
+        "$SCRIPTS_DIR/artisan.sh" "$@"
+        ;;
+
+    composer)
+        "$SCRIPTS_DIR/composer.sh" "$@"
+        ;;
+
+    npm)
+        "$SCRIPTS_DIR/npm.sh" "$@"
+        ;;
+
+    shell)
+        "$SCRIPTS_DIR/shell.sh" "$@"
+        ;;
+
+    test)
+        "$SCRIPTS_DIR/test.sh" "$@"
+        ;;
+
+    help|--help|-h|"")
+        print_help
+        ;;
+
+    *)
+        echo -e "${RED}❌ Unknown command: $COMMAND${NC}"
+        echo ""
+        print_help
+        exit 1
+        ;;
+esac

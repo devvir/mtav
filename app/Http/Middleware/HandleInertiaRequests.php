@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => $this->auth($request),
 
             'ziggy' => [
-                ...(new Ziggy)->toArray(),
+                ...(new Ziggy())->toArray(),
                 'location' => $request->url(),
             ],
         ];
@@ -62,10 +62,12 @@ class HandleInertiaRequests extends Middleware
         // Convert to the concrete logged-in type of User: Member or Admin
         $user = $user->isMember() ? $user->asMember() : $user->asAdmin();
 
-        return ['user' => [
-            ...$user->toResource()->withoutAbilities()->resolve(),
-            'can' => $this->policies(),
-        ]];
+        return [
+            'user' => [
+                ...$user->toResource()->withoutAbilities()->resolve(),
+                'can' => $this->policies(),
+            ],
+        ];
     }
 
     /**

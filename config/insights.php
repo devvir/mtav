@@ -14,6 +14,7 @@ use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
 use PhpCsFixer\Fixer\StringNotation\ExplicitStringVariableFixer;
 use SlevomatCodingStandard\Sniffs\Commenting\UselessFunctionDocCommentSniff;
 use SlevomatCodingStandard\Sniffs\ControlStructures\DisallowShortTernaryOperatorSniff;
+use SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff;
 use SlevomatCodingStandard\Sniffs\Namespaces\AlphabeticallySortedUsesSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\DeclareStrictTypesSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\DisallowMixedTypeHintSniff;
@@ -70,7 +71,7 @@ return [
     */
 
     'exclude' => [
-         'packages',
+        'packages',
     ],
 
     'add' => [
@@ -101,6 +102,12 @@ return [
         ForbiddenPrivateMethods::class => [
             'title' => 'The usage of private methods is not idiomatic in Laravel.',
         ],
+        UnusedParameterSniff::class => [
+            'allowedParameterPatterns' => ['~^_$~'],
+            // Exclude Policies: $user parameters serve as authentication gatekeepers via type hinting
+            // Even when not directly used, "User $user" ensures only authenticated users can reach the method
+            'exclude' => ['app/Policies'],
+        ],
     ],
 
     /*
@@ -115,11 +122,11 @@ return [
     */
 
     'requirements' => [
-//        'min-quality' => 0,
-//        'min-complexity' => 0,
-//        'min-architecture' => 0,
-//        'min-style' => 0,
-//        'disable-security-check' => false,
+        //        'min-quality' => 0,
+        //        'min-complexity' => 0,
+        //        'min-architecture' => 0,
+        //        'min-style' => 0,
+        //        'disable-security-check' => false,
     ],
 
     /*

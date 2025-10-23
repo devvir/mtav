@@ -11,6 +11,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         // @see [Laracasts] Learn Laravel and Vite @ Lesson 7
-        // $this->withoutVite();
+        // Disable Vite in tests to avoid manifest.json dependency
+        $this->withoutVite();
     }
 }

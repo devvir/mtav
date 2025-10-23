@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies (will be installed in container)
+node_modules
+vendor
+
+# Build artifacts
+public/build
+public/hot
+
+# Storage and cache
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# Environment
+.env*
+
+# Testing
+coverage
+.phpunit.result.cache

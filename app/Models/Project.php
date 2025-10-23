@@ -13,11 +13,6 @@ class Project extends Model
         return state('project');
     }
 
-    public static function setCurrent(?Project $project = null): void
-    {
-        updateState('project', $project);
-    }
-
     /**
      * Units (houses/apartments) defined in this habitational project.
      */

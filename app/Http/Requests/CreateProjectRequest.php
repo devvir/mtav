@@ -22,10 +22,7 @@ class CreateProjectRequest extends FormRequest
             'admins' => [
                 'required',
                 'array',
-                Rule::exists(Admin::class, 'id')
-                    // TODO : check if the where() is necessary, i.e. if it
-                    //        applies Admin's globalScope automatically or not
-                    ->where(fn ($query) => $query->where('is_admin', true)),
+                Rule::exists(Admin::class, 'id'),
             ],
         ];
     }
