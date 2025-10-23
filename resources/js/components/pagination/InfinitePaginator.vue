@@ -49,7 +49,7 @@ const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefau
       <li
         v-for="item in list.data"
         :key="item.id"
-        class="h-full transition-all not-hocus:opacity-90 hocus:scale-102"
+        class="h-full transition-all not-hocus:opacity-90 hocus:scale-101"
         :class="featured === item.id ? 'col-start-1 -col-end-1 row-start-1 w-full pb-base' : ''"
       >
         <slot :item="item" />

@@ -23,7 +23,7 @@ watchDebounced(search, (q: string) => router.reload({ data: { q } }), { debounce
         type="search"
         :autofocus="autofocus"
         v-model.trim="search"
-        class="border-top-blue-100/80 w-full rounded-xl border-1 bg-foreground/4 px-6 py-2 text-lg placeholder-current/50 shadow-accent-foreground/25 outline-0 focus:text-accent-foreground focus:placeholder-transparent focus:shadow hocus:bg-accent/30"
+        class="border-top-blue-100/80 w-full rounded-xl border-1 bg-foreground/4 px-6 py-2 text-lg text-foreground placeholder-current/50 shadow-accent-foreground/25 outline-0 focus:placeholder-transparent focus:shadow hocus:bg-accent/8"
         :placeholder="_('Search...')"
       />
     </div>

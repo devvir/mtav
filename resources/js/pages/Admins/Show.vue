@@ -21,7 +21,7 @@ defineProps<{ admin: ApiResource<Admin> }>();
 
   <MaybeModal panelClasses="modalPanel backdrop-blur-lg">
     <ShowWrapper>
-      <IndexCard :admin class="w-full rounded-b-none border-0 bg-transparent shadow-none" />
+      <IndexCard :admin class="w-full border-0 bg-transparent shadow-none" />
     </ShowWrapper>
   </MaybeModal>
 </template>

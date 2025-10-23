@@ -7,7 +7,7 @@ import QuickActions from '@/components/QuickActions.vue';
 <template>
   <header class="@container/header m-0 mb-base @md:px-base">
     <div
-      class="flex items-center justify-between gap-base border-t border-r border-muted/10 bg-gradient-to-r from-sidebar/80 to-background/30 to-70% px-8 py-4 shadow-xl shadow-foreground/3 transition-[width,height] ease-linear @md:mt-4 @md:mb-wide @md:rounded-lg @md:px-wide @md:py-3"
+      class="flex items-center justify-between gap-base border-t border-r border-muted/10 bg-gradient-to-r from-sidebar/70 to-background to-70% px-8 py-4 shadow-lg shadow-foreground/10 transition-[width,height] ease-linear @md:mt-4 @md:mb-wide @md:rounded-lg @md:px-wide @md:py-3"
     >
       <div class="flex flex-1 items-center gap-4">
         <SidebarTrigger />

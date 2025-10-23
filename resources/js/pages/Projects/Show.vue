@@ -21,7 +21,7 @@ defineProps<{ project: Required<ApiResource<Project>> }>();
 
   <MaybeModal panelClasses="modalPanel close-left backdrop-blur-lg">
     <ShowWrapper>
-      <IndexCard :project="project" class="w-full rounded-b-none border-0 shadow-none" />
+      <IndexCard :project="project" class="w-full border-0 shadow-none" />
     </ShowWrapper>
   </MaybeModal>
 </template>

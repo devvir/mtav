@@ -9,7 +9,7 @@ const flushPrefetch = () => router.flushAll();
 </script>
 
 <template>
-  <div class="grid grid-cols-[1fr_1fr] overflow-hidden rounded-2xl border-5 border-foreground/80 @xl:text-sm">
+  <div class="grid grid-cols-[1fr_1fr] overflow-hidden rounded-2xl border-4 border-foreground/80 @xl:text-sm">
     <Link
       v-for="(routeName, label) in { Families: 'families.index', Members: 'members.index' }"
       :key="routeName"

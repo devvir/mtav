@@ -11,7 +11,7 @@ const inertiaRoute = useRoute();
 </script>
 
 <template>
-  <div class="grid grid-cols-[1fr_1fr] overflow-hidden rounded-2xl border-5 border-foreground/80 @xl:text-sm">
+  <div class="grid grid-cols-[1fr_1fr] overflow-hidden rounded-2xl border-4 border-foreground/80 @xl:text-sm">
     <Link
       v-for="(showAll, label) in { Enabled: 0, All: 1 }"
       :key="showAll"

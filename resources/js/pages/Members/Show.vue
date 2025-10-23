@@ -30,7 +30,7 @@ defineProps<{
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center-safe justify-start" :title="member.name">
-            <img :src="member.avatar" alt="avatar" class="mr-wide w-24" />
+            <img :src="member.avatar" alt="avatar" class="mr-wide w-24 rounded-full" />
             <div class="text-sm leading-wide text-muted-foreground">
               <div class="truncate text-2xl leading-12">{{ member.name }}</div>
               <div>{{ member.email }}</div>
