@@ -14,7 +14,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.34.0",
-        "@inertiaui/modal-vue": "file:vendor/inertiaui/modal/vue",
+        "@inertiaui/modal-vue": "^0.21.0",
         "@laravel/echo-vue": "^2.2.0",
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^24.3.0",
