@@ -1,0 +1,25 @@
+# Build Production Environment for Local Testing
+# Override specific services for local testing while inheriting production config
+
+services:
+  php:
+    environment:
+      APP_DEBUG: true
+
+  # Database seeder for testing production builds
+  seeder:
+    build:
+      dockerfile: .docker/php/Dockerfile
+      context: ../..
+    command: php artisan db:seed --force
+    restart: "no"
+    volumes:
+      - ../..:/var/www/html:cached
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+# Override network for testing isolation
+networks:
+  default:
+    name: test

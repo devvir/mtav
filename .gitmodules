@@ -4,3 +4,6 @@
 [submodule "packages/laravel-resource-tools"]
 	path = packages/laravel-resource-tools
 	url = https://github.com/devvir/laravel-resource-tools.git
+[submodule ".docker/deploy"]
+	path = .docker/deploy
+	url = https://github.com/devvir/mtav-deploy.git

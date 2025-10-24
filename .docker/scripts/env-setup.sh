@@ -10,19 +10,25 @@ HOST_GID=$(id -g)
 
 if [ ! -f "$PROJECT_ROOT/.env" ]; then
     echo "📝 Creating .env file from Docker template..."
-    cp "$DOCKER_DIR/.env.docker" "$PROJECT_ROOT/.env"
+    cp "$PROJECT_ROOT/.env.template" "$PROJECT_ROOT/.env"
+
+    # Generate unique APP_KEY for this developer
+    echo "🔑 Generating unique APP_KEY for development..."
+    APP_KEY=$(openssl rand -base64 32)
+    APP_KEY_ENCODED="base64:$APP_KEY"
+    sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY_ENCODED|" "$PROJECT_ROOT/.env"
 
     # Update the .env file with correct user IDs
     sed -i "s/PUID=1000/PUID=$HOST_UID/" "$PROJECT_ROOT/.env"
     sed -i "s/PGID=1000/PGID=$HOST_GID/" "$PROJECT_ROOT/.env"
 
-    echo "✅ .env created with host user permissions (UID:$HOST_UID, GID:$HOST_GID)"
+    echo "✅ .env created with unique APP_KEY and host user/group (UID:$HOST_UID, GID:$HOST_GID)"
     echo "   Please review and adjust other settings as needed."
 else
     echo "📝 Checking .env file for missing configuration..."
 
     # Extract keys from both files (ignoring comments and empty lines)
-    template_keys=$(grep -E '^[A-Z_]+=.*' "$DOCKER_DIR/.env.docker" | cut -d'=' -f1 | sort)
+    template_keys=$(grep -E '^[A-Z_]+=.*' "$PROJECT_ROOT/.env.template" | cut -d'=' -f1 | sort)
     env_keys=$(grep -E '^[A-Z_]+=.*' "$PROJECT_ROOT/.env" | cut -d'=' -f1 | sort)
 
     # Find missing keys
@@ -33,7 +39,7 @@ else
         echo "$missing_keys" | sed 's/^/   - /'
         echo ""
         echo "🤔 This might cause issues with the application."
-        echo "   Missing keys will be added from .env.docker template."
+        echo "   Missing keys will be added from .env.template."
         echo ""
         read -p "   Do you want to proceed and add the missing keys? [Y/n] " -n 1 -r
         echo
@@ -47,7 +53,7 @@ else
 
         # Add missing keys from template
         for key in $missing_keys; do
-            value=$(grep "^$key=" "$DOCKER_DIR/.env.docker" | cut -d'=' -f2-)
+            value=$(grep "^$key=" "$PROJECT_ROOT/.env.template" | cut -d'=' -f2-)
             echo "" >> "$PROJECT_ROOT/.env"
             echo "$key=$value" >> "$PROJECT_ROOT/.env"
             echo "   Added: $key"

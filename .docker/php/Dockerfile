@@ -22,16 +22,5 @@ ARG PUID=1000
 ARG PGID=1000
 RUN addgroup -g ${PGID} hostuser \
     && adduser -D -u ${PUID} -G hostuser hostuser
+
 USER hostuser
-
-# Set working directory
-WORKDIR /var/www
-
-# Copy application
-COPY . /var/www
-
-# Expose port 9000
-EXPOSE 9000
-
-# Start PHP-FPM
-CMD ["php-fpm"]

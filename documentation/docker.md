@@ -12,14 +12,14 @@ The Docker setup follows a layered architecture:
 
 Depending on the complexity of the tasks you pursue, you may need to resort to a higher layer.
 
-Most everyday tasks should be achievable with the `mtav` command, while the availble scripts should provide most debugging/book-keeping functionality.
+Most everyday tasks should be achievable with the `mtav` command, while the available scripts should provide most debugging/book-keeping functionality.
 
-Finally, you're free to issue docker/docker-compose commands directly if needed. Check the rest of this README for important information relevant to direct docker commands, or see [scripts/README.md](scripts/README.md) for detailed usage of the provided scripts.
+Finally, you're free to issue docker/docker-compose commands directly if needed. Check the rest of this README for important information relevant to direct docker commands, or see [scripts README](../.docker/scripts/README.md) for detailed usage of the provided scripts.
 
 ## 🐳 Services
 
 - **PHP-FPM** (`php:8.4-fpm-alpine`) - Laravel application runtime
-- **Vite** (`node:22-alpine`) - Frontend development server with HMR
+- **Assets** (`node:22-alpine`) - Frontend development server with HMR (Vite)
 - **Nginx** (`nginx:1.26-alpine`) - Web server and reverse proxy
 - **MariaDB** (`mariadb:12`) - Database with persistent storage
 - **MailHog** (`mailhog/mailhog`) - Email testing and debugging
@@ -29,8 +29,9 @@ Finally, you're free to issue docker/docker-compose commands directly if needed.
 For testing or when you need full control without wrapper scripts:
 
 ```bash
-# 1. Copy environment template
-cp .docker/.env.docker .env
+# 1. Generate environment file (dev or prod)
+.docker/scripts/generate-env.sh dev .env    # for development
+.docker/scripts/generate-env.sh prod .env   # for production
 
 # 2. Start all services
 docker compose -f .docker/compose.yml --env-file .env up --build -d
@@ -71,7 +72,7 @@ docker compose -f .docker/compose.yml --env-file .env exec php php artisan tinke
 
 # Install dependencies
 docker compose -f .docker/compose.yml --env-file .env exec php composer install
-docker compose -f .docker/compose.yml --env-file .env exec vite npm install
+docker compose -f .docker/compose.yml --env-file .env exec assets npm install
 
 # Database access
 docker compose -f .docker/compose.yml --env-file .env exec mysql mysql -u mtav -p mtav
@@ -97,13 +98,13 @@ docker compose -f .docker/compose.yml --env-file .env top
 ```
 .docker/
 ├── compose.yml          # Main Docker Compose configuration
-├── .env.docker          # Environment template
+├── .env.template        # Environment template (moved to project root)
 ├── nginx/
 │   └── default.conf     # Nginx configuration
 ├── php/
 │   └── Dockerfile       # PHP-FPM container
 │   └── php.ini          # PHP configuration
-└── vite/
+└── assets/
     └── Dockerfile       # Node.js/Vite container
 ```
 
@@ -111,7 +112,7 @@ docker compose -f .docker/compose.yml --env-file .env top
 
 This bare-bones approach gives you full control, but for daily development consider:
 
-- **Scripts**: See [scripts/README.md](scripts/README.md) for convenience wrappers
+- **Scripts**: See [scripts README](../.docker/scripts/README.md) for convenience wrappers
 - **MTAV Helper**: Use `./mtav` commands for the simplest development experience
 
 ## 🔧 Technical Details

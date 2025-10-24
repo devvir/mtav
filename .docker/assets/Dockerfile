@@ -5,10 +5,7 @@ FROM node:22-alpine
 USER node
 
 # Set working directory
-WORKDIR /var/www
-
-# Copy source code
-COPY . .
+WORKDIR /var/www/html
 
 # Expose Vite dev server port
 EXPOSE 5173

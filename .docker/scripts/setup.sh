@@ -12,7 +12,7 @@ echo "Waiting for vendor volume to sync..."
 sleep 2
 
 echo "Installing NPM dependencies..."
-docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env exec vite npm install --force
+docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env exec assets npm install --force
 
 echo "Generating Laravel app key..."
 docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env exec php php artisan key:generate --no-interaction

@@ -115,7 +115,7 @@ Open a shell inside any container for debugging or manual operations.
 # Other containers
 .docker/scripts/shell.sh nginx
 .docker/scripts/shell.sh mysql
-.docker/scripts/shell.sh vite
+.docker/scripts/shell.sh assets
 
 # Once inside, you can run commands directly:
 # php -v
@@ -217,7 +217,7 @@ docker exec -i $(docker compose -f .docker/compose.yml ps -q mysql) \
 - Scripts can be run from anywhere in the project (they auto-detect paths)
 - For repetitive tasks, consider creating aliases in your shell
 - Use `.docker/scripts/compose.sh` for direct Docker Compose access when needed
-- Container names: `php`, `nginx`, `mysql`, `vite`, `mailhog`
+- Container names: `dev-php-1`, `dev-nginx-1`, `dev-mysql-1`, `dev-assets-1`, `dev-mailhog-1`
 
 ## 🔧 Script Internals
 

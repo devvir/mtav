@@ -36,7 +36,7 @@ echo -e "${YELLOW}📋 Step 2: Running NPM tests (frontend)...${NC}"
 
 if [ "$RUN_ONCE" = true ]; then
     # Run once mode: run once and exit
-    if docker_exec vite npm run test -- --run; then
+    if docker_exec assets npm run test -- --run; then
         echo -e "${GREEN}✅ NPM tests completed${NC}"
         NPM_SUCCESS=true
     else
@@ -46,7 +46,7 @@ if [ "$RUN_ONCE" = true ]; then
 else
     # Interactive mode: run in watch mode
     echo -e "${BLUE}ℹ️  NPM tests will run in watch mode. Press Ctrl+C to continue to PHP tests.${NC}"
-    if docker_exec vite npm run test; then
+    if docker_exec assets npm run test; then
         echo -e "${GREEN}✅ NPM tests completed${NC}"
         NPM_SUCCESS=true
     else

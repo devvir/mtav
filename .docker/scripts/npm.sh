@@ -13,4 +13,4 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-docker_exec vite npm "$@"
+docker_exec assets npm "$@"

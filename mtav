@@ -46,6 +46,10 @@ print_help() {
     echo -e "  ${YELLOW}mtav stop${NC}         # Quick break (containers preserved)"
     echo -e "  ${YELLOW}mtav down${NC}         # End your day (clean shutdown)"
     echo ""
+    echo -e "${GREEN}Production Commands:${NC}"
+    echo -e "  ${YELLOW}mtav build <service> <tag>${NC}  # Build production images"
+    echo -e "  ${YELLOW}mtav deploy${NC}                 # Deploy to production (pull + migrate + start)"
+    echo ""
     echo -e "${GREEN}Advanced Commands:${NC}"
     echo -e "  See ${YELLOW}.docker/scripts/README.md${NC} for detailed script usage"
     echo ""
@@ -127,6 +131,16 @@ case $COMMAND in
 
     test)
         "$SCRIPTS_DIR/test.sh" "$@"
+        ;;
+
+    build)
+        echo -e "${BLUE}🏗️  Building production image...${NC}"
+        "$SCRIPTS_DIR/build.sh" "$@"
+        ;;
+
+    deploy)
+        echo -e "${BLUE}🚀 Deploying production build...${NC}"
+        "$SCRIPTS_DIR/deploy.sh" "$@"
         ;;
 
     help|--help|-h|"")
