@@ -19,7 +19,7 @@ fi
 
 # Common Docker Compose command with standard options
 docker_compose() {
-    docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env "$@"
+    docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env -p dev "$@"
 }
 
 # Docker Compose exec with TTY detection

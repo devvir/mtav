@@ -1,19 +1,9 @@
-# Laravel Migrations Service
-FROM php:8.4-cli-alpine
+FROM ghcr.io/devvir/mtav-php-base
 
-# Install essential PHP extensions for Laravel
-RUN apk add --no-cache libzip-dev \
-    && docker-php-ext-install pdo_mysql zip bcmath
-
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www/html
-
-# Install PHP dependencies (intentionally including dev deps)
+# Install PHP dependencies
 COPY composer.json composer.lock ./
 COPY packages/ packages/
-RUN composer install --no-interaction --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copy pre-generated production .env
 COPY .docker/build/.env.prod .env
