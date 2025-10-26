@@ -70,7 +70,7 @@ class MemberController extends Controller
             return Member::create([
                 ...$request->only(['firstname', 'lastname', 'email']),
                 'family_id' => $request->family ?: null,
-                'password' => bcrypt(random_bytes(16)),
+                'password' => random_bytes(16),
             ])->joinProject($request->project);
         });
 

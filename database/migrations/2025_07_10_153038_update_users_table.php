@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->dropColumn('name');
 
-            $table->index(['lastname', 'firstname']);
+            $table->index(['firstname', 'lastname']);
         });
     }
 

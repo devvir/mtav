@@ -4,14 +4,13 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPolicy;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use ConvertsToJsonResource;
 
@@ -98,7 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isSuperAdmin(): bool
     {
-        return in_array($this->getKey(), config('auth.superadmins'));
+        return $this->isAdmin() && in_array($this->getKey(), config('auth.superadmins'));
     }
 
     public function isNotSuperAdmin(): bool
