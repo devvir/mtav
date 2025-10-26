@@ -41,7 +41,8 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
-{
-    // ..
-}
+// Load domain-specific helpers
+require_once __DIR__.'/Helpers/UserHelpers.php';
+require_once __DIR__.'/Helpers/ProjectHelpers.php';
+require_once __DIR__.'/Helpers/FamilyHelpers.php';
+require_once __DIR__.'/Helpers/InertiaHelpers.php';
