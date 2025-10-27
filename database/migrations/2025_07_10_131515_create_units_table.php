@@ -16,7 +16,9 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Project::class)->constrained()->cascadeOnDelete();
             $table->string('name');
+            $table->string('number')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['project_id', 'name']);
         });

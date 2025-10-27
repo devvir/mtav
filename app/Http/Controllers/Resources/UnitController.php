@@ -42,7 +42,10 @@ class UnitController extends Controller
      */
     public function store(CreateUnitRequest $request): RedirectResponse
     {
-        $unit = Unit::create($request->validated());
+        $unit = Unit::create([
+            ...$request->validated(),
+            'project_id' => Project::current()->id,
+        ]);
 
         return to_route('units.show', $unit->id);
     }

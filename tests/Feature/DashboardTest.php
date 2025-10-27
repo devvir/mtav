@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Config;
 test('guests are redirected to the login page', function () {
     $response = $this->get('/');
     $response->assertRedirect('/login');
-});
+})->group('p0', 'member-mvp', 'dashboard', 'auth');
 
 test('authenticated users can visit the dashboard', function () {
     Config::set('auth.superadmins', []);
@@ -19,4 +19,4 @@ test('authenticated users can visit the dashboard', function () {
 
     $response = $this->get('/');
     $response->assertStatus(200);
-});
+})->group('p0', 'member-mvp', 'dashboard');

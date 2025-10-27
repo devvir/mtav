@@ -46,9 +46,9 @@ describe('User Model', function () {
     it('identifies superadmins based on config', function () {
         config(['auth.superadmins' => [1, 2]]);
 
-        $superadmin = User::factory()->create(['id' => 1]);
-        $regularAdmin = User::factory()->create(['id' => 3, 'is_admin' => true]);
-        $member = User::factory()->create(['is_admin' => false]);
+        $superadmin = User::factory()->admin()->create(['id' => 1]);
+        $regularAdmin = User::factory()->admin()->create(['id' => 3]);
+        $member = User::factory()->create();
 
         expect($superadmin->isSuperAdmin())->toBeTrue()
             ->and($regularAdmin->isSuperAdmin())->toBeFalse()

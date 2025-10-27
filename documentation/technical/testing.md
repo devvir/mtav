@@ -18,10 +18,32 @@ This document covers testing workflows and automated quality checks in the MTAV 
 
 ```bash
 # Frontend tests only (Vitest)
-./mtav npm test
+./mtav test --vitest
 
 # Backend tests only (Pest)
+./mtav test --pest
+
+# Or run directly:
+./mtav npm test
 ./mtav artisan test
+```
+
+### Passing Arguments to Pest
+
+You can pass any Pest/PHPUnit arguments after the flags:
+
+```bash
+# Run specific test file
+./mtav test --pest --filter="AdminControllerCrudTest"
+
+# Stop on first failure
+./mtav test --pest --stop-on-failure
+
+# Run once with filter
+./mtav test --once --pest --filter="UserTest"
+
+# Multiple arguments
+./mtav test --pest --filter="Family" --stop-on-failure --testdox
 ```
 
 ## 🔗 Git Hooks & Quality Checks

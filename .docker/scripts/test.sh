@@ -10,14 +10,35 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Check for --once flag (CI mode)
+# Parse arguments
 RUN_ONCE=false
-if [[ "$1" == "--once" ]]; then
-    RUN_ONCE=true
-    shift
-fi
+RUN_VITEST=true
+RUN_PEST=true
+PEST_ARGS=()
 
-echo -e "${BLUE}🧪 Running full test suite...${NC}"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --once)
+            RUN_ONCE=true
+            shift
+            ;;
+        --vitest)
+            RUN_PEST=false
+            shift
+            ;;
+        --pest)
+            RUN_VITEST=false
+            shift
+            ;;
+        *)
+            # Collect remaining args for Pest
+            PEST_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+echo -e "${BLUE}🧪 Running test suite...${NC}"
 if [ "$RUN_ONCE" = true ]; then
     echo -e "${YELLOW}(Running once - tests will exit after completion)${NC}"
 else
@@ -28,44 +49,54 @@ echo ""
 # Step 1: Ensure containers are up
 echo -e "${YELLOW}📋 Step 1: Ensuring containers are running...${NC}"
 docker_compose up --detach --quiet-pull
+# Also start the test database (uses profile 'test')
+docker_compose --profile test up mysql_test --detach --quiet-pull 2>/dev/null
 echo -e "${GREEN}✅ Containers are ready${NC}"
 echo ""
 
 # Step 2: Run NPM tests (frontend)
-echo -e "${YELLOW}📋 Step 2: Running NPM tests (frontend)...${NC}"
+if [ "$RUN_VITEST" = true ]; then
+    echo -e "${YELLOW}📋 Step 2: Running NPM tests (frontend)...${NC}"
 
-if [ "$RUN_ONCE" = true ]; then
-    # Run once mode: run once and exit
-    if docker_exec assets npm run test -- --run; then
-        echo -e "${GREEN}✅ NPM tests completed${NC}"
-        NPM_SUCCESS=true
+    if [ "$RUN_ONCE" = true ]; then
+        # Run once mode: run once and exit
+        if docker_exec assets npm run test -- --run; then
+            echo -e "${GREEN}✅ NPM tests completed${NC}"
+            NPM_SUCCESS=true
+        else
+            echo -e "${RED}❌ NPM tests failed${NC}"
+            NPM_SUCCESS=false
+        fi
     else
-        echo -e "${RED}❌ NPM tests failed${NC}"
-        NPM_SUCCESS=false
+        # Interactive mode: run in watch mode
+        echo -e "${BLUE}ℹ️  NPM tests will run in watch mode. Press Ctrl+C to continue to PHP tests.${NC}"
+        if docker_exec assets npm run test; then
+            echo -e "${GREEN}✅ NPM tests completed${NC}"
+            NPM_SUCCESS=true
+        else
+            echo -e "${RED}❌ NPM tests failed${NC}"
+            NPM_SUCCESS=false
+        fi
     fi
+    echo ""
 else
-    # Interactive mode: run in watch mode
-    echo -e "${BLUE}ℹ️  NPM tests will run in watch mode. Press Ctrl+C to continue to PHP tests.${NC}"
-    if docker_exec assets npm run test; then
-        echo -e "${GREEN}✅ NPM tests completed${NC}"
-        NPM_SUCCESS=true
-    else
-        echo -e "${RED}❌ NPM tests failed${NC}"
-        NPM_SUCCESS=false
-    fi
+    NPM_SUCCESS=true  # Skip NPM tests
 fi
-echo ""
 
 # Step 3: Run PHP tests (backend)
-echo -e "${YELLOW}📋 Step 3: Running PHP tests (backend)...${NC}"
-if docker_exec php php artisan test; then
-    echo -e "${GREEN}✅ PHP tests completed${NC}"
-    PHP_SUCCESS=true
+if [ "$RUN_PEST" = true ]; then
+    echo -e "${YELLOW}📋 Step 3: Running PHP tests (backend)...${NC}"
+    if docker_exec php php artisan test "${PEST_ARGS[@]}"; then
+        echo -e "${GREEN}✅ PHP tests completed${NC}"
+        PHP_SUCCESS=true
+    else
+        echo -e "${RED}❌ PHP tests failed${NC}"
+        PHP_SUCCESS=false
+    fi
+    echo ""
 else
-    echo -e "${RED}❌ PHP tests failed${NC}"
-    PHP_SUCCESS=false
+    PHP_SUCCESS=true  # Skip PHP tests
 fi
-echo ""
 
 # Summary
 echo -e "${BLUE}📊 Test Summary:${NC}"

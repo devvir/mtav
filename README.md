@@ -52,6 +52,16 @@ That's it! You're ready to develop.
 # Run all tests (frontend + backend)
 ./mtav test
 
+# Run only frontend tests (Vitest)
+./mtav test --vitest
+
+# Run only backend tests (Pest)
+./mtav test --pest
+
+# Pass arguments to Pest
+./mtav test --pest --filter="UserTest"
+./mtav test --pest --stop-on-failure
+
 # View logs
 ./mtav logs
 ./mtav logs php    # specific service

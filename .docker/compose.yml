@@ -9,7 +9,7 @@ services:
         PGID: ${PGID:-1000}
     restart: unless-stopped
     volumes:
-      - ..:/var/www/html:cached
+      - ..:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
       - mtav-network
@@ -61,6 +61,23 @@ services:
     networks:
       - mtav-network
 
+  # Test Database
+  mysql_test:
+    image: mariadb:12
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mtav_test
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+    networks:
+      - mtav-network
+    profiles:
+      - test
+
   # Mail testing server
   mailhog:
     image: mailhog/mailhog
@@ -73,6 +90,7 @@ services:
 
 volumes:
   mysql_data:
+  mysql_test_data:
 
 networks:
   mtav-network:

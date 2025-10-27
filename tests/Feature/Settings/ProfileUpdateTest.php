@@ -10,7 +10,7 @@ test('profile page is displayed', function () {
         ->get('/settings/profile');
 
     $response->assertOk();
-});
+})->group('p1', 'member-mvp', 'profile');
 
 test('profile information can be updated', function () {
     $user = User::factory()->create()->refresh();
@@ -33,7 +33,7 @@ test('profile information can be updated', function () {
     expect($user->lastname)->toBe('User');
     expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
-});
+})->group('p1', 'member-mvp', 'profile');
 
 test('email verification status is unchanged when the email address is unchanged', function () {
     $user = User::factory()->create()->refresh();
@@ -51,4 +51,4 @@ test('email verification status is unchanged when the email address is unchanged
         ->assertRedirect('/settings/profile');
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
-});
+})->group('p1', 'member-mvp', 'profile');
