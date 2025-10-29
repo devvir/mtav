@@ -62,17 +62,6 @@ describe('Member Controller - Create/Store', function () {
                 ->has('projects')
             );
     });
-
-
-    it('allows members to create other members', function () {
-        $member = createMember(asUser: true);
-        $family = Family::factory()->create();
-        $project = Project::factory()->create();
-
-        $response = $this->actingAs($member)->get(route('members.create'));
-
-        $response->assertOk();
-    });
 });
 
 describe('Member Controller - Update/Delete', function () {

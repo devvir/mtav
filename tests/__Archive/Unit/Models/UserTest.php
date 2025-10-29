@@ -44,15 +44,15 @@ describe('User Model', function () {
     });
 
     it('identifies superadmins based on config', function () {
-        config(['auth.superadmins' => [1, 2]]);
+        config(['auth.superadmins' => ['a@x.com']]);
 
-        $superadmin = User::factory()->admin()->create(['id' => 1]);
-        $regularAdmin = User::factory()->admin()->create(['id' => 3]);
+        $superadmin = User::factory()->admin()->create(['email' => 'a@x.com']);
+        $regularAdmin = User::factory()->admin()->create(['email' => 'b@x.com']);
         $member = User::factory()->create();
 
-        expect($superadmin->isSuperAdmin())->toBeTrue()
-            ->and($regularAdmin->isSuperAdmin())->toBeFalse()
-            ->and($member->isSuperAdmin())->toBeFalse();
+        expect($superadmin->isSuperadmin())->toBeTrue()
+            ->and($regularAdmin->isSuperadmin())->toBeFalse()
+            ->and($member->isSuperadmin())->toBeFalse();
     });
 
     it('has projects relationship that returns only active projects', function () {

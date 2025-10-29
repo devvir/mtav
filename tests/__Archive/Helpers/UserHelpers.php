@@ -7,14 +7,15 @@ use App\Models\User;
 /**
  * Create a superadmin user for testing.
  */
-function createSuperAdmin(array $attributes = [], bool $asUser = false): Admin|User
+function createSuperAdmin(bool $asUser = false): Admin|User
 {
-    $id = $attributes['id'] ?? 999;
-    config(['auth.superadmins' => array_merge(config('auth.superadmins', []), [$id])]);
+    $email = 'superadmin@example.com';
 
-    $admin = Admin::factory()->create(array_merge(['id' => $id], $attributes));
+    config(['auth.superadmins' => [$email]]);
 
-    return $asUser ? User::find($admin->id) : $admin;
+    $admin = Admin::factory()->create(['email' => $email]);
+
+    return $asUser ? User::firstWhere('email', $email) : $admin;
 }
 
 /**

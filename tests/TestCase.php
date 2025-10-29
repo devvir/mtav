@@ -26,7 +26,7 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    protected function visitsRoute(string $route, int|User $asUser, $redirects = true): TestResponse
+    protected function visitRoute(string $route, int|User $asUser, $redirects = true): TestResponse
     {
         /** @var User $user */
         $user = model($asUser, User::class);

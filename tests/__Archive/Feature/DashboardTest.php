@@ -9,8 +9,6 @@ test('guests are redirected to the login page', function () {
 })->group('p0', 'member-mvp', 'dashboard', 'auth');
 
 test('authenticated users can visit the dashboard', function () {
-    Config::set('auth.superadmins', []);
-
     $member = Family::factory()
         ->withMembers()->create()
         ->members()->first();

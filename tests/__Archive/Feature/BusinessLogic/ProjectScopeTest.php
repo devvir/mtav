@@ -24,8 +24,9 @@ describe('Project Scope - Member Restrictions', function () {
 
 describe('Project Scope - Superadmin Override', function () {
     test('superadmin can view all projects', function () {
-        config(['auth.superadmins' => [1]]);
-        $superadmin = Admin::factory()->create(['id' => 1]);
+        config(['auth.superadmins' => ['a@x.com']]);
+
+        $superadmin = Admin::factory()->create(['email' => 'a@x.com']);
         $project1 = Project::factory()->create();
         $project2 = Project::factory()->create();
 

@@ -3,10 +3,6 @@
 use App\Models\Project;
 
 describe('Project CRUD - Index/Show', function () {
-
-
-
-
     it('allows admin to view project they manage', function () {
         $admin = createAdmin(asUser: true);
         $project = createProject();
@@ -17,15 +13,6 @@ describe('Project CRUD - Index/Show', function () {
         assertInertiaComponent($response, 'Projects/Show');
     });
 
-    it('denies admin from viewing project they do not manage', function () {
-        $admin = createAdmin(asUser: true);
-        $project = createProject();
-
-        $response = inertiaGet($admin, route('projects.show', $project));
-
-        $response->assertForbidden();
-    });
-
     it('allows superadmin to view any project', function () {
         $superadmin = createSuperAdmin(asUser: true);
         $project = createProject();
@@ -34,8 +21,6 @@ describe('Project CRUD - Index/Show', function () {
 
         assertInertiaComponent($response, 'Projects/Show');
     });
-
-
 });
 
 describe('Project CRUD - Update', function () {

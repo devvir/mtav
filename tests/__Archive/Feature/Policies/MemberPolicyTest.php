@@ -2,14 +2,8 @@
 
 use App\Models\Admin;
 use App\Models\Member;
-use App\Models\Project;
 
 describe('Member Policy', function () {
-    beforeEach(function () {
-        // Prevent accidental superadmin bypass in policy tests
-        config(['auth.superadmins' => []]);
-    });
-
     it('allows anyone to view members', function () {
         $viewer = Member::factory()->create();
         $member = Member::factory()->create();

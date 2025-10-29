@@ -25,8 +25,8 @@ describe('Admin Model', function () {
     });
 
     it('superadmins manage all projects regardless of assignment', function () {
-        config(['auth.superadmins' => [999]]);
-        $superadmin = Admin::factory()->create(['id' => 999]);
+        config(['auth.superadmins' => ['a@x.com']]);
+        $superadmin = Admin::factory()->create(['email' => 'a@x.com']);
         $project = Project::factory()->create();
 
         expect($superadmin->manages($project))->toBeTrue();

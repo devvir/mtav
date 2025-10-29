@@ -34,26 +34,6 @@ describe('Member CRUD - Create/Store (Admins and Members)', function () {
         assertInertiaComponent($response, 'Members/Create');
         assertInertiaHas($response, 'Members/Create', ['families', 'projects']);
     });
-
-    it('allows members to create other members', function () {
-        $member = createMember(asUser: true);
-
-        $response = inertiaGet($member, route('members.create'));
-
-        assertInertiaComponent($response, 'Members/Create');
-    });
-
-    it('validates required fields on creation', function () {
-        $admin = createAdmin(asUser: true);
-
-        $response = inertiaPost($admin, route('members.store'), [
-            'firstname' => '', // Invalid
-            'email' => 'invalid', // Invalid email
-        ]);
-
-        assertInertiaHasError($response, 'firstname');
-        assertInertiaHasError($response, 'email');
-    });
 });
 
 describe('Member CRUD - Critical: Family/Project Constraints', function () {

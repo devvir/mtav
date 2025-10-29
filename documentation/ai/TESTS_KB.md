@@ -761,6 +761,48 @@ $f9 = [Foo::class, 'staticmethod'](...);
 
 ---
 
+## Recent Changes & API Updates
+
+### 2025-10-30: Multiple API Changes
+
+**Helper Location Changed:**
+- ❌ `tests/_helpers/` → ✅ `tests/Helpers/` (standard Pest convention, autoloaded)
+
+**Method Renames:**
+- ❌ `isSuperAdmin()` → ✅ `isSuperadmin()` (lowercase 'admin')
+- ❌ `updateState()` → ✅ `setState()` (consistent naming)
+- ❌ `getCurrentProject()` → ✅ `currentProject()` (removed 'get' prefix)
+- ❌ `getCurrentProjectId()` → ✅ `currentProjectId()` (removed 'get' prefix)
+
+**Superadmin Configuration:**
+- Changed from ID-based to **email-based** in `config/auth.php`
+- `isSuperadmin()` now checks `in_array($this->email, config('auth.superadmins'))`
+
+**State Management (IMPORTANT):**
+- ⚠️ **Don't access session directly** for state - use `state()` and `setState()` helpers
+- State uses `state.` prefix internally: `session()->get('state.project')`
+- These helpers will continue working if implementation changes
+- Example: `setState('project', $project)` not `session()->put('project', $project)`
+
+**New Test Helpers:**
+- `inertiaRoute(TestResponse $response): ?string` - Returns the loaded route from Inertia props
+- `visitRoute(string $route, int|User $asUser, bool $redirects = true): TestResponse` - Visit route as user
+
+**Fixture Loading:**
+- Fixed to load **once per entire test run** (not per suite)
+- Uses static flag in `TestCase::setUp()` to ensure single load
+- All test suites share the same fixture data
+
+**Test Suites:**
+- Archive suites merged into single `Archive` suite in `phpunit.xml`
+- Run with: `./mtav test --pest --testsuite=Archive`
+- Run with: `./mtav test --pest --testsuite=Authentication`
+
+**Middleware Fix:**
+- Fixed `HandleCurrentProject` middleware - allows all Authentication tests to pass
+
+---
+
 ## Quick Reference
 
 ### Before Writing a Test
@@ -779,11 +821,336 @@ $f9 = [Foo::class, 'staticmethod'](...);
 
 ### Before Adding Test Helpers
 
-- [ ] Does this belong in `tests/_helpers/`?
+- [ ] Does this belong in `tests/Helpers/`? (not `_helpers`)
 - [ ] Is the API clean and self-documenting?
 - [ ] Is there a cleanup strategy if needed?
 - [ ] Am I following existing helper patterns?
 
 ---
 
+## Clean Code & Testing Philosophy
+
+### Tests as Executable Business Rules
+
+**Core Principle**: Tests are not just verification—they are **executable specifications**.
+
+A well-written test suite should be readable by non-programmers as a statement of how the system behaves. Each test is a business rule that can be executed and verified automatically.
+
+**Example of transformation**:
+```php
+// ❌ Testing HTTP mechanics (how the system works internally)
+it('redirects authenticated member to home', function () {
+    $response = $this->actingAs(User::find(7))
+        ->followingRedirects()
+        ->getRoute('login');
+
+    expect($response->status())->toBe(200);
+    expect($response->viewData('page')['component'])->toBe('Dashboard');
+});
+
+// ✅ Testing business outcomes (what the system does for users)
+it('redirects them to the Dashboard (if their Project is active)', function () {
+    $response = $this->visitRoute('login', asUser: 7);
+
+    expect(inertiaRoute($response))->toBe('home');
+});
+```
+
+**Key Differences**:
+- First version: 6 lines, tests HTTP status codes and view internals
+- Second version: 2 lines, tests semantic outcome (which route loaded)
+- First version: "Did Laravel redirect correctly?"
+- Second version: "Where does the user end up?"
+
+**Why this matters**: The business rule is "active members visiting login go to Dashboard." That's what we should test, not the HTTP mechanics of how it happens.
+
+### Ruthless Abstraction
+
+**RULE**: If you do something twice, abstract it into a helper.
+
+**Philosophy**: Don't tolerate repetition. Every repeated pattern is an opportunity to build a better tool.
+
+**Example Evolution**:
+```php
+// Pattern appears twice in LoginPage tests
+$response = $this->actingAs(User::find(7))
+    ->followingRedirects()
+    ->getRoute('login');
+
+// Abstract into helper
+protected function visitRoute(string $route, int|User $asUser, bool $redirects = true): TestResponse
+{
+    $user = is_int($asUser) ? User::find($asUser) : $asUser;
+
+    $request = $this->actingAs($user);
+
+    if ($redirects) {
+        $request = $request->followingRedirects();
+    }
+
+    return $request->getRoute($route);
+}
+
+// Now every test is 1 line of setup
+$response = $this->visitRoute('login', asUser: 7);
+```
+
+**Benefits**:
+- Tests are shorter and more readable
+- Changes to the pattern happen in one place
+- Helper name (`visitRoute`) documents the intent
+- Named arguments (`asUser:`) make it crystal clear
+
+**Building a DSL**: Over time, these helpers become a **domain-specific language** for testing your application. Tests read like requirements, not code.
+
+### The 2-Line Ideal
+
+**Target**: Most tests should be **2 lines** (action + assertion).
+
+```php
+it('redirects them to the Dashboard', function () {
+    $response = $this->visitRoute('login', asUser: 7);
+
+    expect(inertiaRoute($response))->toBe('home');
+});
+```
+
+**Why 2 lines?**:
+- Forces proper abstraction (can't hide complexity)
+- Makes tests scannable at a glance
+- Reveals missing tools in your testing DSL
+- Keeps focus on what matters (the assertion)
+
+**When you need 3+ lines**:
+- Additional setup is genuinely necessary (e.g., setting state)
+- You're testing a complex scenario that requires multiple actions
+- You need intermediate assertions
+
+**Red flag**: If most tests are 4+ lines, you're missing abstractions.
+
+### Compositional Test Naming in Pest
+
+**Pest Feature**: Test names are built from **describe block chains** + `it()`.
+
+```php
+describe('When visiting the login page', function () {
+    describe('as Guest', function () {
+        it('renders the login page', function () {
+            // test code
+        });
+    });
+});
+```
+
+**Pest Output**:
+```
+✓ When visiting the login page › as Guest › renders the login page
+```
+
+**This reads as a complete sentence!**
+
+The full test name is: "When visiting the login page as Guest renders the login page"
+
+**Pattern Guidelines**:
+- First `describe`: Context or action being tested
+- Nested `describe`: Actor or additional context
+- `it()`: The expected behavior
+
+**More Examples**:
+```php
+describe('When visiting the login page', function () {
+    describe('as Authenticated Member', function () {
+        it('redirects them to the Dashboard (if their Project is active)', function () { ... });
+        it('logs them out if they are not active in any Project', function () { ... });
+    });
+
+    describe('as Admin', function () {
+        it('redirects to the Dashboard if they manage only one Project', function () { ... });
+        it('redirects to projects index if they manage more than one Project', function () { ... });
+    });
+});
+```
+
+**Output**:
+```
+✓ When visiting the login page › as Authenticated Member › redirects them to the Dashboard (if their Project is active)
+✓ When visiting the login page › as Authenticated Member › logs them out if they are not active in any Project
+✓ When visiting the login page › as Admin › redirects to the Dashboard if they manage only one Project
+✓ When visiting the login page › as Admin › redirects to projects index if they manage more than one Project
+```
+
+**Benefits**:
+- Tests read like Gherkin scenarios (Given/When/Then)
+- Non-programmers can understand what's being tested
+- Test names are complete sentences describing behavior
+- Compositional structure encourages logical organization
+
+### Nested Describe Blocks for IDE Navigation
+
+**Practical Benefit**: Nested `describe` blocks create **collapsible sections** in your IDE.
+
+```php
+describe('When visiting the login page', function () {
+    describe('as Guest', function () {
+        // 2 tests here
+    });
+
+    describe('as Authenticated Member', function () {
+        // 4 tests here
+    });
+
+    describe('as Admin', function () {
+        // 7 tests here
+    });
+});
+```
+
+**In your IDE**:
+- Each `describe` block can be collapsed
+- Jump to "as Admin" section and collapse the rest
+- Manage cognitive load—focus on one actor at a time
+- Navigate large test files efficiently
+
+**Why this matters**:
+- Test files grow over time (LoginPage has 13 tests)
+- Collapsing sections = easier navigation
+- Logical grouping makes tests findable
+- IDE shows structure in outline view
+
+**Best Practice**: Use nested `describe` blocks for **logical grouping**, not just for naming. Each level should represent a meaningful distinction.
+
+### Testing Outcomes, Not Mechanics
+
+**Principle**: Test **what users experience**, not **how the framework achieves it**.
+
+```php
+// ❌ Testing mechanics
+expect($response->status())->toBe(302);
+expect($response->headers->get('Location'))->toContain('home');
+
+// ✅ Testing outcome
+expect(inertiaRoute($response))->toBe('home');
+```
+
+**Why**:
+- Business rule: "User ends up at home"
+- Not: "Laravel sends HTTP 302 with Location header"
+- Tests should survive implementation changes
+- Tests document user experience, not HTTP protocol
+
+**Building outcome helpers**: Create helpers that extract semantic meaning:
+```php
+// Helper that extracts "which route loaded" from Inertia response
+function inertiaRoute(TestResponse $response): ?string
+{
+    return data_get($response->viewData('page'), 'props.route.name');
+}
+```
+
+Now tests ask: **"Where did the user end up?"** not **"What HTTP status was returned?"**
+
+### Consistency = Readability
+
+**Absolute Rule**: Pick a pattern and use it **everywhere**.
+
+**Why**: Humans read by pattern recognition. Inconsistency breaks this.
+
+**Example**: `visitRoute()` pattern used consistently across all LoginPage tests:
+```php
+$response = $this->visitRoute('login', asUser: 7);   // Member
+$response = $this->visitRoute('login', asUser: 2);   // Admin with 1 project
+$response = $this->visitRoute('login', asUser: 3);   // Admin with 2 projects
+```
+
+**Every single test** uses this pattern. You learn it once, then scan effortlessly.
+
+**Anti-pattern**: Mixing approaches in the same file:
+```php
+// ❌ Inconsistent - breaks pattern recognition
+$this->actingAs(User::find(7))->followingRedirects()->getRoute('login');
+Auth::loginUsingId(2); $this->get('/login');
+$this->visitRoute('login', asUser: 3);
+```
+
+**Rule of thumb**: If a new pattern emerges, **update all existing tests** to match. Don't leave mixed styles.
+
+### Building a Testing Vocabulary
+
+**Goal**: Create a **domain-specific language (DSL)** for testing your application.
+
+As you write tests, you build vocabulary:
+- `visitRoute()` - user navigates to a route
+- `inertiaRoute()` - extract which route loaded
+- `currentProject()` - get the project in context
+- `setState()` - configure session state
+- `isSuperadmin()` - check superadmin status
+
+**This vocabulary encodes domain knowledge**:
+- Not just "make tests shorter"
+- Each helper captures a concept from your domain
+- Tests read like business requirements
+- New developers learn the domain by reading tests
+
+**Example**: Reading this test teaches you about the domain:
+```php
+it('redirects to Projects and resets current project if admin does not manage selected one', function () {
+    setCurrentProject(1);
+
+    $response = $this->visitRoute('login', asUser: 3);  // Admin managing Projects #2 and #3
+
+    expect(currentProjectId())->toBeNull();
+    expect(inertiaRoute($response))->toBe('projects.index');
+});
+```
+
+**What you learn**:
+- System has concept of "current project"
+- Admins can manage multiple projects
+- System validates admin access to current project
+- Invalid access clears selection and shows project list
+
+**Without helpers**:
+```php
+it('redirects to Projects and resets current project if admin does not manage selected one', function () {
+    session()->put('state.project', 1);
+
+    $response = $this->actingAs(User::find(3))
+        ->followingRedirects()
+        ->get(route('login'));
+
+    expect(session()->get('state.project'))->toBeNull();
+    expect($response->viewData('page')['props']['route']['name'])->toBe('projects.index');
+});
+```
+
+This version teaches you about **Laravel session API and Inertia internals**, not your business domain.
+
+### The Philosophy: Tests ARE Specifications
+
+**Final Insight**: Well-written tests are **not separate from documentation**—they ARE the documentation.
+
+When someone asks "How does login work for admins with multiple projects?", you point them to:
+```php
+describe('as Admin', function () {
+    it('redirects to projects index if they manage more than one Project', function () {
+        $response = $this->visitRoute('login', asUser: 3);
+
+        expect(inertiaRoute($response))->toBe('projects.index');
+    });
+});
+```
+
+**This is the specification.** It's executable, verifiable, and guaranteed to be up-to-date with the code.
+
+**Benefits of tests as specs**:
+- Requirements are executable code
+- Specs can't drift from implementation
+- Non-programmers can read test names
+- Test failures = spec violations
+
+**Your job**: Make tests so clear that reading them teaches someone how the system works.
+
+---
+
 **Remember**: We're building a test suite that will serve developers for years. Quality, clarity, and consistency matter more than speed.
+

@@ -6,13 +6,6 @@ use App\Models\Member;
 use App\Models\Project;
 
 describe('Family Policy', function () {
-    beforeEach(function () {
-        // Prevent accidental superadmin bypass in policy tests
-        // Gate::before() allows all superadmins, so we need to ensure
-        // test users aren't accidentally superadmins
-        config(['auth.superadmins' => []]);
-    });
-
     it('allows anyone to view families', function () {
         $member = createMember(asUser: true);
         $family = createFamily();
