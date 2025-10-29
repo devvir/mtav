@@ -120,7 +120,7 @@ return [
     */
 
     'superadmins' => array_map(
-        fn ($id) => (int) trim($id),
-        explode(',', env('SUPERADMINS', '1'))
+        fn ($email) => trim($email),
+        explode(',', env('SUPERADMINS', 'superadmin@example.com'))
     ),
 ];

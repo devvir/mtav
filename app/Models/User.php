@@ -115,7 +115,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->is_admin || $this->isSuperAdmin();
+        return $this->is_admin || $this->isSuperadmin();
     }
 
     public function isNotAdmin(): bool
@@ -123,14 +123,14 @@ class User extends Authenticatable
         return ! $this->isAdmin();
     }
 
-    public function isSuperAdmin(): bool
+    public function isSuperadmin(): bool
     {
-        return $this->is_admin && in_array($this->getKey(), config('auth.superadmins'));
+        return $this->is_admin && in_array($this->email, config('auth.superadmins'));
     }
 
-    public function isNotSuperAdmin(): bool
+    public function isNotSuperadmin(): bool
     {
-        return ! $this->isSuperAdmin();
+        return ! $this->isSuperadmin();
     }
 
     public function isVerified(): bool

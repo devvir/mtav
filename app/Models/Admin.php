@@ -16,7 +16,7 @@ class Admin extends User
      */
     public function manages(Project|int $project): bool
     {
-        return $this->isSuperAdmin()
+        return $this->isSuperadmin()
             || $this->projects->contains($project);
     }
 

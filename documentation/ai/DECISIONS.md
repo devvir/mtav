@@ -311,7 +311,7 @@ it('test description')->skip('Category: Specific root cause explanation');
 
 ### Superadmin Identification: Email-Based, Not ID-Based
 
-**Decision**: Use `config/auth.superadmins` array of emails, not IDs.
+**Decision**: Use `config/auth.superadmins` array of emails, not IDs. Fixed, using email now.
 
 **Problem Solved**: Tests with auto-increment IDs inadvertently creating superadmins.
 

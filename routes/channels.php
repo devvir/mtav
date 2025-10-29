@@ -15,5 +15,5 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
  * Users may subscribe to their currently selected project's channel.
  */
 Broadcast::channel('App.Models.Project.{id}', function (User $user, int $id) {
-    return $user->isSuperAdmin || Project::current()?->is($id);
+    return $user->isSuperadmin || Project::current()?->is($id);
 });

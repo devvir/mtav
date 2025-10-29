@@ -34,6 +34,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+
             ...$this->transient($request),
 
             'name' => config('app.name'),

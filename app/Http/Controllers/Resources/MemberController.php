@@ -26,7 +26,7 @@ class MemberController extends Controller
      */
     public function index(IndexMembersRequest $request): Response
     {
-        updateState('groupMembers', false);
+        setState('groupMembers', false);
 
         $members = Member::alphabetically()
             ->with('family')
@@ -57,7 +57,7 @@ class MemberController extends Controller
         $families = Family::alphabetically()
             ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId));
 
-        $projectsPool = $request->user()->isSuperAdmin()
+        $projectsPool = $request->user()->isSuperadmin()
             ? Project::query()
             : $request->user()->projects();
 

@@ -514,7 +514,7 @@
 
 - [ ] **Change superadmin identification from IDs to emails**
   - Update `config/auth.php`: Change `'superadmins' => [1]` to `'superadmins' => ['superadmin@example.com']`
-  - Update `User::isSuperAdmin()` method to check email instead of ID
+  - Update `User::isSuperadmin()` method to check email instead of ID
   - Update any policies/gates that check superadmin status
 
 - [ ] **Create default superadmin in migration (not seeder)**

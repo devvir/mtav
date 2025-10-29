@@ -1,26 +1,28 @@
 <?php
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 
 /**
- * Normalize a model, model id or a collection of either, to model(s).
+ * For a model or model id, return the model.
  *
- * @param Model|int|iterable $modelOrId A model instance, its id, or an iterable of either.
- * @param class-string<Model> $modelClass The model class to use for id(s) in $modelOrId.
- *
- * @return Model|Collection A model instance (or a collection of them if $modelOrId is iterable).
- *
- * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if any id is invalid.
+ * @throws ModelNotFoundException if $modelOrId is an invalid id for $modelClass
  */
-function model(Model|int|iterable $modelOrId, string $modelClass): Model|Collection
+function model(Model|int $modelOrId, string $modelClass): Model
 {
-    if ($modelOrId instanceof iterable) {
-        return collect($modelOrId)->map(fn ($id) => model($id, $modelClass));
-    }
     return $modelOrId instanceof Model
         ? $modelOrId
         : $modelClass::findOrFail($modelOrId);
+}
+
+function models(Model|int|iterable $modelsOrIds, string $modelClass): Model|Collection
+{
+    if ($modelsOrIds instanceof iterable) {
+        return collect($modelsOrIds)->map(fn ($id) => model($id, $modelClass));
+    }
+
+    return model($modelsOrIds, $modelClass);
 }
 
 function enumFromValue(string $enumClass, string $value): UnitEnum
@@ -43,7 +45,7 @@ function state(string $key, mixed $default = null): mixed
     return session()->get("state.$key", $default);
 }
 
-function updateState(string $key, mixed $value): void
+function setState(string $key, mixed $value): void
 {
     session()->put("state.$key", $value);
 }

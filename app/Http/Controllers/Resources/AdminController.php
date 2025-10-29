@@ -46,7 +46,7 @@ class AdminController extends Controller
      */
     public function create(Request $request): Response
     {
-        $projectsPool = $request->user()->isSuperAdmin()
+        $projectsPool = $request->user()->isSuperadmin()
             ? Project::query()
             : $request->user()->projects();
 

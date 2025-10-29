@@ -22,7 +22,7 @@ trait OverlappingProjectsConstraint
      */
     protected function validateOverlap(User $authUser, User $user, ?string $error = null): void
     {
-        if ($authUser->isSuperAdmin() || $authUser->is($user)) {
+        if ($authUser->isSuperadmin() || $authUser->is($user)) {
             return;
         }
 

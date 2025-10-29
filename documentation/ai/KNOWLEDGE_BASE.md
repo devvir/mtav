@@ -323,15 +323,15 @@ Member (family-bound participation)
 
 #### Definition
 
-- User whose ID is listed in `config('auth.superadmins')` array
-- Typically user ID = 1, but configurable
-- NOT a separate user type - just a regular User/Admin with special ID
+- User whose emails are listed in `config('auth.superadmins')` array
+- Typically user email = 'superadmin@example.com', but configurable
+- NOT a separate user type - just a regular User/Admin with special email
 - **Superadmins are ALWAYS admins** (`is_admin = true` required)
 
 #### Identification (Code)
 
 ```php
-$user->isSuperAdmin() // true if $user->id in config array AND is_admin = true
+$user->isSuperadmin() // true if $user->email in config array AND is_admin = true
 ```
 
 #### Authorization Behavior
@@ -347,7 +347,7 @@ $user->isSuperAdmin() // true if $user->id in config array AND is_admin = true
 
 ```sql
 users table:
-  - id (must be in config('auth.superadmins') array)
+  - email (must be in config('auth.superadmins') array)
   - is_admin = true (REQUIRED - superadmins are always admins)
   - family_id = NULL (constraint: admins MUST NOT have a family)
 
@@ -847,10 +847,10 @@ protected static function booted()
 
 ```php
 // Type checking
-public function isSuperAdmin(): bool
+public function isSuperadmin(): bool
 {
     // Checks config array AND is_admin = true
-    return $this->is_admin && in_array($this->id, config('auth.superadmins'));
+    return $this->is_admin && in_array($this->email, config('auth.superadmins'));
 }
 
 public function isAdmin(): bool
@@ -985,7 +985,7 @@ deleted_at (soft delete timestamp, nullable)
 
 **Methods**:
 
-- `isSuperAdmin(): bool` - checks config array (superadmins are ALWAYS admins, filtered here)
+- `isSuperadmin(): bool` - checks config array (superadmins are ALWAYS admins, filtered here)
 - `isAdmin(): bool` - checks `is_admin = true` (includes superadmins)
 - `isMember(): bool` - checks `is_admin = false` (superadmins are NOT members)
 - `toAdmin(): ?Admin` - cast to Admin if is_admin
@@ -1008,7 +1008,7 @@ deleted_at (soft delete timestamp, nullable)
 - `is_admin = true/false` is the **PRIMARY** user type distinction
 - Other constraints (family_id, etc.) are **CONSEQUENCES** of user type
 - Admins and Members are **ISOLATED SETS** - a user cannot be both
-- Superadmins are ALWAYS admins (`is_admin = true`), filtered in `isSuperAdmin()` via config
+- Superadmins are ALWAYS admins (`is_admin = true`), filtered in `isSuperadmin()` via config
 
 ---
 

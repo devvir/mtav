@@ -44,7 +44,7 @@ class AdminPolicy
      */
     public function update(User $user, Admin $admin): bool
     {
-        return $user->isSuperAdmin() || $user->is($admin);
+        return $user->is($admin);
     }
 
     /**
@@ -52,7 +52,7 @@ class AdminPolicy
      */
     public function delete(User $user, Admin $admin): bool
     {
-        return $user->isSuperAdmin() || $user->is($admin);
+        return $user->is($admin);
     }
 
     /**
@@ -60,6 +60,6 @@ class AdminPolicy
      */
     public function restore(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return false;
     }
 }

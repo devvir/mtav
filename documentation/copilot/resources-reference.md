@@ -60,7 +60,7 @@ This document provides a complete overview of all API Resource classes in the MT
 | `avatar`        | string | Computed                                | Avatar URL (see below)                                          |
 | `is_verified`   | bool   | `$this->email_verified_at`              | Cast to bool                                                    |
 | `is_admin`      | bool   | `$this->isAdmin()`                      |                                                                 |
-| `is_superadmin` | bool   | `$this->isSuperAdmin()`                 |                                                                 |
+| `is_superadmin` | bool   | `$this->isSuperadmin()`                 |                                                                 |
 | `legal_id`      | string | `$this->legal_id`                       | Empty string if null<br>⚠️ TODO: Review if should be admin-only |
 | `created_at`    | string | `$this->created_at->toDateTimeString()` |                                                                 |
 | `created_ago`   | string | `$this->created_at->diffForHumans()`    | Human-readable time                                             |

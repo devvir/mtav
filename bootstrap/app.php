@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleCurrentProject;
+use App\Http\Middleware\HandleProjects;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'project']);
 
         $middleware->web(append: [
-            HandleCurrentProject::class,
+            HandleProjects::class,
             HandleAppearance::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,

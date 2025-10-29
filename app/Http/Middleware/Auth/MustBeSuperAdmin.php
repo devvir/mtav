@@ -16,7 +16,7 @@ class MustBeSuperAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()?->isSuperAdmin()) {
+        if (! $request->user()?->isSuperadmin()) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Not Found'], Response::HTTP_NOT_FOUND);
             }

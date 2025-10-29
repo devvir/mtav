@@ -56,7 +56,7 @@ abstract class ProjectScopedRequest extends FormRequest
         /** @var User $user */
         $user = $this->user();
 
-        return $user->isSuperAdmin()
+        return $user->isSuperadmin()
             || ($user->asMember()?->project_id === $projectId)
             || $user->asAdmin()?->manages($projectId);
     }

@@ -572,9 +572,10 @@ $admin = User::factory()->create();
 Manages session-based project context for multi-project testing:
 
 ```php
-setCurrentProject(int|Project $project)  // Set session project
-resetCurrentProject()                     // Clear session project
-getCurrentProject(): ?Project             // Get current project from session
+setCurrentProject(int|Project $project) // Set session project
+resetCurrentProject()                   // Clear session project
+currentProject(): ?Project              // Get current project from session
+currentProjectId(): ?int                // Get current project id from session
 ```
 
 **Global Cleanup**: `afterEach()` hook in `Pest.php` calls `resetCurrentProject()` to prevent test pollution.
@@ -705,6 +706,58 @@ This document is **living documentation**. As we discover new patterns, encounte
 2. Document it here with rationale and examples
 3. Reference this document in future work
 4. Refine as we learn
+
+---
+
+## PHP Syntax Reference
+
+### First-Class Callable Syntax (PHP 8.1+)
+
+**Syntax**: `functionName(...)` creates a Closure from any callable.
+
+```php
+// Traditional
+$callback = fn() => someFunction();
+$callback = Closure::fromCallable('someFunction');
+
+// First-class callable (PHP 8.1+)
+$callback = someFunction(...);
+```
+
+**Key Points**:
+- ✅ The `(...)` is part of the syntax, not an omission or placeholder
+- ✅ Works with functions, methods, static methods, invokable objects
+- ✅ Respects scope where the callable is acquired (like `Closure::fromCallable()`)
+- ✅ Better for static analysis than string/array callables
+- ⚠️  Cannot be combined with nullsafe operator (`?->`)
+- ⚠️  Closures created this way are not serializable
+- ⚠️  Cannot rebind scope with `Closure::bindTo()` (gotcha with Laravel's Macroable)
+
+**Examples**:
+```php
+// Functions
+$strlen = strlen(...);
+
+// Methods
+$method = $obj->method(...);
+$static = Foo::staticMethod(...);
+
+// In Pest hooks
+beforeAll(loadUniverse(...));           // ✅ Creates closure automatically
+afterEach(resetCurrentProject(...));    // ✅ Same as fn() => resetCurrentProject()
+
+// Traditional callable syntax still works
+$f7 = 'strlen'(...);
+$f8 = [$obj, 'method'](...);
+$f9 = [Foo::class, 'staticmethod'](...);
+```
+
+**Why we use it**:
+- Cleaner syntax than `fn() => functionName()`
+- Type-safe and analyzable by IDEs
+- Consistent with modern PHP practices
+
+**Reference**: https://www.php.net/manual/en/functions.first_class_callable_syntax.php
 
 ---
 

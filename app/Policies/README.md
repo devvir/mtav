@@ -13,8 +13,8 @@ This document describes the authorization logic for each resource in the applica
 | `viewAny` | ✅      | **All users** - Returns `true`                                                                                                                                                       |
 | `view`    | ✅      | **All admins** - Returns `true` for any admin<br>**Members** - Can view admins in their project<br>**⚠️ Partial validation:** Full check (admins share projects) in ShowAdminRequest |
 | `create`  | ✅      | **Any admin** - `$user->isAdmin()`<br>**⚠️ Partial validation:** Full privilege escalation check in CreateAdminRequest                                                               |
-| `update`  | ✅      | **Super admin OR self** - `$user->isSuperAdmin()` OR `$user->is($admin)`                                                                                                             |
-| `delete`  | ✅      | **Super admin OR self** - `$user->isSuperAdmin()` OR `$user->is($admin)`                                                                                                             |
+| `update`  | ✅      | **self** - `$user->is($admin)`                                                                                                             |
+| `delete`  | ✅      | **self** - `$user->is($admin)`                                                                                                             |
 | `restore` | ✅      | **Any admin** - `$user->isAdmin()`                                                                                                                                                   |
 
 **Special Notes:**
@@ -153,6 +153,5 @@ This document describes the authorization logic for each resource in the applica
 
 3. **Common patterns:**
    - `$user->isAdmin()` - Any admin (including super admin)
-   - `$user->isSuperAdmin()` - Only super admins
    - `$user->asAdmin()->manages($project)` - Admin managing specific project
    - `$user->is($model)` - User owns the model

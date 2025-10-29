@@ -12,7 +12,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isSuperAdmin() || ($user->isAdmin() && $user->projects->count() > 1);
+        return $user->isAdmin() && $user->projects->count() > 1;
     }
 
     /**

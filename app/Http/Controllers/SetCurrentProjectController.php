@@ -11,18 +11,18 @@ class SetCurrentProjectController
 {
     public function set(Request $request, Project $project): RedirectResponse
     {
-        if ($request->user()->isNotSuperAdmin() && ! $request->user()->asAdmin()?->manages($project)) {
+        if ($request->user()->isNotSuperadmin() && ! $request->user()->asAdmin()?->manages($project)) {
             throw new UnauthorizedException('You do not have permission to select a Project.');
         }
 
-        updateState('project', $project);
+        setState('project', $project);
 
         return back();
     }
 
     public function unset(): RedirectResponse
     {
-        updateState('project', null);
+        setState('project', null);
 
         return redirect()->back();
     }

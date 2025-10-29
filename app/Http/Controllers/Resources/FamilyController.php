@@ -19,7 +19,7 @@ class FamilyController extends Controller
      */
     public function index(IndexFamiliesRequest $request): Response
     {
-        updateState('groupMembers', true);
+        setState('groupMembers', true);
 
         $families = Family::alphabetically()
             ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId))
@@ -47,7 +47,7 @@ class FamilyController extends Controller
      */
     public function create(Request $request): Response
     {
-        $projectsPool = $request->user()->isSuperAdmin()
+        $projectsPool = $request->user()->isSuperadmin()
             ? Project::query()
             : $request->user()->projects();
 
@@ -73,7 +73,7 @@ class FamilyController extends Controller
      */
     public function edit(Request $request, Family $family): Response
     {
-        $projectsPool = $request->user()->isSuperAdmin()
+        $projectsPool = $request->user()->isSuperadmin()
             ? Project::query()
             : $request->user()->projects();
 

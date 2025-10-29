@@ -30,7 +30,7 @@ All policies follow Laravel's standard authorization pattern:
 
 ```php
 Gate::before(function (User $user) {
-    return $user->isSuperAdmin() ?: null;
+    return $user->isSuperadmin() ?: null;
 });
 ```
 
@@ -210,7 +210,7 @@ trait OverlappingProjectsConstraint
 {
     protected function validateOverlap(User $authUser, User $user, ?string $error = null): void
     {
-        if ($authUser->isSuperAdmin() || $authUser->is($user)) {
+        if ($authUser->isSuperadmin() || $authUser->is($user)) {
             return;
         }
 
@@ -575,7 +575,7 @@ protected function prepareForValidation(): void
 protected function validateOverlap(User $authUser, User $user, ?string $error = null): void
 {
     // Automatically allows superadmins and self-access
-    if ($authUser->isSuperAdmin() || $authUser->is($user)) {
+    if ($authUser->isSuperadmin() || $authUser->is($user)) {
         return;
     }
 
@@ -617,11 +617,11 @@ public function view(User $user, Family $family): bool
 
 **Benefits:**
 
-- DRY - no repetitive `$user->isSuperAdmin()` checks
+- DRY - no repetitive `$user->isSuperadmin()` checks
 - Consistent behavior across all policies
 - Policies focus on normal user authorization logic
 
-**Note:** Some policies still check `isSuperAdmin()` for specific business logic (e.g., AdminPolicy::update allows superadmin OR self).
+**Note:** Some policies still check `isSuperadmin()` for specific business logic (e.g., AdminPolicy::update allows superadmin OR self).
 
 ### 4. Project Scoping
 

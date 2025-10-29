@@ -19,7 +19,7 @@ class ProjectController extends Controller
      */
     public function index(IndexProjectsRequest $request): Response
     {
-        $pool = $request->user()->isSuperAdmin()
+        $pool = $request->user()->isSuperadmin()
             ? Project::query()
             : $request->user()->projects();
 
@@ -31,7 +31,7 @@ class ProjectController extends Controller
                 'families' => fn ($q) => $q->limit(5),
             ])
             ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"))
-            ->unless($request->showAll, fn ($query) => $query->whereActive(true));
+            ->unless($request->showAll, fn ($query) => $query->where('projects.active', true));
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),

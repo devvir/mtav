@@ -3,41 +3,27 @@
 namespace App\Http\Middleware\Auth;
 
 use App\Models\Project;
-use BadMethodCallException;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProjectMustBeSelected
 {
     /**
-     * Handle an incoming request.
+     * For pages that require a Project to be selected:
+     *  - If no selected project, redirect to Project index
+     *  - Otherwise, continue with this request
      *
-     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * Note that middleware HandleProjects runs before and ensures that only valid
+     * projects are selected, plus it auto-picks the Project when there is only one
+     * option. Members/Admins without a valid project are logged out there as well.
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // A Project is already selected
-        if (Project::current()) {
-            return $next($request);
-        }
-
-        // User has only one Project: set it as current
-        if ($request->user()->isNotSuperAdmin() && $request->user()->projects->count() === 1) {
-            Project::current($request->user()->project);
-
-            return $next($request);
-        }
-
-        // Admin/Superadmin requests redirect to the Project index/selection page
-        if ($request->user()->isAdmin()) {
+        if (! Project::current()) {
             return to_route('projects.index');
         }
 
-        // Regular users with 0 or 2+ Projects should not exist (data inconsistency)
-        Auth::logout();
-
-        throw new BadMethodCallException('Cannot set the current Project. Contact an Admin for assistance.');
+        return $next($request);
     }
 }

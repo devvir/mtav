@@ -46,7 +46,7 @@ class CreateAdminRequest extends FormRequest
             $user = $this->user();
 
             // Super admins can assign any projects
-            if ($user->isSuperAdmin()) {
+            if ($user->isSuperadmin()) {
                 return;
             }
 

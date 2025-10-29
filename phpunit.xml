@@ -5,13 +5,14 @@
          colors="true"
 >
     <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
+        <testsuite name="Authentication">
+            <directory suffix=".php">tests/Authentication</directory>
         </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
+        <testsuite name="Archive">
+            <directory>tests/__Archive</directory>
         </testsuite>
     </testsuites>
+
     <source>
         <include>
             <directory>app</directory>
@@ -20,7 +21,6 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
-        <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
         <!-- Test database uses separate MySQL container (mysql_test service) -->
         <env name="DB_HOST" value="mysql_test"/>

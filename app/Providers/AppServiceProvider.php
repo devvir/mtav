@@ -24,7 +24,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Superadmins have full access to any action
-        Gate::before(fn (User $user) => $user->isSuperAdmin() ?: null);
+        Gate::before(
+            fn (User $user) => $user->isSuperadmin() ?: null
+        );
 
         // Uncomment to allow undefined policies by default
         // Gate::after(fn (?User $user) => true);

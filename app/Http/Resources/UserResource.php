@@ -31,7 +31,7 @@ class UserResource extends JsonResource
             'avatar' => $this->resolveAvatar(),
             'is_verified' => (bool) $this->email_verified_at,
             'is_admin' => $this->isAdmin(),
-            'is_superadmin' => $this->isSuperAdmin(),
+            'is_superadmin' => $this->isSuperadmin(),
             'legal_id' => $this->legal_id ?? '',
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
