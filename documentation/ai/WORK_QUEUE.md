@@ -31,7 +31,6 @@
 - `tests/README.md` - Comprehensive test philosophy guide (~25 min read)
 - `tests/PRIORITIES.md` - Nov 3rd feature-to-test mapping (P0-P3)
 - `tests/QUICK_START.md` - Tomorrow's TDD workflow guide
-- `tests/add-priority-groups.php` - Automation script for priority tags
 
 **Priority Test Groups**:
 

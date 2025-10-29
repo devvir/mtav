@@ -19,14 +19,6 @@ function createProjects(int $count = 3): \Illuminate\Support\Collection
 }
 
 /**
- * Set the current project in session/state.
- */
-function setCurrentProject(Project $project): void
-{
-    session(['project' => $project]);
-}
-
-/**
  * Create a project with an admin assigned to it.
  */
 function createProjectWithAdmin($admin = null, array $attributes = []): Project

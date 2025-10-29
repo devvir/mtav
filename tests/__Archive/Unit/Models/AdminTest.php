@@ -53,17 +53,6 @@ describe('Admin Model', function () {
 });
 
 describe('Admin Business Logic - TODO', function () {
-    test('admin can only create families in their assigned projects', function () {
-        // TODO: Policy should check that admin manages the target project
-        // when creating/editing families
-    })->todo();
 
-    test('admin can only create members in their assigned projects', function () {
-        // TODO: Policy should check that admin manages the target project
-        // when creating/editing members
-    })->todo();
 
-    test('admin can only view/edit units in their assigned projects', function () {
-        // TODO: Policy should check that admin manages the unit's project
-    })->todo();
 });

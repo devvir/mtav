@@ -66,21 +66,7 @@ describe('Member Policy', function () {
 });
 
 describe('Member Policy - Project Scope - TODO', function () {
-    test('members can only invite to their own family', function () {
-        // TODO: Create policy should validate that if the user is a member,
-        // the family_id must match their own family_id
-    })->todo();
 
-    test('admins can only create members in projects they manage', function () {
-        // TODO: Create policy should validate that the target project_id
-        // is one that the admin manages
-    })->todo();
 
-    test('admins can only update members in projects they manage', function () {
-        // TODO: Update policy should check admin manages member.project
-    })->todo();
 
-    test('admins can only delete members in projects they manage', function () {
-        // TODO: Delete policy should check admin manages member.project
-    })->todo();
 });

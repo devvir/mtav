@@ -53,6 +53,6 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return $user->asAdmin()?->manages($project);
+        return (bool) $user->asAdmin()?->manages($project);
     }
 }

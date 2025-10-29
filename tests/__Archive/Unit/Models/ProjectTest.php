@@ -97,15 +97,6 @@ describe('Project Model', function () {
             ->and($project->hasAdmin($nonAdmin))->toBeFalse();
     });
 
-    it('can get the current project from state', function () {
-        // TODO: bug - Test uses session() but Project::current() uses state()
-        // Should use: state(['project' => $project]); instead of session()
-        $project = Project::factory()->create();
-        session(['project' => $project]);
-
-        expect(Project::current())->toBeInstanceOf(Project::class)
-            ->id->toBe($project->id);
-    })->skip('bug: test uses session() instead of state()');
 
     it('has active scope', function () {
         Project::factory()->create(['active' => true]);

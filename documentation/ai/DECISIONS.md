@@ -204,7 +204,6 @@ it('feature description')->skip('Not yet implemented');
   - **P2 (Medium)**: Unit CRUD, Family CRUD + unit_type_id, admin invitations
   - **P3 (Low)**: Superadmin operations
 - Tagged critical tests with priority groups (Dashboard, Profile)
-- Created automation script `tests/add-priority-groups.php` for remaining tags
 
 **Usage**:
 
