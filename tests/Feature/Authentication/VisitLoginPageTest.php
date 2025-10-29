@@ -1,18 +1,16 @@
 <?php
 
 /**
- * Tests for the login page behavior - guest access, authenticated user redirects,
- * and edge cases like deleted/inactive projects and users.
+ * Test the behavior of the app when visiting the login page - as guest, authenticated
+ * members or admin. Consider scenarios like deleted/inactive projects and inactive members.
  */
 
-use App\Models\User;
-
-uses()->group('Authentication');
+uses()->group('Feature.Authentication');
 
 describe('When visiting the login page', function () {
     describe('as Guest', function () {
         it('renders the login page', function () {
-            $response = $this->getRoute('login');
+            $response = $this->visitRoute('login', redirects: false);
 
             expect($response->status())->toBe(200);
         });
@@ -63,7 +61,7 @@ describe('When visiting the login page', function () {
             expect(inertiaRoute($response))->toBe('projects.index');
         });
 
-        it('logs out and redirect back to login if they manage no projects', function () {
+        it('logs them out and redirects back to login page if they manage no projects', function () {
             // Admin #1 has no project assignments
             $response = $this->visitRoute('login', asUser: 1);
 
@@ -106,7 +104,7 @@ describe('When visiting the login page', function () {
             expect(inertiaRoute($response))->toBe('home');
         });
 
-        it('redirects to home, with no project selected when current one is deleted and admin manages at least 2 others', function () {
+        it('redirects to home with no project selected when current one is deleted and admin manages at least 2 others', function () {
             // Admin #54 manages Projects #2, #3, #4 (active) and #5 (deleted)
             setCurrentProject(5, withTrashed: true);
 

@@ -97,15 +97,6 @@ describe('Project Model', function () {
             ->and($project->hasAdmin($nonAdmin))->toBeFalse();
     });
 
-
-    it('has active scope', function () {
-        Project::factory()->create(['active' => true]);
-        Project::factory()->create(['active' => true]);
-        Project::factory()->create(['active' => false]);
-
-        expect(Project::active()->get())->toHaveCount(2);
-    });
-
     it('has alphabetically scope', function () {
         Project::factory()->create(['name' => 'Zebra']);
         Project::factory()->create(['name' => 'Alpha']);

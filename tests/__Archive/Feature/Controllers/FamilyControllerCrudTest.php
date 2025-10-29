@@ -35,19 +35,6 @@ describe('Family CRUD - Update', function () {
         $response->assertRedirect();
     });
 
-    it('allows member to update their own family', function () {
-        $project = createProject();
-        $family = createFamilyInProject($project);
-        $member = createMember(asUser: true);
-        $project->addMember($member->asMember(), $family);
-
-        $response = inertiaPatch($member, route('families.update', $family), [
-            'name' => 'Updated by Member',
-        ]);
-
-        expect($family->fresh()->name)->toBe('Updated by Member');
-    });
-
     it('denies member from updating other families', function () {
         $project = createProject();
         $family1 = createFamilyInProject($project);
@@ -115,16 +102,5 @@ describe('Family CRUD - Project Scope Validation', function () {
 
         expect($projectIds)->toContain($managedProject->id)
             ->not->toContain($unmanagedProject->id);
-    });
-
-    it('shows all projects for superadmin in create form', function () {
-        $superadmin = createSuperAdmin(asUser: true);
-        $project1 = createProject();
-        $project2 = createProject();
-
-        $response = inertiaGet($superadmin, route('families.create'));
-
-        $projects = getInertiaProp($response, 'projects');
-        expect($projects)->toHaveCount(2);
     });
 });

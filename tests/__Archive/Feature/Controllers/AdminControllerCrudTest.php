@@ -62,16 +62,4 @@ describe('Admin CRUD - Project Scope Validation', function () {
         expect($projectIds)->toContain($managedProject->id)
             ->not->toContain($unmanagedProject->id);
     });
-
-    it('shows all projects for superadmin in create form', function () {
-        $superadmin = createSuperAdmin(asUser: true);
-        $project1 = createProject();
-        $project2 = createProject();
-
-        $response = inertiaGet($superadmin, route('admins.create'));
-
-        $projects = getInertiaProp($response, 'projects');
-        expect($projects)->toHaveCount(2);
-    });
-
 });

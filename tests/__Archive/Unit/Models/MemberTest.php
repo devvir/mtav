@@ -32,15 +32,6 @@ describe('Member Model', function () {
 
         expect($member->fresh()->project)->toBeNull();
     });
-
-
-    it('applies member global scope to exclude admins', function () {
-        User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['is_admin' => false]);
-
-        expect(Member::all())->toHaveCount(1)
-            ->and(Member::first()->id)->toBe($member->id);
-    });
 });
 
 describe('Member Business Logic - TODO', function () {

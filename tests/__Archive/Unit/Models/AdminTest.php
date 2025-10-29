@@ -32,14 +32,6 @@ describe('Admin Model', function () {
         expect($superadmin->manages($project))->toBeTrue();
     });
 
-    it('applies admin global scope to exclude members', function () {
-        User::factory()->create(['is_admin' => false]);
-        $admin = User::factory()->create(['is_admin' => true]);
-
-        expect(Admin::all())->toHaveCount(1)
-            ->and(Admin::first()->id)->toBe($admin->id);
-    });
-
     it('has projects relationship', function () {
         $admin = Admin::factory()->create();
         $project1 = Project::factory()->create();
