@@ -4,9 +4,10 @@ use App\Models\Family;
 use App\Models\Member;
 
 /**
- * Create a family for testing.
+ * Create a basic family for testing (without auto-creating dependencies).
+ * For a family with auto-created project/unit_type, use createFamily() from UserHelpers.
  */
-function createFamily(array $attributes = []): Family
+function createBasicFamily(array $attributes = []): Family
 {
     return Family::factory()->create($attributes);
 }

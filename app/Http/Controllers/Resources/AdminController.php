@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateAdminRequest;
+use App\Http\Requests\IndexAdminsRequest;
+use App\Http\Requests\ShowAdminRequest;
 use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
@@ -17,23 +19,22 @@ class AdminController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(IndexAdminsRequest $request): Response
     {
-        $pool = Project::current()?->admins() ?? Admin::query();
-
-        $admins = $pool->alphabetically()
+        $admins = Admin::alphabetically()
+            ->when($request->project_id, fn ($q, $projectId) => $q->inProject($projectId))
             ->when($request->q, fn ($query, $q) => $query->search($q));
 
         return inertia('Admins/Index', [
             'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
-            'q' => $request->string('q', ''),
+            'q' => $request->q ?? '',
         ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Admin $admin): Response
+    public function show(ShowAdminRequest $_, Admin $admin): Response
     {
         $admin->load('projects');
 
@@ -59,11 +60,13 @@ class AdminController extends Controller
      */
     public function store(CreateAdminRequest $request): RedirectResponse
     {
-        $admin = Admin::create($request->validated());
+                // Persist Admin
+        $admin = Admin::create($request->all());
 
         // event(new Registered($admin));
 
-        return to_route('admins.show', $admin->id);
+        return to_route('admins.show', $admin->id)
+            ->with('success', __('Admin created successfully.'));
     }
 
     /**
@@ -81,9 +84,10 @@ class AdminController extends Controller
      */
     public function update(UpdateAdminRequest $request, Admin $admin): RedirectResponse
     {
-        $admin->update($request->validated());
+        $admin->update($request->all());
 
-        return to_route('admins.show', $admin->id);
+        return to_route('admins.show', $admin->id)
+            ->with('success', __('Admin updated successfully.'));
     }
 
     /**
@@ -93,6 +97,18 @@ class AdminController extends Controller
     {
         $admin->delete();
 
-        return to_route('admins.index');
+        return to_route('admins.index')
+            ->with('success', __('Admin deleted successfully.'));
+    }
+
+    /**
+     * Restore the soft-deleted resource.
+     */
+    public function restore(Admin $admin): RedirectResponse
+    {
+        $admin->restore();
+
+        return to_route('admins.show', $admin->id)
+            ->with('success', __('Admin restored successfully.'));
     }
 }

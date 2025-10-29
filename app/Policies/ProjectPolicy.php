@@ -24,6 +24,15 @@ class ProjectPolicy
     }
 
     /**
+     * Determine whether the user can create models.
+     */
+    public function create(User $user): bool
+    {
+        // Only Superadmins can create Projects (and they bypass Policies)
+        return false;
+    }
+
+    /**
      * Determine whether the user can update the model.
      */
     public function update(User $user, Project $project): bool
@@ -44,7 +53,6 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return $user->asAdmin()?->manages($project)
-            && $project->isSoftDeletable() && $project->deleted_at;
+        return $user->asAdmin()?->manages($project);
     }
 }

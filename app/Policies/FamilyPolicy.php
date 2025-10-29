@@ -18,9 +18,11 @@ class FamilyPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user): bool
+    public function view(User $user, Family $family): bool
     {
-        return true;
+        return $user->isMember()
+            ? $user->asMember()->family->project_id === $family->project_id
+            : $user->asAdmin()->manages($family->project_id);
     }
 
     /**
@@ -36,15 +38,13 @@ class FamilyPolicy
      */
     public function update(User $user, Family $family): bool
     {
-        return $user->isAdmin() || $user->family_id === $family->id;
+        return ($user->family_id === $family->id)
+            || (bool) $user->asAdmin()?->manages($family->project_id);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user): bool
+    public function delete(User $user, Family $family): bool
     {
-        return $user->isAdmin();
+        return (bool) $user->asAdmin()?->manages($family->project_id);
     }
 
     /**
@@ -52,6 +52,6 @@ class FamilyPolicy
      */
     public function restore(User $user, Family $family): bool
     {
-        return $user->isAdmin() && $family->isSoftDeletable() && $family->deleted_at;
+        return (bool) $user->asAdmin()?->manages($family->project_id);
     }
 }

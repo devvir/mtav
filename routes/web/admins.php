@@ -6,6 +6,7 @@ use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Resources\MemberController;
 use App\Http\Controllers\Resources\ProjectController;
 use App\Http\Controllers\Resources\UnitController;
+use App\Http\Controllers\Resources\UnitTypeController;
 use App\Http\Controllers\SetCurrentProjectController;
 use App\Http\Middleware\Auth\ProjectMustBeSelected;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,7 @@ Route::resource('admins', AdminController::class)->only('create', 'store', 'edit
 
 Route::resource('families', FamilyController::class)->only('create', 'store', 'destroy');
 Route::resource('members', MemberController::class)->only('edit', 'update', 'destroy');
+Route::resource('unit-types', UnitTypeController::class)->only('index', 'store', 'update', 'destroy');
 
 Route::resource('events', EventController::class);
 

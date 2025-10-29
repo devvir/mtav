@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Family;
 use App\Models\Project;
+use App\Models\UnitType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,8 +21,9 @@ class FamilyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->lastName().' '.$this->faker->lastName().' Family',
+            'name' => $this->faker->lastName().' '.$this->faker->lastName().' Family',
             'project_id' => Project::factory(),
+            'unit_type_id' => fn (array $attributes) => UnitType::factory()->create(['project_id' => $attributes['project_id']])->id,
         ];
     }
 
@@ -38,6 +40,9 @@ class FamilyFactory extends Factory
 
     public function inProject(Project $project): static
     {
-        return $this->state(['project_id' => $project->id]);
+        return $this->state([
+            'project_id' => $project->id,
+            'unit_type_id' => fn () => UnitType::factory()->create(['project_id' => $project->id])->id,
+        ]);
     }
 }

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateProjectRequest;
+use App\Http\Requests\IndexProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,7 +17,7 @@ class ProjectController extends Controller
     /**
      * Show the project dashboard.
      */
-    public function index(Request $request): Response
+    public function index(IndexProjectsRequest $request): Response
     {
         $pool = $request->user()->isSuperAdmin()
             ? Project::query()
@@ -35,8 +35,8 @@ class ProjectController extends Controller
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
-            'q' => $request->string('q', ''),
-            'all' => $request->integer('showAll'),
+            'q' => $request->q ?? '',
+            'all' => $request->showAll ?? false,
         ]);
     }
 
@@ -76,7 +76,8 @@ class ProjectController extends Controller
             fn ($project) => $project->admins()->attach($request->admins)
         ));
 
-        return to_route('projects.show', $project->id);
+        return to_route('projects.show', $project->id)
+            ->with('success', __('Project created successfully.'));
     }
 
     /**
@@ -95,9 +96,10 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
-        $project->update($request->validated());
+        $project->update($request->all());
 
-        return to_route('projects.show', $project->id);
+        return to_route('projects.show', $project->id)
+            ->with('success', __('Project updated successfully.'));
     }
 
     /**
@@ -107,6 +109,18 @@ class ProjectController extends Controller
     {
         $project->delete();
 
-        return to_route('projects.index');
+        return to_route('projects.index')
+            ->with('success', __('Project deleted successfully.'));
+    }
+
+    /**
+     * Restore the soft-deleted resource.
+     */
+    public function restore(Project $project): RedirectResponse
+    {
+        $project->restore();
+
+        return to_route('projects.show', $project->id)
+            ->with('success', __('Project restored successfully.'));
     }
 }

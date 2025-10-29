@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('firstname')->nullable()->after('phone');
             $table->string('lastname')->nullable()->after('firstname');
             $table->string('avatar')->nullable()->after('lastname');
+            $table->string('legal_id')->nullable()->after('avatar');
             $table->foreignIdFor(Family::class)->nullable()->after('id')->constrained()->nullOnDelete();
             $table->boolean('is_admin')->default(false)->after('remember_token');
             $table->boolean('darkmode')->nullable()->after('remember_token');
+            $table->softDeletes();
 
             $table->dropColumn('name');
 
@@ -36,6 +38,9 @@ return new class extends Migration
             $table->dropConstrainedForeignIdFor(Family::class);
             $table->dropColumn('firstname');
             $table->dropColumn('lastname');
+            $table->dropColumn('avatar');
+            $table->dropColumn('legal_id');
+            $table->dropSoftDeletes();
 
             $table->string('name')->after('id');
         });

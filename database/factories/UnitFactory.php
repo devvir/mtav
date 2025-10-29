@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Project;
-use App\Models\Unit;
+use App\Models\UnitType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 
@@ -20,16 +20,19 @@ class UnitFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->word(),
+            'number' => $this->faker->numerify('###'),
             'project_id' => Project::factory(),
+            'unit_type_id' => fn (array $attributes) => UnitType::factory()->create(['project_id' => $attributes['project_id']])->id,
+            'family_id' => null,
         ];
     }
 
     public function inProject(Project $project): static
     {
         return $this->state([
-            'name' => new Sequence(fn (Sequence $seq) => 'Unit ' . $project->id . '-' . $seq->index + 1),
-            'project_id' => $project,
+            'number' => new Sequence(fn (Sequence $seq) => (string) ($seq->index + 1)),
+            'project_id' => $project->id,
+            'unit_type_id' => fn () => UnitType::factory()->create(['project_id' => $project->id])->id,
         ]);
     }
 }

@@ -11,10 +11,13 @@ class Admin extends User
      */
     protected $table = 'users';
 
-    public function manages(Project $project): bool
+    /**
+     * Check if admin manages a project.
+     */
+    public function manages(Project|int $project): bool
     {
         return $this->isSuperAdmin()
-            || ($this->isAdmin() && $this->projects->contains($project));
+            || $this->projects->contains($project);
     }
 
     protected static function booted(): void

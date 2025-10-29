@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('organization');
             $table->boolean('active')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('project_user', function (Blueprint $table) {

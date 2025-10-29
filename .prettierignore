@@ -1,3 +1,19 @@
 resources/js/components/ui/*
 resources/js/ziggy.js
 resources/views/mail/*
+
+# Ignore all non-frontend files
+*.php
+*.env
+*.env.*
+*.blade.php
+composer.json
+composer.lock
+artisan
+*.sh
+*.md
+vendor/**
+storage/**
+bootstrap/cache/**
+public/storage
+public/hot

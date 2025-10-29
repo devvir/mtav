@@ -32,8 +32,10 @@ class UserResource extends JsonResource
             'is_verified' => (bool) $this->email_verified_at,
             'is_admin' => $this->isAdmin(),
             'is_superadmin' => $this->isSuperAdmin(),
+            'legal_id' => $this->legal_id ?? '',
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
+            'deleted_at' => $this->deleted_at?->toDateTimeString(),
 
             ...$this->relationsData(),
         ];

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Family;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,6 +28,7 @@ class UserFactory extends Factory
             'family_id' => Family::factory(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),
+            'legal_id' => fake()->optional()->numerify('#.###.###-#'),
             'firstname' => fake()->firstName(),
             'lastname' => fake()->lastName(),
             'is_admin' => false,

@@ -195,4 +195,16 @@ return [
     */
 
     'attributes' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mensajes de Validación Personalizados
+    |--------------------------------------------------------------------------
+    */
+
+    'belongs_to_project' => 'El/La :attribute seleccionado/a no pertenece al proyecto seleccionado.',
+    'family_belongs_to_project' => 'La familia seleccionada no pertenece al proyecto seleccionado.',
+    'project_context_mismatch' => 'No se puede especificar un proyecto cuando ya hay un contexto de proyecto activo.',
+    'unauthorized_project_access' => 'No tienes permiso para realizar esta acción en el proyecto seleccionado.',
+    'unit_type_belongs_to_project' => 'El tipo de unidad seleccionado no pertenece al proyecto seleccionado.',
 ];

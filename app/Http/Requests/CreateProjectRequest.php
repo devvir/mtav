@@ -4,9 +4,16 @@ namespace App\Http\Requests;
 
 use App\Models\Admin;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/**
+ * @method User|null user($guard = null)
+ *
+ * @mixin Request
+ */
 class CreateProjectRequest extends FormRequest
 {
     /**
@@ -17,12 +24,14 @@ class CreateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique(Project::class, 'name')],
+            'name' => ['required', 'string', 'max:255', 'unique:project,name'],
             'description' => ['required', 'string', 'max:65535'],
-            'admins' => [
+            'organization' => ['required', 'string', 'max:255'],
+            'admins' => ['required', 'array'],
+            'admins.*' => [
                 'required',
-                'array',
-                Rule::exists(Admin::class, 'id'),
+                'integer',
+                Rule::exists('users', 'id')->where('is_admin', true),
             ],
         ];
     }

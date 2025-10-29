@@ -5,8 +5,10 @@ namespace App\Models;
 use App\Models\Concerns\HasPolicy;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,9 +18,9 @@ class User extends Authenticatable
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
-
     use HasPolicy;
     use Notifiable;
+    use SoftDeletes;
 
     protected $guarded = [];
 
@@ -38,14 +40,30 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Sub-instance as Member/Admin (depends on @is_admin)
+     */
+    protected ?Admin $adminCast = null;
+    protected ?Member $memberCast = null;
+
     public function asMember(): ?Member
     {
-        return $this->is_admin ? null : Member::make($this->getAttributes());
+        return $this->memberCast;
     }
 
     public function asAdmin(): ?Admin
     {
-        return $this->is_admin ? Admin::make($this->getAttributes()) : null;
+        return $this->adminCast;
+    }
+
+    /**
+     * Ensure email is always stored in lowercase.
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => strtolower($value),
+        );
     }
 
     /**
@@ -68,6 +86,16 @@ class User extends Authenticatable
         $query->orderBy('firstname')->orderBy('lastname');
     }
 
+    public function scopeInProject(Builder $query, int|Project $project): void
+    {
+        $projectId = is_int($project) ? $project : $project->getKey();
+
+        $query->whereHas(
+            'projects',
+            fn ($q) => $q->where('projects.id', $projectId)
+        );
+    }
+
     public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
     {
         $query
@@ -87,7 +115,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->is_admin;
+        return $this->is_admin || $this->isSuperAdmin();
     }
 
     public function isNotAdmin(): bool
@@ -97,7 +125,7 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->isAdmin() && in_array($this->getKey(), config('auth.superadmins'));
+        return $this->is_admin && in_array($this->getKey(), config('auth.superadmins'));
     }
 
     public function isNotSuperAdmin(): bool
@@ -108,5 +136,18 @@ class User extends Authenticatable
     public function isVerified(): bool
     {
         return (bool) $this->email_verified_at;
+    }
+
+    protected static function booted()
+    {
+        $doCast = fn (User $user) => $user->isAdmin()
+            ? ($user->adminCast = Admin::make($user->getAttributes()))
+            : ($user->memberCast = Member::make($user->getAttributes()));
+
+        if (static::class === User::class) {
+            static::created($doCast);
+            static::retrieved($doCast);
+            static::saved($doCast);
+        }
     }
 }

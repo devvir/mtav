@@ -3,24 +3,31 @@
 namespace App\Http\Requests;
 
 use App\Models\Family;
-use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\BelongsToProject;
 use Illuminate\Validation\Rule;
 
-class CreateMemberRequest extends FormRequest
+/**
+ * @property-read int $project_id
+ * @property-read int $family
+ * @property-read string $email
+ * @property-read string $firstname
+ * @property-read string|null $lastname
+ */
+class CreateMemberRequest extends ProjectScopedRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $projectId = $this['project_id'];
+
         return [
-            'project' => ['required', Rule::exists(Project::class, 'id')],
-            'family' => ['required', Rule::exists(Family::class, 'id')],
-            'email' => ['required', 'email', 'max:255', Rule::unique(User::class)],
+            'project_id' => 'required|integer|exists:projects,id',
+            'family' => array_filter([
+                'required',
+                'exists:family,id',
+                $projectId ? new BelongsToProject(Family::class, $projectId, 'validation.family_belongs_to_project') : null,
+            ]),
+            'email' => ['required', 'email', 'max:255', 'unique:user,email'],
             'firstname' => ['required', 'string', 'between:2,80'],
             'lastname' => ['nullable', 'string', 'between:2,80'],
         ];

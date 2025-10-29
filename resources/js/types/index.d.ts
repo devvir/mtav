@@ -1,9 +1,11 @@
-type AppResource = 'projects' | 'units' | 'admins' | 'families' | 'members' | 'logs';
+type AppResource = 'projects' | 'units' | 'unit-types' | 'admins' | 'families' | 'members' | 'logs';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
 interface Resource {
   id: number;
   created_at: string;
+  created_ago: string;
+  deleted_at: string | null;
 }
 
 interface User extends Resource {
@@ -12,11 +14,11 @@ interface User extends Resource {
   name: string;
   firstname: string;
   lastname: string;
+  legal_id: string;
   avatar: string;
   is_verified: boolean;
   is_admin: boolean;
   is_superadmin: boolean;
-  created_ago: string;
 }
 
 interface Member extends User {
@@ -31,9 +33,24 @@ interface Admin extends User {
 interface Family extends Resource {
   name: string;
   avatar: string;
-
+  unit_type?: UnitType & { loaded?: boolean };
   project: Project & { loaded?: boolean };
   members?: User[];
+}
+
+interface UnitType extends Resource {
+  name: string;
+  description?: string;
+  units_count?: number;
+  families_count?: number;
+}
+
+interface Unit extends Resource {
+  name: string;
+  number?: string;
+  project: Project & { loaded?: boolean };
+  type?: UnitType & { loaded?: boolean };
+  family?: Family | null;
 }
 
 interface Project extends Resource {

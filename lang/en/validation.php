@@ -195,4 +195,16 @@ return [
 
     'attributes' => [],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Messages
+    |--------------------------------------------------------------------------
+    */
+
+    'belongs_to_project' => 'The selected :attribute does not belong to the selected project.',
+    'family_belongs_to_project' => 'The selected family does not belong to the selected project.',
+    'project_context_mismatch' => 'Cannot specify a project when a project context is already active.',
+    'unauthorized_project_access' => 'You do not have permission to perform this action on the selected project.',
+    'unit_type_belongs_to_project' => 'The selected unit type does not belong to the selected project.',
+
 ];

@@ -101,10 +101,13 @@ case $COMMAND in
         echo -e "${BLUE}🆕 Fresh start: cleaning and rebuilding everything...${NC}"
         # Remove first-run witness file to trigger full setup
         rm -f .docker/first-run-executed
-        "$SCRIPTS_DIR/compose.sh" down --volumes
+        "$SCRIPTS_DIR/compose.sh" down --volumes --remove-orphans
+        docker network rm mtav_default 2>/dev/null || true
         # Now run normal up command which will detect first-run and do full setup
         exec "$0" up
-        ;;      status)
+        ;;
+
+    status)
         "$SCRIPTS_DIR/status.sh"
         ;;
 

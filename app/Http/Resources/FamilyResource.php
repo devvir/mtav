@@ -25,6 +25,7 @@ class FamilyResource extends JsonResource
             'avatar' => $this->resolveAvatar(),
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
+            'deleted_at' => $this->deleted_at?->toDateTimeString(),
 
             ...$this->relationsData(),
         ];
@@ -35,6 +36,7 @@ class FamilyResource extends JsonResource
         return [
             'members' => $this->whenLoaded('members'),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
+            'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
         ];
     }
 

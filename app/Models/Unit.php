@@ -13,4 +13,14 @@ class Unit extends Model
     {
         return $this->belongsTo(Project::class);
     }
+
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class, 'unit_type_id');
+    }
+
+    public function family(): BelongsTo
+    {
+        return $this->belongsTo(Family::class);
+    }
 }

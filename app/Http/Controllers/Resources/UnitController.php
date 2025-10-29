@@ -3,26 +3,32 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitRequest;
+use App\Http\Requests\IndexUnitsRequest;
 use App\Http\Requests\UpdateUnitRequest;
-use App\Models\Project;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 use Inertia\Response;
 
 class UnitController extends Controller
 {
     /**
-     * Show the members dashboard.
+     * Show the resource index.
      */
-    public function index(): Response
+    public function index(IndexUnitsRequest $request): Response
     {
-        $units = Project::current()?->units ?? [];
+        $units = Unit::with('type', 'family')
+            ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId))
+            ->when($request->q, fn ($query, $q) => $query->whereLike('number', "%$q%"));
 
-        return inertia('Units/Index', compact('units'));
+        return inertia('Units/Index', [
+            'units' => Inertia::deepMerge(fn () => $units->paginate(30)),
+            'q' => $request->q ?? '',
+        ]);
     }
 
     /**
-     * Show the project details.
+     * Show the resource details.
      */
     public function show(Unit $unit): Response
     {
@@ -42,12 +48,10 @@ class UnitController extends Controller
      */
     public function store(CreateUnitRequest $request): RedirectResponse
     {
-        $unit = Unit::create([
-            ...$request->validated(),
-            'project_id' => Project::current()->id,
-        ]);
+        $unit = Unit::create($request->all());
 
-        return to_route('units.show', $unit->id);
+        return to_route('units.show', $unit->id)
+            ->with('success', __('Unit created successfully.'));
     }
 
     /**
@@ -63,9 +67,10 @@ class UnitController extends Controller
      */
     public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     {
-        $unit->update($request->validated());
+        $unit->update($request->all());
 
-        return to_route('units.show', $unit->id);
+        return to_route('units.show', $unit->id)
+            ->with('success', __('Unit updated successfully.'));
     }
 
     /**
@@ -75,6 +80,18 @@ class UnitController extends Controller
     {
         $unit->delete();
 
-        return to_route('units.index');
+        return to_route('units.index')
+            ->with('success', __('Unit deleted successfully.'));
+    }
+
+    /**
+     * Restore the soft-deleted resource.
+     */
+    public function restore(Unit $unit): RedirectResponse
+    {
+        $unit->restore();
+
+        return to_route('units.show', $unit->id)
+            ->with('success', __('Unit restored successfully.'));
     }
 }

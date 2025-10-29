@@ -22,7 +22,9 @@ class ProjectResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'active' => $this->active,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at->toDateTimeString(),
+            'created_ago' => $this->created_at->diffForHumans(),
+            'deleted_at' => $this->deleted_at?->toDateTimeString(),
 
             ...$this->relationsData(),
         ];

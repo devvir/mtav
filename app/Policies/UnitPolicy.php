@@ -46,4 +46,12 @@ class UnitPolicy
     {
         return $user->asAdmin()?->manages($unit->project);
     }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Unit $unit): bool
+    {
+        return $user->asAdmin()?->manages($unit->project_id);
+    }
 }

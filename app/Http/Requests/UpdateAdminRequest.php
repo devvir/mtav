@@ -4,8 +4,18 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/**
+ * @property-read string $firstname
+ * @property-read string|null $lastname
+ * @property-read string $email
+ *
+ * @method User|null user($guard = null)
+ *
+ * @mixin Request
+ */
 class UpdateAdminRequest extends FormRequest
 {
     /**

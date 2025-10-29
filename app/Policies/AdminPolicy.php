@@ -8,14 +8,6 @@ use App\Models\User;
 class AdminPolicy
 {
     /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return $user->isAdmin();
-    }
-
-    /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user)
@@ -24,34 +16,50 @@ class AdminPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the authenticated User can view an Admin.
+     *
+     * IMPORTANT: To avoid N+1 queries when loading Admin collections with policies,
+     * this method only performs partial validation. For Admins viewing other Admins,
+     * the full constraint is enforced in AdminController@show via the ShowAdminRequest.
+     *
+     * - Users (Member or Admin) can view admins in their project
+     * - Admins can only view admins with overlapping managed projects
      */
-    public function view(User $user, Admin $model): bool
+    public function view(User $user, Admin $admin): bool
     {
-        return true;
+        return $user->isAdmin()
+            || $user->asMember()?->project->admins->contains($admin);
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(User $user): bool
+    {
+        return $user->isAdmin();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Admin $model): bool
+    public function update(User $user, Admin $admin): bool
     {
-        return $user->isSuperAdmin() || $user->is($model);
+        return $user->isSuperAdmin() || $user->is($admin);
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can delete the admin.
      */
-    public function delete(User $user, Admin $model): bool
+    public function delete(User $user, Admin $admin): bool
     {
-        return $user->isSuperAdmin() || $user->is($model);
+        return $user->isSuperAdmin() || $user->is($admin);
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determine whether the user can restore the admin.
      */
-    public function restore(User $user, Admin $model): bool
+    public function restore(User $user): bool
     {
-        return $user->isAdmin() && $model->isSoftDeletable() && $model->deleted_at;
+        return $user->isSuperAdmin();
     }
 }

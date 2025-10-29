@@ -7,34 +7,61 @@ use App\Models\User;
 /**
  * Create a superadmin user for testing.
  */
-function createSuperAdmin(array $attributes = []): Admin
+function createSuperAdmin(array $attributes = [], bool $asUser = false): Admin|User
 {
     $id = $attributes['id'] ?? 999;
     config(['auth.superadmins' => array_merge(config('auth.superadmins', []), [$id])]);
 
-    return Admin::factory()->create(array_merge(['id' => $id], $attributes));
+    $admin = Admin::factory()->create(array_merge(['id' => $id], $attributes));
+
+    return $asUser ? User::find($admin->id) : $admin;
 }
 
 /**
  * Create a regular admin user for testing.
  */
-function createAdmin(array $attributes = []): Admin
+function createAdmin(array $attributes = [], bool $asUser = false): Admin|User
 {
-    return Admin::factory()->create($attributes);
+    $admin = Admin::factory()->create($attributes);
+
+    return $asUser ? User::find($admin->id) : $admin;
 }
 
 /**
  * Create a member user for testing.
+ * Requires a family_id to be provided in attributes.
  */
-function createMember(array $attributes = []): Member
+function createMember(array $attributes = [], bool $asUser = false): Member|User
 {
-    return Member::factory()->create($attributes);
+    // If no family_id provided, find or create one
+    if (!isset($attributes['family_id'])) {
+        $family = \App\Models\Family::first();
+
+        if (!$family) {
+            // Need to create a full hierarchy: Project -> UnitType -> Family
+            $project = \App\Models\Project::factory()->create();
+            $unitType = \App\Models\UnitType::factory()->create([
+                'project_id' => $project->id,
+                'name' => 'Test Type',
+            ]);
+            $family = \App\Models\Family::factory()->create([
+                'project_id' => $project->id,
+                'unit_type_id' => $unitType->id,
+            ]);
+        }
+
+        $attributes['family_id'] = $family->id;
+    }
+
+    $member = Member::factory()->create($attributes);
+
+    return $asUser ? User::find($member->id) : $member;
 }
 
 /**
  * Create an admin assigned to specific projects.
  */
-function createAdminWithProjects(array $projects, array $attributes = []): Admin
+function createAdminWithProjects(array $projects, array $attributes = [], bool $asUser = false): Admin|User
 {
     $admin = createAdmin($attributes);
 
@@ -42,7 +69,7 @@ function createAdminWithProjects(array $projects, array $attributes = []): Admin
         $project->addAdmin($admin);
     }
 
-    return $admin->fresh();
+    return $asUser ? User::find($admin->id) : $admin->fresh();
 }
 
 /**
@@ -50,7 +77,22 @@ function createAdminWithProjects(array $projects, array $attributes = []): Admin
  */
 function createMemberInProject($project, $family = null, array $attributes = []): Member
 {
-    $family = $family ?? \App\Models\Family::factory()->create(['project_id' => $project->id]);
+    if (!$family) {
+        // Find or create a family in this project
+        $family = \App\Models\Family::where('project_id', $project->id)->first();
+
+        if (!$family) {
+            // Create a unit type and family for this project
+            $unitType = \App\Models\UnitType::factory()->create([
+                'project_id' => $project->id,
+                'name' => 'Test Type',
+            ]);
+            $family = \App\Models\Family::factory()->create([
+                'project_id' => $project->id,
+                'unit_type_id' => $unitType->id,
+            ]);
+        }
+    }
 
     $member = Member::factory()->create(array_merge([
         'family_id' => $family->id,
@@ -59,4 +101,31 @@ function createMemberInProject($project, $family = null, array $attributes = [])
     $member->joinProject($project);
 
     return $member->fresh();
+}
+
+/**
+ * Create a family for testing.
+ * Will create necessary parent records (Project, UnitType) if not provided.
+ */
+function createFamily(array $attributes = []): \App\Models\Family
+{
+    if (!isset($attributes['project_id'])) {
+        $project = \App\Models\Project::first() ?? \App\Models\Project::factory()->create();
+        $attributes['project_id'] = $project->id;
+    }
+
+    if (!isset($attributes['unit_type_id'])) {
+        $unitType = \App\Models\UnitType::where('project_id', $attributes['project_id'])->first();
+
+        if (!$unitType) {
+            $unitType = \App\Models\UnitType::factory()->create([
+                'project_id' => $attributes['project_id'],
+                'name' => 'Test Type',
+            ]);
+        }
+
+        $attributes['unit_type_id'] = $unitType->id;
+    }
+
+    return \App\Models\Family::factory()->create($attributes);
 }

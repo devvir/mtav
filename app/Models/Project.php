@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
+    use SoftDeletes;
+
     public static function current(): ?Project
     {
         return state('project');
@@ -24,6 +27,11 @@ class Project extends Model
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);
+    }
+
+    public function unitTypes(): HasMany
+    {
+        return $this->hasMany(UnitType::class);
     }
 
     public function members(): BelongsToMany
