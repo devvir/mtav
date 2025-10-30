@@ -51,7 +51,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
     >
       <!-- Visible input-->
       <input
-        class="pointer-events-none w-full truncate p-3 pr-10 outline-0"
+        class="pointer-events-none w-full truncate p-3 pr-10 text-text outline-0"
         tabindex="-1"
         :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"
@@ -63,7 +63,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
         class="group absolute inset-0"
       >
         <svg
-          class="absolute top-1/2 right-3 size-6 -translate-y-1/2 stroke-background/50 transition-transform peer-hocus:stroke-background"
+          class="absolute top-1/2 right-3 size-6 -translate-y-1/2 stroke-text-muted transition-all peer-hocus:stroke-text"
           :class="{ 'rotate-180': isOpen, hidden: disabled }"
           viewBox="0 0 24 24"
           fill="currentColor"
@@ -75,33 +75,33 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
 
       <Teleport :to="dropdownSlot" defer>
         <DropdownContent
-          class="unique-class group top-1 z-2 col-span-2 grid w-full origin-top cursor-pointer grid-cols-[auto_1fr] overflow-hidden overflow-y-auto rounded-b-lg border border-foreground/5 bg-background/93 text-foreground/70 shadow shadow-muted-foreground/40 backdrop-blur-sm transition-all duration-300 @md:col-start-2"
-          :class="{ 'invisible -rotate-x-90 opacity-0': !isOpen }"
+          class="unique-class group top-1 z-2 col-span-2 grid w-full origin-top cursor-pointer grid-cols-[auto_1fr] overflow-hidden overflow-y-auto rounded-b-xl border-2 border-t-0 border-border bg-surface-elevated text-text shadow-xl backdrop-blur-sm transition-all duration-200 @md:col-start-2 @md:rounded-b-2xl"
+          :class="{ 'invisible scale-y-0 opacity-0': !isOpen }"
         >
           <FormSelectAddOption
             v-if="create"
             v-bind="{ ...create, open: isOpen }"
-            class="absolute inset-0 top-auto z-2 col-span-2 h-16 border-t-2 border-foreground"
+            class="absolute inset-0 top-auto z-2 col-span-2 h-16 border-t-2 border-border"
           />
 
           <ul
-            class="col-span-2 grid max-h-72 auto-rows-auto grid-cols-subgrid gap-0 divide-y-1 divide-foreground/6 overflow-auto overflow-y-auto"
+            class="col-span-2 grid max-h-72 auto-rows-auto grid-cols-subgrid gap-0 divide-y divide-border-subtle overflow-auto overflow-y-auto"
             :class="{ 'mb-18': create }"
           >
             <li
               v-for="(label, value) in options"
               :key="value"
               tabindex="0"
-              class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-3 py-3 text-base"
+              class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-4 py-3 text-base transition-all"
               :class="
                 selected?.some((option) => option == value)
-                  ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-accent/70 hover:text-accent-foreground not-group-hover:focus:bg-accent/70 not-group-hover:focus:text-accent-foreground'
+                  ? 'bg-interactive text-interactive-foreground font-semibold'
+                  : 'hover:bg-surface-interactive-hover hover:text-text focus:bg-surface-interactive-hover focus:text-text focus:outline-none'
               "
               @click.prevent.stop="toggleOption(value, close)"
               @keyup.enter="toggleOption(value, close)"
             >
-              <div v-if="displayId" class="text-xs opacity-80">id: {{ value }}</div>
+              <div v-if="displayId" class="text-xs text-text-subtle">id: {{ value }}</div>
               <div :class="{ 'col-span-2': !displayId }">{{ label }}</div>
             </li>
           </ul>

@@ -11,8 +11,8 @@ defineProps<Props>();
 
 <template>
   <header>
-    <h3 class="mb-1 text-xl font-medium">{{ _(title) }}</h3>
-    <p v-if="description" class="text-xs text-muted-foreground">
+    <h3 class="mb-1 text-xl font-medium text-text">{{ _(title) }}</h3>
+    <p v-if="description" class="text-xs text-text-muted">
       {{ _(description) }}
     </p>
   </header>

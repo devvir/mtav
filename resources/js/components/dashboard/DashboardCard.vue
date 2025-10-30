@@ -18,22 +18,22 @@ const hasSlot = computed(() => !!props.title || !!props.subtitle);
   <component
     :is="href ? Link : 'div'"
     :href="href"
-    class="group relative flex flex-col overflow-hidden rounded-lg border border-sidebar-border/70 bg-white transition-all hover:shadow-md dark:border-sidebar-border dark:bg-sidebar"
+    class="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface-elevated transition-all hover:border-border-interactive hover:shadow-md focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 focus-within:ring-offset-focus-ring-offset"
     :class="{ 'cursor-pointer': href }"
   >
-    <div v-if="image" class="relative aspect-video w-full overflow-hidden bg-muted">
+    <div v-if="image" class="relative aspect-video w-full overflow-hidden bg-surface-sunken">
       <img :src="image" :alt="title" class="h-full w-full object-cover transition-transform group-hover:scale-105" />
       <div
         v-if="badge !== undefined"
-        class="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
+        class="absolute right-2 top-2 rounded-full bg-surface/90 px-2 py-0.5 text-xs font-medium text-text backdrop-blur-sm"
       >
         {{ badge }}
       </div>
     </div>
 
     <div v-if="hasSlot || $slots.default" class="flex flex-1 flex-col gap-1 p-3">
-      <div v-if="title" class="text-sm font-semibold text-foreground">{{ title }}</div>
-      <div v-if="subtitle" class="text-xs text-muted-foreground">{{ subtitle }}</div>
+      <div v-if="title" class="text-sm font-semibold text-text">{{ title }}</div>
+      <div v-if="subtitle" class="text-xs text-text-muted">{{ subtitle }}</div>
       <slot />
     </div>
   </component>

@@ -17,7 +17,7 @@ defineProps<{
       <UnitTypeCard v-for="unitType in unitTypes" :key="unitType.id" :unit-type="unitType" />
     </div>
     <div v-else class="flex h-40 items-center justify-center rounded-lg">
-      <div class="text-center text-sm text-muted-foreground">
+      <div class="text-center text-sm text-text-muted">
         <Building2 class="mx-auto mb-2 h-8 w-8 opacity-50" />
         <p>{{ _('No units yet') }}</p>
       </div>

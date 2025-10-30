@@ -11,7 +11,7 @@ import IndexCard from './Crud/IndexCard.vue';
 defineProps<{
   projects: ApiResources<Project>;
   q: string;
-  all: 0 | 1;
+  all: boolean;
 }>();
 </script>
 

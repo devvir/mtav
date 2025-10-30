@@ -2,7 +2,7 @@
 import { Modal, useModal } from '@inertiaui/modal-vue';
 
 defineProps<{
-  modalClasses?: any;
+  panelClasses?: any;
   paddingClasses?: any;
 }>();
 
@@ -18,7 +18,7 @@ onUnmounted(onNavigateDetacher);
 </script>
 
 <template>
-  <Modal ref="modal" v-if="useModal()" v-slot="modal" :modalClasses :paddingClasses>
+  <Modal ref="modal" v-if="useModal()" v-slot="modal" :panel-classes="panelClasses" :padding-classes="paddingClasses">
     <slot v-bind="modal" />
   </Modal>
 

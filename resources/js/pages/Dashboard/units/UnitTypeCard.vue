@@ -16,20 +16,20 @@ defineProps<{
 </script>
 
 <template>
-  <div class="rounded-lg border border-sidebar-border/70 bg-card">
+  <div class="rounded-lg border border-border bg-surface-elevated shadow-sm overflow-hidden">
     <!-- Unit Type Header -->
     <ModalLink
       :href="`/unit-types/${unitType.id}`"
-      class="block border-b border-sidebar-border/50 bg-muted/30 p-4 transition-colors hover:bg-muted/50"
+      class="block border-b border-border-subtle bg-surface-sunken p-4 transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
     >
       <div class="flex items-center justify-between">
         <div>
-          <div class="font-semibold">{{ unitType.name }}</div>
-          <div v-if="unitType.description" class="mt-1 text-sm text-muted-foreground">
+          <div class="font-semibold text-text">{{ unitType.name }}</div>
+          <div v-if="unitType.description" class="mt-1 text-sm text-text-muted">
             {{ unitType.description }}
           </div>
         </div>
-        <div class="text-sm text-muted-foreground">
+        <div class="text-sm text-text-subtle">
           {{ unitType.units_count }} {{ unitType.units_count === 1 ? _('unit') : _('units') }}
         </div>
       </div>
@@ -41,7 +41,7 @@ defineProps<{
     </div>
 
     <!-- Empty state -->
-    <div v-else class="p-4 text-center text-sm text-muted-foreground">
+    <div v-else class="p-4 text-center text-sm text-text-muted">
       {{ _('No units of this type yet') }}
     </div>
   </div>

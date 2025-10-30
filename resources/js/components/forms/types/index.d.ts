@@ -32,6 +32,10 @@ export interface InputSpecs extends CommonElementSpecs {
   type?: InputTypes;
   placeholder?: string;
   autocomplete?: boolean;
+  min?: number;
+  max?: number;
+  minlength?: number;
+  maxLength?: number;
   value?: string | number | boolean | null;
 }
 

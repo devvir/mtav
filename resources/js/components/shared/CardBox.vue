@@ -12,13 +12,13 @@ const attrs = useAttrs();
   <div
     :class="
       cn(
-        'rounded-xl border-t-1 border-muted-foreground/25 bg-muted shadow shadow-muted-foreground/20 hover:bg-muted/95',
+        'rounded-xl border border-border bg-surface-elevated text-surface-elevated-foreground shadow-sm transition-all hover:shadow-md focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 focus-within:ring-offset-focus-ring-offset',
         props.class,
       )
     "
     v-bind="attrs"
   >
-    <div v-if="$slots.header" class="mb-wide-y border-b border-foreground/10 pb-wide-y">
+    <div v-if="$slots.header" class="mb-wide-y border-b border-border-subtle pb-wide-y">
       <slot name="header" />
     </div>
     <slot />

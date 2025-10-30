@@ -54,7 +54,7 @@ const submit = () => {
         </div>
       </form>
 
-      <div class="space-x-1 text-center text-sm text-muted-foreground">
+      <div class="space-x-1 text-center text-sm text-text-muted">
         <span>{{ _('Or, return to') }}</span>
         <TextLink :href="route('login')">{{ _('Log in') }}</TextLink>
       </div>

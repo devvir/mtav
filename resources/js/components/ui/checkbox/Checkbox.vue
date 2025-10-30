@@ -22,7 +22,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     data-slot="checkbox"
     v-bind="forwarded"
     :class="
-      cn('peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
+      cn('peer min-h-[44px] min-w-[44px] @md:min-h-[36px] @md:min-w-[36px] border-border data-[state=checked]:bg-interactive data-[state=checked]:text-white data-[state=checked]:border-interactive focus-visible:border-focus-ring focus-visible:ring-focus-ring/50 aria-invalid:ring-error/20 aria-invalid:border-error flex items-center justify-center rounded-[4px] border-2 shadow-xs transition-shadow outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50',
          props.class)"
   >
     <CheckboxIndicator
@@ -30,7 +30,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       class="flex items-center justify-center text-current transition-none"
     >
       <slot>
-        <Check class="size-3.5" />
+        <Check class="size-5 @md:size-4" />
       </slot>
     </CheckboxIndicator>
   </CheckboxRoot>

@@ -11,22 +11,28 @@ defineProps<{
 <template>
   <Card class="h-full">
     <template v-slot:header>
-      <div class="flex justify-between">
-        <div class="truncate pl-base text-right">
-          <div class="text-xs text-muted-foreground/50">{{ _('Unit Type') }}</div>
-          <div class="truncate text-xl">{{ unitType.name }}</div>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 text-right">
+          <div class="text-xs font-medium uppercase tracking-wide text-text-subtle">{{ _('Unit Type') }}</div>
+          <div class="truncate text-xl font-semibold text-text">{{ unitType.name }}</div>
         </div>
       </div>
     </template>
 
-    <div class="my-base-y flex flex-col justify-between gap-1 lg:gap-1.5">
-      <div v-if="unitType.description" class="text-sm text-muted-foreground">
+    <div class="space-y-3">
+      <div v-if="unitType.description" class="text-sm leading-relaxed text-text-muted">
         {{ unitType.description }}
       </div>
 
-      <div class="mt-2 flex gap-4 text-sm text-muted-foreground">
-        <div v-if="unitType.units_count !== undefined">{{ unitType.units_count }} {{ _('Units') }}</div>
-        <div v-if="unitType.families_count !== undefined">{{ unitType.families_count }} {{ _('Families') }}</div>
+      <div class="flex gap-4 text-sm font-medium text-text-subtle">
+        <div v-if="unitType.units_count !== undefined" class="flex items-center gap-1">
+          <span class="font-semibold text-text">{{ unitType.units_count }}</span>
+          <span>{{ _('Units') }}</span>
+        </div>
+        <div v-if="unitType.families_count !== undefined" class="flex items-center gap-1">
+          <span class="font-semibold text-text">{{ unitType.families_count }}</span>
+          <span>{{ _('Families') }}</span>
+        </div>
       </div>
     </div>
   </Card>

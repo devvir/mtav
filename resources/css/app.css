@@ -64,6 +64,63 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /*  color palette - Surface colors */
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-elevated-foreground: var(--surface-elevated-foreground);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-sunken-foreground: var(--surface-sunken-foreground);
+  --color-surface-interactive: var(--surface-interactive);
+  --color-surface-interactive-hover: var(--surface-interactive-hover);
+
+  /*  color palette - Text colors */
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-link: var(--text-link);
+  --color-text-link-hover: var(--text-link-hover);
+
+  /*  color palette - Interactive colors */
+  --color-interactive: var(--interactive);
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-active: var(--interactive-active);
+  --color-interactive-foreground: var(--interactive-foreground);
+  --color-interactive-secondary: var(--interactive-secondary);
+  --color-interactive-secondary-hover: var(--interactive-secondary-hover);
+  --color-interactive-secondary-foreground: var(--interactive-secondary-foreground);
+
+  /*  color palette - Border colors */
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-interactive: var(--border-interactive);
+
+  /*  color palette - Semantic colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-subtle-foreground: var(--success-subtle-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-subtle-foreground: var(--warning-subtle-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-subtle: var(--error-subtle);
+  --color-error-subtle-foreground: var(--error-subtle-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-subtle-foreground: var(--info-subtle-foreground);
+
+  /*  color palette - Focus & Selection */
+  --color-focus-ring: var(--focus-ring);
+  --color-focus-ring-offset: var(--focus-ring-offset);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
 }
 
 /*
@@ -163,7 +220,325 @@
   --sidebar-border: hsl(0 0% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
   --sidebar: hsl(0 0% 98%);
+
+  /*  Color Palette - Light Theme */
+  /* Surface colors */
+  --surface: hsl(0 0% 100%);
+  --surface-foreground: hsl(0 0% 9%);
+  --surface-elevated: hsl(0 0% 98%);
+  --surface-elevated-foreground: hsl(0 0% 9%);
+  --surface-sunken: hsl(0 0% 96%);
+  --surface-sunken-foreground: hsl(0 0% 15%);
+  --surface-interactive: hsl(0 0% 100%);
+  --surface-interactive-hover: hsl(0 0% 96%);
+
+  /* Text colors - WCAG AAA compliant (7:1+ contrast on white) */
+  --text: hsl(0 0% 9%);
+  --text-muted: hsl(0 0% 40%);
+  --text-subtle: hsl(0 0% 55%);
+  --text-inverse: hsl(0 0% 98%);
+  --text-link: hsl(221, 83%, 45%);
+  --text-link-hover: hsl(221, 83%, 35%);
+
+  /* Interactive colors */
+  --interactive: hsl(221, 83%, 53%);
+  --interactive-hover: hsl(221, 83%, 43%);
+  --interactive-active: hsl(221, 83%, 38%);
+  --interactive-foreground: hsl(0 0% 98%);
+  --interactive-secondary: hsl(0 0% 94%);
+  --interactive-secondary-hover: hsl(0 0% 88%);
+  --interactive-secondary-foreground: hsl(0 0% 9%);
+
+  /* Border colors */
+  --border: hsl(0 0% 88%);
+  --border-strong: hsl(0 0% 65%);
+  --border-subtle: hsl(0 0% 94%);
+  --border-interactive: hsl(221, 83%, 53%);
+
+  /* Semantic colors - Success */
+  --success: hsl(142, 76%, 36%);
+  --success-foreground: hsl(0 0% 98%);
+  --success-subtle: hsl(142, 76%, 95%);
+  --success-subtle-foreground: hsl(142, 76%, 20%);
+
+  /* Semantic colors - Warning */
+  --warning: hsl(38, 92%, 45%);
+  --warning-foreground: hsl(0 0% 9%);
+  --warning-subtle: hsl(38, 92%, 95%);
+  --warning-subtle-foreground: hsl(38, 92%, 25%);
+
+  /* Semantic colors - Error */
+  --error: hsl(0, 72%, 51%);
+  --error-foreground: hsl(0 0% 98%);
+  --error-subtle: hsl(0, 72%, 95%);
+  --error-subtle-foreground: hsl(0, 72%, 30%);
+
+  /* Semantic colors - Info */
+  --info: hsl(199, 89%, 40%);
+  --info-foreground: hsl(0 0% 98%);
+  --info-subtle: hsl(199, 89%, 95%);
+  --info-subtle-foreground: hsl(199, 89%, 23%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(221, 83%, 53%);
+  --focus-ring-offset: hsl(0 0% 100%);
+  --selection: hsl(221, 83%, 88%);
+  --selection-foreground: hsl(0 0% 9%);
 }
+
+/* ===== ALTERNATIVE THEMES ===== */
+
+/* Alternative Theme: Ocean (Cool Blues & Teals) */
+:root.theme-ocean {
+  /* Main backgrounds */
+  --background: hsl(200, 50%, 88%);
+  --sidebar-background: hsl(195, 55%, 90%);
+
+  /* Surface colors */
+  --surface: hsl(200 30% 96%);
+  --surface-foreground: hsl(200 20% 12%);
+  --surface-elevated: hsl(200 35% 94%);
+  --surface-elevated-foreground: hsl(200 20% 12%);
+  --surface-sunken: hsl(200 25% 91%);
+  --surface-sunken-foreground: hsl(200 18% 18%);
+  --surface-interactive: hsl(200 30% 96%);
+  --surface-interactive-hover: hsl(200 25% 91%);
+
+  /* Text colors */
+  --text: hsl(200 20% 12%);
+  --text-muted: hsl(200 15% 42%);
+  --text-subtle: hsl(200 12% 56%);
+  --text-inverse: hsl(200 25% 98%);
+  --text-link: hsl(195, 85%, 41%);
+  --text-link-hover: hsl(195, 85%, 31%);
+
+  /* Interactive colors - Vibrant Teal */
+  --interactive: hsl(185, 80%, 42%);
+  --interactive-hover: hsl(185, 80%, 36%);
+  --interactive-active: hsl(185, 80%, 30%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(200 25% 92%);
+  --interactive-secondary-hover: hsl(200 25% 86%);
+  --interactive-secondary-foreground: hsl(200 20% 12%);
+
+  /* Border colors */
+  --border: hsl(200 20% 85%);
+  --border-strong: hsl(200 20% 62%);
+  --border-subtle: hsl(200 15% 92%);
+  --border-interactive: hsl(185, 80%, 42%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(185, 80%, 42%);
+  --focus-ring-offset: hsl(200 25% 98%);
+  --selection: hsl(185, 70%, 85%);
+  --selection-foreground: hsl(200 20% 12%);
+}
+
+/* Alternative Theme: Forest (Earthy Greens) */
+:root.theme-forest {
+  /* Main backgrounds */
+  --background: hsl(140, 40%, 88%);
+  --sidebar-background: hsl(145, 45%, 90%);
+
+  /* Surface colors */
+  --surface: hsl(140 25% 96%);
+  --surface-foreground: hsl(140 25% 10%);
+  --surface-elevated: hsl(140 30% 94%);
+  --surface-elevated-foreground: hsl(140 25% 10%);
+  --surface-sunken: hsl(140 22% 91%);
+  --surface-sunken-foreground: hsl(140 20% 16%);
+  --surface-interactive: hsl(140 25% 96%);
+  --surface-interactive-hover: hsl(140 22% 91%);
+
+  /* Text colors */
+  --text: hsl(140 25% 10%);
+  --text-muted: hsl(140 18% 40%);
+  --text-subtle: hsl(140 12% 55%);
+  --text-inverse: hsl(140 15% 98%);
+  --text-link: hsl(155, 75%, 35%);
+  --text-link-hover: hsl(155, 75%, 28%);
+
+  /* Interactive colors - Rich Green */
+  --interactive: hsl(145, 65%, 40%);
+  --interactive-hover: hsl(145, 65%, 34%);
+  --interactive-active: hsl(145, 65%, 28%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(140 15% 92%);
+  --interactive-secondary-hover: hsl(140 15% 86%);
+  --interactive-secondary-foreground: hsl(140 25% 10%);
+
+  /* Border colors */
+  --border: hsl(140 15% 85%);
+  --border-strong: hsl(140 15% 62%);
+  --border-subtle: hsl(140 12% 92%);
+  --border-interactive: hsl(145, 65%, 40%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(145, 65%, 40%);
+  --focus-ring-offset: hsl(140 15% 98%);
+  --selection: hsl(145, 55%, 85%);
+  --selection-foreground: hsl(140 25% 10%);
+}
+
+/* Alternative Theme: Sunset (Warm Purples & Oranges) */
+:root.theme-sunset {
+  /* Main backgrounds */
+  --background: hsl(25, 55%, 88%);
+  --sidebar-background: hsl(30, 60%, 90%);
+
+  /* Surface colors */
+  --surface: hsl(25 35% 96%);
+  --surface-foreground: hsl(25 20% 10%);
+  --surface-elevated: hsl(25 40% 94%);
+  --surface-elevated-foreground: hsl(25 20% 10%);
+  --surface-sunken: hsl(25 30% 91%);
+  --surface-sunken-foreground: hsl(25 18% 16%);
+  --surface-interactive: hsl(25 35% 96%);
+  --surface-interactive-hover: hsl(25 30% 91%);
+
+  /* Text colors */
+  --text: hsl(25 20% 10%);
+  --text-muted: hsl(25 14% 40%);
+  --text-subtle: hsl(25 10% 55%);
+  --text-inverse: hsl(25 30% 98%);
+  --text-link: hsl(265, 75%, 45%);
+  --text-link-hover: hsl(265, 75%, 38%);
+
+  /* Interactive colors - Deep Purple */
+  --interactive: hsl(265, 70%, 52%);
+  --interactive-hover: hsl(265, 70%, 46%);
+  --interactive-active: hsl(265, 70%, 40%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(25 25% 92%);
+  --interactive-secondary-hover: hsl(25 25% 86%);
+  --interactive-secondary-foreground: hsl(25 20% 10%);
+
+  /* Border colors */
+  --border: hsl(25 20% 85%);
+  --border-strong: hsl(25 18% 62%);
+  --border-subtle: hsl(25 15% 92%);
+  --border-interactive: hsl(265, 70%, 52%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(265, 70%, 52%);
+  --focus-ring-offset: hsl(25 30% 98%);
+  --selection: hsl(265, 60%, 88%);
+  --selection-foreground: hsl(25 20% 10%);
+}
+
+/* Alternative Theme: Monochrome (High Contrast B&W) */
+:root.theme-mono {
+  /* Main backgrounds */
+  --background: hsl(0, 0%, 92%);
+  --sidebar-background: hsl(0, 0%, 95%);
+
+  /* Surface colors */
+  --surface: hsl(0 0% 100%);
+  --surface-foreground: hsl(0 0% 0%);
+  --surface-elevated: hsl(0 0% 98%);
+  --surface-elevated-foreground: hsl(0 0% 0%);
+  --surface-sunken: hsl(0 0% 95%);
+  --surface-sunken-foreground: hsl(0 0% 10%);
+  --surface-interactive: hsl(0 0% 100%);
+  --surface-interactive-hover: hsl(0 0% 95%);
+
+  /* Text colors */
+  --text: hsl(0 0% 0%);
+  --text-muted: hsl(0 0% 35%);
+  --text-subtle: hsl(0 0% 50%);
+  --text-inverse: hsl(0 0% 100%);
+  --text-link: hsl(0 0% 20%);
+  --text-link-hover: hsl(0 0% 0%);
+
+  /* Interactive colors - Pure Black */
+  --interactive: hsl(0 0% 10%);
+  --interactive-hover: hsl(0 0% 20%);
+  --interactive-active: hsl(0 0% 30%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(0 0% 90%);
+  --interactive-secondary-hover: hsl(0 0% 80%);
+  --interactive-secondary-foreground: hsl(0 0% 0%);
+
+  /* Border colors */
+  --border: hsl(0 0% 80%);
+  --border-strong: hsl(0 0% 55%);
+  --border-subtle: hsl(0 0% 92%);
+  --border-interactive: hsl(0 0% 10%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(0 0% 0%);
+  --focus-ring-offset: hsl(0 0% 100%);
+  --selection: hsl(0 0% 85%);
+  --selection-foreground: hsl(0 0% 0%);
+}
+
+/* Alternative Theme: High Contrast (WCAG AAA Maximum Contrast) */
+:root.theme-high-contrast {
+  /* Main backgrounds */
+  --background: hsl(0, 0%, 95%);
+  --sidebar-background: hsl(0, 0%, 98%);
+
+  /* Surface colors */
+  --surface: hsl(0 0% 100%);
+  --surface-foreground: hsl(0 0% 0%);
+  --surface-elevated: hsl(0 0% 100%);
+  --surface-elevated-foreground: hsl(0 0% 0%);
+  --surface-sunken: hsl(0 0% 92%);
+  --surface-sunken-foreground: hsl(0 0% 0%);
+  --surface-interactive: hsl(0 0% 100%);
+  --surface-interactive-hover: hsl(0 0% 92%);
+
+  /* Text colors - Maximum contrast */
+  --text: hsl(0 0% 0%);
+  --text-muted: hsl(0 0% 20%);
+  --text-subtle: hsl(0 0% 30%);
+  --text-inverse: hsl(0 0% 100%);
+  --text-link: hsl(220, 100%, 30%);
+  --text-link-hover: hsl(220, 100%, 20%);
+
+  /* Interactive colors - High visibility blue */
+  --interactive: hsl(220, 100%, 40%);
+  --interactive-hover: hsl(220, 100%, 35%);
+  --interactive-active: hsl(220, 100%, 30%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(0 0% 85%);
+  --interactive-secondary-hover: hsl(0 0% 75%);
+  --interactive-secondary-foreground: hsl(0 0% 0%);
+
+  /* Border colors - Strong definition */
+  --border: hsl(0 0% 60%);
+  --border-strong: hsl(0 0% 30%);
+  --border-subtle: hsl(0 0% 80%);
+  --border-interactive: hsl(220, 100%, 40%);
+
+  /* Semantic colors - Maximum contrast */
+  --success: hsl(120, 100%, 25%);
+  --success-foreground: hsl(0 0% 100%);
+  --success-subtle: hsl(120, 100%, 90%);
+  --success-subtle-foreground: hsl(120, 100%, 15%);
+
+  --warning: hsl(45, 100%, 35%);
+  --warning-foreground: hsl(0 0% 0%);
+  --warning-subtle: hsl(45, 100%, 90%);
+  --warning-subtle-foreground: hsl(45, 100%, 20%);
+
+  --error: hsl(0, 100%, 35%);
+  --error-foreground: hsl(0 0% 100%);
+  --error-subtle: hsl(0, 100%, 90%);
+  --error-subtle-foreground: hsl(0, 100%, 25%);
+
+  --info: hsl(200, 100%, 35%);
+  --info-foreground: hsl(0 0% 100%);
+  --info-subtle: hsl(200, 100%, 90%);
+  --info-subtle-foreground: hsl(200, 100%, 25%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(220, 100%, 40%);
+  --focus-ring-offset: hsl(0 0% 100%);
+  --selection: hsl(220, 100%, 80%);
+  --selection-foreground: hsl(0 0% 0%);
+}
+
 /* cyan, sky, blue, slate, zinc, neutral, stone */
 .dark {
   --background: hsl(210, 20%, 2%);
@@ -192,6 +567,314 @@
   --sidebar-border: hsl(0 0% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
   --sidebar: hsl(240 5.9% 10%);
+
+  /*  Color Palette - Dark Theme */
+  /* PRESERVE existing dark theme background and sidebar! */
+  /* Surface colors */
+  --surface: hsl(210, 20%, 2%);
+  --surface-foreground: hsl(0 0% 98%);
+  --surface-elevated: hsl(30, 30%, 6%);
+  --surface-elevated-foreground: hsl(0 0% 98%);
+  --surface-sunken: hsl(210, 20%, 1%);
+  --surface-sunken-foreground: hsl(0 0% 85%);
+  --surface-interactive: hsl(30, 30%, 8%);
+  --surface-interactive-hover: hsl(30, 30%, 10%);
+
+  /* Text colors - WCAG AA+ compliant on dark backgrounds */
+  --text: hsl(0 0% 98%);
+  --text-muted: hsl(0 0% 70%);
+  --text-subtle: hsl(0 0% 55%);
+  --text-inverse: hsl(0 0% 9%);
+  --text-link: hsl(221, 83%, 70%);
+  --text-link-hover: hsl(221, 83%, 80%);
+
+  /* Interactive colors */
+  --interactive: hsl(221, 83%, 60%);
+  --interactive-hover: hsl(221, 83%, 70%);
+  --interactive-active: hsl(221, 83%, 75%);
+  --interactive-foreground: hsl(0 0% 9%);
+  --interactive-secondary: hsl(30, 30%, 10%);
+  --interactive-secondary-hover: hsl(30, 30%, 14%);
+  --interactive-secondary-foreground: hsl(0 0% 98%);
+
+  /* Border colors */
+  --border: hsl(0 0% 20%);
+  --border-strong: hsl(0 0% 35%);
+  --border-subtle: hsl(0 0% 15%);
+  --border-interactive: hsl(221, 83%, 60%);
+
+  /* Semantic colors - Success */
+  --success: hsl(142, 76%, 50%);
+  --success-foreground: hsl(0 0% 9%);
+  --success-subtle: hsl(142, 76%, 12%);
+  --success-subtle-foreground: hsl(142, 76%, 85%);
+
+  /* Semantic colors - Warning */
+  --warning: hsl(38, 92%, 60%);
+  --warning-foreground: hsl(0 0% 9%);
+  --warning-subtle: hsl(38, 92%, 12%);
+  --warning-subtle-foreground: hsl(38, 92%, 85%);
+
+  /* Semantic colors - Error */
+  --error: hsl(0, 72%, 65%);
+  --error-foreground: hsl(0 0% 9%);
+  --error-subtle: hsl(0, 72%, 12%);
+  --error-subtle-foreground: hsl(0, 72%, 85%);
+
+  /* Semantic colors - Info */
+  --info: hsl(199, 89%, 58%);
+  --info-foreground: hsl(0 0% 9%);
+  --info-subtle: hsl(199, 89%, 12%);
+  --info-subtle-foreground: hsl(199, 89%, 85%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(221, 83%, 60%);
+  --focus-ring-offset: hsl(210, 20%, 2%);
+  --selection: hsl(221, 83%, 25%);
+  --selection-foreground: hsl(0 0% 98%);
+}
+
+/* ===== ALTERNATIVE THEMES - DARK VERSIONS ===== */
+
+.dark.theme-ocean {
+  --background: hsl(200, 35%, 8%);
+  --sidebar-background: hsl(195, 40%, 12%);
+
+  /* Surface colors */
+  --surface: hsl(200, 30%, 8%);
+  --surface-foreground: hsl(200 20% 95%);
+  --surface-elevated: hsl(200, 25%, 12%);
+  --surface-elevated-foreground: hsl(200 20% 95%);
+  --surface-sunken: hsl(200, 30%, 5%);
+  --surface-sunken-foreground: hsl(200 15% 82%);
+  --surface-interactive: hsl(200, 25%, 14%);
+  --surface-interactive-hover: hsl(200, 25%, 17%);
+
+  /* Text colors */
+  --text: hsl(200 20% 95%);
+  --text-muted: hsl(200 12% 68%);
+  --text-subtle: hsl(200 10% 54%);
+  --text-inverse: hsl(200 20% 12%);
+  --text-link: hsl(195, 85%, 65%);
+  --text-link-hover: hsl(195, 85%, 75%);
+
+  /* Interactive colors */
+  --interactive: hsl(185, 75%, 55%);
+  --interactive-hover: hsl(185, 75%, 65%);
+  --interactive-active: hsl(185, 75%, 70%);
+  --interactive-foreground: hsl(200 30% 8%);
+  --interactive-secondary: hsl(200, 25%, 16%);
+  --interactive-secondary-hover: hsl(200, 25%, 20%);
+  --interactive-secondary-foreground: hsl(200 20% 95%);
+
+  /* Border colors */
+  --border: hsl(200 20% 22%);
+  --border-strong: hsl(200 18% 38%);
+  --border-subtle: hsl(200 20% 16%);
+  --border-interactive: hsl(185, 75%, 55%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(185, 75%, 55%);
+  --focus-ring-offset: hsl(200, 30%, 8%);
+  --selection: hsl(185, 60%, 28%);
+  --selection-foreground: hsl(200 20% 95%);
+}
+
+.dark.theme-forest {
+  --background: hsl(140, 25%, 8%);
+  --sidebar-background: hsl(145, 30%, 10%);
+
+  /* Surface colors */
+  --surface: hsl(140, 22%, 8%);
+  --surface-foreground: hsl(140 15% 95%);
+  --surface-elevated: hsl(140, 18%, 12%);
+  --surface-elevated-foreground: hsl(140 15% 95%);
+  --surface-sunken: hsl(140, 25%, 5%);
+  --surface-sunken-foreground: hsl(140 12% 82%);
+  --surface-interactive: hsl(140, 18%, 14%);
+  --surface-interactive-hover: hsl(140, 18%, 17%);
+
+  /* Text colors */
+  --text: hsl(140 15% 95%);
+  --text-muted: hsl(140 10% 68%);
+  --text-subtle: hsl(140 8% 54%);
+  --text-inverse: hsl(140 25% 10%);
+  --text-link: hsl(155, 75%, 62%);
+  --text-link-hover: hsl(155, 75%, 72%);
+
+  /* Interactive colors */
+  --interactive: hsl(145, 60%, 52%);
+  --interactive-hover: hsl(145, 60%, 62%);
+  --interactive-active: hsl(145, 60%, 67%);
+  --interactive-foreground: hsl(140 25% 10%);
+  --interactive-secondary: hsl(140, 18%, 16%);
+  --interactive-secondary-hover: hsl(140, 18%, 20%);
+  --interactive-secondary-foreground: hsl(140 15% 95%);
+
+  /* Border colors */
+  --border: hsl(140 15% 22%);
+  --border-strong: hsl(140 15% 38%);
+  --border-subtle: hsl(140 15% 16%);
+  --border-interactive: hsl(145, 60%, 52%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(145, 60%, 52%);
+  --focus-ring-offset: hsl(140, 22%, 8%);
+  --selection: hsl(145, 50%, 25%);
+  --selection-foreground: hsl(140 15% 95%);
+}
+
+.dark.theme-sunset {
+  --background: hsl(25, 30%, 8%);
+  --sidebar-background: hsl(30, 35%, 10%);
+
+  /* Surface colors */
+  --surface: hsl(25, 28%, 8%);
+  --surface-foreground: hsl(25 18% 95%);
+  --surface-elevated: hsl(30, 30%, 12%);
+  --surface-elevated-foreground: hsl(25 18% 95%);
+  --surface-sunken: hsl(25, 30%, 5%);
+  --surface-sunken-foreground: hsl(25 14% 82%);
+  --surface-interactive: hsl(30, 28%, 14%);
+  --surface-interactive-hover: hsl(30, 28%, 17%);
+
+  /* Text colors */
+  --text: hsl(25 18% 95%);
+  --text-muted: hsl(25 12% 68%);
+  --text-subtle: hsl(25 10% 54%);
+  --text-inverse: hsl(25 20% 10%);
+  --text-link: hsl(265, 75%, 68%);
+  --text-link-hover: hsl(265, 75%, 78%);
+
+  /* Interactive colors */
+  --interactive: hsl(265, 68%, 62%);
+  --interactive-hover: hsl(265, 68%, 70%);
+  --interactive-active: hsl(265, 68%, 75%);
+  --interactive-foreground: hsl(0 0% 100%);
+  --interactive-secondary: hsl(30, 28%, 16%);
+  --interactive-secondary-hover: hsl(30, 28%, 20%);
+  --interactive-secondary-foreground: hsl(25 18% 95%);
+
+  /* Border colors */
+  --border: hsl(25 18% 22%);
+  --border-strong: hsl(25 16% 38%);
+  --border-subtle: hsl(25 18% 16%);
+  --border-interactive: hsl(265, 68%, 62%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(265, 68%, 62%);
+  --focus-ring-offset: hsl(25, 28%, 8%);
+  --selection: hsl(265, 55%, 28%);
+  --selection-foreground: hsl(25 18% 95%);
+}
+
+.dark.theme-mono {
+  --background: hsl(0 0% 8%);
+  --sidebar-background: hsl(0 0% 10%);
+
+  /* Surface colors */
+  --surface: hsl(0 0% 8%);
+  --surface-foreground: hsl(0 0% 100%);
+  --surface-elevated: hsl(0 0% 12%);
+  --surface-elevated-foreground: hsl(0 0% 100%);
+  --surface-sunken: hsl(0 0% 4%);
+  --surface-sunken-foreground: hsl(0 0% 88%);
+  --surface-interactive: hsl(0 0% 14%);
+  --surface-interactive-hover: hsl(0 0% 18%);
+
+  /* Text colors */
+  --text: hsl(0 0% 100%);
+  --text-muted: hsl(0 0% 70%);
+  --text-subtle: hsl(0 0% 55%);
+  --text-inverse: hsl(0 0% 0%);
+  --text-link: hsl(0 0% 85%);
+  --text-link-hover: hsl(0 0% 100%);
+
+  /* Interactive colors */
+  --interactive: hsl(0 0% 90%);
+  --interactive-hover: hsl(0 0% 100%);
+  --interactive-active: hsl(0 0% 100%);
+  --interactive-foreground: hsl(0 0% 0%);
+  --interactive-secondary: hsl(0 0% 18%);
+  --interactive-secondary-hover: hsl(0 0% 24%);
+  --interactive-secondary-foreground: hsl(0 0% 100%);
+
+  /* Border colors */
+  --border: hsl(0 0% 25%);
+  --border-strong: hsl(0 0% 45%);
+  --border-subtle: hsl(0 0% 18%);
+  --border-interactive: hsl(0 0% 90%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(0 0% 100%);
+  --focus-ring-offset: hsl(0 0% 8%);
+  --selection: hsl(0 0% 30%);
+  --selection-foreground: hsl(0 0% 100%);
+}
+
+.dark.theme-high-contrast {
+  --background: hsl(0 0% 0%);
+  --sidebar-background: hsl(0 0% 5%);
+
+  /* Surface colors */
+  --surface: hsl(0 0% 0%);
+  --surface-foreground: hsl(0 0% 100%);
+  --surface-elevated: hsl(0 0% 5%);
+  --surface-elevated-foreground: hsl(0 0% 100%);
+  --surface-sunken: hsl(0 0% 8%);
+  --surface-sunken-foreground: hsl(0 0% 100%);
+  --surface-interactive: hsl(0 0% 5%);
+  --surface-interactive-hover: hsl(0 0% 10%);
+
+  /* Text colors - Maximum contrast */
+  --text: hsl(0 0% 100%);
+  --text-muted: hsl(0 0% 85%);
+  --text-subtle: hsl(0 0% 75%);
+  --text-inverse: hsl(0 0% 0%);
+  --text-link: hsl(200, 100%, 70%);
+  --text-link-hover: hsl(200, 100%, 80%);
+
+  /* Interactive colors - High visibility cyan */
+  --interactive: hsl(180, 100%, 50%);
+  --interactive-hover: hsl(180, 100%, 60%);
+  --interactive-active: hsl(180, 100%, 65%);
+  --interactive-foreground: hsl(0 0% 0%);
+  --interactive-secondary: hsl(0 0% 20%);
+  --interactive-secondary-hover: hsl(0 0% 30%);
+  --interactive-secondary-foreground: hsl(0 0% 100%);
+
+  /* Border colors - Strong definition */
+  --border: hsl(0 0% 40%);
+  --border-strong: hsl(0 0% 70%);
+  --border-subtle: hsl(0 0% 20%);
+  --border-interactive: hsl(180, 100%, 50%);
+
+  /* Semantic colors - Maximum contrast */
+  --success: hsl(120, 100%, 50%);
+  --success-foreground: hsl(0 0% 0%);
+  --success-subtle: hsl(120, 100%, 15%);
+  --success-subtle-foreground: hsl(120, 100%, 80%);
+
+  --warning: hsl(45, 100%, 60%);
+  --warning-foreground: hsl(0 0% 0%);
+  --warning-subtle: hsl(45, 100%, 15%);
+  --warning-subtle-foreground: hsl(45, 100%, 80%);
+
+  --error: hsl(0, 100%, 60%);
+  --error-foreground: hsl(0 0% 0%);
+  --error-subtle: hsl(0, 100%, 15%);
+  --error-subtle-foreground: hsl(0, 100%, 80%);
+
+  --info: hsl(200, 100%, 60%);
+  --info-foreground: hsl(0 0% 0%);
+  --info-subtle: hsl(200, 100%, 15%);
+  --info-subtle-foreground: hsl(200, 100%, 80%);
+
+  /* Focus & Selection */
+  --focus-ring: hsl(180, 100%, 50%);
+  --focus-ring-offset: hsl(0 0% 0%);
+  --selection: hsl(180, 100%, 25%);
+  --selection-foreground: hsl(0 0% 100%);
 }
 
 @layer base {
@@ -200,6 +883,12 @@
   }
   body {
     @apply overflow-clip bg-background text-foreground;
+  }
+
+  /* Apply selection colors */
+  ::selection {
+    background-color: var(--selection);
+    color: var(--selection-foreground);
   }
 }
 

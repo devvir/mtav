@@ -19,7 +19,7 @@ defineProps<{ project: Required<ApiResource<Project>> }>();
     <Breadcrumb route="projects.show" :params="project.id">{{ project.name }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal panelClasses="modalPanel close-left backdrop-blur-lg">
+  <MaybeModal modalClasses="modalPanel backdrop-blur-lg">
     <ShowWrapper>
       <IndexCard :project="project" class="w-full border-0 shadow-none" />
     </ShowWrapper>

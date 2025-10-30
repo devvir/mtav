@@ -35,18 +35,18 @@ const formatDate = (date: string) =>
       <CardBox>
         <div class="space-y-4">
           <div>
-            <div class="text-sm font-medium text-muted-foreground">{{ _('Event') }}</div>
-            <div>{{ log.event }}</div>
+            <div class="text-sm font-medium text-text-subtle">{{ _('Event') }}</div>
+            <div class="text-text">{{ log.event }}</div>
           </div>
 
           <div>
-            <div class="text-sm font-medium text-muted-foreground">{{ _('User') }}</div>
-            <div>{{ log.user?.name || _('System') }}</div>
+            <div class="text-sm font-medium text-text-subtle">{{ _('User') }}</div>
+            <div class="text-text">{{ log.user?.name || _('System') }}</div>
           </div>
 
           <div>
-            <div class="text-sm font-medium text-muted-foreground">{{ _('Date') }}</div>
-            <div>{{ formatDate(log.created_at) }}</div>
+            <div class="text-sm font-medium text-text-subtle">{{ _('Date') }}</div>
+            <div class="text-text">{{ formatDate(log.created_at) }}</div>
           </div>
         </div>
       </CardBox>

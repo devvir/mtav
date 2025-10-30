@@ -13,11 +13,11 @@ defineProps<{
   <label
     v-if="label"
     :for="forId"
-    class="relative flex h-full grid-cols-subgrid items-center"
+    class="relative flex h-full grid-cols-subgrid items-center text-text"
     :title="required ? _('This field is required') : ''"
     :class="
       required && !disabled
-        ? `after:relative after:-top-2 after:m-1 after:translate-y-1 after:text-xs after:text-foreground/40 after:content-['✱'] after:text-shadow-danger-foreground/25 after:text-shadow-md`
+        ? `after:relative after:-top-2 after:m-1 after:translate-y-1 after:text-xs after:text-text-muted after:content-['✱'] after:text-shadow-error-foreground/25 after:text-shadow-md`
         : ''
     "
   >

@@ -41,8 +41,8 @@ const formSpecs: FormSpecs = {
     disabled: props.type === 'edit',
     create: { target: 'families.create', legend: 'Add a new Family' },
   },
-  firstname: { element: 'input', label: 'First Name', value: props.member?.firstname, required: true },
-  lastname: { element: 'input', label: 'Last Name', value: props.member?.lastname },
+  firstname: { element: 'input', label: 'First Name', value: props.member?.firstname, required: true, minlength: 2 },
+  lastname: { element: 'input', label: 'Last Name', value: props.member?.lastname, minlength: 2 },
   email: {
     element: 'input',
     label: 'Email',

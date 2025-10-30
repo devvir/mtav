@@ -23,9 +23,9 @@ const modelValue = useVModel(props, 'modelValue', emits, {
     v-model="modelValue"
     data-slot="input"
     :class="cn(
-      'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-      'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-      'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+      'file:text-text placeholder:text-text-subtle selection:bg-selection selection:text-selection-foreground bg-surface border-border flex min-h-[44px] w-full min-w-0 rounded-md border-2 px-3 py-2 text-base text-text shadow-sm transition-all outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 @md:min-h-[36px] md:text-sm',
+      'focus-visible:border-border-interactive focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-focus-ring-offset',
+      'aria-invalid:ring-2 aria-invalid:ring-error aria-invalid:border-error',
       props.class,
     )"
   >

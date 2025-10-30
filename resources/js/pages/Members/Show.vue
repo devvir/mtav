@@ -30,11 +30,11 @@ defineProps<{
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center-safe justify-start" :title="member.name">
-            <img :src="member.avatar" alt="avatar" class="mr-wide w-24 rounded-full" />
-            <div class="text-sm leading-wide text-muted-foreground">
+            <img :src="member.avatar" alt="avatar" class="mr-wide w-24 rounded-full ring-2 ring-border" />
+            <div class="text-sm leading-wide text-text">
               <div class="truncate text-2xl leading-12">{{ member.name }}</div>
-              <div>{{ member.email }}</div>
-              <div>{{ member.phone ?? 'N/A' }}</div>
+              <div class="text-text-muted">{{ member.email }}</div>
+              <div class="text-text-muted">{{ member.phone ?? 'N/A' }}</div>
             </div>
           </div>
         </template>
@@ -48,24 +48,24 @@ defineProps<{
           <ModalLink
             v-if="member.family.name"
             :href="route('families.show', member.family.id)"
-            class="text-sm text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300"
+            class="text-sm text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
           >
             {{ _('Family') }}: {{ member.family.name }}
           </ModalLink>
 
-          <div class="mt-4 text-sm text-muted-foreground">{{ _('Created') }}: {{ member.created_ago }}</div>
+          <div class="mt-4 text-sm text-text-subtle">{{ _('Created') }}: {{ member.created_ago }}</div>
         </div>
 
         <ModalLink
           v-if="member.allows.update"
-          class="flex items-center-safe justify-end gap-2 border-t pt-base"
+          class="flex items-center-safe justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
           paddingClasses="p-8"
           :href="route('members.edit', member.id)"
         >
           {{ _('Edit Member') }} <Edit3Icon />
         </ModalLink>
 
-        <Delete v-if="member.allows?.delete" :member class="mt-wide border-t border-foreground/10" />
+        <Delete v-if="member.allows?.delete" :member class="mt-wide border-t border-border" />
       </Card>
     </ShowWrapper>
   </MaybeModal>

@@ -10,7 +10,7 @@ const responsiveClasses = computed(() => {
   }
 
   return isSidebarOpen.value
-    ? 'size-12 p-1 rounded-xl dark:bg-accent/80'
+    ? 'size-12 p-1 rounded-xl bg-surface-interactive'
     : 'rounded-sm bg-accent p-0.5 w-full scale-150 mt-2';
 });
 </script>
@@ -20,8 +20,8 @@ const responsiveClasses = computed(() => {
     <AppLogoIcon :class="responsiveClasses" class="overflow-clip border border-current fill-current transition-all" />
 
     <span v-if="isMobile || isSidebarOpen" class="flex-1 overflow-hidden">
-      <div class="truncate text-xl font-bold tracking-wider">{{ $page.props.name }}</div>
-      <div class="text-xs leading-5 font-extrabold tracking-wider text-muted-foreground/50 uppercase">
+      <div class="truncate text-xl font-bold tracking-wider text-text">{{ $page.props.name }}</div>
+      <div class="text-xs leading-5 font-extrabold tracking-wider text-text-subtle uppercase">
         FIng <span class="opacity-50">&fallingdotseq;</span> UdelaR
       </div>
     </span>

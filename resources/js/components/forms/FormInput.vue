@@ -8,6 +8,10 @@ defineProps<{
   name: string;
   label?: string;
   type?: string;
+  min?: number;
+  max?: number;
+  minlength?: number;
+  maxlength?: number;
   disabled?: boolean;
   required?: boolean;
   placeholder?: string;
@@ -18,10 +22,15 @@ defineProps<{
 <template>
   <FormElement v-if="type !== 'hidden'" v-slot="{ id }" v-bind="{ model, type, ...$props, ...$attrs }">
     <input
-      class="w-full p-3 caret-accent-foreground outline-0"
+      class="w-full p-3 text-text bg-transparent caret-interactive outline-0 focus:outline-0"
       v-model="model"
       :id="id"
       :name
+      :type
+      :min
+      :max
+      :minlength
+      :maxlength
       :disabled
       :required
       :placeholder

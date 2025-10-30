@@ -16,19 +16,19 @@ import I18n from '@/components/playground/I18n.vue';
   </Breadcrumbs>
 
   <div class="space-y-wide">
-    <div class="rounded-2xl bg-muted p-10 text-center">
+    <div class="rounded-2xl bg-surface-sunken p-10 text-center">
       <SvgBackgrounds />
     </div>
 
-    <div class="rounded-2xl bg-muted p-10 text-center">
+    <div class="rounded-2xl bg-surface-sunken p-10 text-center">
       <I18n />
     </div>
 
-    <div class="rounded-2xl bg-muted p-10 text-center">
+    <div class="rounded-2xl bg-surface-sunken p-10 text-center">
       <DropdownSample />
     </div>
 
-    <div class="rounded-2xl bg-muted p-10 text-center">
+    <div class="rounded-2xl bg-surface-sunken p-10 text-center">
       <ChartSample />
     </div>
   </div>

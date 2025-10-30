@@ -1,17 +1,38 @@
-type Appearance = 'light' | 'dark' | 'system';
+type Mode = 'light' | 'dark' | 'system';
+type ColorTheme = 'default' | 'ocean' | 'forest' | 'sunset' | 'mono' | 'high-contrast';
 
-export function updateTheme(value: Appearance) {
+export function updateMode(value: Mode) {
   if (typeof window === 'undefined') {
     return;
   }
 
   if (value === 'system') {
     const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-    const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
+    const systemMode = mediaQueryList.matches ? 'dark' : 'light';
 
-    document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+    document.documentElement.classList.toggle('dark', systemMode === 'dark');
   } else {
     document.documentElement.classList.toggle('dark', value === 'dark');
+  }
+}
+
+export function updateColorTheme(value: ColorTheme) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Remove all theme classes
+  document.documentElement.classList.remove(
+    'theme-ocean',
+    'theme-forest',
+    'theme-sunset',
+    'theme-mono',
+    'theme-high-contrast'
+  );
+
+  // Add new theme class if not default
+  if (value !== 'default') {
+    document.documentElement.classList.add(`theme-${value}`);
   }
 }
 
@@ -33,18 +54,26 @@ const mediaQuery = () => {
   return window.matchMedia('(prefers-color-scheme: dark)');
 };
 
-const getStoredAppearance = () => {
+const getStoredMode = () => {
   if (typeof window === 'undefined') {
     return null;
   }
 
-  return localStorage.getItem('appearance') as Appearance | null;
+  return localStorage.getItem('mode') as Mode | null;
 };
 
-const handleSystemThemeChange = () => {
-  const currentAppearance = getStoredAppearance();
+const getStoredColorTheme = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
-  updateTheme(currentAppearance || 'system');
+  return localStorage.getItem('colorTheme') as ColorTheme | null;
+};
+
+const handleSystemModeChange = () => {
+  const currentMode = getStoredMode();
+
+  updateMode(currentMode || 'system');
 };
 
 export function initializeTheme() {
@@ -52,39 +81,70 @@ export function initializeTheme() {
     return;
   }
 
-  // Initialize theme from saved preference or default to system...
-  const savedAppearance = getStoredAppearance();
-  updateTheme(savedAppearance || 'system');
+  // Migrate legacy 'appearance' to 'mode' if needed
+  const legacyAppearance = localStorage.getItem('appearance');
+  if (legacyAppearance && !localStorage.getItem('mode')) {
+    localStorage.setItem('mode', legacyAppearance);
+    localStorage.removeItem('appearance');
+  }
 
-  // Set up system theme change listener...
-  mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+  // Initialize mode from saved preference or default to system...
+  const savedMode = getStoredMode();
+  updateMode(savedMode || 'system');
+
+  // Initialize color theme from saved preference or default to 'default'...
+  const savedColorTheme = getStoredColorTheme();
+  updateColorTheme(savedColorTheme || 'default');
+
+  // Set up system mode change listener...
+  mediaQuery()?.addEventListener('change', handleSystemModeChange);
 }
 
-const appearance = ref<Appearance>('system');
+const mode = ref<Mode>('system');
+const colorTheme = ref<ColorTheme>('default');
 
 export function useAppearance() {
   onMounted(() => {
-    const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
+    const savedMode = localStorage.getItem('mode') as Mode | null;
+    const savedColorTheme = localStorage.getItem('colorTheme') as ColorTheme | null;
 
-    if (savedAppearance) {
-      appearance.value = savedAppearance;
+    if (savedMode) {
+      mode.value = savedMode;
+    }
+
+    if (savedColorTheme) {
+      colorTheme.value = savedColorTheme;
     }
   });
 
-  function updateAppearance(value: Appearance) {
-    appearance.value = value;
+  function updateModePreference(value: Mode) {
+    mode.value = value;
 
     // Store in localStorage for client-side persistence...
-    localStorage.setItem('appearance', value);
+    localStorage.setItem('mode', value);
 
     // Store in cookie for SSR...
-    setCookie('appearance', value);
+    setCookie('mode', value);
 
-    updateTheme(value);
+    updateMode(value);
+  }
+
+  function updateColorThemePreference(value: ColorTheme) {
+    colorTheme.value = value;
+
+    // Store in localStorage for client-side persistence...
+    localStorage.setItem('colorTheme', value);
+
+    // Store in cookie for SSR...
+    setCookie('colorTheme', value);
+
+    updateColorTheme(value);
   }
 
   return {
-    appearance,
-    updateAppearance,
+    mode,
+    colorTheme,
+    updateMode: updateModePreference,
+    updateColorTheme: updateColorThemePreference,
   };
 }

@@ -36,7 +36,7 @@ const longDate = (date: string) =>
     <ShowWrapper>
       <IndexCard :family class="pt-12">
         <template v-slot:header>
-          <div class="mt-2 ml-4 text-sm text-muted-foreground/80">
+          <div class="mt-2 text-right text-sm text-text-subtle">
             <span>{{ _('Project') }}:</span> {{ family.project.name }}
           </div>
         </template>
@@ -46,13 +46,13 @@ const longDate = (date: string) =>
         </template>
 
         <template v-slot:content-after>
-          <div class="mt-4 border-t border-muted py-base text-right text-sm text-muted-foreground/50">
+          <div class="mt-4 border-t border-border py-base text-right text-sm text-text-subtle">
             <span>{{ _('Registered on') }}</span> {{ longDate(family.created_at) }}
           </div>
 
           <ModalLink
             v-if="family.allows.update"
-            class="flex items-center-safe justify-end gap-2 border-t pt-base"
+            class="flex items-center-safe justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
             paddingClasses="p-8"
             :href="route('families.edit', family.id)"
           >

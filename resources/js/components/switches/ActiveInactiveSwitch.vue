@@ -5,7 +5,7 @@ import { useRoute } from 'ziggy-js';
 
 defineProps<{
   route: string;
-  all: boolean;
+  all: number | boolean;
 }>();
 
 const inertiaRoute = useRoute();
@@ -18,12 +18,12 @@ const inertiaRoute = useRoute();
       :key="showAll"
       as="button"
       :href="inertiaRoute(route, { showAll })"
-      class="block w-full px-4 py-2 transition-colors lg:py-1"
+      class="block w-full min-h-[44px] @md:min-h-[36px] px-4 py-2 transition-colors lg:py-1"
       :tabindex="showAll === all ? -1 : 0"
       :class="
         showAll === all
           ? 'pointer-events-none bg-foreground/80 text-background'
-          : 'cursor-pointer bg-muted/30 text-muted-foreground/85 active:outline-0 hocus:text-muted-foreground'
+          : 'cursor-pointer bg-surface-sunken text-text-muted active:outline-0 hocus:text-text'
       "
     >
       {{ _(label) }}

@@ -16,12 +16,12 @@ const flushPrefetch = () => router.flushAll();
       as="button"
       :href="route(routeName)"
       prefetch
-      class="block w-full px-4 py-2 transition-colors lg:py-1"
+      class="block w-full min-h-[44px] @md:min-h-[36px] px-4 py-2 transition-colors lg:py-1"
       :tabindex="isActive(routeName) ? -1 : 0"
       :class="
         isActive(routeName)
           ? 'bg-foreground/80 text-background'
-          : 'cursor-pointer bg-muted/30 text-muted-foreground/85 active:outline-0 hocus:text-muted-foreground'
+          : 'cursor-pointer bg-surface-sunken text-text-muted active:outline-0 hocus:text-text'
       "
       @click="flushPrefetch"
     >

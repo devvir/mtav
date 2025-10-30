@@ -20,7 +20,7 @@ defineProps<{
           </Link>
           <div class="space-y-2 text-center">
             <h1 class="text-xl font-medium">{{ _(title ?? '') }}</h1>
-            <p class="text-center text-sm text-muted-foreground">{{ _(description ?? '') }}</p>
+            <p class="text-center text-sm text-text-muted">{{ _(description ?? '') }}</p>
           </div>
         </div>
         <slot />

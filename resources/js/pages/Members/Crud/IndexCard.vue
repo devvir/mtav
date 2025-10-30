@@ -11,18 +11,22 @@ defineProps<{
 <template>
   <Card class="h-full">
     <template v-slot:header>
-      <ModalLink :href="route('members.show', member.id)" :class="{ 'pointer-events-none': useModal() }">
-        <div class="flex justify-between">
-          <img :src="member.avatar" alt="avatar" class="mr-base rounded-full ring ring-muted/25" />
+      <ModalLink
+        :href="route('members.show', member.id)"
+        class="block focus:outline-0"
+        :class="{ 'pointer-events-none': useModal() }"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <img :src="member.avatar" alt="avatar" class="size-16 shrink-0 rounded-full ring-2 ring-border" />
 
-          <div class="grid-rows-[2fr 1fr] grid text-right" :title="member.name">
-            <div class="truncate text-xl">{{ member.name }}</div>
+          <div class="flex-1 text-right" :title="member.name">
+            <div class="truncate text-xl font-semibold text-text">{{ member.name }}</div>
 
             <ModalLink
               @click.prevent.stop
               v-if="member.family.name"
               :href="route('families.show', member.family.id)"
-              class="mt-1 text-xs text-accent/60 hocus:text-accent"
+              class="mt-1 inline-block min-h-[44px] @md:min-h-[36px] items-center text-xs font-medium text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
             >
               {{ `${_('Family')}: ${member.family.name}` }}
             </ModalLink>
@@ -31,8 +35,11 @@ defineProps<{
       </ModalLink>
     </template>
 
-    <ModalLink :href="route('members.show', member.id)">
-      <div class="grid gap-3 text-sm opacity-80">
+    <ModalLink
+      :href="route('members.show', member.id)"
+      class="block py-2 focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+    >
+      <div class="space-y-2 text-sm text-text-muted">
         <div class="truncate">{{ member.email }}</div>
         <div class="truncate">{{ member.phone }}</div>
       </div>

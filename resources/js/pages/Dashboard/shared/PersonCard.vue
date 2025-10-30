@@ -15,7 +15,7 @@ defineProps<{
 <template>
   <ModalLink
     :href="href"
-    class="flex items-center gap-3 rounded-lg border border-sidebar-border/70 bg-card p-3 transition-all hover:shadow-md"
+    class="flex items-center gap-3 rounded-lg border border-border bg-surface-elevated p-3 transition-all hover:border-border-interactive hover:shadow-md focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
   >
     <Avatar
       :src="avatar"
@@ -24,8 +24,8 @@ defineProps<{
       :class="rounded === 'full' ? 'rounded-full' : ''"
     />
     <div class="flex-1 overflow-hidden">
-      <div class="truncate text-sm font-semibold">{{ name }}</div>
-      <div v-if="subtitle" class="truncate text-xs text-muted-foreground">{{ subtitle }}</div>
+      <div class="truncate text-sm font-semibold text-text">{{ name }}</div>
+      <div v-if="subtitle" class="truncate text-xs text-text-muted">{{ subtitle }}</div>
     </div>
   </ModalLink>
 </template>

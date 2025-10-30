@@ -13,6 +13,7 @@ Route::get('ping', fn () => 'pong');
 // DEV ONLY: Test email endpoint - REMOVE IN PRODUCTION
 if (app()->environment('local')) {
     Route::get('dev/test-emails', [App\Http\Controllers\Dev\TestEmailController::class, 'sendTestEmails']);
+    Route::get('dev/ui', App\Http\Controllers\Dev\UiController::class)->name('dev.ui');
 }
 
 Route::group([], __DIR__ . '/web/auth.php');

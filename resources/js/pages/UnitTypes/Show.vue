@@ -28,12 +28,12 @@ defineProps<{
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center gap-4">
-            <div class="rounded-lg bg-muted/30 p-3">
-              <Building2 class="h-8 w-8 text-muted-foreground" />
+            <div class="rounded-lg bg-surface-sunken p-3">
+              <Building2 class="h-8 w-8 text-text-subtle" />
             </div>
             <div class="flex-1">
-              <h2 class="text-2xl font-semibold">{{ unit_type.name }}</h2>
-              <p v-if="unit_type.description" class="mt-1 text-sm text-muted-foreground">
+              <h2 class="text-2xl font-semibold text-text">{{ unit_type.name }}</h2>
+              <p v-if="unit_type.description" class="mt-1 text-sm text-text-muted">
                 {{ unit_type.description }}
               </p>
             </div>
@@ -44,34 +44,34 @@ defineProps<{
           <!-- Stats Grid -->
           <div class="grid gap-4 @md:grid-cols-2">
             <!-- Units Count -->
-            <div class="rounded-lg border border-border bg-muted/20 p-4">
+            <div class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
-                <div class="rounded-md bg-primary/10 p-2">
-                  <Home class="h-5 w-5 text-primary" />
+                <div class="rounded-md bg-interactive/10 p-2">
+                  <Home class="h-5 w-5 text-interactive" />
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-muted-foreground">{{ _('Units') }}</div>
-                  <div class="text-2xl font-semibold">{{ unit_type.units_count || 0 }}</div>
+                  <div class="text-sm font-medium text-text-subtle">{{ _('Units') }}</div>
+                  <div class="text-2xl font-semibold text-text">{{ unit_type.units_count || 0 }}</div>
                 </div>
               </div>
             </div>
 
             <!-- Families Count -->
-            <div class="rounded-lg border border-border bg-muted/20 p-4">
+            <div class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
-                <div class="rounded-md bg-primary/10 p-2">
-                  <Users class="h-5 w-5 text-primary" />
+                <div class="rounded-md bg-interactive/10 p-2">
+                  <Users class="h-5 w-5 text-interactive" />
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-muted-foreground">{{ _('Families') }}</div>
-                  <div class="text-2xl font-semibold">{{ unit_type.families_count || 0 }}</div>
+                  <div class="text-sm font-medium text-text-subtle">{{ _('Families') }}</div>
+                  <div class="text-2xl font-semibold text-text">{{ unit_type.families_count || 0 }}</div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Metadata -->
-          <div class="border-t border-border pt-4 text-sm text-muted-foreground">
+          <div class="border-t border-border pt-4 text-sm text-text-subtle">
             <span>{{ _('Created') }}</span>: {{ unit_type.created_ago }}
           </div>
         </div>
@@ -79,7 +79,7 @@ defineProps<{
         <!-- Edit Link -->
         <ModalLink
           v-if="unit_type.allows?.update"
-          class="flex items-center justify-end gap-2 border-t border-border pt-base"
+          class="flex items-center justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
           paddingClasses="p-8"
           :href="route('unit-types.edit', unit_type.id)"
         >

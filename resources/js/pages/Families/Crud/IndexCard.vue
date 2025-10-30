@@ -14,15 +14,15 @@ defineProps<{
       <ModalLink
         :href="route('families.show', family.id)"
         :title="family.name"
-        class="text-right"
+        class="block focus:outline-0"
         :class="{ 'pointer-events-none': useModal() }"
       >
-        <div class="flex justify-between">
-          <img :src="family.avatar" alt="avatar" class="w-8 rounded ring ring-muted/25" />
+        <div class="flex items-center justify-between gap-3">
+          <img :src="family.avatar" alt="avatar" class="size-10 shrink-0 rounded ring-2 ring-border" />
 
-          <div class="truncate pl-base text-right">
-            <div class="text-xs text-muted-foreground/50">{{ _('Family') }}</div>
-            <div class="truncate text-xl">{{ family.name }}</div>
+          <div class="flex-1 truncate text-right">
+            <div class="text-xs font-medium uppercase tracking-wide text-text-subtle">{{ _('Family') }}</div>
+            <div class="truncate text-xl font-semibold text-text">{{ family.name }}</div>
           </div>
         </div>
 
@@ -30,27 +30,26 @@ defineProps<{
       </ModalLink>
     </template>
 
-    <div class="my-base-y flex flex-col justify-between gap-1 lg:gap-1.5">
+    <div class="my-4 flex flex-col justify-between gap-2">
       <slot name="content-before" />
 
       <ModalLink
         v-for="member in family.members"
         :key="member.id"
-        class="cursor-pointer rounded-2xl p-1 text-[#1b1b18] hover:bg-accent/40 dark:text-[#EDEDEC]"
+        class="group min-h-[44px] @md:min-h-[36px] cursor-pointer rounded-lg p-2 text-text transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
         :href="route('members.show', member.id)"
         :title="member.name"
         prefetch="click"
       >
-        <div class="flex items-center-safe justify-start gap-3">
-          <!-- TODO: extract component -->
-          <img :src="member.avatar" alt="avatar" width="40px" class="rounded-full ring ring-muted/25" />
-          <div class="truncate text-sm" :title="member.name">
+        <div class="flex items-center justify-start gap-3">
+          <img :src="member.avatar" alt="avatar" class="size-8 shrink-0 rounded-full ring-2 ring-border" />
+          <div class="truncate text-sm font-medium group-hover:text-text-link" :title="member.name">
             {{ member.name }}
           </div>
         </div>
       </ModalLink>
 
-      <section v-if="!family.members?.length" class="flex size-full items-center justify-center">
+      <section v-if="!family.members?.length" class="flex size-full items-center justify-center py-6 text-sm text-text-muted">
         {{ _('No Members yet') }}
       </section>
 

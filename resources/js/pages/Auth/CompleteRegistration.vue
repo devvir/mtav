@@ -66,13 +66,13 @@ export default {
       </div>
 
       <div v-if="project" class="text-center">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-text-muted">
           {{ _('Project') }}: <strong>{{ project.name }}</strong>
         </p>
       </div>
 
       <div v-if="family && !isAdmin" class="text-center">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-text-muted">
           {{ _('Family') }}: <strong>{{ family.name }}</strong>
         </p>
       </div>
@@ -84,7 +84,7 @@ export default {
         <div class="grid gap-2">
           <Label for="email">{{ _('Email address') }}</Label>
           <Input id="email" type="email" :value="user.email" disabled />
-          <p class="text-xs text-muted-foreground">{{ _('This cannot be changed') }}</p>
+          <p class="text-xs text-text-muted">{{ _('This cannot be changed') }}</p>
         </div>
 
         <!-- Password -->
@@ -170,7 +170,7 @@ export default {
             accept="image/*"
             @change="(e) => form.avatar = (e.target as HTMLInputElement).files?.[0] || null"
           />
-          <p class="text-xs text-muted-foreground">{{ _('Optional - Upload a profile photo') }}</p>
+          <p class="text-xs text-text-muted">{{ _('Optional - Upload a profile photo') }}</p>
           <InputError :message="form.errors.avatar" />
         </div>
 

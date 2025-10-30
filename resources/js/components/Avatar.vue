@@ -37,7 +37,7 @@ const borderRadius = computed(() => isRoundedFull.value ? 'rounded-full' : 'roun
 <template>
   <AvatarRoot :class="cn('overflow-hidden', borderRadius, sizeClasses, props.class)">
     <AvatarImage v-if="src" :src="src" :alt="name" />
-    <AvatarFallback :class="cn(borderRadius, 'bg-muted text-foreground')">
+    <AvatarFallback :class="cn(borderRadius, 'bg-surface-interactive text-text font-semibold')">
       {{ getInitials(name) }}
     </AvatarFallback>
   </AvatarRoot>

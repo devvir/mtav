@@ -20,29 +20,31 @@ const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!pr
 <template>
   <div class="col-span-2 grid-cols-subgrid grid-rows-[1fr_1rem] @md:grid">
     <div
-      class="group relative z-1 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border-1 border-background outline-muted-foreground/10 focus-within:outline-blue-400 @md:grid @md:rounded-2xl @md:border-6"
+      class="group relative z-1 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
       :class="{
-        'has-valid:outline-green-700/30 has-invalid:not-focus-within:outline-red-600/30': valueProvided,
-        'outline-2': !disabled,
+        'border-border': !disabled,
+        'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20': !disabled,
+        'not-focus-within:has-[:valid]:border-success/20': valueProvided && !disabled,
+        'not-focus-within:has-[:invalid]:border-error/60': valueProvided && !disabled,
+        'border-border-subtle': disabled,
       }"
     >
       <FormLabel
         v-if="label"
         :forId="id"
         v-bind="{ label, ...$props, ...$attrs }"
-        class="border-background bg-accent-foreground/30 px-1 text-foreground @max-md:px-3 @max-md:py-2 @max-md:pb-1 @md:border-r-8 @md:px-3"
+        class="border-r-2 border-border bg-surface-sunken px-3 py-3 text-surface-sunken-foreground font-semibold @max-md:border-b-2 @max-md:border-r-0"
         :class="{
-          'group-focus-within:bg-accent-foreground/50 group-hover:not-group-focus-within:bg-accent-foreground/25':
-            !disabled,
+          'group-focus-within:bg-surface-elevated group-focus-within:text-text': !disabled,
+          'opacity-50': disabled,
         }"
       />
 
       <div
-        class="h-full min-h-12 bg-accent text-lg font-light text-accent-foreground opacity-70 outline-0 transition-colors"
+        class="h-full min-h-12 bg-surface text-lg text-text transition-colors"
         :class="{
-          'has-invalid:text-red-950 has-invalid:not-focus-within:text-red-800': valueProvided,
-          'ring-blue-400 group-hover:opacity-90 focus-within:opacity-100': !disabled,
-          'bg-muted-foreground/45 font-extralight': disabled,
+          'group-focus-within:bg-surface': !disabled,
+          'bg-surface-sunken opacity-50': disabled,
         }"
       >
         <slot :id="id" :slotAfter="`#${slotAfterId}`" class="relative" />

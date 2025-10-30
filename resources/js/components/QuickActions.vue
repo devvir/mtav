@@ -44,14 +44,14 @@ onClickOutside(trigger, () => (open.value = false), {
     <button
       ref="trigger"
       tabindex="0"
-      class="group -mr-2 flex cursor-pointer items-center gap-3 rounded-xs px-2 text-muted-foreground/60 outline-offset-8"
+      class="group -mr-2 flex min-h-[44px] @md:min-h-[36px] cursor-pointer items-center gap-3 rounded-xs px-2 text-text-subtle outline-offset-8"
       @click="open = !open"
       @keyup.enter="open = !open"
       @keyup.escape="open = false"
     >
       <div
         class="border-b-2 border-accent-foreground/70 pb-1 text-sm font-semibold tracking-wide transition-all"
-        :class="open ? 'cursor-default font-light text-muted-foreground/20' : 'group-hocus:text-muted-foreground/90'"
+        :class="open ? 'cursor-default font-light text-text-subtle/20' : 'group-hocus:text-text'"
       >
         {{ _('Quick Actions') }}
       </div>
@@ -72,7 +72,7 @@ onClickOutside(trigger, () => (open.value = false), {
     </button>
 
     <ul
-      class="absolute top-12 right-base mr-3 flex min-w-42 origin-top flex-col divide-y-1 divide-accent/8 overflow-hidden rounded-xl border border-accent/15 bg-muted text-sm text-primary shadow shadow-accent/70 backdrop-blur-2xl transition-all ease-out select-none"
+      class="absolute top-12 right-base mr-3 flex min-w-42 origin-top flex-col divide-y-1 divide-accent/8 overflow-hidden rounded-xl border border-border bg-surface-elevated text-sm text-text shadow shadow-accent/70 backdrop-blur-2xl transition-all ease-out select-none"
       :class="{ 'invisible -rotate-x-90 opacity-0': !open }"
       @keyup.escape="open = false"
     >

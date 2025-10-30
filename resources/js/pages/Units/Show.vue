@@ -28,12 +28,12 @@ defineProps<{ unit: ApiResource<Unit> }>();
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center gap-4">
-            <div class="rounded-lg bg-muted/30 p-3">
-              <Building2 class="h-8 w-8 text-muted-foreground" />
+            <div class="rounded-lg bg-surface-sunken p-3">
+              <Building2 class="h-8 w-8 text-text-subtle" />
             </div>
             <div class="flex-1">
-              <h2 class="text-2xl font-semibold">{{ _('Unit') }} {{ unit.number }}</h2>
-              <p v-if="unit.type" class="mt-1 text-sm text-muted-foreground">
+              <h2 class="text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</h2>
+              <p v-if="unit.type" class="mt-1 text-sm text-text-subtle">
                 {{ unit.type.name }}
               </p>
             </div>
@@ -44,16 +44,16 @@ defineProps<{ unit: ApiResource<Unit> }>();
           <!-- Info Grid -->
           <div class="grid gap-4 @md:grid-cols-2">
             <!-- Unit Type -->
-            <div v-if="unit.type" class="rounded-lg border border-border bg-muted/20 p-4">
+            <div v-if="unit.type" class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
-                <div class="rounded-md bg-primary/10 p-2">
-                  <Home class="h-5 w-5 text-primary" />
+                <div class="rounded-md bg-interactive/10 p-2">
+                  <Home class="h-5 w-5 text-interactive" />
                 </div>
                 <div class="flex-1 overflow-hidden">
-                  <div class="text-sm font-medium text-muted-foreground">{{ _('Unit Type') }}</div>
+                  <div class="text-sm font-medium text-text-subtle">{{ _('Unit Type') }}</div>
                   <ModalLink
                     :href="route('unit-types.show', unit.type.id)"
-                    class="truncate text-lg font-semibold hover:underline"
+                    class="truncate text-lg font-semibold text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
                   >
                     {{ unit.type.name }}
                   </ModalLink>
@@ -62,16 +62,16 @@ defineProps<{ unit: ApiResource<Unit> }>();
             </div>
 
             <!-- Family -->
-            <div v-if="unit.family" class="rounded-lg border border-border bg-muted/20 p-4">
+            <div v-if="unit.family" class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
-                <div class="rounded-md bg-primary/10 p-2">
-                  <Users class="h-5 w-5 text-primary" />
+                <div class="rounded-md bg-interactive/10 p-2">
+                  <Users class="h-5 w-5 text-interactive" />
                 </div>
                 <div class="flex-1 overflow-hidden">
-                  <div class="text-sm font-medium text-muted-foreground">{{ _('Family') }}</div>
+                  <div class="text-sm font-medium text-text-subtle">{{ _('Family') }}</div>
                   <ModalLink
                     :href="route('families.show', unit.family.id)"
-                    class="truncate text-lg font-semibold hover:underline"
+                    class="truncate text-lg font-semibold text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
                   >
                     {{ unit.family.name }}
                   </ModalLink>
@@ -81,13 +81,13 @@ defineProps<{ unit: ApiResource<Unit> }>();
           </div>
 
           <!-- Project Info -->
-          <div v-if="unit.project" class="rounded-lg border border-border bg-muted/20 p-4">
-            <div class="text-sm font-medium text-muted-foreground">{{ _('Project') }}</div>
-            <div class="mt-1 text-lg font-semibold">{{ unit.project.name }}</div>
+          <div v-if="unit.project" class="rounded-lg border border-border bg-surface-sunken p-4">
+            <div class="text-sm font-medium text-text-subtle">{{ _('Project') }}</div>
+            <div class="mt-1 text-lg font-semibold text-text">{{ unit.project.name }}</div>
           </div>
 
           <!-- Metadata -->
-          <div class="border-t border-border pt-4 text-sm text-muted-foreground">
+          <div class="border-t border-border pt-4 text-sm text-text-subtle">
             <span>{{ _('Created') }}</span>: {{ unit.created_ago }}
           </div>
         </div>
@@ -95,7 +95,7 @@ defineProps<{ unit: ApiResource<Unit> }>();
         <!-- Edit Link -->
         <ModalLink
           v-if="unit.allows?.update"
-          class="flex items-center justify-end gap-2 border-t border-border pt-base"
+          class="flex items-center justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
           paddingClasses="p-8"
           :href="route('units.edit', unit.id)"
         >
