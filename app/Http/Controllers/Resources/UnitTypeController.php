@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitTypeRequest;
@@ -17,28 +19,53 @@ class UnitTypeController extends Controller
     {
         $unitTypes = UnitType::alphabetically()
             ->withCount(['units', 'families'])
-            ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId))
-            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"));
+            ->where('project_id', $request->project_id ?? currentProject()->id)
+            ->get();
 
         return inertia('UnitTypes/Index', [
-            'unit_types' => Inertia::deepMerge(fn () => $unitTypes->paginate(30)),
-            'q' => $request->q ?? '',
+            'unit_types' => Inertia::deepMerge(fn () => $unitTypes),
         ]);
+    }
+
+    /**
+     * Show the resource details.
+     */
+    public function show(UnitType $unitType): Response
+    {
+        $unitType->loadCount(['units', 'families']);
+
+        return inertia('UnitTypes/Show', ['unit_type' => $unitType]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        return inertia('UnitTypes/Create');
     }
 
     public function store(CreateUnitTypeRequest $request): RedirectResponse
     {
-        UnitType::create($request->all());
+        $unitType = UnitType::create($request->validated());
 
-        return redirect()->route('unit-types.index')
+        return redirect()->route('unit-types.show', $unitType->id)
             ->with('success', __('Unit type created successfully.'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(UnitType $unitType): Response
+    {
+        return inertia('UnitTypes/Edit', ['unit_type' => $unitType]);
     }
 
     public function update(UpdateUnitTypeRequest $request, UnitType $unitType): RedirectResponse
     {
-        $unitType->update($request->all());
+        $unitType->update($request->validated());
 
-        return redirect()->route('unit-types.index')
+        return redirect()->route('unit-types.show', $unitType->id)
             ->with('success', __('Unit type updated successfully.'));
     }
 

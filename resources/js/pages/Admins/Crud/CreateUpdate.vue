@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Copilot - pending review
 import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentProject } from '@/composables/useProjects';
@@ -16,7 +17,7 @@ const projectOptions: SelectOptions = {};
 props.projects.forEach((project) => (projectOptions[project.id] = project.name));
 
 const formSpecs: FormSpecs = {
-  projects: {
+  project_ids: {
     element: 'select',
     multiple: true,
     label: 'Projects',

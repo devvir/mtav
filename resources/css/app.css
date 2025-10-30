@@ -32,6 +32,8 @@
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-card-elevated: var(--card-elevated);
+  --color-card-elevated-foreground: var(--card-elevated-foreground);
 
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -138,6 +140,8 @@
   --foreground: var(--color-zinc-950);
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(0 0% 3.9%);
+  --card-elevated: hsl(0 0% 100%);
+  --card-elevated-foreground: hsl(0 0% 3.9%);
   --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(0 0% 3.9%);
   --primary: hsl(0 0% 9%);
@@ -166,6 +170,8 @@
   --foreground: var(--color-zinc-50);
   --card: hsl(0 0% 3.9%);
   --card-foreground: hsl(0 0% 98%);
+  --card-elevated: hsl(30, 30%, 6%);
+  --card-elevated-foreground: hsl(0 0% 98%);
   --popover: hsl(0 0% 3.9%);
   --popover-foreground: 0 0% 98%;
   --primary: hsl(0 0% 98%);

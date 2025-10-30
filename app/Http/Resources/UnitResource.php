@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Resources;
 
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
@@ -16,7 +18,6 @@ class UnitResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
             'number' => $this->number,
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),

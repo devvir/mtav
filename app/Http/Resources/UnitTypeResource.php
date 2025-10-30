@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Resources;
 
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
@@ -30,6 +32,7 @@ class UnitTypeResource extends JsonResource
     {
         return [
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
+            'units' => UnitResource::collection($this->whenLoaded('units')),
             'units_count' => $this->whenCounted(
                 'units',
                 default: fn () => $this->whenLoaded('units', fn () => $this->units?->count())

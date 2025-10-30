@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -15,6 +17,8 @@ class DatabaseSeeder extends Seeder
             ProjectSeeder::class,
             UserSeeder::class,
             FamilySeeder::class,
+            UnitSeeder::class,
+            LogSeeder::class,
         ]);
     }
 }

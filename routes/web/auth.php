@@ -1,9 +1,12 @@
 <?php
 
+// Copilot - pending review
+
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\InvitationConfirmationController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RefreshCsrfTokenController;
@@ -21,6 +24,10 @@ Route::middleware('guest')->group(function () {
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+
+    // Invitation confirmation routes
+    Route::get('invitation/confirm', [InvitationConfirmationController::class, 'show'])->name('invitation.confirm');
+    Route::post('invitation/complete', [InvitationConfirmationController::class, 'store'])->name('invitation.complete');
 });
 
 Route::middleware('auth')->group(function () {

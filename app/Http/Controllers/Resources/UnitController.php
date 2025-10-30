@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitRequest;
@@ -18,12 +20,12 @@ class UnitController extends Controller
     public function index(IndexUnitsRequest $request): Response
     {
         $units = Unit::with('type', 'family')
-            ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId))
-            ->when($request->q, fn ($query, $q) => $query->whereLike('number', "%$q%"));
+            ->where('project_id', $request->project_id ?? currentProject()->id)
+            ->orderBy('number')
+            ->get();
 
         return inertia('Units/Index', [
-            'units' => Inertia::deepMerge(fn () => $units->paginate(30)),
-            'q' => $request->q ?? '',
+            'units' => Inertia::deepMerge(fn () => $units),
         ]);
     }
 
@@ -32,6 +34,8 @@ class UnitController extends Controller
      */
     public function show(Unit $unit): Response
     {
+        $unit->load('type', 'family', 'project');
+
         return inertia('Units/Show', compact('unit'));
     }
 
@@ -40,7 +44,17 @@ class UnitController extends Controller
      */
     public function create(): Response
     {
-        return inertia('Units/Create');
+        $projectId = currentProject()->id;
+
+        $unit_types = \App\Models\UnitType::where('project_id', $projectId)
+            ->alphabetically()
+            ->get();
+
+        $families = \App\Models\Family::where('project_id', $projectId)
+            ->alphabetically()
+            ->get();
+
+        return inertia('Units/Create', compact('unit_types', 'families'));
     }
 
     /**
@@ -48,7 +62,7 @@ class UnitController extends Controller
      */
     public function store(CreateUnitRequest $request): RedirectResponse
     {
-        $unit = Unit::create($request->all());
+        $unit = Unit::create($request->validated());
 
         return to_route('units.show', $unit->id)
             ->with('success', __('Unit created successfully.'));
@@ -59,7 +73,18 @@ class UnitController extends Controller
      */
     public function edit(Unit $unit): Response
     {
-        return inertia('Units.Edit', compact('unit'));
+        $unit->load('type', 'family');
+        $projectId = $unit->project_id;
+
+        $unit_types = \App\Models\UnitType::where('project_id', $projectId)
+            ->alphabetically()
+            ->get();
+
+        $families = \App\Models\Family::where('project_id', $projectId)
+            ->alphabetically()
+            ->get();
+
+        return inertia('Units/Edit', compact('unit', 'unit_types', 'families'));
     }
 
     /**
@@ -67,7 +92,7 @@ class UnitController extends Controller
      */
     public function update(UpdateUnitRequest $request, Unit $unit): RedirectResponse
     {
-        $unit->update($request->all());
+        $unit->update($request->validated());
 
         return to_route('units.show', $unit->id)
             ->with('success', __('Unit updated successfully.'));

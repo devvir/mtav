@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - pending review
+
 use App\Http\Controllers\Resources\AdminController;
 use App\Http\Controllers\Resources\EventController;
 use App\Http\Controllers\Resources\FamilyController;
@@ -19,7 +21,6 @@ Route::resource('admins', AdminController::class)->only('create', 'store', 'edit
 
 Route::resource('families', FamilyController::class)->only('create', 'store', 'destroy');
 Route::resource('members', MemberController::class)->only('edit', 'update', 'destroy');
-Route::resource('unit-types', UnitTypeController::class)->only('index', 'store', 'update', 'destroy');
 
 Route::resource('events', EventController::class);
 
@@ -28,4 +29,5 @@ Route::resource('events', EventController::class);
  */
 Route::middleware(ProjectMustBeSelected::class)->group(function () {
     Route::resource('units', UnitController::class)->except('index', 'show');
+    Route::resource('unit-types', UnitTypeController::class);
 });

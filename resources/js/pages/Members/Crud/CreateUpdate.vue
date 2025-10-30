@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Copilot - pending review
 import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentUser, iAmNotAdmin } from '@/composables/useAuth';
@@ -21,7 +22,7 @@ const familyOptions: SelectOptions = {};
 props.families.forEach((family) => (familyOptions[family.id] = `${_('Family')}: ${family.name}`));
 
 const formSpecs: FormSpecs = {
-  project: {
+  project_id: {
     element: 'select',
     label: 'Project',
     selected: props.member?.project?.id ?? currentProject.value?.id,
@@ -56,7 +57,7 @@ const formSpecs: FormSpecs = {
  * Members cannot choose project or family; these are set automatically
  */
 if (iAmNotAdmin.value || props.type === 'edit') {
-  formSpecs.project = { element: 'input', type: 'hidden', value: currentProject.value?.id };
+  formSpecs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
   formSpecs.family = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
 }
 </script>

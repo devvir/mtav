@@ -1,8 +1,64 @@
 <script setup lang="ts">
+// Copilot - pending review
+import { onMounted } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import OverviewSection from './Dashboard/overview/OverviewSection.vue';
+import FamiliesSection from './Dashboard/families/FamiliesSection.vue';
+import MembersSection from './Dashboard/members/MembersSection.vue';
+import AdminsSection from './Dashboard/admins/AdminsSection.vue';
+import GallerySection from './Dashboard/gallery/GallerySection.vue';
+import EventsSection from './Dashboard/events/EventsSection.vue';
+import UnitsSection from './Dashboard/units/UnitsSection.vue';
+import SkeletonCard from './Dashboard/shared/SkeletonCard.vue';
+
+const props = defineProps<{
+  stats: {
+    families: number;
+    members: number;
+    units: number;
+    unit_types: number;
+    admins: number;
+    media: number;
+    events: number;
+  };
+  families?: any[];
+  members?: any[];
+  unitTypes?: any[];
+  admins?: any[];
+}>();
+
+// Load lazy data on mount
+onMounted(() => {
+  // Only reload if we don't have the data yet
+  if (!props.families || !props.members || !props.unitTypes || !props.admins) {
+    router.reload({
+      only: ['families', 'members', 'unitTypes', 'admins'],
+      preserveScroll: true,
+    });
+  }
+});
+
+// Calculate how many families to show based on number of admins
+// Goal: families + admins height ≈ members height
+// Account for section headers (families has 1 header, admins has 1 header, members has 1 header)
+// We need to subtract 1 row worth of families to account for the extra admin header
+const familiesToShow = computed(() => {
+  if (!props.families || !props.admins || !props.members) return 0;
+
+  const adminRows = Math.ceil(props.admins.length / 2); // admins in 2 columns
+  const memberRows = Math.ceil(props.members.length / 2); // members in 2 columns
+
+  // Subtract 1 row for the extra header in the left column (families + admins vs just members)
+  const availableRowsForFamilies = Math.max(0, memberRows - adminRows - 1);
+  const maxFamiliesToShow = availableRowsForFamilies * 2; // 2 columns
+
+  return Math.min(props.families.length, maxFamiliesToShow);
+});
+
+const visibleFamilies = computed(() => props.families?.slice(0, familiesToShow.value) || []);
 </script>
 
 <template>
@@ -12,26 +68,73 @@ import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
     <Breadcrumb route="home" text="Project Dashboard" />
   </Breadcrumbs>
 
-  <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-    <div class="auto-rows-min gap-4 @max-2xl:space-y-wide @2xl:grid @3xl:grid-cols-2 @6xl:grid-cols-3">
-      <div
-        class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-      >
-        <PlaceholderPattern />
+  <div class="flex h-full flex-1 flex-col gap-8 p-4">
+    <!-- Overview Stats -->
+    <OverviewSection :stats="stats" />
+
+    <!-- Gallery and Events side by side -->
+    <div class="grid gap-6 @4xl:grid-cols-2">
+      <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
+        <GallerySection />
       </div>
-      <div
-        class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-      >
-        <PlaceholderPattern />
-      </div>
-      <div
-        class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 @max-6xl:col-span-2 dark:border-sidebar-border"
-      >
-        <PlaceholderPattern />
+      <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
+        <EventsSection />
       </div>
     </div>
-    <div class="relative min-h-[20vh] flex-1 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-      <PlaceholderPattern />
+
+    <!-- Families/Admins and Members side by side -->
+    <div class="grid gap-6 @4xl:grid-cols-2">
+      <!-- Left column: Families + Admins -->
+      <div class="flex flex-col gap-6 rounded-xl bg-card-elevated p-6 shadow-sm">
+        <template v-if="families && admins">
+          <FamiliesSection :families="visibleFamilies" :total-count="stats.families" />
+          <AdminsSection :admins="admins" />
+        </template>
+        <template v-else>
+          <div class="space-y-3">
+            <div class="h-6 w-32 animate-pulse rounded bg-muted/50" />
+            <div class="grid gap-3 @md:grid-cols-2">
+              <SkeletonCard v-for="i in 4" :key="i" />
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="h-6 w-32 animate-pulse rounded bg-muted/50" />
+            <div class="grid gap-3 @md:grid-cols-2">
+              <SkeletonCard v-for="i in 4" :key="i" />
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Right column: Members -->
+      <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
+        <template v-if="members">
+          <MembersSection :members="members" :total-count="stats.members" />
+        </template>
+        <template v-else>
+          <div class="space-y-3">
+            <div class="h-6 w-32 animate-pulse rounded bg-muted/50" />
+            <div class="grid gap-4 @md:grid-cols-2">
+              <SkeletonCard v-for="i in 10" :key="i" />
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Units by Type -->
+    <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
+      <template v-if="unitTypes">
+        <UnitsSection :unit-types="unitTypes" />
+      </template>
+      <template v-else>
+        <div class="space-y-4">
+          <div class="h-6 w-32 animate-pulse rounded bg-muted/50" />
+          <div class="grid gap-4 @2xl:grid-cols-2">
+            <SkeletonCard v-for="i in 4" :key="i" height="h-40" />
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>

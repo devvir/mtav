@@ -1,7 +1,10 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Controllers\Resources;
 
+use App\Events\UserRegistration;
 use App\Http\Requests\CreateAdminRequest;
 use App\Http\Requests\IndexAdminsRequest;
 use App\Http\Requests\ShowAdminRequest;
@@ -9,6 +12,7 @@ use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\InvitationTokenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -60,10 +64,17 @@ class AdminController extends Controller
      */
     public function store(CreateAdminRequest $request): RedirectResponse
     {
-                // Persist Admin
-        $admin = Admin::create($request->all());
+        $invitation = InvitationTokenService::generate();
 
-        // event(new Registered($admin));
+        $admin = Admin::create([
+            ...$request->only(['firstname', 'lastname', 'email']),
+            'password' => $invitation['hashed'],
+        ]);
+
+        // Attach admin to managed projects
+        $admin->projects()->attach($request->project_ids);
+
+        event(new UserRegistration($admin, $invitation['token']));
 
         return to_route('admins.show', $admin->id)
             ->with('success', __('Admin created successfully.'));

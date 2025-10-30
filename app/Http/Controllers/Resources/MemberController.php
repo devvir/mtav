@@ -1,7 +1,10 @@
 <?php
 
+// Copilot - pending review
+
 namespace App\Http\Controllers\Resources;
 
+use App\Events\UserRegistration;
 use App\Http\Requests\CreateMemberRequest;
 use App\Http\Requests\DeleteMemberRequest;
 use App\Http\Requests\IndexMembersRequest;
@@ -13,7 +16,7 @@ use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Family;
 use App\Models\Member;
 use App\Models\Project;
-use Illuminate\Auth\Events\Registered;
+use App\Services\InvitationTokenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -70,15 +73,17 @@ class MemberController extends Controller
      */
     public function store(CreateMemberRequest $request): RedirectResponse
     {
-        $member = DB::transaction(function () use ($request) {
+        $invitation = InvitationTokenService::generate();
+
+        $member = DB::transaction(function () use ($request, $invitation) {
             return Member::create([
                 ...$request->only(['firstname', 'lastname', 'email']),
                 'family_id' => $request->family ?: null,
-                'password' => random_bytes(16),
+                'password' => $invitation['hashed'],
             ])->joinProject($request->project_id);
         });
 
-        event(new Registered($member));
+        event(new UserRegistration($member, $invitation['token']));
 
         return to_route('members.show', $member->id)
             ->with('success', __('Member created successfully.'));
