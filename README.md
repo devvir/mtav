@@ -40,6 +40,10 @@ That's it! You're ready to develop.
 # Update dependencies and run migrations
 ./mtav update
 
+# Rebuild container images
+./mtav rebuild         # Rebuild all images
+./mtav rebuild php     # Rebuild only php image (and restart container)
+
 # Quick break (containers preserved)
 ./mtav stop
 

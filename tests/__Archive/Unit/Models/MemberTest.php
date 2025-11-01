@@ -7,8 +7,8 @@ use App\Models\User;
 
 describe('Member Model', function () {
     it('has a family relationship', function () {
-        $family = Family::factory()->create();
-        $member = Member::factory()->create(['family_id' => $family->id]);
+        $member = Member::find(102); // Member #102 from universe in Family #4
+        $family = Family::find(4);
 
         expect($member->family)
             ->toBeInstanceOf(Family::class)
@@ -24,9 +24,8 @@ describe('Member Model', function () {
 
 
     it('can leave a project', function () {
-        $member = Member::factory()->create();
-        $project = Project::factory()->create();
-        $member->joinProject($project);
+        $project = Project::find(1);
+        $member = Member::find(102); // Member in project #1
 
         $member->leaveProject($project);
 

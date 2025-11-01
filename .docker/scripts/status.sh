@@ -4,7 +4,7 @@
 DOCKER_DIR="$(dirname "$0")/.."
 
 echo "📊 Container Status:"
-docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env ps
+docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env -p dev ps
 echo ""
 echo "🌐 Application URLs:"
 echo "  • Main App:     http://localhost:8000"

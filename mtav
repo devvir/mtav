@@ -19,15 +19,16 @@ print_help() {
     echo -e "${BLUE}MTAV Development Environment${NC}"
     echo ""
     echo -e "${GREEN}Simple Commands:${NC}"
-    echo -e "  ${YELLOW}mtav up${NC}           # Start development environment (builds everything on first run)"
-    echo -e "  ${YELLOW}mtav stop${NC}         # Stop containers (keeps containers for quick restart)"
-    echo -e "  ${YELLOW}mtav down${NC}         # Stop and remove containers (clean shutdown)"
-    echo -e "  ${YELLOW}mtav update${NC}       # Update containers and install all dependencies"
-    echo -e "  ${YELLOW}mtav status${NC}       # Show container status and URLs"
-    echo -e "  ${YELLOW}mtav logs${NC}         # Show all logs"
-    echo -e "  ${YELLOW}mtav fresh${NC}        # Complete fresh rebuild (down + build)"
-    echo -e "  ${YELLOW}mtav test${NC}         # Run all tests (frontend + backend) in watch mode"
-    echo -e "  ${YELLOW}mtav test --once${NC}  # Run all tests once and exit"
+    echo -e "  ${YELLOW}mtav up${NC}                # Start development environment (builds everything on first run)"
+    echo -e "  ${YELLOW}mtav stop${NC}              # Stop containers (keeps containers for quick restart)"
+    echo -e "  ${YELLOW}mtav down${NC}              # Stop and remove containers (clean shutdown)"
+    echo -e "  ${YELLOW}mtav update${NC}            # Update containers and install all dependencies"
+    echo -e "  ${YELLOW}mtav rebuild [service]${NC} # Rebuild images (all services or specific one)"
+    echo -e "  ${YELLOW}mtav status${NC}            # Show container status and URLs"
+    echo -e "  ${YELLOW}mtav logs${NC}              # Show all logs"
+    echo -e "  ${YELLOW}mtav fresh${NC}             # Complete fresh rebuild (down + build)"
+    echo -e "  ${YELLOW}mtav test${NC}              # Run all tests (frontend + backend) in watch mode"
+    echo -e "  ${YELLOW}mtav test --once${NC}       # Run all tests once and exit"
     echo ""
     echo -e "${GREEN}Development Shortcuts:${NC}"
     echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
@@ -109,6 +110,10 @@ case $COMMAND in
 
     status)
         "$SCRIPTS_DIR/status.sh"
+        ;;
+
+    rebuild)
+        "$SCRIPTS_DIR/rebuild.sh" "$@"
         ;;
 
     logs)

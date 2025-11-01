@@ -3794,6 +3794,11 @@ This automatically:
 ./mtav composer require package/name    # Add PHP package
 ./mtav npm add vue-package              # Add JS package
 
+# Image rebuilding
+./mtav rebuild         # Rebuild all container images
+./mtav rebuild php     # Rebuild only php image (and restart container)
+./mtav rebuild assets  # Rebuild only assets image
+
 # Container access
 ./mtav shell php       # Open shell in PHP container
 ./mtav shell nginx     # Open shell in Nginx container

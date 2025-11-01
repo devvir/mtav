@@ -6,7 +6,7 @@ use App\Models\User;
 
 describe('User Model', function () {
     it('can be converted to a Member when is_admin is false', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::find(102); // Member #102 from universe
 
         expect($user->asMember())
             ->toBeInstanceOf(Member::class)
@@ -14,13 +14,13 @@ describe('User Model', function () {
     });
 
     it('returns null when converting to Member if is_admin is true', function () {
-        $user = User::factory()->create(['is_admin' => true]);
+        $user = User::find(11); // Admin #11 from universe
 
         expect($user->asMember())->toBeNull();
     });
 
     it('can be converted to an Admin when is_admin is true', function () {
-        $user = User::factory()->create(['is_admin' => true]);
+        $user = User::find(11); // Admin #11 from universe
 
         expect($user->asAdmin())
             ->toBeInstanceOf(Admin::class)
@@ -28,14 +28,14 @@ describe('User Model', function () {
     });
 
     it('returns null when converting to Admin if is_admin is false', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::find(102); // Member #102 from universe
 
         expect($user->asAdmin())->toBeNull();
     });
 
     it('identifies members correctly', function () {
-        $member = User::factory()->create(['is_admin' => false]);
-        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::find(102); // Member #102 from universe
+        $admin = User::find(11); // Admin #11 from universe
 
         expect($member->isMember())->toBeTrue()
             ->and($member->isAdmin())->toBeFalse()
@@ -44,11 +44,11 @@ describe('User Model', function () {
     });
 
     it('identifies superadmins based on config', function () {
-        config(['auth.superadmins' => ['a@x.com']]);
+        config(['auth.superadmins' => ['superadmin1@example.com']]);
 
-        $superadmin = User::factory()->admin()->create(['email' => 'a@x.com']);
-        $regularAdmin = User::factory()->admin()->create(['email' => 'b@x.com']);
-        $member = User::factory()->create();
+        $superadmin = User::find(1); // Superadmin #1 from universe
+        $regularAdmin = User::find(11); // Admin #11 from universe
+        $member = User::find(102); // Member #102 from universe
 
         expect($superadmin->isSuperadmin())->toBeTrue()
             ->and($regularAdmin->isSuperadmin())->toBeFalse()
