@@ -11,8 +11,9 @@ import I18n from '@/components/playground/I18n.vue';
 <template>
   <Head title="Dashboard" />
 
-  <Breadcrumbs>
-    <Breadcrumb route="playground" text="Dev Playground" />
+  <Breadcrumbs global>
+    <Breadcrumb route="dev.dashboard">Dev</Breadcrumb>
+    <Breadcrumb route="playground" no-link>Playground</Breadcrumb>
   </Breadcrumbs>
 
   <div class="space-y-wide">

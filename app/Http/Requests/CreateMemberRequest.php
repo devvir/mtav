@@ -24,7 +24,7 @@ class CreateMemberRequest extends ProjectScopedRequest
             'project_id' => 'required|integer|exists:projects,id',
             'family' => array_filter([
                 'required',
-                'exists:family,id',
+                'exists:families,id',
                 $projectId ? new BelongsToProject(Family::class, $projectId, 'validation.family_belongs_to_project') : null,
             ]),
             'email' => ['required', 'email', 'max:255', 'unique:user,email'],

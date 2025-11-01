@@ -129,8 +129,10 @@
   "Hide options": "Ocultar opciones",
   "High Contrast": "Alto Contraste",
   "Icon": "Icono",
+  "If you were invited to a project, please follow the link you received in your email.": "Si fuiste invitado a un proyecto, por favor sigue el enlace que recibiste en tu email.",
   "Image": "Imagen",
   "Inactive": "Inactivo",
+  "Invalid invitation link, please contact an administrator.": "Enlace de invitación inválido, por favor contacta a un administrador.",
   "Indeterminate": "Indeterminado",
   "Info": "Información",
   "Input": "Entrada",
@@ -324,7 +326,7 @@
   "Admin updated successfully.": "Admin actualizado exitosamente.",
   "Admin deleted successfully.": "Admin eliminado exitosamente.",
   "Admin restored successfully.": "Admin restaurado exitosamente.",
-  "Member created successfully.": "Miembro creado exitosamente.",
+  "Member invited successfully.": "Miembro invitado exitosamente.",
   "Member updated successfully.": "Miembro actualizado exitosamente.",
   "Member deleted successfully.": "Miembro eliminado exitosamente.",
   "Member restored successfully.": "Miembro restaurado exitosamente.",
@@ -368,6 +370,8 @@
   "No members yet": "Aún no hay miembros",
   "No administrators yet": "Aún no hay administradores",
   "No units yet": "Aún no hay unidades",
+  "Registration completed! You can now log in.": "¡Registro completado! Ya puedes iniciar sesión.",
   "Unit": "Unidad",
-  "Unit Type": "Tipo de Unidad"
+  "Unit Type": "Tipo de Unidad",
+  "Your account is already verified.": "Tu cuenta ya está verificada."
 }

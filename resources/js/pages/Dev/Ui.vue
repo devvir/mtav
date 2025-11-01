@@ -5,6 +5,8 @@ import { Moon, Sun, Check, X, Info, AlertTriangle } from 'lucide-vue-next';
 import FormInput from '@/components/forms/FormInput.vue';
 import FormSelect from '@/components/forms/FormSelect.vue';
 import FormSubmit from '@/components/forms/FormSubmit.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 
 const theme = ref<'light' | 'dark'>('dark');
 const colorTheme = ref<string>('default');
@@ -93,6 +95,11 @@ const borderColors = [
 
 <template>
   <Head title="UI Design System Preview -  Colors" />
+
+  <Breadcrumbs global>
+    <Breadcrumb route="dev.dashboard">Dev</Breadcrumb>
+    <Breadcrumb route="dev.ui" no-link>UI Components</Breadcrumb>
+  </Breadcrumbs>
 
   <div class="min-h-screen bg-surface p-8">
     <!-- Header with Theme Toggles -->

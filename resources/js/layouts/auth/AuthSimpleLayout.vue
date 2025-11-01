@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlashMessages from '@/components/flash/FlashMessages.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
@@ -23,6 +24,9 @@ defineProps<{
             <p class="text-center text-sm text-text-muted">{{ _(description ?? '') }}</p>
           </div>
         </div>
+
+        <FlashMessages />
+
         <slot />
       </div>
     </div>
