@@ -4,9 +4,7 @@ import PersonCard from '../shared/PersonCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  family: {
-    id: number;
-    name: string;
+  family: Family & {
     members_count: number;
   };
 }>();
@@ -15,6 +13,7 @@ defineProps<{
 <template>
   <PersonCard
     :href="`/families/${family.id}`"
+    :avatar="family.avatar"
     :name="family.name"
     :subtitle="`${family.members_count} ${family.members_count === 1 ? _('member') : _('members')}`"
   />

@@ -20,8 +20,8 @@ defineProps<{
         <div class="flex items-center justify-between gap-3">
           <img :src="family.avatar" alt="avatar" class="size-10 shrink-0 rounded ring-2 ring-border" />
 
-          <div class="flex-1 truncate text-right">
-            <div class="text-xs font-medium uppercase tracking-wide text-text-subtle">{{ _('Family') }}</div>
+          <div class="flex-1 truncate text-right pl-base">
+            <div class="text-xs font-medium uppercase tracking-wide text-text-subtle pb-1">{{ _('Family') }}</div>
             <div class="truncate text-xl font-semibold text-text">{{ family.name }}</div>
           </div>
         </div>

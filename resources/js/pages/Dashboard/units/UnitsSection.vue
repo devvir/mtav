@@ -6,7 +6,7 @@ import UnitTypeCard from './UnitTypeCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unitTypes: any[];
+  unitTypes: UnitType[];
 }>();
 </script>
 
@@ -14,7 +14,7 @@ defineProps<{
   <section>
     <SectionHeader :title="_('Project Units')" />
     <div v-if="unitTypes.length > 0" class="grid gap-4 @2xl:grid-cols-2">
-      <UnitTypeCard v-for="unitType in unitTypes" :key="unitType.id" :unit-type="unitType" />
+      <UnitTypeCard v-for="unitType in unitTypes" :key="unitType.id" :unitType="unitType" />
     </div>
     <div v-else class="flex h-40 items-center justify-center rounded-lg">
       <div class="text-center text-sm text-text-muted">

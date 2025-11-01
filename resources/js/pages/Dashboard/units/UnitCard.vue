@@ -5,15 +5,8 @@ import { Building2 } from 'lucide-vue-next';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unit: {
-    id: number;
+  unit: Unit & {
     number: string;
-    type?: {
-      name: string;
-    };
-    family?: {
-      name: string;
-    };
   };
 }>();
 </script>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Member extends User
@@ -14,7 +15,7 @@ class Member extends User
     protected $table = 'users';
 
     /**
-     * A user may belong to exactly one family or none.
+     * A member may belong to exactly one family or none.
      */
     public function family(): BelongsTo
     {
@@ -22,15 +23,19 @@ class Member extends User
     }
 
     /**
-     * Get the project that the user is currently an active member of (one or none).
+     * Get the project that the member is currently an active member of (one or none).
      */
-    public function getProjectAttribute(): ?Project
+    public function project(): Attribute
     {
-        return $this->projects->where('pivot.active', true)->first();
+        return Attribute::make(
+            get: fn () => $this->projects->first(),
+        );
     }
 
     public function joinProject(Project|int $project): self
     {
+        $this->projects->each->removeMember($this);
+
         model($project, Project::class)->addMember($this);
 
         return $this;

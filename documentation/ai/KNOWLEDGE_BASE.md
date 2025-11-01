@@ -83,6 +83,23 @@
   - Includes: Developer guides, DevOps guides, API docs, architecture specs, README files
   - Exception: If Spanish versions needed for technical staff, use "vos" form (informal, peer-to-peer)
 
+**In-App Translation Implementation** (Laravel `lang/` JSON files):
+
+- **English file (`lang/en.json`)**: Should remain empty (`{}`) by default
+  - Reason: We use actual English strings as translation keys (e.g., `__('Invalid email address')`)
+  - English-to-English mapping is redundant and adds unnecessary maintenance
+  - Exception: Only add entries if Laravel's internal validation messages or coded strings need different wording
+  - The `_()` helper function in Vue returns the key itself if no translation found, so English works automatically
+- **Spanish file (`lang/es_UY.json`)**: Contains all Spanish translations
+  - Maps English string keys to Spanish translations
+  - Example: `"Invalid email address": "Dirección de correo electrónico inválida"`
+  - Use "tú" form consistently (as per documentation policy above)
+- **Translation workflow**:
+  - Developer writes English strings directly in code: `__('Your account is verified')`
+  - Spanish translation added to `lang/es_UY.json`: `"Your account is verified": "Tu cuenta está verificada"`
+  - English translation NOT added to `lang/en.json` (stays as `{}`)
+- **Rationale**: Reduces duplication, simplifies maintenance, leverages English as the natural fallback
+
 **Derivation Metadata**: Tracks which KB sections source each derived document (maintained by AI, do not edit manually)
 
 **AI-Managed Workflow**:
@@ -771,7 +788,7 @@ password (VARCHAR, NOT NULL - hashed)
 avatar (VARCHAR, NULLABLE - file path or URL)
 is_admin (BOOLEAN, DEFAULT false - TYPE DISCRIMINATOR)
 darkmode (BOOLEAN, NULLABLE - UI preference)
-email_verified_at (TIMESTAMP, NULLABLE - email verification status)
+verified_at (TIMESTAMP, NULLABLE - invitation acceptance status)
 remember_token (VARCHAR, NULLABLE - Laravel auth)
 created_at (TIMESTAMP)
 updated_at (TIMESTAMP)
@@ -958,7 +975,7 @@ password (NOT NULL)
 avatar (nullable)
 is_admin (boolean, default false)
 darkmode (boolean, nullable)
-email_verified_at (timestamp, nullable)
+verified_at (timestamp, nullable)
 remember_token
 created_at, updated_at
 deleted_at (soft delete timestamp, nullable)
@@ -1959,11 +1976,11 @@ UNIQUE(family_id, rank) -- Each rank used once per family
 
 ### User State
 
-**Email Verification** (`email_verified_at`):
+**Invitation Acceptance** (`verified_at`):
 
 - Users created via invitation have NULL initially
-- Must verify email before full access
-- **TODO**: Define restrictions for unverified users
+- Must accept invitation before full access
+- Set to current timestamp when invitation is accepted via InvitationService
   - Can they log in?
   - What resources can they access?
   - Blocked actions?
@@ -2148,7 +2165,7 @@ See Project entity section for:
    - Sends invitation email: "Member X invited you to join their Family Y in Project Z in MTAV"
    - Email is different from admin invitation, but process is identical
    - Invitee sets password and accepts invitation
-   - User created with email_verified_at set (auto-verified)
+   - User created with verified_at set (auto-verified)
 
 4. **Can members delete themselves?** ✅ **Yes** (soft-delete)
    - Member can soft-delete themselves at any time
@@ -2563,7 +2580,7 @@ $pool = Project::current()->members();
    - Accepts invitation
 
 5. **System** creates user account
-   - Sets email_verified_at = now
+   - Sets verified_at = now
    - Sets password
    - Creates project/family associations
    - Marks invitation as accepted
@@ -2577,9 +2594,9 @@ $pool = Project::current()->members();
 **Current State**:
 
 - Laravel Breeze includes email verification
-- New users have `email_verified_at = null`
-- **QUESTION**: Are unverified users allowed to log in?
-- **QUESTION**: What actions are restricted for unverified users?
+- New users have `verified_at = null`
+- Unverified users are logged out and redirected to login (EnsureUserIsVerified middleware)
+- Users must accept invitation link to set verified_at and gain access
 
 **With Invitation System**:
 
@@ -3589,7 +3606,7 @@ Constraints:
 
 - Laravel Sanctum 4.0 for API tokens (if needed)
 - Session-based auth for web (default)
-- Email verification (`email_verified_at` field)
+- Invitation acceptance (`verified_at` field)
 
 **Authorization**:
 
@@ -4332,6 +4349,45 @@ resources/js/
 ```
 
 ### Testing Conventions
+
+**Test Universe Fixture** (`tests/_fixtures/universe.sql`):
+
+The test universe is a comprehensive SQL fixture providing predictable, self-documenting test data:
+
+**User ID Scheme**:
+- **IDs 1-9**: Superadmins (currently only #1 exists)
+- **IDs 10-99**: Regular admins with varying project assignments
+- **IDs 100+**: Members and other non-admin users
+
+**Key Test Data**:
+- **Projects**: 5 total (active, inactive, deleted, edge cases)
+- **Admins**: 9 total (1 superadmin + 7 verified admins + 1 unverified admin)
+  - Superadmin #1: No projects
+  - Admin #10: No projects
+  - Admin #11: Manages 1 project
+  - Admin #12: Manages 2 projects
+  - Admin #13: Manages 3 projects (one inactive)
+  - Admins #14, #15, #16: Various configurations including deleted projects
+  - Admin #17: Unverified admin (verified_at = NULL) for testing invitation acceptance
+- **Members**: 47 total (IDs 100-146)
+  - Various states: active, inactive, soft-deleted
+  - Various family configurations: no members, single member, multiple members
+  - Pagination test data (Family #5 has 10 members)
+- **Special Users**:
+  - User #17 (`admin17@example.com`): Unverified admin managing Project #1 - for email verification testing
+  - User #147 (`unverified@example.com`): Unverified member in Family #24, Project #1 - for email verification testing
+  - Both unverified users have full project/family access to isolate verification testing from authorization
+
+**Password**: All users have password `'password'` (bcrypt: `$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e`)
+
+**Loading the Universe**:
+```php
+beforeEach(function () {
+    loadUniverse(); // Defined in tests/Helpers/fixtures.php
+});
+```
+
+**Documentation**: See `tests/_fixtures/UNIVERSE.md` for complete quick reference
 
 **Pest syntax** (backend):
 
@@ -6189,7 +6245,7 @@ CREATE TABLE users (
   avatar VARCHAR(255) NULLABLE,
   is_admin BOOLEAN DEFAULT false,
   darkmode BOOLEAN NULLABLE,
-  email_verified_at TIMESTAMP NULLABLE,
+  verified_at TIMESTAMP NULLABLE,
   remember_token VARCHAR(100) NULLABLE,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,

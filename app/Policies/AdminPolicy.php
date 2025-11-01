@@ -10,7 +10,7 @@ class AdminPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
         return true;
     }
@@ -28,7 +28,7 @@ class AdminPolicy
     public function view(User $user, Admin $admin): bool
     {
         return $user->isAdmin()
-            || $user->asMember()?->project->admins->contains($admin);
+            || (bool) $user->asMember()?->project->admins->contains($admin);
     }
 
     /**

@@ -18,9 +18,10 @@ class UnitPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user): bool
+    public function view(User $user, Unit $unit): bool
     {
-        return true;
+        return $user->asAdmin()?->manages($unit->project_id)
+            || $user->asMember()?->family?->project_id === $unit->project_id;
     }
 
     /**
@@ -36,7 +37,7 @@ class UnitPolicy
      */
     public function update(User $user, Unit $unit): bool
     {
-        return $user->asAdmin()?->manages($unit->project);
+        return (bool) $user->asAdmin()?->manages($unit->project_id);
     }
 
     /**
@@ -44,7 +45,7 @@ class UnitPolicy
      */
     public function delete(User $user, Unit $unit): bool
     {
-        return $user->asAdmin()?->manages($unit->project);
+        return (bool) $user->asAdmin()?->manages($unit->project_id);
     }
 
     /**
@@ -52,6 +53,6 @@ class UnitPolicy
      */
     public function restore(User $user, Unit $unit): bool
     {
-        return $user->asAdmin()?->manages($unit->project_id);
+        return (bool) $user->asAdmin()?->manages($unit->project_id);
     }
 }

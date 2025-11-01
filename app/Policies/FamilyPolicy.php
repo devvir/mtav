@@ -20,9 +20,8 @@ class FamilyPolicy
      */
     public function view(User $user, Family $family): bool
     {
-        return $user->isMember()
-            ? $user->asMember()->family->project_id === $family->project_id
-            : $user->asAdmin()->manages($family->project_id);
+        return $user->asAdmin()?->manages($family->project_id)
+            || $user->asMember()?->family->project_id === $family->project_id;
     }
 
     /**

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentUser, iAmNotAdmin } from '@/composables/useAuth';

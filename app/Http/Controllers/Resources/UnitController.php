@@ -6,8 +6,11 @@ namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitRequest;
 use App\Http\Requests\IndexUnitsRequest;
+use App\Http\Requests\ShowCreateUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
+use App\Models\Family;
 use App\Models\Unit;
+use App\Models\UnitType;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,8 +22,8 @@ class UnitController extends Controller
      */
     public function index(IndexUnitsRequest $request): Response
     {
-        $units = Unit::with('type', 'family')
-            ->where('project_id', $request->project_id ?? currentProject()->id)
+        $units = Unit::with('type', 'family', 'project')
+            ->whereProjectId($request->project_id ?? currentProject()->id)
             ->orderBy('number')
             ->get();
 
@@ -42,19 +45,14 @@ class UnitController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(ShowCreateUnitRequest $request): Response
     {
-        $projectId = currentProject()->id;
+        $projectId = $request->project_id;
 
-        $unit_types = \App\Models\UnitType::where('project_id', $projectId)
-            ->alphabetically()
-            ->get();
-
-        $families = \App\Models\Family::where('project_id', $projectId)
-            ->alphabetically()
-            ->get();
-
-        return inertia('Units/Create', compact('unit_types', 'families'));
+        return inertia('Units/Create', [
+            'families' => Family::whereProjectId($projectId)->alphabetically()->get(),
+            'unit_types' => UnitType::whereProjectId($projectId)->alphabetically()->get(),
+        ]);
     }
 
     /**
@@ -76,11 +74,11 @@ class UnitController extends Controller
         $unit->load('type', 'family');
         $projectId = $unit->project_id;
 
-        $unit_types = \App\Models\UnitType::where('project_id', $projectId)
+        $unit_types = UnitType::whereProjectId($projectId)
             ->alphabetically()
             ->get();
 
-        $families = \App\Models\Family::where('project_id', $projectId)
+        $families = Family::whereProjectId($projectId)
             ->alphabetically()
             ->get();
 

@@ -36,19 +36,19 @@ class ProjectResource extends JsonResource
             'admins' => $this->whenLoaded('admins'),
             'admins_count' => $this->whenCounted(
                 'admins',
-                default: fn () => $this->whenLoaded('admins', fn () => $this->admins?->count())
+                default: fn () => $this->whenLoaded('admins', fn () => $this->admins->count())
             ),
 
             'members' => $this->whenLoaded('members'),
             'members_count' => $this->whenCounted(
                 'members',
-                default: fn () => $this->whenLoaded('members', fn () => $this->members?->count())
+                default: fn () => $this->whenLoaded('members', fn () => $this->members->count())
             ),
 
             'families' => $this->whenLoaded('families'),
             'families_count' => $this->whenCounted(
                 'families',
-                default: fn () => $this->whenLoaded('families', fn () => $this->families?->count())
+                default: fn () => $this->whenLoaded('families', fn () => $this->families->count())
             ),
         ];
     }

@@ -65,7 +65,7 @@
 - Update `ProjectController@store` to accept admins array
 - Create admin users with random passwords
 - Send invitation emails with confirmation links
-- Set `email_verified_at = null` until confirmation
+- Set `verified_at = null` until confirmation
 
 #### 2. Add/Remove Admins for Existing Project (Single Step)
 
@@ -134,7 +134,7 @@
 - [ ] **Member invitation (including empty families)**
   - Fields: Email, firstname, lastname (optional), Family selector
   - Family selector shows ALL families (including empty) from relevant projects
-  - Backend creates user with random password, `email_verified_at = null`
+  - Backend creates user with random password, `verified_at = null`
   - Generate confirmation token (new field: `confirmation_token`)
   - Send invitation email with confirmation link
   - Member's project auto-set from family's project (cascade)
@@ -157,7 +157,7 @@
   - Similar to member invitation
   - Fields: Email, firstname, lastname (optional), Project(s) selector
   - No family (family_id = null for admins)
-  - Backend creates user with `is_admin = true`, random password, `email_verified_at = null`
+  - Backend creates user with `is_admin = true`, random password, `verified_at = null`
   - Generate confirmation token
   - Send invitation email
 
@@ -239,22 +239,22 @@
 - Update existing `ConfirmMemberAccount` controller
 - Add POST endpoint: `POST /confirm-account` to process form
 - Validate token matches user's `confirmation_token`
-- Update user: set password, set `email_verified_at = now()`, optionally update name/avatar
+- Update user: set password, set `verified_at = now()`, optionally update name/avatar
 - Clear or keep token (for auditing)
 - Redirect to login with success message
 
 **1.c Block Login Until Confirmed**
 
 - [ ] **Prevent login for unconfirmed users**
-  - Login validation: Check `email_verified_at` is not null
+  - Login validation: Check `verified_at` is not null
   - If null: Show error "Please confirm your account first. Check your email."
   - Password is random on creation, so users can't log in anyway
-  - Extra safety: explicit check in auth
+  - Extra safety: explicit check in auth via EnsureUserIsVerified middleware
 
 **Implementation needs**:
 
 - Add validation to login controller
-- Check `email_verified_at` before authenticating
+- Check `verified_at` before authenticating
 
 #### 2. Automatic Single-Project Context
 
@@ -522,7 +522,7 @@
   - Insert user: email `superadmin@example.com`, firstname "Super", lastname "Admin", is_admin true
   - **Password strategy**: Use env variable `SUPERADMIN_DEFAULT_PASSWORD` with fallback
   - In migration: `'password' => Hash::make(env('SUPERADMIN_DEFAULT_PASSWORD', 'changeme123'))`
-  - Set `email_verified_at = now()`
+  - Set `verified_at = now()`
   - Remove from seeders (should only exist via migration)
 
 - [ ] **Production safety for default password**
@@ -554,7 +554,7 @@
 **2. Member Invitation**
 
 - [ ] Admin/Member can invite new member via form (email, firstname, lastname optional, family)
-- [ ] Backend: Create user with random password, `email_verified_at = null`, `confirmation_token`
+- [ ] Backend: Create user with random password, `verified_at = null`, `confirmation_token`
 - [ ] Validation: Email unique, family exists, unit_type_id inherited from family
 
 **3. Invitation Email**
@@ -577,7 +577,7 @@
 
 - [ ] Route: `POST /confirm-account`
 - [ ] Validate token matches user's `confirmation_token`
-- [ ] Update: password (hashed), name, lastname, avatar, `email_verified_at = now()`
+- [ ] Update: password (hashed), name, lastname, avatar, `verified_at = now()`
 - [ ] Clear or keep token (for auditing)
 
 **6. Redirect to Login**
@@ -590,7 +590,7 @@
 **7. First Login → Dashboard**
 
 - [ ] Member logs in
-- [ ] Validation: Check `email_verified_at` is not null
+- [ ] Validation: Check `verified_at` is not null (via EnsureUserIsVerified middleware)
 - [ ] Redirect to `/dashboard` (member landing page)
 - [ ] Context: Single-project (members only have 1 project)
 

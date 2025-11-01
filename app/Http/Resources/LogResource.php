@@ -2,25 +2,28 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
 use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UnitTypeResource extends JsonResource
+class LogResource extends JsonResource
 {
     use ResourceSubsets;
     use WithResourceAbilities;
 
     public function toArray(Request $_): array
     {
+        $user = $this->whenLoaded('user');
+
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'description' => $this->description,
+            'event' => $this->event,
+            'creator' => $user?->name ?? __('System'),
+            'creator_href' => $user ? $this->getCreatorHref($user) : null,
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
-            'deleted_at' => $this->deleted_at?->toDateTimeString(),
 
             ...$this->relationsData(),
         ];
@@ -29,19 +32,15 @@ class UnitTypeResource extends JsonResource
     protected function relationsData(): array
     {
         return [
+            'user' => $this->whenLoaded('user', default: ['id' => $this->user_id]),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
-
-            'families' => $this->whenLoaded('families'),
-            'families_count' => $this->whenCounted(
-                'families',
-                default: fn () => $this->whenLoaded('families', fn () => $this->families->count())
-            ),
-
-            'units' => $this->whenLoaded('units'),
-            'units_count' => $this->whenCounted(
-                'units',
-                default: fn () => $this->whenLoaded('units', fn () => $this->units->count())
-            ),
         ];
+    }
+
+    protected function getCreatorHref(User $user): string
+    {
+        $routeName = $user->isAdmin() ? 'admins.show' : 'members.show';
+
+        return route($routeName, $user->id);
     }
 }

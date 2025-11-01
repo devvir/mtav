@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// Copilot - pending review
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import CreateUpdate from './Crud/CreateUpdate.vue';
 import { _ } from '@/composables/useTranslations';
+
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 </script>
 
 <template>

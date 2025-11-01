@@ -14,9 +14,8 @@ class UnitTypePolicy
 
     public function view(User $user, UnitType $unitType): bool
     {
-        return (bool) $user->isAdmin()
-            ? $user->asAdmin()->manages($unitType->project_id)
-            : (bool) $user->asMember()->project?->is($unitType->project_id);
+        return $user->asAdmin()?->manages($unitType->project_id)
+            || ($user->asMember()?->project?->id === $unitType->project_id);
     }
 
     public function create(User $user): bool

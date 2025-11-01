@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
 import { cn } from '@/lib/utils';
 import { CloseAction, OpenAction } from '.';
 import * as keys from './keys';
 
 const props = defineProps<{
-  class?: any;
+  class?: HTMLAttributes['class'];
 }>();
 
 const isOpen = inject(keys.isOpen) as Ref<boolean>;

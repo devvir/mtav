@@ -10,7 +10,7 @@ import { FormSpecs, ValueType } from './types';
 const props = defineProps<{
   type: string;
   action: string;
-  params: any;
+  params: unknown;
   title: string;
   specs?: FormSpecs;
   buttonText?: string;

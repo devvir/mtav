@@ -3,10 +3,7 @@
 import PersonCard from '../shared/PersonCard.vue';
 
 defineProps<{
-  member: {
-    id: number;
-    avatar?: string;
-    full_name: string;
+  member: Member & {
     family?: {
       name: string;
     };
@@ -18,7 +15,7 @@ defineProps<{
   <PersonCard
     :href="`/members/${member.id}`"
     :avatar="member.avatar"
-    :name="member.full_name"
+    :name="member.name"
     :subtitle="member.family?.name"
     rounded="full"
   />

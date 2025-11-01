@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Log;
 use App\Models\User;
 
 class LogPolicy
@@ -17,8 +18,9 @@ class LogPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user): bool
+    public function view(User $user, Log $log): bool
     {
-        return true;
+        return $user->asAdmin()?->manages($log->project_id)
+            || $user->asMember()?->family?->project_id === $log->project_id;
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Controllers\Resources;
 
 use App\Events\UserRegistration;
@@ -12,9 +10,10 @@ use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
-use App\Services\InvitationTokenService;
+use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,21 +59,18 @@ class AdminController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create (Invite) a new admin.
      */
-    public function store(CreateAdminRequest $request): RedirectResponse
+    public function store(InvitationService $invitationService, CreateAdminRequest $request): RedirectResponse
     {
-        $invitation = InvitationTokenService::generate();
+        $token = $invitationService->createToken();
+        $data = compact('token') + $request->except('project_ids');
 
-        $admin = Admin::create([
-            ...$request->only(['firstname', 'lastname', 'email']),
-            'password' => $invitation['hashed'],
-        ]);
+        $admin = DB::transaction(
+            fn () => Admin::create($data)->projects()->attach($request->project_ids)
+        );
 
-        // Attach admin to managed projects
-        $admin->projects()->attach($request->project_ids);
-
-        event(new UserRegistration($admin, $invitation['token']));
+        event(new UserRegistration($admin, $token));
 
         return to_route('admins.show', $admin->id)
             ->with('success', __('Admin created successfully.'));

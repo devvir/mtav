@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\DB;
  */
 function loadUniverse(): void
 {
+    Artisan::call('migrate:fresh');
+
     $sql = file_get_contents(__DIR__.'/../_fixtures/universe.sql');
 
     DB::unprepared($sql);

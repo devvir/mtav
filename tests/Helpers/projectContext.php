@@ -14,22 +14,6 @@ function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): v
 }
 
 /**
- * Get the current project.
- */
-function currentProject(): ?Project
-{
-    return state('project');
-}
-
-/**
- * Get the current project ID.
- */
-function currentProjectId(): ?int
-{
-    return currentProject()?->id;
-}
-
-/**
  * Reset the current project.
  */
 function resetCurrentProject(): void

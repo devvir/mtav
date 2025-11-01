@@ -53,7 +53,9 @@ defineProps<{
             {{ _('Family') }}: {{ member.family.name }}
           </ModalLink>
 
-          <div class="mt-4 text-sm text-text-subtle">{{ _('Created') }}: {{ member.created_ago }}</div>
+          <div class="mt-4 text-sm text-text-subtle" :title="member.created_at">
+            {{ _('Created') }}: {{ member.created_ago }}
+          </div>
         </div>
 
         <ModalLink

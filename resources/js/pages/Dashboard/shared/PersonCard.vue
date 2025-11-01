@@ -1,11 +1,10 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { ModalLink } from '@inertiaui/modal-vue';
 import Avatar from '@/components/Avatar.vue';
 
 defineProps<{
   href: string;
-  avatar?: string;
+  avatar: string;
   name: string;
   subtitle?: string;
   rounded?: 'default' | 'full';

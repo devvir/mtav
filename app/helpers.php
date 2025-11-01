@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
@@ -48,4 +49,20 @@ function state(string $key, mixed $default = null): mixed
 function setState(string $key, mixed $value): void
 {
     session()->put("state.$key", $value);
+}
+
+/**
+ * Get the current project.
+ */
+function currentProject(): ?Project
+{
+    return state('project');
+}
+
+/**
+ * Get the current project ID.
+ */
+function currentProjectId(): ?int
+{
+    return currentProject()?->id;
 }

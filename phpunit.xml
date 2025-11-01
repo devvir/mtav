@@ -29,6 +29,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SUPERADMINS" value="superadmin1@example.com"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
 import { Edit3Icon } from 'lucide-vue-next';
 import SelectDeselect from './SelectDeselect.vue';
+import { HTMLAttributes } from 'vue';
 
 const props = defineProps<{
   project: ApiResource<Required<Project>>;
-  class?: any;
+  class?: HTMLAttributes['class'];
 }>();
 </script>
 

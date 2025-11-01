@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { Form } from '@/components/forms';
 import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
 import { currentProject } from '@/composables/useProjects';
@@ -10,20 +9,16 @@ const props = defineProps<{
   action: string;
   title: string;
   unit_types: UnitType[];
-  families: Family[];
   unit?: Unit; // Edit-only
 }>();
 
 const unitTypeOptions: SelectOptions = {};
-props.unit_types.forEach((unitType) => (unitTypeOptions[unitType.id] = unitType.name));
-
-const familyOptions: SelectOptions = {};
-props.families.forEach((family) => (familyOptions[family.id] = family.name));
+props.unit_types.forEach((unitType) => (unitTypeOptions[unitType.id] = `${unitType.name} (${unitType.description.toLowerCase()})`));
 
 const formSpecs: FormSpecs = {
   number: {
     element: 'input',
-    label: 'Unit Number',
+    label: 'Unit Identifier',
     value: props.unit?.number,
     required: true,
   },
@@ -33,13 +28,6 @@ const formSpecs: FormSpecs = {
     selected: props.unit?.type?.id,
     options: unitTypeOptions,
     required: true,
-    displayId: true,
-  },
-  family_id: {
-    element: 'select',
-    label: 'Family',
-    selected: props.unit?.family?.id,
-    options: familyOptions,
     displayId: true,
   },
   project_id: {

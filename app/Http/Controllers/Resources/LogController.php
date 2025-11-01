@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Controllers\Resources;
 
 use App\Models\Log;
@@ -15,13 +13,10 @@ class LogController extends Controller
      */
     public function index(): Response
     {
-        $logs = Log::with('user')
-            ->where('project_id', currentProject()->id)
-            ->latest()
-            ->get();
+        $logs = Log::with('user')->whereProjectId(currentProjectId())->latest();
 
         return inertia('Logs/Index', [
-            'logs' => Inertia::deepMerge(fn () => $logs),
+            'logs' => Inertia::deepMerge(fn () => $logs->paginate(30)),
         ]);
     }
 

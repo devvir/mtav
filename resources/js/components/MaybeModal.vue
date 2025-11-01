@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
 import { Modal, useModal } from '@inertiaui/modal-vue';
 
 defineProps<{
-  panelClasses?: any;
-  paddingClasses?: any;
+  panelClasses?: HTMLAttributes['class'];
+  paddingClasses?: HTMLAttributes['class'];
 }>();
 
 const modal = useTemplateRef<any>('modal');

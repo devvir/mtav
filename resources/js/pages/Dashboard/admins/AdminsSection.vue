@@ -1,12 +1,11 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { Shield } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import AdminCard from './AdminCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  admins: any[];
+  admins: Admin[];
 }>();
 </script>
 

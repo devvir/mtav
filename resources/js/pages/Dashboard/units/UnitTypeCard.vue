@@ -5,12 +5,9 @@ import UnitCard from './UnitCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unitType: {
-    id: number;
-    name: string;
-    description?: string;
+  unitType: UnitType & {
     units_count: number;
-    units?: any[];
+    units?: Unit[];
   };
 }>();
 </script>

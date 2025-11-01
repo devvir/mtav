@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// Copilot - pending review
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import CreateUpdate from './Crud/CreateUpdate.vue';
 import { _ } from '@/composables/useTranslations';
+
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
   unit_type: UnitType;
@@ -17,11 +18,8 @@ defineProps<{
 
   <Breadcrumbs>
     <Breadcrumb route="unit-types.index" text="Unit Types" />
-    <Breadcrumb :route="route('unit-types.show', unit_type.id)" :text="unit_type.name" />
-    <Breadcrumb
-      :route="route('unit-types.edit', unit_type.id)"
-      :text="_('Edit')"
-    />
+    <Breadcrumb route="unit-types.show" :params="unit_type.id" :text="unit_type.name" />
+    <Breadcrumb route="unit-types.edit" :params="unit_type.id" :text="_('Edit')" />
   </Breadcrumbs>
 
   <MaybeModal>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
 import { cn } from '@/lib/utils';
 import * as keys from './keys';
 
 const props = defineProps<{
-  class?: any;
+  class?: HTMLAttributes['class'];
 }>();
 
 const isOpen = inject<boolean>(keys.isOpen);

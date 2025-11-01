@@ -398,14 +398,14 @@ it('test description')->skip('Category: Specific root cause explanation');
 
 - Email verification via token in invitation link
 - Keep token after confirmation for auditing
-- Check `email_verified_at` for active status, ignore token if verified
+- Check `verified_at` for active status, ignore token if verified
 
 **Flow**:
 
 1. Admin/Member invites → Generate token
 2. Email link: `/confirm-account?email={email}&token={token}`
-3. User confirms → Set `email_verified_at = now()`, keep token
-4. Login validation: Check `email_verified_at` not null
+3. User confirms → Set `verified_at = now()`, keep token
+4. Login validation: Check `verified_at` not null
 
 ---
 

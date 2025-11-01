@@ -8,6 +8,20 @@ interface Resource {
   deleted_at: string | null;
 }
 
+interface Project extends Resource {
+  name: string;
+  description: string;
+  organization: string;
+  active: boolean;
+
+  admins?: User[];
+  admins_count?: number;
+  members?: User[];
+  members_count?: number;
+  families?: Family[];
+  families_count?: number;
+}
+
 interface User extends Resource {
   email: string;
   phone: string;
@@ -36,11 +50,13 @@ interface Family extends Resource {
   unit_type?: UnitType & { loaded?: boolean };
   project: Project & { loaded?: boolean };
   members?: User[];
+  members_count?: number;
 }
 
 interface UnitType extends Resource {
   name: string;
-  description?: string;
+  description: string;
+
   units_count?: number;
   families_count?: number;
 }
@@ -53,18 +69,14 @@ interface Unit extends Resource {
   family?: Family | null;
 }
 
-interface Project extends Resource {
-  name: string;
-  description: string;
-  organization: string;
-  active: boolean;
+interface Log extends Resource {
+  project_id: number;
+  event: string;
+  creator: string;
+  creator_href: string | null;
 
-  admins?: User[];
-  admins_count?: number;
-  members?: User[];
-  members_count?: number;
-  families?: Family[];
-  families_count?: number;
+  user: User & { id: int | null };
+  project: Project & { id: int | null };
 }
 
 interface ApiResource<R extends Resource = Resource> extends R {

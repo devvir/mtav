@@ -24,10 +24,10 @@ const props = defineProps<{
     media: number;
     events: number;
   };
-  families?: any[];
-  members?: any[];
-  unitTypes?: any[];
-  admins?: any[];
+  families?: Family[];
+  members?: Member[];
+  unitTypes?: UnitType[];
+  admins?: Admin[];
 }>();
 
 // Load lazy data on mount

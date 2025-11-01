@@ -19,7 +19,7 @@ defineProps<{
         <div class="flex items-center justify-between gap-3">
           <img :src="member.avatar" alt="avatar" class="size-16 shrink-0 rounded-full ring-2 ring-border" />
 
-          <div class="flex-1 text-right" :title="member.name">
+          <div class="flex-1 text-right truncate pl-base" :title="member.name">
             <div class="truncate text-xl font-semibold text-text">{{ member.name }}</div>
 
             <ModalLink

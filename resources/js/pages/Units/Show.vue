@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Copilot - pending review
 import Card from '@/components/shared/Card.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
@@ -11,8 +10,11 @@ import { ModalLink } from '@inertiaui/modal-vue';
 import { Building2, Edit3Icon, Home, Users } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 
-defineEmits<{ modalEvent: any[] }>();
-defineProps<{ unit: ApiResource<Unit> }>();
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
+
+defineProps<{
+    unit: ApiResource<Unit>;
+}>();
 </script>
 
 <template>
@@ -23,7 +25,7 @@ defineProps<{ unit: ApiResource<Unit> }>();
     <Breadcrumb route="units.show" :params="unit.id">{{ _('Unit') }} {{ unit.number }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal panelClasses="modalPanel close-left backdrop-blur-lg">
+  <MaybeModal panelClasses="modalPanel backdrop-blur-lg">
     <ShowWrapper :resource-id="unit.id">
       <Card class="size-full">
         <template v-slot:header>
@@ -87,7 +89,7 @@ defineProps<{ unit: ApiResource<Unit> }>();
           </div>
 
           <!-- Metadata -->
-          <div class="border-t border-border pt-4 text-sm text-text-subtle">
+          <div class="border-t border-border pt-4 text-sm text-text-subtle" :title="unit.created_at">
             <span>{{ _('Created') }}</span>: {{ unit.created_ago }}
           </div>
         </div>

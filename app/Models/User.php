@@ -113,6 +113,11 @@ class User extends Authenticatable
         return ! $this->is_admin;
     }
 
+    public function isNotMember(): bool
+    {
+        return ! $this->isMember();
+    }
+
     public function isAdmin(): bool
     {
         return $this->is_admin || $this->isSuperadmin();

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Copilot - pending review
 import Card from '@/components/shared/Card.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
@@ -9,6 +8,8 @@ import MaybeModal from '@/components/MaybeModal.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Building2, Edit3Icon, Home, Users } from 'lucide-vue-next';
+
+defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
   unit_type: ApiResource<UnitType>;
@@ -71,7 +72,7 @@ defineProps<{
           </div>
 
           <!-- Metadata -->
-          <div class="border-t border-border pt-4 text-sm text-text-subtle">
+          <div class="border-t border-border pt-4 text-sm text-text-subtle" :title="unit_type.created_at">
             <span>{{ _('Created') }}</span>: {{ unit_type.created_ago }}
           </div>
         </div>

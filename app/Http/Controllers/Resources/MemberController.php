@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Controllers\Resources;
 
 use App\Events\UserRegistration;
@@ -16,7 +14,7 @@ use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Family;
 use App\Models\Member;
 use App\Models\Project;
-use App\Services\InvitationTokenService;
+use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -68,25 +66,24 @@ class MemberController extends Controller
             'families' => $families->get(),
             'projects' => $projectsPool->alphabetically()->get(),
         ]);
-    }    /**
-     * Store a newly created resource in storage.
+    }
+
+    /**
+     * Create (Invite) a new Member.
      */
-    public function store(CreateMemberRequest $request): RedirectResponse
+    public function store(InvitationService $invitationService, CreateMemberRequest $request): RedirectResponse
     {
-        $invitation = InvitationTokenService::generate();
+        $token = $invitationService->createToken();
+        $data = compact('token') + $request->except('project_id');
 
-        $member = DB::transaction(function () use ($request, $invitation) {
-            return Member::create([
-                ...$request->only(['firstname', 'lastname', 'email']),
-                'family_id' => $request->family ?: null,
-                'password' => $invitation['hashed'],
-            ])->joinProject($request->project_id);
-        });
+        $member = DB::transaction(
+            fn () => Member::create($data)->joinProject($request->project_id)
+        );
 
-        event(new UserRegistration($member, $invitation['token']));
+        event(new UserRegistration($member, $token));
 
         return to_route('members.show', $member->id)
-            ->with('success', __('Member created successfully.'));
+            ->with('success', __('Member invited successfully.'));
     }
 
     /**

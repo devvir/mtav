@@ -44,11 +44,11 @@ class UserSeeder extends Seeder
             'email' => 'admin.x2@example.com',
         ])->projects()->attach(Project::skip(1)->take(2)->pluck('id'));
 
-        User::factory()->create([
+        ($testMember = User::factory()->create([
             'firstname' => 'Test',
-            'lastname' => 'User',
-            'email' => 'user@example.com',
-        ])->asMember()->joinProject($firstProject);
+            'lastname' => 'Member',
+            'email' => 'member@example.com',
+        ])->asMember())->joinProject($testMember->family->project_id);
 
         // Example orphan User (data inconsistency: no family, no project)
         User::factory()->create([

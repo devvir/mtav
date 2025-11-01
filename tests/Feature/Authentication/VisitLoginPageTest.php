@@ -19,28 +19,28 @@ describe('When visiting the login page', function () {
     describe('as Authenticated Member', function () {
 
         it('redirects them to the Dashboard (if their Project is active)', function () {
-            $response = $this->visitRoute('login', asUser: 7);
+            $response = $this->visitRoute('login', asUser: 102); // member102@example.com
 
             expect(inertiaRoute($response))->toBe('home');
         });
 
         it('logs them out if they are not active in any Project', function () {
-            // Member #5 has only one Project, and is inactive in it
-            $response = $this->visitRoute('login', asUser: 5);
+            // Member #100 has only one Project, and is inactive in it
+            $response = $this->visitRoute('login', asUser: 100);
 
             expect(inertiaRoute($response))->toBe('login');
         });
 
         it('logs them out if their Project was deleted', function () {
-            // Member #52 belongs to Project #5 (soft-deleted)
-            $response = $this->visitRoute('login', asUser: 52);
+            // Member #146 belongs to Project #5 (soft-deleted)
+            $response = $this->visitRoute('login', asUser: 146);
 
             expect(inertiaRoute($response))->toBe('login');
         });
 
         it('redirects to Dashboard if their Project is inactive', function () {
-            // Member #51 is an active member of Project #4, which is itself inactive
-            $response = $this->visitRoute('login', asUser: 51);
+            // Member #145 is an active member of Project #4, which is itself inactive
+            $response = $this->visitRoute('login', asUser: 145);
 
             expect(inertiaRoute($response))->toBe('home');
         });
@@ -48,67 +48,67 @@ describe('When visiting the login page', function () {
 
     describe('as Admin', function () {
         it('redirects to the Dashboard if they manage only one Project', function () {
-            // Admin #2 manages only Project #1
-            $response = $this->visitRoute('login', asUser: 2);
+            // Admin #11 manages only Project #1
+            $response = $this->visitRoute('login', asUser: 11);
 
             expect(inertiaRoute($response))->toBe('home');
         });
 
         it('redirects to projects index if they manage more than one Project', function () {
-            // Admin #3 manages Projects #2 and #3
-            $response = $this->visitRoute('login', asUser: 3);
+            // Admin #12 manages Projects #2 and #3
+            $response = $this->visitRoute('login', asUser: 12);
 
             expect(inertiaRoute($response))->toBe('projects.index');
         });
 
         it('logs them out and redirects back to login page if they manage no projects', function () {
-            // Admin #1 has no project assignments
-            $response = $this->visitRoute('login', asUser: 1);
+            // Admin #10 has no project assignments
+            $response = $this->visitRoute('login', asUser: 10);
 
             expect(inertiaRoute($response))->toBe('login');
         });
 
         it('redirects to the Dashboard if current project is set and managed by them', function () {
-            // Admin #4 manages Projects #2 (inactive), #3, #4
+            // Admin #13 manages Projects #2 (inactive), #3, #4
             setCurrentProject(3);
 
-            $response = $this->visitRoute('login', asUser: 4);
+            $response = $this->visitRoute('login', asUser: 13);
 
             expect(inertiaRoute($response))->toBe('home');
         });
 
         it('redirects to Projects and resets current project if admin does not manage selected one', function () {
-            // Admin #3 manages Projects #2 and #3, but NOT #1
+            // Admin #12 manages Projects #2 and #3, but NOT #1
             setCurrentProject(1);
 
-            $response = $this->visitRoute('login', asUser: 3);
+            $response = $this->visitRoute('login', asUser: 12);
 
             expect(currentProjectId())->toBeNull();
             expect(inertiaRoute($response))->toBe('projects.index');
         });
 
         it('redirects back to login if admin manages only a deleted project', function () {
-            // Admin #50 manages only Project #5 (soft-deleted)
-            $response = $this->visitRoute('login', asUser: 50);
+            // Admin #14 manages only Project #5 (soft-deleted)
+            $response = $this->visitRoute('login', asUser: 14);
 
             expect(inertiaRoute($response))->toBe('login');
         });
 
         it('redirects to home with remaining project selected when current one is deleted and admin manages only 1 other', function () {
-            // Admin #53 manages Projects #2 (active) and #5 (deleted)
+            // Admin #15 manages Projects #2 (active) and #5 (deleted)
             setCurrentProject(5, withTrashed: true);
 
-            $response = $this->visitRoute('login', asUser: 53);
+            $response = $this->visitRoute('login', asUser: 15);
 
             expect(currentProjectId())->toBe(2);
             expect(inertiaRoute($response))->toBe('home');
         });
 
         it('redirects to home with no project selected when current one is deleted and admin manages at least 2 others', function () {
-            // Admin #54 manages Projects #2, #3, #4 (active) and #5 (deleted)
+            // Admin #16 manages Projects #2, #3, #4 (active) and #5 (deleted)
             setCurrentProject(5, withTrashed: true);
 
-            $response = $this->visitRoute('login', asUser: 54);
+            $response = $this->visitRoute('login', asUser: 16);
 
             expect(currentProject())->toBeNull();
             expect(inertiaRoute($response))->toBe('projects.index');

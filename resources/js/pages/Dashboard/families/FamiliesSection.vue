@@ -6,7 +6,7 @@ import FamilyCard from './FamilyCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  families: any[];
+  families: Family[];
   totalCount: number;
 }>();
 </script>

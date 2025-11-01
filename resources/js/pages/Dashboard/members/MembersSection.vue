@@ -1,12 +1,11 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { User } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import MemberCard from './MemberCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  members: any[];
+  members: Member[];
   totalCount: number;
 }>();
 </script>

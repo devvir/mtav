@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Resources;
 
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
@@ -37,7 +35,9 @@ class FamilyResource extends JsonResource
     {
         return [
             'members' => $this->whenLoaded('members'),
-            'members_count' => $this->whenCounted('members'),
+            'members_count' => $this->whenCounted(
+                'members',
+                default: fn () => $this->whenLoaded('members', fn () => $this->members->count())),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
         ];
