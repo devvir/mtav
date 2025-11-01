@@ -51,6 +51,13 @@ echo -e "${YELLOW}📋 Step 1: Ensuring containers are running...${NC}"
 docker_compose up --detach --quiet-pull
 # Also start the test database (uses profile 'test')
 docker_compose --profile test up mysql_test --detach --quiet-pull 2>/dev/null
+
+# Wait for test database to be healthy
+echo -e "${YELLOW}⏳ Waiting for test database to be ready...${NC}"
+timeout 30 bash -c 'until docker inspect dev-mysql_test-1 --format="{{.State.Health.Status}}" 2>/dev/null | grep -q "healthy"; do sleep 0.5; done' || {
+    echo -e "${RED}❌ Test database failed to become healthy${NC}"
+    exit 1
+}
 echo -e "${GREEN}✅ Containers are ready${NC}"
 echo ""
 

@@ -71,8 +71,14 @@ services:
       MYSQL_DATABASE: mtav_test
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - mysql_test_data:/var/lib/mysql
+    tmpfs:
+      - /var/lib/mysql # Store database in RAM for faster tests
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
     networks:
       - mtav-network
     profiles:
