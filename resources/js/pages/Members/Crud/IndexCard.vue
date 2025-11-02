@@ -24,7 +24,7 @@ defineProps<{
 
             <ModalLink
               @click.prevent.stop
-              v-if="member.family.name"
+              v-if="'name' in member.family"
               :href="route('families.show', member.family.id)"
               class="mt-1 inline-block min-h-[44px] @md:min-h-[36px] items-center text-xs font-medium text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
             >

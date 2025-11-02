@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'legal_id' => fake()->optional()->numerify('#.###.###-#'),
             'firstname' => fake()->firstName(),
             'lastname' => fake()->lastName(),
-            'bio' => fake()->optional(0.7)->realText(200),
+            'about' => fake()->optional(0.7)->realText(200),
             'is_admin' => false,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

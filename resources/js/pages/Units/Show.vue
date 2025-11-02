@@ -36,7 +36,7 @@ defineProps<{
               </div>
               <div class="min-w-0 flex-1">
                 <h2 class="truncate text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</h2>
-                <p v-if="unit.type" class="mt-1 truncate text-sm text-text-subtle">
+                <p v-if="unit.type && 'name' in unit.type" class="mt-1 truncate text-sm text-text-subtle">
                   {{ unit.type.name }}
                 </p>
               </div>
@@ -58,7 +58,7 @@ defineProps<{
           <!-- Info Grid -->
           <div class="grid gap-4 @md:grid-cols-2">
             <!-- Unit Type -->
-            <div v-if="unit.type" class="rounded-lg border border-border bg-surface-sunken p-4">
+            <div v-if="unit.type && 'name' in unit.type" class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
                 <div class="rounded-md bg-interactive/10 p-2">
                   <Home class="h-5 w-5 text-interactive" />
@@ -76,7 +76,7 @@ defineProps<{
             </div>
 
             <!-- Family -->
-            <div v-if="unit.family" class="rounded-lg border border-border bg-surface-sunken p-4">
+            <div v-if="unit.family && 'name' in unit.family" class="rounded-lg border border-border bg-surface-sunken p-4">
               <div class="flex items-center gap-3">
                 <div class="rounded-md bg-interactive/10 p-2">
                   <Users class="h-5 w-5 text-interactive" />
@@ -95,7 +95,7 @@ defineProps<{
           </div>
 
           <!-- Project Info -->
-          <div v-if="unit.project" class="rounded-lg border border-border bg-surface-sunken p-4">
+          <div v-if="unit.project && 'name' in unit.project" class="rounded-lg border border-border bg-surface-sunken p-4">
             <div class="text-sm font-medium text-text-subtle">{{ _('Project') }}</div>
             <div class="mt-1 text-lg font-semibold text-text">{{ unit.project.name }}</div>
           </div>

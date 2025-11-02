@@ -7,7 +7,7 @@ import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import Textarea from '@/components/Textarea.vue';
 import { auth, currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -24,7 +24,7 @@ const form = useForm({
   email: profile.email,
   firstname: profile.firstname,
   lastname: profile.lastname ?? '',
-  bio: profile.bio ?? '',
+  about: profile.about ?? '',
 });
 
 const submit = () => form.patch(route('profile.update'), { preserveScroll: true });
@@ -61,15 +61,15 @@ const submit = () => form.patch(route('profile.update'), { preserveScroll: true 
         </div>
 
         <div class="grid gap-2">
-          <Label for="bio">{{ _('Bio') }}</Label>
+          <Label for="about">{{ _('About me') }}</Label>
           <Textarea
-            id="bio"
+            id="about"
             class="mt-1 block w-full"
-            v-model="form.bio"
+            v-model="form.about"
             :placeholder="_('Tell us a bit about yourself...')"
-            rows="4"
+            :rows="4"
           />
-          <InputError class="mt-2" :message="form.errors.bio" />
+          <InputError class="mt-2" :message="form.errors.about" />
         </div>
 
         <div class="grid gap-2">

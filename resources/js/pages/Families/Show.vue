@@ -34,7 +34,7 @@ const longDate = (date: string) =>
     <ShowWrapper>
       <IndexCard :family class="pt-12">
         <template v-slot:header>
-          <div class="mt-2 text-right text-sm text-text-subtle">
+          <div v-if="'name' in family.project" class="mt-2 text-right text-sm text-text-subtle">
             <span>{{ _('Project') }}:</span> {{ family.project.name }}
           </div>
         </template>

@@ -12,9 +12,16 @@ import Delete from './Crud/Delete.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
-defineProps<{
+const props = defineProps<{
   member: ApiResource<Member>;
 }>();
+
+const projectLink = computed(() => {
+  if (!props.member.project) return undefined;
+  return props.member.project.allows?.view
+    ? route('projects.show', props.member.project.id)
+    : route('home');
+});
 </script>
 
 <template>
@@ -54,7 +61,7 @@ defineProps<{
           <div class="space-y-3">
             <ModalLink
               v-if="member.project?.name"
-              :href="route('projects.show', member.project.id)"
+              :href="projectLink"
               class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
             >
               <span class="text-text/70">{{ _('Project') }}:</span>
@@ -62,19 +69,19 @@ defineProps<{
             </ModalLink>
 
             <ModalLink
-              v-if="member.family.name"
               :href="route('families.show', member.family.id)"
               class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
             >
               <span class="text-text/70">{{ _('Family') }}:</span>
-              <span class="font-medium">{{ member.family.name }}</span>
+              <span class="font-medium">{{ (member.family as ApiResource<Family>).name }}</span>
             </ModalLink>
           </div>
 
           <!-- Bio -->
-          <div v-if="member.bio" class="rounded-lg bg-surface-sunken p-4">
-            <div class="text-sm font-medium text-text/70 mb-2">{{ _('Bio') }}</div>
-            <p class="text-sm leading-relaxed text-text/90">{{ member.bio }}</p>
+          <div class="rounded-lg bg-surface-sunken p-4">
+            <div class="text-sm font-medium text-text/70 mb-2">{{ _('About me') }}</div>
+            <p v-if="member.about" class="text-sm leading-relaxed text-text/90">{{ member.about }}</p>
+            <p v-else class="text-sm italic text-text/50">{{ _('Nothing written yet') }}</p>
           </div>
 
           <!-- Member properties: Contact & identity info -->

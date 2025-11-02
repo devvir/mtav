@@ -12,6 +12,13 @@ const props = defineProps<{
   project: ApiResource<Required<Project>>;
   class?: HTMLAttributes['class'];
 }>();
+
+const projectLink = computed(() =>
+  props.project.allows.view
+    ? route('projects.show', props.project.id)
+    : route('home')
+);
+
 </script>
 
 <template>
@@ -29,7 +36,7 @@ const props = defineProps<{
         <ModalLink
           class="block min-w-0 flex-1 cursor-pointer focus:outline-0"
           :class="useModal() ? 'pointer-events-none' : ''"
-          :href="route('projects.show', project.id)"
+          :href="projectLink"
         >
           <div class="space-y-2">
             <p class="truncate text-xl font-semibold text-text" :title="project.name">

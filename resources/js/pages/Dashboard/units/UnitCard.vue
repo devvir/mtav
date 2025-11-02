@@ -18,8 +18,8 @@ defineProps<{
   >
     <div class="flex-1">
       <div class="text-sm font-medium text-text">{{ _('Unit') }} {{ unit.number }}</div>
-      <div v-if="unit.type" class="text-xs text-text-muted">{{ unit.type.name }}</div>
-      <div v-else-if="unit.family" class="text-xs text-text-muted">{{ unit.family.name }}</div>
+      <div v-if="unit.type && 'name' in unit.type" class="text-xs text-text-muted">{{ unit.type.name }}</div>
+      <div v-else-if="unit.family && 'name' in unit.family" class="text-xs text-text-muted">{{ unit.family.name }}</div>
     </div>
     <Building2 class="h-4 w-4 text-text-subtle" />
   </ModalLink>

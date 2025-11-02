@@ -28,7 +28,7 @@ class UserResource extends JsonResource
             'firstname' => $this->firstname ?? '',
             'lastname' => $this->lastname ?? '',
             'name' => $fullName,
-            'bio' => $this->bio ?? null,
+            'about' => $this->about ?? null,
             'avatar' => $this->resolveAvatar(),
             'is_admin' => $this->isAdmin(),
             'created_at' => $this->created_at->toDateTimeString(),

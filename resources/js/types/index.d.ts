@@ -28,9 +28,11 @@ interface User extends Resource {
   name: string;
   firstname: string;
   lastname: string;
-  bio: string | null;
+  about: string | null;
   avatar: string;
   is_admin: boolean;
+
+  projects?: ApiResource<Project>[];
 
   // Sensitive data (only present for admins)
   legal_id?: string;
@@ -41,20 +43,20 @@ interface User extends Resource {
 }
 
 interface Member extends User {
-  family: Family & { loaded?: boolean };
-  project?: Project & { loaded?: boolean };
+  family: { id: number } | ApiResource<Family>;
+  project?: ApiResource<Project> | null;
 }
 
 interface Admin extends User {
-  projects?: Project[] & { loaded?: boolean };
+  manages?: ApiResource<Project>[];
 }
 
 interface Family extends Resource {
   name: string;
   avatar: string;
-  unit_type?: UnitType & { loaded?: boolean };
-  project: Project & { loaded?: boolean };
-  members?: User[];
+  unit_type: { id: number } | ApiResource<UnitType>;
+  project: { id: number } | ApiResource<Project>;
+  members?: ApiResource<User>[];
   members_count?: number;
 }
 
@@ -62,16 +64,19 @@ interface UnitType extends Resource {
   name: string;
   description: string;
 
-  units_count?: number;
+  project: { id: number } | ApiResource<Project>;
+  families?: ApiResource<Family>[];
   families_count?: number;
+  units?: ApiResource<Unit>[];
+  units_count?: number;
 }
 
 interface Unit extends Resource {
   name: string;
-  number?: string;
-  project: Project & { loaded?: boolean };
-  type?: UnitType & { loaded?: boolean };
-  family?: Family | null;
+  number: string;
+  type: { id: number } | ApiResource<UnitType>;
+  project: { id: number } | ApiResource<Project>;
+  family: { id: number | null } | null | ApiResource<Family>;
 }
 
 interface Log extends Resource {
@@ -80,8 +85,8 @@ interface Log extends Resource {
   creator: string;
   creator_href: string | null;
 
-  user: User & { id: int | null };
-  project: Project & { id: int | null };
+  user: { id: number | null } | null | ApiResource<User>;
+  project: { id: number | null } | null | ApiResource<Project>;
 }
 
 interface ApiResource<R extends Resource = Resource> extends R {
