@@ -19,24 +19,20 @@ class ProjectController extends Controller
      */
     public function index(IndexProjectsRequest $request): Response
     {
-        $pool = $request->user()->isSuperadmin()
-            ? Project::query()
-            : $request->user()->projects();
-
-        $projects = $pool->alphabetically()
+        $projects = Project::alphabetically()
             ->withCount('admins', 'members', 'families')
             ->with([
                 'admins' => fn ($q) => $q->limit(5),
                 'members' => fn ($q) => $q->limit(5),
                 'families' => fn ($q) => $q->limit(5),
             ])
-            ->when($request->q, fn ($query, $q) => $query->whereLike('name', "%$q%"))
-            ->unless($request->showAll, fn ($query) => $query->where('projects.active', true));
+            ->when($request->q, fn ($q, $search) => $q->whereLike('name', "%$search%"))
+            ->unless($request->showAll, fn ($q) => $q->where('projects.active', true));
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
-            'q' => $request->q ?? '',
             'all' => $request->showAll ?? false,
+            'q' => $request->q ?? '',
         ]);
     }
 
@@ -72,7 +68,7 @@ class ProjectController extends Controller
     public function store(CreateProjectRequest $request): RedirectResponse
     {
         $project = DB::transaction(fn () => tap(
-            Project::query()->create($request->only('name', 'description', 'organization')),
+            Project::create($request->only('name', 'description', 'organization')),
             fn ($project) => $project->admins()->attach($request->admins)
         ));
 

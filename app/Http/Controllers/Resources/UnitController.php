@@ -5,8 +5,8 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitRequest;
-use App\Http\Requests\IndexUnitsRequest;
-use App\Http\Requests\ShowCreateUnitRequest;
+use App\Http\Requests\FilteredIndexRequest;
+use App\Http\Requests\ProjectScopedRequest;
 use App\Http\Requests\UpdateUnitRequest;
 use App\Models\Family;
 use App\Models\Unit;
@@ -20,7 +20,7 @@ class UnitController extends Controller
     /**
      * Show the resource index.
      */
-    public function index(IndexUnitsRequest $request): Response
+    public function index(FilteredIndexRequest $request): Response
     {
         $units = Unit::with('type', 'family', 'project')
             ->whereProjectId($request->project_id ?? currentProject()->id)
@@ -45,7 +45,7 @@ class UnitController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(ShowCreateUnitRequest $request): Response
+    public function create(ProjectScopedRequest $request): Response
     {
         $projectId = $request->project_id;
 

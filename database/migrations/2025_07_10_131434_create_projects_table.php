@@ -27,7 +27,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Project::class)->constrained()->cascadeOnDelete();
-            $table->boolean('active')->default(true);
+            $table->boolean('active')->default(true)->index();
             $table->timestamps();
 
             $table->unique(['user_id', 'project_id']);

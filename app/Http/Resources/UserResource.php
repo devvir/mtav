@@ -17,7 +17,7 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $_): array
+    public function toArray(Request $request): array
     {
         $fullName = trim($this->firstname.' '.($this->lastname ?? ''));
 
@@ -28,16 +28,31 @@ class UserResource extends JsonResource
             'firstname' => $this->firstname ?? '',
             'lastname' => $this->lastname ?? '',
             'name' => $fullName,
+            'bio' => $this->bio ?? null,
             'avatar' => $this->resolveAvatar(),
-            'is_verified' => (bool) $this->email_verified_at,
             'is_admin' => $this->isAdmin(),
-            'is_superadmin' => $this->isSuperadmin(),
-            'legal_id' => $this->legal_id ?? '',
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
             'deleted_at' => $this->deleted_at?->toDateTimeString(),
 
             ...$this->relationsData(),
+
+            ...$this->sensitiveData($request),
+        ];
+    }
+
+    private function sensitiveData(Request $request): array
+    {
+        if (! $request->user()?->isAdmin()) {
+            return [];
+        }
+
+        return [
+            'is_superadmin' => $this->isSuperadmin(),
+            'legal_id' => $this->legal_id ?? '',
+            'is_verified' => (bool) $this->email_verified_at,
+            'email_verified_at' => $this->email_verified_at?->toDateTimeString(),
+            'invitation_accepted_at' => $this->invitation_accepted_at?->toDateTimeString(),
         ];
     }
 

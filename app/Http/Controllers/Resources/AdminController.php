@@ -4,15 +4,13 @@ namespace App\Http\Controllers\Resources;
 
 use App\Events\UserRegistration;
 use App\Http\Requests\CreateAdminRequest;
-use App\Http\Requests\IndexAdminsRequest;
-use App\Http\Requests\ShowAdminRequest;
+use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +20,7 @@ class AdminController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexAdminsRequest $request): Response
+    public function index(FilteredIndexRequest $request): Response
     {
         $admins = Admin::alphabetically()
             ->when($request->project_id, fn ($q, $projectId) => $q->inProject($projectId))
@@ -37,7 +35,7 @@ class AdminController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ShowAdminRequest $_, Admin $admin): Response
+    public function show(Admin $admin): Response
     {
         $admin->load('projects');
 
@@ -47,14 +45,10 @@ class AdminController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request): Response
+    public function create(): Response
     {
-        $projectsPool = $request->user()->isSuperadmin()
-            ? Project::query()
-            : $request->user()->projects();
-
         return inertia('Admins/Create', [
-            'projects' => $projectsPool->alphabetically()->get(),
+            'projects' => Project::alphabetically()->get(),
         ]);
     }
 

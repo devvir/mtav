@@ -4,7 +4,6 @@ namespace App\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Database\Eloquent\Model;
 
 class BelongsToProject implements ValidationRule
 {

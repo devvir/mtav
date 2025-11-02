@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPolicy;
+use App\Models\Concerns\ProjectScope;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -20,6 +21,7 @@ class User extends Authenticatable
     use HasFactory;
     use HasPolicy;
     use Notifiable;
+    use ProjectScope;
     use SoftDeletes;
 
     protected $guarded = [];
@@ -38,6 +40,7 @@ class User extends Authenticatable
         'is_admin' => 'boolean',
         'password' => 'hashed',
         'email_verified_at' => 'datetime',
+        'invitation_accepted_at' => 'datetime',
     ];
 
     /**
@@ -71,7 +74,8 @@ class User extends Authenticatable
      */
     public function projects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'project_user', 'user_id')
+        return $this
+            ->belongsToMany(Project::class, 'project_user', 'user_id')
             ->wherePivot('active', true)
             ->withTimestamps();
     }
@@ -90,10 +94,7 @@ class User extends Authenticatable
     {
         $projectId = is_int($project) ? $project : $project->getKey();
 
-        $query->whereHas(
-            'projects',
-            fn ($q) => $q->where('projects.id', $projectId)
-        );
+        $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectId));
     }
 
     public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
@@ -136,6 +137,11 @@ class User extends Authenticatable
     public function isNotSuperadmin(): bool
     {
         return ! $this->isSuperadmin();
+    }
+
+    public function acceptedInvitation(): bool
+    {
+        return (bool) $this->invitation_accepted_at;
     }
 
     public function isVerified(): bool

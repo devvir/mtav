@@ -16,3 +16,4 @@ function loadUniverse(): void
 
     DB::unprepared($sql);
 }
+

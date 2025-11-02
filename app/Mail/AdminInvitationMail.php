@@ -41,7 +41,7 @@ class AdminInvitationMail extends Mailable
      */
     public function content(): Content
     {
-        $confirmationUrl = route('invitation.confirm', [
+        $confirmationUrl = route('invitation.show', [
             'email' => $this->admin->email,
             'token' => $this->token,
         ]);

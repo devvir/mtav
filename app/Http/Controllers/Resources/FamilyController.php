@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateFamilyRequest;
-use App\Http\Requests\IndexFamiliesRequest;
+use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Models\Family;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,14 +16,15 @@ class FamilyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexFamiliesRequest $request): Response
+    public function index(FilteredIndexRequest $request): Response
     {
         setState('groupMembers', true);
 
         $families = Family::alphabetically()
-            ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId))
-            ->with(['members' => fn ($query) => $query->alphabetically()])
-            ->when($request->q, fn ($query, $q) => $query->search($q, searchMembers: true));
+            ->withMembers()
+            ->with(['members' => fn ($q) => $q->alphabetically()])
+            ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))
+            ->when($request->q, fn ($q, $search) => $q->search($search, searchMembers: true));
 
         return inertia('Families/Index', [
             'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
@@ -45,14 +45,10 @@ class FamilyController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request): Response
+    public function create(): Response
     {
-        $projectsPool = $request->user()->isSuperadmin()
-            ? Project::query()
-            : $request->user()->projects();
-
         return inertia('Families/Create', [
-            'projects' => $projectsPool->alphabetically()->get(),
+            'projects' => Project::alphabetically()->get(),
         ]);
     }
 
@@ -71,15 +67,11 @@ class FamilyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Family $family): Response
+    public function edit(Family $family): Response
     {
-        $projectsPool = $request->user()->isSuperadmin()
-            ? Project::query()
-            : $request->user()->projects();
-
         return inertia('Families/Edit', [
             'family' => $family->load('project'),
-            'projects' => $projectsPool->alphabetically()->get(),
+            'projects' => Project::alphabetically()->get(),
         ]);
     }
 

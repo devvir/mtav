@@ -7,7 +7,9 @@ use App\Models\Project;
  */
 function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): void
 {
-    $builder = $withTrashed ? Project::withTrashed() : Project::query();
+    $builder = Project::withoutGlobalScopes()
+        ->when($withTrashed, fn ($q) => $q->withTrashed());
+
     $project = is_int($modelOrId) ? $builder->findOrFail($modelOrId) : $modelOrId;
 
     setState('project', $project);

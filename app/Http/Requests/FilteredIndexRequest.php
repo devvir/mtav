@@ -6,7 +6,7 @@ namespace App\Http\Requests;
  * @property-read int|null $project_id
  * @property-read string|null $q
  */
-class IndexFamiliesRequest extends ProjectScopedRequest
+class FilteredIndexRequest extends ProjectScopedRequest
 {
     public function rules(): array
     {

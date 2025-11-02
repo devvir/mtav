@@ -12,8 +12,15 @@ use Illuminate\Http\Request;
  *
  * @mixin Request
  */
-abstract class ProjectScopedRequest extends FormRequest
+class ProjectScopedRequest extends FormRequest
 {
+    public function rules(): array
+    {
+        return [
+            'project_id' => 'nullable|integer|exists:projects,id',
+        ];
+    }
+
     /**
      * Prepare the data for validation.
      * Injects current project if no project_id is provided.

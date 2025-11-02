@@ -22,12 +22,12 @@ class CreateMemberRequest extends ProjectScopedRequest
 
         return [
             'project_id' => 'required|integer|exists:projects,id',
-            'family' => array_filter([
+            'family_id' => array_filter([
                 'required',
                 'exists:families,id',
                 $projectId ? new BelongsToProject(Family::class, $projectId, 'validation.family_belongs_to_project') : null,
             ]),
-            'email' => ['required', 'email', 'max:255', 'unique:user,email'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'firstname' => ['required', 'string', 'between:2,80'],
             'lastname' => ['nullable', 'string', 'between:2,80'],
         ];

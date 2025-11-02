@@ -20,7 +20,9 @@ return new class extends Migration
             $table->string('lastname')->nullable()->after('firstname');
             $table->string('avatar')->nullable()->after('lastname');
             $table->string('legal_id')->nullable()->after('avatar');
+            $table->text('bio')->nullable()->after('legal_id');
             $table->boolean('darkmode')->nullable()->after('remember_token');
+            $table->timestamp('invitation_accepted_at')->nullable()->before('email_verified_at');
             $table->softDeletes();
 
             $table->dropColumn('name');
@@ -42,6 +44,8 @@ return new class extends Migration
             $table->dropColumn('lastname');
             $table->dropColumn('avatar');
             $table->dropColumn('legal_id');
+            $table->dropColumn('bio');
+            $table->dropColumn('invitation_accepted_at');
             $table->dropColumn('darkmode');
             $table->dropSoftDeletes();
 

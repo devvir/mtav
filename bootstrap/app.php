@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureInvitationAccepted;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleProjects;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -33,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'login',
             'logout',
             'csrf-token',
+        ]);
+
+        $middleware->alias([
+            'invitation.accepted' => EnsureInvitationAccepted::class,
         ]);
 
         // $middleware->redirectGuestsTo(fn (Request $request) => route('login'));

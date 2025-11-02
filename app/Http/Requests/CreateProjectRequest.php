@@ -24,7 +24,7 @@ class CreateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:project,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:projects,name'],
             'description' => ['required', 'string', 'max:65535'],
             'organization' => ['required', 'string', 'max:255'],
             'admins' => ['required', 'array'],

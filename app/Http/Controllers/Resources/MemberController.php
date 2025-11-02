@@ -4,12 +4,9 @@ namespace App\Http\Controllers\Resources;
 
 use App\Events\UserRegistration;
 use App\Http\Requests\CreateMemberRequest;
-use App\Http\Requests\DeleteMemberRequest;
-use App\Http\Requests\IndexMembersRequest;
-use App\Http\Requests\RestoreMemberRequest;
-use App\Http\Requests\ShowCreateMemberRequest;
 use App\Http\Requests\EditMemberRequest;
-use App\Http\Requests\ShowMemberRequest;
+use App\Http\Requests\FilteredIndexRequest;
+use App\Http\Requests\ProjectScopedRequest;
 use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Family;
 use App\Models\Member;
@@ -25,13 +22,13 @@ class MemberController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexMembersRequest $request): Response
+    public function index(FilteredIndexRequest $request): Response
     {
         setState('groupMembers', false);
 
         $members = Member::alphabetically()
             ->with('family')
-            ->when($request->project_id, fn ($q, $projectId) => $q->inProject($projectId))
+            ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))
             ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
 
         return inertia('Members/Index', [
@@ -43,9 +40,9 @@ class MemberController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ShowMemberRequest $_, Member $member): Response
+    public function show(Member $member): Response
     {
-        $member->load('family');
+        $member->load(['family', 'projects']);
 
         return inertia('Members/Show', compact('member'));
     }
@@ -53,18 +50,13 @@ class MemberController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(ShowCreateMemberRequest $request): Response
+    public function create(ProjectScopedRequest $request): Response
     {
-        $families = Family::alphabetically()
-            ->when($request->project_id, fn ($q, $projectId) => $q->where('project_id', $projectId));
-
-        $projectsPool = $request->user()->isSuperadmin()
-            ? Project::query()
-            : $request->user()->projects();
+        $families = Family::when($request->project_id, fn ($q, $id) => $q->inProject($id));
 
         return inertia('Members/Create', [
-            'families' => $families->get(),
-            'projects' => $projectsPool->alphabetically()->get(),
+            'families' => $families->alphabetically()->get(),
+            'projects' => Project::alphabetically()->get(),
         ]);
     }
 
@@ -74,7 +66,7 @@ class MemberController extends Controller
     public function store(InvitationService $invitationService, CreateMemberRequest $request): RedirectResponse
     {
         $token = $invitationService->createToken();
-        $data = compact('token') + $request->except('project_id');
+        $data = ['password' => $token] + $request->except('project_id');
 
         $member = DB::transaction(
             fn () => Member::create($data)->joinProject($request->project_id)
@@ -110,7 +102,7 @@ class MemberController extends Controller
     /**
      * Delete the resource.
      */
-    public function destroy(DeleteMemberRequest $request, Member $member): RedirectResponse
+    public function destroy(Member $member): RedirectResponse
     {
         $member->delete();
 
@@ -121,7 +113,7 @@ class MemberController extends Controller
     /**
      * Restore the soft-deleted resource.
      */
-    public function restore(RestoreMemberRequest $_, Member $member): RedirectResponse
+    public function restore(Member $member): RedirectResponse
     {
         $member->restore();
 

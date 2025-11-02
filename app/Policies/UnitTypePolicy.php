@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\UnitType;
 use App\Models\User;
 
 class UnitTypePolicy
@@ -12,10 +11,9 @@ class UnitTypePolicy
         return true;
     }
 
-    public function view(User $user, UnitType $unitType): bool
+    public function view(User $user): bool
     {
-        return $user->asAdmin()?->manages($unitType->project_id)
-            || ($user->asMember()?->project?->id === $unitType->project_id);
+        return true;
     }
 
     public function create(User $user): bool
@@ -23,21 +21,18 @@ class UnitTypePolicy
         return $user->isAdmin();
     }
 
-    public function update(User $user, UnitType $unitType): bool
+    public function update(User $user): bool
     {
-        return (bool) $user->asAdmin()?->manages($unitType->project_id);
+        return $user->isAdmin();
     }
 
-    public function delete(User $user, UnitType $unitType): bool
+    public function delete(User $user): bool
     {
-        return (bool) $user->asAdmin()?->manages($unitType->project_id);
+        return $user->isAdmin();
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, UnitType $unitType): bool
+    public function restore(User $user): bool
     {
-        return (bool) $user->asAdmin()?->manages($unitType->project_id);
+        return $user->isAdmin();
     }
 }

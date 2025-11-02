@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Family extends Model
 {
+    use ProjectScope;
     use SoftDeletes;
 
     public function project(): BelongsTo
@@ -49,6 +51,18 @@ class Family extends Model
     public function scopeAlphabetically(Builder $query): void
     {
         $query->orderBy('name');
+    }
+
+    public function scopeInProject(Builder $query, int|Project $project): void
+    {
+        $projectId = is_int($project) ? $project : $project->getKey();
+
+        $query->where('project_id', $projectId);
+    }
+
+    public function scopeWithMembers(Builder $query): void
+    {
+        $query->whereHas('members');
     }
 
     public function scopeSearch(Builder $query, string $q, bool $searchMembers = false): void

@@ -31,19 +31,24 @@ class UserFactory extends Factory
             'legal_id' => fake()->optional()->numerify('#.###.###-#'),
             'firstname' => fake()->firstName(),
             'lastname' => fake()->lastName(),
+            'bio' => fake()->optional(0.7)->realText(200),
             'is_admin' => false,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'invitation_accepted_at' => now(),
             'email_verified_at' => now(),
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate that the user hasn't accepted invitation yet.
      */
     public function unverified(): static
     {
-        return $this->state(fn () => [ 'email_verified_at' => null ]);
+        return $this->state(fn () => [
+            'invitation_accepted_at' => null,
+            'email_verified_at' => null,
+        ]);
     }
 
     public function admin(): static

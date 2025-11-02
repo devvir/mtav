@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateUnitTypeRequest;
 use App\Http\Requests\DeleteUnitTypeRequest;
-use App\Http\Requests\IndexUnitTypesRequest;
+use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateUnitTypeRequest;
 use App\Models\UnitType;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +15,7 @@ use Inertia\Response;
 
 class UnitTypeController extends Controller
 {
-    public function index(IndexUnitTypesRequest $request): Response
+    public function index(FilteredIndexRequest $request): Response
     {
         $unitTypes = UnitType::alphabetically()
             ->withCount(['units', 'families'])

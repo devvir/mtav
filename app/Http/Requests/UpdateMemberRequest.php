@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\Concerns\OverlappingProjectsConstraint;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -19,25 +18,6 @@ use Illuminate\Validation\Rule;
  */
 class UpdateMemberRequest extends FormRequest
 {
-    use OverlappingProjectsConstraint;
-
-    /**
-     * Throws 403 if member exists but user doesn't have access.
-     *
-     * - Members can update themselves
-     * - Admins can only update members in projects they manage
-     *
-     * @see MemberPolicy@update on why this access policy lives here.
-     */
-    protected function prepareForValidation(): void
-    {
-        $this->validateOverlap(
-            $this->user(),
-            $this->route('member'),
-            __('You can only update members from projects you have access to.')
-        );
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *

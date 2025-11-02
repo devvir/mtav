@@ -26,6 +26,7 @@ class AdminFactory extends Factory
             'lastname' => fake()->lastName(),
             'password' => bcrypt('password'),
             'remember_token' => \Illuminate\Support\Str::random(10),
+            'invitation_accepted_at' => now(),
             'email_verified_at' => now(),
             'is_admin' => true,
             'family_id' => null,

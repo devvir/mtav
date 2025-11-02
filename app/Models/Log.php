@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Log extends Model
 {
+    use ProjectScope;
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

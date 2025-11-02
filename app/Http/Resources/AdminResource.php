@@ -23,7 +23,7 @@ class AdminResource extends UserResource
         return [
             ...$base,
 
-            // Add here Admin-specific resource fields
+            'manages' => $this->whenLoaded('projects', fn () => $this->projects),
         ];
     }
 }

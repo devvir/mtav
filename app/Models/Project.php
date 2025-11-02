@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {
@@ -113,5 +115,22 @@ class Project extends Model
     public function scopeAlphabetically(Builder $query): void
     {
         $query->orderBy('name');
+    }
+
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope('available', function (Builder $builder) {
+            if (Auth::guest() || Auth::user()->isSuperadmin()) {
+                return;
+            }
+
+            $validIds = DB::table('project_user')
+                ->where('user_id', Auth::id())
+                ->pluck('project_id');
+
+            $builder->whereIn('projects.id', $validIds);
+        });
     }
 }
