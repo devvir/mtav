@@ -8,6 +8,43 @@
 
 ---
 
+## Quick Start for AI Assistants
+
+**When starting a new session:**
+
+1. **Read these files in order** (essential context):
+   - `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` - Design constraints (WCAG, elderly users, old devices)
+   - `KNOWLEDGE_BASE.md` - Complete system specification (~7,300 lines - comprehensive)
+   - `DECISIONS.md` - Rationale for key choices and deferred features
+   - `TESTS_KB.md` - Testing philosophy and patterns
+
+2. **Current development approach** (Nov 2025):
+   - No formal sprints - knocking down TODOs daily as they arise
+   - Priorities may shift after tutor meetings
+   - Ask user for today's focus before starting work
+
+3. **Critical rules** (never violate):
+   - Always use semicolons in JavaScript/TypeScript (including Vue)
+   - Always use `<script setup lang="ts">` in Vue files
+   - Consult accessibility doc before ANY UI work
+   - Use `./mtav` wrapper, not direct Docker commands
+   - Test helpers go in `tests/Helpers/` (autoloaded by Pest)
+
+4. **Key architectural patterns** (internalize these):
+   - Global scopes handle project-based filtering (query level)
+   - Policies handle action permissions (action level)
+   - Family atomicity is sacred (families are atomic units)
+   - Fixture-based testing with `universe.sql`
+   - 2-line test ideal (act + assert)
+
+5. **Ask before**:
+   - Modifying production code to fix tests
+   - Adding new test helpers (must be reviewed)
+   - Changing database schema
+   - Making accessibility trade-offs
+
+---
+
 ## File Inventory
 
 ### `KNOWLEDGE_BASE.md`
@@ -137,4 +174,5 @@
 
 ---
 
-**Last Updated**: 2025-11-02
+**Last Updated**: 2025-11-03
+

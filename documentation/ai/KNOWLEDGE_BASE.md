@@ -4,7 +4,7 @@
 
 **Version**: 2.0 - Complete Technical & Business Specification
 **Date**: 2025-10-26
-**Last Updated**: 2025-11-02
+**Last Updated**: 2025-11-03
 
 ---
 
@@ -843,7 +843,8 @@ password (VARCHAR, NOT NULL - hashed)
 avatar (VARCHAR, NULLABLE - file path or URL)
 is_admin (BOOLEAN, DEFAULT false - TYPE DISCRIMINATOR)
 darkmode (BOOLEAN, NULLABLE - UI preference)
-verified_at (TIMESTAMP, NULLABLE - invitation acceptance status)
+email_verified_at (TIMESTAMP, NULLABLE - invitation acceptance status)
+invitation_accepted_at (TIMESTAMP, NULLABLE - tracks invitation completion)
 remember_token (VARCHAR, NULLABLE - Laravel auth)
 created_at (TIMESTAMP)
 updated_at (TIMESTAMP)
@@ -1030,7 +1031,8 @@ password (NOT NULL)
 avatar (nullable)
 is_admin (boolean, default false)
 darkmode (boolean, nullable)
-verified_at (timestamp, nullable)
+email_verified_at (timestamp, nullable)
+invitation_accepted_at (timestamp, nullable)
 remember_token
 created_at, updated_at
 deleted_at (soft delete timestamp, nullable)
@@ -1599,11 +1601,13 @@ Planned → Under Construction → Completed
 - **NO manual reassignment allowed** (legal fairness requirements)
 - **NO administrative overrides** permitted
 - Only way to change results: **Lottery Invalidation Process**:
-  1. **Superadmin invalidates lottery** (special ability, rare cases only)
-  2. Invalidation clears all `unit.family_id` assignments
+  1. **Developer/Admin with database access invalidates lottery** (manual database operation)
+  2. Invalidation clears all `unit.family_id` assignments (SQL UPDATE)
   3. Preferences "unfreeze" and can be edited again
-  4. Admins can execute new lottery
+  4. Admins can execute new lottery via UI
   5. New results are final (unless invalidated again)
+- **Not implemented in UI**: Lottery invalidation is manual database operation only
+- **Timeline**: No plans to implement UI for lottery invalidation (manual process acceptable)
 - Prevents lottery abuse and maintains legal fairness standards
 
 **Additional Unit Characteristics** (TODO):
@@ -1824,21 +1828,23 @@ created_at, updated_at
 
 **4. Unit Positioning**:
 
-- ⏳ **Interactive blueprint is FUTURE ENHANCEMENT** (not MVP)
-- Current scope: Blueprint is **display-only** (visual reference)
-- Future scope:
+- ⏳ **Interactive blueprint is WISHLIST** (no timeline, may not be implemented)
+- **Purpose**: Visual representation of unit locations within the housing project
+- **Current scope**: Blueprint is **display-only** (visual reference) - upload image/PDF showing unit layout
+- **Wishlist scope** (not confirmed for implementation):
   - Store unit coordinates in `units` table (x, y positions)
   - Link unit IDs to blueprint positions
   - Interactive blueprint UI (click unit to see details, status, assigned family)
   - Visual lottery results (color-coded units)
+- **Status**: Feature not prioritized, existence uncertain
 
-**5. MVP Scope**:
+**5. Current Implementation**:
 
-- ✅ **Blueprints ARE needed for MVP** (basic implementation):
+- ✅ **Blueprints supported** (basic implementation):
   - Upload blueprint file (image/PDF)
   - Display blueprint on project page
   - Simple CRUD operations (create, read, update, delete)
-- Future enhancements:
+- Wishlist enhancements (may or may not happen):
   - Interactive positioning
   - SVG/JSON formats
   - Version history
@@ -2031,14 +2037,13 @@ UNIQUE(family_id, rank) -- Each rank used once per family
 
 ### User State
 
-**Invitation Acceptance** (`verified_at`):
+**Invitation Acceptance** (`email_verified_at`):
 
-- Users created via invitation have NULL initially
+- Users created via invitation have `email_verified_at = NULL` initially
 - Must accept invitation before full access
 - Set to current timestamp when invitation is accepted via InvitationService
-  - Can they log in?
-  - What resources can they access?
-  - Blocked actions?
+- Also sets `invitation_accepted_at = now()` simultaneously
+- Middleware `invitation.accepted` checks this flag to allow/deny access
 
 **User Active State**:
 
@@ -2897,53 +2902,79 @@ $pool = Project::current()->members();
 
 - Users cannot self-register
 - All users created via invitation
-- **NOT IMPLEMENTED**: ❌ Registration routes may still exist
+- Registration routes exist but require invitation token
 
-### Invitation Flow (Planned)
+### Invitation Flow (IMPLEMENTED)
 
-1. **Inviter** (admin or member) creates invitation
-   - Specifies email, name, role (admin/member)
-   - For members: family and project (auto-filled if inviter is member)
-   - For admins: project(s) to assign
+**Who Can Invite**:
+- **Members**: Can invite other members to their own family only
+- **Admins**: Can invite other admins OR members to any family within projects the admin manages
 
-2. **System** creates invitation record
-   - Generates unique token
-   - Sets expiration (e.g., 7 days)
-   - Stores inviter_id, invitee_email, role, etc.
+**Flow Overview** (Three Disjoint Sub-Flows):
 
-3. **System** sends invitation email
-   - Link with token: `/invitation/{token}`
-   - Invitee clicks link
+### Pre-Invitation
+1. **UI provides entry points** for user creation
+   - Buttons/links to open Admin Create or Member Create forms
+   - Form submission handled by `AdminController@store` or `MemberController@store`
 
-4. **Invitee** sets password
+2. **Controller creates user and triggers event**
+   - User record created with `email_verified_at = null` and `invitation_accepted_at = null`
+   - Random password generated (serves as invitation token)
+   - `UserRegistration` event dispatched
+
+### The Actual Invitation
+3. **Listener sends invitation email**
+   - `SendUserInvitation` listener responds to `UserRegistration` event
+   - Sends appropriate email (`AdminInvitationMail` or `MemberInvitationMail`)
+   - Email contains link: `/invitation?email={email}&token={password}`
+   - `token` = the random password generated for the user
+
+### Post-Invitation
+4. **Invited user follows link** (or ignores email → end of road)
+   - `/invitation` page authenticates user via email+token
+   - Logs them in automatically
+   - Page reloads to clean URL and initialize Laravel session
+
+5. **User completes registration**
    - Views invitation details (read-only: name, role, project/family)
-   - Sets password
-   - Accepts invitation
+   - Fills optional fields (avatar, etc.)
+   - **MUST** set new password (required field)
+   - Form validation applies
 
-5. **System** creates user account
-   - Sets verified_at = now
-   - Sets password
-   - Creates project/family associations
-   - Marks invitation as accepted
+6. **System marks invitation complete**
+   - Sets `email_verified_at = now()` (marks email as verified)
+   - Sets `invitation_accepted_at = now()` (marks invitation as accepted)
+   - Updates password to user's chosen password
+   - User is now a full user with all access
 
-6. **Invitee** can now log in
+**Redirect Handling** (Post-Invitation Only):
 
-**NOT IMPLEMENTED**: ❌ Entire invitation system is TODO
+For authenticated but unverified users (signed in via invitation link but haven't submitted form):
+- **Visit `/login`**: Log them out (provides "way out" to login as different user)
+- **Visit other pages**: Redirect back to `/invitation`
+- **After logout**: User becomes regular guest, no special invitation logic needed
 
-### Email Verification
+**Key Points**:
+- **CRITICAL**: Invitation is THE ONLY way to create users. No self-registration exists. Without invitations, there are no users, no admins, no app.
+- Once user is verified (`email_verified_at` + `invitation_accepted_at` set), they're regular users
+- No special handling for verified users - they use the app normally
+- Token expiration not currently implemented (deferred feature)
+- Named route is `home` (not `dashboard`), though conceptually treated as dashboard
 
-**Current State**:
+### Email Verification (Profile Updates)
 
-- Laravel Breeze includes email verification
-- New users have `verified_at = null`
-- Unverified users are logged out and redirected to login (EnsureUserIsVerified middleware)
-- Users must accept invitation link to set verified_at and gain access
+**Separate from Invitation Flow**:
 
-**With Invitation System**:
+- Invitation acceptance verifies initial email (`email_verified_at` set)
+- Email verification applies ONLY to email updates via Settings > Profile
+- If user changes email in profile:
+  1. New email must be verified (separate verification email sent)
+  2. Standard Laravel email verification flow applies
+  3. Unrelated to invitation system
 
-- Invited users are auto-verified when they set password
-- No separate email verification step needed
-- **QUESTION**: Can admins create users without invitation (for testing)?
+**Email Verification States**:
+- `email_verified_at = null`: User created but hasn't accepted invitation (or changed email and hasn't verified)
+- `email_verified_at = timestamp`: Email verified (via invitation acceptance or profile update verification)
 
 ---
 
@@ -3246,22 +3277,27 @@ The lottery/sorteo is the process of fairly distributing units to families based
 
 1. ✅ Input format defined (see above)
 2. ✅ Output format defined (see above)
-3. ❌ Actual API URL/endpoint - TBD
+3. ❌ Actual API URL/endpoint - TBD (waiting for more information)
 4. ❌ Authentication method - TBD
 5. ❌ Rate limits / timeouts - TBD
 6. ❌ Error response format - TBD
+
+**Note on API Input**: Input will be simplified - pass units (as list of IDs), families (as list of IDs), and preferences (as ordered mapping). Exact format to be finalized when implementing.
 
 **Lottery Implementation Strategy**:
 
 **1. Strategy Pattern Architecture**:
 
 - **Design**: Use Strategy Pattern for pluggable lottery implementations
-- **Configuration**: Easily configurable via env vars / Laravel config
+- **Interface**: All strategies expose tiny interface:
+  - `load(<preferences>)` - Load preference data
+  - `execute(): <results>` - Execute lottery and return assignments
+- **Format**: Exact format of `<preferences>` and `<results>` TBD (will be easy to decide during implementation)
+- **Pluggable**: Swap strategies by configuration only (no code changes)
 - **Implementations**:
-  - **Mock Strategy** (for testing): Fully random lottery, ignores preferences
+  - **Mock Strategy** (current): Fully random lottery, ignores preferences
   - **Development Strategy** (future): Free/fast lottery for dev environments
-  - **Production Strategy** (future): Real external API (third-party, not built by us)
-- **Adapter Pattern**: May need adapter for third-party APIs, but no need to build strategies themselves
+  - **Production Strategy** (future): Real external API (third-party plugin)
 
 **Current Scope - Mock Strategy Only**:
 
@@ -3269,7 +3305,7 @@ The lottery/sorteo is the process of fairly distributing units to families based
 - ❌ **Ignores family preferences** (random distribution)
 - ✅ **Always returns valid result** (no ties, deterministic output)
 - ✅ **Used in all tests** (predictable, fast)
-- Future: Real API will be plugged in via strategy pattern (external, not our concern now)
+- Future: Real API plugins will follow same interface (external, not our concern now)
 
 **2. Tie Breaking**:
 
@@ -4447,7 +4483,7 @@ expect($family)->not->toBeNull(); // Now works
 
 - Laravel Sanctum 4.0 for API tokens (if needed)
 - Session-based auth for web (default)
-- Invitation acceptance (`verified_at` field)
+- Invitation acceptance (`email_verified_at` and `invitation_accepted_at` fields)
 
 **Authorization** (Layered Approach):
 
@@ -5243,7 +5279,7 @@ The test universe is a comprehensive SQL fixture providing predictable, self-doc
   - Admin #12: Manages 2 projects
   - Admin #13: Manages 3 projects (one inactive)
   - Admins #14, #15, #16: Various configurations including deleted projects
-  - Admin #17: Unverified admin (verified_at = NULL) for testing invitation acceptance
+  - Admin #17: Unverified admin (email_verified_at = NULL, invitation_accepted_at = NULL) for testing invitation acceptance
 - **Members**: 47 total (IDs 100-146)
   - Various states: active, inactive, soft-deleted
   - Various family configurations: no members, single member, multiple members
@@ -7120,7 +7156,8 @@ CREATE TABLE users (
   avatar VARCHAR(255) NULLABLE,
   is_admin BOOLEAN DEFAULT false,
   darkmode BOOLEAN NULLABLE,
-  verified_at TIMESTAMP NULLABLE,
+  email_verified_at TIMESTAMP NULLABLE,
+  invitation_accepted_at TIMESTAMP NULLABLE,
   remember_token VARCHAR(100) NULLABLE,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,

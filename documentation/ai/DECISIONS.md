@@ -2,7 +2,7 @@
 
 **Purpose**: Log of key temporal decisions and rationale that complement the Knowledge Base. Focus on "why" and "when" rather than "what" (which is in KB).
 
-**Last Updated**: 2025-11-02
+**Last Updated**: 2025-11-03
 
 ---
 
@@ -156,7 +156,7 @@ This file documents:
 
 ### Localization Formality (Spanish)
 
-**Decision**: 
+**Decision**:
 - **Member docs**: Use "tú" form (informal but respectful)
 - NOT "vos" (too informal for some demographics)
 - NOT "usted" (too formal for cooperative community)
@@ -191,10 +191,10 @@ This file documents:
 - Events CRUD (show mock lottery event only)
 - Gallery file upload (show mock images only)
 - Real lottery API integration (use DummyLotteryService only)
-- Unit blueprints / graphical plans
+- Interactive unit blueprints (wishlist, may not be implemented)
 - Detailed unit characteristics (bedrooms, bathrooms, square meters)
 - Satisfaction scores
-- Lottery invalidation (superadmin power)
+- Lottery invalidation UI (manual database operation acceptable)
 - Member leaving family/project flow
 - Family moving between projects
 - Contact admin (dummy form only, no actual email)
@@ -203,13 +203,87 @@ This file documents:
 
 ---
 
+## Current Development Approach (2025-11-03)
+
+### No Formal Sprints
+
+**Reality**: Developer is catching up on delayed work, no sprint planning currently active.
+
+**Workflow**:
+- Knock down TODOs daily as they arise
+- Priorities shift based on tutor meetings (thesis supervisor)
+- Ask user for today's focus at session start
+
+**Implication for AI**: Don't assume sprint structure or long-term roadmap. Work is reactive and adaptive.
+
+---
+
+## Clarifications (2025-11-03)
+
+### Lottery Invalidation
+
+**Implementation**: Manual database operation only, no UI planned.
+
+**Process**:
+- Developer with production database access runs SQL UPDATE
+- Clears all `unit.family_id` assignments
+- No app-level functionality needed
+
+**Timeline**: No plans to build UI for this feature.
+
+### Invitation System
+
+**How It Works**:
+- Inviter creates user record directly in database
+- System generates random password (serves as invitation token)
+- Email sent with link containing email + token (random password)
+- Invitee must set new password to complete registration
+- Setting password marks both `verified_at` and invitation as accepted
+
+**Key Points**:
+- User exists in DB from moment of invitation
+- Token = random password (not separate token table)
+- Email verification only happens during invitation acceptance
+- Separate email verification for profile email updates
+
+### Interactive Blueprints
+
+**Status**: Wishlist feature, not confirmed for implementation.
+
+**Purpose**: Visual representation of unit positions within housing project.
+
+**Current**: Upload static blueprint image/PDF for reference.
+
+**Wishlist**: Interactive map where units can be clicked, positions stored in DB, color-coded lottery results.
+
+**Timeline**: None. May never be implemented.
+
+### Lottery API Strategy Pattern
+
+**Interface Design**:
+- `load(<preferences>)` - Load preference data
+- `execute(): <results>` - Execute lottery, return assignments
+
+**Data Format**:
+- Input: Lists of unit IDs, family IDs, preference mappings (simple)
+- Output: Assignment results (simple)
+- Exact format TBD, will be easy to decide during implementation
+
+**Plugins**:
+- Mock (current): Random assignments
+- Dev (future): Fast free API for development
+- Production (future): External third-party optimization API
+
+---
+
 ## Guidelines for AI Sessions
 
 **When starting new session**:
-1. Read KNOWLEDGE_BASE.md for complete system specification
-2. Read ACCESSIBILITY_AND_TARGET_AUDIENCE.md for design principles
-3. Read this file (DECISIONS.md) for constraints and rationale
-4. Ask user for today's focus
+1. Read ACCESSIBILITY_AND_TARGET_AUDIENCE.md for design principles
+2. Read KNOWLEDGE_BASE.md for complete system specification
+3. Read DECISIONS.md (this file) for constraints and rationale
+4. Read TESTS_KB.md for testing philosophy
+5. Ask user for today's focus
 
 **When making new decisions**:
 1. Document decision here with rationale
