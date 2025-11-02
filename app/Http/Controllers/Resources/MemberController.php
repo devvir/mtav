@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Resources;
 
 use App\Events\UserRegistration;
 use App\Http\Requests\CreateMemberRequest;
-use App\Http\Requests\EditMemberRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\ProjectScopedRequest;
 use App\Http\Requests\UpdateMemberRequest;
@@ -29,7 +28,7 @@ class MemberController extends Controller
         $members = Member::alphabetically()
             ->with('family')
             ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))
-            ->when($request->q, fn ($query, $q) => $query->search($q, searchFamily: true));
+            ->when($request->q, fn ($q, $search) => $q->search($search, searchFamily: true));
 
         return inertia('Members/Index', [
             'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
@@ -81,7 +80,7 @@ class MemberController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EditMemberRequest $_, Member $member): Response
+    public function edit(Member $member): Response
     {
         $member->load('family', 'projects');
 

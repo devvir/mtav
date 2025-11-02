@@ -7,7 +7,7 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute('families.index', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -16,7 +16,7 @@ describe('When a Member', function () {
             // Member #102 is in Family #4
             $response = $this->visitRoute(['families.show', 4], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -25,7 +25,7 @@ describe('When a Member', function () {
             // Member #102 is in Family #4, visiting Family #5 (same project)
             $response = $this->visitRoute(['families.show', 5], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -34,7 +34,7 @@ describe('When a Member', function () {
             // Member #102 is in Family #4
             $response = $this->visitRoute(['families.edit', 4], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -43,15 +43,15 @@ describe('When a Member', function () {
             // Member #102 is in Family #4, trying to edit Family #5
             $response = $this->visitRoute(['families.edit', 5], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeUnauthorized();
         });
     });
 
     describe('tries to open the "New Family" form', function () {
-        it('redirects to Home', function () {
+        it('denies access (Members cannot create Families)', function () {
             $response = $this->visitRoute('families.create', asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toBeUnauthorized();
         });
     });
 });
@@ -65,7 +65,7 @@ describe('When an Admin', function () {
         it('loads the page for an Admin with: :dataset', function ($adminId) {
             $response = $this->visitRoute('families.index', asAdmin: $adminId, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         })->with(['project selected' => 11, 'no project selected' => 12]);
     });
 
@@ -74,14 +74,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1 (auto-selected), Family #4 is in Project #1
             $response = $this->visitRoute(['families.show', 4], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Family is NOT in one of their managed Projects', function () {
             // Admin #11 manages only Project #1, Family #13 is in Project #2
             $response = $this->visitRoute(['families.show', 13], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 
@@ -90,7 +90,7 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1, so it's auto-selected
             $response = $this->visitRoute('families.create', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -99,14 +99,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1 (auto-selected), Family #4 is in Project #1
             $response = $this->visitRoute(['families.edit', 4], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Family is NOT in one of their managed Projects', function () {
             // Admin #11 manages only Project #1, Family #13 is in Project #2
             $response = $this->visitRoute(['families.edit', 13], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 });

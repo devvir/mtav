@@ -7,7 +7,7 @@ describe('When a Member', function () {
         it('redirects to Home', function () {
             $response = $this->visitRoute('projects.index', asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toBeUnauthorized();
         });
     });
 
@@ -15,7 +15,7 @@ describe('When a Member', function () {
         it('denies access', function () {
             $response = $this->visitRoute(['projects.show', 1], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeUnauthorized();
         });
     });
 
@@ -23,7 +23,7 @@ describe('When a Member', function () {
         it('shows as Not Found', function () {
             $response = $this->visitRoute('projects.create', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(404);
+            expect($response)->toBeNotFound();
         });
     });
 
@@ -31,7 +31,7 @@ describe('When a Member', function () {
         it('redirects to Home', function () {
             $response = $this->visitRoute(['projects.edit', 1], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toBeUnauthorized();
         });
     });
 });
@@ -42,14 +42,14 @@ describe('When an Admin', function () {
             // Admin #12 manages Projects #2 and #3
             $response = $this->visitRoute('projects.index', asAdmin: 12, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access for an Admin managing only one Project', function () {
             // Admin #11 manages only Project #1
             $response = $this->visitRoute('projects.index', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeUnauthorized();
         });
     });
 
@@ -58,14 +58,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1
             $response = $this->visitRoute(['projects.show', 1], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if they don\'t manage that Project', function () {
             // Admin #11 manages only Project #1, trying to view Project #2
             $response = $this->visitRoute(['projects.show', 2], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 
@@ -73,7 +73,7 @@ describe('When an Admin', function () {
         it('shows as Not Found', function () {
             $response = $this->visitRoute('projects.create', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(404);
+            expect($response)->toBeNotFound();
         });
     });
 
@@ -82,14 +82,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1
             $response = $this->visitRoute(['projects.edit', 1], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if they don\'t manage that Project', function () {
             // Admin #11 manages only Project #1, trying to edit Project #2
             $response = $this->visitRoute(['projects.edit', 2], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 });
@@ -99,7 +99,7 @@ describe('When a Superadmin', function () {
         it('opens the form', function () {
             $response = $this->visitRoute('projects.create', asAdmin: 1, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 });

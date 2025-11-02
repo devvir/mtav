@@ -12,7 +12,7 @@ defineProps<{
   <Head title="Contact Admin" />
 
   <Breadcrumbs>
-    <Breadcrumb route="admins.contact" :params="admin.id" text="Contact Admin" />
+    <Breadcrumb route="contact" :params="admin.id" text="Contact Admin" />
   </Breadcrumbs>
 
   <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">

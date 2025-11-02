@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\ProjectScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Log extends Model
@@ -17,5 +18,10 @@ class Log extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function scopeSearch(Builder $query, string $q): void
+    {
+        $query->whereLike('event', "%$q%");
     }
 }

@@ -6,28 +6,13 @@ use Tests\TestCase;
  * Set global TestCase class and hooks.
  */
 pest()
-    ->extend(TestCase::class)
-    ->afterEach(fn () => resetCurrentProject());
+    ->extend(TestCase::class);
 
 /**
  * Custom Expectations
+ *
+ * @see ./Helpers/expectations.php
  */
-expect()->extend('toBeOne', fn () => $this->toBe(1));
-
-// Applies to: TestResponse
-expect()->extend('toBeOk', function () {
-    $this->toBeInstanceOf(\Illuminate\Testing\TestResponse::class);
-    $this->status()->toBe(200);
-});
-
-// Applies to: TestResponse
-expect()->extend('toRedirectTo', function (string $route, array $params = []) {
-    $this->toBeInstanceOf(Illuminate\Testing\TestResponse::class);
-    $this->status()->toBe(302);
-    $this->getTargetUrl()->toBe(route($route, $params));
-
-    return $this;
-});
 
 /**
  * Archived suite, phased out but still in use

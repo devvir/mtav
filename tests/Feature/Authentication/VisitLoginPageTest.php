@@ -12,7 +12,7 @@ describe('When visiting the login page', function () {
         it('renders the login page', function () {
             $response = $this->visitRoute('login', redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 

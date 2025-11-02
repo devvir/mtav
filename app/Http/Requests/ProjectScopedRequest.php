@@ -8,6 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 
 /**
+ * @property-read int|null $project_id
+ *
  * @method User|null user($guard = null)
  *
  * @mixin Request

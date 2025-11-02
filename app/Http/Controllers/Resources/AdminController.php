@@ -24,7 +24,7 @@ class AdminController extends Controller
     {
         $admins = Admin::alphabetically()
             ->when($request->project_id, fn ($q, $projectId) => $q->inProject($projectId))
-            ->when($request->q, fn ($query, $q) => $query->search($q));
+            ->when($request->q, fn ($q, $search) => $q->search($search));
 
         return inertia('Admins/Index', [
             'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
@@ -60,9 +60,7 @@ class AdminController extends Controller
         $token = $invitationService->createToken();
         $data = compact('token') + $request->except('project_ids');
 
-        $admin = DB::transaction(
-            fn () => Admin::create($data)->projects()->attach($request->project_ids)
-        );
+        $admin = DB::transaction(fn () => Admin::create($data)->projects()->attach($request->project_ids));
 
         event(new UserRegistration($admin, $token));
 

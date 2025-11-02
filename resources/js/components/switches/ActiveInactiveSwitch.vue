@@ -5,7 +5,7 @@ import { useRoute } from 'ziggy-js';
 
 defineProps<{
   route: string;
-  all: number | boolean;
+  all: boolean;
 }>();
 
 const inertiaRoute = useRoute();

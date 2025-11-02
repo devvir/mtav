@@ -7,7 +7,7 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute('members.index', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -15,7 +15,7 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute(['members.show', 102], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -23,23 +23,23 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute(['members.show', 105], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
     describe('tries to open their own "Edit Member" form', function () {
-        it('redirects to the Dashboard (should use Settings > Profile)', function () {
+        it('opens the form', function () {
             $response = $this->visitRoute(['members.edit', 102], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toBeOk();
         });
     });
 
     describe('tries to open another Member\'s "Edit Member" form', function () {
-        it('redirects to the Dashboard (Members cannot edit other Members)', function () {
+        it('denies access (Members cannot edit other Members)', function () {
             $response = $this->visitRoute(['members.edit', 105], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toBeUnauthorized();
         });
     });
 
@@ -47,7 +47,7 @@ describe('When a Member', function () {
         it('opens the form', function () {
             $response = $this->visitRoute('members.create', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 });
@@ -61,7 +61,7 @@ describe('When an Admin', function () {
         it('loads the page for an Admin with: :dataset', function ($adminId) {
             $response = $this->visitRoute('members.index', asAdmin: $adminId, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         })->with(['project selected' => 11, 'no project selected' => 12]);
     });
 
@@ -70,14 +70,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1 (auto-selected), Member #102 is in Project #1
             $response = $this->visitRoute(['members.show', 102], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Member is NOT in one of their managed Projects', function () {
             // Admin #11 manages only Project #1, Member #136 is in Project #2
             $response = $this->visitRoute(['members.show', 136], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 
@@ -86,7 +86,7 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1, so it's auto-selected
             $response = $this->visitRoute('members.create', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -95,14 +95,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1 (auto-selected), Member #102 is in Project #1
             $response = $this->visitRoute(['members.edit', 102], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Member is NOT in one of their managed Projects', function () {
             // Admin #11 manages only Project #1, Member #136 is in Project #2
             $response = $this->visitRoute(['members.edit', 136], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 });

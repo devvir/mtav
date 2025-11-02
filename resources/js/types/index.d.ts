@@ -73,7 +73,7 @@ interface UnitType extends Resource {
 
 interface Unit extends Resource {
   name: string;
-  number: string;
+  number: string | null;
   type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   family: { id: number | null } | null | ApiResource<Family>;

@@ -844,7 +844,7 @@ it('redirects authenticated member to home', function () {
         ->followingRedirects()
         ->getRoute('login');
 
-    expect($response->status())->toBe(200);
+    expect($response)->toBeOk();
     expect($response->viewData('page')['component'])->toBe('Dashboard');
 });
 

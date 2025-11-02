@@ -4,6 +4,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import Card from '@/components/shared/Card.vue';
+import { currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Pencil } from 'lucide-vue-next';
@@ -17,11 +18,12 @@ const props = defineProps<{
 }>();
 
 const projectLink = computed(() => {
-  if (!props.member.project) return undefined;
-  return props.member.project.allows?.view
+  return props.member.project?.allows?.view
     ? route('projects.show', props.member.project.id)
     : route('home');
 });
+
+const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
 </script>
 
 <template>
@@ -45,7 +47,7 @@ const projectLink = computed(() => {
             </div>
 
             <ModalLink
-              v-if="member.allows.update"
+              v-if="member.allows.update && ! isCurrentUser"
               :href="route('members.edit', member.id)"
               paddingClasses="p-8"
               class="self-end shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"

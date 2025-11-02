@@ -2,13 +2,33 @@
 
 namespace App\Models\Concerns;
 
+use App\Models\Project;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 trait ProjectScope
 {
+    /**
+     * Filter query on ProjectScoped Model by a given parent Project.
+     */
+    public function scopeInProject(Builder $query, int|Project $project): void
+    {
+        $projectId = is_int($project) ? $project : $project->getKey();
+
+        if (method_exists($this, 'projects') && $this->projects() instanceof BelongsToMany) {
+            $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectId));
+        } elseif (method_exists($this, 'project')) {
+            $foreignKey = $this->getTable() . '.' . $this->project()->getForeignKeyName();
+
+            $query->where($foreignKey, $projectId);
+        } else {
+            throw new Exception('Class ' . class_basename($this) . ' cannot implement inProject scope');
+        }
+    }
+
     /**
      * For authenticated users, apply a Project scope to Models using this trait.
      *
@@ -58,8 +78,8 @@ trait ProjectScope
      */
     protected static function ensureModelBelongsToProjects(): void
     {
-        $belongsToProject = method_exists(static::class, 'project');
         $belongsToProjects = method_exists(static::class, 'projects');
+        $belongsToProject = method_exists(static::class, 'project');
 
         if (! $belongsToProject && ! $belongsToProjects) {
             throw new Exception('Model ' . static::class . ' does not belong to Projects');

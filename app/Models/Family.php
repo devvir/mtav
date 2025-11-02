@@ -53,13 +53,6 @@ class Family extends Model
         $query->orderBy('name');
     }
 
-    public function scopeInProject(Builder $query, int|Project $project): void
-    {
-        $projectId = is_int($project) ? $project : $project->getKey();
-
-        $query->where('project_id', $projectId);
-    }
-
     public function scopeWithMembers(Builder $query): void
     {
         $query->whereHas('members');

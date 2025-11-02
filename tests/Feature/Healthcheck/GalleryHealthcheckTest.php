@@ -7,7 +7,7 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute('gallery', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 });
@@ -18,7 +18,7 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1, so it's auto-selected and they see the gallery
             $response = $this->visitRoute('gallery', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('redirects to Projects if no Project is selected', function () {

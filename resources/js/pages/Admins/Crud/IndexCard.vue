@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import Card from '@/components/shared/Card.vue';
 import CallToAction from '@/components/ui/button/CallToAction.vue';
+import { currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
 import { Edit3Icon } from 'lucide-vue-next';
 
-defineProps<{
+const props = defineProps<{
   admin: ApiResource<Admin>;
 }>();
+
+const isCurrentUser = computed(() => currentUser.value?.id === props.admin.id);
 </script>
 
 <template>
@@ -22,7 +25,7 @@ defineProps<{
         </div>
 
         <ModalLink
-          v-if="admin.allows.update"
+          v-if="admin.allows.update && ! isCurrentUser"
           :href="route('admins.edit', admin.id)"
           @click.stop
           paddingClasses="p-8"
@@ -33,7 +36,7 @@ defineProps<{
         </ModalLink>
       </div>
 
-      <CallToAction variant="default" :href="route('admins.contact', admin.id)" class="w-full">
+      <CallToAction variant="default" :href="route('contact', admin.id)" class="w-full">
         {{ _('Contact') }}
       </CallToAction>
     </ModalLink>

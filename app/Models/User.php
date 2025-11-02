@@ -90,13 +90,6 @@ class User extends Authenticatable
         $query->orderBy('firstname')->orderBy('lastname');
     }
 
-    public function scopeInProject(Builder $query, int|Project $project): void
-    {
-        $projectId = is_int($project) ? $project : $project->getKey();
-
-        $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectId));
-    }
-
     public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
     {
         $query

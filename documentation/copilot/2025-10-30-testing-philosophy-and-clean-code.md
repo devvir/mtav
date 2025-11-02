@@ -67,7 +67,7 @@ it('redirects authenticated member to home', function () {
         ->followingRedirects()
         ->getRoute('login');
 
-    expect($response->status())->toBe(200);
+    expect($response)->toBeOk();
     expect($response->viewData('page')['component'])->toBe('Dashboard');
 });
 ```
@@ -366,7 +366,7 @@ describe('When visiting the login page', function () {
         it('renders the login page', function () {
             $response = $this->getRoute('login');
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 

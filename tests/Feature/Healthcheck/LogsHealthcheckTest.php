@@ -7,7 +7,7 @@ describe('When a Member', function () {
         it('loads the page', function () {
             $response = $this->visitRoute('logs.index', asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
     });
 
@@ -16,14 +16,14 @@ describe('When a Member', function () {
             // Log #1 is in Project #1, Member #102 is in Project #1
             $response = $this->visitRoute(['logs.show', 1], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Log is NOT in their Project', function () {
             // Log #3 is in Project #2, Member #102 is in Project #1
             $response = $this->visitRoute(['logs.show', 3], asMember: 102, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 });
@@ -34,14 +34,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1, so it's auto-selected
             $response = $this->visitRoute('logs.index', asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
-        it('redirects to Projects if no Project is selected', function () {
-            // Admin #12 manages Projects #2 and #3, so they must select one first
+        it('loads the page if no Project is selected', function () {
+            // Admin #12 manages Projects #2 and #3: they'll see Logs from both projects
             $response = $this->visitRoute('logs.index', asAdmin: 12, redirects: false);
 
-            expect($response)->toRedirectTo('projects.index');
+            expect($response)->toBeOk();
         });
     });
 
@@ -50,14 +50,14 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1 (auto-selected), Log #2 is in Project #1
             $response = $this->visitRoute(['logs.show', 2], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(200);
+            expect($response)->toBeOk();
         });
 
         it('denies access if the Log is NOT in a Project they manage', function () {
             // Admin #11 manages only Project #1, Log #3 is in Project #2
             $response = $this->visitRoute(['logs.show', 3], asAdmin: 11, redirects: false);
 
-            expect($response->status())->toBe(403);
+            expect($response)->toBeNotFound();
         });
     });
 });
