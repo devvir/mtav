@@ -25,36 +25,39 @@ const props = defineProps<{
     "
   >
     <template v-slot:header>
-      <ModalLink
-        class="block max-w-[calc(100vw-5rem)] cursor-pointer focus:outline-0"
-        :class="useModal() ? 'pointer-events-none' : ''"
-        :href="route('projects.show', project.id)"
-      >
-        <div class="space-y-2">
-          <p class="truncate text-xl font-semibold text-text" :title="project.name">
-            {{ project.name }}
-          </p>
-          <p class="text-xs font-medium uppercase tracking-wide text-text-subtle">
-            {{ project.active ? _('Active') : _('Inactive') }}
-          </p>
+      <div class="flex items-start justify-between gap-4">
+        <ModalLink
+          class="block min-w-0 flex-1 cursor-pointer focus:outline-0"
+          :class="useModal() ? 'pointer-events-none' : ''"
+          :href="route('projects.show', project.id)"
+        >
+          <div class="space-y-2">
+            <p class="truncate text-xl font-semibold text-text" :title="project.name">
+              {{ project.name }}
+            </p>
+            <p class="text-xs font-medium uppercase tracking-wide text-text-subtle">
+              {{ project.active ? _('Active') : _('Inactive') }}
+            </p>
 
-          <p
-            class="overflow-hidden text-left text-sm leading-relaxed text-text-muted"
-            :class="{ 'line-clamp-2': !useModal() }"
-          >
-            {{ project.description }}
-          </p>
-        </div>
-      </ModalLink>
+            <p
+              class="overflow-hidden text-left text-sm leading-relaxed text-text-muted"
+              :class="{ 'line-clamp-2': !useModal() }"
+            >
+              {{ project.description }}
+            </p>
+          </div>
+        </ModalLink>
 
-      <ModalLink
-        v-if="project.allows.update"
-        class="mt-4 flex min-h-[44px] @md:min-h-[36px] items-center justify-end gap-2 text-sm font-medium text-text-link hover:text-text-link-hover focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-        paddingClasses="p-8"
-        :href="route('projects.edit', project.id)"
-      >
-        {{ _('Edit') }} <Edit3Icon class="h-4 w-4" />
-      </ModalLink>
+        <ModalLink
+          v-if="project.allows.update"
+          paddingClasses="p-8"
+          :href="route('projects.edit', project.id)"
+          class="shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+          :title="_('Edit')"
+        >
+          <Edit3Icon class="h-5 w-5" />
+        </ModalLink>
+      </div>
     </template>
 
     <section class="my-4 border-b border-border-subtle pb-4">

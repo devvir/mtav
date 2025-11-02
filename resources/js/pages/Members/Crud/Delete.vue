@@ -34,30 +34,29 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
 </script>
 
 <template>
-  <div class="flex-1 space-y-wide rounded-md border p-base">
-    <HeadingSmall title="Delete account" description="Delete this account and all of its resources" />
+  <div class="space-y-3">
+    <HeadingSmall
+      title="Delete account"
+      description="Delete this account and all of its resources"
+      class="text-xs opacity-70"
+    />
 
-    <div class="space-y-wide rounded-lg bg-destructive/65 p-6">
-      <div class="text-destructive-foreground">
-        <p class="text-xl font-bold tracking-wide">{{ _('Warning!') }}</p>
-        <p class="text-xs leading-6">{{ _('Please proceed with caution, this action cannot be undone.') }}</p>
-      </div>
+    <Dialog>
+      <DialogTrigger as-child>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="text-xs text-red-400 hover:bg-red-950/30 hover:text-red-300 border border-red-900/40"
+        >
+          {{ _('Delete account') }}
+        </Button>
+      </DialogTrigger>
 
-      <Dialog>
-        <DialogTrigger as-child>
-          <Button
-            variant="destructive"
-            class="cursor-pointer !bg-destructive text-destructive-foreground ring ring-destructive-foreground"
-          >
-            {{ _('Delete account') }}
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent>
-          <form class="space-y-6" @submit.prevent="destroy">
-            <DialogHeader class="space-y-3">
-              <DialogTitle>{{ _('Are you sure you want to delete this account?') }}</DialogTitle>
-              <DialogDescription>
+      <DialogContent>
+        <form class="space-y-6" @submit.prevent="destroy">
+          <DialogHeader class="space-y-3">
+            <DialogTitle>{{ _('Are you sure you want to delete this account?') }}</DialogTitle>
+            <DialogDescription>
                 {{
                   _("Please enter the user's email to confirm that you would like to permanently delete their account.")
                 }}
@@ -79,6 +78,5 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
           </form>
         </DialogContent>
       </Dialog>
-    </div>
   </div>
 </template>

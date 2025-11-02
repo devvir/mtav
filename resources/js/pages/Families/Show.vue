@@ -4,8 +4,6 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import { _, locale } from '@/composables/useTranslations';
-import { ModalLink } from '@inertiaui/modal-vue';
-import { Edit3Icon } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
@@ -49,15 +47,6 @@ const longDate = (date: string) =>
           <div class="mt-4 border-t border-border py-base text-right text-sm text-text-subtle">
             <span>{{ _('Registered on') }}</span> {{ longDate(family.created_at) }}
           </div>
-
-          <ModalLink
-            v-if="family.allows.update"
-            class="flex items-center-safe justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-            paddingClasses="p-8"
-            :href="route('families.edit', family.id)"
-          >
-            {{ _('Edit Family') }} <Edit3Icon />
-          </ModalLink>
         </template>
       </IndexCard>
     </ShowWrapper>

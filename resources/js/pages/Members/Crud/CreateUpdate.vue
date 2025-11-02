@@ -30,7 +30,7 @@ const formSpecs: FormSpecs = {
     displayId: true,
     disabled: props.projects.length < 2,
   },
-  family: {
+  family_id: {
     element: 'select',
     label: 'Family',
     selected: props.member?.family.id,
@@ -57,7 +57,7 @@ const formSpecs: FormSpecs = {
  */
 if (iAmNotAdmin.value || props.type === 'edit') {
   formSpecs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  formSpecs.family = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
+  formSpecs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
 }
 </script>
 

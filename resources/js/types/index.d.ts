@@ -28,11 +28,16 @@ interface User extends Resource {
   name: string;
   firstname: string;
   lastname: string;
-  legal_id: string;
+  bio: string | null;
   avatar: string;
-  is_verified: boolean;
   is_admin: boolean;
-  is_superadmin: boolean;
+
+  // Sensitive data (only present for admins)
+  legal_id?: string;
+  is_verified?: boolean;
+  is_superadmin?: boolean;
+  email_verified_at?: string;
+  invitation_accepted_at?: string;
 }
 
 interface Member extends User {

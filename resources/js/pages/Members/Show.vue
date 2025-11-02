@@ -6,7 +6,7 @@ import MaybeModal from '@/components/MaybeModal.vue';
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
-import { Edit3Icon } from 'lucide-vue-next';
+import { Pencil } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import Delete from './Crud/Delete.vue';
 
@@ -29,45 +29,88 @@ defineProps<{
     <ShowWrapper>
       <Card class="size-full">
         <template v-slot:header>
-          <div class="flex items-center-safe justify-start" :title="member.name">
-            <img :src="member.avatar" alt="avatar" class="mr-wide w-24 rounded-full ring-2 ring-border" />
-            <div class="text-sm leading-wide text-text">
-              <div class="truncate text-2xl leading-12">{{ member.name }}</div>
-              <div class="text-text-muted">{{ member.email }}</div>
-              <div class="text-text-muted">{{ member.phone ?? 'N/A' }}</div>
+          <div class="flex items-center-safe justify-between gap-4" :title="member.name">
+            <div class="flex min-w-0 flex-1 items-center-safe">
+              <img :src="member.avatar" alt="avatar" class="mr-wide w-24 shrink-0 rounded-full ring-2 ring-border" />
+              <div class="min-w-0 flex-1 text-sm leading-wide text-text">
+                <div class="truncate text-2xl leading-12">{{ member.name }}</div>
+              </div>
             </div>
+
+            <ModalLink
+              v-if="member.allows.update"
+              :href="route('members.edit', member.id)"
+              paddingClasses="p-8"
+              class="self-end shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+              :title="_('Edit Member')"
+            >
+              <Pencil class="h-5 w-5" />
+            </ModalLink>
           </div>
         </template>
 
-        <div class="mt-6 mb-3 flex flex-col justify-between gap-3 px-3 py-5">
-          <div class="mb-6 space-y-4 text-sm">
-            <div>TODO : project (iff current user is admin) with stats</div>
-            <div>TODO : online status and last activity</div>
+        <div class="mt-6 mb-3 flex flex-col justify-between gap-6 px-3 py-5">
+          <!-- Context: Where member belongs -->
+          <div class="space-y-3">
+            <ModalLink
+              v-if="member.project?.name"
+              :href="route('projects.show', member.project.id)"
+              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+            >
+              <span class="text-text/70">{{ _('Project') }}:</span>
+              <span class="font-medium">{{ member.project.name }}</span>
+            </ModalLink>
+
+            <ModalLink
+              v-if="member.family.name"
+              :href="route('families.show', member.family.id)"
+              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+            >
+              <span class="text-text/70">{{ _('Family') }}:</span>
+              <span class="font-medium">{{ member.family.name }}</span>
+            </ModalLink>
           </div>
 
-          <ModalLink
-            v-if="member.family.name"
-            :href="route('families.show', member.family.id)"
-            class="text-sm text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          >
-            {{ _('Family') }}: {{ member.family.name }}
-          </ModalLink>
+          <!-- Bio -->
+          <div v-if="member.bio" class="rounded-lg bg-surface-sunken p-4">
+            <div class="text-sm font-medium text-text/70 mb-2">{{ _('Bio') }}</div>
+            <p class="text-sm leading-relaxed text-text/90">{{ member.bio }}</p>
+          </div>
 
-          <div class="mt-4 text-sm text-text-subtle" :title="member.created_at">
-            {{ _('Created') }}: {{ member.created_ago }}
+          <!-- Member properties: Contact & identity info -->
+          <div class="space-y-2 text-sm border-t border-border pt-4">
+            <div class="flex items-center-safe gap-2 text-text/60">
+              <span>{{ _('Email') }}:</span>
+              <span class="text-text/80">{{ member.email }}</span>
+            </div>
+
+            <div class="flex items-center-safe gap-2 text-text/60">
+              <span>{{ _('Phone') }}:</span>
+              <span class="text-text/80">{{ member.phone ?? 'N/A' }}</span>
+            </div>
+
+            <div v-if="member.legal_id" class="flex items-center-safe gap-2 text-text/60">
+              <span>{{ _('Legal ID') }}:</span>
+              <span class="text-text/80">{{ member.legal_id }}</span>
+            </div>
+          </div>
+
+          <!-- Admin-only: verification status -->
+          <div v-if="member.is_verified !== undefined" class="space-y-2 text-sm border-t border-border pt-4">
+            <div class="flex items-center-safe gap-2 text-text/60">
+              <span>{{ _('Email verification') }}:</span>
+              <span :class="member.is_verified ? 'text-success' : 'text-warning'">
+                {{ member.is_verified ? _('Verified') : _('Not verified') }}
+              </span>
+            </div>
+
+            <div class="text-text/60" :title="member.created_at">
+              {{ _('Created') }}: {{ member.created_ago }}
+            </div>
           </div>
         </div>
 
-        <ModalLink
-          v-if="member.allows.update"
-          class="flex items-center-safe justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          paddingClasses="p-8"
-          :href="route('members.edit', member.id)"
-        >
-          {{ _('Edit Member') }} <Edit3Icon />
-        </ModalLink>
-
-        <Delete v-if="member.allows?.delete" :member class="mt-wide border-t border-border" />
+        <Delete v-if="member.allows?.delete" :member class="border-t border-border px-3 py-5" />
       </Card>
     </ShowWrapper>
   </MaybeModal>

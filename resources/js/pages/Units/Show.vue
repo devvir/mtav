@@ -29,16 +29,28 @@ defineProps<{
     <ShowWrapper :resource-id="unit.id">
       <Card class="size-full">
         <template v-slot:header>
-          <div class="flex items-center gap-4">
-            <div class="rounded-lg bg-surface-sunken p-3">
-              <Building2 class="h-8 w-8 text-text-subtle" />
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex min-w-0 flex-1 items-center gap-4">
+              <div class="shrink-0 rounded-lg bg-surface-sunken p-3">
+                <Building2 class="h-8 w-8 text-text-subtle" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <h2 class="truncate text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</h2>
+                <p v-if="unit.type" class="mt-1 truncate text-sm text-text-subtle">
+                  {{ unit.type.name }}
+                </p>
+              </div>
             </div>
-            <div class="flex-1">
-              <h2 class="text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</h2>
-              <p v-if="unit.type" class="mt-1 text-sm text-text-subtle">
-                {{ unit.type.name }}
-              </p>
-            </div>
+
+            <ModalLink
+              v-if="unit.allows?.update"
+              :href="route('units.edit', unit.id)"
+              paddingClasses="p-8"
+              class="shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+              :title="_('Edit') + ' ' + _('Unit')"
+            >
+              <Edit3Icon class="h-5 w-5" />
+            </ModalLink>
           </div>
         </template>
 
@@ -93,16 +105,6 @@ defineProps<{
             <span>{{ _('Created') }}</span>: {{ unit.created_ago }}
           </div>
         </div>
-
-        <!-- Edit Link -->
-        <ModalLink
-          v-if="unit.allows?.update"
-          class="flex items-center justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          paddingClasses="p-8"
-          :href="route('units.edit', unit.id)"
-        >
-          {{ _('Edit') }} {{ _('Unit') }} <Edit3Icon class="h-4 w-4" />
-        </ModalLink>
       </Card>
     </ShowWrapper>
   </MaybeModal>
