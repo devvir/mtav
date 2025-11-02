@@ -4,7 +4,29 @@
 
 **Version**: 2.0 - Complete Technical & Business Specification
 **Date**: 2025-10-26
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-11-02
+
+---
+
+## Critical Design Principles
+
+**⚠️ ACCESSIBILITY FIRST - ALWAYS CONSULT**:
+
+This system serves **elderly users, people with disabilities, and users with old devices**. Before implementing ANY UI component, feature, or design decision, consult `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` in this directory.
+
+**Key Requirements** (see full document for details):
+- **WCAG AA minimum** (4.5:1 contrast), AAA preferred (7:1 for body text)
+- **Large fonts**: 16px minimum body text, scale UP on larger screens
+- **44px touch targets** on mobile
+- **High contrast**, clear focus indicators (2px+ rings)
+- **Old device support**: No heavy animations, progressive enhancement
+- **Simple, clear interfaces**: Generous spacing, obvious affordances
+
+**Non-negotiable dark theme colors**:
+- Background: `hsl(210, 20%, 2%)`
+- Sidebar: `hsl(30, 30%, 6%)`
+
+**When in doubt**: Choose clarity over aesthetics, readability over trendiness, simplicity over complexity.
 
 ---
 
@@ -254,6 +276,39 @@ In a housing cooperative project:
 - ✅ **Yes**: Preference collection allows families to express desires (enables fairness)
 
 If a rule doesn't serve fairness, question whether it should exist.
+
+---
+
+## AI Assistant Guidelines for Working with MTAV
+
+**CRITICAL**: When working with this project, always use the `./mtav` wrapper command instead of calling Docker or scripts directly.
+
+**Reasons**:
+
+1. **Validation**: Confirms all scripts work correctly every time you use one
+2. **Gap Detection**: If you need to call Docker directly, it signals a missing script that should be added
+3. **Consistency**: Ensures all commands use correct project name (`-p dev`), paths, and flags
+4. **Documentation**: Using documented commands keeps this knowledge base accurate
+
+**Examples**:
+
+```bash
+# ✅ CORRECT - Use mtav wrapper
+./mtav shell php
+./mtav artisan migrate
+./mtav composer require package/name
+./mtav rebuild php
+./mtav test --pest
+
+# ❌ WRONG - Don't call Docker/scripts directly
+docker compose exec php php artisan migrate
+.docker/scripts/artisan.sh migrate
+docker compose -f .docker/compose.yml build php
+```
+
+**Exception**: Only use Docker directly when absolutely necessary (debugging Docker itself, inspecting containers, etc.)
+
+**When you find yourself needing a Docker command not covered by `./mtav`**: Stop and consider if a new script should be added to fill that gap.
 
 ---
 
@@ -2048,263 +2103,549 @@ See Project entity section for:
 
 ## Authorization Matrix
 
-### General Principles
+### General Principles (UPDATED - Post-Global Scopes Architecture)
 
-1. **Superadmins**: Bypass ALL policies via `Gate::before()` - always allowed
-2. **Project Scope**: Admins can only access resources in projects they manage
-3. **Family Scope**: Members can only access their own family's resources
-4. **Self-Management**: Users can view/update themselves (with restrictions)
+**Authorization operates on TWO levels**:
+
+1. **QUERY LEVEL (Primary)** - Global Scopes
+   - **What "exists" for this user?** → Handled by `ProjectScope` trait
+   - Automatically filters all queries to user's accessible projects
+   - Defines the user's "universe" of resources they can see and interact with
+   - Guarantees: A resource may exist in the database but not "exist" for a user
+   - Superadmins bypass (no scope applied - everything exists for them)
+   - Members see ONLY their project
+   - Admins see ONLY managed projects
+
+2. **ACTION LEVEL (Secondary)** - Policies
+   - **What can you DO with things that exist for you?** → Handled by model-specific policies
+   - Assumes resource already "exists" for user (scope filtering already applied)
+   - Checks: create/view/update/delete permissions
+   - Simplified logic (no project-checking needed - scope handles that)
+   - Superadmins bypass via `Gate::before()`
+   - Policies won't even be reached if resource doesn't "exist" for user
+
+**Key Insight**: The Authorization Matrix below focuses on **ACTIONS**, not access. Access is implicit through global scopes.
+
+**Critical Rules**:
+
+1. **Superadmins**: Bypass ALL policies via `Gate::before()` - always allowed for all actions
+2. **Global Scope Guarantee**: If a query returns a model, the user HAS access to it (project-wise)
+3. **Policies Check Actions Only**: Policies assume access is valid, only check what user can DO
+4. **"Can this admin update this family?"** is really asking: **"Can admins update families?"** (The family is already filtered to admin's projects)
+
+**Matrix Legend**:
+
+- ✅ = Allowed
+- ❌ = Denied (403)
+- 🔍 = Implicit filtering (global scope)
 
 ---
 
 ### Project Operations
 
-| Action                           | Superadmin | Admin (manages project)    | Admin (doesn't manage) | Member                           |
-| -------------------------------- | ---------- | -------------------------- | ---------------------- | -------------------------------- |
-| **viewAny** (list all projects)  | ✅ Always  | ✅ If manages 2+ projects  | ❌ 403                 | ❌ 403                           |
-| **view** (view specific project) | ✅ Always  | ✅ If manages this project | ❌ 403                 | ✅ Can view their active project |
-| **create**                       | ✅ Always  | ❌ 403                     | ❌ 403                 | ❌ 403                           |
-| **update**                       | ✅ Always  | ✅ If manages this project | ❌ 403                 | ❌ 403                           |
-| **delete**                       | ✅ Always  | ✅ If manages this project | ❌ 403                 | ❌ 403                           |
+| Action                           | Superadmin | Admin                                       | Member  |
+| -------------------------------- | ---------- | ------------------------------------------- | ------- |
+| **Query Scope** 🔍               | All        | Only managed projects                       | N/A     |
+| **viewAny** (list all projects)  | ✅ Always  | ✅ If manages 2+ projects (UI/policy level) | ❌ 403  |
+| **view** (view specific project) | ✅ Always  | ✅ Any (scoped to managed)                  | ❌ 403  |
+| **create**                       | ✅ Always  | ❌ 403 (superadmin-only)                    | ❌ 403  |
+| **update**                       | ✅ Always  | ✅ Any (scoped to managed)                  | ❌ 403  |
+| **delete**                       | ✅ Always  | ✅ Any (scoped to managed)                  | ❌ 403  |
 
 **Notes**:
 
-- Members can view their own project details but NOT the project list
-- Admins with only 1 project should not see project selector/list
-- **QUESTION**: Can admins with 1 project still access the index route, or is it hidden in UI only?
+- **Global Scope**: Admins' `Project::all()` only returns managed projects (implicit filtering)
+- **viewAny Policy**: Returns `true` only if admin manages 2+ projects (UI decides whether to show list)
+- **No "other project" column**: Global scope makes it impossible for admin to even query non-managed projects
+- Members have NO project operations access (they see current project info via state, not via Project model queries)
+
+**Current Implementation** (`app/Policies/ProjectPolicy.php`):
+
+```php
+public function viewAny(User $user): bool
+{
+    return $user->isAdmin() && $user->projects->count() > 1;
+}
+
+public function view(User $user): bool
+{
+    return $user->isAdmin();
+}
+
+public function create(User $user): bool
+{
+    return false; // Only superadmins (bypass policies)
+}
+
+public function update(User $user): bool
+{
+    return $user->isAdmin();
+}
+
+public function delete(User $user): bool
+{
+    return $user->isAdmin();
+}
+```
 
 ---
 
 ### Family Operations
 
-| Action      | Superadmin | Admin (in family's project)          | Admin (other project)                | Member (own family) | Member (other family) |
-| ----------- | ---------- | ------------------------------------ | ------------------------------------ | ------------------- | --------------------- |
-| **viewAny** | ✅ Always  | ✅ Sees families in managed projects | ✅ Sees families in managed projects | ✅ Can view list    | ✅ Can view list      |
-| **view**    | ✅ Always  | ✅ Any family                        | ✅ Any family                        | ✅ Any family       | ✅ Any family         |
-| **create**  | ✅ Always  | ✅ In managed project only           | ❌ 403 Cannot create in unmanaged    | ❌ 403              | ❌ 403                |
-| **update**  | ✅ Always  | ✅ In managed project only           | ❌ 403                               | ✅ Own family only  | ❌ 403                |
-| **delete**  | ✅ Always  | ✅ In managed project only           | ❌ 403                               | ❌ 403              | ❌ 403                |
+| Action      | Superadmin | Admin                      | Member (own family) | Member (other family) |
+| ----------- | ---------- | -------------------------- | ------------------- | --------------------- |
+| **Query Scope** 🔍 | All | Only in managed projects | Only in own project | Only in own project |
+| **viewAny** | ✅ Always  | ✅ Any (scoped)            | ✅ Any (scoped)     | ✅ Any (scoped)       |
+| **view**    | ✅ Always  | ✅ Any (scoped)            | ✅ Any (scoped)     | ✅ Any (scoped)       |
+| **create**  | ✅ Always  | ✅ Any (validated)         | ❌ 403              | ❌ 403                |
+| **update**  | ✅ Always  | ✅ Any (scoped)            | ✅ Own family only  | ❌ 403 (can't query)  |
+| **delete**  | ✅ Always  | ✅ Any (scoped)            | ❌ 403              | ❌ 403                |
 
 **Notes**:
 
-- Everyone can VIEW families (viewAny, view)
-- Only admins can CREATE families (in projects they manage)
-- Members can UPDATE their own family info (name, avatar)
-- Only admins can DELETE families
+- **Global Scope**: Everyone's `Family::all()` is automatically filtered to accessible projects
+- **"Any (scoped)"**: Policy says "yes", but scope already filtered results
+- **Members can't query other families**: Scope ensures `Family::find(other_family_id)` returns `null`
+- **viewAny/view always true**: Everyone can view families (scope handles filtering)
+- **update for members**: Can only update own family (checked via `$user->family_id === $family->id`)
 
-**Family Listing Behavior** (clarified):
+**Current Implementation** (`app/Policies/FamilyPolicy.php`):
 
-**Multi-Project Context** (admins/superadmins with no current project selected):
+```php
+public function viewAny(User $user): bool
+{
+    return true; // Global scope filters to accessible projects
+}
 
-- `families.index`: Shows **ALL families** across **ALL accessible projects**
-  - Admins: families in ALL managed projects
-  - Superadmins: families in ALL projects
-- No current project filter applied
+public function view(User $user): bool
+{
+    return true; // Global scope ensures only accessible families
+}
 
-**Single-Project Context** (all users with current project selected):
+public function create(User $user): bool
+{
+    return $user->isAdmin();
+}
 
-- `families.index`: Shows **ONLY families in current project**
-  - Members: ONLY their project's families (automatically filtered)
-  - Admins: ONLY current project's families (manually selected)
-  - Superadmins: ONLY current project's families (manually selected)
+public function update(User $user, Family $family): bool
+{
+    return $user->isAdmin() || ($user->family_id === $family->id);
+}
 
-**Universe Boundaries** (NEVER exceeded):
+public function delete(User $user): bool
+{
+    return $user->isAdmin();
+}
+```
 
-- Members: Can ONLY see families in their single active project
-- Admins: Can ONLY see families in their managed projects
-- Superadmins: Can see families in ALL projects
+**Family Listing Behavior** (clarified with global scopes):
+
+**All Contexts** (global scope ALWAYS applies):
+
+- `families.index`: Shows **ONLY families in accessible projects**
+  - Members: Automatically scoped to their single project
+  - Admins: Automatically scoped to ALL managed projects
+  - Superadmins: No scope (all projects)
+
+**Empty Families Filter** (`Family::withMembers()` scope):
+
+- **Index listing** (`families.index`): Filters out empty families (no members)
+  - Uses `->withMembers()` scope: `whereHas('members')`
+  - Rationale: Members don't need to see empty families (not actionable)
+  - Admins DO see non-empty families (normal families to manage)
+- **Create Member form**: Shows ALL families (including empty ones)
+  - Does NOT use `->withMembers()` scope
+  - Rationale: Admins need to "fill" empty families with members
+  - Empty families are valid targets for new member creation
+- **No special UI distinction needed**: Admins will add members to appropriate family (empty or not)
+
+**Empty Family Creation**:
+
+Valid scenarios where families become empty:
+
+1. **Admin creates family without members**: Family exists but has 0 members
+2. **Last member deletes themselves**: Family becomes empty (not deleted)
+3. **Admin deletes all members**: Family remains (for re-population)
+
+**Empty Family Behavior**:
+
+- ✅ **Valid state**: Families can exist without members
+- ✅ **Persists**: Not automatically deleted when last member removed
+- ✅ **Re-usable**: Admins can add members to empty families
+- ✅ **`family.project_id` maintained**: Even without members, family belongs to project
+- ✅ **Indexed separately**: Shown in create-member form, hidden from index listing
+
+**Why Families Persist When Empty**:
+
+- **Audit trail**: Preserve family history even if all members leave
+- **Re-population**: Admin can re-add members without re-creating family
+- **Data integrity**: family.project_id is source of truth (not derived from members)
+- **Flexibility**: Allows family creation before member invitation
+
+**Current Project Filter** (additional UI-level filtering):
+
+- If `Project::current()` is set, UI may filter further to ONLY current project families
+- This is **additional** to global scope (not instead of)
+- Member experience: Always sees only their project (scope + usually current project is set)
+- Admin experience: Can see all managed project families, or filter to current project
+
+**Universe Boundaries** (enforced by global scope, NOT policies):
+
+- Members: Scope limits to their single active project
+- Admins: Scope limits to managed projects only
+- Superadmins: No scope applied
 
 ---
 
 ### Member Operations
 
-| Action      | Superadmin  | Admin (member's project)   | Admin (other project)  | Member (self)              | Member (same family)       | Member (other)                      |
-| ----------- | ----------- | -------------------------- | ---------------------- | -------------------------- | -------------------------- | ----------------------------------- |
-| **viewAny** | ✅ Always   | ✅ In managed projects     | ✅ In managed projects | ✅ List                    | ✅ List                    | ✅ List                             |
-| **view**    | ✅ Always   | ✅ Any                     | ✅ Any                 | ✅ Any                     | ✅ Any                     | ✅ Any                              |
-| **create**  | ✅ Anywhere | ✅ In managed project only | ❌ 403                 | ✅ Can invite (restricted) | ✅ Can invite (restricted) | ❌ 403 Cannot invite outside family |
-| **update**  | ✅ Always   | ✅ In managed project only | ❌ 403                 | ✅ Self only               | ❌ 403                     | ❌ 403                              |
-| **delete**  | ✅ Always   | ✅ In managed project only | ❌ 403                 | ✅ Self only               | ❌ 403                     | ❌ 403                              |
+| Action      | Superadmin  | Admin               | Member (self)       | Member (same family) | Member (other)       |
+| ----------- | ----------- | ------------------- | ------------------- | -------------------- | -------------------- |
+| **Query Scope** 🔍 | All | Only managed projects | Only own project | Only own project | Only own project |
+| **viewAny** | ✅ Always   | ✅ Any (scoped)     | ✅ Any (scoped)     | ✅ Any (scoped)      | ✅ Any (scoped)      |
+| **view**    | ✅ Always   | ✅ Any (scoped)     | ✅ Any (scoped)     | ✅ Any (scoped)      | ✅ Any (scoped)      |
+| **create**  | ✅ Anywhere | ✅ Any (validated)  | ✅ Invite (scoped)  | ✅ Invite (scoped)   | ❌ (can't query)     |
+| **update**  | ✅ Always   | ✅ Any (scoped)     | ✅ Self only        | ❌ 403               | ❌ (can't query)     |
+| **delete**  | ✅ Always   | ✅ Any (scoped)     | ✅ Self only        | ❌ 403               | ❌ (can't query)     |
+
+**Notes**:
+
+- **Global Scope**: All `Member::` queries automatically filtered to user's accessible projects
+- **viewAny/view always true**: Everyone can view members (scope handles filtering)
+- **Members can't query outside project**: `Member::find(other_project_member_id)` returns `null`
+- **update/delete for members**: Only self (`$user->is($member)`)
+- **create for members**: Can invite to own family only (validated at request level)
+
+**Current Implementation** (`app/Policies/MemberPolicy.php`):
+
+```php
+public function viewAny(User $user): bool
+{
+    return true; // Global scope filters to accessible projects
+}
+
+public function view(User $user): bool
+{
+    return true; // Global scope ensures only accessible members
+}
+
+public function create(User $user): bool
+{
+    return true; // Validation handles project/family restrictions
+}
+
+public function update(User $user, Member $member): bool
+{
+    return $user->isAdmin() || $user->is($member);
+}
+
+public function delete(User $user, Member $member): bool
+{
+    return $user->isAdmin() || $user->is($member);
+}
+```
 
 **Special Member Creation Rules**:
 
 **Admin creating member**:
 
-- Can create in any project they manage
-- Can assign to any family in that project
-- Can set any project_id they manage
-- Must ensure family.project_id matches target project_id
+- Can create in any project they manage (scope + validation)
+- Can assign to any family in accessible projects (validated via `BelongsToProject` rule)
+- `project_id` validated via `ProjectScopedRequest` (ensures admin has access)
+- `family_id` validated to belong to `project_id` (prevents mismatch)
 
 **Member creating member ("invitation")**:
 
-- Can only create members in their own family
-- `family_id` is FORCED to member's own family_id
-- `project_id` is FORCED to member's active project
-- Cannot choose family or project (auto-filled, hidden in form)
-- **QUESTION**: Any other restrictions?
-  - Email domain restrictions?
-  - Approval process?
+- Can only invite to own family (enforced in form request)
+- `family_id` auto-filled to member's family (not user-editable)
+- `project_id` auto-filled to member's project (not user-editable)
+- Global scope ensures member can only see own family/project anyway
 
-**Member Intra-Family Operations**:
+**Member Self-Deletion**:
 
-1. **Can members update other members in their family?** ❌ **No**
-   - Members can only update themselves
-   - If member needs another family member updated, contact admin off-platform (in real life)
-   - Admins can update any member in projects they manage
-
-2. **Can members delete other members in their family?** ❌ **No**
-   - Members can only delete themselves
-   - If member needs another family member removed:
-     - Contact admin off-platform (in real life) to request deletion
-     - Admin performs deletion (auditable action)
-     - If admin abuses this power, it's auditable - not app's concern to prevent
-
-3. **Member creating another member (family invitation)**:
-   - ✅ **Invitation process** (same as admin inviting member)
-   - Creates invitation record with unique token
-   - Sends invitation email: "Member X invited you to join their Family Y in Project Z in MTAV"
-   - Email is different from admin invitation, but process is identical
-   - Invitee sets password and accepts invitation
-   - User created with verified_at set (auto-verified)
-
-4. **Can members delete themselves?** ✅ **Yes** (soft-delete)
-   - Member can soft-delete themselves at any time
-   - **If they're the last member**:
-     - Family remains in database (not deleted)
-     - Family is now **empty** (zero members)
-     - This is VALID - family is a "wrapper" that persists
-     - Admins can still invite new members into empty family
-     - Empty families filtered from member-facing listings
-     - Empty families visible to admins (with indicator/warning)
+- Members can soft-delete themselves at any time
+- If last member in family:
+  - Family remains (not deleted)
+  - Family becomes "empty" (zero members)
+  - Valid state - family persists for admin management
+  - Empty families hidden from member listings
+  - Empty families visible to admins with indicator
 
 ---
 
 ### Admin Operations
 
-| Action      | Superadmin               | Admin (self)              | Admin (other, same project) | Admin (other, different project) | Member  |
-| ----------- | ------------------------ | ------------------------- | --------------------------- | -------------------------------- | ------- |
-| **viewAny** | ✅ Always                | ✅ List                   | ✅ List                     | ✅ List                          | ✅ List |
-| **view**    | ✅ Always                | ✅ Any                    | ✅ Any                      | ✅ Any                           | ✅ Any  |
-| **create**  | ✅ Anywhere              | **QUESTION**              | **QUESTION**                | **QUESTION**                     | ❌ 403  |
-| **update**  | ✅ Always                | ✅ Self only              | ❌ 403                      | ❌ 403                           | ❌ 403  |
-| **delete**  | ✅ Always (except self?) | ❌ 403 Cannot delete self | ❌ 403                      | ❌ 403                           | ❌ 403  |
-
-**Open Questions on Admin Creation**:
-
-1. Can regular admins create other admins?
-2. If yes, can they only assign to projects they manage?
-3. Can admins modify their own project assignments?
-4. Can admins assign other admins to projects?
+| Action      | Superadmin  | Admin (self)     | Admin (other) |
+| ----------- | ----------- | ---------------- | ------------- |
+| **Query Scope** 🔍 | All | Only in managed projects | Only in managed projects |
+| **viewAny** | ✅ Always   | ✅ Any (scoped)  | ✅ Any (scoped) |
+| **view**    | ✅ Always   | ✅ Any (scoped)  | ✅ Any (scoped) |
+| **create**  | ✅ Anywhere | ✅ (validated) | ✅ (validated)  |
+| **update**  | ✅ Always   | ✅ Self only     | ❌ 403        |
+| **delete**  | ✅ Always   | ❌ 403           | ❌ 403        |
 
 **Notes**:
 
-- Admins can only update themselves (name, email, etc.)
-- Admins CANNOT update other admins
-- Admins CANNOT delete themselves
-- Admins CANNOT delete other admins
-- Only superadmins can delete admins
-- Superadmins can delete others but maybe not themselves?
+- **Global Scope**: Admins' `Admin::all()` filtered to those in managed projects
+- **create**: Admins CAN create other admins
+  - Can only assign new admins to projects they themselves manage
+  - Use case: Admin wants help managing their project(s), creates co-admin
+  - Philosophy: Project ownership and delegation (admins OWN their projects)
+- **update**: Admins can ONLY update themselves (not other admins)
+  - Once created, each admin is responsible for themselves
+  - Promotes accountability and autonomy
+- **delete**: Only superadmins can delete admins
+  - Admins cannot delete themselves or other admins
+  - Prevents abuse and maintains audit trail
+
+**Superadmin Philosophy**:
+
+Superadmins (college functionaries, developers) are **NOT project managers**:
+
+- Create new projects and assign initial admin(s)
+- Then **completely hands off** - admins own their projects
+- Only intervene for auditing or serious issues
+- NOT responsible for day-to-day project management
+
+**Admin Creation Workflow**:
+
+```
+Superadmin creates Project
+  ↓
+Superadmin assigns Admin(s) to Project
+  ↓
+Admin(s) manage Project (create families, members, units, etc.)
+  ↓
+Admin MAY create additional admins for their project(s)
+  ↓
+Each admin manages themselves (update own profile, etc.)
+  ↓
+Superadmin rarely/never needed after initial setup
+```
+
+**Current Implementation** (`app/Policies/AdminPolicy.php`):
+
+```php
+public function viewAny(User $user): bool
+{
+    return true; // Global scope filters
+}
+
+public function view(User $user): bool
+{
+    return true; // Global scope ensures accessible
+}
+
+public function create(User $user): bool
+{
+    return true; // Validation handles project assignment
+}
+
+public function update(User $user, Admin $admin): bool
+{
+    return $user->is($admin); // Only self
+}
+
+public function delete(User $user): bool
+{
+    return false; // Only superadmins (bypass policies)
+}
+```
 
 ---
 
 ### Unit Operations
 
-| Action      | Superadmin  | Admin (unit's project)     | Admin (other project)  | Member               |
-| ----------- | ----------- | -------------------------- | ---------------------- | -------------------- |
-| **viewAny** | ✅ Always   | ✅ In managed projects     | ✅ In managed projects | ✅ In active project |
-| **view**    | ✅ Always   | ✅ Any                     | ✅ Any                 | ✅ Any               |
-| **create**  | ✅ Anywhere | ✅ In managed project only | ❌ 403                 | ❌ 403               |
-| **update**  | ✅ Always   | ✅ In managed project only | ❌ 403                 | ❌ 403               |
-| **delete**  | ✅ Always   | ✅ In managed project only | ❌ 403                 | ❌ 403               |
+| Action      | Superadmin  | Admin           | Member          |
+| ----------- | ----------- | --------------- | --------------- |
+| **Query Scope** 🔍 | All | Only managed projects | Only own project |
+| **viewAny** | ✅ Always   | ✅ Any (scoped) | ✅ Any (scoped) |
+| **view**    | ✅ Always   | ✅ Any (scoped) | ✅ Any (scoped) |
+| **create**  | ✅ Anywhere | ✅ Any (scoped) | ❌ 403          |
+| **update**  | ✅ Always   | ✅ Any (scoped) | ❌ 403          |
+| **delete**  | ✅ Always   | ✅ Any (scoped) | ❌ 403          |
 
 **Notes**:
 
-- Everyone can VIEW units
-- Only admins can CREATE/UPDATE/DELETE units
-- Units are scoped to projects (admins can only manage units in their projects)
+- **Global Scope**: All `Unit::` queries filtered to user's accessible projects
+- **viewAny/view always true**: Everyone can view units (scope filters)
+- **Only admins can create/update/delete**: Simple policy check
+
+**Current Implementation** (`app/Policies/UnitPolicy.php`):
+
+```php
+public function viewAny(User $user): bool
+{
+    return true; // Global scope filters
+}
+
+public function view(User $user): bool
+{
+    return true; // Global scope ensures accessible
+}
+
+public function create(User $user): bool
+{
+    return $user->isAdmin();
+}
+
+public function update(User $user): bool
+{
+    return $user->isAdmin();
+}
+
+public function delete(User $user): bool
+{
+    return $user->isAdmin();
+}
+```
+
+**Same Pattern for UnitType**: Identical to Unit (global scope + simple admin-only policies)
 
 ---
 
-## Business Rules by Entity
+## Business Rules by Entity (UPDATED - Post-Global Scopes)
+
+### Form Validation Architecture
+
+**ProjectScopedRequest Base Class** (`app/Http/Requests/ProjectScopedRequest.php`):
+
+All resource creation/update requests extend this base class, which provides:
+
+1. **Auto-Injection** (`prepareForValidation()`):
+   - If `project_id` not provided, inject current project ID
+   - Ensures project context is always present
+
+2. **Authorization** (`authorize()`):
+   - Validates context integrity: If current project set AND `project_id` provided, they must match
+   - Validates user access: User must have access to requested `project_id`
+
+3. **Validation Rules**:
+   - `project_id`: `nullable|integer|exists:projects,id`
+   - Subclasses add specific rules
+
+**BelongsToProject Custom Rule** (`app/Rules/BelongsToProject.php`):
+
+Validates that a related model (Family, UnitType, etc.) belongs to the specified project:
+
+```php
+// Usage in request:
+'family_id' => [
+    'required',
+    'exists:families,id',
+    new BelongsToProject(Family::class, $projectId, 'validation.family_belongs_to_project'),
+]
+
+// Checks: SELECT * FROM families WHERE id = ? AND project_id = ?
+```
+
+**Custom Validation Messages** (`lang/*/validation.php`):
+
+Project-mismatch errors have localized messages:
+
+```php
+// lang/en/validation.php
+'family_belongs_to_project' => 'The selected family does not belong to the selected project.',
+'unit_type_belongs_to_project' => 'The selected unit type does not belong to the selected project.',
+'unauthorized_projects_assignment' => 'You can only assign projects you manage. Unauthorized projects: :ids',
+```
+
+---
 
 ### User/Member/Admin Creation
 
-**Admin Creation**:
+**Admin Creation** (`CreateAdminRequest`, `AdminController@store`):
 
 ```
-Input: firstname, lastname, email, project (singular, required)
+Input: firstname, lastname, email, project_ids[] (multi-select)
 Process:
-  1. Validate email unique
-  2. Validate project exists
-  3. [QUESTION] Validate admin manages project? (if not superadmin)
+  1. Validate email unique (Laravel built-in)
+  2. Validate project_ids array (required, exists)
+  3. Validate user can assign these projects:
+     - Superadmins: Can assign any projects
+     - Admins: Can only assign projects they manage
+     - Custom validation in CreateAdminRequest->withValidator()
   4. Create user with is_admin = true, family_id = null
-  5. [MISSING] Attach to project via project_user pivot
-  6. [MISSING] Set active = ? in pivot
-  7. [QUESTION] Send invitation email?
+  5. Attach to projects via project_user pivot (active = true)
+  6. Send invitation email (InvitationService)
 ```
 
 **Current Implementation Status**:
 
-- ❌ Step 5-6 missing in controller
-- ❌ Validation for project management missing
-- ⚠️ Request validates single `project` but admins can have multiple projects
+- ✅ Email uniqueness validated
+- ✅ project_ids validated (exists)
+- ✅ Admins restricted to assigning only managed projects (validated in withValidator)
+- ✅ Pivot attachment implemented
+- ✅ Invitation email sent
+- **Validation Message**: `'validation.unauthorized_projects_assignment'` if admin tries to assign unmanaged projects
 
-**Member Creation by Admin**:
+**Member Creation by Admin** (`CreateMemberRequest`, `MemberController@store`):
 
 ```
 Input: firstname, lastname, email, family_id, project_id
 Process:
-  1. Validate email unique
-  2. Validate family exists
-  3. Validate project exists
-  4. [CRITICAL] Validate family.project_id == project_id (prevent mismatch)
-  5. [QUESTION] Validate admin manages project?
+  1. Validate email unique (Laravel built-in)
+  2. Validate family exists (exists:families,id)
+  3. Validate project exists (exists:projects,id)
+  4. Validate family belongs to project (BelongsToProject rule)
+  5. Validate user has access to project (ProjectScopedRequest->authorize())
   6. Create user with is_admin = false, family_id
-  7. Add to project via project_user with active = true
-  8. [QUESTION] Send invitation email?
+  7. Attach to project via project_user (active = true)
+  8. Send invitation email (InvitationService)
 ```
 
 **Current Implementation Status**:
 
-- ❌ Step 4 NOT enforced (critical bug)
-- ❌ Step 5 NOT enforced (authorization bug)
+- ✅ All validation steps implemented
+- ✅ BelongsToProject rule prevents family/project mismatch
+- ✅ ProjectScopedRequest ensures admin has access
+- ✅ Pivot attachment implemented
+- ✅ Invitation email sent
+- **Critical Fix**: Global scope + BelongsToProject rule replaced manual authorization checks
 
-**Member Creation by Member ("Invitation")**:
+**Member Creation by Member ("Invitation")** (`CreateMemberRequest`, `MemberController@store`):
 
 ```
-Input from form: firstname, lastname, email (family & project hidden/disabled)
+Input from form: firstname, lastname, email
+Hidden/Auto-filled: family_id, project_id
 Process:
   1. Validate email unique
-  2. OVERRIDE family_id = auth()->user()->family_id
-  3. OVERRIDE project_id = auth()->user()->project->id
-  4. Create user with is_admin = false, family_id
-  5. Add to project via project_user with active = true
-  6. [QUESTION] Send invitation email?
+  2. Auto-inject family_id (member's family) - handled in controller
+  3. Auto-inject project_id (member's project) - handled by ProjectScopedRequest
+  4. Same validation as admin creation (BelongsToProject, etc.)
+  5. Create user with is_admin = false, family_id
+  6. Attach to project via project_user (active = true)
+  7. Send invitation email (family invitation variant)
 ```
 
 **Current Implementation Status**:
 
-- ❌ Override logic NOT implemented
-- ❌ Family/project fields shown in form (should be hidden for members)
+- ✅ Auto-injection handled (family_id in controller, project_id in base request)
+- ✅ Same validation rules apply
+- ✅ Member cannot manipulate family/project (UI hides fields, backend enforces)
+- ✅ Invitation email sent (member variant)
 
 ---
 
 ### Family Creation
 
 ```
-Input: name, project_id
+Input: name, project_id, unit_type_id (optional)
 Process:
-  1. Validate name required
-  2. Validate project exists
-  3. [QUESTION] Validate admin manages project? (if not superadmin)
-  4. Validate name unique within project (DB constraint)
-  5. Create family with project_id
+  1. Validate name required (string, max:255)
+  2. Validate project exists (exists:projects,id)
+  3. Validate user has access to project (ProjectScopedRequest)
+  4. Validate unit_type belongs to project (BelongsToProject rule)
+  5. Validate name unique within project (DB constraint or custom validation)
+  6. Create family with project_id, unit_type_id
 ```
 
 **Current Implementation Status**:
 
-- ✅ Basic validation works
-- ❌ Project management validation missing for admins
+- ✅ All validation steps implemented (`CreateFamilyRequest`)
+- ✅ BelongsToProject rule validates unit_type
+- ✅ ProjectScopedRequest ensures admin access
+- ✅ Global scope ensures admin can only create in managed projects
 
 ---
 
@@ -3544,6 +3885,236 @@ mtav/
 └── packages/                  # Local custom packages
 ```
 
+### Routing Architecture
+
+**Modular Route Files** (`routes/web.php` + `routes/web/*.php`):
+
+The routing structure is **modular and middleware-grouped** for clarity and maintainability:
+
+**Main Router** (`routes/web.php`):
+
+```php
+// Healthcheck
+Route::get('ping', fn () => 'pong');
+
+// Invitation (guest + auth)
+Route::get|post('invitation', InvitationController);
+
+// Guest-only routes (login, register, password reset)
+Route::middleware('guest')->group(__DIR__ . '/web/guest.php');
+
+// Auth-handling routes (email verification, etc.)
+Route::middleware('auth')->group(__DIR__ . '/web/auth.php');
+
+// User settings (profile, password, appearance)
+Route::middleware('auth', 'verified', 'invitation.accepted')->group(__DIR__ . '/web/settings.php');
+
+// Project context management (set/unset current project)
+Route::middleware('auth', 'verified', 'invitation.accepted')->group(__DIR__ . '/web/context.php');
+
+// Project-scoped routes (dashboard, units, events - requires current project)
+Route::middleware('auth', ProjectMustBeSelected::class)->group(__DIR__ . '/web/project.php');
+
+// General user routes (projects, families, members, admins, logs)
+Route::middleware('auth', 'verified', 'invitation.accepted')->group(__DIR__ . '/web/users.php');
+
+// Development routes (UI examples, test pages)
+if (app()->environment('local', 'testing')) {
+    Route::group([], __DIR__ . '/web/dev.php');
+}
+```
+
+**Route Files Breakdown**:
+
+1. **`web/guest.php`**: Authentication pages (guest-only)
+   - Login, password reset, forgot password
+   - Middleware: `guest`
+
+2. **`web/auth.php`**: Auth-related actions (authenticated users)
+   - Email verification, confirm password
+   - Middleware: `auth`
+
+3. **`web/settings.php`**: User settings pages
+   - Profile, password, appearance settings
+   - Middleware: `auth`, `verified`, `invitation.accepted`
+
+4. **`web/context.php`**: Project context management
+   - `POST /projects/current/{project}` - Set current project
+   - `DELETE /projects/current/unset` - Unset current project
+   - Middleware: `auth`, `verified`, `invitation.accepted`
+
+5. **`web/project.php`**: Project-scoped resources (requires current project)
+   - Dashboard (`/`)
+   - Units, UnitTypes, Events, Gallery, Contact
+   - Middleware: `auth`, `ProjectMustBeSelected`
+
+6. **`web/users.php`**: General resources (no current project required)
+   - Projects, Families, Members, Admins, Logs
+   - Some routes restricted to superadmin (via `MustBeSuperAdmin` middleware)
+   - Middleware: `auth`, `verified`, `invitation.accepted`
+
+7. **`web/dev.php`**: Development/testing routes
+   - UI component examples
+   - Only loaded in `local`/`testing` environments
+
+**Middleware Chain Explanation**:
+
+- **`guest`**: Must NOT be authenticated (redirects to home if authenticated)
+- **`auth`**: Must be authenticated (redirects to login if guest)
+- **`verified`**: Must have verified email (`email_verified_at` set)
+- **`invitation.accepted`**: Must have accepted invitation (`invitation_accepted_at` set)
+- **`HandleProjects`**: Auto-manages project context (runs BEFORE ProjectMustBeSelected)
+  - **Auto-sets current project** if user has exactly ONE accessible project:
+    - Members: Always have one project (via family) - auto-set
+    - Admins managing only 1 project - auto-set
+    - Admins managing 2+ projects - NO auto-set (must manually select)
+  - **Validates current project** if one is selected:
+    - Ensures selected project is in user's accessible projects
+    - Unsets invalid selections (e.g., admin removed from project)
+  - **Logs out users without projects**:
+    - If admin/member has ZERO accessible projects (e.g., removed from all)
+    - Forced logout for safety (user has no valid context)
+    - Superadmins exempt (they don't need projects)
+- **`ProjectMustBeSelected`**: Enforces project context requirement (runs AFTER HandleProjects)
+  - **Requires current project to be set** (single-project context)
+  - **Redirects to `projects.index`** if no project selected
+  - Relies on HandleProjects to have already validated the selection
+  - Used for routes that need project context (dashboard, units, events, etc.)
+- **`MustBeSuperAdmin`**: Must be superadmin (checked via `$user->isSuperadmin()`)
+
+**Middleware Execution Order** (critical for project context management):
+
+```
+Request
+  ↓
+auth (authenticate user)
+  ↓
+verified (check email verification)
+  ↓
+invitation.accepted (check invitation acceptance)
+  ↓
+HandleProjects (auto-set OR validate OR logout)
+  ← Sets current project for single-project users
+  ← Validates already-set current project
+  ← Logs out users without any projects
+  ↓
+ProjectMustBeSelected (enforce requirement)
+  ← Redirects if no current project
+  ↓
+Controller action
+```
+
+**Project Context Management** (`state()` / `setState()` helpers):
+
+Current project is stored in **session** using Laravel's session storage:
+
+```php
+// app/helpers.php
+function state(string $key, mixed $default = null): mixed
+{
+    return session()->get("state.$key", $default);
+}
+
+function setState(string $key, mixed $value): void
+{
+    session()->put("state.$key", $value);
+}
+
+// Usage:
+Project::current();       // Calls state('project')
+setState('project', $project);  // Set current project
+setState('project', null);      // Clear current project
+```
+
+**⚠️ Known Limitation (TODO)**:
+
+- Sessions expire after 120 minutes (default Laravel config)
+- Users with "Remember Me" can stay logged in indefinitely via cookies
+- **Problem**: User may be logged in (cookie) but have expired session (no current project)
+- **Workaround**: HandleProjects will re-set project context on next request
+- **Planned Fix**: Move project context to more persistent storage (database state table, cache, etc.)
+
+**Route Grouping Strategy**:
+
+**Why Modular?**
+
+- **Clarity**: Each file has a single purpose (guest auth, settings, resources, etc.)
+- **Maintainability**: Easy to find routes by functionality
+- **Middleware grouping**: All routes in a file share the same middleware
+- **Reduced clutter**: Main `web.php` is concise and readable
+
+**Route Organization Example** (`web/users.php`):
+
+```php
+// Superadmin-only routes
+Route::middleware(MustBeSuperAdmin::class)->group(function () {
+    Route::resource('projects', ProjectController::class)->only('create', 'store');
+    Route::resource('admins', AdminController::class)->only('restore');
+});
+
+// Member/Admin routes (all authenticated users)
+Route::resource('projects', ProjectController::class)->except('create', 'store');
+Route::resource('families', FamilyController::class');
+Route::resource('members', MemberController::class');
+Route::resource('admins', AdminController::class')->except('restore');
+Route::resource('logs', LogController::class)->only('index', 'show');
+```
+
+**Resource Routes** (Laravel convention):
+
+```php
+Route::resource('families', FamilyController::class);
+// Generates:
+// GET    /families          → index   (FamilyController@index)
+// GET    /families/create   → create  (FamilyController@create)
+// POST   /families          → store   (FamilyController@store)
+// GET    /families/{id}     → show    (FamilyController@show)
+// GET    /families/{id}/edit → edit   (FamilyController@edit)
+// PUT    /families/{id}     → update  (FamilyController@update)
+// DELETE /families/{id}     → destroy (FamilyController@destroy)
+```
+
+**Route Naming**:
+
+Laravel automatically generates route names for resource routes:
+
+```php
+route('families.index')   // /families
+route('families.create')  // /families/create
+route('families.store')   // POST /families
+route('families.show', $family)   // /families/{id}
+route('families.edit', $family)   // /families/{id}/edit
+route('families.update', $family) // PUT /families/{id}
+route('families.destroy', $family) // DELETE /families/{id}
+```
+
+**Custom Route Names** (`context.php`):
+
+```php
+Route::post('projects/current/{project}', [CurrentProjectController::class, 'set'])
+    ->name('setCurrentProject');
+Route::delete('projects/current/unset', [CurrentProjectController::class, 'unset'])
+    ->name('resetCurrentProject');
+```
+
+**Ziggy Integration** (JavaScript routing):
+
+All Laravel routes are available in Vue via Ziggy:
+
+```typescript
+// In Vue components:
+import { router } from '@inertiajs/vue3';
+
+// Navigate using route names
+router.visit(route('families.index'));
+router.visit(route('families.edit', family.id));
+router.post(route('members.store'), formData);
+
+// Route checking
+route().current('families.index'); // true/false
+route().current('families.*'); // matches any families route
+```
+
 ### Single-Table Inheritance (STI)
 
 **User Model Hierarchy**:
@@ -3583,7 +4154,66 @@ project_user
 
 Semantics:
 - For Admins: can have MULTIPLE active projects
-- For Members: can have EXACTLY ONE active project
+- For Members: can have EXACTLY ONE active project (enforced by business rules)
+```
+
+**Active Flag Semantics** (`active` boolean field):
+
+The `active` flag serves as a **soft-delete alternative for pivot relationships**:
+
+**Why NOT use soft-delete on pivot?**
+- Pivot tables (without dedicated model) can't easily use `SoftDeletes` trait
+- Would require creating Pivot pseudo-models (added complexity)
+- `active` boolean is simpler and achieves same purpose
+
+**What `active` means:**
+
+- **`active = true`**: Current, valid relationship
+  - Admin CURRENTLY manages this project
+  - Member CURRENTLY belongs to this project
+  - Included in default queries (`->wherePivot('active', true)`)
+- **`active = false`**: Historical, inactive relationship
+  - Admin managed this project IN THE PAST (no longer managing)
+  - Member belonged to this project IN THE PAST (family switched projects)
+  - Preserved for audit trail and easy restore
+  - Excluded from default queries (unless explicitly included)
+
+**Use Cases for `active = false`:**
+
+1. **Admin removed from project**: Pivot stays, `active` switches to `false`
+   - Preserves admin's historical management record
+   - Admin no longer sees project in listings
+   - Superadmin can reactivate relationship if needed
+
+2. **Family switches projects**: All member pivots for old project set to `false`
+   - New pivots created for new project with `active = true`
+   - Complete audit trail of family migrations
+   - Can track which families moved between projects and when
+
+3. **Temporary project removal**: Admin "pauses" project management
+   - Not a permanent severing of relationship
+   - Easy to reactivate later (flip `active` back to `true`)
+   - Avoids recreating relationship from scratch
+
+**Benefits:**
+
+- ✅ **Audit trail**: Never lose relationship history
+- ✅ **Easy restore**: Simple boolean flip (vs re-creating relationship)
+- ✅ **Simple queries**: Default relation filters by `active = true`
+- ✅ **No pivot models needed**: Works with standard pivot table
+- ✅ **Prevents accidental data loss**: Relationship preserved even when "removed"
+
+**Query Behavior:**
+
+```php
+// Default User->projects() relation:
+$user->projects;  // Only active = true
+
+// Explicitly include inactive:
+$user->projects()->withoutGlobalScope('active')->get();  // All projects
+
+// Check if user EVER managed a project (active or not):
+$user->projects()->withoutGlobalScope('active')->where('project_id', $id)->exists();
 ```
 
 **family_preferences** (lottery preference tracking):
@@ -3600,6 +4230,217 @@ Constraints:
 - UNIQUE(family_id, rank) - each rank used once
 ```
 
+### Global Scopes & Project-Based Access Control
+
+**Core Architectural Pattern**: The application uses **Global Scopes** to automatically filter all database queries based on the authenticated user's project access. This is the **PRIMARY authorization mechanism** that ensures users only see resources they're allowed to access.
+
+**ProjectScope Trait** (`app/Models/Concerns/ProjectScope.php`):
+
+A reusable trait applied to models that need project-based filtering:
+
+```php
+trait ProjectScope
+{
+    public static function bootProjectScope(): void
+    {
+        // Only applies to authenticated non-superadmin users
+        if (Auth::guest() || Auth::user()->isSuperadmin()) {
+            return;
+        }
+
+        // Get user's accessible project IDs
+        $filter = Auth::user()->projects->pluck('id');
+
+        // Apply scope based on relationship type
+        $scope = method_exists(static::class, 'projects')
+            ? fn ($builder) => self::belongsToManyScope($builder, $filter)
+            : fn ($builder) => self::belongsToScope($builder, $filter);
+
+        static::addGlobalScope('projectScope', $scope);
+    }
+}
+```
+
+**Models Using ProjectScope**:
+
+- **Family**: Scoped to projects accessible by user
+- **Unit**: Scoped to projects accessible by user
+- **UnitType**: Scoped to projects accessible by user
+- **User** (Admin/Member): Scoped to projects accessible by user
+- **Log**: Scoped to projects accessible by user
+
+**How It Works**:
+
+1. **Guest users**: No scope applied (can't query anyway, no auth)
+2. **Superadmins**: No scope applied (bypass all filtering)
+3. **Admins**: Scope filters to ONLY projects they manage (`user.projects` where pivot `active = true`)
+4. **Members**: Scope filters to ONLY their family's project (via `family.project_id`)
+
+**Scope Types**:
+
+- **belongsTo** (e.g., Family → Project): Filters by `project_id IN (user's projects)`
+- **belongsToMany** (e.g., User → Projects): Filters by `whereHas('projects', ...)` with user's project IDs
+
+**Impact on Queries**:
+
+```php
+// All these queries are automatically scoped:
+Family::all();              // Only families in user's projects
+Member::find(123);          // Returns NULL if member not in user's projects
+Unit::where('...')->get();  // Only units in user's projects
+UnitType::create([...]);    // N/A (creation not scoped, handled by validation)
+
+// Examples:
+// Member trying to access family in different project:
+$family = Family::find(999);  // Returns NULL (global scope filters it out)
+
+// Admin trying to access member in non-managed project:
+$member = Member::find(456);  // Returns NULL (global scope filters it out)
+
+// Superadmin querying anything:
+$anything = Model::find(X);   // Always works (no scope applied)
+```
+
+**Relationship with Policies**:
+
+**Before Global Scopes** (OLD approach - documented in KB but outdated):
+- Policies contained complex project-checking logic
+- Every policy method needed to verify project access
+- Duplication across policies
+- Easy to miss edge cases
+
+**After Global Scopes** (CURRENT approach):
+- Policies are **dramatically simplified**
+- **Global scopes define what "exists" for the current user** (what they can see and interact with)
+- **Policies define what user can do with things that "exist" for them** (create/view/update/delete actions)
+- Policies won't even be reached if dealing with a resource that "doesn't exist" for the current user (filtered by scope)
+- A resource may exist in the database but not "exist" for a particular user (global scope filters it out)
+
+**Key Principle**:
+```php
+// This will return NULL if family not in user's accessible projects:
+$family = Family::find($id);
+
+// Policy only runs if $family is NOT null:
+if ($user->can('update', $family)) {
+    // Global scope already guaranteed user can SEE this family
+    // Policy just checks if user can UPDATE it
+}
+```
+
+**Current Policy Pattern**:
+
+```php
+// Example: FamilyPolicy (simplified by global scopes)
+class FamilyPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return true; // Everyone can list (scope filters results)
+    }
+
+    public function view(User $user): bool
+    {
+        return true; // Everyone can view (scope ensures only accessible families)
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->isAdmin(); // Only admins can create
+    }
+
+    public function update(User $user, Family $family): bool
+    {
+        // If non-admin user got $family, they MUST be in same project (scope guarantee)
+        return $user->isAdmin() || ($user->family_id === $family->id);
+    }
+
+    public function delete(User $user): bool
+    {
+        return $user->isAdmin(); // Only admins can delete
+    }
+}
+```
+
+**Key Benefits**:
+
+1. **Centralized Authorization**: Project access logic in ONE place (ProjectScope trait)
+2. **Implicit Security**: Impossible to accidentally query wrong project's data
+3. **Simple Policies**: No project-checking logic needed (scope handles it)
+4. **Consistent Behavior**: All models using trait behave identically
+5. **Performance**: Queries only hit database for accessible records
+
+**Validation Integration**:
+
+Form requests (e.g., `CreateMemberRequest`, `UpdateFamilyRequest`) use `ProjectScopedRequest` base class:
+
+```php
+class ProjectScopedRequest extends FormRequest
+{
+    protected function prepareForValidation(): void
+    {
+        // Auto-inject current project if not provided
+        $currentProject = Project::current();
+        if ($currentProject && !$this->has('project_id')) {
+            $this->merge(['project_id' => $currentProject->id]);
+        }
+    }
+
+    public function authorize(): bool
+    {
+        // Ensures requested project_id matches current project (context integrity)
+        // Ensures user has access to requested project (authorization)
+        return $this->userCanAccessProject($this->input('project_id'));
+    }
+}
+```
+
+**Critical Rules**:
+
+- ❌ **Never bypass global scopes in business logic** (use `withoutGlobalScope()` only in maintenance/admin tools)
+- ✅ **Trust the scope**: If query returns a model, user HAS access to it
+- ✅ **Policies check actions, NOT access**: "Can this user UPDATE?" not "Can this user access this project?"
+- ✅ **Superadmins exempt**: They bypass scopes entirely (handled in trait)
+
+**Edge Case: Model Creation**:
+
+Global scopes do NOT apply to model creation (only queries). Validation must ensure:
+
+```php
+// CreateFamilyRequest
+'project_id' => [
+    'required',
+    'exists:projects,id',
+    // Custom validation ensures user can access this project
+]
+
+// Validation logic (in ProjectScopedRequest base):
+protected function userCanAccessProject(int $projectId): bool
+{
+    return $user->isSuperadmin()
+        || $user->asMember()?->project?->id === $projectId
+        || $user->asAdmin()?->manages($projectId);
+}
+```
+
+**Testing Implications**:
+
+When writing tests, remember:
+
+```php
+// ❌ This will FAIL if test user can't access project:
+$family = Family::find($familyId);
+expect($family)->not->toBeNull();
+
+// ✅ Use proper test user setup:
+$user = User::factory()->admin()->create();
+$project = Project::factory()->create();
+$user->projects()->attach($project); // Give user access
+actingAs($user);
+$family = Family::factory()->for($project)->create();
+expect($family)->not->toBeNull(); // Now works
+```
+
 ### Authentication & Authorization
 
 **Authentication**:
@@ -3608,12 +4449,41 @@ Constraints:
 - Session-based auth for web (default)
 - Invitation acceptance (`verified_at` field)
 
-**Authorization**:
+**Authorization** (Layered Approach):
 
-- Laravel Policies per model (AdminPolicy, FamilyPolicy, etc.)
-- Gate::before() for superadmin bypass
-- Authorization matrix (see [Authorization Matrix](#authorization-matrix))
-- Row-level security via policy methods
+1. **Layer 1: Global Scopes** (Primary - Query-level filtering)
+   - Automatically filters all queries to user's accessible projects
+   - Handled by `ProjectScope` trait on models
+   - Bypassed for superadmins
+
+2. **Layer 2: Policies** (Secondary - Action-level permissions)
+   - AdminPolicy, FamilyPolicy, MemberPolicy, UnitPolicy, etc.
+   - Check what user can DO with a resource (view/create/update/delete)
+   - Simplified by global scopes (no project-checking needed)
+   - `Gate::before()` for superadmin bypass
+
+3. **Layer 3: Form Request Authorization** (Tertiary - Context validation)
+   - `ProjectScopedRequest` validates project context integrity
+   - Ensures `project_id` matches current project (if set)
+   - Ensures user has access to requested `project_id`
+
+**Authorization Flow**:
+
+```
+Request → Middleware (auth, verified) → Form Request (ProjectScopedRequest)
+   ↓
+Authorize (project access check)
+   ↓
+Validation (project_id, belongs_to_project rules)
+   ↓
+Controller → Policy Check (can user DO this action?)
+   ↓
+Model Query → Global Scope (filter to accessible projects)
+   ↓
+Response
+```
+
+**Authorization Matrix**: See [Authorization Matrix](#authorization-matrix) for detailed permissions per actor
 
 ### State Management
 
