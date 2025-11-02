@@ -23,4 +23,7 @@ docker_exec php php artisan key:generate --no-interaction
 echo "Running database migrations..."
 docker_exec php php artisan migrate --no-interaction
 
+echo "Creating storage symlink..."
+docker_exec php php artisan storage:link --no-interaction
+
 echo "✅ Dependencies installed successfully!"

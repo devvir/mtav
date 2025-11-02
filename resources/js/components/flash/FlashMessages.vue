@@ -5,22 +5,22 @@ import FlashMessage from './FlashMessage.vue';
 import { useFlashMessages } from './useFlashMessages';
 
 const props = defineProps<{
-  noDismiss?: boolean;
+  noAutoDismiss?: boolean;
 }>();
 
 const page = usePage();
 const { messageStack, hasVisibleMessages, flash, removeMessage } = useFlashMessages({
-  skipInertiaWatcher: true, // We handle it manually to respect noDismiss prop
+  skipInertiaWatcher: true, // We handle it manually to respect noAutoDismiss prop
 });
 
 // Watch for flash messages from Inertia page props
-// Override the default watcher to respect noDismiss prop
+// Override the default watcher to respect noAutoDismiss prop
 watch(
   () => page.props.flash,
   (flashProps) => {
     if (!flashProps) return;
 
-    const timeout = props.noDismiss ? 0 : undefined; // 0 = no auto-dismiss, undefined = default
+    const timeout = props.noAutoDismiss ? 0 : undefined; // 0 = no auto-dismiss, undefined = default
 
     if (flashProps.success) flash(flashProps.success, 'success', timeout);
     if (flashProps.info) flash(flashProps.info, 'info', timeout);

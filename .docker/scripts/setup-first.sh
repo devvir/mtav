@@ -26,4 +26,7 @@ docker_exec php php artisan migrate --no-interaction
 echo "Seeding database with sample data..."
 docker_exec php php artisan db:seed --no-interaction
 
+echo "Creating storage symlink..."
+docker_exec php php artisan storage:link --no-interaction
+
 echo "✅ First-time setup completed successfully!"

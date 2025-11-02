@@ -19,7 +19,7 @@
  * <FlashMessages />
  *
  * // Prevent auto-dismiss (e.g., for login/auth pages)
- * <FlashMessages no-dismiss />
+ * <FlashMessages no-auto-dismiss />
  * ```
  *
  * In headers (with overlay):
