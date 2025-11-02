@@ -4,15 +4,13 @@ namespace App\Http\Requests;
 
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 
 /**
  * @property-read int|null $project_id
  *
  * @method User|null user($guard = null)
  *
- * @mixin Request
  */
 class ProjectScopedRequest extends FormRequest
 {

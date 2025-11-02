@@ -3,14 +3,12 @@
 namespace App\Http\Requests\Settings;
 
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * @method User|null user($guard = null)
  *
- * @mixin Request
  */
 class ProfileUpdateRequest extends FormRequest
 {

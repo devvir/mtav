@@ -6,15 +6,13 @@ use App\Models\Family;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Rules\BelongsToProject;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 
 /**
  * @property-read string|null $number
  * @property-read int|null $unit_type_id
  * @property-read int|null $family_id
  *
- * @mixin Request
  */
 class UpdateUnitRequest extends FormRequest
 {

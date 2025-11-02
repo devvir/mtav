@@ -3,8 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Project;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
@@ -12,7 +11,6 @@ use Illuminate\Validation\Rule;
  * @property-read string|null $description
  * @property-read string|null $organization
  *
- * @mixin Request
  */
 class UpdateProjectRequest extends FormRequest
 {

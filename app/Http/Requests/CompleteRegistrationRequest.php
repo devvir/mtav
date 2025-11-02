@@ -4,7 +4,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 class CompleteRegistrationRequest extends FormRequest

@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 
 /**
  * @property-read string $name
  * @property-read string|null $description
  *
- * @mixin Request
  */
 class UpdateUnitTypeRequest extends FormRequest
 {

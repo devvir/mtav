@@ -3,8 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 
 /**
  * @property-read string|null $q
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
  *
  * @method User|null user($guard = null)
  *
- * @mixin Request
  */
 class IndexProjectsRequest extends FormRequest
 {

@@ -3,11 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\UnitType;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\FormRequest;
 
 /**
- * @mixin Request
  */
 class DeleteUnitTypeRequest extends FormRequest
 {

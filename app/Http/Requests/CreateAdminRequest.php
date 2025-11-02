@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\FormRequest;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
 
 /**
  * @property-read int[] $project_ids
@@ -14,8 +13,6 @@ use Illuminate\Http\Request;
  * @property-read string|null $lastname
  *
  * @method User|null user($guard = null)
- *
- * @mixin Request
  */
 class CreateAdminRequest extends FormRequest
 {
