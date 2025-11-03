@@ -60,8 +60,10 @@ class MemberController extends Controller
     /**
      * Create (Invite) a new Member.
      */
-    public function store(InvitationService $invitationService, CreateMemberRequest $request): RedirectResponse
-    {
+    public function store(
+        CreateMemberRequest $request,
+        InvitationService $invitationService
+    ): RedirectResponse {
         $member = $invitationService->inviteMember(
             $request->except('project_id'),
             $request->project_id

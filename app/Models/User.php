@@ -132,14 +132,14 @@ class User extends Authenticatable
         return ! $this->isSuperadmin();
     }
 
-    public function acceptedInvitation(): bool
+    public function isInvited(): bool
     {
-        return (bool) $this->invitation_accepted_at;
+        return is_null($this->invitation_accepted_at);
     }
 
-    public function isVerified(): bool
+    public function completedRegistration(): bool
     {
-        return (bool) $this->email_verified_at;
+        return ! $this->isInvited();
     }
 
     protected static function booted()

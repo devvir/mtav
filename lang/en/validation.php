@@ -203,6 +203,7 @@ return [
 
     'belongs_to_project' => 'The selected :attribute does not belong to the selected project.',
     'family_belongs_to_project' => 'The selected family does not belong to the selected project.',
+    'invalid_invitation_credentials' => 'Invitation expired or invalid. If you received an invitation, please check your email and follow the link.',
     'project_context_mismatch' => 'Cannot specify a project when a project context is already active.',
     'unauthorized_project_access' => 'You do not have permission to perform this action on the selected project.',
     'unauthorized_projects_assignment' => 'You can only assign projects you manage. Unauthorized projects: :ids',

@@ -66,7 +66,9 @@ INSERT INTO users (id, family_id, email, firstname, lastname, phone, avatar, leg
 (14, NULL, 'admin14@example.com', 'admin', '14 (manages deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 (15, NULL, 'admin15@example.com', 'admin', '15 (manages 2, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 (16, NULL, 'admin16@example.com', 'admin', '16 (manages 2,3,4, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(17, NULL, 'admin17@example.com', 'admin (unverified)', '17 (no projects)', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL);
+(17, NULL, 'admin17@example.com', 'admin (unverified)', '17 (no projects)', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(18, NULL, 'invited18@example.com', 'admin (invited)', '18 (manages 1)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(19, NULL, 'invited19@example.com', 'admin (invited)', '19 (manages 1,2)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', TRUE, NULL, NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- PROJECT_USER (Admin-Project assignments)
@@ -108,7 +110,14 @@ INSERT INTO project_user (id, user_id, project_id, active, created_at, updated_a
 
 -- Admin #17 manages 1 project (unverified)
 INSERT INTO project_user (id, user_id, project_id, active, created_at, updated_at) VALUES
-(14, 17, 1, TRUE, NOW(), NOW());
+(14, 17, 1, TRUE, NOW(), NOW()),
+
+-- Admin #18 manages 1 project (invited)
+(15, 18, 1, TRUE, NOW(), NOW()),
+
+-- Admin #19 manages 2 projects (invited)
+(16, 19, 1, TRUE, NOW(), NOW()),
+(17, 19, 2, TRUE, NOW(), NOW());
 
 -- ============================================================================
 -- UNIT TYPES (12 total)
@@ -208,7 +217,13 @@ INSERT INTO families (id, project_id, unit_type_id, name, avatar, created_at, up
 (23, 5, 10, 'Family 23 (deleted project)', NULL, NOW(), NOW(), NULL),
 
 -- Project #1 test family (for unverified member test)
-(24, 1, 1, 'Family 24 (unverified member)', NULL, NOW(), NOW(), NULL);
+(24, 1, 1, 'Family 24 (unverified member)', NULL, NOW(), NOW(), NULL),
+
+-- Project #1 test family (for invited member test)
+(25, 1, 1, 'Family 25 (invited member)', NULL, NOW(), NOW(), NULL),
+
+-- Project #2 test family (for invited member test)
+(26, 2, 4, 'Family 26 (invited member)', NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- UNITS (22 total)
@@ -370,7 +385,13 @@ INSERT INTO users (id, family_id, email, firstname, lastname, phone, avatar, leg
 (146, 23, 'member146@example.com', 'member', '146 (deleted project)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #24: 1 unverified member in Project #1 (for verification testing)
-(147, 24, 'unverified@example.com', 'unverified', 'member', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL);
+(147, 24, 'unverified@example.com', 'unverified', 'member', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+
+-- Family #25: 1 invited member in Project #1
+(148, 25, 'invited148@example.com', 'member (invited)', '148 (in project 1)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+
+-- Family #26: 1 invited member in Project #2
+(149, 26, 'invited149@example.com', 'member (invited)', '149 (in project 2)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- PROJECT_USER (Member-Project assignments via family_id)
@@ -431,6 +452,14 @@ INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) V
 -- Member #147 (unverified) in Project #1
 INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) VALUES
 (147, 1, TRUE, NOW(), NOW());
+
+-- Member #148 (invited) in Project #1
+INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) VALUES
+(148, 1, TRUE, NOW(), NOW());
+
+-- Member #149 (invited) in Project #2
+INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) VALUES
+(149, 2, TRUE, NOW(), NOW());
 
 -- ============================================================================
 -- LOGS (4 total)

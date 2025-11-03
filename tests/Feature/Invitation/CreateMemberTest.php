@@ -26,7 +26,7 @@ beforeEach(function () {
 describe('When creating a Member', function () {
     describe('Authorization', function () {
         it('allows admin to create members for projects they manage', function () {
-            $this->postToRoute('members.store', asAdmin: 11, data: [
+            $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -37,7 +37,7 @@ describe('When creating a Member', function () {
         });
 
         it('allows member to create members in their own family', function () {
-            $this->postToRoute('members.store', asMember: 102, data: [
+            $this->sendPostRequest('members.store', asMember: 102, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -48,7 +48,7 @@ describe('When creating a Member', function () {
         });
 
         it('prevents member from creating members in other families', function () {
-            $response = $this->postToRoute('members.store', asMember: 102, redirects: false, data: [
+            $response = $this->sendPostRequest('members.store', asMember: 102, redirects: false, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -57,10 +57,10 @@ describe('When creating a Member', function () {
 
             // Should ignore the family_id and use the current member's family
             expect(Member::where(['email' => 'newmember@example.com', 'family_id' => 4]))->toExist();
-        })->group('testing');
+        });
 
         it('prevents guests from creating members', function () {
-            $response = $this->postToRoute('members.store', redirects: false, data: [
+            $response = $this->sendPostRequest('members.store', redirects: false, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -73,7 +73,7 @@ describe('When creating a Member', function () {
 
     describe('Family assignment validation', function () {
         it('requires family_id', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -83,7 +83,7 @@ describe('When creating a Member', function () {
         });
 
         it('rejects admin creating member in family from unmanaged project', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -94,7 +94,7 @@ describe('When creating a Member', function () {
         });
 
         it('rejects non-existent family id', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -107,7 +107,7 @@ describe('When creating a Member', function () {
 
     describe('Email validation', function () {
         it('requires email', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
                 'family_id' => 4,
@@ -117,7 +117,7 @@ describe('When creating a Member', function () {
         });
 
         it('requires valid email format', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'not-an-email',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -128,7 +128,7 @@ describe('When creating a Member', function () {
         });
 
         it('requires unique email', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'member102@example.com', // Already exists (Member #102)
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -141,7 +141,7 @@ describe('When creating a Member', function () {
 
     describe('Name validation', function () {
         it('requires firstname', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'lastname' => 'Doe',
                 'family_id' => 4,
@@ -151,7 +151,7 @@ describe('When creating a Member', function () {
         });
 
         it('requires firstname to be at least 2 characters', function () {
-            $response = $this->postToRoute('members.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'J',
                 'lastname' => 'Doe',
@@ -162,7 +162,7 @@ describe('When creating a Member', function () {
         });
 
         it('allows optional lastname', function () {
-            $this->postToRoute('members.store', asAdmin: 11, data: [
+            $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'family_id' => 4,
@@ -174,7 +174,7 @@ describe('When creating a Member', function () {
 
     describe('Invitation creation', function () {
         it('creates member with invitation fields set correctly', function () {
-            $this->postToRoute('members.store', asAdmin: 11, data: [
+            $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',
@@ -191,7 +191,7 @@ describe('When creating a Member', function () {
         });
 
         it('sends invitation email upon creation', function () {
-            $this->postToRoute('members.store', asAdmin: 11, data: [
+            $this->sendPostRequest('members.store', asAdmin: 11, data: [
                 'email' => 'newmember@example.com',
                 'firstname' => 'Jane',
                 'lastname' => 'Doe',

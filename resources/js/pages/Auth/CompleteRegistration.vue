@@ -10,15 +10,14 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import { LoaderCircle } from 'lucide-vue-next';
 import { useForm } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
+import { computed } from 'vue';
 
 const props = defineProps<{
-  user: Admin | Member;
-  token: string;
+  user: User;
+  family: Family | null;
 }>();
 
 const form = useForm({
-  email: props.user.email,
-  token: props.token,
   password: '',
   password_confirmation: '',
   firstname: props.user.firstname || '',
@@ -28,31 +27,17 @@ const form = useForm({
   avatar: null as File | null,
 });
 
-const submit = () => {
-  form.post(route('invitation.store'), {
-    onSuccess: () => {
-      form.reset('password', 'password_confirmation');
-    },
-  });
-};
+const submit = () => form.post(route('invitation.update'), {
+  onSuccess: () => form.reset('password', 'password_confirmation')
+});
 
-const isAdmin = props.user.is_admin;
+const iAmAdmin = computed(() => props.user.is_admin);
 
-// Type guards for family and project
-const hasFamilyData = (f: any): f is ApiResource<Family> => f && 'name' in f;
+// Type guard for project
 const hasProjectData = (p: any): p is ApiResource<Project> => p && 'name' in p;
 
-const memberFamily = !isAdmin ? (props.user as Member).family : undefined;
-const family = hasFamilyData(memberFamily) ? memberFamily : undefined;
-
-const familyProject = family && hasProjectData(family.project) ? family.project : undefined;
+const familyProject = props.family && hasProjectData(props.family.project) ? props.family.project : undefined;
 const project = familyProject || (props.user.projects && props.user.projects.length > 0 ? props.user.projects[0] : undefined);
-</script>
-
-<script lang="ts">
-export default {
-  layout: null,
-};
 </script>
 
 <template>
@@ -64,7 +49,8 @@ export default {
         <div class="mb-6 space-y-4 md:mb-8 md:space-y-6">
             <!-- Title - Larger, More Prominent with User's Name -->
             <h1 class="text-center text-xl font-semibold md:text-2xl lg:text-3xl">
-                <span class="inline-block">{{ _('Welcome') }}, {{ user.firstname || user.name.split(' ')[0] }}!</span>
+                <span class="inline-block">{{ _('Welcome') }}, {{ props.user.firstname || props.user.name.split(' ')[0]
+                    }}!</span>
                 <br class="md:hidden" />
                 <span class="inline-block text-base font-normal md:ml-2 md:text-2xl md:font-semibold lg:text-3xl">{{
                     _('Please complete your registration') }}</span>
@@ -74,7 +60,7 @@ export default {
             <div class="flex items-center justify-center">
                 <div
                     class="w-full rounded-lg bg-purple-100 px-4 py-3 text-center text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 md:text-base">
-                    {{ isAdmin ? _('Administrator Account') : _('Member Account') }}
+                    {{ iAmAdmin ? _('Administrator Account') : _('Member Account') }}
                 </div>
             </div>
 
@@ -87,17 +73,17 @@ export default {
                             {{ _('Email') }}
                         </div>
                         <div class="text-sm font-medium text-text">
-                            {{ user.email }}
+                            {{ props.user.email }}
                         </div>
                     </div>
 
                     <!-- Project(s) -->
-                    <div v-if="isAdmin && user.projects?.length" class="space-y-1 text-center">
+                    <div v-if="iAmAdmin && props.user.projects?.length" class="space-y-1 text-center">
                         <div class="text-xs font-medium uppercase tracking-wide text-text-muted">
-                            {{ user.projects.length === 1 ? _('Project') : _('Projects') }}
+                            {{ props.user.projects.length === 1 ? _('Project') : _('Projects') }}
                         </div>
                         <div class="text-sm font-medium text-text">
-                            {{ user.projects.map((p) => p.name).join(', ') }}
+                            {{ props.user.projects.map((p) => p.name).join(', ') }}
                         </div>
                     </div>
                     <div v-else-if="project" class="space-y-1 text-center">
@@ -110,12 +96,12 @@ export default {
                     </div>
 
                     <!-- Family (for Members) - Takes Full Width if Present -->
-                    <div v-if="family && !isAdmin" class="space-y-1 text-center md:col-span-2">
+                    <div v-if="props.family && !iAmAdmin" class="space-y-1 text-center md:col-span-2">
                         <div class="text-xs font-medium uppercase tracking-wide text-text-muted">
                             {{ _('Family') }}
                         </div>
                         <div class="text-sm font-medium text-text">
-                            {{ family.name }}
+                            {{ props.family.name }}
                         </div>
                     </div>
                 </div>
@@ -123,10 +109,7 @@ export default {
 
             <!-- Description/Explanation - Closer to Form -->
             <p class="text-center text-base text-text-muted">
-                {{ isAdmin
-                ? _('Please set your password to access your administrator account.')
-                : _('Please set your password to complete your registration.')
-                }}
+                {{ _('Please set your password to complete your registration.') }}
             </p>
         </div>
 
@@ -207,3 +190,8 @@ export default {
         </div>
     </AuthLayout>
 </template>
+
+<script lang="ts">
+// This cannot be done yet with script setup
+export default { layout: null };
+</script>

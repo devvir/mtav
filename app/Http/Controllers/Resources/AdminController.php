@@ -53,8 +53,10 @@ class AdminController extends Controller
     /**
      * Create (Invite) a new admin.
      */
-    public function store(InvitationService $invitationService, CreateAdminRequest $request): RedirectResponse
-    {
+    public function store(
+        CreateAdminRequest $request,
+        InvitationService $invitationService
+    ): RedirectResponse {
         $admin = $invitationService->inviteAdmin(
             $request->except('project_ids'),
             $request->project_ids

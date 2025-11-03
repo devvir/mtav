@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest as BaseFormRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 
 /**
  * Base FormRequest with proper IDE support.
@@ -22,11 +25,12 @@ use Illuminate\Foundation\Http\FormRequest as BaseFormRequest;
  * @method float|null float($key, $default = null)
  * @method bool|null boolean($key, $default = null)
  * @method array|null date($key, $format = null, $tz = null)
- * @method \Illuminate\Http\UploadedFile|null file($key)
+ * @method UploadedFile|null file($key)
  * @method bool hasFile($key)
  * @method mixed route($param = null, $default = null)
- * @method \Illuminate\Support\Collection collect($key = null)
+ * @method Collection collect($key = null)
  * @method string|null ip()
+ * @method User|null user()
  * @method string|null userAgent()
  * @method string method()
  * @method string path()

@@ -332,7 +332,7 @@ abstract class TestCase extends BaseTestCase
      * Alias for postRoute() that reads more naturally in English.
      * You're posting data TO a route, not "routing" the data.
      */
-    protected function postToRoute(string $name, array $data = [], array $parameters = []): TestResponse
+    protected function sendPostRequest(string $name, array $data = [], array $parameters = []): TestResponse
     {
         return $this->postRoute($name, $data, $parameters);
     }
@@ -357,9 +357,9 @@ $response = $this->actingAs($user)
 $response = $this->actingAs($admin)
     ->getRoute('projects.show', ['project' => 1]);
 
-// POST with data - using postToRoute alias for better readability
+// POST with data - using sendPostRequest alias for better readability
 $response = $this->actingAs($user)
-    ->postToRoute('login', [
+    ->sendPostRequest('login', [
         'email' => 'admin@example.com',
         'password' => 'password',
     ]);
@@ -379,12 +379,12 @@ $response = $this->actingAs($user)
 
 **Available Route Helpers** (all return `TestResponse`):
 - `getRoute(string $routeName, array $parameters = [])`
-- `postRoute(string $routeName, array $data = [], array $parameters = [])` or `postToRoute()` (alias)
+- `postRoute(string $routeName, array $data = [], array $parameters = [])` or `sendPostRequest()` (alias)
 - `putRoute(string $routeName, array $data = [], array $parameters = [])` or `putToRoute()` (alias)
-- `patchRoute(string $routeName, array $data = [], array $parameters = [])` or `patchToRoute()` (alias)
+- `patchRoute(string $routeName, array $data = [], array $parameters = [])` or `sendPatchRequest()` (alias)
 - `deleteRoute(string $routeName, array $parameters = [])`
 
-**Note on Aliases**: The `*ToRoute()` aliases (postToRoute, putToRoute, patchToRoute) read more naturally in English since you're sending data TO a route, not "routing" the data. Use whichever reads better in context.
+**Note on Aliases**: The `*ToRoute()` aliases (sendPostRequest, putToRoute, sendPatchRequest) read more naturally in English since you're sending data TO a route, not "routing" the data. Use whichever reads better in context.
 
 ### Comment Guidelines
 
@@ -423,7 +423,7 @@ protected function getRoute(string $name, array $parameters = []): TestResponse
 /**
  * Alias for postRoute() that reads more naturally in English.
  */
-protected function postToRoute(string $name, array $data = [], array $parameters = []): TestResponse
+protected function sendPostRequest(string $name, array $data = [], array $parameters = []): TestResponse
 {
     return $this->postRoute($name, $data, $parameters);
 }

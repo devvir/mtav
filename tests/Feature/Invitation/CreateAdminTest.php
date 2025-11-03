@@ -27,7 +27,7 @@ beforeEach(function () {
 describe('When creating an Admin', function () {
     describe('Authorization', function () {
         it('allows admin to create admins for projects they manage', function () {
-            $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -38,7 +38,7 @@ describe('When creating an Admin', function () {
         });
 
         it('prevents members from creating admins', function () {
-            $response = $this->postToRoute('admins.store', asMember: 102, data: [
+            $response = $this->sendPostRequest('admins.store', asMember: 102, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -49,7 +49,7 @@ describe('When creating an Admin', function () {
         });
 
         it('prevents guests from creating admins', function () {
-            $response = $this->postToRoute('admins.store', redirects: false, data: [
+            $response = $this->sendPostRequest('admins.store', redirects: false, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -62,7 +62,7 @@ describe('When creating an Admin', function () {
 
     describe('Project assignment validation', function () {
         it('requires at least one project', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -73,7 +73,7 @@ describe('When creating an Admin', function () {
         });
 
         it('rejects admin assigning projects they do not manage', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -84,7 +84,7 @@ describe('When creating an Admin', function () {
         });
 
         it('allows admin with multiple projects to assign multiple projects', function () {
-            $this->postToRoute('admins.store', asAdmin: 12, data: [
+            $this->sendPostRequest('admins.store', asAdmin: 12, data: [
                 'email' => 'multiproject@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -96,7 +96,7 @@ describe('When creating an Admin', function () {
         });
 
         it('rejects non-existent project ids', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -109,7 +109,7 @@ describe('When creating an Admin', function () {
 
     describe('Email validation', function () {
         it('requires email', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'firstname' => 'John',
                 'lastname' => 'Doe',
                 'project_ids' => [1],
@@ -119,7 +119,7 @@ describe('When creating an Admin', function () {
         });
 
         it('requires valid email format', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'not-an-email',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -130,7 +130,7 @@ describe('When creating an Admin', function () {
         });
 
         it('requires unique email', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'admin12@example.com', // Already exists (Admin #12)
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -143,7 +143,7 @@ describe('When creating an Admin', function () {
 
     describe('Name validation', function () {
         it('requires firstname', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'lastname' => 'Doe',
                 'project_ids' => [1],
@@ -153,7 +153,7 @@ describe('When creating an Admin', function () {
         });
 
         it('requires firstname to be at least 2 characters', function () {
-            $response = $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'J',
                 'lastname' => 'Doe',
@@ -164,7 +164,7 @@ describe('When creating an Admin', function () {
         });
 
         it('allows optional lastname', function () {
-            $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'project_ids' => [1],
@@ -176,7 +176,7 @@ describe('When creating an Admin', function () {
 
     describe('Invitation creation', function () {
         it('creates admin with invitation fields set correctly', function () {
-            $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'newadmin@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -192,7 +192,7 @@ describe('When creating an Admin', function () {
         });
 
         it('sends invitation email upon creation', function () {
-            $this->postToRoute('admins.store', asAdmin: 11, data: [
+            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
                 'email' => 'adminemail@example.com',
                 'firstname' => 'John',
                 'lastname' => 'Doe',

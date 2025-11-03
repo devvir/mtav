@@ -1,22 +1,21 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Requests;
 
 use App\Http\Requests\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * @property-read string            $password
+ * @property-read string            $firstname
+ * @property-read string|null       $lastname
+ * @property-read string|null       $phone
+ * @property-read string|null       $legal_id
+ * @property-read UploadedFile|null $avatar
+ */
 class CompleteRegistrationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true; // Public endpoint
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -25,13 +24,11 @@ class CompleteRegistrationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|exists:users,email',
-            'token' => 'required|string',
             'password' => ['required', 'confirmed', Password::defaults()],
-            'firstname' => 'nullable|string|max:255',
-            'lastname' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'legal_id' => 'nullable|string|max:255',
+            'firstname' => 'string|between:2,120',
+            'lastname' => 'nullable|string|between:2,120',
+            'phone' => 'nullable|string|between:2,24',
+            'legal_id' => 'nullable|string|between:2,16',
             'avatar' => 'nullable|image|max:2048', // 2MB max
         ];
     }

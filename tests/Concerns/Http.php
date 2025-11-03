@@ -24,15 +24,18 @@ trait Http
     ): TestResponse {
         $this->prepareRequest($asUser, $asAdmin, $asMember, $redirects);
 
-        return $this->get($this->resolveRoute($route), $data);
+        $query = http_build_query($data);
+        $uri = $this->resolveRoute($route) . ($query ? "?$query" : '');
+
+        return $this->get($uri);
     }
 
     /**
      * Send a POST request to a route (by name) as a specific User or as Guest (default).
      *
-     * Example: $this->postToRoute('admins.create', asAdmin: 12, data: [...])
+     * Example: $this->sendPostRequest('admins.create', asAdmin: 12, data: [...])
      */
-    protected function postToRoute(
+    protected function sendPostRequest(
         string|array $route,
         array $data = [],
         int|User|null $asUser = null,
@@ -56,9 +59,17 @@ trait Http
     /**
      * PATCH to the given route and return the response.
      */
-    protected function patchRoute(string $name, array $data = [], array $parameters = []): TestResponse
-    {
-        return $this->patch(route($name, $parameters), $data);
+    protected function sendPatchRequest(
+        string|array $route,
+        array $data = [],
+        int|User|null $asUser = null,
+        int|Admin|null $asAdmin = null,
+        int|Member|null $asMember = null,
+        bool $redirects = true,
+    ): TestResponse {
+        $this->prepareRequest($asUser, $asAdmin, $asMember, $redirects);
+
+        return $this->patch($this->resolveRoute($route), $data);
     }
 
     /**
