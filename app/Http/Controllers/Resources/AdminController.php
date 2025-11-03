@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Events\UserRegistration;
 use App\Http\Requests\CreateAdminRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateAdminRequest;
@@ -11,7 +10,6 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -57,15 +55,13 @@ class AdminController extends Controller
      */
     public function store(InvitationService $invitationService, CreateAdminRequest $request): RedirectResponse
     {
-        $token = $invitationService->createToken();
-        $data = compact('token') + $request->except('project_ids');
-
-        $admin = DB::transaction(fn () => Admin::create($data)->projects()->attach($request->project_ids));
-
-        event(new UserRegistration($admin, $token));
+        $admin = $invitationService->inviteAdmin(
+            $request->except('project_ids'),
+            $request->project_ids
+        );
 
         return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin created successfully.'));
+            ->with('success', __('Admin invitation sent!'));
     }
 
     /**
@@ -83,10 +79,10 @@ class AdminController extends Controller
      */
     public function update(UpdateAdminRequest $request, Admin $admin): RedirectResponse
     {
-        $admin->update($request->all());
+        $admin->update($request->validated());
 
         return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin updated successfully.'));
+            ->with('success', __('Admin information updated!'));
     }
 
     /**
@@ -97,7 +93,7 @@ class AdminController extends Controller
         $admin->delete();
 
         return to_route('admins.index')
-            ->with('success', __('Admin deleted successfully.'));
+            ->with('success', __('Admin deleted!'));
     }
 
     /**
@@ -108,6 +104,6 @@ class AdminController extends Controller
         $admin->restore();
 
         return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin restored successfully.'));
+            ->with('success', __('Admin restored!'));
     }
 }

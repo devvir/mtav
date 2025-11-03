@@ -2,18 +2,58 @@
 
 namespace App\Services;
 
+use App\Events\UserRegistration;
+use App\Models\Admin;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class InvitationService
 {
     /**
-     * Create a new random invitation token.
+     * Create and invite a new admin.
+     *
+     * @param array{email: string, firstname: string, lastname?: string} $userData
+     * @param int $projectIds
+     * @return Admin
      */
-    public function createToken(): string
+    public function inviteAdmin(array $userData, array $projectIds): Admin
     {
-        return base64_encode(random_bytes(32));
+        $token = $this->createToken();
+        $data = ['password' => $token, 'is_admin' => true] + $userData;
+
+        $admin = DB::transaction(function () use ($data, $projectIds) {
+            $admin = Admin::create($data);
+            $admin->projects()->attach($projectIds);
+            return $admin;
+        });
+
+        event(new UserRegistration($admin, $token));
+
+        return $admin;
+    }
+
+    /**
+     * Create and invite a new member.
+     *
+     * @param array{email: string, firstname: string, lastname?: string, family_id: int} $userData
+     * @param int $projectId
+     * @return Member
+     */
+    public function inviteMember(array $userData, int $projectId): Member
+    {
+        $token = $this->createToken();
+        $data = ['password' => $token] + $userData;
+
+        $member = DB::transaction(
+            fn () => Member::create($data)->joinProject($projectId)
+        );
+
+        event(new UserRegistration($member, $token));
+
+        return $member;
     }
 
     /**
@@ -120,5 +160,13 @@ class InvitationService
     {
         return redirect()->route('home')
             ->with('success', __('Welcome! Your registration is complete.'));
+    }
+
+    /**
+     * Create a new random invitation token.
+     */
+    private function createToken(): string
+    {
+        return base64_encode(random_bytes(32));
     }
 }

@@ -24,7 +24,7 @@
                         <td style="padding: 40px 30px;">
                             <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Hola {{ $member->firstname ?? '' }},</p>
 
-                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Te agregaron a <strong>{{ $project->name }}</strong> y te asignaron a la familia <strong>{{ $family->name }}</strong>.</p>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Te invitaron a <strong>{{ $project->name }}</strong> como miembro de la familia <strong>{{ $family->name }}</strong>.</p>
 
                             <!-- Highlight Box -->
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0;">
@@ -36,7 +36,7 @@
                                 </tr>
                             </table>
 
-                            <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px; color: #333333;">Para acceder a la plataforma, por favor completá tu registro haciendo clic en el botón de abajo:</p>
+                            <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px; color: #333333;">Para acceder a la plataforma, por favor completa tu registro haciendo clic en el botón de abajo:</p>
 
                             <!-- Button -->
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -55,18 +55,13 @@
 
                             <!-- Accessibility Link -->
                             <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 20px; color: #6b7280;">
-                                Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br/>
+                                Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
                                 <a href="{{ $confirmationUrl }}" style="color: #2563eb; word-break: break-all;">{{ $confirmationUrl }}</a>
                             </p>
 
-                            <p style="margin: 0 0 10px 0; font-size: 16px; line-height: 24px; color: #333333;">Vas a poder:</p>
-                            <ul style="margin: 0 0 20px 0; padding-left: 20px;">
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Establecer tu contraseña</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Completar la información de tu perfil</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Agregar una foto de perfil (opcional)</li>
-                            </ul>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Podrás establecer tu contraseña y comenzar a comunicarte con otros miembros del proyecto, registrar tus preferencias de unidad y participar en las decisiones de la comunidad.</p>
 
-                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Nos vemos en la plataforma.</p>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">¡Nos vemos en la plataforma!</p>
 
                             <p style="margin: 0; font-size: 16px; line-height: 24px; color: #333333;">
                                 {{ $project->name }}

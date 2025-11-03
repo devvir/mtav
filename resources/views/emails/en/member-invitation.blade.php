@@ -59,14 +59,9 @@
                                 <a href="{{ $confirmationUrl }}" style="color: #2563eb; word-break: break-all;">{{ $confirmationUrl }}</a>
                             </p>
 
-                            <p style="margin: 0 0 10px 0; font-size: 16px; line-height: 24px; color: #333333;">You'll be able to:</p>
-                            <ul style="margin: 0 0 20px 0; padding-left: 20px;">
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Set your password</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Complete your profile information</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Add a profile picture (optional)</li>
-                            </ul>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">You'll be able to set your password and start communicating with other project members, register your unit preferences, and participate in community decisions.</p>
 
-                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">See you on the platform.</p>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">See you on the platform!</p>
 
                             <p style="margin: 0; font-size: 16px; line-height: 24px; color: #333333;">
                                 {{ $project->name }}

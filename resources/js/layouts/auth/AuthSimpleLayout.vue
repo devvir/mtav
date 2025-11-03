@@ -25,7 +25,7 @@ defineProps<{
           </div>
         </div>
 
-        <FlashMessages />
+        <FlashMessages no-auto-dismiss />
 
         <slot />
       </div>

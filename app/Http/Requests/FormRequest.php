@@ -36,6 +36,7 @@ use Illuminate\Foundation\Http\FormRequest as BaseFormRequest;
  * @method bool ajax()
  * @method bool wantsJson()
  * @method bool expectsJson()
+ * @method $this merge(array $input)
  *
  * @mixin \Illuminate\Http\Request
  */

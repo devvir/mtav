@@ -50,7 +50,7 @@ class UnitTypeController extends Controller
         $unitType = UnitType::create($request->validated());
 
         return redirect()->route('unit-types.show', $unitType->id)
-            ->with('success', __('Unit type created successfully.'));
+            ->with('success', __('New unit type created!'));
     }
 
     /**
@@ -66,7 +66,7 @@ class UnitTypeController extends Controller
         $unitType->update($request->validated());
 
         return redirect()->route('unit-types.show', $unitType->id)
-            ->with('success', __('Unit type updated successfully.'));
+            ->with('success', __('Unit type updated!'));
     }
 
     public function destroy(DeleteUnitTypeRequest $_, UnitType $unitType): RedirectResponse
@@ -74,7 +74,7 @@ class UnitTypeController extends Controller
         $unitType->delete();
 
         return redirect()->back()
-            ->with('success', __('Unit type deleted successfully.'));
+            ->with('success', __('Unit type deleted!'));
     }
 
     /**
@@ -85,6 +85,6 @@ class UnitTypeController extends Controller
         $unitType->restore();
 
         return redirect()->route('unit-types.index')
-            ->with('success', __('Unit type restored successfully.'));
+            ->with('success', __('Unit type restored!'));
     }
 }

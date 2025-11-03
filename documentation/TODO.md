@@ -23,6 +23,19 @@
   - Status: ✅ Added to setup scripts
   - Priority: HIGH - needed for avatar uploads
 
+### Queue Workers (Production + Dev)
+- [ ] **Configure Laravel queue workers for production and development**
+  - **Production**: Set up Supervisord to run `php artisan queue:work` processes
+    - Configure in `.docker/` setup for production container
+    - Files to modify: Add supervisord config for queue workers in Docker setup
+  - **Development**: Set up automatic queue workers for local development
+    - Options: Laravel Sail's queue worker, or separate Docker service, or supervisord in dev container
+    - Currently using `QUEUE_CONNECTION=sync` as workaround (immediate execution, not testing real async behavior)
+  - Currently: Emails are queued but not processed (no workers running)
+  - Status: Not implemented - using sync driver for dev, prod needs automation
+  - Priority: HIGH - needed before production deployment (invitation emails won't send without this)
+  - Note: Both dev and prod should use async queues to test real conditions
+
 ### Spanish Localization
 - [ ] **Review Spanish email templates with native speaker**
   - Files: `resources/views/emails/es_UY/{admin,member}-invitation.blade.php`

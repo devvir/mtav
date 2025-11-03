@@ -61,7 +61,7 @@ class FamilyController extends Controller
         $family = Family::create($request->all());
 
         return to_route('families.show', $family->id)
-            ->with('success', __('Family created successfully.'));
+            ->with('success', __('New family created!'));
     }
 
     /**
@@ -83,7 +83,7 @@ class FamilyController extends Controller
         $family->update($request->all());
 
         return redirect()->back()
-            ->with('success', __('Family updated successfully.'));
+            ->with('success', __('Family information updated!'));
     }
 
     /**
@@ -94,7 +94,7 @@ class FamilyController extends Controller
         $family->delete();
 
         return to_route('families.index')
-            ->with('success', __('Family deleted successfully.'));
+            ->with('success', __('Family deleted!'));
     }
 
     /**
@@ -105,6 +105,6 @@ class FamilyController extends Controller
         $family->restore();
 
         return to_route('families.show', $family->id)
-            ->with('success', __('Family restored successfully.'));
+            ->with('success', __('Family restored!'));
     }
 }

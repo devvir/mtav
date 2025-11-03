@@ -20,6 +20,10 @@ class CreateMemberRequest extends ProjectScopedRequest
     {
         $projectId = $this['project_id'];
 
+        if ($this->user()->isMember()) {
+            $this->merge(['family_id' => $this->user()->family_id]);
+        }
+
         return [
             'project_id' => 'required|integer|exists:projects,id',
             'family_id' => array_filter([

@@ -73,7 +73,7 @@ class ProjectController extends Controller
         ));
 
         return to_route('projects.show', $project->id)
-            ->with('success', __('Project created successfully.'));
+            ->with('success', __('New project created!'));
     }
 
     /**
@@ -95,7 +95,7 @@ class ProjectController extends Controller
         $project->update($request->all());
 
         return to_route('projects.show', $project->id)
-            ->with('success', __('Project updated successfully.'));
+            ->with('success', __('Project information updated!'));
     }
 
     /**
@@ -106,7 +106,7 @@ class ProjectController extends Controller
         $project->delete();
 
         return to_route('projects.index')
-            ->with('success', __('Project deleted successfully.'));
+            ->with('success', __('Project deleted!'));
     }
 
     /**
@@ -117,6 +117,6 @@ class ProjectController extends Controller
         $project->restore();
 
         return to_route('projects.show', $project->id)
-            ->with('success', __('Project restored successfully.'));
+            ->with('success', __('Project restored!'));
     }
 }

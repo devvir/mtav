@@ -63,7 +63,7 @@ class UnitController extends Controller
         $unit = Unit::create($request->validated());
 
         return to_route('units.show', $unit->id)
-            ->with('success', __('Unit created successfully.'));
+            ->with('success', __('New unit created!'));
     }
 
     /**
@@ -93,7 +93,7 @@ class UnitController extends Controller
         $unit->update($request->validated());
 
         return to_route('units.show', $unit->id)
-            ->with('success', __('Unit updated successfully.'));
+            ->with('success', __('Unit information updated!'));
     }
 
     /**
@@ -104,7 +104,7 @@ class UnitController extends Controller
         $unit->delete();
 
         return to_route('units.index')
-            ->with('success', __('Unit deleted successfully.'));
+            ->with('success', __('Unit deleted!'));
     }
 
     /**
@@ -115,6 +115,6 @@ class UnitController extends Controller
         $unit->restore();
 
         return to_route('units.show', $unit->id)
-            ->with('success', __('Unit restored successfully.'));
+            ->with('success', __('Unit restored!'));
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Events\UserRegistration;
 use App\Http\Requests\CreateMemberRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\ProjectScopedRequest;
@@ -12,7 +11,6 @@ use App\Models\Member;
 use App\Models\Project;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -64,17 +62,13 @@ class MemberController extends Controller
      */
     public function store(InvitationService $invitationService, CreateMemberRequest $request): RedirectResponse
     {
-        $token = $invitationService->createToken();
-        $data = ['password' => $token] + $request->except('project_id');
-
-        $member = DB::transaction(
-            fn () => Member::create($data)->joinProject($request->project_id)
+        $member = $invitationService->inviteMember(
+            $request->except('project_id'),
+            $request->project_id
         );
 
-        event(new UserRegistration($member, $token));
-
         return to_route('members.show', $member->id)
-            ->with('success', __('Member invited successfully.'));
+            ->with('success', __('Member invitation sent!'));
     }
 
     /**
@@ -92,10 +86,10 @@ class MemberController extends Controller
      */
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse
     {
-        $member->update($request->all());
+        $member->update($request->validated());
 
         return redirect()->back()
-            ->with('success', __('Member updated successfully.'));
+            ->with('success', __('Member information updated!'));
     }
 
     /**
@@ -106,7 +100,7 @@ class MemberController extends Controller
         $member->delete();
 
         return to_route('members.index')
-            ->with('success', __('Member deleted successfully.'));
+            ->with('success', __('Member deleted!'));
     }
 
     /**
@@ -117,6 +111,6 @@ class MemberController extends Controller
         $member->restore();
 
         return to_route('members.show', $member->id)
-            ->with('success', __('Member restored successfully.'));
+            ->with('success', __('Member restored!'));
     }
 }

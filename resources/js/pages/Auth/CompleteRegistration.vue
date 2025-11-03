@@ -5,19 +5,19 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { _ } from '@/composables/useTranslations';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { LoaderCircle } from 'lucide-vue-next';
+import { useForm } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 
 const props = defineProps<{
-  user: any;
-  email: string;
+  user: Admin | Member;
   token: string;
 }>();
 
 const form = useForm({
-  email: props.email,
+  email: props.user.email,
   token: props.token,
   password: '',
   password_confirmation: '',
@@ -29,7 +29,7 @@ const form = useForm({
 });
 
 const submit = () => {
-  form.post(route('invitation.complete'), {
+  form.post(route('invitation.store'), {
     onSuccess: () => {
       form.reset('password', 'password_confirmation');
     },
@@ -37,8 +37,8 @@ const submit = () => {
 };
 
 const isAdmin = props.user.is_admin;
-const family = props.user.asMember?.family;
-const project = family?.project || props.user.projects?.[0];
+const family = !isAdmin ? (props.user as Member).family : undefined;
+const project = family?.project || (isAdmin ? (props.user as Admin).projects?.[0] : undefined);
 </script>
 
 <script lang="ts">
@@ -60,9 +60,9 @@ export default {
   >
     <div class="mb-6 space-y-3">
       <div v-if="isAdmin" class="flex items-center justify-center gap-2">
-        <Badge variant="secondary" class="bg-purple-100 text-purple-700">
+        <div class="rounded-md bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
           {{ _('Administrator Account') }}
-        </Badge>
+        </div>
       </div>
 
       <div v-if="project" class="text-center">
@@ -168,7 +168,7 @@ export default {
             id="avatar"
             type="file"
             accept="image/*"
-            @change="(e) => form.avatar = (e.target as HTMLInputElement).files?.[0] || null"
+            @change="(e: Event) => form.avatar = ((e.target as HTMLInputElement).files?.[0] || null)"
           />
           <p class="text-xs text-text-muted">{{ _('Optional - Upload a profile photo') }}</p>
           <InputError :message="form.errors.avatar" />

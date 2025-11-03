@@ -38,6 +38,8 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
   }
 };
 
+const isDisabled = computed(() => props.disabled || !Object.values(props.options).length)
+
 const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) => void;
 </script>
 
@@ -45,7 +47,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
   <div class="relative" v-bind="{ ...$props, ...$attrs }">
     <Dropdown
       v-slot="{ isOpen, close }"
-      :disabled="disabled"
+      :disabled="isDisabled"
       @open="pauseModalClosing()"
       @close="pauseModalClosing(false)"
     >
@@ -55,16 +57,16 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
         tabindex="-1"
         :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"
-        :placeholder="placeholder ?? _('Click to select an option')"
+        :placeholder="isDisabled ? '' : (placeholder ?? _('Click to select an option'))"
       />
 
       <DropdownTrigger
-        :title="modelLabel || (disabled ? '' : (placeholder ?? _('Click to select an option')))"
+        :title="modelLabel || (isDisabled ? '' : (placeholder ?? _('Click to select an option')))"
         class="group absolute inset-0"
       >
         <svg
           class="absolute top-1/2 right-3 size-6 -translate-y-1/2 stroke-text-muted transition-all peer-hocus:stroke-text"
-          :class="{ 'rotate-180': isOpen, hidden: disabled }"
+          :class="{ 'rotate-180': isOpen, hidden: isDisabled }"
           viewBox="0 0 24 24"
           fill="currentColor"
           aria-hidden="true"

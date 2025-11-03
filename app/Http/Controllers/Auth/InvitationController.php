@@ -54,7 +54,12 @@ class InvitationController
             return $this->invitationService->alreadyVerifiedResponse();
         }
 
-        $this->invitationService->loadUserRelationships($user);
+        // Load necessary relationships based on user type
+        if ($user->isAdmin()) {
+            $user->load('projects');
+        } else {
+            $user->load('family.project');
+        }
 
         return inertia('Auth/CompleteRegistration', [
             'user'  => $user,

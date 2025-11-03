@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { Form } from '@/components/forms';
-import { FormSpecs, FormType, SelectOptions } from '@/components/forms/types';
+import { FormSpecs, FormType, FormUpdateEvent, SelectOptions, SelectSpecs } from '@/components/forms/types';
 import { currentUser, iAmNotAdmin } from '@/composables/useAuth';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
@@ -17,14 +18,13 @@ const props = defineProps<{
 const projectOptions: SelectOptions = {};
 props.projects.forEach((project) => (projectOptions[project.id] = project.name));
 
-const familyOptions: SelectOptions = {};
-props.families.forEach((family) => (familyOptions[family.id] = `${_('Family')}: ${family.name}`));
+const projectId = ref(props.member?.project?.id ?? currentProject.value?.id);
 
-const formSpecs: FormSpecs = {
+const specs: FormSpecs = {
   project_id: {
     element: 'select',
     label: 'Project',
-    selected: props.member?.project?.id ?? currentProject.value?.id,
+    selected: projectId.value,
     options: projectOptions,
     required: true,
     displayId: true,
@@ -33,8 +33,7 @@ const formSpecs: FormSpecs = {
   family_id: {
     element: 'select',
     label: 'Family',
-    selected: props.member?.family.id,
-    options: familyOptions,
+    options: {},
     required: true,
     displayId: true,
     disabled: props.type === 'edit',
@@ -56,34 +55,46 @@ const formSpecs: FormSpecs = {
  * Members cannot choose project or family; these are set automatically
  */
 if (iAmNotAdmin.value || props.type === 'edit') {
-  formSpecs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  formSpecs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
+  specs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
+  specs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
 }
+
+const handleFormChange = ({ field, value }: FormUpdateEvent) => {
+  if (field === 'project_id') projectId.value = parseInt(value as string);
+};
+
+// Filter families based on selected projectId
+watchEffect(() => {
+    const options: Record<number, string> = {};
+
+    props.families
+        .filter(family => family.project.id === projectId.value)
+        .forEach(family => (options[family.id] = family.name));
+
+    (specs.family_id as SelectSpecs).options = options;
+    (specs.family_id as SelectSpecs).selected = null;
+})
 </script>
 
 <template>
-  <Form
-    v-bind="{ type, action, params: props.member?.id, title }"
-    :specs="formSpecs"
-    :buttonText="props.type === 'edit' ? undefined : 'Invite'"
-    autocomplete="off"
-  >
-    <template v-slot:aside>
-      <h2 class="font-semibold text-foreground/60 uppercase text-shadow-2xs text-shadow-danger/20">
-        {{ _('Keep in mind') }}
-      </h2>
-      <ul class="list-inside list-disc text-base text-foreground/80">
-        <li class="list-item leading-tight @md:leading-wide">
-          {{
-            type === 'edit'
-              ? _('Changes to the email remain on hold until the user confirms them')
-              : _('The user will be sent a link to complete their registration')
-          }}
-        </li>
-        <li class="list-item @md:leading-wide">
-          {{ _('Double-check the email, as it will serve to authenticate the user') }}
-        </li>
-      </ul>
-    </template>
-  </Form>
+    <Form v-bind="{ type, action, params: props.member?.id, title }" :specs="specs"
+        :buttonText="props.type === 'edit' ? undefined : 'Invite'" autocomplete="off" @update="handleFormChange">
+        <template v-slot:aside>
+            <h2 class="font-semibold text-foreground/60 uppercase text-shadow-2xs text-shadow-danger/20">
+                {{ _('Keep in mind') }}
+            </h2>
+            <ul class="list-inside list-disc text-base text-foreground/80">
+                <li class="list-item leading-tight @md:leading-wide">
+                    {{
+                    type === 'edit'
+                    ? _('Changes to the email remain on hold until the user confirms them')
+                    : _('The user will be sent a link to complete their registration')
+                    }}
+                </li>
+                <li class="list-item @md:leading-wide">
+                    {{ _('Double-check the email, as it will serve to authenticate the user') }}
+                </li>
+            </ul>
+        </template>
+    </Form>
 </template>

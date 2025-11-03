@@ -65,20 +65,16 @@
                             </table>
 
                             <!-- Accessibility Link -->
+                                                        <!-- Accessibility Link -->
                             <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 20px; color: #6b7280;">
                                 If the button doesn't work, copy and paste this link into your browser:<br/>
-                                <a href="{{ $confirmationUrl }}" style="color: #7c3aed; word-break: break-all;">{{ $confirmationUrl }}</a>
+                                <a href="{{ $confirmationUrl }}" style="color: #2563eb; word-break: break-all;">{{ $confirmationUrl }}</a>
                             </p>
 
-                            <p style="margin: 0 0 10px 0; font-size: 16px; line-height: 24px; color: #333333;">You'll be able to:</p>
-                            <ul style="margin: 0 0 20px 0; padding-left: 20px;">
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Set your password</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Complete your contact information</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Add a profile picture (optional)</li>
-                            </ul>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">You'll be able to set your password and start managing members, families, and units, coordinating project activities, and facilitating communication within the community.</p>
 
                             <p style="margin: 0; font-size: 16px; line-height: 24px; color: #333333;">
-                                MTAV
+                                {{ $project->name }}
                             </p>
                         </td>
                     </tr>

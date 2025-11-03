@@ -70,3 +70,5 @@ export type ElementSpecs = InputSpecs | HiddenInputSpecs | SelectSpecs;
 export type FormSpecs = Record<string, ElementSpecs>;
 
 export type FormType = 'create' | 'edit';
+
+export type FormUpdateEvent = { field: string; value: ValueType | ValueType[] }

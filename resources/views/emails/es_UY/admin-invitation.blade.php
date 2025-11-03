@@ -47,7 +47,7 @@
                                 </tr>
                             </table>
 
-                            <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px; color: #333333;">Para acceder a la plataforma, por favor completá tu registro haciendo clic en el botón de abajo:</p>
+                            <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px; color: #333333;">Para acceder a la plataforma, por favor completa tu registro haciendo clic en el botón de abajo:</p>
 
                             <!-- Button -->
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -66,16 +66,11 @@
 
                             <!-- Accessibility Link -->
                             <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 20px; color: #6b7280;">
-                                Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br/>
+                                Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
                                 <a href="{{ $confirmationUrl }}" style="color: #7c3aed; word-break: break-all;">{{ $confirmationUrl }}</a>
                             </p>
 
-                            <p style="margin: 0 0 10px 0; font-size: 16px; line-height: 24px; color: #333333;">Vas a poder:</p>
-                            <ul style="margin: 0 0 20px 0; padding-left: 20px;">
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Establecer tu contraseña</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Completar tu información de contacto</li>
-                                <li style="margin: 0 0 8px 0; font-size: 16px; line-height: 24px; color: #333333;">Agregar una foto de perfil (opcional)</li>
-                            </ul>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Podrás establecer tu contraseña y comenzar a gestionar miembros, familias y unidades, coordinar actividades del proyecto y facilitar la comunicación dentro de la comunidad.</p>
 
                             <p style="margin: 0; font-size: 16px; line-height: 24px; color: #333333;">
                                 MTAV

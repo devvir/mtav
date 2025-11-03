@@ -9,9 +9,10 @@ use App\Mail\AdminInvitationMail;
 use App\Mail\MemberInvitationMail;
 use App\Models\Admin;
 use App\Models\Member;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 
-class SendUserInvitation
+class SendUserInvitation implements ShouldQueue
 {
     /**
      * Handle the event.
