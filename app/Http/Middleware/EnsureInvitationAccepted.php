@@ -16,8 +16,8 @@ class EnsureInvitationAccepted
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip middleware for invitation routes (they're specifically for completing registration)
-        if ($request->routeIs('invitation.show') || $request->routeIs('invitation.store')) {
+        // Skip middleware for invitation and documentation routes
+        if ($request->routeIs('invitation.show') || $request->routeIs('invitation.store') || $request->routeIs('documentation.*')) {
             return $next($request);
         }
 
@@ -33,13 +33,19 @@ class EnsureInvitationAccepted
             return $next($request);
         }
 
-        // User is authenticated but hasn't accepted invitation - log them out
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // User is authenticated but hasn't accepted invitation
+        // If visiting login page, log them out (provides "way out")
+        if ($request->routeIs('login')) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        // Redirect to login with helpful message
-        return redirect()->route('login')
-            ->with('warning', __('If you were invited to a project, please follow the link you received in your email.'));
+            return redirect()->route('login')
+                ->with('warning', __('If you were invited to a project, please follow the link you received in your email.'));
+        }
+
+        // For all other pages, redirect back to invitation to complete registration
+        return redirect()->route('invitation.show')
+            ->with('info', __('Please complete your registration to continue.'));
     }
 }

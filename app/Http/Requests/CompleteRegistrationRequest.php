@@ -28,11 +28,11 @@ class CompleteRegistrationRequest extends FormRequest
             'email' => 'required|email|exists:users,email',
             'token' => 'required|string',
             'password' => ['required', 'confirmed', Password::defaults()],
-            'firstname' => 'sometimes|string|max:255',
-            'lastname' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|string|max:255',
-            'legal_id' => 'sometimes|string|max:255',
-            'avatar' => 'sometimes|image|max:2048', // 2MB max
+            'firstname' => 'nullable|string|max:255',
+            'lastname' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'legal_id' => 'nullable|string|max:255',
+            'avatar' => 'nullable|image|max:2048', // 2MB max
         ];
     }
 }
