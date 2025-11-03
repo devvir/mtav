@@ -34,9 +34,9 @@ const allFooterItems: FooterItem[] = [
   },
   {
     title: _('Documentation'),
-    href: 'https://laravel.com/docs/starter-kits#vue', // TODO : replace with actual documentation URL
+    href: route('documentation.faq', { role: iAmAdmin.value ? 'admin' : 'member' }),
     icon: BookOpen,
-    external: true,
+    external: false,
   },
   {
     title: _('Github Repo'),
@@ -51,28 +51,23 @@ const footerItems = computed(() => allFooterItems.filter((item) => item.if !== f
 </script>
 
 <template>
-  <SidebarGroup :class="`group-data-[collapsible=icon]:p-0 ${$props.class || ''}`">
-    <SidebarGroupContent>
-      <SidebarMenu>
-        <SidebarMenuItem v-for="item in footerItems" :key="item.title">
-          <SidebarMenuButton class="hocus:text-accent-foreground/80" as-child>
-            <a
-              v-if="item.external"
-              :href="item.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="px-2"
-            >
-              <component :is="item.icon" />
-              <span>{{ item.title }}</span>
-            </a>
-            <Link v-else :href="item.href" class="px-2">
-              <component :is="item.icon" />
-              <span>{{ item.title }}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarGroupContent>
-  </SidebarGroup>
+    <SidebarGroup :class="`group-data-[collapsible=icon]:p-0 ${$props.class || ''}`">
+        <SidebarGroupContent>
+            <SidebarMenu>
+                <SidebarMenuItem v-for="item in footerItems" :key="item.title">
+                    <SidebarMenuButton class="hocus:text-accent-foreground/80" as-child>
+                        <a v-if="item.external" :href="item.href" target="_blank" rel="noopener noreferrer"
+                            class="px-2">
+                            <component :is="item.icon" />
+                            <span>{{ item.title }}</span>
+                        </a>
+                        <Link v-else :href="item.href" class="px-2">
+                        <component :is="item.icon" />
+                        <span>{{ item.title }}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarGroupContent>
+    </SidebarGroup>
 </template>

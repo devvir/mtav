@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 /** Healthcheck Route */
 Route::get('ping', fn () => 'pong');
 
+/** Documentation Routes (accessible to everyone) */
+Route::group([], __DIR__ . '/web/documentation.php');
+
 /** User Invitation Routes */
 Route::get('invitation', [InvitationController::class, 'show'])->name('invitation.show');
 Route::post('invitation', [InvitationController::class, 'store'])->name('invitation.store');
