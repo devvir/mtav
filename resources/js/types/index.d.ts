@@ -8,6 +8,11 @@ interface Resource {
   deleted_at: string | null;
 }
 
+interface Subject {
+    name: string;
+    avatar: string;
+}
+
 interface Project extends Resource {
   name: string;
   description: string;
@@ -22,14 +27,12 @@ interface Project extends Resource {
   families_count?: number;
 }
 
-interface User extends Resource {
+interface User extends Resource, Subject {
   email: string;
   phone: string;
-  name: string;
   firstname: string;
   lastname: string;
   about: string | null;
-  avatar: string;
   is_admin: boolean;
 
   projects?: ApiResource<Project>[];
@@ -51,9 +54,7 @@ interface Admin extends User {
   manages?: ApiResource<Project>[];
 }
 
-interface Family extends Resource {
-  name: string;
-  avatar: string;
+interface Family extends Resource, Subject {
   unit_type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   members?: ApiResource<User>[];

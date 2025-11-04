@@ -57,8 +57,7 @@ class FamilyController extends Controller
      */
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
-                // Persist Family
-        $family = Family::create($request->all());
+        $family = Family::create($request->validated());
 
         return to_route('families.show', $family->id)
             ->with('success', __('New family created!'));
@@ -80,7 +79,7 @@ class FamilyController extends Controller
      */
     public function update(UpdateFamilyRequest $request, Family $family): RedirectResponse
     {
-        $family->update($request->all());
+        $family->update($request->validated());
 
         return redirect()->back()
             ->with('success', __('Family information updated!'));

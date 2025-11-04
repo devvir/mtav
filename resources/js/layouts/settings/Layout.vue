@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { _ } from '@/composables/useTranslations';
 
 interface SettingsNavItem {
   title: string;
   href: string;
+  active: boolean;
 }
 
 const sidebarNavItems: SettingsNavItem[] = [
@@ -21,38 +21,40 @@ const sidebarNavItems: SettingsNavItem[] = [
     title: _('Appearance'),
     href: route('appearance'),
   },
-];
-
-const page = usePage();
-
-const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
+].map(navItem => ({ ...navItem, active: location.href === navItem.href }));
 </script>
 
 <template>
   <div class="px-4 py-6">
-    <Heading :title="_('Settings')" :description="_('Manage your profile and account settings')" />
-
-    <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
-      <aside class="w-full max-w-xl lg:w-48">
-        <nav class="flex flex-col space-y-1 space-x-0">
-          <Button
-            v-for="item in sidebarNavItems"
-            :key="item.href"
-            variant="ghost"
-            :class="['w-full justify-start', { 'bg-surface-sunken': currentPath === item.href }]"
-            as-child
+    <!-- Constrained container for all settings content -->
+    <div class="mx-auto max-w-4xl">
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-row space-x-1 xs:space-x-2 overflow-x-auto pb-4 border-b border-border mb-8 p-1">
+        <Button
+          v-for="item in sidebarNavItems"
+          :key="item.href"
+          variant="ghost"
+          size="sm"
+          :class="[
+            'whitespace-nowrap text-xs xs:text-sm',
+            item.active
+              ? 'bg-surface-interactive text-text font-medium cursor-default'
+              : 'text-text-muted hover:text-text hover:bg-surface-interactive/50'
+          ]"
+          :as-child="item.active"
           >
-            <Link :href="item.href">
-              {{ item.title }}
-            </Link>
-          </Button>
-        </nav>
-      </aside>
+          <span v-if="item.active">
+            {{ item.title }}
+          </span>
+          <Link v-else :href="item.href">
+            {{ item.title }}
+          </Link>
+        </Button>
+      </nav>
 
-      <div class="flex-1 md:max-w-2xl">
-        <section class="max-w-xl space-y-12">
-          <slot />
-        </section>
+      <!-- Content Area -->
+      <div class="w-full">
+        <slot />
       </div>
     </div>
   </div>

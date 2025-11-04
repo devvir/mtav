@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import Card from '@/components/shared/Card.vue';
+import EditButton from '@/components/EditButton.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import { _ } from '@/composables/useTranslations';
-import { ModalLink } from '@inertiaui/modal-vue';
-import { Building2, Edit3Icon, Home, Users } from 'lucide-vue-next';
+import { Building2, Home, Users } from 'lucide-vue-next';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -78,14 +78,9 @@ defineProps<{
         </div>
 
         <!-- Edit Link -->
-        <ModalLink
-          v-if="unit_type.allows?.update"
-          class="flex items-center justify-end gap-2 border-t border-border pt-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          paddingClasses="p-8"
-          :href="route('unit-types.edit', unit_type.id)"
-        >
-          {{ _('Edit') }} {{ _('Unit Type') }} <Edit3Icon class="h-4 w-4" />
-        </ModalLink>
+        <div class="flex items-center justify-end border-t border-border pt-base">
+          <EditButton :resource="unit_type" route-name="unit-types.edit" />
+        </div>
       </Card>
     </ShowWrapper>
   </MaybeModal>

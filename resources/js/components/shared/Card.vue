@@ -11,7 +11,7 @@ const attrs = useAttrs();
 </script>
 
 <template>
-  <CardBox :class="cn('h-full px-wide py-wide-y text-text', props.class)" v-bind="attrs">
+  <CardBox :class="cn('h-full p-wide text-text', props.class)" v-bind="attrs">
     <template v-if="$slots.header" v-slot:header>
       <slot name="header" />
     </template>

@@ -9,6 +9,19 @@
 
 ## P1 (High Priority - Should Complete Soon)
 
+### Profile Settings Issues
+- [ ] **Fix avatar upload functionality**
+  - Avatar upload from profile settings page is failing
+  - Need to debug why upload request is not succeeding
+  - Status: Upload flow implemented but not working
+  - Priority: HIGH - core user feature
+
+- [ ] **Fix avatar UI when error occurs**
+  - Avatar component moves/shifts position when error message is displayed
+  - Should stay fixed in place with error appearing without layout shift
+  - Status: Attempted fix with `self-start` and `min-h-[3rem]` but still broken
+  - Priority: MEDIUM - UX polish
+
 ### Invitation System Stability
 - [ ] **Manual testing - Full invitation flow**
   - [ ] Test admin invitation (happy path)

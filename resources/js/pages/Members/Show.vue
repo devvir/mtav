@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Avatar from '@/components/Avatar.vue';
+import EditButton from '@/components/EditButton.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
@@ -7,7 +9,6 @@ import Card from '@/components/shared/Card.vue';
 import { currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
-import { Pencil } from 'lucide-vue-next';
 import ShowWrapper from '../shared/ShowWrapper.vue';
 import Delete from './Crud/Delete.vue';
 
@@ -39,22 +40,14 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
       <Card class="size-full">
         <template v-slot:header>
           <div class="flex items-center-safe justify-between gap-4" :title="member.name">
-            <div class="flex min-w-0 flex-1 items-center-safe">
-              <img :src="member.avatar" alt="avatar" class="mr-wide w-24 shrink-0 rounded-full ring-2 ring-border" />
+            <div class="flex min-w-0 flex-1 items-center-safe gap-4">
+              <Avatar :subject="member" size="lg" class="rounded-full ring-2 ring-border" />
               <div class="min-w-0 flex-1 text-sm leading-wide text-text">
                 <div class="truncate text-2xl leading-12">{{ member.name }}</div>
               </div>
             </div>
 
-            <ModalLink
-              v-if="member.allows.update && ! isCurrentUser"
-              :href="route('members.edit', member.id)"
-              paddingClasses="p-8"
-              class="self-end shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-              :title="_('Edit Member')"
-            >
-              <Pencil class="h-5 w-5" />
-            </ModalLink>
+            <EditButton v-if="!isCurrentUser" :resource="member" route-name="members.edit" />
           </div>
         </template>
 

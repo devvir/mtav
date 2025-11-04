@@ -6,6 +6,7 @@ use Devvir\ResourceTools\Concerns\ResourceSubsets;
 use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class FamilyResource extends JsonResource
 {
@@ -45,11 +46,8 @@ class FamilyResource extends JsonResource
 
     private function resolveAvatar(): string
     {
-        // $urlEncodedName = urlencode($this->name);
-
         return $this->avatar
-            ?? "https://api.dicebear.com/9.x/identicon/svg?seed=={$this->name}";
-        // ?? "https://i.pravatar.cc/64?u={$this->name}";
-        // ?? "https://ui-avatars.com/api/?name={$urlEncodedName}&background=random";
+            ? Storage::url($this->avatar)
+            : "https://api.dicebear.com/9.x/identicon/svg?seed=={$this->name}";
     }
 }

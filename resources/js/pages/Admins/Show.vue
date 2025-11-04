@@ -19,7 +19,7 @@ defineProps<{ admin: ApiResource<Admin> }>();
     <Breadcrumb route="admins.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal panelClasses="modalPanel backdrop-blur-lg">
+  <MaybeModal>
     <ShowWrapper>
       <IndexCard :admin class="w-full border-0 bg-transparent shadow-none" />
     </ShowWrapper>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import Avatar from '@/components/Avatar.vue';
 import Card from '@/components/shared/Card.vue';
+import EditButton from '@/components/EditButton.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
-import { Edit3Icon } from 'lucide-vue-next';
 
 defineProps<{
-  family: Family;
+  family: ApiResource<Family>;
 }>();
 </script>
 
@@ -19,29 +20,22 @@ defineProps<{
           class="flex min-w-0 flex-1 items-center gap-3 focus:outline-0"
           :class="{ 'pointer-events-none': useModal() }"
         >
-          <img :src="family.avatar" alt="avatar" class="size-10 shrink-0 rounded ring-2 ring-border" />
+          <Avatar :subject="family" size="lg" class="ring-2 ring-border" />
 
           <div class="min-w-0 flex-1 truncate pl-base">
             <div class="pb-1 text-xs font-medium uppercase tracking-wide text-text-subtle">{{ _('Family') }}</div>
             <div class="truncate text-xl font-semibold text-text">{{ family.name }}</div>
+            <div v-if="'name' in family.project" class="mt-2 text-xs text-text-subtle">
+              <span>{{ _('Project') }}:</span> {{ family.project.name }}
+            </div>
           </div>
         </ModalLink>
 
-        <ModalLink
-          v-if="family.allows?.update"
-          :href="route('families.edit', family.id)"
-          paddingClasses="p-8"
-          class="shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          :title="_('Edit Family')"
-        >
-          <Edit3Icon class="h-5 w-5" />
-        </ModalLink>
+        <EditButton :resource="family" route-name="families.edit" />
       </div>
-
-      <slot name="header" />
     </template>
 
-    <div class="my-4 flex flex-col justify-between gap-2">
+    <div class="flex flex-col justify-between gap-2">
       <slot name="content-before" />
 
       <ModalLink
@@ -53,7 +47,7 @@ defineProps<{
         prefetch="click"
       >
         <div class="flex items-center justify-start gap-3">
-          <img :src="member.avatar" alt="avatar" class="size-8 shrink-0 rounded-full ring-2 ring-border" />
+          <Avatar :subject="member" size="sm" class="rounded-full ring-2 ring-border" />
           <div class="truncate text-sm font-medium group-hover:text-text-link" :title="member.name">
             {{ member.name }}
           </div>

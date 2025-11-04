@@ -39,7 +39,7 @@ class MemberController extends Controller
      */
     public function show(Member $member): Response
     {
-        $member->load(['family', 'projects']);
+        $member->load('family', 'projects');
 
         return inertia('Members/Show', compact('member'));
     }

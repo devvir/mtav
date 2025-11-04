@@ -11,6 +11,7 @@ Welcome to the MTAV documentation collection. This folder centralizes developer-
 - **[scripts.md](scripts.md)** — Individual script documentation and usage
 - **[build-images.md](build-images.md)** — Build system technical details
 - **[deployment.md](deployment.md)** — Production deployment configuration
+- **[form-requests.md](form-requests.md)** — Custom FormRequest base class for IDE intellisense
 
 ## 🔗 External References
 

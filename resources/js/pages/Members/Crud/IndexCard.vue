@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Avatar from '@/components/Avatar.vue';
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
@@ -17,7 +18,7 @@ defineProps<{
         :class="{ 'pointer-events-none': useModal() }"
       >
         <div class="flex items-center justify-between gap-3">
-          <img :src="member.avatar" alt="avatar" class="size-16 shrink-0 rounded-full ring-2 ring-border" />
+          <Avatar :subject="member" size="lg" class="rounded-full ring-2 ring-border" />
 
           <div class="flex-1 text-right truncate pl-base" :title="member.name">
             <div class="truncate text-xl font-semibold text-text">{{ member.name }}</div>

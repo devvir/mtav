@@ -30,7 +30,7 @@ use Illuminate\Support\Collection;
  * @method mixed route($param = null, $default = null)
  * @method Collection collect($key = null)
  * @method string|null ip()
- * @method User|null user()
+ * @method User|null user($guard = null)
  * @method string|null userAgent()
  * @method string method()
  * @method string path()

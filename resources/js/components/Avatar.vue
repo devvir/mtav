@@ -1,12 +1,10 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { Avatar as AvatarRoot, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  src?: string;
-  name: string;
+  subject: Subject;
   size?: 'sm' | 'md' | 'lg';
   class?: string;
 }
@@ -36,9 +34,9 @@ const borderRadius = computed(() => isRoundedFull.value ? 'rounded-full' : 'roun
 
 <template>
   <AvatarRoot :class="cn('overflow-hidden', borderRadius, sizeClasses, props.class)">
-    <AvatarImage v-if="src" :src="src" :alt="name" />
+    <AvatarImage v-if="subject.avatar" :src="subject.avatar" :alt="subject.name" />
     <AvatarFallback :class="cn(borderRadius, 'bg-surface-interactive text-text font-semibold')">
-      {{ getInitials(name) }}
+      {{ getInitials(subject.name) }}
     </AvatarFallback>
   </AvatarRoot>
 </template>

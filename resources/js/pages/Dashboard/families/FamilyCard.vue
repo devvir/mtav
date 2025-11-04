@@ -13,8 +13,7 @@ defineProps<{
 <template>
   <PersonCard
     :href="`/families/${family.id}`"
-    :avatar="family.avatar"
-    :name="family.name"
+    :subject="family"
     :subtitle="`${family.members_count} ${family.members_count === 1 ? _('member') : _('members')}`"
   />
 </template>

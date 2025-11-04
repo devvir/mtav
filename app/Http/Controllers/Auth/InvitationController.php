@@ -34,7 +34,7 @@ class InvitationController
         $service->completeRegistration(
             $request->user(),
             $request->password,
-            $request->all(),
+            $request->validated(),
         );
 
         return redirect()->route('home')

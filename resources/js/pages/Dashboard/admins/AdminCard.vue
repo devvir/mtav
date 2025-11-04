@@ -9,8 +9,7 @@ defineProps<{
 <template>
   <PersonCard
     :href="`/admins/${admin.id}`"
-    :avatar="admin.avatar"
-    :name="admin.name"
+    :subject="admin"
     :subtitle="admin.email"
   />
 </template>

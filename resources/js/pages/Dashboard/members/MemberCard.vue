@@ -14,8 +14,7 @@ defineProps<{
 <template>
   <PersonCard
     :href="`/members/${member.id}`"
-    :avatar="member.avatar"
-    :name="member.name"
+    :subject="member"
     :subtitle="member.family?.name"
     rounded="full"
   />

@@ -43,9 +43,9 @@ class ProjectController extends Controller
     {
         $project
             ->load([
-                'admins' => fn ($q) => $q->limit(10),
-                'members' => fn ($q) => $q->limit(50),
-                'families' => fn ($q) => $q->limit(30),
+                'admins' => fn ($q) => $q->limit(7),
+                'members' => fn ($q) => $q->limit(10),
+                'families' => fn ($q) => $q->limit(10),
             ])
             ->loadCount('admins', 'members', 'families');
 
@@ -92,7 +92,7 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
-        $project->update($request->all());
+        $project->update($request->validated());
 
         return to_route('projects.show', $project->id)
             ->with('success', __('Project information updated!'));

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import Avatar from '@/components/Avatar.vue';
 import Card from '@/components/shared/Card.vue';
+import EditButton from '@/components/EditButton.vue';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
 import { ModalLink, useModal } from '@inertiaui/modal-vue';
-import { Edit3Icon } from 'lucide-vue-next';
 import SelectDeselect from './SelectDeselect.vue';
 import { HTMLAttributes } from 'vue';
 
@@ -55,15 +56,7 @@ const projectLink = computed(() =>
           </div>
         </ModalLink>
 
-        <ModalLink
-          v-if="project.allows.update"
-          paddingClasses="p-8"
-          :href="route('projects.edit', project.id)"
-          class="shrink-0 rounded-lg bg-surface-interactive p-3 ring-2 ring-border transition-all hover:bg-surface-interactive-hover hover:ring-border-strong focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          :title="_('Edit')"
-        >
-          <Edit3Icon class="h-5 w-5" />
-        </ModalLink>
+        <EditButton :resource="project" route-name="projects.edit" />
       </div>
     </template>
 
@@ -73,13 +66,12 @@ const projectLink = computed(() =>
       </div>
 
       <Link class="flex flex-wrap gap-3" :href="route('families.index')">
-        <img
+        <Avatar
           v-for="family in project.families"
           :key="family.id"
-          :src="family.avatar"
-          :title="family.name"
-          alt="avatar"
-          class="size-8 rounded ring-2 ring-border transition-transform hover:scale-110"
+          :subject="family"
+          size="sm"
+          class="ring-2 ring-border transition-transform hover:scale-110"
         />
 
         <div v-if="project.families_count > project.families.length" class="flex items-center">
@@ -98,13 +90,12 @@ const projectLink = computed(() =>
       </div>
 
       <Link class="flex flex-wrap gap-3" :href="route('members.index')">
-        <img
+        <Avatar
           v-for="member in project.members"
           :key="member.id"
-          :src="member.avatar"
-          :title="member.name"
-          alt="avatar"
-          class="size-8 rounded-full ring-2 ring-border transition-transform hover:scale-110"
+          :subject="member"
+          size="sm"
+          class="rounded-full ring-2 ring-border transition-transform hover:scale-110"
         />
 
         <div v-if="project.members_count > project.members.length" class="flex items-center">
@@ -123,13 +114,12 @@ const projectLink = computed(() =>
       </div>
 
       <Link class="flex flex-wrap gap-3" :href="route('admins.index')">
-        <img
+        <Avatar
           v-for="admin in project.admins"
           :key="admin.id"
-          :src="admin.avatar"
-          :title="admin.name"
-          alt="avatar"
-          class="size-8 rounded ring-2 ring-border transition-transform hover:scale-110"
+          :subject="admin"
+          size="sm"
+          class="ring-2 ring-border transition-transform hover:scale-110"
         />
 
         <div v-if="project.admins_count > project.admins.length" class="flex items-center">
