@@ -11,24 +11,21 @@ const { isMobile, state } = useSidebar();
 </script>
 
 <template>
-  <SidebarMenu>
-    <SidebarMenuItem>
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <SidebarMenuButton size="lg" class="data-[state=open]:bg-accent">
-            <UserInfo :user="user" />
-            <ChevronsUpDown class="ml-0 size-4" />
-          </SidebarMenuButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-          :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
-          align="end"
-          :side-offset="4"
-        >
-          <UserMenuContent :user="user" />
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </SidebarMenuItem>
-  </SidebarMenu>
+    <SidebarMenu>
+        <SidebarMenuItem>
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <SidebarMenuButton size="lg" class="data-[state=open]:bg-accent not-data-[state=open]:text-text">
+                        <UserInfo :user="user" />
+                        <ChevronsUpDown class="ml-0 size-4" />
+                    </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                    :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'" align="end"
+                    :side-offset="4">
+                    <UserMenuContent :user="user" />
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </SidebarMenuItem>
+    </SidebarMenu>
 </template>

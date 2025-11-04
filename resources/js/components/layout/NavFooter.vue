@@ -55,7 +55,7 @@ const footerItems = computed(() => allFooterItems.filter((item) => item.if !== f
         <SidebarGroupContent>
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in footerItems" :key="item.title">
-                    <SidebarMenuButton class="hocus:text-accent-foreground/80" as-child>
+                    <SidebarMenuButton class="hocus:text-accent-foreground" as-child>
                         <a v-if="item.external" :href="item.href" target="_blank" rel="noopener noreferrer"
                             class="px-2">
                             <component :is="item.icon" />

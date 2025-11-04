@@ -27,7 +27,8 @@ const form = useForm({
   avatar: null as File | null,
 });
 
-const submit = () => form.post(route('invitation.update'), {
+const submit = () => form.patch(route('invitation.update'), {
+  forceFormData: true,
   onSuccess: () => form.reset('password', 'password_confirmation')
 });
 
@@ -44,7 +45,7 @@ const project = familyProject || (props.user.projects && props.user.projects.len
 
     <Head :title="_('Complete Registration')" />
 
-    <AuthLayout>
+    <AuthLayout wide>
         <!-- Redesigned Header Section with Better Hierarchy -->
         <div class="mb-6 space-y-4 md:mb-8 md:space-y-6">
             <!-- Title - Larger, More Prominent with User's Name -->
