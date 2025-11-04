@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\Project;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,18 +41,18 @@ trait ProjectScope
     {
         self::ensureModelBelongsToProjects();
 
-        if (self::noScopeRequired()) {
-            return;
-        }
+        $scopeFn = method_exists(static::class, 'projects')
+            ? self::belongsToManyScope(...)
+            : self::belongsToScope(...);
 
-        /** @var Collection $filter */
-        $filter = Auth::user()->projects->pluck('id');
+        static::addGlobalScope('projectScope', function (Builder $builder) use ($scopeFn) {
+            if (static::class === User::class || Auth::guest() || Auth::user()->isSuperadmin()) {
+                return;
+            }
 
-        $scope = method_exists(static::class, 'projects')
-            ? fn ($builder) => self::belongsToManyScope($builder, $filter)
-            : fn ($builder) => self::belongsToScope($builder, $filter);
-
-        static::addGlobalScope('projectScope', $scope);
+            $projects = Auth::user()->projects->pluck('id');
+            $scopeFn($builder, $projects);
+        });
     }
 
     protected static function belongsToManyScope(Builder $builder, Collection $filter)
