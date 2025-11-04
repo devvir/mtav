@@ -24,6 +24,6 @@ echo "Running database migrations..."
 docker_exec php php artisan migrate --no-interaction
 
 echo "Creating storage symlink..."
-docker_exec php php artisan storage:link --no-interaction
+docker_exec php php artisan storage:link --no-interaction --force
 
 echo "✅ Dependencies installed successfully!"
