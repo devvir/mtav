@@ -25,7 +25,7 @@ beforeEach(function () {
 describe('When submitting the invitation acceptance form', function () {
     it('requires a password', function () {
         /** @var \Illuminate\Testing\TestResponse $response */
-        $response = $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+        $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
             // password missing
         ], redirects: false);
 
@@ -33,7 +33,7 @@ describe('When submitting the invitation acceptance form', function () {
     });
 
     it('requires password confirmation to match', function () {
-        $response = $this->sendPatchRequest('invitation.update', asMember: 148, redirects: false, data: [
+        $response = $this->sendPostRequest('invitation.update', asMember: 148, redirects: false, data: [
             'password' => 'password123',
             'password_confirmation' => 'different',
         ]);
@@ -42,7 +42,7 @@ describe('When submitting the invitation acceptance form', function () {
     });
 
     it('accepts optional fields: firstname, lastname, phone, legal_id', function () {
-        $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+        $this->sendPostRequest('invitation.update', asMember: 148, data: [
             'password' => 'secure-password',
             'password_confirmation' => 'secure-password',
             'firstname' => 'John',
@@ -61,7 +61,7 @@ describe('When submitting the invitation acceptance form', function () {
     it('accepts avatar upload (image, max 2MB)', function () {
         $avatar = UploadedFile::fake()->image('avatar.jpg', 100, 100)->size(1024);
 
-        $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+        $this->sendPostRequest('invitation.update', asMember: 148, data: [
             'password' => 'secure-password',
             'password_confirmation' => 'secure-password',
             'avatar' => $avatar,
@@ -74,7 +74,7 @@ describe('When submitting the invitation acceptance form', function () {
 
     describe('on success', function () {
         it('sets invitation_accepted_at to current datetime', function () {
-            $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+            $this->sendPostRequest('invitation.update', asMember: 148, data: [
                 'password' => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ]);
@@ -84,7 +84,7 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('sets email_verified_at to current datetime', function () {
-            $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+            $this->sendPostRequest('invitation.update', asMember: 148, data: [
                 'password' => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ]);
@@ -94,7 +94,7 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('updates the password', function () {
-            $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+            $this->sendPostRequest('invitation.update', asMember: 148, data: [
                 'password' => 'new-secure-password',
                 'password_confirmation' => 'new-secure-password',
             ]);
@@ -104,7 +104,7 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('redirects to homepage with success message', function () {
-            $response = $this->sendPatchRequest('invitation.update', asMember: 148, data: [
+            $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
                 'password' => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ], redirects: false);
@@ -114,7 +114,7 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('works for Admin users as well', function () {
-            $this->sendPatchRequest('invitation.update', asAdmin: 18, data: [
+            $this->sendPostRequest('invitation.update', asAdmin: 18, data: [
                 'password' => 'admin-password',
                 'password_confirmation' => 'admin-password',
                 'firstname' => 'Sarah',

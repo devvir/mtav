@@ -27,8 +27,7 @@ const form = useForm({
   avatar: null as File | null,
 });
 
-const submit = () => form.patch(route('invitation.update'), {
-  forceFormData: true,
+const submit = () => form.post(route('invitation.update'), {
   onSuccess: () => form.reset('password', 'password_confirmation')
 });
 

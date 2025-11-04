@@ -12,7 +12,7 @@ Route::group([], __DIR__ . '/web/documentation.php');
 
 /** User Invitation Routes */
 Route::get('invitation', [InvitationController::class, 'edit'])->name('invitation.edit');
-Route::patch('invitation', [InvitationController::class, 'update'])->name('invitation.update');
+Route::post('invitation', [InvitationController::class, 'update'])->name('invitation.update');
 
 /** Guest-only Routes */
 Route::middleware('guest')->group(__DIR__ . '/web/guest.php');

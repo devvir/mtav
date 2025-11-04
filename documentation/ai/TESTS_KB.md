@@ -2,7 +2,7 @@
 
 **Purpose**: Persistent guidelines and principles for test development. This document captures our evolving alignment on testing practices, code quality standards, and collaboration rules.
 
-**Last Updated**: 2025-10-29
+**Last Updated**: 2025-11-04
 
 ---
 
@@ -247,160 +247,298 @@ and edge cases like deleted/inactive projects and users.
 ### Ideal Test Anatomy
 
 ```php
-it('redirects admin with one project to dashboard', function () {
-    // Admin #2 manages only Project #1
-    $response = $this->actingAs(User::find(2))
-        ->getRoute('login');
+it('requires a password', function () {
+    $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
+        // password missing
+    ], redirects: false);
 
-    $response->assertStatus(302);
-    $response->assertRedirect(route('home'));
+    $response->assertInvalid('password');
 });
 ```
 
 **Characteristics**:
-- **Short**: Ideally 2 lines (one act, one assert)
+- **Short**: 2-3 lines (setup, act, assert)
 - **Minimal Arrange**: Reuse fixtured universe when possible
-- **Readable Title**: Reads like English, includes verb (it/test)
-- **Meaningful Comments Only**: Add information that clarifies intent
-- **Fluent Formatting**: One method call per line for readability
+- **Readable Title**: Reads like English, describes the behavior
+- **Self-Documenting Code**: Named parameters show intent
+- **One Assertion**: Focus on single concern
+
+### Real-World Examples
+
+**Simple validation test**:
+```php
+it('requires password confirmation to match', function () {
+    $response = $this->sendPostRequest('invitation.update', asMember: 148, redirects: false, data: [
+        'password' => 'password123',
+        'password_confirmation' => 'different',
+    ]);
+
+    $response->assertInvalid('password');
+});
+```
+
+**Testing state changes**:
+```php
+it('sets invitation_accepted_at to current datetime', function () {
+    $this->sendPostRequest('invitation.update', asMember: 148, data: [
+        'password' => 'secure-password',
+        'password_confirmation' => 'secure-password',
+    ]);
+
+    $member = Member::find(148);
+    expect($member->invitation_accepted_at)->not->toBeNull();
+});
+```
+
+**Authorization test**:
+```php
+it('prevents members from creating admins', function () {
+    $response = $this->sendPostRequest('admins.store', asMember: 102, data: [
+        'email' => 'newadmin@example.com',
+        'firstname' => 'John',
+        'lastname' => 'Doe',
+        'project_ids' => [1],
+    ], redirects: false);
+
+    expect($response)->toRedirectTo('home');
+});
+```
 
 ### Fluent API Formatting
 
-**RULE**: Format fluent method chains with one call per line for readability.
+**RULE**: Use named parameters for self-documenting code.
 
 ```php
-// ✅ GOOD - Reads like English: "acting as user #3, and following redirects, get the login page"
-$response = $this->actingAs(User::find(3))
-    ->followingRedirects()
-    ->getRoute('login');
+// ✅ GOOD - Named parameters make intent crystal clear
+$response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
+    'password' => 'secure-password',
+    'password_confirmation' => 'secure-password',
+]);
 
-// ❌ BAD - Hard to parse, hides the sequence of steps
-$admin = User::find(3);
-$response = $this->actingAs($admin)->followingRedirects()->get('/login');
+// ✅ GOOD - Control redirects explicitly
+$response = $this->visitRoute('login', asAdmin: 12, redirects: false);
+
+// ❌ BAD - Mixed old patterns, unclear what parameters mean
+$this->actingAs(User::find(148))->post(route('invitation.update'), [
+    'password' => 'secure-password',
+]);
 ```
 
-**Why**: The formatted version exposes the nature of the action parts and the sequence of steps. Even non-technical people can read it easily.
+**Why**: Named parameters are self-documenting. Even non-technical people can read `asMember: 148` and understand.
 
 **Benefits**:
-- Does not separate a single action into multiple statements with intermediate variables
-- Still separates "sub-steps" into chunks (one per line)
-- Makes the sequence of operations explicit and scannable
+- No need to remember parameter order
+- Intent is explicit in the code
+- Easy to skip optional parameters
+- Reads like natural language
 
 ### Route Names, Not URIs
 
 **RULE**: Always use route names, never hardcoded URIs.
 
-**Rationale**: Routes can change. Today it's `/login`, tomorrow it may be `/entrar` or `/authenticate` or `/`.
+**Rationale**: Routes can change. Today it's `/login`, tomorrow it may be `/entrar` or `/authenticate`.
 
 ```php
-// ✅ GOOD - Uses route name via chainable method
-$response = $this->getRoute('login');
+// ✅ GOOD - Uses route name via helper
+$response = $this->visitRoute('login');
+$response = $this->sendPostRequest('invitation.update', data: [...]);
 
 // ❌ BAD - Hardcoded URI will break if route changes
 $response = $this->get('/login');
+$response = $this->post('/invitation', [...]);
 ```
 
-### Creating Custom Chainable Methods for Pest
+**Implementation**: The `visitRoute()` and `send*Request()` helpers automatically resolve route names using Laravel's `route()` helper internally.
 
-**Pattern**: Add protected methods to `tests/TestCase.php` that return `TestResponse`.
+### Creating Custom Helpers for Tests
 
-This allows you to create domain-specific test helpers that chain perfectly with Laravel's fluent testing API.
+**Pattern**: Add domain-specific helpers to `tests/Concerns/` traits.
 
-**Example Implementation** (in `tests/TestCase.php`):
+This keeps test logic clean and creates a testing vocabulary specific to your application.
+
+**Current Structure**:
+```
+tests/
+  Concerns/
+    Http.php       # HTTP request helpers (visitRoute, sendPostRequest, etc.)
+    Utilities.php  # Main trait that composes other concerns
+  TestCase.php     # Base test case that uses Utilities trait
+```
+
+**Adding New Helpers**:
+
+1. **For HTTP-related helpers**: Add to `tests/Concerns/Http.php`
+2. **For new categories**: Create new trait in `tests/Concerns/`, include in `Utilities.php`
+
+**Example - Adding a new helper**:
 ```php
-use Illuminate\Testing\TestResponse;
-
-abstract class TestCase extends BaseTestCase
+// In tests/Concerns/Http.php or new trait
+protected function assertRedirectsToHome(TestResponse $response): void
 {
-    /**
-     * Visit the given route and return the response.
-     */
-    protected function getRoute(string $name, array $parameters = []): TestResponse
-    {
-        return $this->get(route($name, $parameters));
-    }
-
-    /**
-     * POST to the given route and return the response.
-     */
-    protected function postRoute(string $name, array $data = [], array $parameters = []): TestResponse
-    {
-        return $this->post(route($name, $parameters), $data);
-    }
-
-    /**
-     * Alias for postRoute() that reads more naturally in English.
-     * You're posting data TO a route, not "routing" the data.
-     */
-    protected function sendPostRequest(string $name, array $data = [], array $parameters = []): TestResponse
-    {
-        return $this->postRoute($name, $data, $parameters);
-    }
+    expect($response)->toRedirectTo('home');
 }
 ```
 
-**Usage in Tests** - Chains beautifully with existing methods:
+**Usage**:
 ```php
-// Simple usage
-$response = $this->getRoute('login');
+it('redirects unauthorized users to home', function () {
+    $response = $this->visitRoute('admin.dashboard', asMember: 102, redirects: false);
 
-// Chains with actingAs
-$response = $this->actingAs($user)
-    ->getRoute('login');
+    $this->assertRedirectsToHome($response);
+});
+```
 
-// Chains with actingAs + followingRedirects
-$response = $this->actingAs($user)
-    ->followingRedirects()
-    ->getRoute('login');
+**Example Implementation** (in `tests/Concerns/Http.php`):
+```php
+trait Http
+{
+    /**
+     * Visit a route (by name) as a specific User or as Guest (default).
+     */
+    protected function visitRoute(
+        string|array $route,
+        array $data = [],
+        int|User|null $asUser = null,
+        int|Admin|null $asAdmin = null,
+        int|Member|null $asMember = null,
+        bool $redirects = true,
+    ): TestResponse {
+        $this->prepareRequest($asUser, $asAdmin, $asMember, $redirects);
 
-// With route parameters
-$response = $this->actingAs($admin)
-    ->getRoute('projects.show', ['project' => 1]);
+        $query = http_build_query($data);
+        $uri = $this->resolveRoute($route) . ($query ? "?$query" : '');
 
-// POST with data - using sendPostRequest alias for better readability
-$response = $this->actingAs($user)
-    ->sendPostRequest('login', [
-        'email' => 'admin@example.com',
-        'password' => 'password',
-    ]);
+        return $this->get($uri);
+    }
+
+    /**
+     * Send a POST request to a route (by name) as a specific User or as Guest (default).
+     */
+    protected function sendPostRequest(
+        string|array $route,
+        array $data = [],
+        int|User|null $asUser = null,
+        int|Admin|null $asAdmin = null,
+        int|Member|null $asMember = null,
+        bool $redirects = true,
+    ): TestResponse {
+        $this->prepareRequest($asUser, $asAdmin, $asMember, $redirects);
+
+        return $this->post($this->resolveRoute($route), $data);
+    }
+
+    // Similar for sendPatchRequest, putRoute, deleteRoute...
+}
+```
+
+**Usage in Tests** - Clean, readable, consistent:
+```php
+// Visit a route as guest
+$response = $this->visitRoute('login');
+
+// Visit as specific user type with type enforcement
+$response = $this->visitRoute('projects.index', asAdmin: 12);
+$response = $this->visitRoute('family.show', asMember: 148);
+
+// With route parameters (array notation)
+$response = $this->visitRoute(['projects.show', 1], asAdmin: 11);
+
+// Control redirects
+$response = $this->visitRoute('login', asAdmin: 5, redirects: false);
+
+// POST with data
+$response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
+    'password' => 'secure-password',
+    'password_confirmation' => 'secure-password',
+]);
+
+// POST without following redirects (to test validation errors)
+$response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
+    'email' => 'invalid',
+], redirects: false);
+
+$response->assertInvalid('email');
 ```
 
 **Why This Works**:
-- `TestCase` is extended by all Pest tests automatically
+- `TestCase` uses `Utilities` trait which includes `Http` trait
 - Protected methods are available via `$this` in test closures
-- Returning `TestResponse` allows further chaining with assertion methods
-- Integrates seamlessly with Laravel's testing helpers (`actingAs`, `followingRedirects`, etc.)
+- Returning `TestResponse` allows chaining with assertion methods
+- Named parameters make tests self-documenting
+- Type enforcement (`asAdmin`/`asMember`) catches mistakes at test time
+- Consistent API across all HTTP methods
 
 **Benefits**:
 - Route names instead of URIs (config-independent)
 - Shorter, more readable test code
-- Consistent API across all tests
+- Authentication and redirects in one call
+- Self-documenting with named parameters
+- Type safety prevents wrong user type usage
 - Easy to add more helpers as patterns emerge
 
 **Available Route Helpers** (all return `TestResponse`):
-- `getRoute(string $routeName, array $parameters = [])`
-- `postRoute(string $routeName, array $data = [], array $parameters = [])` or `sendPostRequest()` (alias)
-- `putRoute(string $routeName, array $data = [], array $parameters = [])` or `putToRoute()` (alias)
-- `patchRoute(string $routeName, array $data = [], array $parameters = [])` or `sendPatchRequest()` (alias)
-- `deleteRoute(string $routeName, array $parameters = [])`
 
-**Note on Aliases**: The `*ToRoute()` aliases (sendPostRequest, putToRoute, sendPatchRequest) read more naturally in English since you're sending data TO a route, not "routing" the data. Use whichever reads better in context.
+All helpers support authentication and redirect control through named parameters:
+- `asUser: int|User` - Act as any user by ID or instance
+- `asAdmin: int|Admin` - Act as an admin by ID or instance (enforces type check)
+- `asMember: int|Member` - Act as a member by ID or instance (enforces type check)
+- `redirects: bool` - Whether to follow redirects (default: `true`)
+- `data: array` - Query parameters (GET) or request data (POST/PATCH/PUT)
+
+**GET Requests**:
+- `visitRoute(string|array $route, array $data = [], ...)`
+  - Example: `$this->visitRoute('login', asAdmin: 12)`
+  - Example: `$this->visitRoute(['projects.show', 1], asAdmin: 12, redirects: false)`
+  - Route can be string name or array of `[name, ...params]`
+
+**POST Requests**:
+- `sendPostRequest(string|array $route, array $data = [], ...)`
+  - Example: `$this->sendPostRequest('invitation.update', asMember: 148, data: ['password' => '...'])`
+  - Example: `$this->sendPostRequest('admins.store', asAdmin: 11, data: [...], redirects: false)`
+
+**PATCH Requests**:
+- `sendPatchRequest(string|array $route, array $data = [], ...)`
+  - Example: `$this->sendPatchRequest('profile.update', asUser: 5, data: [...])`
+
+**PUT Requests**:
+- `putRoute(string $name, array $data = [], array $parameters = [])`
+  - Legacy helper, prefer `sendPatchRequest` pattern for consistency
+
+**DELETE Requests**:
+- `deleteRoute(string $name, array $parameters = [])`
+  - Example: `$this->deleteRoute('admins.destroy', ['admin' => 5])`
+
+**Pattern Consistency**: Use the `visitRoute()` and `send*Request()` family for all new tests. They provide consistent API with authentication and redirect control built-in.
 
 ### Comment Guidelines
 
 **✅ GOOD Comments** - Add context not obvious from code:
 ```php
-// Admin #3 manages Projects #2 and #3
-$admin = User::find(3);
+it('prevents admin from assigning projects they do not manage', function () {
+    // Admin #12 manages only Project #2
+    $response = $this->sendPostRequest('admins.store', asAdmin: 12, data: [
+        'email' => 'newadmin@example.com',
+        'firstname' => 'John',
+        'lastname' => 'Doe',
+        'project_ids' => [1], // Trying to assign Project #1 (not managed by Admin #12)
+    ], redirects: false);
+
+    expect($response)->toRedirectTo('home');
+});
 ```
-This explains *why* we picked User #3—it makes the test's logic explicit.
+This explains *why* we picked Admin #12 and Project #1—it makes the test's logic explicit.
 
 **❌ BAD Comments** - Restate what code already says:
 ```php
-// Should successfully load a page after redirect chain completes
-$response->assertStatus(200);
+it('saves the user password', function () {
+    // Send POST request
+    $this->sendPostRequest('invitation.update', asMember: 148, data: ['password' => '...']);
+
+    // Assert password was set
+    expect(Member::find(148)->password)->not->toBeNull();
+});
 ```
-This adds nothing; `assertStatus(200)` already says "page loaded successfully."
+The code is already clear; comments add no value.
 
 ### Docblock Guidelines
 
@@ -1055,11 +1193,19 @@ Now tests ask: **"Where did the user end up?"** not **"What HTTP status was retu
 
 **Why**: Humans read by pattern recognition. Inconsistency breaks this.
 
-**Example**: `visitRoute()` pattern used consistently across all LoginPage tests:
+**Example**: Use `visitRoute()` and `send*Request()` consistently across all tests:
 ```php
-$response = $this->visitRoute('login', asUser: 7);   // Member
-$response = $this->visitRoute('login', asUser: 2);   // Admin with 1 project
-$response = $this->visitRoute('login', asUser: 3);   // Admin with 2 projects
+// Guest access
+$response = $this->visitRoute('login');
+
+// As admin
+$response = $this->visitRoute('projects.index', asAdmin: 12);
+
+// As member
+$response = $this->visitRoute('family.show', asMember: 148);
+
+// POST requests
+$response = $this->sendPostRequest('invitation.update', asMember: 148, data: [...]);
 ```
 
 **Every single test** uses this pattern. You learn it once, then scan effortlessly.
@@ -1067,8 +1213,8 @@ $response = $this->visitRoute('login', asUser: 3);   // Admin with 2 projects
 **Anti-pattern**: Mixing approaches in the same file:
 ```php
 // ❌ Inconsistent - breaks pattern recognition
-$this->actingAs(User::find(7))->followingRedirects()->getRoute('login');
-Auth::loginUsingId(2); $this->get('/login');
+$this->actingAs(User::find(7))->get('/login');
+Auth::loginUsingId(2); $this->get(route('login'));
 $this->visitRoute('login', asUser: 3);
 ```
 
@@ -1078,12 +1224,13 @@ $this->visitRoute('login', asUser: 3);
 
 **Goal**: Create a **domain-specific language (DSL)** for testing your application.
 
-As you write tests, you build vocabulary:
-- `visitRoute()` - user navigates to a route
-- `inertiaRoute()` - extract which route loaded
-- `currentProject()` - get the project in context
-- `setState()` - configure session state
-- `isSuperadmin()` - check superadmin status
+As you write tests, you build vocabulary through helper methods:
+- `visitRoute()` - user navigates to a route (as guest or authenticated)
+- `sendPostRequest()` - submit form data to a route
+- `sendPatchRequest()` - update resource via PATCH
+- `asAdmin: int` - perform action as specific admin
+- `asMember: int` - perform action as specific member
+- `redirects: bool` - control whether to follow redirects
 
 **This vocabulary encodes domain knowledge**:
 - Not just "make tests shorter"
@@ -1093,49 +1240,74 @@ As you write tests, you build vocabulary:
 
 **Example**: Reading this test teaches you about the domain:
 ```php
-it('redirects to Projects and resets current project if admin does not manage selected one', function () {
-    setCurrentProject(1);
+it('prevents members from creating admins', function () {
+    $response = $this->sendPostRequest('admins.store', asMember: 102, data: [
+        'email' => 'newadmin@example.com',
+        'firstname' => 'John',
+        'lastname' => 'Doe',
+        'project_ids' => [1],
+    ], redirects: false);
 
-    $response = $this->visitRoute('login', asUser: 3);  // Admin managing Projects #2 and #3
-
-    expect(currentProjectId())->toBeNull();
-    expect(inertiaRoute($response))->toBe('projects.index');
+    expect($response)->toRedirectTo('home');
 });
 ```
 
 **What you learn**:
-- System has concept of "current project"
-- Admins can manage multiple projects
-- System validates admin access to current project
-- Invalid access clears selection and shows project list
+- System distinguishes between admins and members
+- Members cannot create admins (authorization rule)
+- Unauthorized actions redirect to home
+- Admin creation requires email, name, and project assignment
 
 **Without helpers**:
 ```php
-it('redirects to Projects and resets current project if admin does not manage selected one', function () {
-    session()->put('state.project', 1);
+it('prevents members from creating admins', function () {
+    $member = Member::find(102);
+    $response = $this->actingAs($member->user)
+        ->post(route('admins.store'), [
+            'email' => 'newadmin@example.com',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'project_ids' => [1],
+        ]);
 
-    $response = $this->actingAs(User::find(3))
-        ->followingRedirects()
-        ->get(route('login'));
-
-    expect(session()->get('state.project'))->toBeNull();
-    expect($response->viewData('page')['props']['route']['name'])->toBe('projects.index');
+    expect($response->status())->toBe(302);
+    expect($response->headers->get('Location'))->toContain(route('home'));
 });
 ```
 
-This version teaches you about **Laravel session API and Inertia internals**, not your business domain.
+This version teaches you about **Laravel HTTP internals and test framework**, not your business domain.
 
 ### The Philosophy: Tests ARE Specifications
 
 **Final Insight**: Well-written tests are **not separate from documentation**—they ARE the documentation.
 
-When someone asks "How does login work for admins with multiple projects?", you point them to:
+When someone asks "How does invitation acceptance work?", you point them to:
 ```php
-describe('as Admin', function () {
-    it('redirects to projects index if they manage more than one Project', function () {
-        $response = $this->visitRoute('login', asUser: 3);
+describe('When submitting the invitation acceptance form', function () {
+    it('requires a password', function () {
+        $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
+            // password missing
+        ], redirects: false);
 
-        expect(inertiaRoute($response))->toBe('projects.index');
+        $response->assertInvalid('password');
+    });
+
+    it('requires password confirmation to match', function () {
+        $response = $this->sendPostRequest('invitation.update', asMember: 148, redirects: false, data: [
+            'password' => 'password123',
+            'password_confirmation' => 'different',
+        ]);
+
+        $response->assertInvalid('password');
+    });
+
+    it('sets invitation_accepted_at to current datetime', function () {
+        $this->sendPostRequest('invitation.update', asMember: 148, data: [
+            'password' => 'secure-password',
+            'password_confirmation' => 'secure-password',
+        ]);
+
+        expect(Member::find(148)->invitation_accepted_at)->not->toBeNull();
     });
 });
 ```
@@ -1145,8 +1317,9 @@ describe('as Admin', function () {
 **Benefits of tests as specs**:
 - Requirements are executable code
 - Specs can't drift from implementation
-- Non-programmers can read test names
+- Non-programmers can read test descriptions
 - Test failures = spec violations
+- Tests document edge cases and business rules
 
 **Your job**: Make tests so clear that reading them teaches someone how the system works.
 
