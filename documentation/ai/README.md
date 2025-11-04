@@ -8,17 +8,52 @@
 
 ---
 
-## Quick Start for AI Assistants
+## 📁 NEW ORGANIZED STRUCTURE (December 2024)
+
+**Problem Solved**: 7,300-line monolithic `KNOWLEDGE_BASE.md` caused knowledge degradation over long conversations.
+
+**Solution**: Topic-focused files matching work contexts:
+
+```
+documentation/ai/
+├── core/                        # 🔴 REQUIRED - Read for 99% of work
+│   ├── USER_SYSTEM.md          # User/Member/Admin/Superadmin (STI, family atomicity)
+│   └── SCOPING.md              # ProjectScope global scopes (universe boundaries)
+├── testing/                     # 🟡 For test development
+│   └── PHILOSOPHY.md           # Universe fixture, rollback, 2-line ideal
+├── features/                    # 🟢 Feature-specific (to be populated)
+└── technical/                   # 🟢 Implementation details (to be populated)
+```
+
+### Quick Start for AI Assistants
+
+**ALWAYS read first (foundational - needed 99% of time)**:
+1. `core/USER_SYSTEM.md` - User types, STI pattern, family atomicity
+2. `core/SCOPING.md` - ProjectScope system, authorization matrix
+
+**If writing/running tests**:
+3. `testing/PHILOSOPHY.md` - Universe fixture, test patterns, helpers
+
+**For specific work**:
+4. `features/{TOPIC}.md` or `technical/{TOPIC}.md` (when created)
+
+**Legacy reference**:
+- `KNOWLEDGE_BASE.md` - Original monolithic KB (kept during migration)
+
+---
+
+## Quick Start for AI Assistants (Legacy Workflow - Being Phased Out)
 
 **When starting a new session:**
 
 1. **Read these files in order** (essential context):
    - `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` - Design constraints (WCAG, elderly users, old devices)
-   - `KNOWLEDGE_BASE.md` - Complete system specification (~7,300 lines - comprehensive)
+   - **NEW**: `core/USER_SYSTEM.md` + `core/SCOPING.md` (foundational concepts)
+   - ~~`KNOWLEDGE_BASE.md`~~ - (Being replaced by organized structure)
    - `DECISIONS.md` - Rationale for key choices and deferred features
-   - `TESTS_KB.md` - Testing philosophy and patterns
+   - `TESTS_KB.md` - Testing philosophy and patterns (being migrated to `testing/`)
 
-2. **Current development approach** (Nov 2025):
+2. **Current development approach** (Dec 2024):
    - No formal sprints - knocking down TODOs daily as they arise
    - Priorities may shift after tutor meetings
    - Ask user for today's focus before starting work
@@ -31,11 +66,11 @@
    - Test helpers go in `tests/Helpers/` (autoloaded by Pest)
 
 4. **Key architectural patterns** (internalize these):
-   - Global scopes handle project-based filtering (query level)
-   - Policies handle action permissions (action level)
-   - Family atomicity is sacred (families are atomic units)
-   - Fixture-based testing with `universe.sql`
-   - 2-line test ideal (act + assert)
+   - **STI (Single Table Inheritance)**: User → Admin/Member (see `core/USER_SYSTEM.md`)
+   - **Family Atomicity**: Families are atomic units, members mirror family's project
+   - **Two-Level Auth**: Global scopes (query) + Policies (action) (see `core/SCOPING.md`)
+   - **Universe Fixture**: `universe.sql` loaded once, rolled back per test
+   - **2-Line Test Ideal**: act + assert (see `testing/PHILOSOPHY.md`)
 
 5. **Ask before**:
    - Modifying production code to fix tests
@@ -46,6 +81,64 @@
 ---
 
 ## File Inventory
+
+### 🔴 CORE - Always Read (core/)
+
+#### `core/USER_SYSTEM.md`
+**What**: Complete user type system (User/Member/Admin/Superadmin)
+**Priority**: 🔴 CRITICAL - Read for 99% of work
+**Contains**:
+- STI (Single Table Inheritance) pattern on users table
+- Member: `is_admin=false`, must have family, family atomicity
+- Admin: `is_admin=true`, manages projects, no family
+- Superadmin: admin + config array, bypasses all policies
+- Database schema, relationships, validation rules
+- Capabilities matrix, workflows, constraints
+
+#### `core/SCOPING.md`
+**What**: Two-level authorization (global scopes + policies)
+**Priority**: 🔴 CRITICAL - Read for 99% of work
+**Contains**:
+- ProjectScope trait implementation
+- Query-level filtering (what "exists" for user)
+- Action-level permissions (what user can DO)
+- Universe definitions (Member/Admin/Superadmin boundaries)
+- Authorization matrix (complete permissions table)
+- Policy patterns, testing scopes
+
+### 🟡 TESTING - Read for Test Work (testing/)
+
+#### `testing/PHILOSOPHY.md`
+**What**: Test infrastructure, universe fixture, patterns
+**Priority**: 🟡 REQUIRED for test development
+**Contains**:
+- Universe fixture concept (`universe.sql`)
+- Transaction rollback strategy
+- 2-line test ideal
+- Test patterns (scope, auth, controller, business logic)
+- Helper functions, running tests
+- Testing ProjectScope specifically
+
+### 🟢 FEATURES - Read as Needed (features/) - TO BE POPULATED
+
+**Planned files**:
+- `LOTTERY.md` - Lottery system, preferences, unit assignment
+- `UNITS.md` - Unit types, characteristics, blueprints
+- `FAMILIES.md` - Family management, project switching
+- `EVENTS.md` - Community events, RSVP
+- `MEDIA.md` - Profile images, gallery, uploads
+
+### 🟢 TECHNICAL - Read as Needed (technical/) - TO BE POPULATED
+
+**Planned files**:
+- `DOCKER.md` - Docker setup, wrapper, build process
+- `INERTIA.md` - Inertia.js patterns, modal system
+- `VALIDATION.md` - Form requests, custom rules
+- `DEPLOYMENT.md` - Build images, registry, deployment
+
+---
+
+## Legacy Files (Being Phased Out)
 
 ### `KNOWLEDGE_BASE.md`
 
