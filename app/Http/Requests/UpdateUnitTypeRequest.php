@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\FormRequest;
-
 /**
  * @property-read string $name
  * @property-read string|null $description

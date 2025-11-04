@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
-use App\Http\Requests\FormRequest;
 
 /**
  * @property-read string|null $q

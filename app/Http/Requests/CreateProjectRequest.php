@@ -2,15 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Admin;
-use App\Models\Project;
 use App\Models\User;
-use App\Http\Requests\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * @method User|null user($guard = null)
- *
  */
 class CreateProjectRequest extends FormRequest
 {
