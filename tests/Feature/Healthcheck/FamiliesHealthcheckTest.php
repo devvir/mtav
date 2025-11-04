@@ -43,7 +43,7 @@ describe('When a Member', function () {
             // Member #102 is in Family #4, trying to edit Family #5
             $response = $this->visitRoute(['families.edit', 5], asMember: 102, redirects: false);
 
-            expect($response)->toBeUnauthorized();
+            expect($response)->toRedirectTo('home');
         });
     });
 
@@ -51,7 +51,7 @@ describe('When a Member', function () {
         it('denies access (Members cannot create Families)', function () {
             $response = $this->visitRoute('families.create', asMember: 102, redirects: false);
 
-            expect($response)->toBeUnauthorized();
+            expect($response)->toRedirectTo('home');
         });
     });
 });

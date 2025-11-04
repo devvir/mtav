@@ -43,9 +43,9 @@ describe('When creating an Admin', function () {
                 'firstname' => 'John',
                 'lastname' => 'Doe',
                 'project_ids' => [1],
-            ]);
+            ], redirects: false);
 
-            $response->assertForbidden();
+            expect($response)->toRedirectTo('home');
         });
 
         it('prevents guests from creating admins', function () {
