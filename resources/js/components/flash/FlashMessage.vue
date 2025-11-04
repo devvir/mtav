@@ -7,6 +7,7 @@ import type { MessageType } from './useFlashMessages';
 defineProps<{
   type: MessageType;
   message: string;
+  multiline?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -37,7 +38,7 @@ const icons: Record<MessageType, any> = {
       <component :is="icons[type]" class="size-6" />
     </div>
 
-    <AlertDescription :title="message" class="flex-1 truncate">
+    <AlertDescription :title="message" :class="multiline ? 'flex-1' : 'flex-1 truncate'">
       {{ message }}
     </AlertDescription>
 

@@ -6,6 +6,7 @@ import { useFlashMessages } from './useFlashMessages';
 
 const props = defineProps<{
   noAutoDismiss?: boolean;
+  multiline?: boolean;
 }>();
 
 const page = usePage();
@@ -22,10 +23,10 @@ watch(
 
     const timeout = props.noAutoDismiss ? 0 : undefined; // 0 = no auto-dismiss, undefined = default
 
-    if (flashProps.success) flash(flashProps.success, 'success', timeout);
-    if (flashProps.info) flash(flashProps.info, 'info', timeout);
-    if (flashProps.warning) flash(flashProps.warning, 'warning', timeout);
-    if (flashProps.error) flash(flashProps.error, 'error', timeout);
+    if (flashProps.success) flash(flashProps.success, 'success', timeout, props.multiline);
+    if (flashProps.info) flash(flashProps.info, 'info', timeout, props.multiline);
+    if (flashProps.warning) flash(flashProps.warning, 'warning', timeout, props.multiline);
+    if (flashProps.error) flash(flashProps.error, 'error', timeout, props.multiline);
   },
   { immediate: true }
 );
@@ -38,6 +39,7 @@ watch(
       :key="message.id"
       :type="message.type"
       :message="message.message"
+      :multiline="message.multiline"
       @dismiss="removeMessage(message.id)"
     />
   </div>

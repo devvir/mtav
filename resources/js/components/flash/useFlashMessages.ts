@@ -7,6 +7,7 @@ export interface FlashMessage {
   id: string;
   type: MessageType;
   message: string;
+  multiline?: boolean;
   timeoutId?: number;
 }
 
@@ -25,10 +26,11 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
    * @param message - The message to display
    * @param type - The message type (success, info, warning, error)
    * @param timeout - Auto-dismiss timeout in ms. Use 0 for no auto-dismiss (manual close only)
+   * @param multiline - Allow message to wrap to multiple lines (default: false, truncates)
    */
-  const flash = (message: string, type: MessageType = 'success', timeout: number = AUTO_DISMISS_MS) => {
+  const flash = (message: string, type: MessageType = 'success', timeout: number = AUTO_DISMISS_MS, multiline: boolean = false) => {
     const id = `flash-${++messageIdCounter}`;
-    const flashMessage: FlashMessage = { id, type, message };
+    const flashMessage: FlashMessage = { id, type, message, multiline };
 
     // Add to stack
     messageStack.value.push(flashMessage);

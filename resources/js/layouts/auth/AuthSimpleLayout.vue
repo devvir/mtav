@@ -33,7 +33,7 @@ const maxWidthClass = computed(() =>
                     </div>
                 </div>
 
-                <FlashMessages no-auto-dismiss />
+                <FlashMessages no-auto-dismiss multiline />
 
                 <slot />
             </div>
