@@ -15,15 +15,7 @@ import UnitsSection from './Dashboard/units/UnitsSection.vue';
 import SkeletonCard from './Dashboard/shared/SkeletonCard.vue';
 
 const props = defineProps<{
-  stats: {
-    families: number;
-    members: number;
-    units: number;
-    unit_types: number;
-    admins: number;
-    media: number;
-    events: number;
-  };
+  project: Project;
   families?: Family[];
   members?: Member[];
   unitTypes?: UnitType[];
@@ -36,7 +28,6 @@ onMounted(() => {
   if (!props.families || !props.members || !props.unitTypes || !props.admins) {
     router.reload({
       only: ['families', 'members', 'unitTypes', 'admins'],
-      preserveScroll: true,
     });
   }
 });
@@ -59,6 +50,16 @@ const familiesToShow = computed(() => {
 });
 
 const visibleFamilies = computed(() => props.families?.slice(0, familiesToShow.value) || []);
+
+const stats = computed(() => ({
+  admins: props.project.admins_count as number,
+  members: props.project.members_count as number,
+  families: props.project.families_count as number,
+  unit_types: props.project.unit_types_count as number,
+  units: props.project.units_count as number,
+  media: props.project.media_count as number,
+  events: props.project.events_count as number,
+}));
 </script>
 
 <template>

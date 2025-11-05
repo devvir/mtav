@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-vue-next';
 
 defineProps<{
   title: string;
-  value: string | number;
+  value?: string | number;
   icon?: LucideIcon;
   href?: string;
   subtitle?: string;
@@ -23,7 +23,7 @@ defineProps<{
       <component :is="icon" class="h-6 w-6 text-interactive" />
     </div>
     <div class="flex-1">
-      <div class="text-2xl font-bold text-text">{{ value }}</div>
+      <div class="text-2xl font-bold text-text">{{ value ?? '...' }}</div>
       <div class="text-sm text-text-muted">{{ title }}</div>
       <div v-if="subtitle" class="text-xs text-text-subtle">{{ subtitle }}</div>
     </div>

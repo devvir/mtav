@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
@@ -34,22 +33,25 @@ class ProjectResource extends JsonResource
     {
         return [
             'admins' => $this->whenLoaded('admins'),
-            'admins_count' => $this->whenCounted(
-                'admins',
-                default: fn () => $this->whenLoaded('admins', fn () => $this->admins->count())
-            ),
+            'admins_count' => $this->whenCountedOrLoaded('admins'),
 
             'members' => $this->whenLoaded('members'),
-            'members_count' => $this->whenCounted(
-                'members',
-                default: fn () => $this->whenLoaded('members', fn () => $this->members->count())
-            ),
+            'members_count' => $this->whenCountedOrLoaded('members'),
 
             'families' => $this->whenLoaded('families'),
-            'families_count' => $this->whenCounted(
-                'families',
-                default: fn () => $this->whenLoaded('families', fn () => $this->families->count())
-            ),
+            'families_count' => $this->whenCountedOrLoaded('families'),
+
+            'unit_types' => $this->whenLoaded('unitTypes'),
+            'unit_types_count' => $this->whenCountedOrLoaded('unitTypes'),
+
+            'units' => $this->whenLoaded('units'),
+            'units_count' => $this->whenCountedOrLoaded('units'),
+
+            'media' => $this->whenLoaded('media'),
+            'media_count' => $this->whenCountedOrLoaded('media'),
+
+            'events' => $this->whenLoaded('events'),
+            'events_count' => $this->whenCountedOrLoaded('events'),
         ];
     }
 }

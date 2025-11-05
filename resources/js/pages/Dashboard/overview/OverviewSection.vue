@@ -6,13 +6,13 @@ import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   stats: {
-    families: number;
-    members: number;
-    units: number;
-    unit_types: number;
-    admins: number;
-    media: number;
-    events: number;
+    families?: number;
+    members?: number;
+    units?: number;
+    unit_types?: number;
+    admins?: number;
+    media?: number;
+    events?: number;
   };
 }>();
 </script>

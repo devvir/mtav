@@ -19,12 +19,22 @@ interface Project extends Resource {
   organization: string;
   active: boolean;
 
-  admins?: User[];
+  admins?: ApiResource<Admin>[];
   admins_count?: number;
-  members?: User[];
+  members?: ApiResource<Member>[];
   members_count?: number;
-  families?: Family[];
+  families?: ApiResource<Family>[];
   families_count?: number;
+  unit_types?: ApiResource<UnitType>[];
+  unit_types_count?: number;
+  units?: ApiResource<Unit>[];
+  units_count?: number;
+  media?: ApiResource<Media>[];
+  media_count?: number;
+  events?: ApiResource<Event>[];
+  events_count?: number;
+  log?: ApiResource<Log>[];
+  log_count?: number;
 }
 
 interface User extends Resource, Subject {
@@ -78,6 +88,19 @@ interface Unit extends Resource {
   type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   family: { id: number | null } | null | ApiResource<Family>;
+}
+
+interface Media extends Resource {
+    filename: string;
+    description: string | null;
+    url: string;
+    thumbnail_url: string | null;
+}
+
+interface Event extends Resource {
+    title: string;
+    description: string | null;
+    event_date: string;
 }
 
 interface Log extends Resource {
