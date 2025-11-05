@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
+// Collection contains exactly the given items, in any order.
+expect()->extend('toCollect',
+    fn (...$list) => expect($this->value->all())->toEqualCanonicalizing($list));
+
 /**
  * Polymorphic expectations, base definitions.
  * Fail by default, perform the actual expectation with the right input later in this file.

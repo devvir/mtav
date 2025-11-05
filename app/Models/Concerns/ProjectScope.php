@@ -5,6 +5,7 @@ namespace App\Models\Concerns;
 use App\Models\Project;
 use App\Models\User;
 use Exception;
+use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
@@ -46,7 +47,7 @@ trait ProjectScope
             : self::belongsToScope(...);
 
         static::addGlobalScope('projectScope', function (Builder $builder) use ($scopeFn) {
-            if (static::class === User::class || Auth::guest() || Auth::user()->isSuperadmin()) {
+            if (static::noScopingRequired()) {
                 return;
             }
 
@@ -90,8 +91,15 @@ trait ProjectScope
     /**
      * Project Scope only applies to non-superadmin authenticated users.
      */
-    protected static function noScopeRequired(): bool
+    protected static function noScopingRequired(): bool
     {
-        return Auth::guest() || Auth::user()->isSuperadmin();
+        // Skip Scoping for Laravel's fetching of the Authenticated User
+        $fetchingAuthUser = ! Auth::hasUser()
+            && static::class === User::class
+            && collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, limit: 15))
+                ->pluck('class')
+                ->contains(EloquentUserProvider::class);
+
+        return $fetchingAuthUser || Auth::guest() || Auth::user()->isSuperadmin();
     }
 }
