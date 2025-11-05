@@ -12,7 +12,7 @@ function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): v
 
     $project = is_int($modelOrId) ? $builder->findOrFail($modelOrId) : $modelOrId;
 
-    setState('project', $project);
+    defineState('project', $project);
 }
 
 /**
@@ -20,5 +20,5 @@ function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): v
  */
 function resetCurrentProject(): void
 {
-    setState('project', null);
+    defineState('project', null);
 }

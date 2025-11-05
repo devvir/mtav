@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 /**
  * @property-read string $name
  * @property-read string|null $description
- *
  */
 class UpdateUnitTypeRequest extends FormRequest
 {

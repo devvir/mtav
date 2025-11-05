@@ -18,7 +18,7 @@ class FamilyController extends Controller
      */
     public function index(FilteredIndexRequest $request): Response
     {
-        setState('groupMembers', true);
+        defineState('groupMembers', true);
 
         $families = Family::alphabetically()
             ->withMembers()

@@ -46,7 +46,7 @@ function state(string $key, mixed $default = null): mixed
     return session()->get("state.$key", $default);
 }
 
-function setState(string $key, mixed $value): void
+function defineState(string $key, mixed $value): void
 {
     session()->put("state.$key", $value);
 }

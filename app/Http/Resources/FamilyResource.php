@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
 use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
 class FamilyResource extends JsonResource
@@ -36,9 +35,8 @@ class FamilyResource extends JsonResource
     {
         return [
             'members' => $this->whenLoaded('members'),
-            'members_count' => $this->whenCounted(
-                'members',
-                default: fn () => $this->whenLoaded('members', fn () => $this->members->count())),
+            'members_count' => $this->whenCountedOrLoaded('members'),
+
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
         ];

@@ -9,7 +9,6 @@ use App\Models\User;
  * @property-read int|null $project_id
  *
  * @method User|null user($guard = null)
- *
  */
 class ProjectScopedRequest extends FormRequest
 {
@@ -18,20 +17,6 @@ class ProjectScopedRequest extends FormRequest
         return [
             'project_id' => 'nullable|integer|exists:projects,id',
         ];
-    }
-
-    /**
-     * Prepare the data for validation.
-     * Injects current project if no project_id is provided.
-     */
-    protected function prepareForValidation(): void
-    {
-        $currentProject = Project::current();
-
-        // Inject current project if none provided
-        if ($currentProject && !$this->has('project_id')) {
-            $this->merge(['project_id' => $currentProject->id]);
-        }
     }
 
     /**
@@ -52,6 +37,20 @@ class ProjectScopedRequest extends FormRequest
 
         // Authorization check: user must have access to requested project
         return ! $requestedProjectId || $this->userCanAccessProject($requestedProjectId);
+    }
+
+    /**
+     * Prepare the data for validation.
+     * Injects current project if no project_id is provided.
+     */
+    protected function prepareForValidation(): void
+    {
+        $currentProject = Project::current();
+
+        // Inject current project if none provided
+        if ($currentProject && ! $this->has('project_id')) {
+            $this->merge(['project_id' => $currentProject->id]);
+        }
     }
 
     /**

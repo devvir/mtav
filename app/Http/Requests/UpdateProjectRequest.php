@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
  * @property-read string|null $name
  * @property-read string|null $description
  * @property-read string|null $organization
- *
  */
 class UpdateProjectRequest extends FormRequest
 {
@@ -25,7 +24,7 @@ class UpdateProjectRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(Project::class, 'name')->ignore($this->route('project')->id)
+                Rule::unique(Project::class, 'name')->ignore($this->route('project')->id),
             ],
             'description' => ['required', 'string', 'max:65535'],
             'organization' => ['required', 'string', 'max:255'],

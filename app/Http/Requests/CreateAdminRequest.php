@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\User;
 
 /**
- * @property-read int[] $project_ids
+ * @property-read Array<int> $project_ids
  * @property-read string $email
  * @property-read string $firstname
  * @property-read string|null $lastname

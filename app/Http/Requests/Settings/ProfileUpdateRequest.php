@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests\Settings;
 
-use App\Models\User;
 use App\Http\Requests\FormRequest;
+use App\Models\User;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @property-read string      $email

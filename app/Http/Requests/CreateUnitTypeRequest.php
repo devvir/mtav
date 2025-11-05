@@ -2,11 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Project;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-
 /**
  * @property-read string $name
  * @property-read string|null $description

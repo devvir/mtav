@@ -96,10 +96,15 @@ trait ProjectScope
         // Skip Scoping for Laravel's fetching of the Authenticated User
         $fetchingAuthUser = ! Auth::hasUser()
             && static::class === User::class
-            && collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, limit: 15))
-                ->pluck('class')
-                ->contains(EloquentUserProvider::class);
+            && self::isCalledByLaravelAuthSystem();
 
         return $fetchingAuthUser || Auth::guest() || Auth::user()->isSuperadmin();
+    }
+
+    protected static function isCalledByLaravelAuthSystem(): bool
+    {
+        return collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, limit: 15))
+            ->pluck('class')
+            ->contains(EloquentUserProvider::class);
     }
 }

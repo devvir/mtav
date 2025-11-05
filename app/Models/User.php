@@ -60,16 +60,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Ensure email is always stored in lowercase.
-     */
-    protected function email(): Attribute
-    {
-        return Attribute::make(
-            set: fn (string $value) => strtolower($value),
-        );
-    }
-
-    /**
      * All projects that the user belongs to.
      */
     public function projects(): BelongsToMany
@@ -140,6 +130,16 @@ class User extends Authenticatable
     public function completedRegistration(): bool
     {
         return ! $this->isInvited();
+    }
+
+    /**
+     * Ensure email is always stored in lowercase.
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => strtolower($value),
+        );
     }
 
     protected static function booted()

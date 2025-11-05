@@ -11,7 +11,6 @@ use Illuminate\Validation\Rule;
  * @property-read string $email
  *
  * @method User|null user($guard = null)
- *
  */
 class UpdateMemberRequest extends FormRequest
 {

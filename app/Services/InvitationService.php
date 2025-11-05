@@ -14,10 +14,6 @@ class InvitationService
 {
     /**
      * Create and invite a new admin.
-     *
-     * @param array{email: string, firstname: string, lastname?: string} $userData
-     * @param int $projectIds
-     * @return Admin
      */
     public function inviteAdmin(array $userData, array $projectIds): Admin
     {
@@ -27,6 +23,7 @@ class InvitationService
         $admin = DB::transaction(function () use ($data, $projectIds) {
             $admin = Admin::create($data);
             $admin->projects()->attach($projectIds);
+
             return $admin;
         });
 
@@ -37,10 +34,6 @@ class InvitationService
 
     /**
      * Create and invite a new member.
-     *
-     * @param array{email: string, firstname: string, lastname?: string, family_id: int} $userData
-     * @param int $projectId
-     * @return Member
      */
     public function inviteMember(array $userData, int $projectId): Member
     {
@@ -64,10 +57,10 @@ class InvitationService
         $avatar = isset($data['avatar']) ? $this->storeAvatar($data['avatar']) : null;
 
         $user->update([
-            'password'               => $password,
-            'avatar'                 => $avatar,
+            'password' => $password,
+            'avatar' => $avatar,
             'invitation_accepted_at' => now(),
-            'email_verified_at'      => now(),
+            'email_verified_at' => now(),
             ...Arr::only($data, ['firstname', 'lastname', 'phone', 'legal_id']),
         ]);
 

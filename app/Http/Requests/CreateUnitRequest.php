@@ -34,5 +34,3 @@ class CreateUnitRequest extends ProjectScopedRequest
         ];
     }
 }
-
-

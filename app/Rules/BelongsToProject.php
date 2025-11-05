@@ -11,16 +11,19 @@ class BelongsToProject implements ValidationRule
         protected string $modelClass,
         protected ?int $projectId,
         protected string $translationKey = 'validation.belongs_to_project'
-    ) {}
+    ) {
+        // ...
+    }
 
     public function validate(string $_, mixed $value, Closure $fail): void
     {
-        if (!$value) {
+        if (! $value) {
             return;
         }
 
         if ($this->projectId === null) {
             $fail(__($this->translationKey));
+
             return;
         }
 
@@ -29,7 +32,7 @@ class BelongsToProject implements ValidationRule
             'project_id' => $this->projectId,
         ])->exists();
 
-        if (!$modelBelongsToProject) {
+        if (! $modelBelongsToProject) {
             $fail(__($this->translationKey));
         }
     }

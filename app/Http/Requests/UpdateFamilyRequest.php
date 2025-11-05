@@ -9,7 +9,6 @@ use App\Rules\BelongsToProject;
 /**
  * @property-read string $name
  * @property-read int $unit_type_id
- *
  */
 class UpdateFamilyRequest extends FormRequest
 {

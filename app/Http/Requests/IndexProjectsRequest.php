@@ -9,7 +9,6 @@ use App\Models\User;
  * @property-read bool|null $showAll
  *
  * @method User|null user($guard = null)
- *
  */
 class IndexProjectsRequest extends FormRequest
 {

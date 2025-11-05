@@ -9,14 +9,14 @@ class CurrentProjectController
 {
     public function set(Project $project): RedirectResponse
     {
-        setState('project', $project);
+        defineState('project', $project);
 
         return back();
     }
 
     public function unset(): RedirectResponse
     {
-        setState('project', null);
+        defineState('project', null);
 
         return redirect()->back();
     }

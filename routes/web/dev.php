@@ -18,9 +18,11 @@ Route::post('dev/flash/send', function () {
     return redirect()->route('dev.flash')->with($type, $message);
 })->name('dev.flash.send');
 
-Route::get('dev/flash/all', fn () => redirect()->route('dev.flash')
-    ->with('success', 'Operation completed successfully!')
-    ->with('info', 'Here\'s some additional information.')
-    ->with('warning', 'Please note this important warning.')
-    ->with('error', 'An error occurred during processing.')
+Route::get(
+    'dev/flash/all',
+    fn () => redirect()->route('dev.flash')
+        ->with('success', 'Operation completed successfully!')
+        ->with('info', 'Here\'s some additional information.')
+        ->with('warning', 'Please note this important warning.')
+        ->with('error', 'An error occurred during processing.')
 )->name('dev.flash.all');

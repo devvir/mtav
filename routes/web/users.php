@@ -22,4 +22,3 @@ Route::resource('admins', AdminController::class)->except('restore');
 Route::resource('logs', LogController::class)->only('index', 'show');
 
 Route::get('media', fn () => 'Not yet implemented')->name('media.create');
-

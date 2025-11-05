@@ -1,13 +1,10 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Http\Resources;
 
 use Devvir\ResourceTools\Concerns\ResourceSubsets;
 use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 class UnitResource extends JsonResource
 {

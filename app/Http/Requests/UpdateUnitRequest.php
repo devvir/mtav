@@ -11,7 +11,6 @@ use App\Rules\BelongsToProject;
  * @property-read string|null $number
  * @property-read int|null $unit_type_id
  * @property-read int|null $family_id
- *
  */
 class UpdateUnitRequest extends FormRequest
 {

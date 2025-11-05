@@ -21,7 +21,7 @@ class MemberController extends Controller
      */
     public function index(FilteredIndexRequest $request): Response
     {
-        setState('groupMembers', false);
+        defineState('groupMembers', false);
 
         $members = Member::alphabetically()
             ->with('family')

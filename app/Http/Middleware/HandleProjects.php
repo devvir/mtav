@@ -3,9 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\Project;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,23 +23,59 @@ class HandleProjects
         /** @var User|null $user */
         $user = $request->user();
 
-        /** @var Collection<Project> $projects */
-        $projects = $user?->projects ?? collect();
-
         // Make sure if there is a picked Project it is valid, otherwise unset it
-        if (! Project::current() && ($user?->isMember() || $projects->count() === 1)) {
-            setState('project', $projects->last());
-        } elseif (! $user?->isSuperadmin() && $projects->doesntContain(Project::current())) {
-            setState('project', null);
-        }
+        $this->sanitizeCurrentProject($user);
 
         // Admin or member without Project (deleted?) > Forced Logout
-        if ($user && $user->isNotSuperadmin() && $projects->isEmpty()) {
+        if ($user && $this->userHasNoProjects($user)) {
             Auth::logout();
 
             return to_route('login');
         }
 
         return $next($request);
+    }
+
+    /**
+     * Verify or update Current Project to ensure it is valid for the current User.
+     */
+    protected function sanitizeCurrentProject(?User $user): void
+    {
+        if ($this->shouldForceCurrentProject($user)) {
+            defineState('project', $user->projects->last());
+        } elseif ($this->shouldResetCurrentProject($user)) {
+            defineState('project', null);
+        }
+    }
+
+    /**
+     * Whether the Current Project should be forcefully set (if only one option).
+     */
+    protected function shouldForceCurrentProject(?User $user): bool
+    {
+        return $user && $this->userHasOneProject($user) && ! Project::current();
+    }
+
+    /**
+     * Whether the Current Project should be forcefully unset (if invalid).
+     */
+    protected function shouldResetCurrentProject(?User $user): bool
+    {
+        return ! $user || ! $this->userHasAccessToCurrentProject($user);
+    }
+
+    protected function userHasOneProject(User $user): bool
+    {
+        return $user->isMember() || $user->projects->count() === 1;
+    }
+
+    protected function userHasNoProjects(User $user): bool
+    {
+        return $user->isNotSuperadmin() && $user->projects->isEmpty();
+    }
+
+    protected function userHasAccessToCurrentProject(User $user): bool
+    {
+        return $user->isSuperadmin() || $user->projects->contains(Project::current());
     }
 }
