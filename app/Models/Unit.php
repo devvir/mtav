@@ -4,12 +4,10 @@ namespace App\Models;
 
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
     use ProjectScope;
-    use SoftDeletes;
 
     public function project(): BelongsTo
     {

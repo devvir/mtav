@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Project::class)->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
