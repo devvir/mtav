@@ -1,0 +1,67 @@
+{
+  "title": "FAQ - Miembro",
+  "description": "Preguntas frecuentes para miembros",
+  "guideText": "Lee la Guía Completa para Miembros",
+  "questions": [
+    {
+      "question": "¿Cómo actualizo mi información de perfil?",
+      "answer": "Haz clic en tu información de usuario en la parte inferior de la barra lateral izquierda para abrir el menú de usuario. Luego selecciona 'Configuración' para acceder a tu perfil. Allí puedes actualizar tu información personal, datos de contacto y preferencias. No olvides guardar los cambios."
+    },
+    {
+      "question": "¿Cómo establezco mis preferencias de vivienda?",
+      "answer": "Ve a la sección Preferencias en la barra lateral. Puedes seleccionar las unidades que prefieras y clasificarlas en orden de preferencia. Estas preferencias se usarán durante el proceso de sorteo."
+    },
+    {
+      "question": "¿Cómo funciona el sistema de sorteo?",
+      "answer": "El sistema de sorteo usa métodos avanzados para asignar viviendas de manera justa, basándose en las preferencias de todas las familias y la disponibilidad de unidades. Asegúrate de establecer tus preferencias antes de la fecha del sorteo. Te notificaremos de los resultados por correo electrónico y en la aplicación."
+    },
+    {
+      "question": "¿Cómo confirmo mi asistencia a eventos?",
+      "answer": "Los eventos aparecen en la sección Eventos. Haz clic en un evento para ver los detalles y confirmar tu asistencia. Puedes indicar si asistirás y cuántos miembros de la familia te acompañarán."
+    },
+    {
+      "question": "¿Puedo invitar a miembros de mi familia?",
+      "answer": "¡Sí! Los miembros de la familia pueden agregarse desde tu perfil o desde la sección Familias. Estarán asociados con tu hogar y también podrán establecer sus propias preferencias."
+    },
+    {
+      "question": "¿Cómo subo fotos o videos?",
+      "answer": "Usa la sección Galería para subir fotos y videos relacionados con la cooperativa. Puedes organizarlos por proyecto o evento. Asegúrate de que tus contenidos cumplan con las pautas de la comunidad."
+    },
+    {
+      "question": "¿Cómo veo a otros miembros?",
+      "answer": "La sección Miembros muestra todos los miembros de la cooperativa en tu proyecto. Puedes ver los perfiles de los miembros, conocer quién más está en tu proyecto y conectar con tu comunidad."
+    },
+    {
+      "question": "¿Qué pasa si quiero salir de la cooperativa?",
+      "answer": "Si necesitas retirarte, por favor contacta a un administrador a través de la aplicación o por correo electrónico. Hay un proceso formal a seguir, y los administradores te guiarán a través de los pasos necesarios."
+    },
+    {
+      "question": "¿Puedo cambiar mis preferencias después de enviarlas?",
+      "answer": "Sí, puedes modificar tus preferencias libremente hasta que se ejecute el sorteo. Una vez ejecutado el sorteo, las preferencias quedan congeladas como registro de auditoría."
+    },
+    {
+      "question": "¿Qué significa 'atomicidad familiar'?",
+      "answer": "Significa que la familia es la unidad básica de participación en el proyecto. Todos los miembros de una familia deben estar en el mismo proyecto y recibirán la misma vivienda asignada por el sorteo."
+    },
+    {
+      "question": "¿Puedo ver las preferencias de otras familias?",
+      "answer": "No, las preferencias de cada familia son privadas hasta después del sorteo. Solo puedes ver tus propias preferencias y, después del sorteo, los resultados finales de asignación."
+    },
+    {
+      "question": "¿Qué tipos de unidades están disponibles?",
+      "answer": "Los tipos de unidades dependen de tu proyecto específico. Tu familia está asignada a un tipo de unidad (por ejemplo, 'Vivienda Familiar Grande' o 'Apartamento para Pareja') y solo puedes elegir entre las unidades de ese tipo."
+    },
+    {
+      "question": "¿Cómo funciona el cálculo de satisfacción en el sorteo?",
+      "answer": "El sorteo usa métodos matemáticos avanzados para maximizar la satisfacción general de todas las familias. Considera todas las preferencias simultáneamente para encontrar la distribución más justa posible, balanceando los deseos de todas las familias."
+    },
+    {
+      "question": "¿Puedo cambiar mi correo electrónico?",
+      "answer": "Por razones de seguridad, los cambios de correo electrónico deben ser solicitados a un administrador. Contacta al administrador de tu proyecto para realizar este cambio."
+    },
+    {
+      "question": "¿Qué pasa si una unidad que preferí se elimina del proyecto?",
+      "answer": "Si una unidad se elimina durante la construcción, automáticamente se quitará de tus preferencias y recibirás una notificación por correo electrónico. Te recomendamos revisar y actualizar tus preferencias cuando esto suceda."
+    }
+  ]
+}

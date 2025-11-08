@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-
 @import './theme.css';
+
+@plugin "@tailwindcss/typography";
 
 @source '../../node_modules/@inertiaui/modal-vue/src/**/*.{js,vue}';
 

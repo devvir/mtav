@@ -9,52 +9,48 @@ use Inertia\Response;
 class DocumentationController extends Controller
 {
     /**
-     * Display FAQ page based on user role.
+     * Display FAQ page based on user role and locale.
      */
-    public function faq(Request $request, ?string $role = null): Response
+    public function faq(Request $request): Response
     {
-        $user = $request->user();
+        $locale = app()->getLocale();
+        $role = $request->user()?->is_admin ? 'admin' : 'member';
+        $faqPath = resource_path("views/guides/{$locale}/FAQ.{$role}.json");
 
-        // Determine role: use provided role, or detect from authenticated user
-        if (! $role && $user) {
-            $role = $user->is_admin ? 'admin' : 'member';
-        } elseif (! $role) {
-            $role = 'member'; // Default to member for guests
+        // Fallback to English if current locale file doesn't exist
+        if ($locale !== 'en' && ! File::exists($faqPath)) {
+            $faqPath = resource_path("views/guides/en/FAQ.{$role}.json");
         }
 
-        $component = $role === 'admin' ? 'Documentation/AdminFaq' : 'Documentation/MemberFaq';
+        $faqData = json_decode(File::get($faqPath), true);
 
-        return inertia($component, [
+        return inertia('Documentation/Faq', [
+            'questions' => $faqData['questions'],
+            'title' => $faqData['title'],
+            'description' => $faqData['description'],
+            'guideText' => $faqData['guideText'],
             'userRole' => $role,
         ]);
-    }    /**
-     * Display comprehensive guide based on user role.
+    }
+
+    /**
+     * Display comprehensive guide based on user role and locale.
      */
-    public function guide(Request $request, ?string $role = null): Response
+    public function guide(Request $request): Response
     {
-        $user = $request->user();
         $locale = app()->getLocale();
+        $role = $request->user()?->is_admin ? 'admin' : 'member';
+        $guidePath = resource_path("views/guides/{$locale}/guide.{$role}.html");
 
-        // Determine role
-        if (! $role && $user) {
-            $role = $user->is_admin ? 'admin' : 'member';
-        } elseif (! $role) {
-            $role = 'member';
+        // Fallback to English if current locale file doesn't exist
+        if ($locale !== 'en' && ! File::exists($guidePath)) {
+            $guidePath = resource_path("views/guides/en/guide.{$role}.html");
         }
 
-        // Load markdown content
-        $filename = $role === 'admin' ? 'guia-admin.md' : 'guia-miembro.md';
-        if ($locale === 'en') {
-            $filename = $role === 'admin' ? 'admin-guide.md' : 'member-guide.md';
-        }
-
-        $path = base_path("documentation/guides/{$locale}/{$filename}");
-        $content = File::exists($path) ? File::get($path) : '';
-
+        $content = File::get($guidePath);
         $component = $role === 'admin' ? 'Documentation/AdminGuide' : 'Documentation/MemberGuide';
 
         return inertia($component, [
-            'isAuthenticated' => (bool) $user,
             'userRole' => $role,
             'content' => $content,
         ]);

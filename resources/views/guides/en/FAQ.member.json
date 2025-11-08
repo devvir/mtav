@@ -1,0 +1,67 @@
+{
+  "title": "FAQ - Member",
+  "description": "Frequently asked questions for members",
+  "guideText": "Read the comprehensive Member Guide",
+  "questions": [
+    {
+      "question": "How do I update my profile information?",
+      "answer": "Click on your user information at the bottom of the left sidebar to open the user menu. Then select 'Settings' to access your profile. You can update your personal information, contact details, and preferences. Don't forget to save your changes."
+    },
+    {
+      "question": "How do I set my housing preferences?",
+      "answer": "Go to the Preferences section in the sidebar. You can select the units you prefer and rank them in order of preference. These preferences will be used during the lottery process."
+    },
+    {
+      "question": "How does the lottery system work?",
+      "answer": "The lottery system uses advanced methods to assign housing units fairly, based on all families' preferences and unit availability. Make sure to set your preferences before the lottery date. You'll be notified of the results via email and in the application."
+    },
+    {
+      "question": "How do I RSVP for events?",
+      "answer": "Events appear in the Events section. Click on an event to view details and RSVP. You can indicate whether you're attending and how many family members will join you."
+    },
+    {
+      "question": "Can I invite family members?",
+      "answer": "Yes! Family members can be added from your profile or from the Families section. They will be associated with your household and can also set their own preferences."
+    },
+    {
+      "question": "How do I upload photos or videos?",
+      "answer": "Use the Gallery section to upload photos and videos related to the cooperative. You can organize them by project or event. Please ensure your uploads comply with the community guidelines."
+    },
+    {
+      "question": "How do I view other members?",
+      "answer": "The Members section shows all cooperative members in your project. You can view member profiles, see who else is in your project, and connect with your community."
+    },
+    {
+      "question": "What if I want to leave the cooperative?",
+      "answer": "If you need to leave, please contact an administrator through the application or via email. There is a formal process to follow, and administrators will guide you through the necessary steps."
+    },
+    {
+      "question": "Can I change my preferences after submitting them?",
+      "answer": "Yes, you can modify your preferences freely until the lottery is executed. Once the lottery runs, preferences are frozen permanently as an audit record."
+    },
+    {
+      "question": "What does 'family atomicity' mean?",
+      "answer": "It means that the family is the basic unit of participation in the project. All members of a family must be in the same project and will receive the same housing unit assigned by the lottery."
+    },
+    {
+      "question": "Can I see other families' preferences?",
+      "answer": "No, each family's preferences are private until after the lottery. You can only see your own preferences and, after the lottery, the final assignment results."
+    },
+    {
+      "question": "What types of units are available?",
+      "answer": "The available unit types depend on your specific project. Your family is assigned to a unit type (e.g., 'Large Family Home' or 'Couple Apartment') and you can only choose from units of that type."
+    },
+    {
+      "question": "How does the satisfaction calculation work in the lottery?",
+      "answer": "The lottery uses advanced mathematical methods to maximize overall satisfaction of all families. It considers all preferences simultaneously to find the fairest possible distribution, balancing everyone's desires."
+    },
+    {
+      "question": "Can I change my email address?",
+      "answer": "For security reasons, email changes must be requested from an administrator. Contact your project administrator to make this change."
+    },
+    {
+      "question": "What happens if a unit I preferred is removed from the project?",
+      "answer": "If a unit is removed during construction, it will automatically be removed from your preferences and you'll receive an email notification. We recommend reviewing and updating your preferences when this happens."
+    }
+  ]
+}

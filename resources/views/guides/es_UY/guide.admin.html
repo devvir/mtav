@@ -1,0 +1,323 @@
+<div class="prose dark:prose-invert max-w-none">
+  <h1>Guía del Administrador - MTAV</h1>
+  <p class="lead">
+    Como administrador de MTAV, eres responsable de gestionar uno o más proyectos de cooperativa de vivienda. Esta guía
+    te ayudará a usar todas las funcionalidades administrativas para mantener un proceso justo y transparente.
+  </p>
+
+  <h2>Roles y Responsabilidades</h2>
+
+  <h3>Tu Rol como Administrador</h3>
+  <p>Como administrador, puedes:</p>
+  <ul>
+    <li>Gestionar proyectos asignados a ti</li>
+    <li>Crear y gestionar familias y miembros</li>
+    <li>Definir tipos de unidades y unidades del proyecto</li>
+    <li>Ejecutar el proceso de sorteo</li>
+    <li>Gestionar eventos comunitarios</li>
+    <li>Supervisar el proceso de preferencias</li>
+  </ul>
+
+  <p>
+    <strong>Alcance:</strong> Solo puedes acceder y gestionar los proyectos que te han sido asignados. No puedes crear
+    nuevos proyectos (solo los superadministradores pueden hacerlo).
+  </p>
+
+  <h2>Navegación para Administradores</h2>
+
+  <h3>Contexto Multi-Proyecto</h3>
+  <p>Si gestionas múltiples proyectos:</p>
+  <ul>
+    <li>Comenzarás en la vista de <strong>índice de Proyectos</strong></li>
+    <li>Debes seleccionar un proyecto específico para trabajar</li>
+    <li>Una vez seleccionado, todas las acciones se aplicarán a ese proyecto</li>
+  </ul>
+
+  <h3>Contexto Un Solo Proyecto</h3>
+  <p>Si gestionas un solo proyecto, automáticamente entrarás al contexto de ese proyecto.</p>
+
+  <h2>Gestión de Proyectos</h2>
+
+  <h3>Estados del Proyecto</h3>
+  <ul>
+    <li><strong>Planificado:</strong> En fase de diseño, unidades y tipos pueden modificarse libremente</li>
+    <li><strong>En Construcción:</strong> Construcción en progreso, cambios limitados</li>
+    <li><strong>Completado:</strong> Proyecto terminado, no se pueden agregar/eliminar unidades</li>
+  </ul>
+
+  <h3>Configuración del Proyecto</h3>
+  <p>Desde la sección Proyectos puedes:</p>
+  <ul>
+    <li>Ver información general del proyecto</li>
+    <li>Cambiar el estado del proyecto</li>
+    <li>Subir planos y blueprints</li>
+    <li>Gestionar la información descriptiva</li>
+  </ul>
+
+  <h2>Gestión de Tipos de Unidades</h2>
+
+  <h3>¿Qué son los Tipos de Unidades?</h3>
+  <p>
+    Los tipos de unidades categorizan las viviendas según tamaño y propósito (ej. "Vivienda Familiar Grande",
+    "Apartamento para Pareja"). Esto permite que las familias compitan solo dentro de su categoría asignada.
+  </p>
+
+  <h3>Crear Tipos de Unidades</h3>
+  <ol>
+    <li>Ve a la sección de gestión del proyecto</li>
+    <li>Accede a "Tipos de Unidades"</li>
+    <li>Haz clic en "Crear Tipo de Unidad"</li>
+    <li>Define nombre y descripción</li>
+    <li>Guarda el tipo</li>
+  </ol>
+
+  <p><strong>Importante:</strong> Debes definir los tipos de unidades ANTES de crear las unidades individuales.</p>
+
+  <h2>Gestión de Unidades</h2>
+
+  <h3>Crear Unidades</h3>
+  <ol>
+    <li>Ve a la sección Unidades</li>
+    <li>Haz clic en "Crear Unidad"</li>
+    <li>
+      Completa la información:
+      <ul>
+        <li>Número de unidad (único en el proyecto)</li>
+        <li>Tipo de unidad asignado</li>
+        <li>Dormitorios y baños</li>
+        <li>Metros cuadrados</li>
+        <li>Características especiales</li>
+      </ul>
+    </li>
+    <li>Guarda la unidad</li>
+  </ol>
+
+  <h3>Modificar Unidades</h3>
+  <p>
+    <strong>Características (dormitorios, metros cuadrados, etc.):</strong> Pueden modificarse en cualquier momento. Si
+    se cambian después de que las familias han establecido preferencias, se enviará notificación automática a las
+    familias afectadas.
+  </p>
+
+  <p>
+    <strong>Tipo de unidad:</strong> Solo puede cambiarse mientras la unidad esté en estado "Planificado" o "En
+    Construcción". Las unidades completadas no pueden cambiar de tipo.
+  </p>
+
+  <h3>Eliminar Unidades</h3>
+  <p>Las unidades solo pueden eliminarse si el proyecto NO está completado. Al eliminar una unidad:</p>
+  <ul>
+    <li>Se quita automáticamente de todas las preferencias familiares</li>
+    <li>Se envía notificación por correo a las familias afectadas</li>
+    <li>Se registra la acción en el log de auditoría</li>
+  </ul>
+
+  <h2>Gestión de Familias y Miembros</h2>
+
+  <h3>Crear Familias</h3>
+  <ol>
+    <li>Ve a la sección Familias</li>
+    <li>Haz clic en "Crear Familia"</li>
+    <li>Asigna un tipo de unidad a la familia</li>
+    <li>Agrega información descriptiva</li>
+    <li>Guarda la familia</li>
+  </ol>
+
+  <h3>Gestionar Miembros</h3>
+  <p><strong>Invitar Nuevos Miembros:</strong></p>
+  <ol>
+    <li>Ve a la sección Miembros</li>
+    <li>Haz clic en "Invitar Miembro"</li>
+    <li>Ingresa correo electrónico</li>
+    <li>Asigna a una familia</li>
+    <li>El miembro recibe invitación por correo</li>
+  </ol>
+
+  <p><strong>Mover Miembros Entre Familias:</strong></p>
+  <p>
+    Puedes reasignar miembros a diferentes familias. Si la nueva familia está en un proyecto diferente, el miembro
+    cambiará automáticamente de proyecto.
+  </p>
+
+  <p>
+    <strong>Principio de Atomicidad Familiar:</strong> Recuerda que las familias son unidades atómicas. Todos los
+    miembros de una familia deben estar en el mismo proyecto.
+  </p>
+
+  <h2>Gestión de Preferencias</h2>
+
+  <h3>Supervisar el Proceso</h3>
+  <p>Puedes:</p>
+  <ul>
+    <li>Ver qué familias han completado sus preferencias</li>
+    <li>Ver qué familias aún no han participado</li>
+    <li>Gestionar preferencias en nombre de las familias (si es necesario)</li>
+  </ul>
+
+  <h3>Requisito para el Sorteo</h3>
+  <p>
+    <strong>TODAS las familias deben completar sus preferencias antes de ejecutar el sorteo.</strong> Tu responsabilidad
+    es asegurar que todas participen contactándolas fuera del sistema si es necesario.
+  </p>
+
+  <h2>Ejecutar el Sorteo</h2>
+
+  <h3>Preparación</h3>
+  <p>Antes de ejecutar el sorteo, verifica:</p>
+  <ul>
+    <li>Todas las unidades están creadas y configuradas</li>
+    <li>Todas las familias tienen tipo de unidad asignado</li>
+    <li>TODAS las familias han completado sus preferencias</li>
+    <li>La información del proyecto está actualizada</li>
+  </ul>
+
+  <h3>Ejecución del Sorteo</h3>
+  <ol>
+    <li>Ve a la sección Sorteo</li>
+    <li>Revisa el resumen de participación</li>
+    <li>Haz clic en "Ejecutar Sorteo"</li>
+    <li>El sistema calculará las asignaciones óptimas</li>
+    <li>Revisa los resultados</li>
+    <li>Los resultados son finales e inmutables</li>
+  </ol>
+
+  <h3>Después del Sorteo</h3>
+  <ul>
+    <li>Las familias reciben notificación automática por correo</li>
+    <li>Las preferencias quedan congeladas permanentemente</li>
+    <li>Las asignaciones NO pueden modificarse manualmente</li>
+    <li>Solo un superadministrador puede invalidar un sorteo</li>
+  </ul>
+
+  <h2>Gestión de Eventos</h2>
+
+  <h3>Tipos de Eventos</h3>
+  <ul>
+    <li><strong>Eventos Comunitarios:</strong> Reuniones, actividades sociales, asambleas</li>
+    <li><strong>Eventos de Sorteo:</strong> El evento principal de asignación de viviendas</li>
+  </ul>
+
+  <h3>Crear Eventos</h3>
+  <ol>
+    <li>Ve a la sección Eventos</li>
+    <li>Haz clic en "Crear Evento"</li>
+    <li>
+      Completa información:
+      <ul>
+        <li>Título y descripción</li>
+        <li>Fecha y hora</li>
+        <li>Ubicación (física u "online")</li>
+        <li>Tipo de evento</li>
+      </ul>
+    </li>
+    <li>Publica el evento</li>
+  </ol>
+
+  <h2>Gestión de Planos y Blueprints</h2>
+
+  <h3>Subir Planos</h3>
+  <ol>
+    <li>Ve a la configuración del proyecto</li>
+    <li>Accede a la sección "Blueprints"</li>
+    <li>Sube archivo de imagen o PDF</li>
+    <li>Agrega descripción si es necesario</li>
+    <li>Guarda el blueprint</li>
+  </ol>
+
+  <p>Los planos ayudan a las familias a visualizar la ubicación de las unidades durante el proceso de preferencias.</p>
+
+  <h2>Gestión de Invitaciones</h2>
+
+  <h3>Invitaciones Pendientes</h3>
+  <p>Puedes:</p>
+  <ul>
+    <li>Ver todas las invitaciones enviadas</li>
+    <li>Cancelar invitaciones que no han sido aceptadas</li>
+    <li>Reenviar invitaciones si es necesario</li>
+  </ul>
+
+  <h3>Gestionar Invitaciones de Otros Administradores</h3>
+  <p>
+    Puedes invitar otros administradores para que te ayuden a gestionar tus proyectos. Solo puedes asignarlos a
+    proyectos que tú ya gestionas.
+  </p>
+
+  <h2>Limitaciones y Restricciones</h2>
+
+  <h3>Lo que NO Puedes Hacer</h3>
+  <ul>
+    <li>Crear nuevos proyectos (solo superadministradores)</li>
+    <li>Acceder a proyectos que no te han asignado</li>
+    <li>Modificar resultados de sorteo después de la ejecución</li>
+    <li>Eliminar unidades de proyectos completados</li>
+    <li>Cambiar tipos de unidades completadas</li>
+    <li>Agregar unidades a proyectos completados</li>
+  </ul>
+
+  <h3>Estados y Restricciones</h3>
+  <ul>
+    <li><strong>Proyecto Completado:</strong> No se pueden agregar/eliminar unidades</li>
+    <li><strong>Unidad Completada:</strong> No se puede cambiar el tipo</li>
+    <li><strong>Sorteo Ejecutado:</strong> Preferencias congeladas, asignaciones inmutables</li>
+  </ul>
+
+  <h2>Mejores Prácticas</h2>
+
+  <h3>Planificación del Proyecto</h3>
+  <ol>
+    <li>Define todos los tipos de unidades al inicio</li>
+    <li>Crea todas las unidades antes de invitar familias</li>
+    <li>Sube planos lo antes posible para ayudar a las familias</li>
+    <li>Comunica fechas importantes claramente</li>
+  </ol>
+
+  <h3>Gestión de Familias</h3>
+  <ul>
+    <li>Asigna tipos de unidades cuidadosamente según la composición familiar</li>
+    <li>Mantén comunicación regular con las familias</li>
+    <li>Ayuda a las familias que tengan dificultades técnicas</li>
+  </ul>
+
+  <h3>Proceso de Sorteo</h3>
+  <ul>
+    <li>Da tiempo suficiente para que todas las familias establezcan preferencias</li>
+    <li>Verifica que toda la información esté completa antes del sorteo</li>
+    <li>Comunica los resultados claramente</li>
+    <li>Mantén transparencia en todo el proceso</li>
+  </ul>
+
+  <h2>Auditoría y Transparencia</h2>
+
+  <h3>Registro de Acciones</h3>
+  <p>Todas las acciones administrativas quedan registradas:</p>
+  <ul>
+    <li>Cambios en unidades</li>
+    <li>Modificaciones de familias</li>
+    <li>Ejecución de sorteos</li>
+    <li>Gestión de invitaciones</li>
+  </ul>
+
+  <h3>Transparencia con Miembros</h3>
+  <ul>
+    <li>Los miembros pueden ver todas las familias y unidades del proyecto</li>
+    <li>El proceso de sorteo es auditable</li>
+    <li>Los resultados son públicos para todos los miembros</li>
+    <li>Mantén comunicación abierta sobre cambios y decisiones</li>
+  </ul>
+
+  <h2>Soporte y Escalamiento</h2>
+
+  <p>Si necesitas ayuda:</p>
+  <ul>
+    <li>Contacta a un superadministrador para situaciones excepcionales</li>
+    <li>Revisa esta guía y las preguntas frecuentes</li>
+    <li>Documenta cualquier problema para reportarlo</li>
+  </ul>
+
+  <p class="mt-8 text-center">
+    <strong
+      >Tu rol es fundamental para el éxito de la cooperativa. ¡Gracias por tu dedicación a la equidad y
+      transparencia!</strong
+    >
+  </p>
+</div>

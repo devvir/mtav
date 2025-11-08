@@ -1,0 +1,63 @@
+{
+  "title": "FAQ - Admin",
+  "description": "Frequently asked questions for administrators",
+  "guideText": "Read the comprehensive Admin Guide",
+  "questions": [
+    {
+      "question": "How do I invite new members to the project?",
+      "answer": "Click the 'Quick Actions' button in the top right corner of the screen, then select 'New User'. Fill in the member's email address and any additional information needed. They will receive an email invitation with instructions to complete their registration."
+    },
+    {
+      "question": "How do I manage families in the project?",
+      "answer": "Families are managed through the Families section. You can view all family groups, add or remove family members, and manage family-related information. Each member can be part of one family only."
+    },
+    {
+      "question": "How do I execute the lottery system?",
+      "answer": "The lottery system is accessed from the corresponding section in the sidebar. Review member preferences, configure lottery parameters, and execute the process. The system will automatically assign units based on the configured rules and family preferences."
+    },
+    {
+      "question": "How do I configure unit types?",
+      "answer": "Unit types are configured in the project section. You can define different categories like 'Large Family Home' or 'Couple Apartment'. Families are assigned to a specific type to compete only for units of that category."
+    },
+    {
+      "question": "How do I manage project units?",
+      "answer": "In the Units section you can create, modify, and delete units. Each unit must have an assigned type, unique number, and characteristics like bedrooms and square meters. Units can only be deleted if the project is not completed."
+    },
+    {
+      "question": "What if I need to cancel an invitation?",
+      "answer": "To cancel a pending invitation, go to the Members section, filter by 'Invited' status, find the invitation, and click the cancel/delete button. The user will no longer be able to use that invitation link."
+    },
+    {
+      "question": "How do I upload project blueprints or plans?",
+      "answer": "In the project section, you can upload blueprint files (images or PDFs) that show the distribution of units. These plans help families visualize available options during the preference selection process."
+    },
+    {
+      "question": "How do I manage project events?",
+      "answer": "In the Events section you can create community events and lottery events. Members can RSVP to these events. This helps with planning and community coordination."
+    },
+    {
+      "question": "What do project states mean?",
+      "answer": "Projects have states: 'Planned' (in design phase), 'Under Construction' (being built), and 'Completed' (finished). Certain changes are restricted based on state - for example, you cannot add units to a completed project."
+    },
+    {
+      "question": "Can I move a family to another project?",
+      "answer": "Yes, as an administrator you can move complete families between projects you manage. All family members will move together automatically due to the family atomicity principle."
+    },
+    {
+      "question": "How do I review family preferences?",
+      "answer": "You can view all families' preferences in the corresponding section. This allows you to verify that all families have completed their selections before executing the lottery."
+    },
+    {
+      "question": "What do I do if a family doesn't submit their preferences?",
+      "answer": "The lottery cannot be executed until ALL families submit their preferences. You must contact pending families outside the application to remind them to complete this mandatory step."
+    },
+    {
+      "question": "Can I invalidate lottery results?",
+      "answer": "Only superadministrators can invalidate lottery results through manual database operations. This is extremely rare and only used in exceptional situations to maintain legal fairness standards."
+    },
+    {
+      "question": "How do I assign families to unit types?",
+      "answer": "In family management, you can assign each family to a specific unit type (e.g., 'Small Apartment' or 'Family House'). This determines which units they can choose in their preferences - they can only select units of their assigned type."
+    }
+  ]
+}

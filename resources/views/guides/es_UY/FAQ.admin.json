@@ -1,0 +1,63 @@
+{
+  "title": "FAQ - Administrador",
+  "description": "Preguntas frecuentes para administradores",
+  "guideText": "Lee la Guía Completa para Administradores",
+  "questions": [
+    {
+      "question": "¿Cómo invito nuevos miembros al proyecto?",
+      "answer": "Haz clic en el botón 'Acciones Rápidas' en la esquina superior derecha de la pantalla, luego selecciona 'Nuevo Usuario'. Llena la dirección de correo electrónico del miembro y cualquier información adicional necesaria. Recibirán un correo electrónico de invitación con instrucciones para completar su registro."
+    },
+    {
+      "question": "¿Cómo gestiono las familias en el proyecto?",
+      "answer": "Las familias se gestionan a través de la sección Familias. Puedes ver todos los grupos familiares, agregar o quitar miembros de familia, y gestionar la información relacionada con cada familia. Cada miembro puede ser parte de una sola familia."
+    },
+    {
+      "question": "¿Cómo ejecuto el sistema de sorteo?",
+      "answer": "El sistema de sorteo se accede desde la sección correspondiente en la barra lateral. Revisa las preferencias de los miembros, configura los parámetros del sorteo y ejecuta el proceso. El sistema asignará automáticamente las unidades basándose en las reglas configuradas y las preferencias de las familias."
+    },
+    {
+      "question": "¿Cómo configuro los tipos de unidades?",
+      "answer": "Los tipos de unidades se configuran en la sección del proyecto. Puedes definir diferentes categorías como 'Vivienda Familiar Grande' o 'Apartamento para Pareja'. Las familias se asignan a un tipo específico para competir solo por unidades de esa categoría."
+    },
+    {
+      "question": "¿Cómo gestiono las unidades del proyecto?",
+      "answer": "En la sección Unidades puedes crear, modificar y eliminar unidades. Cada unidad debe tener un tipo asignado, número único, y características como dormitorios y metros cuadrados. Las unidades solo pueden eliminarse si el proyecto no está completado."
+    },
+    {
+      "question": "¿Qué pasa si necesito cancelar una invitación?",
+      "answer": "Para cancelar una invitación pendiente, ve a la sección Miembros, filtra por estado 'Invitado', encuentra la invitación y haz clic en el botón cancelar/eliminar. El usuario ya no podrá usar ese enlace de invitación."
+    },
+    {
+      "question": "¿Cómo subo planos o blueprints del proyecto?",
+      "answer": "En la sección del proyecto, puedes subir archivos de planos (imágenes o PDFs) que muestren la distribución de las unidades. Estos planos ayudan a las familias a visualizar las opciones disponibles durante el proceso de selección de preferencias."
+    },
+    {
+      "question": "¿Cómo gestiono los eventos del proyecto?",
+      "answer": "En la sección Eventos puedes crear eventos comunitarios y eventos de sorteo. Los miembros pueden confirmar su asistencia a estos eventos. Esto ayuda con la planificación y coordinación de la comunidad."
+    },
+    {
+      "question": "¿Qué significa el estado de un proyecto?",
+      "answer": "Los proyectos tienen estados: 'Planificado' (en diseño), 'En Construcción' (siendo construido), y 'Completado' (terminado). Ciertos cambios están restringidos según el estado - por ejemplo, no se pueden agregar unidades a un proyecto completado."
+    },
+    {
+      "question": "¿Puedo mover una familia a otro proyecto?",
+      "answer": "Sí, como administrador puedes mover familias completas entre proyectos que gestionas. Todos los miembros de la familia se moverán juntos automáticamente debido al principio de atomicidad familiar."
+    },
+    {
+      "question": "¿Cómo reviso las preferencias de las familias?",
+      "answer": "Puedes ver las preferencias de todas las familias en la sección correspondiente. Esto te permite verificar que todas las familias han completado sus selecciones antes de ejecutar el sorteo."
+    },
+    {
+      "question": "¿Qué hago si una familia no envía sus preferencias?",
+      "answer": "El sorteo no puede ejecutarse hasta que TODAS las familias envíen sus preferencias. Debes contactar a las familias pendientes fuera de la aplicación para recordarles que completen este paso obligatorio."
+    },
+    {
+      "question": "¿Puedo invalidar los resultados de un sorteo?",
+      "answer": "Solo los superadministradores pueden invalidar resultados de sorteo a través de operaciones manuales en la base de datos. Esto es extremadamente raro y solo se usa en situaciones excepcionales para mantener los estándares de equidad legal."
+    },
+    {
+      "question": "¿Cómo asigno familias a tipos de unidades?",
+      "answer": "En la gestión de familias, puedes asignar cada familia a un tipo de unidad específico (por ejemplo, 'Apartamento Pequeño' o 'Casa Familiar'). Esto determina qué unidades pueden elegir en sus preferencias - solo pueden seleccionar unidades de su tipo asignado."
+    }
+  ]
+}
