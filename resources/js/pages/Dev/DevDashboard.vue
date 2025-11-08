@@ -2,7 +2,7 @@
 import Head from '@/components/Head.vue';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Palette, MessageSquare, Code } from 'lucide-vue-next';
+import { Sparkles, Palette, MessageSquare, Code, CreditCard } from 'lucide-vue-next';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 
@@ -20,6 +20,13 @@ const devPages = [
     icon: Palette,
     route: 'dev.ui',
     color: 'text-purple-500',
+  },
+  {
+    title: 'Card Components',
+    description: 'Showcase of the new generic Card component system with sample variations',
+    icon: CreditCard,
+    route: 'dev.cards',
+    color: 'text-indigo-500',
   },
   {
     title: 'Playground',

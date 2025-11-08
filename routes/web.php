@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Route;
 /** Healthcheck Route */
 Route::get('ping', fn () => 'pong');
 
-/** Documentation Routes (accessible to everyone) */
-Route::group([], __DIR__ . '/web/documentation.php');
-
 /** User Invitation Routes */
 Route::get('invitation', [InvitationController::class, 'edit'])->name('invitation.edit');
 Route::post('invitation', [InvitationController::class, 'update'])->name('invitation.update');
@@ -19,6 +16,12 @@ Route::middleware('guest')->group(__DIR__ . '/web/guest.php');
 
 /** Auth-handling Routes (password reset, email verification, etc.) */
 Route::middleware('auth')->group(__DIR__ . '/web/auth.php');
+
+/** Documentation Routes */
+Route::middleware('auth')->group(__DIR__ . '/web/documentation.php');
+
+/** Development Routes */
+Route::middleware('auth')->group(__DIR__ . '/web/dev.php');
 
 /** User Settings Routes */
 Route::middleware('auth', 'verified')->group(__DIR__ . '/web/settings.php');

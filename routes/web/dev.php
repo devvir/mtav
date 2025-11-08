@@ -3,20 +3,19 @@
 use App\Http\Controllers\Dev\UiController;
 use Illuminate\Support\Facades\Route;
 
-// Dev Dashboard
 Route::get('dev', fn () => inertia('Dev/DevDashboard'))->name('dev.dashboard');
 
-Route::get('playground', fn () => inertia('Playground'))->name('playground');
+Route::get('playground', fn () => inertia('Dev/Playground'))->name('playground');
 Route::get('dev/ui', UiController::class)->name('dev.ui');
+Route::get('dev/cards', fn () => inertia('Development/Cards'))->name('dev.cards');
 
 // Flash message testing
 Route::get('dev/flash', fn () => inertia('Dev/FlashTester'))->name('dev.flash');
-Route::post('dev/flash/send', function () {
-    $type = request('type');
-    $message = request('message');
 
-    return redirect()->route('dev.flash')->with($type, $message);
-})->name('dev.flash.send');
+Route::post(
+    'dev/flash/send',
+    fn () => to_route('dev.flash')->with(request('type'), request('message'))
+)->name('dev.flash.send');
 
 Route::get(
     'dev/flash/all',
