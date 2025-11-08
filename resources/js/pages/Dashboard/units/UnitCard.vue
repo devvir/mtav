@@ -1,19 +1,16 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Building2 } from 'lucide-vue-next';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unit: Unit & {
-    number: string;
-  };
+  unit: Unit;
 }>();
 </script>
 
 <template>
   <ModalLink
-    :href="`/units/${unit.id}`"
+    :href="route('units.show', unit.id)"
     class="flex items-center justify-between rounded-md border border-border bg-surface-elevated p-3 transition-all hover:border-border-interactive hover:shadow-md focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
   >
     <div class="flex-1">

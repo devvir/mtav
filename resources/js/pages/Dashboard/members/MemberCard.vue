@@ -1,21 +1,16 @@
 <script setup lang="ts">
-// Copilot - pending review
 import PersonCard from '../shared/PersonCard.vue';
 
 defineProps<{
-  member: Member & {
-    family?: {
-      name: string;
-    };
-  };
+  member: Member & { family: Family };
 }>();
 </script>
 
 <template>
   <PersonCard
-    :href="`/members/${member.id}`"
+    :href="route('members.show', member.id)"
     :subject="member"
-    :subtitle="member.family?.name"
+    :subtitle="member.family.name"
     rounded="full"
   />
 </template>

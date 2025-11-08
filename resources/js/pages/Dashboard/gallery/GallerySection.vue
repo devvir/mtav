@@ -7,8 +7,8 @@ import { _ } from '@/composables/useTranslations';
 
 <template>
   <section>
-    <SectionHeader :title="_('Gallery')" view-all-href="/gallery" />
-    <Link href="/gallery" class="block">
+    <SectionHeader :title="_('Gallery')" :view-all-href="route('gallery')" />
+    <Link :href="route('gallery')" class="block">
       <div class="relative h-64 overflow-hidden rounded-lg">
         <div class="absolute inset-0 flex items-center justify-center">
           <!-- Stacked images with rotation -->

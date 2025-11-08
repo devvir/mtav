@@ -4,7 +4,6 @@
  * Test the behavior of the app when visiting the login page - as guest, authenticated
  * members or admin. Consider scenarios like deleted/inactive projects and inactive members.
  */
-
 uses()->group('Feature.Authentication');
 
 describe('When visiting the login page', function () {
@@ -19,7 +18,7 @@ describe('When visiting the login page', function () {
     describe('as Authenticated Member', function () {
 
         it('redirects them to the Dashboard (if their Project is active)', function () {
-            $response = $this->visitRoute('login', asUser: 102); // member102@example.com
+            $response = $this->visitRoute('login', asUser: 102);
 
             expect(inertiaRoute($response))->toBe('home');
         });

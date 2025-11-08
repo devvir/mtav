@@ -1,14 +1,10 @@
 <script setup lang="ts">
-// Copilot - pending review
 import { ModalLink } from '@inertiaui/modal-vue';
 import UnitCard from './UnitCard.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unitType: UnitType & {
-    units_count: number;
-    units?: Unit[];
-  };
+  unitType: UnitType;
 }>();
 </script>
 
@@ -16,7 +12,7 @@ defineProps<{
   <div class="rounded-lg border border-border bg-surface-elevated shadow-sm overflow-hidden">
     <!-- Unit Type Header -->
     <ModalLink
-      :href="`/unit-types/${unitType.id}`"
+      :href="route('unit-types.show', unitType.id)"
       class="block border-b border-border-subtle bg-surface-sunken p-4 transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
     >
       <div class="flex items-center justify-between">
@@ -37,7 +33,6 @@ defineProps<{
       <UnitCard v-for="unit in unitType.units" :key="unit.id" :unit="unit" />
     </div>
 
-    <!-- Empty state -->
     <div v-else class="p-4 text-center text-sm text-text-muted">
       {{ _('No units of this type yet') }}
     </div>
