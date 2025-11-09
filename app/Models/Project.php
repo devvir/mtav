@@ -26,7 +26,7 @@ class Project extends Model
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(Member::class, 'project_user', relatedPivotKey: 'user_id')
-            ->withPivot('active')
+            ->wherePivot('active', true)
             ->withTimestamps();
     }
 

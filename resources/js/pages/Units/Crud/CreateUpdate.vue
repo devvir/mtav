@@ -16,10 +16,10 @@ const unitTypeOptions: SelectOptions = {};
 props.unit_types.forEach((unitType) => (unitTypeOptions[unitType.id] = `${unitType.name} (${unitType.description.toLowerCase()})`));
 
 const formSpecs: FormSpecs = {
-  number: {
+  identifier: {
     element: 'input',
     label: 'Unit Identifier',
-    value: props.unit?.number,
+    value: props.unit?.identifier,
     required: true,
   },
   unit_type_id: {

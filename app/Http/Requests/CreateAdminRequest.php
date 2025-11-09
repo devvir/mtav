@@ -3,31 +3,23 @@
 namespace App\Http\Requests;
 
 use App\Models\Project;
-use App\Models\User;
 
 /**
- * @property-read Array<int> $project_ids
+ * @property-read array<int> $project_ids
  * @property-read string $email
  * @property-read string $firstname
  * @property-read string|null $lastname
- *
- * @method User|null user($guard = null)
  */
 class CreateAdminRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'project_ids' => ['required', 'array'],
-            'project_ids.*' => ['int', 'exists:projects,id'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'firstname' => ['required', 'string', 'min:2', 'max:255'],
-            'lastname' => ['string', 'min:2', 'max:255'],
+            'project_ids' => 'required|array',
+            'project_ids.*' => 'exists:projects,id',
+            'email' => 'required|email|max:255|unique:users,email',
+            'firstname' => 'required|string|between:2,80',
+            'lastname' => 'nullable|string|between:2,80',
         ];
     }
 

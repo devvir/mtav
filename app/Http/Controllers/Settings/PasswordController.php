@@ -32,6 +32,6 @@ class PasswordController
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back();
+        return back()->with('success', __('flash.password_updated'));
     }
 }

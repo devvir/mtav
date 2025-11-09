@@ -19,11 +19,11 @@ return new class extends Migration
             $table->foreignIdFor(Project::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(UnitType::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Family::class)->nullable()->constrained()->nullOnDelete();
-            $table->string('number');
+            $table->string('identifier');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['project_id', 'number']);
+            $table->unique(['identifier', 'project_id']);
         });
     }
 

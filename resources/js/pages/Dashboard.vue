@@ -20,14 +20,15 @@ const props = defineProps<{
   members?: Member[];
   unitTypes?: UnitType[];
   admins?: Admin[];
+  events?: Event[];
 }>();
 
 // Load lazy data on mount
 onMounted(() => {
   // Only reload if we don't have the data yet
-  if (!props.families || !props.members || !props.unitTypes || !props.admins) {
+  if (!props.families || !props.members || !props.unitTypes || !props.admins || !props.events) {
     router.reload({
-      only: ['families', 'members', 'unitTypes', 'admins'],
+      only: ['families', 'members', 'unitTypes', 'admins', 'events'],
     });
   }
 });
@@ -52,13 +53,13 @@ const familiesToShow = computed(() => {
 const visibleFamilies = computed(() => props.families?.slice(0, familiesToShow.value) || []);
 
 const stats = computed(() => ({
-  admins: props.project.admins_count as number,
-  members: props.project.members_count as number,
-  families: props.project.families_count as number,
-  unit_types: props.project.unit_types_count as number,
-  units: props.project.units_count as number,
-  media: props.project.media_count as number,
-  events: props.project.events_count as number,
+  admins: props.project.admins_count,
+  members: props.project.members_count,
+  families: props.project.families_count,
+  unit_types: props.project.unit_types_count,
+  units: props.project.units_count,
+  media: props.project.media_count,
+  events: props.project.events_count,
 }));
 </script>
 
@@ -71,7 +72,7 @@ const stats = computed(() => ({
 
   <div class="flex h-full flex-1 flex-col gap-8 p-4">
     <!-- Overview Stats -->
-    <OverviewSection :stats="stats" />
+    <OverviewSection :stats />
 
     <!-- Gallery and Events side by side -->
     <div class="grid gap-6 @4xl:grid-cols-2">
@@ -79,7 +80,7 @@ const stats = computed(() => ({
         <GallerySection />
       </div>
       <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
-        <EventsSection />
+        <EventsSection :events />
       </div>
     </div>
 
@@ -89,7 +90,7 @@ const stats = computed(() => ({
       <div class="flex flex-col gap-6 rounded-xl bg-card-elevated p-6 shadow-sm">
         <template v-if="families && admins">
           <FamiliesSection :families="visibleFamilies" :total-count="stats.families" />
-          <AdminsSection :admins="admins" />
+          <AdminsSection :admins />
         </template>
         <template v-else>
           <div class="space-y-3">
@@ -110,7 +111,7 @@ const stats = computed(() => ({
       <!-- Right column: Members -->
       <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
         <template v-if="members">
-          <MembersSection :members="members" :total-count="stats.members" />
+          <MembersSection :members :total-count="stats.members" />
         </template>
         <template v-else>
           <div class="space-y-3">

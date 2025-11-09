@@ -12,14 +12,13 @@ import Textarea from '@/components/Textarea.vue';
 import { currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { AuthUser } from '@/types/globals';
 
 defineProps<{
   mustVerifyEmail: boolean;
   status?: string;
 }>();
 
-const profile = currentUser.value as AuthUser;
+const profile = currentUser.value!;
 
 const form = useForm({
   email: profile.email,

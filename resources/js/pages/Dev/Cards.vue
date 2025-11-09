@@ -40,11 +40,12 @@ const sampleEventResource = {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <!-- 1. Long Title with Edit Button -->
-                <Card>
+                <Card
+                  :resource="sampleEventResource"
+                  edit-url="events.edit"
+                >
                     <CardHeader
                         title="This is a very long card title that demonstrates how the grid layout handles text truncation alongside an edit button in the same row"
-                        edit-url="events.edit"
-                        :edit-resource="sampleEventResource"
                     />
                     <CardContent>
                         <p class="text-text-muted">This card tests long title truncation with an edit button present, ensuring proper grid behavior.</p>
@@ -79,13 +80,14 @@ const sampleEventResource = {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <!-- 4. Full-featured Event Card -->
-                <Card>
+                <Card
+                  :resource="sampleEventResource"
+                  edit-url="events.edit"
+                >
                     <CardHeader
                         title="Annual Charity Gala"
                         subtitle="Fundraising Event"
                         :icon="Calendar"
-                        edit-url="events.edit"
-                        :edit-resource="sampleEventResource"
                     >
                         <Badge variant="outline">
                             <Check class="size-3 mr-1" />

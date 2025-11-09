@@ -15,7 +15,7 @@ class UnitResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'number' => $this->number,
+            'identifier' => $this->identifier,
             'created_at' => $this->created_at->toDateTimeString(),
             'created_ago' => $this->created_at->diffForHumans(),
             'deleted_at' => $this->deleted_at?->toDateTimeString(),

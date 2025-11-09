@@ -11,7 +11,7 @@ class FilteredIndexRequest extends ProjectScopedRequest
     public function rules(): array
     {
         return [
-            'project_id' => 'nullable|integer|exists:projects,id',
+            'project_id' => 'nullable|exists:projects,id',
             'q' => 'nullable|string|max:255',
         ];
     }

@@ -20,19 +20,23 @@ class UnitFactory extends Factory
     public function definition(): array
     {
         return [
-            'number' => $this->faker->numerify('###'),
             'project_id' => Project::factory(),
             'unit_type_id' => fn (array $attributes) => UnitType::factory()->create(['project_id' => $attributes['project_id']])->id,
             'family_id' => null,
+            'identifier' => $this->faker->randomLetter() . $this->faker->numerify('##'),
         ];
     }
 
     public function inProject(Project $project): static
     {
         return $this->state([
-            'number' => new Sequence(fn (Sequence $seq) => (string) ($seq->index + 1)),
             'project_id' => $project->id,
-            'unit_type_id' => fn () => UnitType::factory()->create(['project_id' => $project->id])->id,
+            'unit_type_id' => fn () => UnitType::factory()->create([
+                'project_id' => $project->id,
+            ])->id,
+            'identifier' => new Sequence(
+                fn (Sequence $seq) => $this->faker->randomLetter() . ($seq->index + 1)
+            ),
         ]);
     }
 }

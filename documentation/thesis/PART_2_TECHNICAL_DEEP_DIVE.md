@@ -653,7 +653,7 @@ class FamilyController extends Controller
         ]);
 
         // Redireccionar con mensaje
-        return redirect()->route('families.index')
+        return to_route('families.index')
             ->with('success', 'Familia creada exitosamente');
     }
 }
@@ -786,7 +786,7 @@ public function update(Request $request, Family $family)
     $this->authorize('update', $family);
 
     $family->update($request->validated());
-    return redirect()->route('families.show', $family);
+    return to_route('families.show', $family);
 }
 ```
 

@@ -296,7 +296,7 @@ private function resolveAvatar(): string
 | ------------ | ------------ | ---------------------------------------- | ----------------------------- |
 | `id`         | int          | `$this->id`                              |                               |
 | `name`       | string       | `$this->name`                            | Computed from number and type |
-| `number`     | string       | `$this->number`                          | Unit number                   |
+| `identifier` | string       | `$this->identifier`                      | Unit identifier                   |
 | `created_at` | string       | `$this->created_at->toDateTimeString()`  |                               |
 | `deleted_at` | string\|null | `$this->deleted_at?->toDateTimeString()` | Only if soft-deleted          |
 

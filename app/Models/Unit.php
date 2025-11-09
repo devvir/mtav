@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\ProjectScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Unit extends Model
@@ -22,5 +23,15 @@ class Unit extends Model
     public function family(): BelongsTo
     {
         return $this->belongsTo(Family::class);
+    }
+
+    public function scopeAlphabetically(Builder $query): void
+    {
+        $query->orderBy('identifier');
+    }
+
+    public function scopeSearch(Builder $query, string $q): void
+    {
+        $query->whereLike('identifier', "%$q%");
     }
 }

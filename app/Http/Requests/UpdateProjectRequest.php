@@ -12,11 +12,6 @@ use Illuminate\Validation\Rule;
  */
 class UpdateProjectRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -24,7 +19,7 @@ class UpdateProjectRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(Project::class, 'name')->ignore($this->route('project')->id),
+                Rule::unique(Project::class)->ignore($this->route('project')),
             ],
             'description' => ['required', 'string', 'max:65535'],
             'organization' => ['required', 'string', 'max:255'],

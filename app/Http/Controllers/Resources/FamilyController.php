@@ -13,9 +13,6 @@ use Inertia\Response;
 
 class FamilyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(FilteredIndexRequest $request): Response
     {
         defineState('groupMembers', true);
@@ -32,9 +29,6 @@ class FamilyController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Family $family): Response
     {
         $family->load('project', 'members');
@@ -42,9 +36,6 @@ class FamilyController extends Controller
         return inertia('Families/Show', compact('family'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): Response
     {
         return inertia('Families/Create', [
@@ -52,20 +43,14 @@ class FamilyController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(CreateFamilyRequest $request): RedirectResponse
     {
         $family = Family::create($request->validated());
 
-        return to_route('families.show', $family->id)
-            ->with('success', __('New family created!'));
+        return to_route('families.show', $family)
+            ->with('success', __('flash.family_created'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Family $family): Response
     {
         return inertia('Families/Edit', [
@@ -74,36 +59,29 @@ class FamilyController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateFamilyRequest $request, Family $family): RedirectResponse
     {
         $family->update($request->validated());
 
-        return redirect()->back()
-            ->with('success', __('Family information updated!'));
+        return back()
+            ->with('success', __('flash.family_updated'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Family $family): RedirectResponse
     {
+        $family->members()->delete();
         $family->delete();
 
         return to_route('families.index')
-            ->with('success', __('Family deleted!'));
+            ->with('success', __('flash.family_deleted'));
     }
 
-    /**
-     * Restore the soft-deleted resource.
-     */
     public function restore(Family $family): RedirectResponse
     {
+        $family->members()->withTrashed()->restore();
         $family->restore();
 
-        return to_route('families.show', $family->id)
-            ->with('success', __('Family restored!'));
+        return to_route('families.show', $family)
+            ->with('success', __('flash.family_restored'));
     }
 }

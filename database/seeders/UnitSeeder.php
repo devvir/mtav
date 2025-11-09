@@ -42,7 +42,7 @@ class UnitSeeder extends Seeder
             Unit::factory()
                 ->count($unitsCount)
                 ->sequence(fn ($sequence) => [
-                    'number' => (string) ($sequence->index + 1),
+                    'identifier' => fake()->randomLetter() . ($sequence->index + 1),
                     'project_id' => $projectId,
                     'unit_type_id' => $unitTypeIds->random(),
                     'family_id' => null,

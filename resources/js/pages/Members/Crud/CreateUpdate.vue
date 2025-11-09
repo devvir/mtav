@@ -56,7 +56,7 @@ const specs: FormSpecs = {
  */
 if (iAmNotAdmin.value || props.type === 'edit') {
   specs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  specs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family?.id };
+  specs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family.id };
 }
 
 const handleFormChange = ({ field, value }: FormUpdateEvent) => {

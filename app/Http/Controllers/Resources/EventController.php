@@ -72,4 +72,12 @@ class EventController extends Controller
 
         return back()->with('success', __('flash.event_deleted'));
     }
+
+    public function restore(Event $event): RedirectResponse
+    {
+        $event->restore();
+
+        return to_route('events.show', $event)
+            ->with('success', __('flash.event_restored'));
+    }
 }

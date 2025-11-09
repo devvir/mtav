@@ -11,13 +11,15 @@ class CurrentProjectController
     {
         defineState('project', $project);
 
-        return back();
+        return to_route('home')
+            ->with('success', __('flash.project_set'));
     }
 
     public function unset(): RedirectResponse
     {
         defineState('project', null);
 
-        return redirect()->back();
+        return to_route('projects.index')
+            ->with('success', __('flash.project_unset'));
     }
 }

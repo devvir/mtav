@@ -23,7 +23,7 @@ defineProps<{ member: Member }>();
     action="members.update"
     class="mx-auto size-full max-w-2xl"
     :member
-    :families="[member.family]"
-    :projects="[member.project as Project]"
+    :families="[member.family as Family]"
+    :projects="[member.project!]"
   />
 </template>

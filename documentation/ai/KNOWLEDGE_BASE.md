@@ -6653,7 +6653,7 @@ it('requires square_meters')
 it('requires bedrooms and bathrooms counts')
 it('has garden and balcony flags')
 it('can belong to a family after lottery') // nullable family_id
-it('number is unique within project')
+it('identifier is unique within project')
 it('validates unit_type belongs to same project')
 ```
 

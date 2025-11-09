@@ -19,6 +19,7 @@ class User extends Authenticatable
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use HasPolicy;
     use Notifiable;
     use ProjectScope;
@@ -47,6 +48,7 @@ class User extends Authenticatable
      * Sub-instance as Member/Admin (depends on @is_admin)
      */
     protected ?Admin $adminCast = null;
+
     protected ?Member $memberCast = null;
 
     public function asMember(): ?Member
@@ -68,11 +70,6 @@ class User extends Authenticatable
             ->belongsToMany(Project::class, 'project_user', 'user_id')
             ->wherePivot('active', true)
             ->withTimestamps();
-    }
-
-    public function scopeActive(Builder $query): void
-    {
-        $query->wherePivot('active', true);
     }
 
     public function scopeAlphabetically(Builder $query): void

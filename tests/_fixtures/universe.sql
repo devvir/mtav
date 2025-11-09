@@ -240,7 +240,7 @@ INSERT INTO families (id, project_id, unit_type_id, name, avatar, created_at, up
 
 TRUNCATE TABLE units;
 
-INSERT INTO units (id, project_id, unit_type_id, family_id, number, created_at, updated_at, deleted_at) VALUES
+INSERT INTO units (id, project_id, unit_type_id, family_id, identifier, created_at, updated_at, deleted_at) VALUES
 -- Type #1: NO units
 
 -- Type #2: 1 unit

@@ -10,14 +10,12 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AdminController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(FilteredIndexRequest $request): Response
     {
         $admins = Admin::alphabetically()
@@ -30,9 +28,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Admin $admin): Response
     {
         $admin->load('projects');
@@ -40,9 +35,6 @@ class AdminController extends Controller
         return inertia('Admins/Show', compact('admin'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): Response
     {
         return inertia('Admins/Create', [
@@ -62,13 +54,10 @@ class AdminController extends Controller
             $request->project_ids
         );
 
-        return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin invitation sent!'));
+        return to_route('admins.show', $admin)
+            ->with('success', __('flash.admin_invitation_sent'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Admin $admin): Response
     {
         $admin->load('projects');
@@ -76,36 +65,30 @@ class AdminController extends Controller
         return inertia('Admins/Edit', compact('admin'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateAdminRequest $request, Admin $admin): RedirectResponse
     {
         $admin->update($request->validated());
 
-        return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin information updated!'));
+        return to_route('admins.show', $admin)
+            ->with('success', __('flash.admin_updated'));
     }
 
-    /**
-     * Delete the resource.
-     */
     public function destroy(User $admin): RedirectResponse
     {
+        $required = $admin->project?->admins()->count() === 1;
+        Gate::denyIf($required, __('validation.project_requires_admin'));
+
         $admin->delete();
 
         return to_route('admins.index')
-            ->with('success', __('Admin deleted!'));
+            ->with('success', __('flash.admin_deleted'));
     }
 
-    /**
-     * Restore the soft-deleted resource.
-     */
     public function restore(Admin $admin): RedirectResponse
     {
         $admin->restore();
 
-        return to_route('admins.show', $admin->id)
-            ->with('success', __('Admin restored!'));
+        return to_route('admins.show', $admin)
+            ->with('success', __('flash.admin_restored'));
     }
 }

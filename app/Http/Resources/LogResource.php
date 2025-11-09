@@ -40,6 +40,6 @@ class LogResource extends JsonResource
     {
         $routeName = $user->isAdmin() ? 'admins.show' : 'members.show';
 
-        return route($routeName, $user->id);
+        return route($routeName, $user);
     }
 }

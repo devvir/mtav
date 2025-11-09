@@ -45,10 +45,8 @@ class HandleInvitedUsers
         }
 
         // Redirect to invitation for all other routes
-        return redirect()->route('invitation.edit')->with(
-            'info',
-            __('Please complete your registration to continue.')
-        );
+        return to_route('invitation.edit')
+            ->with('info', __('flash.registration_required'));
     }
 
     /**
@@ -78,9 +76,9 @@ class HandleInvitedUsers
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with(
+        return to_route('login')->with(
             'warning',
-            __('If you were invited to a project, please follow the link you received in your email.')
+            __('flash.invitation_logout')
         );
     }
 }

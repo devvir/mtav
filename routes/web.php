@@ -37,5 +37,5 @@ Route::middleware('auth', 'verified')->group(__DIR__ . '/web/users.php');
 
 /** Development Routes (only in development environments) */
 if (app()->environment('local', 'testing')) {
-    Route::group([], __DIR__ . '/web/dev.php');
+    Route::middleware('auth')->group(__DIR__ . '/web/dev.php');
 }

@@ -24,7 +24,7 @@ defineProps<{
     <div v-else class="flex h-32 items-center justify-center rounded-lg">
       <div class="text-center text-sm text-text-muted">
         <UsersRound class="mx-auto mb-2 h-8 w-8 opacity-50" />
-        <p>{{ _('No families yet') }}</p>
+        <p>{{ _('No Families yet') }}</p>
       </div>
     </div>
   </section>

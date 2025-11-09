@@ -6,6 +6,19 @@ use App\Models\Project;
 use App\Models\User;
 
 /**
+ * This request may be used in two scenarios:
+ *   - directly when a Project is optional (e.g. create Member -- works global or in-project)
+ *   - as base, for Requests that have further specs (e.g. create Event)
+ *     ~ e.g. children Request makes project_id required
+ *     ~ e.g. children Request has other attributes to validate
+ *
+ * For requests expecting an optional project_id:
+ *   - if a current Project is set, reject different project_id in the request (403)
+ *   - if no current Project, and no project_id is given, move on
+ *   - if no current Project, and a project_id is provided, validate user access to it
+ *
+ * Note: if a current Project is set, its project_id will be injected in the Request
+ *
  * @property-read int|null $project_id
  *
  * @method User|null user($guard = null)
@@ -15,28 +28,8 @@ class ProjectScopedRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => 'nullable|integer|exists:projects,id',
+            'project_id' => 'nullable|exists:projects,id',
         ];
-    }
-
-    /**
-     * Determine if the user is authorized to make this request.
-     * Ensures project context integrity and authorization:
-     *  - 1. If current project is set and project_id is provided, they must match (context integrity)
-     *  - 2. If project_id is provided, user must have access to that project (authorization)
-     */
-    public function authorize(): bool
-    {
-        $currentProject = Project::current();
-        $requestedProjectId = $this->input('project_id');
-
-        // Context integrity check: current project and requested project must match
-        if ($currentProject && $requestedProjectId && (int) $requestedProjectId !== $currentProject->id) {
-            return false;
-        }
-
-        // Authorization check: user must have access to requested project
-        return ! $requestedProjectId || $this->userCanAccessProject($requestedProjectId);
     }
 
     /**
@@ -54,11 +47,29 @@ class ProjectScopedRequest extends FormRequest
     }
 
     /**
+     * Determine if the user is authorized (context integrity and authorization):
+     *  - 1. If project is set and project_id is provided, they must match (context integrity)
+     *  - 2. If project_id is provided, user must have access to that project (authorization)
+     */
+    public function authorize(): bool
+    {
+        $currentProject = Project::current();
+        $requestedProjectId = $this->input('project_id');
+
+        // Context integrity check: current project and requested project must match
+        if ($currentProject && (int) $requestedProjectId !== $currentProject->id) {
+            return false;
+        }
+
+        // Authorization check: user must have access to requested project
+        return ! $requestedProjectId || $this->userCanAccessProject($requestedProjectId);
+    }
+
+    /**
      * Check if the authenticated user can access the specified project.
      */
     protected function userCanAccessProject(int $projectId): bool
     {
-        /** @var User $user */
         $user = $this->user();
 
         return $user->isSuperadmin()

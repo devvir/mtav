@@ -1,16 +1,19 @@
-type AppResource = 'projects' | 'units' | 'unit-types' | 'admins' | 'families' | 'members' | 'logs';
+type AppResource = 'projects' | 'units' | 'unit-types' | 'admins' | 'families' | 'members' | 'events' | 'logs';
+
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
 interface Resource {
   id: number;
   created_at: string;
   created_ago: string;
+  updated_at?: string;
+  updated_ago?: string;
   deleted_at: string | null;
 }
 
 interface Subject {
-    name: string;
-    avatar: string;
+  name: string;
+  avatar: string;
 }
 
 interface Project extends Resource {
@@ -83,28 +86,41 @@ interface UnitType extends Resource {
 }
 
 interface Unit extends Resource {
-  name: string;
-  number: string | null;
-  type: { id: number } | ApiResource<UnitType>;
-  project: { id: number } | ApiResource<Project>;
-  family: { id: number | null } | null | ApiResource<Family>;
+  identifier: string | null;
+  project: ApiResource<Project> | { id: number };
+  type: ApiResource<UnitType> | { id: number };
+  family: ApiResource<Family> | { id: number } | null;
 }
 
 interface Media extends Resource {
-    filename: string;
-    description: string | null;
-    url: string;
-    thumbnail_url: string | null;
+  filename: string;
+  description: string | null;
+  url: string;
+  thumbnail_url: string | null;
 }
 
+type EventType = 'lottery' | 'online' | 'onsite';
+type EventTypes = Record<EventType, string>;
+
 interface Event extends Resource {
-    title: string;
-    description: string | null;
-    event_date: string;
+  type: EventType;
+  title: string;
+  description: string;
+  start_date: string | null;
+  start_date_formatted: string | null;
+  end_date: string | null;
+  end_date_formatted: string | null;
+  location: string | null;
+  is_published: boolean;
+  is_lottery: boolean;
+  is_online: boolean;
+  is_onsite: boolean;
+  type_label: string;
+
+  project: ApiResource<Project> | { id: number };
 }
 
 interface Log extends Resource {
-  project_id: number;
   event: string;
   creator: string;
   creator_href: string | null;

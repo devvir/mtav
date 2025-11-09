@@ -35,6 +35,7 @@ class ProfileController
 
         $request->user()->update($data);
 
-        return to_route('profile.edit')->with('success', __('Profile updated!'));
+        return to_route('profile.edit')
+            ->with('success', __('flash.profile_updated'));
     }
 }

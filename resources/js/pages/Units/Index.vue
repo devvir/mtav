@@ -34,7 +34,7 @@ defineProps<{
         >
           <div class="flex items-center justify-between gap-4">
             <div class="flex-1">
-              <div class="font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</div>
+              <div class="font-semibold text-text">{{ _('Unit') }} {{ unit.identifier }}</div>
               <div v-if="unit.type && 'name' in unit.type" class="text-sm text-text-subtle">
                 {{ unit.type.name }}
               </div>

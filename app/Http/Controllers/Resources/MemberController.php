@@ -16,9 +16,6 @@ use Inertia\Response;
 
 class MemberController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(FilteredIndexRequest $request): Response
     {
         defineState('groupMembers', false);
@@ -34,9 +31,6 @@ class MemberController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Member $member): Response
     {
         $member->load('family', 'projects');
@@ -44,9 +38,6 @@ class MemberController extends Controller
         return inertia('Members/Show', compact('member'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(ProjectScopedRequest $request): Response
     {
         $families = Family::when($request->project_id, fn ($q, $id) => $q->inProject($id));
@@ -69,13 +60,10 @@ class MemberController extends Controller
             $request->project_id
         );
 
-        return to_route('members.show', $member->id)
-            ->with('success', __('Member invitation sent!'));
+        return to_route('members.show', $member)
+            ->with('success', __('flash.member_invitation_sent'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Member $member): Response
     {
         $member->load('family', 'projects');
@@ -83,36 +71,27 @@ class MemberController extends Controller
         return inertia('Members/Edit', compact('member'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse
     {
         $member->update($request->validated());
 
-        return redirect()->back()
-            ->with('success', __('Member information updated!'));
+        return back()
+            ->with('success', __('flash.member_updated'));
     }
 
-    /**
-     * Delete the resource.
-     */
     public function destroy(Member $member): RedirectResponse
     {
         $member->delete();
 
         return to_route('members.index')
-            ->with('success', __('Member deleted!'));
+            ->with('success', __('flash.member_deleted'));
     }
 
-    /**
-     * Restore the soft-deleted resource.
-     */
     public function restore(Member $member): RedirectResponse
     {
         $member->restore();
 
-        return to_route('members.show', $member->id)
-            ->with('success', __('Member restored!'));
+        return to_route('members.show', $member)
+            ->with('success', __('flash.member_restored'));
     }
 }

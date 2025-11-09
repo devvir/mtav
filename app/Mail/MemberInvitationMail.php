@@ -13,7 +13,8 @@ use Illuminate\Queue\SerializesModels;
 
 class MemberInvitationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Create a new message instance.
@@ -31,9 +32,11 @@ class MemberInvitationMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: __('You\'ve been invited to join your family in MTAV!'),
-        );
+        $subject = $this->member->family->members()->count() > 1
+            ? __('You\'ve been invited to join your Family in MTAV!')
+            : __('You\'ve been invited to join MTAV!');
+
+        return new Envelope(subject: $subject);
     }
 
     /**

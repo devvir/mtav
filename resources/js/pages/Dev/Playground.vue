@@ -3,9 +3,9 @@ import DropdownSample from '@/components/dropdown/DropdownSample.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import ChartSample from '@/components/playground/chart/ChartSample.vue';
-import SvgBackgrounds from '@/components/playground/chart/SvgBackgrounds.vue';
-import I18n from '@/components/playground/I18n.vue';
+import ChartSample from './playground/chart/ChartSample.vue';
+import SvgBackgrounds from './playground/chart/SvgBackgrounds.vue';
+import I18n from './playground/I18n.vue';
 </script>
 
 <template>
@@ -13,7 +13,7 @@ import I18n from '@/components/playground/I18n.vue';
 
   <Breadcrumbs global>
     <Breadcrumb route="dev.dashboard">Dev</Breadcrumb>
-    <Breadcrumb route="playground" no-link>Playground</Breadcrumb>
+    <Breadcrumb route="dev.playground" no-link>Playground</Breadcrumb>
   </Breadcrumbs>
 
   <div class="space-y-wide">

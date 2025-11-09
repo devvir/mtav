@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Foundation\Http\FormRequest as BaseFormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -28,6 +29,7 @@ use Illuminate\Support\Collection;
  * @method UploadedFile|null file($key)
  * @method bool hasFile($key)
  * @method mixed route($param = null, $default = null)
+ * @method Session session($param = null, $default = null)
  * @method Collection collect($key = null)
  * @method string|null ip()
  * @method User|null user($guard = null)

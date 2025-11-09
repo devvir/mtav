@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,9 +53,6 @@ class ProjectController extends Controller
         return inertia('Projects/Show', compact('project'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): Response
     {
         return inertia('Projects/Create', [
@@ -62,9 +60,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(CreateProjectRequest $request): RedirectResponse
     {
         $project = DB::transaction(fn () => tap(
@@ -72,13 +67,10 @@ class ProjectController extends Controller
             fn ($project) => $project->admins()->attach($request->admins)
         ));
 
-        return to_route('projects.show', $project->id)
-            ->with('success', __('New project created!'));
+        return to_route('projects.show', $project)
+            ->with('success', __('flash.project_created'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Project $project): Response
     {
         return inertia('Projects/Edit', [
@@ -87,36 +79,31 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
         $project->update($request->validated());
 
-        return to_route('projects.show', $project->id)
-            ->with('success', __('Project information updated!'));
+        return to_route('projects.show', $project)
+            ->with('success', __('flash.project_updated'));
     }
 
-    /**
-     * Delete the resource.
-     */
     public function destroy(Project $project): RedirectResponse
     {
+        $inUse = $project->members()->count();
+
+        Gate::denyIf($inUse, __('validation.project_has_active_members'));
+
         $project->delete();
 
         return to_route('projects.index')
-            ->with('success', __('Project deleted!'));
+            ->with('success', __('flash.project_deleted'));
     }
 
-    /**
-     * Restore the soft-deleted resource.
-     */
     public function restore(Project $project): RedirectResponse
     {
         $project->restore();
 
-        return to_route('projects.show', $project->id)
-            ->with('success', __('Project restored!'));
+        return to_route('projects.show', $project)
+            ->with('success', __('flash.project_restored'));
     }
 }

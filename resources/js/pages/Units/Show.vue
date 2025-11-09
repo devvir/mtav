@@ -23,7 +23,7 @@ defineProps<{
 
   <Breadcrumbs>
     <Breadcrumb v-if="can.viewAny('units')" route="units.index" text="Units" />
-    <Breadcrumb route="units.show" :params="unit.id">{{ _('Unit') }} {{ unit.number }}</Breadcrumb>
+    <Breadcrumb route="units.show" :params="unit.id">{{ _('Unit') }} {{ unit.identifier }}</Breadcrumb>
   </Breadcrumbs>
 
   <MaybeModal panelClasses="modalPanel backdrop-blur-lg">
@@ -36,7 +36,7 @@ defineProps<{
                 <Building2 class="h-8 w-8 text-text-subtle" />
               </div>
               <div class="min-w-0 flex-1">
-                <h2 class="truncate text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.number }}</h2>
+                <h2 class="truncate text-2xl font-semibold text-text">{{ _('Unit') }} {{ unit.identifier }}</h2>
                 <p v-if="unit.type && 'name' in unit.type" class="mt-1 truncate text-sm text-text-subtle">
                   {{ unit.type.name }}
                 </p>

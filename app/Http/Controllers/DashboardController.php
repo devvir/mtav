@@ -14,7 +14,8 @@ class DashboardController
     public function __invoke(): Response
     {
         $project = Project::current();
-        $project->loadCount('admins', 'members', 'families', 'unitTypes', 'units');
+
+        $project->loadCount('admins', 'members', 'families', 'unitTypes', 'units', 'events');
 
         return inertia('Dashboard', [
             'project' => $project,
@@ -31,10 +32,10 @@ class DashboardController
             'unitTypes' => Inertia::lazy(
                 fn () => $project->unitTypes()->with('units')->get()
             ),
-
+            'events' => Inertia::lazy(
+                fn () => $project->events()->published()->latest()->take(2)->get()
+            ),
             'media' => 0,  // Not implemented yet
-            'events' => 0, // Not implemented yet
-            'logs' => 0, // Not implemented yet
         ]);
     }
 }

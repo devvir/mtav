@@ -17,7 +17,7 @@ defineProps<{
         ? 'rounded-2xl border-current/10 bg-accent text-accent-foreground'
         : 'rounded border-current text-foreground/80 hover:rounded-2xl hover:border-0 hover:bg-accent/70 hover:text-accent-foreground'
     "
-    :title="selected ? _('Click to deselect') : _('Click to set as current project')"
+    :title="selected ? _('Click to deselect') : _('Click to set as current Project')"
   >
     <span>{{ selected ? _('Selected') : _('Select') }}</span>
 

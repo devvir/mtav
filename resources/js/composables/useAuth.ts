@@ -1,4 +1,4 @@
-import { AuthUser } from '@/types/globals';
+import type { AuthUser } from '@/types/inertia';
 
 const page = usePage();
 

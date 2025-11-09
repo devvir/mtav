@@ -201,12 +201,16 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'belongs_to_project' => 'The selected :attribute does not belong to the selected project.',
-    'family_belongs_to_project' => 'The selected family does not belong to the selected project.',
+    'belongs_to_project' => 'The selected :attribute does not belong to the selected Project.',
+    'family_belongs_to_project' => 'The selected Family does not belong to the selected Project.',
     'invalid_invitation_credentials' => 'Invitation expired or invalid. If you received an invitation, please check your email and follow the link.',
-    'project_context_mismatch' => 'Cannot specify a project when a project context is already active.',
-    'unauthorized_project_access' => 'You do not have permission to perform this action on the selected project.',
-    'unauthorized_projects_assignment' => 'You can only assign projects you manage. Unauthorized projects: :ids',
-    'unit_type_belongs_to_project' => 'The selected unit type does not belong to the selected project.',
+    'project_context_mismatch' => 'Cannot specify a Project when a Project context is already active.',
+    'project_has_active_members' => 'Cannot delete a Project with active Members. Please remove them first.',
+    'project_requires_admin' => 'Cannot delete the only Admin in the Project. Please register a new Admin first.',
+    'unauthorized_project_access' => 'You do not have permission to perform this action on the selected Project.',
+    'unauthorized_projects_assignment' => 'You can only assign Projects you manage. Unauthorized Projects: :ids',
+    'unit_already_assigned' => 'Cannot delete a Unit that was already assigned to a Family.',
+    'unit_type_belongs_to_project' => 'The selected Unit Type does not belong to the selected Project.',
+    'unit_type_has_dependencies' => 'Cannot delete a Unit Type that is assigned to Families or Units. Please reassign them first.',
 
 ];

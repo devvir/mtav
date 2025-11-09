@@ -32,7 +32,7 @@ const devPages = [
     title: 'Playground',
     description: 'Experimental sandbox for testing new features and components',
     icon: Sparkles,
-    route: 'playground',
+    route: 'dev.playground',
     color: 'text-green-500',
   },
 ];

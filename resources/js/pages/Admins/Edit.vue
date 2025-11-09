@@ -23,6 +23,6 @@ defineProps<{ admin: Admin }>();
     action="admins.update"
     class="mx-auto size-full max-w-2xl"
     :admin
-    :projects="admin.projects as Project[]"
+    :projects="admin.projects!"
   />
 </template>

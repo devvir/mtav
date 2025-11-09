@@ -15,19 +15,20 @@ class InvitationService
     /**
      * Create and invite a new admin.
      */
-    public function inviteAdmin(array $userData, array $projectIds): Admin
+    public function inviteAdmin(array $input, array $projectIds): Admin
     {
-        $token = $this->createToken();
-        $data = ['password' => $token, 'is_admin' => true] + $userData;
+        $data = [
+            ...Arr::only($input, ['email', 'firstname', 'lastname']),
+            'password' => $this->createToken(),
+            'is_admin' => true,
+        ];
 
-        $admin = DB::transaction(function () use ($data, $projectIds) {
-            $admin = Admin::create($data);
-            $admin->projects()->attach($projectIds);
+        $admin = DB::transaction(fn () => tap(
+            Admin::create($data),
+            fn (Admin $admin) => $admin->projects()->attach($projectIds)
+        ));
 
-            return $admin;
-        });
-
-        event(new UserRegistration($admin, $token));
+        event(new UserRegistration($admin, $data['password']));
 
         return $admin;
     }
@@ -35,16 +36,18 @@ class InvitationService
     /**
      * Create and invite a new member.
      */
-    public function inviteMember(array $userData, int $projectId): Member
+    public function inviteMember(array $input, int $projectId): Member
     {
-        $token = $this->createToken();
-        $data = ['password' => $token] + $userData;
+        $data = [
+            ...Arr::only($input, ['family_id', 'email', 'firstname', 'lastname']),
+            'password' => $this->createToken(),
+        ];
 
         $member = DB::transaction(
             fn () => Member::create($data)->joinProject($projectId)
         );
 
-        event(new UserRegistration($member, $token));
+        event(new UserRegistration($member, $data['password']));
 
         return $member;
     }

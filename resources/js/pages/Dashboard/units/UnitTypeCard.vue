@@ -34,7 +34,7 @@ defineProps<{
     </div>
 
     <div v-else class="p-4 text-center text-sm text-text-muted">
-      {{ _('No units of this type yet') }}
+      {{ _('No Units of this type yet') }}
     </div>
   </div>
 </template>

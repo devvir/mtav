@@ -456,7 +456,7 @@ public function update(Request $request, Family $family)
     $this->authorize('update', $family);
 
     $family->update($request->validated());
-    return redirect()->route('families.show', $family);
+    return to_route('families.show', $family);
 }
 ```
 
@@ -1066,7 +1066,7 @@ class ProjectController extends Controller
 
         $project->update(['lottery_executed_at' => now()]);
 
-        return redirect()->route('projects.show', $project);
+        return to_route('projects.show', $project);
     }
 }
 ```
@@ -1264,7 +1264,7 @@ public function update(Request $request, Family $family)
         if ($request->has('name')) {
             if (strlen($request->name) > 3) {
                 $family->update(['name' => $request->name']);
-                return redirect()->route('families.show', $family);
+                return to_route('families.show', $family);
             }
         }
     }
@@ -1288,7 +1288,7 @@ public function update(Request $request, Family $family)
 
     $family->update(['name' => $request->name]);
 
-    return redirect()->route('families.show', $family);
+    return to_route('families.show', $family);
 }
 ```
 
@@ -1391,7 +1391,7 @@ lang/
 **En código PHP:**
 
 ```php
-return redirect()->back()->with('success', __('Family created successfully'));
+return back()->with('success', __('Family created successfully'));
 ```
 
 **En archivos JSON:**

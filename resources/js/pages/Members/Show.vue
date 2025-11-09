@@ -68,7 +68,7 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
               class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
             >
               <span class="text-text/70">{{ _('Family') }}:</span>
-              <span class="font-medium">{{ (member.family as ApiResource<Family>).name }}</span>
+              <span class="font-medium">{{ (member.family as Family).name }}</span>
             </ModalLink>
           </div>
 

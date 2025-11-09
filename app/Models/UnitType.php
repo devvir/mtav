@@ -30,4 +30,9 @@ class UnitType extends Model
     {
         $query->orderBy('name');
     }
+
+    public function scopeSearch(Builder $query, string $q): void
+    {
+        $query->whereLike('name', "%$q%");
+    }
 }

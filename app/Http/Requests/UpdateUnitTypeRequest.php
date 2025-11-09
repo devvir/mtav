@@ -2,17 +2,15 @@
 
 namespace App\Http\Requests;
 
-/**
- * @property-read string $name
- * @property-read string|null $description
- */
-class UpdateUnitTypeRequest extends FormRequest
+class UpdateUnitTypeRequest extends CreateUnitTypeRequest
 {
     public function rules(): array
     {
-        return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ];
+        /**
+         * UnitType's Create and Update Requests use the exact same rules.
+         *
+         * @see CreateUnitTypeRequest
+         */
+        return parent::rules();
     }
 }

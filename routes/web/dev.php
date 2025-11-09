@@ -3,22 +3,18 @@
 use App\Http\Controllers\Dev\UiController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('dev', fn () => inertia('Dev/DevDashboard'))->name('dev.dashboard');
+Route::get('dev', fn () => inertia('Dev/Dashboard'))->name('dev.dashboard');
 
-Route::get('playground', fn () => inertia('Dev/Playground'))->name('playground');
 Route::get('dev/ui', UiController::class)->name('dev.ui');
-Route::get('dev/cards', fn () => inertia('Development/Cards'))->name('dev.cards');
+Route::get('dev/cards', fn () => inertia('Dev/Cards'))->name('dev.cards');
+Route::get('dev/playground', fn () => inertia('Dev/Playground'))->name('dev.playground');
 
 // Flash message testing
 Route::get('dev/flash', fn () => inertia('Dev/FlashTester'))->name('dev.flash');
-
-Route::post(
-    'dev/flash/send',
+Route::post('dev/flash/send',
     fn () => to_route('dev.flash')->with(request('type'), request('message'))
 )->name('dev.flash.send');
-
-Route::get(
-    'dev/flash/all',
+Route::get('dev/flash/all',
     fn () => redirect()->route('dev.flash')
         ->with('success', 'Operation completed successfully!')
         ->with('info', 'Here\'s some additional information.')
