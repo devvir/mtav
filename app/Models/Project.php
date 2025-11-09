@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Observers\ProjectObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+#[ObservedBy([ProjectObserver::class])]
 class Project extends Model
 {
     public static function current(): ?Project
@@ -15,22 +18,9 @@ class Project extends Model
         return state('project');
     }
 
-    /**
-     * Units (houses/apartments) defined in this habitational project.
-     */
-    public function units(): HasMany
-    {
-        return $this->hasMany(Unit::class);
-    }
-
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);
-    }
-
-    public function unitTypes(): HasMany
-    {
-        return $this->hasMany(UnitType::class);
     }
 
     public function members(): BelongsToMany
@@ -47,14 +37,26 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    public function unitTypes(): HasMany
+    {
+        return $this->hasMany(UnitType::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(Unit::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     public function logs(): HasMany
     {
         return $this->hasMany(Log::class);
     }
 
-    /**
-     * Add a member to the project.
-     */
     public function addMember(Member|int $memberOrId): self
     {
         $this->members()->syncWithPivotValues(
@@ -76,9 +78,6 @@ class Project extends Model
         return $this;
     }
 
-    /**
-     * Add an Admin to the project.
-     */
     public function addAdmin(Admin|int $adminOrId): self
     {
         $this->admins()->syncWithPivotValues(

@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Devvir\ResourceTools\Concerns\WithResourceAbilities;
+use Illuminate\Http\Request;
+
+class EventResource extends JsonResource
+{
+    use WithResourceAbilities;
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'type' => $this->type->value,
+            'title' => $this->title,
+            'description' => $this->description,
+            'location' => $this->location,
+            'start_date' => $this->start_date?->toDateTimeString(),
+            'start_date_formatted' => $this->start_date?->format('M j, g:i A'),
+            'end_date' => $this->end_date?->toDateTimeString(),
+            'end_date_formatted' => $this->end_date?->format('M j, g:i A'),
+            'is_published' => $this->is_published,
+            'created_at' => $this->created_at->toDateTimeString(),
+            'created_ago' => $this->created_at->diffForHumans(),
+            'updated_at' => $this->updated_at->toDateTimeString(),
+            'updated_ago' => $this->updated_at->diffForHumans(),
+            'deleted_at' => $this->deleted_at?->toDateTimeString(),
+
+            'type_label' => $this->type->label(),
+            'is_lottery' => $this->isLottery(),
+            'is_online' => $this->isOnline(),
+            'is_onsite' => $this->isOnSite(),
+
+            ...$this->relationsData(),
+        ];
+    }
+
+    protected function relationsData(): array
+    {
+        return [
+            'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
+        ];
+    }
+}
