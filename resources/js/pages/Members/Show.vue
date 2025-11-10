@@ -21,7 +21,7 @@ const props = defineProps<{
 const projectLink = computed(() => {
   return props.member.project?.allows?.view
     ? route('projects.show', props.member.project.id)
-    : route('home');
+    : route('dashboard');
 });
 
 const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);

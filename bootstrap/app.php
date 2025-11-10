@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Middleware\HandleInvitedUsers;
 use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleProjects;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\HandleInvitedUsers;
+use App\Http\Middleware\HandleProjects;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        /** For Policy-based denials on navigation, silently redirect to home */
-        $exceptions->render(fn (AccessDeniedHttpException $_) => redirect()->route('home'));
+        /** For Policy-based denials on navigation, silently redirect to the Dashboard */
+        $exceptions->render(fn (AccessDeniedHttpException $_) => redirect()->route('dashboard'));
     })
     ->create();

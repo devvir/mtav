@@ -2959,7 +2959,7 @@ For authenticated but unverified users (signed in via invitation link but haven'
 - Once user is verified (`email_verified_at` + `invitation_accepted_at` set), they're regular users
 - No special handling for verified users - they use the app normally
 - Token expiration not currently implemented (deferred feature)
-- Named route is `home` (not `dashboard`), though conceptually treated as dashboard
+- Named route is `dashboard`
 
 ### Email Verification (Profile Updates)
 
@@ -3995,7 +3995,7 @@ if (app()->environment('local', 'testing')) {
 
 **Middleware Chain Explanation**:
 
-- **`guest`**: Must NOT be authenticated (redirects to home if authenticated)
+- **`guest`**: Must NOT be authenticated (redirects to dashboard if authenticated)
 - **`auth`**: Must be authenticated (redirects to login if guest)
 - **`verified`**: Must have verified email (`email_verified_at` set)
 - **`invitation.accepted`**: Must have accepted invitation (`invitation_accepted_at` set)

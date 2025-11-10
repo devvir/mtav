@@ -1567,13 +1567,13 @@ it('requires password', function () {
 // ✅ BIEN (un test, una aserción)
 it('redirects authenticated user from login', function () {
     $response = $this->visitRoute('login', asAdmin: 1, redirects: false);
-    $response->assertRedirect('home');
+    $response->assertRedirect('dashboard');
 });
 
 // ❌ EVITAR (múltiples aserciones mezcladas)
 it('handles authentication', function () {
     $response = $this->visitRoute('login', asAdmin: 1, redirects: false);
-    $response->assertRedirect('home');
+    $response->assertRedirect('dashboard');
     $response->assertSessionHas('success');
     $this->assertAuthenticatedAs(User::find(1));
 });

@@ -17,7 +17,7 @@ const props = defineProps<{
 const projectLink = computed(() =>
   props.project.allows.view
     ? route('projects.show', props.project.id)
-    : route('home')
+    : route('dashboard')
 );
 
 </script>

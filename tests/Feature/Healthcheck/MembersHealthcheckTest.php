@@ -39,7 +39,7 @@ describe('When a Member', function () {
         it('denies access (Members cannot edit other Members)', function () {
             $response = $this->visitRoute(['members.edit', 105], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
     });
 

@@ -11,7 +11,6 @@
  * - Invited users visiting the Login page (should logout)
  * - Invited users visiting protected pages (should redirect to Invitation)
  */
-
 uses()->group('Feature.Invitation');
 
 describe('When visiting the Invitation route', function () {
@@ -71,10 +70,10 @@ describe('When visiting the Invitation route', function () {
         });
 
         describe('and a confirmed User is authenticated', function () {
-            it('redirects to the home page with an error message', function () {
+            it('redirects to the Dashboard with an error message', function () {
                 $response = $this->visitRoute('invitation.edit', asAdmin: 11);
 
-                expect(inertiaRoute($response))->toBe('home');
+                expect(inertiaRoute($response))->toBe('dashboard');
             });
         });
     });
@@ -99,14 +98,14 @@ describe('When an invited User is authenticated', function () {
 
     describe('and they visit the Dashboard', function () {
         it('redirects to Invitation route if they are an invited Member', function () {
-            $response = $this->visitRoute('home', asMember: 148);
+            $response = $this->visitRoute('dashboard', asMember: 148);
 
             expect(inertiaRoute($response))->toBe('invitation.edit');
             $this->assertAuthenticated();
         });
 
         it('redirects to Invitation route if they are an invited Admin', function () {
-            $response = $this->visitRoute('home', asAdmin: 18);
+            $response = $this->visitRoute('dashboard', asAdmin: 18);
 
             expect(inertiaRoute($response))->toBe('invitation.edit');
             $this->assertAuthenticated();

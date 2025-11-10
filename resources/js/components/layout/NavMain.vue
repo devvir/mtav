@@ -17,10 +17,10 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   {
     label: 'Dashboard',
-    route: 'home',
+    route: 'dashboard',
     icon: HomeIcon,
     onlyIf: projectIsSelected,
-    routes: ['home'],
+    routes: ['dashboard'],
   },
   {
     label: 'Gallery',

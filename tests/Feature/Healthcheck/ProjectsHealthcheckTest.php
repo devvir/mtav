@@ -4,10 +4,10 @@ uses()->group('Feature.Healthcheck');
 
 describe('When a Member', function () {
     describe('tries to visit the Project Listing', function () {
-        it('redirects to Home', function () {
+        it('redirects to Dashboard', function () {
             $response = $this->visitRoute('projects.index', asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
     });
 
@@ -15,7 +15,7 @@ describe('When a Member', function () {
         it('denies access', function () {
             $response = $this->visitRoute(['projects.show', 1], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
     });
 
@@ -28,10 +28,10 @@ describe('When a Member', function () {
     });
 
     describe('tries to open the "Edit Project" form', function () {
-        it('redirects to Home', function () {
+        it('redirects to Dashboard', function () {
             $response = $this->visitRoute(['projects.edit', 1], asMember: 102, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
     });
 });
@@ -49,7 +49,7 @@ describe('When an Admin', function () {
             // Admin #11 manages only Project #1
             $response = $this->visitRoute('projects.index', asAdmin: 11, redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
     });
 

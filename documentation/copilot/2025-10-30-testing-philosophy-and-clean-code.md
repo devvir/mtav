@@ -178,7 +178,7 @@ $response = $this->visitRoute('login', asUser: 7);
 it('redirects them to the Dashboard', function () {
     $response = $this->visitRoute('login', asUser: 7);
 
-    expect(inertiaRoute($response))->toBe('home');
+    expect(inertiaRoute($response))->toBe('dashboard');
 });
 ```
 
@@ -266,14 +266,14 @@ describe('When visiting the login page', function () {
 ```php
 // ❌ Testing mechanics
 expect($response->status())->toBe(302);
-expect($response->headers->get('Location'))->toContain('home');
+expect($response->headers->get('Location'))->toContain('dashboard');
 
 // ✅ Testing outcome
-expect(inertiaRoute($response))->toBe('home');
+expect(inertiaRoute($response))->toBe('dashboard');
 ```
 
 **Why**:
-- Business rule: "User ends up at home"
+- Business rule: "User ends up at Dashboard"
 - Not: "Laravel sends HTTP 302 with Location header"
 - Tests should survive implementation changes
 - Tests document user experience, not HTTP protocol
@@ -374,7 +374,7 @@ describe('When visiting the login page', function () {
         it('redirects them to the Dashboard (if their Project is active)', function () {
             $response = $this->visitRoute('login', asUser: 7);
 
-            expect(inertiaRoute($response))->toBe('home');
+            expect(inertiaRoute($response))->toBe('dashboard');
         });
 
         it('logs them out if they are not active in any Project', function () {
@@ -392,7 +392,7 @@ describe('When visiting the login page', function () {
         it('redirects to Dashboard if their Project is inactive', function () {
             $response = $this->visitRoute('login', asUser: 51);
 
-            expect(inertiaRoute($response))->toBe('home');
+            expect(inertiaRoute($response))->toBe('dashboard');
         });
     });
 
@@ -400,7 +400,7 @@ describe('When visiting the login page', function () {
         it('redirects to the Dashboard if they manage only one Project', function () {
             $response = $this->visitRoute('login', asUser: 2);
 
-            expect(inertiaRoute($response))->toBe('home');
+            expect(inertiaRoute($response))->toBe('dashboard');
         });
 
         it('redirects to projects index if they manage more than one Project', function () {
@@ -416,11 +416,11 @@ describe('When visiting the login page', function () {
         });
 
         it('redirects to the Dashboard if current project is set and managed by them', function () {
-            setCurrentProject(3);
+            setCurrentProject(1);
 
             $response = $this->visitRoute('login', asUser: 4);
 
-            expect(inertiaRoute($response))->toBe('home');
+            expect(inertiaRoute($response))->toBe('dashboard');
         });
 
         it('redirects to Projects and resets current project if admin does not manage selected one', function () {

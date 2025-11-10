@@ -34,8 +34,8 @@ const toggleItem = (index: number) => {
 
     <div class="mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-12">
         <div class="mb-4 md:hidden">
-            <a :href="route('home')" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
-                ← {{ _('Back to Home') }}
+            <a :href="route('dashboard')" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                ← {{ _('Back to Dashboard') }}
             </a>
         </div>
 

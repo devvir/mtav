@@ -8,7 +8,7 @@ use App\Http\Controllers\Resources\UnitController;
 use App\Http\Controllers\Resources\UnitTypeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', DashboardController::class)->name('home');
+Route::get('/', DashboardController::class)->name('dashboard');
 Route::get('gallery', GalleryController::class)->name('gallery');
 Route::get('contact/{admin}', [ContactController::class, 'create'])->name('contact');
 

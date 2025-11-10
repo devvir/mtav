@@ -37,7 +37,7 @@ class InvitationController
             $request->validated(),
         );
 
-        return to_route('home')
+        return to_route('dashboard')
             ->with('success', __('flash.registration_complete'));
     }
 }

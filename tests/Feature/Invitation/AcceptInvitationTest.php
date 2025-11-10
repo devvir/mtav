@@ -103,13 +103,13 @@ describe('When submitting the invitation acceptance form', function () {
             expect(Hash::check('new-secure-password', $member->password))->toBeTrue();
         });
 
-        it('redirects to homepage with success message', function () {
+        it('redirects to Dashboard with success message', function () {
             $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
                 'password' => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ], redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
             expect($response->getSession()->get('success'))->not->toBeNull();
         });
 

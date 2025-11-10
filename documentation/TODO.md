@@ -138,7 +138,6 @@
 
 - **No self-registration**: Invitation is THE ONLY way to create users. Without invitations, there are no users, no admins, no app.
 - **Three-phase flow**: Pre-invitation (UI + controller) → Invitation (email) → Post-invitation (acceptance + completion)
-- **Named route**: Use `home` (not `dashboard`) - may update in future to reduce confusion
 - **Testing approach**: Manual testing for happy path first, then edge cases - not using manual testing as TDD
 - **Prioritization**: Community tool, not commercial app - tolerate some rough edges for speed
 

@@ -67,7 +67,7 @@ const stats = computed(() => ({
   <Head title="Project Dashboard" />
 
   <Breadcrumbs>
-    <Breadcrumb route="home" text="Project Dashboard" />
+    <Breadcrumb route="dashboard" text="Project Dashboard" />
   </Breadcrumbs>
 
   <div class="flex h-full flex-1 flex-col gap-8 p-4">

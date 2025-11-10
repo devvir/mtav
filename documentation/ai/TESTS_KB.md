@@ -300,7 +300,7 @@ it('prevents members from creating admins', function () {
         'project_ids' => [1],
     ], redirects: false);
 
-    expect($response)->toRedirectTo('home');
+    expect($response)->toRedirectTo('dashboard');
 });
 ```
 
@@ -373,18 +373,18 @@ tests/
 **Example - Adding a new helper**:
 ```php
 // In tests/Concerns/Http.php or new trait
-protected function assertRedirectsToHome(TestResponse $response): void
+protected function assertRedirectsToDashboard(TestResponse $response): void
 {
-    expect($response)->toRedirectTo('home');
+    expect($response)->toRedirectTo('dashboard');
 }
 ```
 
 **Usage**:
 ```php
-it('redirects unauthorized users to home', function () {
+it('redirects unauthorized users to the Dashboard', function () {
     $response = $this->visitRoute('admin.dashboard', asMember: 102, redirects: false);
 
-    $this->assertRedirectsToHome($response);
+    $this->assertRedirectsToDashboard($response);
 });
 ```
 
@@ -523,7 +523,7 @@ it('prevents admin from assigning projects they do not manage', function () {
         'project_ids' => [1], // Trying to assign Project #1 (not managed by Admin #12)
     ], redirects: false);
 
-    expect($response)->toRedirectTo('home');
+    expect($response)->toRedirectTo('dashboard');
 });
 ```
 This explains *why* we picked Admin #12 and Project #1—it makes the test's logic explicit.
@@ -977,7 +977,7 @@ A well-written test suite should be readable by non-programmers as a statement o
 **Example of transformation**:
 ```php
 // ❌ Testing HTTP mechanics (how the system works internally)
-it('redirects authenticated member to home', function () {
+it('redirects authenticated member to the Dashboard', function () {
     $response = $this->actingAs(User::find(7))
         ->followingRedirects()
         ->getRoute('login');
@@ -990,7 +990,7 @@ it('redirects authenticated member to home', function () {
 it('redirects them to the Dashboard (if their Project is active)', function () {
     $response = $this->visitRoute('login', asUser: 7);
 
-    expect(inertiaRoute($response))->toBe('home');
+    expect(inertiaRoute($response))->toBe('dashboard');
 });
 ```
 
@@ -1049,7 +1049,7 @@ $response = $this->visitRoute('login', asUser: 7);
 it('redirects them to the Dashboard', function () {
     $response = $this->visitRoute('login', asUser: 7);
 
-    expect(inertiaRoute($response))->toBe('home');
+    expect(inertiaRoute($response))->toBe('dashboard');
 });
 ```
 
@@ -1164,14 +1164,14 @@ describe('When visiting the login page', function () {
 ```php
 // ❌ Testing mechanics
 expect($response->status())->toBe(302);
-expect($response->headers->get('Location'))->toContain('home');
+expect($response->headers->get('Location'))->toContain('dashboard');
 
 // ✅ Testing outcome
-expect(inertiaRoute($response))->toBe('home');
+expect(inertiaRoute($response))->toBe('dashboard');
 ```
 
 **Why**:
-- Business rule: "User ends up at home"
+- Business rule: "User ends up at Dashboard"
 - Not: "Laravel sends HTTP 302 with Location header"
 - Tests should survive implementation changes
 - Tests document user experience, not HTTP protocol
@@ -1248,14 +1248,14 @@ it('prevents members from creating admins', function () {
         'project_ids' => [1],
     ], redirects: false);
 
-    expect($response)->toRedirectTo('home');
+    expect($response)->toRedirectTo('dashboard');
 });
 ```
 
 **What you learn**:
 - System distinguishes between admins and members
 - Members cannot create admins (authorization rule)
-- Unauthorized actions redirect to home
+- Unauthorized actions redirect to the Dashboard
 - Admin creation requires email, name, and project assignment
 
 **Without helpers**:
@@ -1271,7 +1271,7 @@ it('prevents members from creating admins', function () {
         ]);
 
     expect($response->status())->toBe(302);
-    expect($response->headers->get('Location'))->toContain(route('home'));
+    expect($response->headers->get('Location'))->toContain(route('dashboard'));
 });
 ```
 

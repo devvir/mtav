@@ -14,7 +14,6 @@
 
 use App\Mail\AdminInvitationMail;
 use App\Models\Admin;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
@@ -45,7 +44,7 @@ describe('When creating an Admin', function () {
                 'project_ids' => [1],
             ], redirects: false);
 
-            expect($response)->toRedirectTo('home');
+            expect($response)->toRedirectTo('dashboard');
         });
 
         it('prevents guests from creating admins', function () {
