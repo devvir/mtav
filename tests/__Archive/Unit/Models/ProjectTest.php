@@ -13,7 +13,7 @@ describe('Project Model', function () {
         expect($project->units)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class);
     });
 
-    it('has many families', function () {
+    it('has many Families', function () {
         $project = Project::find(1); // Project #1 from universe
         $families = $project->families;
 
@@ -21,21 +21,21 @@ describe('Project Model', function () {
             ->and($families->count())->toBeGreaterThan(0);
     });
 
-    it('has many members through pivot table', function () {
+    it('has many Members through pivot table', function () {
         $project = Project::find(1); // Project #1 from universe
 
         expect($project->members)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
             ->and($project->members->count())->toBeGreaterThan(0);
     });
 
-    it('has many admins through pivot table', function () {
+    it('has many Admins through pivot table', function () {
         $project = Project::find(1); // Project #1 from universe
 
         expect($project->admins)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
             ->and($project->admins->count())->toBeGreaterThan(0);
     });
 
-    it('can add a member to the project', function () {
+    it('can add a Member to the Project', function () {
         $project = Project::find(1);
         $member = Member::factory()->create();
 
@@ -44,16 +44,16 @@ describe('Project Model', function () {
         expect($project->hasMember($member))->toBeTrue();
     });
 
-    it('can remove a member from the project', function () {
+    it('can remove a Member from the Project', function () {
         $project = Project::find(1);
-        $member = Member::find(102); // Member from universe
+        $member = Member::find(102); // Member from Universe
 
         $project->removeMember($member);
 
         expect($member->fresh()->project)->toBeNull();
     });
 
-    it('can add an admin to the project', function () {
+    it('can add an Admin to the Project', function () {
         $project = Project::find(1);
         $admin = Admin::factory()->create();
 
@@ -62,19 +62,19 @@ describe('Project Model', function () {
         expect($project->hasAdmin($admin))->toBeTrue();
     });
 
-    it('can check if it has a specific member', function () {
+    it('can check if it has a specific Member', function () {
         $project = Project::find(1);
-        $member = Member::find(102); // Member in project #1
-        $nonMember = Member::find(136); // Member in project #2
+        $member = Member::find(102); // Member from Project #1
+        $nonMember = Member::find(136); // Member in Project #2
 
         expect($project->hasMember($member))->toBeTrue()
             ->and($project->hasMember($nonMember))->toBeFalse();
     });
 
-    it('can check if it has a specific admin', function () {
+    it('can check if it has a specific Admin', function () {
         $project = Project::find(1);
-        $admin = Admin::find(11); // Admin in project #1
-        $nonAdmin = Admin::find(12); // Admin in project #2
+        $admin = Admin::find(11); // Admin in Project #1
+        $nonAdmin = Admin::find(12); // Admin in Project #2
 
         expect($project->hasAdmin($admin))->toBeTrue()
             ->and($project->hasAdmin($nonAdmin))->toBeFalse();

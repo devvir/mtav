@@ -3,7 +3,7 @@
 use App\Models\Project;
 
 /**
- * Create a project for testing.
+ * Create a Project for testing.
  */
 function createProject(array $attributes = []): Project
 {
@@ -19,7 +19,7 @@ function createProjects(int $count = 3): \Illuminate\Support\Collection
 }
 
 /**
- * Create a project with an admin assigned to it.
+ * Create a Project with an Admin assigned to it.
  */
 function createProjectWithAdmin($admin = null, array $attributes = []): Project
 {
@@ -32,7 +32,7 @@ function createProjectWithAdmin($admin = null, array $attributes = []): Project
 }
 
 /**
- * Create a project with families and members.
+ * Create a Project with Families and Members.
  */
 function createProjectWithFamilies(int $familyCount = 3, int $membersPerFamily = 2): Project
 {

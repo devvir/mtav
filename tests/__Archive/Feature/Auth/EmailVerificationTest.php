@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 
 test('email is not verified with invalid hash', function () {
-    $user = User::find(147); // Unverified member from universe
+    $user = User::find(147); // Unverified Member from universe
 
     $verificationUrl = URL::temporarySignedRoute(
         'verification.verify',

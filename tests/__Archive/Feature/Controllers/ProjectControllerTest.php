@@ -3,7 +3,7 @@
 use App\Models\Project;
 
 describe('Project CRUD - Index/Show', function () {
-    it('allows admin to view project they manage', function () {
+    it('allows Admin to view Project they manage', function () {
         $admin = createAdmin(asUser: true);
         $project = createProject();
         $project->addAdmin($admin->asAdmin());
@@ -13,7 +13,7 @@ describe('Project CRUD - Index/Show', function () {
         assertInertiaComponent($response, 'Projects/Show');
     });
 
-    it('allows superadmin to view any project', function () {
+    it('allows Superadmin to view any Project', function () {
         $superadmin = createSuperAdmin(asUser: true);
         $project = createProject();
 
@@ -31,7 +31,7 @@ describe('Project CRUD - Update', function () {
 });
 
 describe('Project CRUD - Delete', function () {
-    it('allows admin to delete project they manage', function () {
+    it('allows Admin to delete Project they manage', function () {
         $admin = createAdmin(asUser: true);
         $project = createProject();
         $project->addAdmin($admin->asAdmin());

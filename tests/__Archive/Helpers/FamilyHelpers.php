@@ -4,8 +4,8 @@ use App\Models\Family;
 use App\Models\Member;
 
 /**
- * Create a basic family for testing (without auto-creating dependencies).
- * For a family with auto-created project/unit_type, use createFamily() from UserHelpers.
+ * Create a basic Family for testing (without auto-creating dependencies).
+ * For a Family with auto-created Project/unit_type, use createFamily() from UserHelpers.
  */
 function createBasicFamily(array $attributes = []): Family
 {
@@ -13,7 +13,7 @@ function createBasicFamily(array $attributes = []): Family
 }
 
 /**
- * Create a family in a specific project.
+ * Create a Family in a specific Project.
  */
 function createFamilyInProject($project, array $attributes = []): Family
 {
@@ -23,7 +23,7 @@ function createFamilyInProject($project, array $attributes = []): Family
 }
 
 /**
- * Create a family with members.
+ * Create a Family with Members.
  */
 function createFamilyWithMembers($project = null, int $memberCount = 3, array $attributes = []): Family
 {

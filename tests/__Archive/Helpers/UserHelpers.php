@@ -5,7 +5,7 @@ use App\Models\Member;
 use App\Models\User;
 
 /**
- * Create a superadmin user for testing.
+ * Create a Superadmin user for testing.
  */
 function createSuperAdmin(bool $asUser = false): Admin|User
 {
@@ -19,7 +19,7 @@ function createSuperAdmin(bool $asUser = false): Admin|User
 }
 
 /**
- * Create a regular admin user for testing.
+ * Create a regular Admin user for testing.
  */
 function createAdmin(array $attributes = [], bool $asUser = false): Admin|User
 {
@@ -29,7 +29,7 @@ function createAdmin(array $attributes = [], bool $asUser = false): Admin|User
 }
 
 /**
- * Create a member user for testing.
+ * Create a Member user for testing.
  * Requires a family_id to be provided in attributes.
  */
 function createMember(array $attributes = [], bool $asUser = false): Member|User
@@ -60,7 +60,7 @@ function createMember(array $attributes = [], bool $asUser = false): Member|User
 }
 
 /**
- * Create an admin assigned to specific projects.
+ * Create an Admin assigned to specific Projects.
  */
 function createAdminWithProjects(array $projects, array $attributes = [], bool $asUser = false): Admin|User
 {
@@ -74,16 +74,16 @@ function createAdminWithProjects(array $projects, array $attributes = [], bool $
 }
 
 /**
- * Create a member assigned to a specific project.
+ * Create a Member assigned to a specific Project.
  */
 function createMemberInProject($project, $family = null, array $attributes = []): Member
 {
     if (!$family) {
-        // Find or create a family in this project
+        // Find or create a Family in this Project
         $family = \App\Models\Family::where('project_id', $project->id)->first();
 
         if (!$family) {
-            // Create a unit type and family for this project
+            // Create a unit type and Family for this Project
             $unitType = \App\Models\UnitType::factory()->create([
                 'project_id' => $project->id,
                 'name' => 'Test Type',
@@ -105,7 +105,7 @@ function createMemberInProject($project, $family = null, array $attributes = [])
 }
 
 /**
- * Create a family for testing.
+ * Create a Family for testing.
  * Will create necessary parent records (Project, UnitType) if not provided.
  */
 function createFamily(array $attributes = []): \App\Models\Family

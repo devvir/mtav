@@ -25,7 +25,7 @@ beforeEach(function () {
 describe('When submitting the invitation acceptance form', function () {
     it('requires a password', function () {
         /** @var \Illuminate\Testing\TestResponse $response */
-        $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
+        $response = $this->submitFormToRoute('invitation.update', asMember: 148, data: [
             // password missing
         ], redirects: false);
 
@@ -33,8 +33,8 @@ describe('When submitting the invitation acceptance form', function () {
     });
 
     it('requires password confirmation to match', function () {
-        $response = $this->sendPostRequest('invitation.update', asMember: 148, redirects: false, data: [
-            'password' => 'password123',
+        $response = $this->submitFormToRoute('invitation.update', asMember: 148, redirects: false, data: [
+            'password'              => 'password123',
             'password_confirmation' => 'different',
         ]);
 
@@ -42,13 +42,13 @@ describe('When submitting the invitation acceptance form', function () {
     });
 
     it('accepts optional fields: firstname, lastname, phone, legal_id', function () {
-        $this->sendPostRequest('invitation.update', asMember: 148, data: [
-            'password' => 'secure-password',
+        $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+            'password'              => 'secure-password',
             'password_confirmation' => 'secure-password',
-            'firstname' => 'John',
-            'lastname' => 'Doe',
-            'phone' => '+1234567890',
-            'legal_id' => 'ABC123',
+            'firstname'             => 'John',
+            'lastname'              => 'Doe',
+            'phone'                 => '+1234567890',
+            'legal_id'              => 'ABC123',
         ]);
 
         $member = Member::find(148);
@@ -61,10 +61,10 @@ describe('When submitting the invitation acceptance form', function () {
     it('accepts avatar upload (image, max 2MB)', function () {
         $avatar = UploadedFile::fake()->image('avatar.jpg', 100, 100)->size(1024);
 
-        $this->sendPostRequest('invitation.update', asMember: 148, data: [
-            'password' => 'secure-password',
+        $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+            'password'              => 'secure-password',
             'password_confirmation' => 'secure-password',
-            'avatar' => $avatar,
+            'avatar'                => $avatar,
         ]);
 
         $member = Member::find(148);
@@ -74,8 +74,8 @@ describe('When submitting the invitation acceptance form', function () {
 
     describe('on success', function () {
         it('sets invitation_accepted_at to current datetime', function () {
-            $this->sendPostRequest('invitation.update', asMember: 148, data: [
-                'password' => 'secure-password',
+            $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+                'password'              => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ]);
 
@@ -84,8 +84,8 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('sets email_verified_at to current datetime', function () {
-            $this->sendPostRequest('invitation.update', asMember: 148, data: [
-                'password' => 'secure-password',
+            $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+                'password'              => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ]);
 
@@ -94,8 +94,8 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('updates the password', function () {
-            $this->sendPostRequest('invitation.update', asMember: 148, data: [
-                'password' => 'new-secure-password',
+            $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+                'password'              => 'new-secure-password',
                 'password_confirmation' => 'new-secure-password',
             ]);
 
@@ -104,8 +104,8 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('redirects to Dashboard with success message', function () {
-            $response = $this->sendPostRequest('invitation.update', asMember: 148, data: [
-                'password' => 'secure-password',
+            $response = $this->submitFormToRoute('invitation.update', asMember: 148, data: [
+                'password'              => 'secure-password',
                 'password_confirmation' => 'secure-password',
             ], redirects: false);
 
@@ -114,11 +114,11 @@ describe('When submitting the invitation acceptance form', function () {
         });
 
         it('works for Admin users as well', function () {
-            $this->sendPostRequest('invitation.update', asAdmin: 18, data: [
-                'password' => 'admin-password',
+            $this->submitFormToRoute('invitation.update', asAdmin: 18, data: [
+                'password'              => 'admin-password',
                 'password_confirmation' => 'admin-password',
-                'firstname' => 'Sarah',
-                'lastname' => 'Admin',
+                'firstname'             => 'Sarah',
+                'lastname'              => 'Admin',
             ], redirects: false);
 
             $admin = Admin::find(18);

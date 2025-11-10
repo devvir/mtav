@@ -59,13 +59,13 @@ INSERT INTO users (id, family_id, email, firstname, lastname, phone, avatar, leg
 (1, NULL, 'superadmin1@example.com', 'superadmin', '1 (no projects)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Admins (IDs 10-99, is_admin=true)
-(10, NULL, 'admin10@example.com', 'admin', '10 (no projects)',       NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(11, NULL, 'admin11@example.com', 'admin', '11 (manages 1)',         NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(12, NULL, 'admin12@example.com', 'admin', '12 (manages 2,3)',       NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(13, NULL, 'admin13@example.com', 'admin', '13 (manages 2-,3+,4+)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(14, NULL, 'admin14@example.com', 'admin', '14 (manages deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(15, NULL, 'admin15@example.com', 'admin', '15 (manages 2, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
-(16, NULL, 'admin16@example.com', 'admin', '16 (manages 2,3,4, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(10, NULL, 'admin10@example.com', 'Admin', '10 (no projects)',       NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(11, NULL, 'admin11@example.com', 'Admin', '11 (manages 1)',         NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(12, NULL, 'admin12@example.com', 'Admin', '12 (manages 2,3)',       NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(13, NULL, 'admin13@example.com', 'Admin', '13 (manages 2-,3+,4+)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(14, NULL, 'admin14@example.com', 'Admin', '14 (manages deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(15, NULL, 'admin15@example.com', 'Admin', '15 (manages 2, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
+(16, NULL, 'admin16@example.com', 'Admin', '16 (manages 2,3,4, deleted 5)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 (17, NULL, 'admin17@example.com', 'admin (unverified)', '17 (no projects)', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 (18, NULL, 'invited18@example.com', 'admin (invited)', '18 (manages 1)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', TRUE, NULL, NULL, NOW(), NOW(), NULL),
 (19, NULL, 'invited19@example.com', 'admin (invited)', '19 (manages 1,2)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', TRUE, NULL, NULL, NOW(), NOW(), NULL);
@@ -306,92 +306,92 @@ INSERT INTO units (id, project_id, unit_type_id, family_id, identifier, created_
 
 INSERT INTO users (id, family_id, email, firstname, lastname, phone, avatar, legal_id, invitation_accepted_at, email_verified_at, password, is_admin, darkmode, remember_token, created_at, updated_at, deleted_at) VALUES
 -- Family #2: 1 member (inactive)
-(100, 2, 'member100@example.com', 'member (inactive)', '100', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(100, 2, 'member100@example.com', 'Member (inactive)', '100', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #3: 1 member (deleted)
-(101, 3, 'member101@example.com', 'member (deleted)', '101', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NOW()),
+(101, 3, 'member101@example.com', 'Member (deleted)', '101', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NOW()),
 
 -- Family #4: 3 members (1 active, 1 inactive, 1 deleted)
-(102, 4, 'member102@example.com', 'member',            '102', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(103, 4, 'member103@example.com', 'member (inactive)', '103', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(104, 4, 'member104@example.com', 'member (deleted)',  '104', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NOW()),
+(102, 4, 'member102@example.com', 'Member',            '102', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(103, 4, 'member103@example.com', 'Member (inactive)', '103', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(104, 4, 'member104@example.com', 'Member (deleted)',  '104', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NOW()),
 
 -- Family #5: 10 members (pagination tests)
-(105, 5, 'member105@example.com', 'member', '105', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(106, 5, 'member106@example.com', 'member', '106', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(107, 5, 'member107@example.com', 'member', '107', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(108, 5, 'member108@example.com', 'member', '108', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(109, 5, 'member109@example.com', 'member', '109', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(110, 5, 'member110@example.com', 'member', '110', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(111, 5, 'member111@example.com', 'member', '111', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(112, 5, 'member112@example.com', 'member', '112', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(113, 5, 'member113@example.com', 'member', '113', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(114, 5, 'member114@example.com', 'member', '114', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(105, 5, 'member105@example.com', 'Member', '105', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(106, 5, 'member106@example.com', 'Member', '106', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(107, 5, 'member107@example.com', 'Member', '107', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(108, 5, 'member108@example.com', 'Member', '108', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(109, 5, 'member109@example.com', 'Member', '109', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(110, 5, 'member110@example.com', 'Member', '110', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(111, 5, 'member111@example.com', 'Member', '111', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(112, 5, 'member112@example.com', 'Member', '112', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(113, 5, 'member113@example.com', 'Member', '113', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(114, 5, 'member114@example.com', 'Member', '114', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #6: 3 members
-(115, 6, 'member115@example.com', 'member', '115', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(116, 6, 'member116@example.com', 'member', '116', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(117, 6, 'member117@example.com', 'member', '117', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(115, 6, 'member115@example.com', 'Member', '115', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(116, 6, 'member116@example.com', 'Member', '116', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(117, 6, 'member117@example.com', 'Member', '117', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #7: 3 members
-(118, 7, 'member118@example.com', 'member', '118', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(119, 7, 'member119@example.com', 'member', '119', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(120, 7, 'member120@example.com', 'member', '120', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(118, 7, 'member118@example.com', 'Member', '118', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(119, 7, 'member119@example.com', 'Member', '119', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(120, 7, 'member120@example.com', 'Member', '120', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #8: 3 members
-(121, 8, 'member121@example.com', 'member', '121', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(122, 8, 'member122@example.com', 'member', '122', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(123, 8, 'member123@example.com', 'member', '123', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(121, 8, 'member121@example.com', 'Member', '121', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(122, 8, 'member122@example.com', 'Member', '122', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(123, 8, 'member123@example.com', 'Member', '123', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #9: 3 members
-(124, 9, 'member124@example.com', 'member', '124', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(125, 9, 'member125@example.com', 'member', '125', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(126, 9, 'member126@example.com', 'member', '126', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(124, 9, 'member124@example.com', 'Member', '124', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(125, 9, 'member125@example.com', 'Member', '125', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(126, 9, 'member126@example.com', 'Member', '126', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #10: 3 members
-(127, 10, 'member127@example.com', 'member', '127', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(128, 10, 'member128@example.com', 'member', '128', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(129, 10, 'member129@example.com', 'member', '129', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(127, 10, 'member127@example.com', 'Member', '127', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(128, 10, 'member128@example.com', 'Member', '128', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(129, 10, 'member129@example.com', 'Member', '129', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #11: 3 members
-(130, 11, 'member130@example.com', 'member', '130', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(131, 11, 'member131@example.com', 'member', '131', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(132, 11, 'member132@example.com', 'member', '132', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(130, 11, 'member130@example.com', 'Member', '130', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(131, 11, 'member131@example.com', 'Member', '131', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(132, 11, 'member132@example.com', 'Member', '132', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #12: 3 members
-(133, 12, 'member133@example.com', 'member', '133', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(134, 12, 'member134@example.com', 'member', '134', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(135, 12, 'member135@example.com', 'member', '135', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(133, 12, 'member133@example.com', 'Member', '133', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(134, 12, 'member134@example.com', 'Member', '134', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(135, 12, 'member135@example.com', 'Member', '135', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #13: 3 members
-(136, 13, 'member136@example.com', 'member', '136', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(137, 13, 'member137@example.com', 'member', '137', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(138, 13, 'member138@example.com', 'member', '138', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(136, 13, 'member136@example.com', 'Member', '136', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(137, 13, 'member137@example.com', 'Member', '137', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(138, 13, 'member138@example.com', 'Member', '138', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #14: 3 members
-(139, 14, 'member139@example.com', 'member', '139', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(140, 14, 'member140@example.com', 'member', '140', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(141, 14, 'member141@example.com', 'member', '141', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(139, 14, 'member139@example.com', 'Member', '139', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(140, 14, 'member140@example.com', 'Member', '140', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(141, 14, 'member141@example.com', 'Member', '141', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #15: 3 members
-(142, 15, 'member142@example.com', 'member', '142', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(143, 15, 'member143@example.com', 'member', '143', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
-(144, 15, 'member144@example.com', 'member', '144', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(142, 15, 'member142@example.com', 'Member', '142', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(143, 15, 'member143@example.com', 'Member', '143', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(144, 15, 'member144@example.com', 'Member', '144', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #22: 1 member in inactive Project #4
-(145, 22, 'member145@example.com', 'member', '145 (inactive project)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(145, 22, 'member145@example.com', 'Member', '145 (inactive project)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #23: 1 member in deleted Project #5
-(146, 23, 'member146@example.com', 'member', '146 (deleted project)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(146, 23, 'member146@example.com', 'Member', '146 (deleted project)', NULL, NULL, NULL, NOW(), NOW(), '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #24: 1 unverified member in Project #1 (for verification testing)
-(147, 24, 'unverified@example.com', 'unverified', 'member', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(147, 24, 'unverified@example.com', 'unverified', 'Member', NULL, NULL, NULL, NULL, NULL, '$2y$12$32i/Xcc5RXjhGsrKerd/6e/kBdwZ8LfPpSJXKOBbpTc.z2IKgU/5e', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #25: 1 invited member in Project #1
-(148, 25, 'invited148@example.com', 'member (invited)', '148 (in project 1)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL),
+(148, 25, 'invited148@example.com', 'Member (invited)', '148 (in project 1)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL),
 
 -- Family #26: 1 invited member in Project #2
-(149, 26, 'invited149@example.com', 'member (invited)', '149 (in project 2)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL);
+(149, 26, 'invited149@example.com', 'Member (invited)', '149 (in project 2)', NULL, NULL, NULL, NULL, NULL, '$2y$12$SBnC3gnDbcL4ThpWSK30suml0mDnf38KGl5PRftC071JvsjXhVboS', FALSE, NULL, NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- PROJECT_USER (Member-Project assignments via family_id)

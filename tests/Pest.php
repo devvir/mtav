@@ -1,12 +1,15 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
  * Set global TestCase class and hooks.
  */
 pest()
-    ->extend(TestCase::class);
+    ->extend(TestCase::class)
+    ->beforeEach(fn () => DB::beginTransaction())
+    ->afterEach(fn () => DB::rollback());
 
 /**
  * Custom Expectations
@@ -17,7 +20,7 @@ pest()
 /**
  * Archived suite, phased out but still in use
  */
-require_once __DIR__.'/__Archive/Helpers/UserHelpers.php';
-require_once __DIR__.'/__Archive/Helpers/ProjectHelpers.php';
-require_once __DIR__.'/__Archive/Helpers/FamilyHelpers.php';
-require_once __DIR__.'/__Archive/Helpers/InertiaHelpers.php';
+require_once __DIR__ . '/__Archive/Helpers/UserHelpers.php';
+require_once __DIR__ . '/__Archive/Helpers/ProjectHelpers.php';
+require_once __DIR__ . '/__Archive/Helpers/FamilyHelpers.php';
+require_once __DIR__ . '/__Archive/Helpers/InertiaHelpers.php';

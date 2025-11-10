@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\User;
 
 describe('Member Model', function () {
-    it('has a family relationship', function () {
+    it('has a Family relationship', function () {
         $member = Member::find(102); // Member #102 from universe in Family #4
         $family = Family::find(4);
 
@@ -16,16 +16,16 @@ describe('Member Model', function () {
     });
 
 
-    it('returns null for project attribute when member has no active project', function () {
+    it('returns null for Project attribute when Member has no active Project', function () {
         $member = Member::factory()->create();
 
         expect($member->project)->toBeNull();
     });
 
 
-    it('can leave a project', function () {
+    it('can leave a Project', function () {
         $project = Project::find(1);
-        $member = Member::find(102); // Member in project #1
+        $member = Member::find(102); // Member in Project #1
 
         $member->leaveProject($project);
 

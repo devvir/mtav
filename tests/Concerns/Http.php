@@ -33,9 +33,9 @@ trait Http
     /**
      * Send a POST request to a route (by name) as a specific User or as Guest (default).
      *
-     * Example: $this->sendPostRequest('admins.create', asAdmin: 12, data: [...])
+     * Example: $this->submitFormToRoute('admins.create', asAdmin: 12, data: [...])
      */
-    protected function sendPostRequest(
+    protected function submitFormToRoute(
         string|array $route,
         array $data = [],
         int|User|null $asUser = null,

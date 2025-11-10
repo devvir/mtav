@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Testing\TestResponse;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Testing\TestResponse;
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
@@ -18,7 +18,7 @@ expect()->extend('toCollect',
 // Polymorphic HTTP expectations
 expect()->extend('toBeOk', fn () => $this->fail('toBeOk is not defined for the given input'));
 expect()->extend('toRedirectTo', fn () => $this->fail('toRedirectTo is not defined for the given input'));
-expect()->extend('toBeUnauthorized', fn () => $this->fail('toBeUnauthorized is not defined for the given input'));
+expect()->extend('toBeForbidden', fn () => $this->fail('toBeForbidden is not defined for the given input'));
 expect()->extend('toBeNotFound', fn () => $this->fail('toBeNotFound is not defined for the given input'));
 
 // Polymorphic Eloquent expectations
@@ -34,21 +34,19 @@ expect()->extend('toBeMember', fn () => $this->fail('toBeMember is not defined f
 
 // Expect an HTTP response's status to be 200.
 expect()->intercept('toBeOk', TestResponse::class,
-    fn () => $this->status()->toBe(200, message: 'The Response was not successful'));
+    fn () => $this->value->assertOk());
 
 // Expect an HTTP response's status to be redirect to a given route.
 expect()->intercept('toRedirectTo', TestResponse::class,
-    fn (string $route, array $params = []) => $this
-        ->status()->toBe(302, message: 'The Response is not a redirect (302)')
-        ->getTargetUrl()->toBe(route($route, $params), message: 'Invalid target Route'));
+    fn (string $route, array $params = []) => $this->value->assertRedirect(route($route, $params)));
 
 // Expect an HTTP response's status to be 403.
-expect()->intercept('toBeUnauthorized', TestResponse::class,
-    fn () => $this->status()->toBe(403, message: 'The Response was not Unauthorized (403)'));
+expect()->intercept('toBeForbidden', TestResponse::class,
+    fn () => $this->value->assertForbidden());
 
 // Expect an HTTP response's status to be 404.
 expect()->intercept('toBeNotFound', TestResponse::class,
-    fn () => $this->status()->toBe(404, message: 'The Response was not Not Found (404)'));
+    fn () => $this->value->assertNotFound());
 
 // Builder query exists()
 expect()->intercept('toExist', Builder::class,

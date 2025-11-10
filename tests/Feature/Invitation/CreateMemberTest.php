@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - pending review
-
 /**
  * Tests for creating Member users (sending invitations).
  *
@@ -23,184 +21,179 @@ beforeEach(function () {
     Mail::fake();
 });
 
-describe('When creating a Member', function () {
-    describe('Authorization', function () {
-        it('allows admin to create members for projects they manage', function () {
-            $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4, // Family in project 1
-            ]);
+describe('When attempting to invite a Member', function () {
+    it('succeeds when done by an Admin for a Project they manage', function () {
+        $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 2, // Family in Project #1, managed by Admin #11
+        ]);
 
-            expect(Member::where('email', 'newmember@example.com'))->toExist();
-        });
-
-        it('allows member to create members in their own family', function () {
-            $this->sendPostRequest('members.store', asMember: 102, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4, // Same family
-            ]);
-
-            expect(Member::where('email', 'newmember@example.com'))->toExist();
-        });
-
-        it('prevents member from creating members in other families', function () {
-            $response = $this->sendPostRequest('members.store', asMember: 102, redirects: false, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 5, // Different family
-            ]);
-
-            // Should ignore the family_id and use the current member's family
-            expect(Member::where(['email' => 'newmember@example.com', 'family_id' => 4]))->toExist();
-        });
-
-        it('prevents guests from creating members', function () {
-            $response = $this->sendPostRequest('members.store', redirects: false, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
-
-            $response->assertRedirect(route('login'));
-        });
+        expect(Member::where('email', 'newmember@example.com'))->toExist();
     });
 
-    describe('Family assignment validation', function () {
-        it('requires family_id', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-            ]);
+    it('succeeds when done by a Member for their own Family', function () {
+        $this->submitFormToRoute('members.store', asMember: 102, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4, // Same family
+        ]);
 
-            expect(inertiaErrors($response))->toHaveKey('family_id');
-        });
-
-        it('rejects admin creating member in family from unmanaged project', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 13, // Family in project 2 (not managed by admin)
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('family_id');
-        });
-
-        it('rejects non-existent family id', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 99999,
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('family_id');
-        });
+        expect(Member::where('email', 'newmember@example.com'))->toExist();
     });
 
-    describe('Email validation', function () {
-        it('requires email', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
+    it('invites them to the current Member\'s own family (if a regular Member is logged in) ignoring attempts to override the invited Member\'s Family', function () {
+        $response = $this->submitFormToRoute('members.store', asMember: 102, redirects: false, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 5, // Different Family
+        ]);
 
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
-
-        it('requires valid email format', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'not-an-email',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
-
-        it('requires unique email', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'member102@example.com', // Already exists (Member #102)
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
+        // Should ignore the family_id and use the current Member's Family
+        expect(Member::where([
+            'email'     => 'newmember@example.com',
+            'family_id' => 4,
+        ]))->toExist();
     });
 
-    describe('Name validation', function () {
-        it('requires firstname', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
+    it('fails when attempted by guests', function () {
+        $response = $this->submitFormToRoute('members.store', redirects: false, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
 
-            expect(inertiaErrors($response))->toHaveKey('firstname');
-        });
-
-        it('requires firstname to be at least 2 characters', function () {
-            $response = $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'J',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('firstname');
-        });
-
-        it('allows optional lastname', function () {
-            $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'family_id' => 4,
-            ]);
-
-            expect(Member::where('email', 'newmember@example.com'))->toExist();
-        });
+        $response->assertRedirect(route('login'));
     });
 
-    describe('Invitation creation', function () {
-        it('creates member with invitation fields set correctly', function () {
-            $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
+    it('fails when Admins attempt to create Members in unmanaged Projects', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 13, // Family in Project 2 (not managed by Admin)
+        ]);
 
-            $newMember = User::where('email', 'newmember@example.com')->first();
-            expect($newMember)->not->toBeNull()
-                ->and($newMember->invitation_accepted_at)->toBeNull()
-                ->and($newMember->email_verified_at)->toBeNull()
-                ->and($newMember->family_id)->toBe(4);
+        expect(inertiaErrors($response))->toHaveKey('family_id');
+    });
 
-            expect($newMember)->toBeMember();
-        });
+    it('fails when using non-existent Family IDs', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 99999,
+        ]);
 
-        it('sends invitation email upon creation', function () {
-            $this->sendPostRequest('members.store', asAdmin: 11, data: [
-                'email' => 'newmember@example.com',
-                'firstname' => 'Jane',
-                'lastname' => 'Doe',
-                'family_id' => 4,
-            ]);
+        expect(inertiaErrors($response))->toHaveKey('family_id');
+    });
+});
 
-            Mail::assertSent(MemberInvitationMail::class, function ($mail) {
-                return $mail->hasTo('newmember@example.com');
-            });
+describe('For successfully inviting a Member', function () {
+    it('requires a Family to be specified', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('family_id');
+    });
+
+    it('requires an email', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('email');
+    });
+
+    it('requires the email to have a valid format', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'not-an-email',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('email');
+    });
+
+    it('requires the email to be globally unique', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'member102@example.com', // Already exists (Member #102)
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('email');
+    });
+
+    it('requires a firstname', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('firstname');
+    });
+
+    it('requires the firstname to be at least 2 characters', function () {
+        $response = $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'J',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('firstname');
+    });
+
+    it('allows an optional lastname', function () {
+        $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'family_id' => 4,
+        ]);
+
+        expect(Member::where('email', 'newmember@example.com'))->toExist();
+    });
+});
+
+describe('Upon a successful Member invitation', function () {
+    it('creates a Member with the right state: Member role, unverified and invited', function () {
+        $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        expect(User::firstWhere('email', 'newmember@example.com'))
+            ->toBeMember()
+            ->family_id->toBe(4)
+            ->email_verified_at->toBeNull()
+            ->invitation_accepted_at->toBeNull();
+    });
+
+    it('sends an invitation email', function () {
+        $this->submitFormToRoute('members.store', asAdmin: 11, data: [
+            'email'     => 'newmember@example.com',
+            'firstname' => 'Jane',
+            'lastname'  => 'Doe',
+            'family_id' => 4,
+        ]);
+
+        Mail::assertSent(MemberInvitationMail::class, function ($mail) {
+            return $mail->hasTo('newmember@example.com');
         });
     });
 });

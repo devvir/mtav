@@ -23,184 +23,204 @@ beforeEach(function () {
     Mail::fake();
 });
 
-describe('When creating an Admin', function () {
-    describe('Authorization', function () {
-        it('allows admin to create admins for projects they manage', function () {
-            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
+describe('When attempting to invite an Admin', function () {
+    it('succeeds when done by an Admin for Projects they manage', function () {
+        $this->submitFormToRoute(
+            'admins.store',
+            asAdmin: 11,
+            data: [
+                'email'       => 'newadmin@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
                 'project_ids' => [1],
-            ]);
+            ]
+        );
 
-            expect(Admin::where('email', 'newadmin@example.com'))->toExist();
-        });
-
-        it('prevents members from creating admins', function () {
-            $response = $this->sendPostRequest('admins.store', asMember: 102, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ], redirects: false);
-
-            expect($response)->toRedirectTo('dashboard');
-        });
-
-        it('prevents guests from creating admins', function () {
-            $response = $this->sendPostRequest('admins.store', redirects: false, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
-
-            $response->assertRedirect(route('login'));
-        });
+        expect(Admin::where('email', 'newadmin@example.com'))->toExist();
     });
 
-    describe('Project assignment validation', function () {
-        it('requires at least one project', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
+    it('fails when attempted by Members', function () {
+        $response = $this->submitFormToRoute(
+            'admins.store',
+            asMember: 102,
+            redirects: false,
+            data: [
+                'email'       => 'newadmin@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
+                'project_ids' => [1],
+            ]
+        );
+
+        expect($response)->toRedirectTo('dashboard');
+    });
+
+    it('fails when attempted by guests', function () {
+        $response = $this->submitFormToRoute(
+            'admins.store',
+            redirects: false,
+            data: [
+                'email'       => 'newadmin@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
+                'project_ids' => [1],
+            ]
+        );
+
+        $response->assertRedirect(route('login'));
+    });
+});
+
+describe('For successfully inviting an Admin', function () {
+    it('requires at least one Project to be assigned', function () {
+        $response = $this->submitFormToRoute(
+            'admins.store',
+            asAdmin: 11,
+            data: [
+                'email'       => 'newadmin@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
                 'project_ids' => [],
-            ]);
+            ]
+        );
 
-            expect(inertiaErrors($response))->toHaveKey('project_ids');
-        });
+        expect(inertiaErrors($response))->toHaveKey('project_ids');
+    });
 
-        it('rejects admin assigning projects they do not manage', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
+    it('enforces that only managed Projects can be assigned', function () {
+        $response = $this->submitFormToRoute(
+            'admins.store',
+            asAdmin: 11,
+            data: [
+                'email'       => 'newadmin@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
                 'project_ids' => [1, 2], // Project 2 not managed by admin
-            ]);
+            ]
+        );
 
-            expect(inertiaErrors($response))->toHaveKey('project_ids');
-        });
+        expect(inertiaErrors($response))->toHaveKey('project_ids');
+    });
 
-        it('allows admin with multiple projects to assign multiple projects', function () {
-            $this->sendPostRequest('admins.store', asAdmin: 12, data: [
-                'email' => 'multiproject@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
+    it('allows assigning multiple Projects when the inviter manages them', function () {
+        $this->submitFormToRoute(
+            'admins.store',
+            asAdmin: 12,
+            data: [
+                'email'       => 'multiproject@example.com',
+                'firstname'   => 'John',
+                'lastname'    => 'Doe',
                 'project_ids' => [2, 3],
-            ]);
+            ]
+        );
 
-            $newAdmin = Admin::where('email', 'multiproject@example.com')->first()->fresh();
-            expect($newAdmin->projects->pluck('id')->sort()->values()->toArray())->toBe([2, 3]);
-        });
-
-        it('rejects non-existent project ids', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [99999],
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('project_ids.0');
-        });
+        $newAdmin = Admin::where('email', 'multiproject@example.com')->first()->fresh();
+        expect($newAdmin->projects->pluck('id')->sort()->values()->toArray())->toBe([2, 3]);
     });
 
-    describe('Email validation', function () {
-        it('requires email', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
+    it('rejects non-existent Project ids', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'newadmin@example.com',
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [99999],
+        ]);
 
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
-
-        it('requires valid email format', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'not-an-email',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
-
-        it('requires unique email', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'admin12@example.com', // Already exists (Admin #12)
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('email');
-        });
+        expect(inertiaErrors($response))->toHaveKey('project_ids.0');
     });
 
-    describe('Name validation', function () {
-        it('requires firstname', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
+    it('requires an email', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
 
-            expect(inertiaErrors($response))->toHaveKey('firstname');
-        });
-
-        it('requires firstname to be at least 2 characters', function () {
-            $response = $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'J',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
-
-            expect(inertiaErrors($response))->toHaveKey('firstname');
-        });
-
-        it('allows optional lastname', function () {
-            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'project_ids' => [1],
-            ]);
-
-            expect(Admin::where('email', 'newadmin@example.com'))->toExist();
-        });
+        expect(inertiaErrors($response))->toHaveKey('email');
     });
 
-    describe('Invitation creation', function () {
-        it('creates admin with invitation fields set correctly', function () {
-            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'newadmin@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
+    it('requires the email to have a valid format', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'not-an-email',
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
 
-            $newAdmin = User::where('email', 'newadmin@example.com')->first();
-            expect($newAdmin)->not->toBeNull()
-                ->and($newAdmin->invitation_accepted_at)->toBeNull()
-                ->and($newAdmin->email_verified_at)->toBeNull();
+        expect(inertiaErrors($response))->toHaveKey('email');
+    });
 
-            expect($newAdmin)->toBeAdmin();
-        });
+    it('requires the email to be globally unique', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'admin12@example.com', // Already exists (Admin #12)
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
 
-        it('sends invitation email upon creation', function () {
-            $this->sendPostRequest('admins.store', asAdmin: 11, data: [
-                'email' => 'adminemail@example.com',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'project_ids' => [1],
-            ]);
+        expect(inertiaErrors($response))->toHaveKey('email');
+    });
 
-            Mail::assertSent(AdminInvitationMail::class, function ($mail) {
-                return $mail->hasTo('adminemail@example.com');
-            });
+    it('requires a firstname', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'newadmin@example.com',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('firstname');
+    });
+
+    it('requires the firstame to be at least 2 characters', function () {
+        $response = $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'newadmin@example.com',
+            'firstname'   => 'J',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
+
+        expect(inertiaErrors($response))->toHaveKey('firstname');
+    });
+
+    it('allows an optional lastname', function () {
+        $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'newadmin@example.com',
+            'firstname'   => 'John',
+            'project_ids' => [1],
+        ]);
+
+        expect(Admin::where('email', 'newadmin@example.com'))->toExist();
+    });
+});
+
+describe('Upon a successful Admin invitation', function () {
+    it('creates an Admin with the right state: admin role, unverified and invited', function () {
+        $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'newadmin@example.com',
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
+
+        $newAdmin = User::where('email', 'newadmin@example.com')->first();
+
+        expect($newAdmin)->not->toBeNull()
+            ->and($newAdmin->invitation_accepted_at)->toBeNull()
+            ->and($newAdmin->email_verified_at)->toBeNull();
+
+        expect($newAdmin)->toBeAdmin();
+    });
+
+    it('sends an invitation email', function () {
+        $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
+            'email'       => 'adminemail@example.com',
+            'firstname'   => 'John',
+            'lastname'    => 'Doe',
+            'project_ids' => [1],
+        ]);
+
+        Mail::assertSent(AdminInvitationMail::class, function ($mail) {
+            return $mail->hasTo('adminemail@example.com');
         });
     });
 });

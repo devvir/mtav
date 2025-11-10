@@ -3,7 +3,7 @@
 use App\Models\Project;
 
 /**
- * Set the current project context for the authenticated user.
+ * Set the current Project context for the authenticated user.
  */
 function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): void
 {

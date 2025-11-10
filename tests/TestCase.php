@@ -2,16 +2,14 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Tests\Concerns\Utilities;
 
 abstract class TestCase extends BaseTestCase
 {
-    use DatabaseTransactions;
     use Utilities;
 
-    static $bootstrapped = false;
+    public static $bootstrapped = false;
 
     protected function setUp(): void
     {

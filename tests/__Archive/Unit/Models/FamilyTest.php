@@ -5,7 +5,7 @@ use App\Models\Member;
 use App\Models\Project;
 
 describe('Family Model', function () {
-    it('belongs to a project', function () {
+    it('belongs to a Project', function () {
         $family = Family::find(4); // Family #4 from universe
         $project = Project::find(1);
 
@@ -14,14 +14,14 @@ describe('Family Model', function () {
             ->id->toBe($project->id);
     });
 
-    it('has many members', function () {
+    it('has many Members', function () {
         $family = Family::find(4); // Family #4 with 3 members (#102, #103, #104)
 
         expect($family->members)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
             ->and($family->members->count())->toBeGreaterThan(0);
     });
 
-    it('can add a member to the family', function () {
+    it('can add a Member to the Family', function () {
         $family = Family::find(1); // Family #1 (no members)
         $member = Member::factory()->create();
 

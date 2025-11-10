@@ -2,17 +2,16 @@
 
 use App\Models\Admin;
 use App\Models\Project;
-use App\Models\User;
 
 describe('Admin Model', function () {
-    it('can determine if they manage a project', function () {
+    it('can determine if they manage a Project', function () {
         $admin = Admin::find(11); // Admin #11 manages Project #1
         $project = Project::find(1);
 
         expect($admin->manages($project))->toBeTrue();
     });
 
-    it('does not manage projects they are not assigned to', function () {
+    it('does not manage Projects they are not assigned to', function () {
         // Ensure the admin is not a superadmin by setting an empty superadmin list
         config(['auth.superadmins' => []]);
 
@@ -22,7 +21,7 @@ describe('Admin Model', function () {
         expect($admin->manages($project))->toBeFalse();
     });
 
-    it('superadmins manage all projects regardless of assignment', function () {
+    it('superadmins manage all Projects regardless of assignment', function () {
         config(['auth.superadmins' => ['superadmin1@example.com']]);
         $superadmin = Admin::find(1); // Superadmin #1 from universe
         $project = Project::find(2);

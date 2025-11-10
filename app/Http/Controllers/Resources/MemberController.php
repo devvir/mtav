@@ -27,7 +27,7 @@ class MemberController extends Controller
 
         return inertia('Members/Index', [
             'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
-            'q' => $request->q ?? '',
+            'q'       => $request->q ?? '',
         ]);
     }
 
