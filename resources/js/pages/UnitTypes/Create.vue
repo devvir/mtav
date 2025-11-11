@@ -13,11 +13,11 @@ defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnin
   <Head :title="_('Create Unit Type')" />
 
   <Breadcrumbs>
-    <Breadcrumb route="unit-types.index" text="Unit Types" />
-    <Breadcrumb route="unit-types.create" :text="_('Create')" />
+    <Breadcrumb route="unit_types.index" text="Unit Types" />
+    <Breadcrumb route="unit_types.create" :text="_('Create')" />
   </Breadcrumbs>
 
   <MaybeModal>
-    <CreateUpdate type="create" :action="route('unit-types.store')" :title="_('Create Unit Type')" />
+    <CreateUpdate type="create" :action="route('unit_types.store')" :title="_('Create Unit Type')" />
   </MaybeModal>
 </template>

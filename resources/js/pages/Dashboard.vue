@@ -127,7 +127,7 @@ const stats = computed(() => ({
     <!-- Units by Type -->
     <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
       <template v-if="unitTypes">
-        <UnitsSection :unit-types="unitTypes" />
+        <UnitsSection :unit_types="unitTypes" />
       </template>
       <template v-else>
         <div class="space-y-4">

@@ -20,8 +20,8 @@ defineProps<{
   <Head :title="unit_type.name" />
 
   <Breadcrumbs>
-    <Breadcrumb route="unit-types.index" text="Unit Types" />
-    <Breadcrumb route="unit-types.show" :params="unit_type.id" :text="unit_type.name" />
+    <Breadcrumb route="unit_types.index" text="Unit Types" />
+    <Breadcrumb route="unit_types.show" :params="unit_type.id" :text="unit_type.name" />
   </Breadcrumbs>
 
   <MaybeModal>
@@ -79,7 +79,7 @@ defineProps<{
 
         <!-- Edit Link -->
         <div class="flex items-center justify-end border-t border-border pt-base">
-          <EditButton :resource="unit_type" route-name="unit-types.edit" />
+          <EditButton :resource="unit_type" route-name="unit_types.edit" />
         </div>
       </Card>
     </ShowWrapper>

@@ -1,5 +1,17 @@
-type AppResource = 'projects' | 'units' | 'unit-types' | 'admins' | 'families' | 'members' | 'events' | 'logs';
+type AppResource = 'project' | 'unit' | 'unit_type' | 'admin' | 'family' | 'member' | 'event' | 'media' | 'log';
 
+type AppResourceNS =
+  | 'projects'
+  | 'units'
+  | 'unit_types'
+  | 'admins'
+  | 'families'
+  | 'members'
+  | 'events'
+  | 'media'
+  | 'logs';
+
+type ResourceAction = 'index' | 'show' | 'create' | 'update' | 'delete' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
 interface Resource {

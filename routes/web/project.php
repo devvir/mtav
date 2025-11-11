@@ -14,4 +14,4 @@ Route::get('contact/{admin}', [ContactController::class, 'create'])->name('conta
 
 Route::resource('events', EventController::class);
 Route::resource('units', UnitController::class);
-Route::resource('unit-types', UnitTypeController::class);
+Route::resource('unit_types', UnitTypeController::class);

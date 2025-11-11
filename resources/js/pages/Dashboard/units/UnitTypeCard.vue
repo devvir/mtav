@@ -12,7 +12,7 @@ defineProps<{
   <div class="rounded-lg border border-border bg-surface-elevated shadow-sm overflow-hidden">
     <!-- Unit Type Header -->
     <ModalLink
-      :href="route('unit-types.show', unitType.id)"
+      :href="route('unit_types.show', unitType.id)"
       class="block border-b border-border-subtle bg-surface-sunken p-4 transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
     >
       <div class="flex items-center justify-between">

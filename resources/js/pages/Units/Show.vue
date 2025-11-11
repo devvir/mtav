@@ -59,7 +59,7 @@ defineProps<{
                 <div class="flex-1 overflow-hidden">
                   <div class="text-sm font-medium text-text-subtle">{{ _('Unit Type') }}</div>
                   <ModalLink
-                    :href="route('unit-types.show', unit.type.id)"
+                    :href="route('unit_types.show', unit.type.id)"
                     class="truncate text-lg font-semibold text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1"
                   >
                     {{ unit.type.name }}

@@ -13,6 +13,6 @@ export const iAmSuperadmin = computed(() => auth.value.user?.is_superadmin ?? fa
 export const iAmNotSuperadmin = computed(() => !iAmSuperadmin.value);
 
 export const can = reactive({
-  create: (resource: AppResource): boolean => currentUser.value?.can.create[resource] ?? false,
-  viewAny: (resource: AppResource): boolean => currentUser.value?.can.viewAny[resource] ?? false,
+  create: (resource: AppResourceNS): boolean => currentUser.value?.can.create[resource] ?? false,
+  viewAny: (resource: AppResourceNS): boolean => currentUser.value?.can.viewAny[resource] ?? false,
 });

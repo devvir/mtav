@@ -16,7 +16,7 @@ defineProps<{
   <Head title="Unit Types" />
 
   <Breadcrumbs>
-    <Breadcrumb route="unit-types.index" text="Unit Types" />
+    <Breadcrumb route="unit_types.index" text="Unit Types" />
   </Breadcrumbs>
 
   <MaybeModal>
@@ -29,7 +29,7 @@ defineProps<{
         <ModalLink
           v-for="unitType in unit_types"
           :key="unitType.id"
-          :href="`/unit-types/${unitType.id}`"
+          :href="route('unit_types.show', unitType.id)"
           class="block rounded-lg border border-border bg-surface-elevated p-4 transition-all hover:border-border-interactive hover:shadow-md focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
         >
           <div class="flex flex-col gap-2">

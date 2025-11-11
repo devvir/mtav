@@ -43,7 +43,7 @@ class UnitTypeController extends Controller
             UnitType::make($request->validated())
         );
 
-        return to_route('unit-types.show', $unitType)
+        return to_route('unit_types.show', $unitType)
             ->with('success', __('flash.unit_type_created'));
     }
 
@@ -58,7 +58,7 @@ class UnitTypeController extends Controller
     {
         $unitType->update($request->validated());
 
-        return to_route('unit-types.show', $unitType)
+        return to_route('unit_types.show', $unitType)
             ->with('success', __('flash.unit_type_updated'));
     }
 
@@ -70,7 +70,7 @@ class UnitTypeController extends Controller
 
         $unitType->delete();
 
-        return to_route('unit-types.index')
+        return to_route('unit_types.index')
             ->with('success', __('flash.unit_type_deleted'));
     }
 
@@ -79,7 +79,7 @@ class UnitTypeController extends Controller
         $unitType->units()->withTrashed()->restore();
         $unitType->restore();
 
-        return to_route('unit-types.show', $unitType)
+        return to_route('unit_types.show', $unitType)
             ->with('success', __('flash.unit_type_restored'));
     }
 }

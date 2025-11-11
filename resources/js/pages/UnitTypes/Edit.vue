@@ -17,15 +17,15 @@ defineProps<{
   <Head :title="_('Edit Unit Type')" />
 
   <Breadcrumbs>
-    <Breadcrumb route="unit-types.index" text="Unit Types" />
-    <Breadcrumb route="unit-types.show" :params="unit_type.id" :text="unit_type.name" />
-    <Breadcrumb route="unit-types.edit" :params="unit_type.id" :text="_('Edit')" />
+    <Breadcrumb route="unit_types.index" text="Unit Types" />
+    <Breadcrumb route="unit_types.show" :params="unit_type.id" :text="unit_type.name" />
+    <Breadcrumb route="unit_types.edit" :params="unit_type.id" :text="_('Edit')" />
   </Breadcrumbs>
 
   <MaybeModal>
     <CreateUpdate
       type="edit"
-      :action="route('unit-types.update', unit_type.id)"
+      :action="route('unit_types.update', unit_type.id)"
       :title="_('Edit Unit Type')"
       :unit_type="unit_type"
     />
