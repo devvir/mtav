@@ -65,7 +65,7 @@ const actionRoute = computed(() => isCurrentProject.value
     <CardFooter class="flex items-center justify-between">
       <CreatedMeta />
 
-      <FooterButton :href="actionRoute">
+      <FooterButton :href="actionRoute" :method="isCurrentProject ? 'DELETE' : 'POST'">
         {{ isCurrentProject ? _('Selected') : _('Select') }}
       </FooterButton>
     </CardFooter>

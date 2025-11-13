@@ -4,35 +4,27 @@ import { _ } from '@/composables/useTranslations';
 import AppSidebarHeaderSlot from '../layout/header/AppSidebarHeaderSlot.vue';
 import InfiniteScroll from './InfiniteScroll.vue';
 
-export type GridColsOverrides = {
-    sm?: string;
-    md?: string;
-    lg?: string;
-    xl?: string;
-    xl2?: string;
-    xl4?: string;
-    xl6?: string;
-};
+export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const props = defineProps<{
   loadable: string;
   list: ApiResources;
   filter: string;
-  gridColsOverrides?: GridColsOverrides;
+  cardSize?: CardSize;
   featured?: number | string;
 }>();
 
-const gridColsDefaults: GridColsOverrides = {
-  sm: '@sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))]',
-  md: '@md:grid-cols-[repeat(auto-fill,minmax(338px,1fr))]',
-  lg: '@lg:grid-cols-[repeat(auto-fill,minmax(375px,1fr))]',
-  xl: '@xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))]',
-  xl2: '@2xl:grid-cols-[repeat(auto-fill,minmax(430px,1fr))]',
-  xl4: '@4xl:grid-cols-[repeat(auto-fill,minmax(460px,1fr))]',
-  xl6: '@6xl:grid-cols-[repeat(auto-fill,minmax(500px,1fr))]',
+const multipliers: Record<CardSize, number> = {
+  xs: 0.8,
+  sm: 0.9,
+  md: 1,
+  lg: 1.2,
+  xl: 1.4,
 };
 
-const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefaults, props.gridColsOverrides ?? {})));
+const cardSizeMultiplier = computed<number>(
+    () => multipliers[(props.cardSize ?? 'md') as CardSize]
+);
 </script>
 
 <template>
@@ -53,8 +45,8 @@ const gridClasses = computed(() => Object.values(Object.assign({}, gridColsDefau
       name="fade"
       tag="ul"
       appear
-      class="grid list-none place-items-stretch gap-wide sm:auto-rows-auto"
-      :class="gridClasses"
+      class="grid list-none place-items-stretch gap-wide sm:auto-rows-auto @md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))]"
+      :style="{ '--card-size-multiplier': cardSizeMultiplier }"
     >
       <li
         v-for="item in list.data"

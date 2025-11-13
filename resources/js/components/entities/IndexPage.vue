@@ -3,7 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
-import type { GridColsOverrides } from '@/components/pagination/InfinitePaginator.vue';
+import type { CardSize } from '@/components/pagination/InfinitePaginator.vue';
 import { entityLabel, entityNS, entityPlural } from '@/composables/useResources';
 
 const props = defineProps<{
@@ -11,7 +11,7 @@ const props = defineProps<{
   resources: ApiResources;
   q?: string;
   pageTitle?: string;
-  gridColsOverrides?: GridColsOverrides;
+  cardSize?: CardSize;
 }>();
 
 const title = props.pageTitle ?? entityLabel(props.entity, 'plural');
@@ -32,9 +32,9 @@ const IndexCard = defineAsyncComponent(
 
   <InfinitePaginator
     :list="resources"
-    :loadable
     :filter="q"
-    :gridColsOverrides
+    :loadable
+    :cardSize
   >
     <template v-slot:search-right>
       <slot name="search-right" />

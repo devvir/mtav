@@ -30,7 +30,7 @@ provide(exposed.routes, routes);
     :prefetch="linksToDetails ? ($attrs.prefetch ?? 'hover') : undefined"
     :title="linksToDetails ? ($attrs.title ?? _('Click to see the Details Page')) : undefined"
     :class="cn(
-      'w-full max-w-3xl [&>*]:p-base border rounded-lg',
+      'w-full max-w-3xl [&>*]:p-4 border rounded-lg',
       'bg-surface-elevated border-border shadow-sm [&>*+*]:border-border-subtle',
       // Deleted resource styling
       resource.deleted_at && 'opacity-60 bg-surface border-red-200 shadow-sm',

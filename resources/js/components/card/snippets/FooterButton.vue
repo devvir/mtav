@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <Button variant="outline" size="sm" as-child class="-my-2">
+  <Button variant="outline" size="sm" as-child class="@md:-my-1">
     <Link :href :method @click.stop>
       <slot />
     </Link>
