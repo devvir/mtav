@@ -2,15 +2,10 @@
 
 namespace App\Http\Resources;
 
-use Devvir\ResourceTools\Concerns\ResourceSubsets;
-use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 
 class AdminResource extends UserResource
 {
-    use ResourceSubsets;
-    use WithResourceAbilities;
-
     /**
      * Transform the resource into an array.
      *

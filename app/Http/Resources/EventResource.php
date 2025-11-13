@@ -2,13 +2,10 @@
 
 namespace App\Http\Resources;
 
-use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 
 class EventResource extends JsonResource
 {
-    use WithResourceAbilities;
-
     /**
      * Transform the resource into an array.
      *

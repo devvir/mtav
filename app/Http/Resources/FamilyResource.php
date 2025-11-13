@@ -2,16 +2,11 @@
 
 namespace App\Http\Resources;
 
-use Devvir\ResourceTools\Concerns\ResourceSubsets;
-use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FamilyResource extends JsonResource
 {
-    use ResourceSubsets;
-    use WithResourceAbilities;
-
     /**
      * Transform the resource into an array.
      *
@@ -23,7 +18,7 @@ class FamilyResource extends JsonResource
             'id'          => $this->id,
             'name'        => $this->name,
             'avatar'      => $this->resolveAvatar(),
-            'created_at' => $this->created_at->translatedFormat('M j, Y g:i A'),
+            'created_at'  => $this->created_at->translatedFormat('M j, Y g:i A'),
             'created_ago' => $this->created_at->diffForHumans(),
             'deleted_at'  => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 

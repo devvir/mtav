@@ -3,15 +3,10 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
-use Devvir\ResourceTools\Concerns\ResourceSubsets;
-use Devvir\ResourceTools\Concerns\WithResourceAbilities;
 use Illuminate\Http\Request;
 
 class LogResource extends JsonResource
 {
-    use ResourceSubsets;
-    use WithResourceAbilities;
-
     public function toArray(Request $_): array
     {
         $user = $this->whenLoaded('user');
