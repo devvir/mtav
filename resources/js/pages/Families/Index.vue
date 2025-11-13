@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <IndexPage entity="family" :resources="families" :q>
+  <IndexPage entity="family" :resources="families" :q card-size="lg">
     <template v-slot:search-right>
       <MembersFamiliesSwitch />
     </template>

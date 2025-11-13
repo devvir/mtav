@@ -14,7 +14,7 @@ const props = defineProps<{
   featured?: number | string;
 }>();
 
-const multipliers: Record<CardSize, number> = {
+const sizeMultipliers: Record<CardSize, number> = {
   xs: 0.8,
   sm: 0.9,
   md: 1,
@@ -23,7 +23,7 @@ const multipliers: Record<CardSize, number> = {
 };
 
 const cardSizeMultiplier = computed<number>(
-    () => multipliers[(props.cardSize ?? 'md') as CardSize]
+  () => sizeMultipliers[(props.cardSize ?? 'md') as CardSize],
 );
 </script>
 

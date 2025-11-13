@@ -17,11 +17,11 @@ defineProps<{
       <Counter :count="family.members_count" singular="Member" plural="Members" size="lg" />
 
       <ul v-if="family.members_count" class="flex flex-wrap gap-2 truncate">
-        <li v-for="member in family.members.slice(0, 4)" :key="member.id">
+        <li v-for="member in family.members.slice(0, 7)" :key="member.id">
             <Avatar :subject="member" size="sm" />
         </li>
 
-        <Ellipsis v-if="family.members_count > 4" />
+        <Ellipsis v-if="family.members_count > 7" />
       </ul>
     </CardContent>
 

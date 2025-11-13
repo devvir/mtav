@@ -8,5 +8,5 @@ defineProps<{
 </script>
 
 <template>
-  <IndexPage entity="admin" :resources="admins" :q card-size="sm" />
+  <IndexPage entity="admin" :resources="admins" :q />
 </template>

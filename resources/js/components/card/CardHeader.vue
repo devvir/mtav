@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import {Avatar, type AvatarSize } from '@/components/avatar';
+import { Avatar, type AvatarSize } from '@/components/avatar';
 import { Badge } from '@/components/badge';
+import { _ } from '@/composables/useTranslations';
+import { cn } from '@/lib/utils';
 import { ActionsType, CardActions, type CardType, HeaderSub } from '.';
 import * as exposed from './exposed';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   title: string;
@@ -22,19 +22,26 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 </script>
 
 <template>
-  <header :class="cn($props.class, 'flex flex-wrap gap-x-base min-w-0 relative')">
+  <header :class="cn($props.class, 'relative flex min-w-0 flex-wrap gap-x-base')">
     <Avatar v-if="avatar" :subject="resource" :size="avatar" />
 
-    <section class="min-w-0 flex-1 truncate space-y-0.5">
-      <h3 v-if="kicker" v-html="kicker"
-          class="text-xs uppercase tracking-wide text-text-subtle" />
+    <section class="min-w-0 flex-1 space-y-0.5 truncate">
+      <h3
+        v-if="kicker || $slots.kicker"
+        class="text-xs tracking-wide text-text-subtle"
+        :class="{ uppercase: !$slots.kicker }"
+      >
+        <slot name="kicker">
+          {{ kicker }}
+        </slot>
+      </h3>
 
-      <h2 class="truncate text-lg font-semibold tracking-wide text-text" :title="title">
+      <h2 class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg" :title="title">
         {{ title }}
       </h2>
 
-      <div class="text-xs text-text-subtle flex items-center gap-2 min-w-0">
-        <div class="truncate flex-1">
+      <div class="flex min-w-0 items-center gap-2 text-xs text-text-subtle">
+        <div class="flex-1 truncate">
           <slot>
             <HeaderSub v-if="resource.project?.name" :title="resource.project.name">
               {{ resource.project.name }}
@@ -43,7 +50,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
         </div>
 
         <!-- Soft-Deleted Badge -->
-        <Badge v-if="resource.deleted_at" variant="destructive" class="text-xs px-2 py-0.5 flex-shrink-0">
+        <Badge v-if="resource.deleted_at" variant="destructive" class="flex-shrink-0 px-2 py-0.5 text-xs">
           {{ _('Soft-Deleted') }}
         </Badge>
       </div>
@@ -52,7 +59,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
     <CardActions
       v-if="actionsType"
       :type="actionsType"
-      :class="['text-sm', actionsType == 'full' ? 'basis-full mt-4 -mb-4!' : '-mt-2']"
+      :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-4! basis-full' : '-mt-2']"
     />
   </header>
 </template>
