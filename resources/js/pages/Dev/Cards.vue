@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Calendar, Check, Clock, Camera } from 'lucide-vue-next';
-import Badge from '@/components/ui/Badge.vue';
+import { Badge } from '@/components/badge';
 import Card from '@/components/card/Card.vue';
 import CardHeader from '@/components/card/CardHeader.vue';
 import CardContent from '@/components/card/CardContent.vue';
@@ -42,7 +42,7 @@ const sampleEventResource = {
                 <!-- 1. Long Title with Edit Button -->
                 <Card
                   :resource="sampleEventResource"
-                  edit-url="events.edit"
+                  belongs-to="event"
                 >
                     <CardHeader
                         title="This is a very long card title that demonstrates how the grid layout handles text truncation alongside an edit button in the same row"
@@ -82,7 +82,7 @@ const sampleEventResource = {
                 <!-- 4. Full-featured Event Card -->
                 <Card
                   :resource="sampleEventResource"
-                  edit-url="events.edit"
+                  belongs-to="event"
                 >
                     <CardHeader
                         title="Annual Charity Gala"
@@ -164,7 +164,7 @@ const sampleEventResource = {
                 <!-- 7. Rich Content Card -->
                 <Card>
                     <CardHeader title="Content Showcase">
-                        <Badge variant="destructive">Urgent</Badge>
+                        <Badge variant="danger">Urgent</Badge>
                         <Badge variant="default">High Priority</Badge>
                     </CardHeader>
                     <CardContent class="space-y-3">

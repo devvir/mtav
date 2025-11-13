@@ -6,7 +6,7 @@ import { PanelLeftClose } from 'lucide-vue-next';
 import type { HTMLAttributes } from 'vue';
 import { useSidebar } from './utils';
 
-const props = defineProps<{
+defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
@@ -20,7 +20,10 @@ const { toggleSidebar, open } = useSidebar();
     variant="ghost"
     size="icon"
     class="cursor-pointer"
-    :class="cn('focus-visible-within:text-accent-foreground size-6 cursor-pointer', props.class)"
+    :class="cn(
+      'focus-visible-within:text-accent-foreground size-6 cursor-pointer',
+      $props.class
+    )"
     @click="toggleSidebar"
   >
     <div class="text-foreground opacity-65 hocus:opacity-100">

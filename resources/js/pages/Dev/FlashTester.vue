@@ -90,7 +90,7 @@ const sendFlash = (type: string, message: string) => {
               v-model="errorMessage"
               placeholder="Enter error message"
             />
-            <Button @click="sendFlash('error', errorMessage)" variant="destructive" class="w-36">
+            <Button @click="sendFlash('error', errorMessage)" variant="error" class="w-36">
               Send Error
             </Button>
           </div>

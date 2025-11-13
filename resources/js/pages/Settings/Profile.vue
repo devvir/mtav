@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import AvatarUpload from '@/components/AvatarUpload.vue';
+import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AvatarUpload } from '@/components/avatar';
 import Head from '@/components/Head.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Textarea from '@/components/Textarea.vue';
 import { currentUser } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
 
 defineProps<{
   mustVerifyEmail: boolean;

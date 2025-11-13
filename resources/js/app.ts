@@ -6,7 +6,6 @@ import { putConfig, renderApp } from '@inertiaui/modal-vue';
 import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createPinia } from 'pinia';
-import type { DefineComponent } from 'vue';
 import { createApp } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
@@ -20,10 +19,7 @@ const pinia = createPinia();
 createInertiaApp({
   title: (title) => (title ? `${title} - ${appName}` : appName),
   resolve: async (name) => {
-    const page = await resolvePageComponent(
-      `./pages/${name}.vue`,
-      import.meta.glob<DefineComponent>('./pages/**/*.vue'),
-    );
+    const page = await resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<Component>('./pages/**/*.vue'));
 
     // Use default only if no layout is defined in the Page (use null for no layout)
     if (typeof page.default.layout === 'undefined') {

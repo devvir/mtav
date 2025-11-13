@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModalLink } from '@inertiaui/modal-vue';
-import Avatar from '@/components/Avatar.vue';
+import { Avatar } from '@/components/avatar';
 
 defineProps<{
   href: string;

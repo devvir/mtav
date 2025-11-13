@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PersonCard from '../shared/PersonCard.vue';
-import { _ } from '@/composables/useTranslations';
+import { entityLabel } from '@/composables/useResources';
 
 defineProps<{
   family: Family;
@@ -11,6 +11,6 @@ defineProps<{
   <PersonCard
     :href="route('families.show', family.id)"
     :subject="family"
-    :subtitle="`${family.members_count} ${family.members_count === 1 ? _('member') : _('members')}`"
+    :subtitle="`${family.members_count!} ${entityLabel('member', family.members_count!)}`"
   />
 </template>

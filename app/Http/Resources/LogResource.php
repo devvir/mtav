@@ -17,12 +17,13 @@ class LogResource extends JsonResource
         $user = $this->whenLoaded('user');
 
         return [
-            'id' => $this->id,
-            'event' => $this->event,
-            'creator' => $user?->name ?? __('System'),
+            'id'           => $this->id,
+            'event'        => $this->event,
+            'creator'      => $user?->name ?? __('System'),
             'creator_href' => $user ? $this->getCreatorHref($user) : null,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'created_ago' => $this->created_at->diffForHumans(),
+            'created_at'   => $this->created_at->translatedFormat('M j, Y g:i A'),
+            'created_ago'  => $this->created_at->diffForHumans(),
+            'deleted_at'   => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 
             ...$this->relationsData(),
         ];
@@ -31,7 +32,7 @@ class LogResource extends JsonResource
     protected function relationsData(): array
     {
         return [
-            'user' => $this->whenLoaded('user', default: ['id' => $this->user_id]),
+            'user'    => $this->whenLoaded('user', default: ['id' => $this->user_id]),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
         ];
     }

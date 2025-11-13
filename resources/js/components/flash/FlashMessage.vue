@@ -14,13 +14,6 @@ const emit = defineEmits<{
   dismiss: [];
 }>();
 
-const variants: Record<MessageType, 'success' | 'info' | 'warning' | 'destructive'> = {
-  success: 'success',
-  info: 'info',
-  warning: 'warning',
-  error: 'destructive',
-};
-
 const icons: Record<MessageType, any> = {
   success: CheckCircle2,
   info: Info,
@@ -31,7 +24,7 @@ const icons: Record<MessageType, any> = {
 
 <template>
   <Alert
-    :variant="variants[type]"
+    :variant="type"
     class="flex items-center gap-3 transition-all duration-300"
   >
     <div>

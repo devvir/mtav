@@ -25,7 +25,7 @@ class FamilyController extends Controller
 
         return inertia('Families/Index', [
             'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
-            'q' => $request->q ?? '',
+            'q'        => $request->q ?? '',
         ]);
     }
 
@@ -54,7 +54,7 @@ class FamilyController extends Controller
     public function edit(Family $family): Response
     {
         return inertia('Families/Edit', [
-            'family' => $family->load('project'),
+            'family'   => $family->load('project'),
             'projects' => Project::alphabetically()->get(),
         ]);
     }
@@ -72,8 +72,7 @@ class FamilyController extends Controller
         $family->members()->delete();
         $family->delete();
 
-        return to_route('families.index')
-            ->with('success', __('flash.family_deleted'));
+        return back()->with('success', __('flash.family_deleted'));
     }
 
     public function restore(Family $family): RedirectResponse

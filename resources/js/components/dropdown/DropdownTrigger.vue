@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { CloseAction, OpenAction } from '.';
 import * as keys from './keys';
 
-const props = defineProps<{
+defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
@@ -23,7 +23,7 @@ const isMouseEvent = (e: MouseEvent | KeyboardEvent) => e.detail > 0;
 
 <template>
   <button
-    :class="cn(['w-full', { 'cursor-pointer': !disabled }], props.class)"
+    :class="cn(['w-full', { 'cursor-pointer': !disabled }], $props.class)"
     aria-haspopup="true"
     :aria-expanded="isOpen"
     @click.prevent.stop="isMouseEvent($event) ? toggle('click') : null"

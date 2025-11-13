@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 import { cn } from '@/lib/utils';
 import * as keys from './keys';
 
-const props = defineProps<{
+defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
@@ -14,7 +14,7 @@ const isOpen = inject<boolean>(keys.isOpen);
   <div
     class="dropdown-content"
     role="dropdown"
-    :class="cn(['absolute top-full z-20 w-full', { invisible: !isOpen }], props.class ?? '')"
+    :class="cn(['absolute top-full z-20 w-full', { invisible: !isOpen }], $props.class ?? '')"
   >
     <slot />
   </div>

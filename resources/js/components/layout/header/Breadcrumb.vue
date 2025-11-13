@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
+import { route as routeUri } from 'ziggy-js';
 
-const props = defineProps<{
+defineProps<{
   route: string;
   text?: string;
   noLink?: boolean;
+  noTranslation?: boolean;
   params?: number | string | any[] | Record<string, any>;
 }>();
-
-const href = computed(() => route(props.route, props.params));
 </script>
 
 <template>
-  <li v-if="props.text || $slots.default" class="overflow-hidden text-ellipsis whitespace-nowrap">
-    <Link v-bind="$attrs" :href="href" :class="{ 'pointer-events-none': noLink }">
-      <slot>{{ _(<string>text) }}</slot>
+  <li v-if="text || $slots.default" class="overflow-hidden text-ellipsis whitespace-nowrap">
+    <Link
+      v-bind="$attrs"
+      :href="routeUri(route, params)"
+      :class="{ 'pointer-events-none': noLink }"
+    >
+      <slot>{{ noTranslation ? text : _(text) }}</slot>
     </Link>
   </li>
 </template>

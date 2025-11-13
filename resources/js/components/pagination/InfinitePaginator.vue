@@ -4,15 +4,25 @@ import { _ } from '@/composables/useTranslations';
 import AppSidebarHeaderSlot from '../layout/header/AppSidebarHeaderSlot.vue';
 import InfiniteScroll from './InfiniteScroll.vue';
 
+export type GridColsOverrides = {
+    sm?: string;
+    md?: string;
+    lg?: string;
+    xl?: string;
+    xl2?: string;
+    xl4?: string;
+    xl6?: string;
+};
+
 const props = defineProps<{
   loadable: string;
   list: ApiResources;
   filter: string;
-  gridColsOverrides?: { sm?: string; md?: string; lg?: string; xl?: string };
+  gridColsOverrides?: GridColsOverrides;
   featured?: number | string;
 }>();
 
-const gridColsDefaults = {
+const gridColsDefaults: GridColsOverrides = {
   sm: '@sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))]',
   md: '@md:grid-cols-[repeat(auto-fill,minmax(338px,1fr))]',
   lg: '@lg:grid-cols-[repeat(auto-fill,minmax(375px,1fr))]',

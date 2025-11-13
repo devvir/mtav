@@ -1,6 +1,6 @@
-type AppResource = 'project' | 'unit' | 'unit_type' | 'admin' | 'family' | 'member' | 'event' | 'media' | 'log';
+type AppEntity = 'project' | 'unit' | 'unit_type' | 'admin' | 'family' | 'member' | 'event' | 'media' | 'log';
 
-type AppResourceNS =
+type AppEntityPluralForm =
   | 'projects'
   | 'units'
   | 'unit_types'
@@ -11,15 +11,15 @@ type AppResourceNS =
   | 'media'
   | 'logs';
 
-type ResourceAction = 'index' | 'show' | 'create' | 'update' | 'delete' | 'restore';
+type AppEntityNS = AppEntityPluralForm;
+
+type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
 interface Resource {
   id: number;
   created_at: string;
   created_ago: string;
-  updated_at?: string;
-  updated_ago?: string;
   deleted_at: string | null;
 }
 
@@ -99,6 +99,7 @@ interface UnitType extends Resource {
 
 interface Unit extends Resource {
   identifier: string | null;
+
   project: ApiResource<Project> | { id: number };
   type: ApiResource<UnitType> | { id: number };
   family: ApiResource<Family> | { id: number } | null;
@@ -119,9 +120,7 @@ interface Event extends Resource {
   title: string;
   description: string;
   start_date: string | null;
-  start_date_formatted: string | null;
   end_date: string | null;
-  end_date_formatted: string | null;
   location: string | null;
   is_published: boolean;
   is_lottery: boolean;
@@ -129,6 +128,7 @@ interface Event extends Resource {
   is_onsite: boolean;
   type_label: string;
 
+  creator: ApiResource<Admin> | { id: number };
   project: ApiResource<Project> | { id: number };
 }
 

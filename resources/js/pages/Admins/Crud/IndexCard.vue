@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Avatar from '@/components/Avatar.vue';
+import { Avatar } from '@/components/avatar';
 import Card from '@/components/shared/Card.vue';
 import EditButton from '@/components/EditButton.vue';
 import CallToAction from '@/components/ui/button/CallToAction.vue';

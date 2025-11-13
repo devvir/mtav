@@ -4,8 +4,8 @@ import type { HTMLAttributes } from 'vue'
 import { cn } from '@/lib/utils'
 import { Primitive } from 'reka-ui'
 
-const props = defineProps<PrimitiveProps & {
-  class?: HTMLAttributes['class']
+defineProps<PrimitiveProps & {
+  class?: HTMLAttributes['class'];
 }>()
 </script>
 
@@ -19,7 +19,7 @@ const props = defineProps<PrimitiveProps & {
       'text-sidebar-foreground ring-sidebar-ring hover:bg-accent hover:text-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
       'after:absolute after:-inset-2 md:after:hidden',
       'group-data-[collapsible=icon]:hidden',
-      props.class,
+      $props.class,
     )"
   >
     <slot />

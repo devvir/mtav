@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // Copilot - pending review
-import { onMounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
@@ -127,7 +126,7 @@ const stats = computed(() => ({
     <!-- Units by Type -->
     <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
       <template v-if="unitTypes">
-        <UnitsSection :unit_types="unitTypes" />
+        <UnitsSection :unit-types="unitTypes" />
       </template>
       <template v-else>
         <div class="space-y-4">

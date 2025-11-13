@@ -1,21 +1,23 @@
 <script setup lang="ts">
+import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
 import { SidebarInset } from '@/components/layout/sidebar';
 
-interface Props {
+defineProps<{
   variant?: 'header' | 'sidebar';
-  class?: string;
-}
-
-const props = defineProps<Props>();
-const className = computed(() => props.class);
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
-  <SidebarInset v-if="props.variant === 'sidebar'" :class="className">
+  <SidebarInset v-if="variant === 'sidebar'" :class="$props.class">
     <slot />
   </SidebarInset>
 
-  <main v-else class="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl" :class="className">
+  <main v-else :class="cn(
+    'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl',
+    $props.class
+  )">
     <slot />
   </main>
 </template>

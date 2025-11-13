@@ -17,26 +17,22 @@ class EventResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'type' => $this->type->value,
-            'title' => $this->title,
-            'description' => $this->description,
-            'location' => $this->location,
-            'start_date' => $this->start_date?->toDateTimeString(),
-            'start_date_formatted' => $this->start_date?->format('M j, g:i A'),
-            'end_date' => $this->end_date?->toDateTimeString(),
-            'end_date_formatted' => $this->end_date?->format('M j, g:i A'),
+            'id'           => $this->id,
+            'type'         => $this->type->value,
+            'title'        => $this->title,
+            'description'  => $this->description,
+            'location'     => $this->location,
+            'start_date'   => $this->start_date?->translatedFormat('M j, Y g:i A'),
+            'end_date'     => $this->end_date?->translatedFormat('M j, Y g:i A'),
             'is_published' => $this->is_published,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'created_ago' => $this->created_at->diffForHumans(),
-            'updated_at' => $this->updated_at->toDateTimeString(),
-            'updated_ago' => $this->updated_at->diffForHumans(),
-            'deleted_at' => $this->deleted_at?->toDateTimeString(),
+            'created_at'   => $this->created_at->translatedFormat('M j, Y g:i A'),
+            'created_ago'  => $this->created_at->diffForHumans(),
+            'deleted_at'   => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 
             'type_label' => $this->type->label(),
             'is_lottery' => $this->isLottery(),
-            'is_online' => $this->isOnline(),
-            'is_onsite' => $this->isOnSite(),
+            'is_online'  => $this->isOnline(),
+            'is_onsite'  => $this->isOnSite(),
 
             ...$this->relationsData(),
         ];
@@ -45,6 +41,7 @@ class EventResource extends JsonResource
     protected function relationsData(): array
     {
         return [
+            'creator' => $this->whenLoaded('creator', default: ['id' => $this->creator_id]),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
         ];
     }

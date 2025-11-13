@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -19,7 +21,7 @@ interface FooterItem {
 }
 
 defineProps<{
-  class?: string;
+  class?: HTMLAttributes['class'];
 }>();
 
 const isDev = computed(() => import.meta.env.DEV || import.meta.env.MODE === 'development');
@@ -51,7 +53,7 @@ const footerItems = computed(() => allFooterItems.filter((item) => item.if !== f
 </script>
 
 <template>
-    <SidebarGroup :class="`group-data-[collapsible=icon]:p-0 ${$props.class || ''}`">
+    <SidebarGroup :class="cn('group-data-[collapsible=icon]:p-0', $props.class)">
         <SidebarGroupContent>
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in footerItems" :key="item.title">

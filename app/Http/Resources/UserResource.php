@@ -31,9 +31,9 @@ class UserResource extends JsonResource
             'about' => $this->about ?? null,
             'avatar' => $this->avatar ? Storage::url($this->avatar) : null,
             'is_admin' => $this->isAdmin(),
-            'created_at' => $this->created_at->toDateTimeString(),
+            'created_at' => $this->created_at->translatedFormat('M j, Y g:i A'),
             'created_ago' => $this->created_at->diffForHumans(),
-            'deleted_at' => $this->deleted_at?->toDateTimeString(),
+            'deleted_at' => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 
             ...$this->relationsData(),
 
@@ -62,8 +62,8 @@ class UserResource extends JsonResource
             'is_superadmin' => $this->isSuperadmin(),
             'legal_id' => $this->legal_id ?? '',
             'is_verified' => (bool) $this->email_verified_at,
-            'email_verified_at' => $this->email_verified_at?->toDateTimeString(),
-            'invitation_accepted_at' => $this->invitation_accepted_at?->toDateTimeString(),
+            'email_verified_at' => $this->email_verified_at?->translatedFormat('M j, Y g:i A'),
+            'invitation_accepted_at' => $this->invitation_accepted_at?->translatedFormat('M j, Y g:i A'),
         ];
     }
 }

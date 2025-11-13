@@ -2,8 +2,8 @@
 import type { HTMLAttributes } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<{
-  class?: HTMLAttributes['class']
+defineProps<{
+  class?: HTMLAttributes['class'];
 }>()
 </script>
 
@@ -11,7 +11,7 @@ const props = defineProps<{
   <div
     data-slot="sidebar-group"
     data-sidebar="group"
-    :class="cn('relative flex w-full flex-col', props.class)"
+    :class="cn('relative flex w-full flex-col', $props.class)"
   >
     <slot />
   </div>

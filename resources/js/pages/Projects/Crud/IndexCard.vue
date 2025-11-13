@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import Avatar from '@/components/Avatar.vue';
+import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
+import { ModalLink, useModal } from '@inertiaui/modal-vue';
+import { Avatar } from '@/components/avatar';
 import Card from '@/components/shared/Card.vue';
 import EditButton from '@/components/EditButton.vue';
+import Ellipsis from '@/components/Ellipsis.vue';
+import SelectDeselect from './SelectDeselect.vue';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
-import { cn } from '@/lib/utils';
-import { ModalLink, useModal } from '@inertiaui/modal-vue';
-import SelectDeselect from './SelectDeselect.vue';
-import { HTMLAttributes } from 'vue';
 
 const props = defineProps<{
   project: ApiResource<Required<Project>>;
@@ -26,7 +27,7 @@ const projectLink = computed(() =>
   <Card
     class=""
     :class="
-      cn(props.class, {
+      cn($props.class, {
         'shadow-lg ring-2 ring-interactive': currentProject?.id === project.id,
         'opacity-60': !project.active,
       })
@@ -74,13 +75,7 @@ const projectLink = computed(() =>
           class="ring-2 ring-border transition-transform hover:scale-110"
         />
 
-        <div v-if="project.families_count > project.families.length" class="flex items-center">
-          <svg class="size-8 fill-current text-text-subtle" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="19" cy="12" r="2" />
-            <circle cx="5" cy="12" r="2" />
-          </svg>
-        </div>
+        <Ellipsis v-if="project.families_count > project.families.length" />
       </Link>
     </section>
 
@@ -98,13 +93,7 @@ const projectLink = computed(() =>
           class="rounded-full ring-2 ring-border transition-transform hover:scale-110"
         />
 
-        <div v-if="project.members_count > project.members.length" class="flex items-center">
-          <svg class="size-8 fill-current text-text-subtle" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="19" cy="12" r="2" />
-            <circle cx="5" cy="12" r="2" />
-          </svg>
-        </div>
+        <Ellipsis v-if="project.members_count > project.members.length" />
       </Link>
     </section>
 
@@ -122,13 +111,7 @@ const projectLink = computed(() =>
           class="ring-2 ring-border transition-transform hover:scale-110"
         />
 
-        <div v-if="project.admins_count > project.admins.length" class="flex items-center">
-          <svg class="size-8 fill-current text-text-subtle" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="19" cy="12" r="2" />
-            <circle cx="5" cy="12" r="2" />
-          </svg>
-        </div>
+        <Ellipsis v-if="project.admins_count > project.admins.length" />
       </Link>
     </section>
 

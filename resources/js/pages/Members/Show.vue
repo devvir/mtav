@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Avatar from '@/components/Avatar.vue';
+import { Avatar } from '@/components/avatar';
 import EditButton from '@/components/EditButton.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';

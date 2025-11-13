@@ -11,10 +11,12 @@ Route::get('dev/playground', fn () => inertia('Dev/Playground'))->name('dev.play
 
 // Flash message testing
 Route::get('dev/flash', fn () => inertia('Dev/FlashTester'))->name('dev.flash');
-Route::post('dev/flash/send',
+Route::post(
+    'dev/flash/send',
     fn () => to_route('dev.flash')->with(request('type'), request('message'))
 )->name('dev.flash.send');
-Route::get('dev/flash/all',
+Route::get(
+    'dev/flash/all',
     fn () => redirect()->route('dev.flash')
         ->with('success', 'Operation completed successfully!')
         ->with('info', 'Here\'s some additional information.')

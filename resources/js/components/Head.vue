@@ -2,14 +2,12 @@
 import { _ } from '@/composables/useTranslations';
 import { Head } from '@inertiajs/vue3';
 
-const props = defineProps<{
+defineProps<{
   title?: string;
   noTranslation?: boolean;
 }>();
-
-const translatedTitle = computed(() => (props.title ? _(props.title) : undefined));
 </script>
 
 <template>
-  <Head :title="noTranslation ? title : translatedTitle" />
+  <Head :title="noTranslation ? title : _(title)" />
 </template>

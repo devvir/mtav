@@ -2,8 +2,8 @@ import '@inertiajs/core';
 
 export interface AuthUser extends User {
   can: {
-    viewAny: Record<AppResourceNS, boolean>;
-    create: Record<AppResourceNS, boolean>;
+    viewAny: Record<AppEntityNS, boolean>;
+    create: Record<AppEntityNS, boolean>;
   };
 }
 

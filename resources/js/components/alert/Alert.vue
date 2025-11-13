@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue';
-import { type AlertVariant, alertVariants } from '.';
 import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
+import { type AlertVariant, alertVariants } from '.';
 
 const props = defineProps<{
-  class?: HTMLAttributes['class'];
   variant?: AlertVariant;
+  class?: HTMLAttributes['class'];
 }>();
 
-const alertClass = computed(() => cn(alertVariants({ variant: props.variant }), props.class));
+const alertClasses = alertVariants({ variant: props.variant });
 </script>
 
 <template>
-  <div role="alert" :class="alertClass">
+  <div role="alert" :class="cn(alertClasses, $props.class)">
     <slot />
   </div>
 </template>
