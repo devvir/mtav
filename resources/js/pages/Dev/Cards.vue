@@ -16,10 +16,19 @@ const sampleEventResource = {
     location: 'Grand Ballroom, Downtown Hotel',
     status: 'published',
     // Add minimal required fields for ApiResource
-    created_at: '2024-11-01T10:00:00Z',
+    created_at: 'Nov 1, 2024 10:00 AM',
     created_ago: '1 week ago',
-    updated_at: '2024-11-08T15:30:00Z',
-    updated_ago: '1 hour ago',
+    deleted_at: null,
+    allows: { update: true, delete: false }
+};
+
+// Mock resource for general demo purposes
+const mockResource = {
+    id: 2,
+    name: 'Sample Resource',
+    description: 'A sample resource for demo purposes',
+    created_at: 'Nov 1, 2024 10:00 AM',
+    created_ago: '1 week ago',
     deleted_at: null,
     allows: { update: true, delete: false }
 };
@@ -42,7 +51,7 @@ const sampleEventResource = {
                 <!-- 1. Long Title with Edit Button -->
                 <Card
                   :resource="sampleEventResource"
-                  belongs-to="event"
+                  entity="event"
                 >
                     <CardHeader
                         title="This is a very long card title that demonstrates how the grid layout handles text truncation alongside an edit button in the same row"
@@ -53,7 +62,7 @@ const sampleEventResource = {
                 </Card>
 
                 <!-- 2. Card with Icon -->
-                <Card>
+                <Card :resource="mockResource" entity="event">
                     <CardHeader title="Card with Icon" :icon="Calendar" />
                     <CardContent>
                         <p class="text-text-muted">This card includes an icon in the header for visual context.</p>
@@ -61,7 +70,7 @@ const sampleEventResource = {
                 </Card>
 
                 <!-- 3. Card with Subtitle -->
-                <Card>
+                <Card :resource="mockResource" entity="event">
                     <CardHeader
                         title="Event Planning Meeting"
                         subtitle="Monthly team sync for upcoming events"
@@ -82,7 +91,7 @@ const sampleEventResource = {
                 <!-- 4. Full-featured Event Card -->
                 <Card
                   :resource="sampleEventResource"
-                  belongs-to="event"
+                  entity="event"
                 >
                     <CardHeader
                         title="Annual Charity Gala"
@@ -120,7 +129,7 @@ const sampleEventResource = {
                 </Card>
 
                 <!-- 5. Media Card -->
-                <Card>
+                <Card :resource="mockResource" entity="media">
                     <CardHeader
                         title="Photography Workshop"
                         subtitle="Learn professional techniques"
@@ -150,7 +159,7 @@ const sampleEventResource = {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <!-- 6. Long Title Truncation -->
-                <Card>
+                <Card :resource="mockResource" entity="event">
                     <CardHeader
                         title="This is an extremely long event title that should be properly truncated to prevent layout issues and maintain design consistency across all card instances"
                         subtitle="Very long subtitle that also needs to be truncated properly to avoid breaking the card layout"
@@ -162,7 +171,7 @@ const sampleEventResource = {
                 </Card>
 
                 <!-- 7. Rich Content Card -->
-                <Card>
+                <Card :resource="mockResource" entity="event">
                     <CardHeader title="Content Showcase">
                         <Badge variant="danger">Urgent</Badge>
                         <Badge variant="default">High Priority</Badge>
@@ -186,7 +195,7 @@ const sampleEventResource = {
                 </Card>
 
                 <!-- 8. Custom Styled Card -->
-                <Card class="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <Card :resource="mockResource" entity="event" class="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                     <CardHeader
                         title="Custom Styled Card"
                         subtitle="With gradient background"

@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
-
-const props = defineProps<{
-  class?: string;
-}>();
+import { CreatedMeta } from '.';
 </script>
 
 <template>
-  <footer
-    :class="cn(
-      'px-6 py-4 text-sm text-text-subtle',
-      'border-t border-border',
-      props.class
-    )"
-  >
-    <slot />
+  <footer :class="cn('block text-xs text-text-subtle text-right', $attrs.class, 'mt-auto')">
+    <slot>
+      <CreatedMeta />
+    </slot>
   </footer>
 </template>

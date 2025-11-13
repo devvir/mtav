@@ -29,6 +29,13 @@ const devPages = [
     color: 'text-indigo-500',
   },
   {
+    title: 'Entity Cards',
+    description: 'Preview of Card component used for all application entities (Projects, Members, etc.)',
+    icon: CreditCard,
+    route: 'dev.entity-cards',
+    color: 'text-rose-500',
+  },
+  {
     title: 'Playground',
     description: 'Experimental sandbox for testing new features and components',
     icon: Sparkles,
