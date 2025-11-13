@@ -22,7 +22,7 @@ class AvatarController
         ]);
 
         return response()->json([
-            'message' => __('Avatar updated successfully!'),
+            'message'    => __('Avatar updated successfully!'),
             'avatar_url' => asset('storage/' . $path),
         ]);
     }

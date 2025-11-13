@@ -29,9 +29,9 @@ describe('When an Admin is created', function () {
         $token = base64_encode(random_bytes(32));
 
         $admin = Admin::factory()->create([
-            'password' => $token,
+            'password'               => $token,
             'invitation_accepted_at' => null,
-            'email_verified_at' => null,
+            'email_verified_at'      => null,
         ]);
         $admin->projects()->attach($project);
 
@@ -44,7 +44,7 @@ describe('When an Admin is created', function () {
 
     it('sets invitation_accepted_at to NULL', function () {
         $admin = Admin::factory()->create([
-            'password' => 'test-token',
+            'password'               => 'test-token',
             'invitation_accepted_at' => null,
         ]);
 
@@ -53,7 +53,7 @@ describe('When an Admin is created', function () {
 
     it('sets email_verified_at to NULL', function () {
         $admin = Admin::factory()->create([
-            'password' => 'test-token',
+            'password'          => 'test-token',
             'email_verified_at' => null,
         ]);
 
@@ -104,10 +104,10 @@ describe('When a Member is created', function () {
         $token = base64_encode(random_bytes(32));
 
         $member = Member::factory()->create([
-            'password' => $token,
+            'password'               => $token,
             'invitation_accepted_at' => null,
-            'email_verified_at' => null,
-            'family_id' => $family->id,
+            'email_verified_at'      => null,
+            'family_id'              => $family->id,
         ]);
 
         event(new UserRegistration($member, $token));
@@ -120,9 +120,9 @@ describe('When a Member is created', function () {
     it('sets invitation_accepted_at to NULL', function () {
         $family = Family::factory()->create();
         $member = Member::factory()->create([
-            'password' => 'test-token',
+            'password'               => 'test-token',
             'invitation_accepted_at' => null,
-            'family_id' => $family->id,
+            'family_id'              => $family->id,
         ]);
 
         expect($member->invitation_accepted_at)->toBeNull();
@@ -131,9 +131,9 @@ describe('When a Member is created', function () {
     it('sets email_verified_at to NULL', function () {
         $family = Family::factory()->create();
         $member = Member::factory()->create([
-            'password' => 'test-token',
+            'password'          => 'test-token',
             'email_verified_at' => null,
-            'family_id' => $family->id,
+            'family_id'         => $family->id,
         ]);
 
         expect($member->email_verified_at)->toBeNull();
@@ -148,7 +148,7 @@ describe('When a Member is created', function () {
         $token = base64_encode(random_bytes(32));
 
         $member = Member::factory()->create([
-            'password' => $token,
+            'password'  => $token,
             'family_id' => $family->id,
         ]);
 
@@ -166,7 +166,7 @@ describe('When a Member is created', function () {
         $token = base64_encode(random_bytes(32));
 
         $member = Member::factory()->create([
-            'password' => $token,
+            'password'  => $token,
             'family_id' => $family->id,
         ]);
 

@@ -6,4 +6,3 @@ trait Utilities
 {
     use Http;
 }
-

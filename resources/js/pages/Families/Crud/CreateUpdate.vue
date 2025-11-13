@@ -8,12 +8,12 @@ const props = defineProps<{
   type: FormType;
   action: string;
   title: string;
-  projects: Project[];
-  family?: Family; // For edit forms
+  projects: ApiResource<Project>[];
+  family?: ApiResource<Family>; // For edit forms
 }>();
 
 const projectOptions: SelectOptions = {};
-props.projects.forEach((project) => (projectOptions[project.id] = project.name));
+props.projects.forEach((project: Project) => (projectOptions[project.id] = project.name));
 
 const formSpecs: FormSpecs = {
   project_id: {
@@ -30,7 +30,11 @@ const formSpecs: FormSpecs = {
 </script>
 
 <template>
-  <Form v-bind="{ type, action, params: props.family?.id, title }" :specs="formSpecs" autocomplete="off">
+  <Form
+    v-bind="{ type, action, params: props.family?.id, title }"
+    :specs="formSpecs"
+    autocomplete="off"
+  >
     <!-- <template v-slot:aside>
       Explain that moving a family to another project will move all of its members
     </template> -->

@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
+import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Eye } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
 import * as exposed from '../exposed';
-import { _ } from '@/composables/useTranslations';
 
 const resource = inject(exposed.resource) as ApiResource;
 const routes = inject(exposed.routes) as Record<ResourceAction, string>;

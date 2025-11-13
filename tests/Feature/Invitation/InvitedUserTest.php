@@ -117,4 +117,3 @@ describe('When visiting the invitation confirmation page', function () {
         });
     });
 });
-

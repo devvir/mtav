@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import Head from '@/components/Head.vue';
-import { Moon, Sun, Check, X, Info, AlertTriangle } from 'lucide-vue-next';
 import FormInput from '@/components/forms/FormInput.vue';
 import FormSelect from '@/components/forms/FormSelect.vue';
 import FormSubmit from '@/components/forms/FormSubmit.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import { AlertTriangle, Check, Info, Moon, Sun, X } from 'lucide-vue-next';
 
 const theme = ref<'light' | 'dark'>('dark');
 const colorTheme = ref<string>('default');
@@ -50,7 +49,12 @@ const toggleTheme = () => {
 
 const setColorTheme = (newTheme: string) => {
   // Remove all theme classes
-  document.documentElement.classList.remove('theme-ocean', 'theme-forest', 'theme-sunset', 'theme-mono');
+  document.documentElement.classList.remove(
+    'theme-ocean',
+    'theme-forest',
+    'theme-sunset',
+    'theme-mono',
+  );
 
   // Add new theme class if not default
   if (newTheme !== 'default') {
@@ -58,11 +62,27 @@ const setColorTheme = (newTheme: string) => {
   }
 
   colorTheme.value = newTheme;
-};const surfaceColors = [
+};
+const surfaceColors = [
   { name: 'Surface', var: 'surface', text: 'surface-foreground', desc: 'Base surface' },
-  { name: 'Surface Elevated', var: 'surface-elevated', text: 'surface-elevated-foreground', desc: 'Cards, modals' },
-  { name: 'Surface Sunken', var: 'surface-sunken', text: 'surface-sunken-foreground', desc: 'Recessed areas' },
-  { name: 'Surface Interactive', var: 'surface-interactive', text: 'surface-foreground', desc: 'Hover state' },
+  {
+    name: 'Surface Elevated',
+    var: 'surface-elevated',
+    text: 'surface-elevated-foreground',
+    desc: 'Cards, modals',
+  },
+  {
+    name: 'Surface Sunken',
+    var: 'surface-sunken',
+    text: 'surface-sunken-foreground',
+    desc: 'Recessed areas',
+  },
+  {
+    name: 'Surface Interactive',
+    var: 'surface-interactive',
+    text: 'surface-foreground',
+    desc: 'Hover state',
+  },
 ];
 
 const textColors = [
@@ -73,9 +93,24 @@ const textColors = [
 ];
 
 const interactiveColors = [
-  { name: 'Interactive', var: 'interactive', text: 'interactive-foreground', desc: 'Primary buttons' },
-  { name: 'Interactive Hover', var: 'interactive-hover', text: 'interactive-foreground', desc: 'Hover state' },
-  { name: 'Interactive Secondary', var: 'interactive-secondary', text: 'interactive-secondary-foreground', desc: 'Secondary buttons' },
+  {
+    name: 'Interactive',
+    var: 'interactive',
+    text: 'interactive-foreground',
+    desc: 'Primary buttons',
+  },
+  {
+    name: 'Interactive Hover',
+    var: 'interactive-hover',
+    text: 'interactive-foreground',
+    desc: 'Hover state',
+  },
+  {
+    name: 'Interactive Secondary',
+    var: 'interactive-secondary',
+    text: 'interactive-secondary-foreground',
+    desc: 'Secondary buttons',
+  },
 ];
 
 const semanticColors = [
@@ -111,7 +146,7 @@ const borderColors = [
         </div>
         <button
           @click="toggleTheme"
-          class="flex min-h-[44px] @md:min-h-[36px] items-center gap-2 rounded-lg bg-interactive px-4 py-2 text-interactive-foreground transition-all hover:bg-interactive-hover focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+          class="flex min-h-[44px] items-center gap-2 rounded-lg bg-interactive px-4 py-2 text-interactive-foreground transition-all hover:bg-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-0 @md:min-h-[36px]"
         >
           <Sun v-if="theme === 'dark'" class="h-5 w-5" />
           <Moon v-else class="h-5 w-5" />
@@ -120,24 +155,29 @@ const borderColors = [
       </div>
 
       <!-- Color Theme Selector -->
-      <div class="rounded-lg bg-surface-elevated p-4 border border-border">
+      <div class="rounded-lg border border-border bg-surface-elevated p-4">
         <h3 class="mb-3 text-sm font-semibold text-text">Color Theme</h3>
-        <div class="grid grid-cols-2 @md:grid-cols-5 gap-2">
+        <div class="grid grid-cols-2 gap-2 @md:grid-cols-5">
           <button
             v-for="themeOption in themes"
             :key="themeOption.value"
             @click="setColorTheme(themeOption.value)"
-            class="group relative min-h-[44px] @md:min-h-[36px] rounded-md border-2 p-3 text-left transition-all focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-            :class="colorTheme === themeOption.value
-              ? 'border-interactive bg-interactive/10'
-              : 'border-border bg-surface hover:border-border-strong hover:bg-surface-interactive-hover'"
+            class="group relative min-h-[44px] rounded-md border-2 p-3 text-left transition-all focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-0 @md:min-h-[36px]"
+            :class="
+              colorTheme === themeOption.value
+                ? 'border-interactive bg-interactive/10'
+                : 'border-border bg-surface hover:border-border-strong hover:bg-surface-interactive-hover'
+            "
           >
             <div class="flex items-center justify-between">
               <div>
                 <div class="text-sm font-semibold text-text">{{ themeOption.name }}</div>
                 <div class="text-xs text-text-subtle">{{ themeOption.desc }}</div>
               </div>
-              <div v-if="colorTheme === themeOption.value" class="h-5 w-5 rounded-full bg-interactive text-interactive-foreground flex items-center justify-center">
+              <div
+                v-if="colorTheme === themeOption.value"
+                class="flex h-5 w-5 items-center justify-center rounded-full bg-interactive text-interactive-foreground"
+              >
                 <Check class="h-3 w-3" />
               </div>
             </div>
@@ -146,7 +186,7 @@ const borderColors = [
       </div>
     </div>
 
-    <div class="space-y-12 max-w-7xl">
+    <div class="max-w-7xl space-y-12">
       <!-- Surface Colors Section -->
       <section>
         <h2 class="mb-6 text-2xl font-bold text-text">Surface Colors ()</h2>
@@ -173,17 +213,20 @@ const borderColors = [
       <!-- Text Colors Section -->
       <section>
         <h2 class="mb-6 text-2xl font-bold text-text">Text Colors ()</h2>
-        <div class="grid gap-4 @md:grid-cols-2 rounded-lg bg-surface-elevated p-6">
+        <div class="grid gap-4 rounded-lg bg-surface-elevated p-6 @md:grid-cols-2">
           <div v-for="textColor in textColors" :key="textColor.var" class="space-y-2">
             <div :style="{ color: `var(--${textColor.var})` }" class="text-xl font-semibold">
               {{ textColor.name }}
             </div>
             <p :style="{ color: `var(--${textColor.var})` }">
-              The quick brown fox jumps over the lazy dog. This demonstrates readable text at various hierarchy levels.
+              The quick brown fox jumps over the lazy dog. This demonstrates readable text at
+              various hierarchy levels.
             </p>
             <div class="flex items-center gap-3 text-xs text-text-muted">
               <span class="font-mono">--{{ textColor.var }}</span>
-              <span class="rounded bg-success-subtle px-2 py-0.5 text-success-subtle-foreground">{{ textColor.contrast }}</span>
+              <span class="rounded bg-success-subtle px-2 py-0.5 text-success-subtle-foreground">{{
+                textColor.contrast
+              }}</span>
             </div>
           </div>
         </div>
@@ -210,15 +253,23 @@ const borderColors = [
           </div>
 
           <div class="rounded-lg bg-surface-elevated p-6">
-            <p class="mb-4 text-sm text-text-muted">Button Examples with Focus States (Tab to test)</p>
+            <p class="mb-4 text-sm text-text-muted">
+              Button Examples with Focus States (Tab to test)
+            </p>
             <div class="flex flex-wrap gap-3">
-              <button class="rounded-lg bg-interactive px-4 py-3 font-medium text-interactive-foreground transition-all hover:bg-interactive-hover active:bg-interactive-active focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset">
+              <button
+                class="rounded-lg bg-interactive px-4 py-3 font-medium text-interactive-foreground transition-all hover:bg-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset active:bg-interactive-active"
+              >
                 Primary Action
               </button>
-              <button class="rounded-lg bg-interactive-secondary px-4 py-3 font-medium text-interactive-secondary-foreground transition-all hover:bg-interactive-secondary-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset">
+              <button
+                class="rounded-lg bg-interactive-secondary px-4 py-3 font-medium text-interactive-secondary-foreground transition-all hover:bg-interactive-secondary-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+              >
                 Secondary Action
               </button>
-              <button class="rounded-lg border-2 border-border bg-surface-interactive px-4 py-3 font-medium text-text transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset">
+              <button
+                class="rounded-lg border-2 border-border bg-surface-interactive px-4 py-3 font-medium text-text transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+              >
                 Outline Button
               </button>
             </div>
@@ -230,11 +281,7 @@ const borderColors = [
       <section>
         <h2 class="mb-6 text-2xl font-bold text-text">Semantic Colors ()</h2>
         <div class="grid gap-4 @md:grid-cols-2">
-          <div
-            v-for="semantic in semanticColors"
-            :key="semantic.var"
-            class="space-y-3"
-          >
+          <div v-for="semantic in semanticColors" :key="semantic.var" class="space-y-3">
             <!-- Bold version -->
             <div
               :style="{
@@ -261,12 +308,14 @@ const borderColors = [
               }"
               class="flex items-start gap-3 rounded-lg border p-4"
             >
-              <component :is="semantic.icon" :style="{ color: `var(--${semantic.var})` }" class="h-5 w-5 flex-shrink-0" />
+              <component
+                :is="semantic.icon"
+                :style="{ color: `var(--${semantic.var})` }"
+                class="h-5 w-5 flex-shrink-0"
+              />
               <div>
                 <div class="font-semibold">{{ semantic.name }} (Subtle)</div>
-                <div class="text-sm">
-                  Lower contrast variant for less critical information.
-                </div>
+                <div class="text-sm">Lower contrast variant for less critical information.</div>
               </div>
             </div>
           </div>
@@ -295,24 +344,29 @@ const borderColors = [
         <h2 class="mb-6 text-2xl font-bold text-text">Focus & Selection ()</h2>
         <div class="space-y-4 rounded-lg bg-surface-elevated p-6">
           <div>
-            <p class="mb-3 text-sm text-text-muted">Try selecting this text to see the selection color:</p>
+            <p class="mb-3 text-sm text-text-muted">
+              Try selecting this text to see the selection color:
+            </p>
             <p class="text-lg text-text">
-              The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. Sphinx of black quartz, judge my vow.
+              The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
+              Sphinx of black quartz, judge my vow.
             </p>
           </div>
 
           <div>
-            <p class="mb-3 text-sm text-text-muted">Focus ring demonstration (Tab through these inputs):</p>
+            <p class="mb-3 text-sm text-text-muted">
+              Focus ring demonstration (Tab through these inputs):
+            </p>
             <div class="grid gap-3 @md:grid-cols-2">
               <input
                 type="text"
                 placeholder="Focus me to see ring"
-                class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+                class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
               />
               <input
                 type="text"
                 placeholder="Tab here next"
-                class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+                class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
               />
             </div>
           </div>
@@ -326,18 +380,21 @@ const borderColors = [
           <div class="flex items-start gap-3">
             <Info class="h-6 w-6 flex-shrink-0 text-info" />
             <div class="space-y-3 text-info-subtle-foreground">
-              <p class="font-semibold">All  colors meet WCAG accessibility standards:</p>
+              <p class="font-semibold">All colors meet WCAG accessibility standards:</p>
               <ul class="list-disc space-y-1 pl-5">
                 <li><strong>Primary text (text)</strong>: 7:1+ contrast ratio (AAA)</li>
                 <li><strong>Secondary text (text-muted)</strong>: 4.5:1+ contrast ratio (AA)</li>
                 <li><strong>Interactive elements</strong>: High contrast, visible focus states</li>
-                <li><strong>Touch targets</strong>: Minimum 44px on mobile for all buttons/inputs</li>
+                <li>
+                  <strong>Touch targets</strong>: Minimum 44px on mobile for all buttons/inputs
+                </li>
                 <li><strong>Semantic colors</strong>: Never rely on color alone (icons + text)</li>
                 <li><strong>Focus rings</strong>: 2px+ width, high contrast</li>
               </ul>
               <p class="mt-4 rounded-lg bg-surface-elevated p-4 text-sm">
-                <strong>Target audience:</strong> Designed for elderly users, people with visual impairments, and users on old devices.
-                Large font sizes maintained, high contrast throughout, and generous spacing for easy interaction.
+                <strong>Target audience:</strong> Designed for elderly users, people with visual
+                impairments, and users on old devices. Large font sizes maintained, high contrast
+                throughout, and generous spacing for easy interaction.
               </p>
             </div>
           </div>
@@ -348,9 +405,10 @@ const borderColors = [
       <section>
         <h2 class="mb-6 text-2xl font-bold text-text">Form Elements</h2>
         <div class="space-y-6 rounded-lg bg-surface-elevated p-6">
-          <p class="text-sm text-text-muted mb-4">
-            Form fields with different states: empty (blue border on focus), filled valid (green border), invalid (red border with error message).
-            Labels stand out with semibold weight. Focus ring only appears on the active field.
+          <p class="mb-4 text-sm text-text-muted">
+            Form fields with different states: empty (blue border on focus), filled valid (green
+            border), invalid (red border with error message). Labels stand out with semibold weight.
+            Focus ring only appears on the active field.
           </p>
 
           <div class="grid grid-cols-2 gap-4">
@@ -384,24 +442,19 @@ const borderColors = [
             />
 
             <!-- Disabled field -->
-            <FormInput
-              model-value="Disabled Field"
-              name="disabled"
-              label="Disabled"
-              disabled
-            />
+            <FormInput model-value="Disabled Field" name="disabled" label="Disabled" disabled />
           </div>
 
           <div class="mt-6 flex justify-end">
             <FormSubmit label="Submit Form" />
           </div>
 
-          <div class="mt-6 rounded-lg bg-info-subtle border border-info p-4">
+          <div class="mt-6 rounded-lg border border-info bg-info-subtle p-4">
             <div class="flex items-start gap-2">
-              <Info class="h-5 w-5 flex-shrink-0 text-info mt-0.5" />
+              <Info class="mt-0.5 h-5 w-5 flex-shrink-0 text-info" />
               <div class="text-sm text-info-subtle-foreground">
-                <p class="font-semibold mb-1">Form Behavior:</p>
-                <ul class="list-disc pl-5 space-y-1">
+                <p class="mb-1 font-semibold">Form Behavior:</p>
+                <ul class="list-disc space-y-1 pl-5">
                   <li>Empty fields show subtle border, blue focus ring when clicked</li>
                   <li>Valid filled fields show green border (no ring needed)</li>
                   <li>Invalid fields show red border with error message below</li>

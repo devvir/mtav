@@ -4,7 +4,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 
 defineProps<{
-  admin: User;
+  admin: ApiResource<Admin>;
 }>();
 </script>
 

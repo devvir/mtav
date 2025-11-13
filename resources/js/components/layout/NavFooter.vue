@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'vue';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,7 +8,9 @@ import {
 } from '@/components/layout/sidebar';
 import { iAmAdmin } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
-import { BookOpen, Folder, Code, LucideIcon } from 'lucide-vue-next';
+import { cn } from '@/lib/utils';
+import { BookOpen, Code, Folder, LucideIcon } from 'lucide-vue-next';
+import type { HTMLAttributes } from 'vue';
 
 interface FooterItem {
   title: string;
@@ -53,23 +53,28 @@ const footerItems = computed(() => allFooterItems.filter((item) => item.if !== f
 </script>
 
 <template>
-    <SidebarGroup :class="cn('group-data-[collapsible=icon]:p-0', $props.class)">
-        <SidebarGroupContent>
-            <SidebarMenu>
-                <SidebarMenuItem v-for="item in footerItems" :key="item.title">
-                    <SidebarMenuButton class="hocus:text-accent-foreground" as-child>
-                        <a v-if="item.external" :href="item.href" target="_blank" rel="noopener noreferrer"
-                            class="px-2">
-                            <component :is="item.icon" />
-                            <span>{{ item.title }}</span>
-                        </a>
-                        <Link v-else :href="item.href" class="px-2">
-                        <component :is="item.icon" />
-                        <span>{{ item.title }}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarGroupContent>
-    </SidebarGroup>
+  <SidebarGroup :class="cn('group-data-[collapsible=icon]:p-0', $props.class)">
+    <SidebarGroupContent>
+      <SidebarMenu>
+        <SidebarMenuItem v-for="item in footerItems" :key="item.title">
+          <SidebarMenuButton class="hocus:text-accent-foreground" as-child>
+            <a
+              v-if="item.external"
+              :href="item.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-2"
+            >
+              <component :is="item.icon" />
+              <span>{{ item.title }}</span>
+            </a>
+            <Link v-else :href="item.href" class="px-2">
+              <component :is="item.icon" />
+              <span>{{ item.title }}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarGroupContent>
+  </SidebarGroup>
 </template>

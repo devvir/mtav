@@ -1,4 +1,4 @@
-import { ref, watch, onUnmounted, computed } from 'vue';
+import { FlashProps } from '@/types/inertia';
 import { usePage } from '@inertiajs/vue3';
 
 export type MessageType = 'success' | 'info' | 'warning' | 'error';
@@ -28,7 +28,12 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
    * @param timeout - Auto-dismiss timeout in ms. Use 0 for no auto-dismiss (manual close only)
    * @param multiline - Allow message to wrap to multiple lines (default: false, truncates)
    */
-  const flash = (message: string, type: MessageType = 'success', timeout: number = AUTO_DISMISS_MS, multiline: boolean = false) => {
+  const flash = (
+    message: string,
+    type: MessageType = 'success',
+    timeout: number = AUTO_DISMISS_MS,
+    multiline: boolean = false,
+  ) => {
     const id = `flash-${++messageIdCounter}`;
     const flashMessage: FlashMessage = { id, type, message, multiline };
 
@@ -50,7 +55,7 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
    * Remove a message from the stack and clear its timeout
    */
   const removeMessage = (id: string) => {
-    const index = messageStack.value.findIndex(msg => msg.id === id);
+    const index = messageStack.value.findIndex((msg: FlashMessage) => msg.id === id);
     if (index === -1) return;
 
     const message = messageStack.value[index];
@@ -68,7 +73,7 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
    * Clear all messages and their timeouts
    */
   const clearAll = () => {
-    messageStack.value.forEach(msg => {
+    messageStack.value.forEach((msg: FlashMessage) => {
       if (msg.timeoutId) {
         window.clearTimeout(msg.timeoutId);
       }
@@ -81,7 +86,7 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
   if (!options.skipInertiaWatcher) {
     watch(
       () => page.props.flash,
-      (flashProps) => {
+      (flashProps: FlashProps) => {
         if (!flashProps) return;
 
         // Add any flash messages from Inertia to the stack
@@ -90,7 +95,7 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
         if (flashProps.warning) flash(flashProps.warning, 'warning');
         if (flashProps.error) flash(flashProps.error, 'error');
       },
-      { immediate: true }
+      { immediate: true },
     );
   }
 

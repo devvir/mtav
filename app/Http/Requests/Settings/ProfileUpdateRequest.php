@@ -20,11 +20,11 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'firstname' => 'required|string|max:255',
-            'lastname' => 'nullable|string|max:255',
-            'legal_id' => 'nullable|string|max:50',
-            'phone' => 'nullable|string|between:5,20',
-            'about' => 'nullable|string|max:1000',
-            'email' => ['required', 'email', 'max:255',
+            'lastname'  => 'nullable|string|max:255',
+            'legal_id'  => 'nullable|string|max:50',
+            'phone'     => 'nullable|string|between:5,20',
+            'about'     => 'nullable|string|max:1000',
+            'email'     => ['required', 'email', 'max:255',
                 Rule::unique(User::class)->ignore($this->user()),
             ],
         ];

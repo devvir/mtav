@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
 import { List } from 'lucide-vue-next';
 import * as exposed from '../exposed';
-import { _ } from '@/composables/useTranslations';
 
 const routes = inject(exposed.routes) as Record<ResourceAction, string>;
 </script>

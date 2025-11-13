@@ -8,7 +8,10 @@ import ShowWrapper from '../shared/ShowWrapper.vue';
 import IndexCard from './Crud/IndexCard.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
-defineProps<{ project: Required<ApiResource<Project>> }>();
+
+defineProps<{
+  project: Required<ApiResource<Project>>;
+}>();
 </script>
 
 <template>

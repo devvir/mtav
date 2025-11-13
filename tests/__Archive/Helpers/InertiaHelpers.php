@@ -18,7 +18,8 @@ function assertInertiaComponent(TestResponse $response, string $component): void
 function assertInertiaPaginatedData(TestResponse $response, string $component, string $prop, int $expectedCount): void
 {
     $response->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(
+            fn (AssertableInertia $page) => $page
             ->component($component)
             ->has("{$prop}.data", $expectedCount)
         );
@@ -46,7 +47,8 @@ function assertInertiaHas(TestResponse $response, string $component, string|arra
 function assertInertiaWhere(TestResponse $response, string $component, string $prop, $value): void
 {
     $response->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(
+            fn (AssertableInertia $page) => $page
             ->component($component)
             ->where($prop, $value)
         );

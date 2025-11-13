@@ -1,4 +1,13 @@
-type AppEntity = 'project' | 'unit' | 'unit_type' | 'admin' | 'family' | 'member' | 'event' | 'media' | 'log';
+type AppEntity =
+  | 'project'
+  | 'unit'
+  | 'unit_type'
+  | 'admin'
+  | 'family'
+  | 'member'
+  | 'event'
+  | 'media'
+  | 'log';
 
 type AppEntityPluralForm =
   | 'projects'

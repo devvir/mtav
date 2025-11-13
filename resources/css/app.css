@@ -23,8 +23,8 @@
   --spacing-wide-y: clamp(0.8rem, calc(var(--spacing-base-y) * 2), 1.33rem);
 
   --font-sans:
-    'Instrument Sans', 'Liberation Sans', Tahoma, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    'Instrument Sans', 'Liberation Sans', Tahoma, ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -164,11 +164,11 @@
   }
 
   [data-inertiaui-modal-id] .modalPanel {
-    @apply border-foreground/15 bg-background/80 text-foreground shadow-accent/20 @md:rounded-2xl rounded-lg border-2 shadow-xl backdrop-blur-md;
+    @apply rounded-lg border-2 border-foreground/15 bg-background/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-md @md:rounded-2xl;
   }
 
   [data-inertiaui-modal-id] .modalPanel.close-left > *:has(> .im-close-button) {
-    @apply left-0 right-auto pl-3 pr-0;
+    @apply right-auto left-0 pr-0 pl-3;
   }
 
   [data-inertiaui-modal-id] .modalSlideover {
@@ -176,11 +176,11 @@
   }
 
   [data-inertiaui-modal-id] .modalPadding {
-    @apply @md:p-0 p-0;
+    @apply p-0;
   }
 
   [data-inertiaui-modal-id] .modalPadding.modalSlideover {
-    @apply @md:p-6 p-4;
+    @apply p-4 @md:p-6;
   }
 
   [data-inertiaui-modal-id] [data-state='open'].im-backdrop {
@@ -200,7 +200,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground overflow-clip;
+    @apply overflow-clip bg-background text-foreground;
   }
 
   /* Apply selection colors */

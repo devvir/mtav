@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Avatar } from '@/components/avatar';
-import { Card, CardHeader, CardContent, CardFooter, CreatedMeta } from '@/components/card';
-import { ModalLink } from '@inertiaui/modal-vue';
+import { Card, CardContent, CardFooter, CardHeader, CreatedMeta } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
+import { ModalLink } from '@inertiaui/modal-vue';
 
 defineProps<{
   family: ApiResource<Family>;
@@ -17,7 +17,7 @@ defineProps<{
       <ModalLink
         v-for="member in family.members"
         :key="member.id"
-        class="group block rounded-lg text-text transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+        class="group block rounded-lg text-text transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
         :href="route('members.show', member.id)"
         :title="member.name"
         prefetch="click"

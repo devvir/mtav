@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardContent } from '@/components/card';
 import { Badge } from '@/components/badge';
+import { Card, CardContent, CardHeader } from '@/components/card';
 
 defineProps<{
   media: ApiResource<Media>;

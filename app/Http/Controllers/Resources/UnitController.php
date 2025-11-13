@@ -52,7 +52,7 @@ class UnitController extends Controller
     public function edit(Unit $unit): Response
     {
         return inertia('Units/Edit', [
-            'unit' => $unit->load('project', 'type', 'family'),
+            'unit'       => $unit->load('project', 'type', 'family'),
             'unit_types' => currentProject()->unitTypes()->alphabetically()->get(),
         ]);
     }

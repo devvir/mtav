@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardFooter, HeaderSub, FooterButton, CreatedMeta } from '@/components/card';
+import {
+  Card,
+  CardFooter,
+  CardHeader,
+  CreatedMeta,
+  FooterButton,
+  HeaderSub,
+} from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{

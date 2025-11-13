@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Colors, KEY_COLORS, Ohcl } from '.';
+import { Colors, KEY_COLORS, OHCL } from '.';
 import ChartCandle from './ChartCandle.vue';
 
 const props = defineProps<{
-  data: Ohcl[];
+  data: OHCL[];
 }>();
 
 // Configuration
@@ -20,7 +20,7 @@ const visibleData = props.data.slice(0, Math.round(containerW / 20 / zoomFactor)
 // Viewbox coordinates
 const viewBoxPadding = 40;
 const viewBoxW = 20 * visibleData.length + viewBoxPadding * 2 + rightGap * 20;
-const viewBoxH = Math.max(...visibleData.map((d) => d.h)) + viewBoxPadding * 2;
+const viewBoxH = Math.max(...visibleData.map((d: OHCL) => d.h)) + viewBoxPadding * 2;
 
 // SVG's height scale factor to fit the container's aspect ratio
 const scaleY = (containerH * viewBoxW) / (containerW * viewBoxH);

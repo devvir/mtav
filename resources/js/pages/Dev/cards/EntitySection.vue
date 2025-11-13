@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-vue-next';
 
 defineProps<{
@@ -21,14 +21,11 @@ defineEmits<{
 </script>
 
 <template>
-  <Collapsible
-    :open="isExpanded"
-    class="border border-border rounded-lg bg-surface"
-  >
+  <Collapsible :open="isExpanded" class="rounded-lg border border-border bg-surface">
     <CollapsibleTrigger as-child>
       <Button
         variant="ghost"
-        class="w-full justify-between py-10 h-auto text-left bg-muted/50 cursor-pointer"
+        class="h-auto w-full cursor-pointer justify-between bg-muted/50 py-10 text-left"
         @click="$emit('toggle')"
       >
         <div class="flex items-center gap-4 px-4">
@@ -40,8 +37,8 @@ defineEmits<{
         </div>
         <ChevronDown
           :class="[
-            'h-6 w-6 transition-transform duration-200 shrink-0',
-            isExpanded ? 'transform rotate-180' : ''
+            'h-6 w-6 shrink-0 transition-transform duration-200',
+            isExpanded ? 'rotate-180 transform' : '',
           ]"
         />
       </Button>

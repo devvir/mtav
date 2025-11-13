@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { SidebarInset } from '@/components/layout/sidebar';
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
-import { SidebarInset } from '@/components/layout/sidebar';
 
 defineProps<{
   variant?: 'header' | 'sidebar';
@@ -14,10 +14,12 @@ defineProps<{
     <slot />
   </SidebarInset>
 
-  <main v-else :class="cn(
-    'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl',
-    $props.class
-  )">
+  <main
+    v-else
+    :class="
+      cn('mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl', $props.class)
+    "
+  >
     <slot />
   </main>
 </template>

@@ -71,4 +71,4 @@ export type FormSpecs = Record<string, ElementSpecs>;
 
 export type FormType = 'create' | 'edit';
 
-export type FormUpdateEvent = { field: string; value: ValueType | ValueType[] }
+export type FormUpdateEvent = { field: string; value: ValueType | ValueType[] };

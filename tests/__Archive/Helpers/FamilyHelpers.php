@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Family;
-use App\Models\Member;
 
 /**
  * Create a basic Family for testing (without auto-creating dependencies).

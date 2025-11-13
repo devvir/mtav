@@ -15,11 +15,11 @@ class CreateAdminRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_ids' => 'required|array',
+            'project_ids'   => 'required|array',
             'project_ids.*' => 'exists:projects,id',
-            'email' => 'required|email|max:255|unique:users,email',
-            'firstname' => 'required|string|between:2,80',
-            'lastname' => 'nullable|string|between:2,80',
+            'email'         => 'required|email|max:255|unique:users,email',
+            'firstname'     => 'required|string|between:2,80',
+            'lastname'      => 'nullable|string|between:2,80',
         ];
     }
 

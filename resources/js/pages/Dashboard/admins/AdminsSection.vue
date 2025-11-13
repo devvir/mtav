@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { _ } from '@/composables/useTranslations';
 import { Shield } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import AdminCard from './AdminCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   admins: Admin[];

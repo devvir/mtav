@@ -19,8 +19,8 @@ enum EventType: string
     {
         return match ($this) {
             self::LOTTERY => __('Lottery'),
-            self::ONLINE => __('Online'),
-            self::ONSITE => __('On-site'),
+            self::ONLINE  => __('Online'),
+            self::ONSITE  => __('On-site'),
         };
     }
 }

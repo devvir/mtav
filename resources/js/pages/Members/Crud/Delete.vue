@@ -46,7 +46,7 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
         <Button
           variant="ghost"
           size="sm"
-          class="text-xs text-red-400 hover:bg-red-950/30 hover:text-red-300 border border-red-900/40"
+          class="border border-red-900/40 text-xs text-red-400 hover:bg-red-950/30 hover:text-red-300"
         >
           {{ _('Delete account') }}
         </Button>
@@ -57,26 +57,36 @@ const disabled = computed(() => email.value !== props.member.email || form.proce
           <DialogHeader class="space-y-3">
             <DialogTitle>{{ _('Are you sure you want to delete this account?') }}</DialogTitle>
             <DialogDescription>
-                {{
-                  _("Please enter the user's email to confirm that you would like to permanently delete their account.")
-                }}
-              </DialogDescription>
-            </DialogHeader>
+              {{
+                _(
+                  "Please enter the user's email to confirm that you would like to permanently delete their account.",
+                )
+              }}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div class="grid gap-2">
-              <Label for="email" class="sr-only">{{ _('Email') }}</Label>
-              <Input v-model="email" type="email" name="email" :placeholder="_('Account email')" autocomplete="off" />
-            </div>
+          <div class="grid gap-2">
+            <Label for="email" class="sr-only">{{ _('Email') }}</Label>
+            <Input
+              v-model="email"
+              type="email"
+              name="email"
+              :placeholder="_('Account email')"
+              autocomplete="off"
+            />
+          </div>
 
-            <DialogFooter class="gap-2">
-              <DialogClose as-child>
-                <Button variant="secondary" @click="form.reset()">{{ _('Cancel') }}</Button>
-              </DialogClose>
+          <DialogFooter class="gap-2">
+            <DialogClose as-child>
+              <Button variant="secondary" @click="form.reset()">{{ _('Cancel') }}</Button>
+            </DialogClose>
 
-              <Button type="submit" variant="destructive" :disabled="disabled">{{ _('Delete account') }}</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <Button type="submit" variant="destructive" :disabled="disabled">{{
+              _('Delete account')
+            }}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

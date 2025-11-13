@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import CardBox from '@/components/shared/CardBox.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import ShowWrapper from '../shared/ShowWrapper.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
+import CardBox from '@/components/shared/CardBox.vue';
 import { _ } from '@/composables/useTranslations';
+import ShowWrapper from '../shared/ShowWrapper.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -43,7 +43,9 @@ defineProps<{
 
           <div>
             <div class="text-xs font-medium text-text-subtle">{{ _('Date') }}</div>
-            <div class="text-sm text-text-subtle" :title="log.created_at">{{ log.created_ago }}</div>
+            <div class="text-sm text-text-subtle" :title="log.created_at">
+              {{ log.created_ago }}
+            </div>
           </div>
         </div>
       </CardBox>

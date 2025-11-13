@@ -36,7 +36,10 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
         </slot>
       </h3>
 
-      <h2 class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg" :title="title">
+      <h2
+        class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg"
+        :title="title"
+      >
         {{ title }}
       </h2>
 
@@ -50,7 +53,11 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
         </div>
 
         <!-- Soft-Deleted Badge -->
-        <Badge v-if="resource.deleted_at" variant="destructive" class="flex-shrink-0 px-2 py-0.5 text-xs">
+        <Badge
+          v-if="resource.deleted_at"
+          variant="destructive"
+          class="flex-shrink-0 px-2 py-0.5 text-xs"
+        >
           {{ _('Soft-Deleted') }}
         </Badge>
       </div>

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 // Copilot - pending review
-import { router } from '@inertiajs/vue3';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import OverviewSection from './Dashboard/overview/OverviewSection.vue';
-import FamiliesSection from './Dashboard/families/FamiliesSection.vue';
-import MembersSection from './Dashboard/members/MembersSection.vue';
+import { router } from '@inertiajs/vue3';
 import AdminsSection from './Dashboard/admins/AdminsSection.vue';
-import GallerySection from './Dashboard/gallery/GallerySection.vue';
 import EventsSection from './Dashboard/events/EventsSection.vue';
-import UnitsSection from './Dashboard/units/UnitsSection.vue';
+import FamiliesSection from './Dashboard/families/FamiliesSection.vue';
+import GallerySection from './Dashboard/gallery/GallerySection.vue';
+import MembersSection from './Dashboard/members/MembersSection.vue';
+import OverviewSection from './Dashboard/overview/OverviewSection.vue';
 import SkeletonCard from './Dashboard/shared/SkeletonCard.vue';
+import UnitsSection from './Dashboard/units/UnitsSection.vue';
 
 const props = defineProps<{
   project: Project;

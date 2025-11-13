@@ -4,7 +4,7 @@ import { CreatedMeta } from '.';
 </script>
 
 <template>
-  <footer :class="cn('block text-xs text-text-subtle text-right', $attrs.class, 'mt-auto')">
+  <footer :class="cn('block text-right text-xs text-text-subtle', $attrs.class, 'mt-auto')">
     <slot>
       <CreatedMeta />
     </slot>

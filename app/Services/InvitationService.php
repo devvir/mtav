@@ -60,10 +60,10 @@ class InvitationService
         $avatar = isset($data['avatar']) ? $this->storeAvatar($data['avatar']) : null;
 
         $user->update([
-            'password' => $password,
-            'avatar' => $avatar,
+            'password'               => $password,
+            'avatar'                 => $avatar,
             'invitation_accepted_at' => now(),
-            'email_verified_at' => now(),
+            'email_verified_at'      => now(),
             ...Arr::only($data, ['firstname', 'lastname', 'phone', 'legal_id']),
         ]);
 

@@ -22,7 +22,12 @@ defineProps<{
     <Breadcrumb route="projects.index" text="Projects" />
   </Breadcrumbs>
 
-  <InfinitePaginator :list="projects" loadable="projects" :filter="q" :featured="currentProject?.id">
+  <InfinitePaginator
+    :list="projects"
+    loadable="projects"
+    :filter="q"
+    :featured="currentProject?.id"
+  >
     <template v-slot:search-right>
       <ActiveInactiveSwitch route="projects.index" :all />
     </template>

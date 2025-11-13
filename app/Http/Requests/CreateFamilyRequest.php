@@ -15,7 +15,7 @@ class CreateFamilyRequest extends ProjectScopedRequest
     public function rules(): array
     {
         return [
-            'project_id' => 'required|exists:projects,id',
+            'project_id'   => 'required|exists:projects,id',
             'unit_type_id' => ['required', new BelongsToProject(
                 UnitType::class,
                 $this->project_id,

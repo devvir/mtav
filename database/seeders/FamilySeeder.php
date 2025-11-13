@@ -15,13 +15,13 @@ class FamilySeeder extends Seeder
     public function run(): void
     {
         $unitTypeNames = [
-            'Studio' => 'Small single-room unit',
+            'Studio'    => 'Small single-room unit',
             '1 Bedroom' => 'One bedroom apartment',
             '2 Bedroom' => 'Two bedroom apartment',
             '3 Bedroom' => 'Three bedroom apartment',
             'Penthouse' => 'Luxury top-floor unit',
-            'Duplex' => 'Two-story unit',
-            'Loft' => 'Open-plan industrial-style unit',
+            'Duplex'    => 'Two-story unit',
+            'Loft'      => 'Open-plan industrial-style unit',
         ];
 
         Project::pluck('id')->each(function (int $projectId) use ($unitTypeNames) {
@@ -37,7 +37,7 @@ class FamilySeeder extends Seeder
                     UnitType::firstOrCreate(
                         [
                             'project_id' => $projectId,
-                            'name' => $name,
+                            'name'       => $name,
                         ],
                         [
                             'description' => $description,
@@ -54,7 +54,7 @@ class FamilySeeder extends Seeder
             while ($familiesCreated < $targetCount) {
                 try {
                     Family::factory()->withMembers()->create([
-                        'project_id' => $projectId,
+                        'project_id'   => $projectId,
                         'unit_type_id' => $unitTypes->random()->id,
                     ]);
                     $familiesCreated++;

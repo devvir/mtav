@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Avatar } from '@/components/avatar';
-import { _ } from '@/composables/useTranslations';
 import Ellipsis from '@/components/Ellipsis.vue';
+import { Avatar } from '@/components/avatar';
 import { Card, CardContent, CardFooter, CardHeader, Counter } from '@/components/card';
 
 defineProps<{
@@ -18,7 +17,7 @@ defineProps<{
 
       <ul v-if="family.members_count" class="flex flex-wrap gap-2 truncate">
         <li v-for="member in family.members.slice(0, 7)" :key="member.id">
-            <Avatar :subject="member" size="sm" />
+          <Avatar :subject="member" size="sm" />
         </li>
 
         <Ellipsis v-if="family.members_count > 7" />

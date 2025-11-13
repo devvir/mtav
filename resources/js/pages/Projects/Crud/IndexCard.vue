@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'vue';
-import { ModalLink, useModal } from '@inertiaui/modal-vue';
 import { Avatar } from '@/components/avatar';
-import Card from '@/components/shared/Card.vue';
 import EditButton from '@/components/EditButton.vue';
 import Ellipsis from '@/components/Ellipsis.vue';
-import SelectDeselect from './SelectDeselect.vue';
+import Card from '@/components/shared/Card.vue';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
+import { cn } from '@/lib/utils';
+import { ModalLink, useModal } from '@inertiaui/modal-vue';
+import type { HTMLAttributes } from 'vue';
+import SelectDeselect from './SelectDeselect.vue';
 
 const props = defineProps<{
   project: ApiResource<Required<Project>>;
@@ -16,11 +16,8 @@ const props = defineProps<{
 }>();
 
 const projectLink = computed(() =>
-  props.project.allows.view
-    ? route('projects.show', props.project.id)
-    : route('dashboard')
+  props.project.allows.view ? route('projects.show', props.project.id) : route('dashboard'),
 );
-
 </script>
 
 <template>
@@ -44,7 +41,7 @@ const projectLink = computed(() =>
             <p class="truncate text-xl font-semibold text-text" :title="project.name">
               {{ project.name }}
             </p>
-            <p class="text-xs font-medium uppercase tracking-wide text-text-subtle">
+            <p class="text-xs font-medium tracking-wide text-text-subtle uppercase">
               {{ project.active ? _('Active') : _('Inactive') }}
             </p>
 
@@ -62,7 +59,7 @@ const projectLink = computed(() =>
     </template>
 
     <section class="my-4 border-b border-border-subtle pb-4">
-      <div class="mb-3 text-xs font-medium uppercase tracking-wide text-text-subtle">
+      <div class="mb-3 text-xs font-medium tracking-wide text-text-subtle uppercase">
         {{ _('Families') }} ({{ project.families_count }})
       </div>
 
@@ -80,7 +77,7 @@ const projectLink = computed(() =>
     </section>
 
     <section class="my-4 border-b border-border-subtle pb-4">
-      <div class="mb-3 text-xs font-medium uppercase tracking-wide text-text-subtle">
+      <div class="mb-3 text-xs font-medium tracking-wide text-text-subtle uppercase">
         {{ _('Members') }} ({{ project.members_count }})
       </div>
 
@@ -98,7 +95,7 @@ const projectLink = computed(() =>
     </section>
 
     <section class="my-4 border-b border-border-subtle pb-4">
-      <div class="mb-3 text-xs font-medium uppercase tracking-wide text-text-subtle">
+      <div class="mb-3 text-xs font-medium tracking-wide text-text-subtle uppercase">
         {{ _('Admins') }} ({{ project.admins_count }})
       </div>
 

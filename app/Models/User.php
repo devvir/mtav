@@ -38,9 +38,9 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'is_admin' => 'boolean',
-        'password' => 'hashed',
-        'email_verified_at' => 'datetime',
+        'is_admin'               => 'boolean',
+        'password'               => 'hashed',
+        'email_verified_at'      => 'datetime',
         'invitation_accepted_at' => 'datetime',
     ];
 

@@ -24,7 +24,7 @@ class AdminController extends Controller
 
         return inertia('Admins/Index', [
             'admins' => Inertia::deepMerge(fn () => $admins->paginate(30)),
-            'q' => $request->q ?? '',
+            'q'      => $request->q ?? '',
         ]);
     }
 

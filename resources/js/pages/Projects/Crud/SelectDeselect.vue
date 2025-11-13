@@ -3,7 +3,7 @@ import { resetCurrentProject, setCurrentProject } from '@/composables/useProject
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  project: Project;
+  project: ApiResource<Project>;
   selected: boolean;
 }>();
 </script>

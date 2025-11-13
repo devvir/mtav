@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <h4 :class="cn('text-xs text-text-subtle', $props.class, 'truncate min-w-0')">
+  <h4 :class="cn('text-xs text-text-subtle', $props.class, 'min-w-0 truncate')">
     <slot />
   </h4>
 </template>

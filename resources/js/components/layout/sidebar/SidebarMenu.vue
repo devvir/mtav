@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
 import { useSidebar } from './utils';
 
 defineProps<{
-  class?: HTMLAttributes['class']
+  class?: HTMLAttributes['class'];
 }>();
 
 const { open: isSidebarOpen } = useSidebar();
@@ -16,7 +16,7 @@ const { open: isSidebarOpen } = useSidebar();
     data-sidebar="menu"
     :class="[
       cn('flex w-full min-w-0 flex-col gap-1', $props.class),
-      { 'items-center': ! isSidebarOpen }
+      { 'items-center': !isSidebarOpen },
     ]"
   >
     <slot />

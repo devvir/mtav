@@ -91,14 +91,14 @@ trait Http
         $this->followRedirects = $redirects;
 
         $user = match (true) {
-            isset($asUser) => tap(model($asUser, User::class), fn ($u) => $this->actingAs($u)),
-            isset($asAdmin) => tap(model($asAdmin, User::class), fn ($u) => $this->actingAs($u)),
+            isset($asUser)   => tap(model($asUser, User::class), fn ($u) => $this->actingAs($u)),
+            isset($asAdmin)  => tap(model($asAdmin, User::class), fn ($u) => $this->actingAs($u)),
             isset($asMember) => tap(model($asMember, User::class), fn ($u) => $this->actingAs($u)),
-            default => null, // Acting as Guest
+            default          => null, // Acting as Guest
         };
 
         if ($asAdmin && $user->isNotAdmin() || $asMember && $user->isNotMember()) {
-             $this->fail('Invalid User type at requestRoute()');
+            $this->fail('Invalid User type at requestRoute()');
         }
     }
 
@@ -115,4 +115,3 @@ trait Http
         return route($name, $params);
     }
 }
-

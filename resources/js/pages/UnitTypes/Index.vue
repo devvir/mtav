@@ -4,11 +4,11 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
-import { ModalLink } from '@inertiaui/modal-vue';
 import { _ } from '@/composables/useTranslations';
+import { ModalLink } from '@inertiaui/modal-vue';
 
 defineProps<{
-  unit_types: UnitType[];
+  unit_types: ApiResource<UnitType>[];
 }>();
 </script>
 
@@ -30,10 +30,10 @@ defineProps<{
           v-for="unitType in unit_types"
           :key="unitType.id"
           :href="route('unit_types.show', unitType.id)"
-          class="block rounded-lg border border-border bg-surface-elevated p-4 transition-all hover:border-border-interactive hover:shadow-md focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+          class="block rounded-lg border border-border bg-surface-elevated p-4 transition-all hover:border-border-interactive hover:shadow-md focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-none"
         >
           <div class="flex flex-col gap-2">
-            <div class="font-semibold text-lg text-text">{{ unitType.name }}</div>
+            <div class="text-lg font-semibold text-text">{{ unitType.name }}</div>
             <div v-if="unitType.description" class="text-sm text-text-muted">
               {{ unitType.description }}
             </div>

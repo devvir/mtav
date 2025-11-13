@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/layout/sidebar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/layout/sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ChevronsUpDown } from 'lucide-vue-next';
 import UserMenuContent from './UserMenuContent.vue';
 
@@ -11,21 +20,27 @@ const { isMobile, state } = useSidebar();
 </script>
 
 <template>
-    <SidebarMenu>
-        <SidebarMenuItem>
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <SidebarMenuButton size="lg" class="data-[state=open]:bg-accent not-data-[state=open]:text-text">
-                        <UserInfo :user="user" />
-                        <ChevronsUpDown class="ml-0 size-4" />
-                    </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                    :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'" align="end"
-                    :side-offset="4">
-                    <UserMenuContent :user="user" />
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </SidebarMenuItem>
-    </SidebarMenu>
+  <SidebarMenu>
+    <SidebarMenuItem>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <SidebarMenuButton
+            size="lg"
+            class="not-data-[state=open]:text-text data-[state=open]:bg-accent"
+          >
+            <UserInfo :user="user" />
+            <ChevronsUpDown class="ml-0 size-4" />
+          </SidebarMenuButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+          :side="isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'"
+          align="end"
+          :side-offset="4"
+        >
+          <UserMenuContent :user="user" />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarMenuItem>
+  </SidebarMenu>
 </template>

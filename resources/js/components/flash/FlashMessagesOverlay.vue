@@ -11,7 +11,7 @@ const { hasVisibleMessages } = useFlashMessages();
     class="absolute inset-0 -right-px z-10 flex items-center transition-opacity duration-300"
   >
     <div class="w-full bg-background/60 backdrop-blur-sm">
-      <div class="px-8 py-4 @md:px-wide flex justify-center">
+      <div class="flex justify-center px-8 py-4 @md:px-wide">
         <FlashMessages />
       </div>
     </div>

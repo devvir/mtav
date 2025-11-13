@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import FlashMessagesOverlay from '@/components/flash/FlashMessagesOverlay.vue';
 import BreadcrumbsContainer from '@/components/layout/header/BreadcrumbsContainer.vue';
 import { SidebarTrigger } from '@/components/layout/sidebar';
 import QuickActions from '@/components/QuickActions.vue';
-import FlashMessagesOverlay from '@/components/flash/FlashMessagesOverlay.vue';
 </script>
 
 <template>

@@ -21,7 +21,7 @@ const sidebarNavItems: SettingsNavItem[] = [
     title: _('Appearance'),
     href: route('appearance'),
   },
-].map(navItem => ({ ...navItem, active: location.href === navItem.href }));
+].map((navItem) => ({ ...navItem, active: location.href === navItem.href }));
 </script>
 
 <template>
@@ -29,20 +29,22 @@ const sidebarNavItems: SettingsNavItem[] = [
     <!-- Constrained container for all settings content -->
     <div class="mx-auto max-w-4xl">
       <!-- Navigation Tabs -->
-      <nav class="flex flex-row space-x-1 xs:space-x-2 overflow-x-auto pb-4 border-b border-border mb-8 p-1">
+      <nav
+        class="mb-8 flex flex-row space-x-1 overflow-x-auto border-b border-border p-1 pb-4 xs:space-x-2"
+      >
         <Button
           v-for="item in sidebarNavItems"
           :key="item.href"
           variant="ghost"
           size="sm"
           :class="[
-            'whitespace-nowrap text-xs xs:text-sm',
+            'text-xs whitespace-nowrap xs:text-sm',
             item.active
-              ? 'bg-surface-interactive text-text font-medium cursor-default'
-              : 'text-text-muted hover:text-text hover:bg-surface-interactive/50'
+              ? 'cursor-default bg-surface-interactive font-medium text-text'
+              : 'text-text-muted hover:bg-surface-interactive/50 hover:text-text',
           ]"
           :as-child="item.active"
-          >
+        >
           <span v-if="item.active">
             {{ item.title }}
           </span>

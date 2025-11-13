@@ -19,7 +19,7 @@ const routeShow = `${entityNS(props.entity)}.show`;
 const indexName = entityPlural(props.entity);
 
 const ShowCard = defineAsyncComponent(
-    () => import(`@/components/entities/${props.entity}/ShowCard.vue`)
+  () => import(`@/components/entities/${props.entity}/ShowCard.vue`),
 );
 </script>
 
@@ -32,9 +32,6 @@ const ShowCard = defineAsyncComponent(
   </Breadcrumbs>
 
   <MaybeModal max-width="xl">
-    <component
-      :is="ShowCard"
-      v-bind="{ [entity]: resource }"
-      class="mx-auto p-base max-w-xl" />
+    <component :is="ShowCard" v-bind="{ [entity]: resource }" class="mx-auto max-w-xl p-base" />
   </MaybeModal>
 </template>

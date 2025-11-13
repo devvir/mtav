@@ -20,9 +20,13 @@ defineProps<{
 </script>
 
 <template>
-  <FormElement v-if="type !== 'hidden'" v-slot="{ id }" v-bind="{ model, type, ...$props, ...$attrs }">
+  <FormElement
+    v-if="type !== 'hidden'"
+    v-slot="{ id }"
+    v-bind="{ model, type, ...$props, ...$attrs }"
+  >
     <input
-      class="w-full p-3 text-text bg-transparent caret-interactive outline-0 focus:outline-0"
+      class="w-full bg-transparent p-3 text-text caret-interactive outline-0 focus:outline-0"
       v-model="model"
       :id="id"
       :name

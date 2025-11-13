@@ -1,19 +1,30 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardContent, CardFooter, ContentHighlight, ContentLine, CreatedMeta, FooterButton } from '@/components/card';
 import { BinaryBadge } from '@/components/badge';
-import { Users, Home } from 'lucide-vue-next';
-import { _ } from '@/composables/useTranslations';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  ContentHighlight,
+  ContentLine,
+  CreatedMeta,
+  FooterButton,
+} from '@/components/card';
 import { currentProject } from '@/composables/useProjects';
 import { entityLabel } from '@/composables/useResources';
+import { _ } from '@/composables/useTranslations';
+import { Home, Users } from 'lucide-vue-next';
 
 const props = defineProps<{
   project: ApiResource<Project>;
 }>();
 
 const isCurrentProject = computed(() => currentProject.value?.id === props.project.id);
-const actionRoute = computed(() => isCurrentProject.value
+const actionRoute = computed(() =>
+  isCurrentProject.value
     ? route('resetCurrentProject')
-    : route('setCurrentProject', props.project.id));
+    : route('setCurrentProject', props.project.id),
+);
 </script>
 
 <template>
@@ -36,8 +47,8 @@ const actionRoute = computed(() => isCurrentProject.value
 
       <!-- Statistics -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="text-center bg-surface-elevated border border-border rounded-lg p-2">
-          <div class="flex items-center justify-center gap-2 mb-1">
+        <div class="rounded-lg border border-border bg-surface-elevated p-2 text-center">
+          <div class="mb-1 flex items-center justify-center gap-2">
             <Users class="size-5 text-text-muted" />
             <div class="text-lg font-semibold text-text">
               {{ project.families_count }}
@@ -45,11 +56,11 @@ const actionRoute = computed(() => isCurrentProject.value
           </div>
           <div class="text-xs text-text-muted">
             {{ entityLabel('family', project.families_count) }}
-         </div>
+          </div>
         </div>
 
-        <div class="text-center bg-surface-elevated border border-border rounded-lg p-2">
-          <div class="flex items-center justify-center gap-2 mb-1">
+        <div class="rounded-lg border border-border bg-surface-elevated p-2 text-center">
+          <div class="mb-1 flex items-center justify-center gap-2">
             <Home class="size-5 text-text-muted" />
             <div class="text-lg font-semibold text-text">
               {{ project.units_count }}

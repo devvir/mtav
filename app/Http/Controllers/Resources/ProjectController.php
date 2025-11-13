@@ -23,8 +23,8 @@ class ProjectController extends Controller
         $projects = Project::alphabetically()
             ->withCount('admins', 'members', 'families')
             ->with([
-                'admins' => fn ($q) => $q->limit(5),
-                'members' => fn ($q) => $q->limit(5),
+                'admins'   => fn ($q) => $q->limit(5),
+                'members'  => fn ($q) => $q->limit(5),
                 'families' => fn ($q) => $q->limit(5),
             ])
             ->when($request->q, fn ($q, $search) => $q->whereLike('name', "%$search%"))
@@ -32,8 +32,8 @@ class ProjectController extends Controller
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
-            'all' => $request->boolean('showAll') ?? false,
-            'q' => $request->q ?? '',
+            'all'      => $request->boolean('showAll') ?? false,
+            'q'        => $request->q ?? '',
         ]);
     }
 
@@ -44,8 +44,8 @@ class ProjectController extends Controller
     {
         $project
             ->load([
-                'admins' => fn ($q) => $q->limit(7),
-                'members' => fn ($q) => $q->limit(10),
+                'admins'   => fn ($q) => $q->limit(7),
+                'members'  => fn ($q) => $q->limit(10),
                 'families' => fn ($q) => $q->limit(10),
             ])
             ->loadCount('admins', 'members', 'families');
@@ -75,7 +75,7 @@ class ProjectController extends Controller
     {
         return inertia('Projects/Edit', [
             'project' => $project->load('admins'),
-            'admins' => User::whereIsAdmin(true)->alphabetically()->get(),
+            'admins'  => User::whereIsAdmin(true)->alphabetically()->get(),
         ]);
     }
 

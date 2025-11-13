@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Copilot - pending review
+import { _ } from '@/composables/useTranslations';
 import { Building2 } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import UnitTypeCard from './UnitTypeCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   unitTypes: UnitType[];

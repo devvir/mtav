@@ -22,7 +22,9 @@ import { _ } from '@/composables/useTranslations';
       :tabindex="idx"
       class="group w-full cursor-pointer overflow-hidden rounded-xl transition-all duration-300 not-hocus:opacity-90 not-active:hocus:scale-101"
     >
-      <figure class="@container relative flex min-h-[11cqi] flex-col justify-center overflow-hidden">
+      <figure
+        class="@container relative flex min-h-[11cqi] flex-col justify-center overflow-hidden"
+      >
         <img
           :src="`https://picsum.photos/${Math.floor(Math.random() * 400) + 300}/${Math.floor(Math.random() * 400) + 300}?${idx}`"
           fetchpriority="high"
@@ -36,7 +38,11 @@ import { _ } from '@/composables/useTranslations';
           <div
             class="transition-transform not-group-hocus:translate-y-[calc(100%-1.5em)] not-group-hocus:truncate group-hocus:line-clamp-3"
           >
-            {{ 'Some description for this image goes here. '.repeat(Math.floor(Math.random() * 4) + 1) }}
+            {{
+              'Some description for this image goes here. '.repeat(
+                Math.floor(Math.random() * 4) + 1,
+              )
+            }}
           </div>
           <div class="origin-bottom-left scale-85 leading-6 opacity-70">
             {{ _('Posted by') }} <span class="text-foreground/80">&lt;some user&gt;</span>

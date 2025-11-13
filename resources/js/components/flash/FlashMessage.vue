@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Alert, AlertDescription } from '@/components/alert';
-import { AlertCircle, CheckCircle2, Info, AlertTriangle, X } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-vue-next';
 import type { MessageType } from './useFlashMessages';
 
 defineProps<{
@@ -23,10 +23,7 @@ const icons: Record<MessageType, any> = {
 </script>
 
 <template>
-  <Alert
-    :variant="type"
-    class="flex items-center gap-3 transition-all duration-300"
-  >
+  <Alert :variant="type" class="flex items-center gap-3 transition-all duration-300">
     <div>
       <component :is="icons[type]" class="size-6" />
     </div>
@@ -35,12 +32,7 @@ const icons: Record<MessageType, any> = {
       {{ message }}
     </AlertDescription>
 
-    <Button
-      variant="ghost"
-      size="icon"
-      class="h-6 w-6 shrink-0"
-      @click="emit('dismiss')"
-    >
+    <Button variant="ghost" size="icon" class="h-6 w-6 shrink-0" @click="emit('dismiss')">
       <X class="h-4 w-4" />
     </Button>
   </Alert>

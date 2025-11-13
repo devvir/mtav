@@ -11,7 +11,10 @@ const props = withDefaults(
 
 const search = ref(props.q);
 
-watchDebounced(search, (q: string) => router.reload({ data: { q } }), { debounce: 300, maxWait: 1000 });
+watchDebounced(search, (q: string) => router.reload({ data: { q } }), {
+  debounce: 300,
+  maxWait: 1000,
+});
 </script>
 
 <template>

@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'vue';
 import * as icons from 'lucide-vue-next';
+import type { HTMLAttributes } from 'vue';
 
-const props = withDefaults(defineProps<{
-  name: string;
-  size?: number | string;
-  color?: string;
-  strokeWidth?: number | string;
-  class?: HTMLAttributes['class'];
-}>(), {
-  size: 16,
-  strokeWidth: 2,
-});
+const props = withDefaults(
+  defineProps<{
+    name: string;
+    size?: number | string;
+    color?: string;
+    strokeWidth?: number | string;
+    class?: HTMLAttributes['class'];
+  }>(),
+  {
+    size: 16,
+    strokeWidth: 2,
+  },
+);
 
 const icon = computed(() => {
   const iconName = props.name.charAt(0).toUpperCase() + props.name.slice(1);

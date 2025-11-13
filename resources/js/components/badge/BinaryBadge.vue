@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Badge, type BadgeVariant, type BadgeSize } from '@/components/badge';
+import { Badge, type BadgeSize, type BadgeVariant } from '@/components/badge';
 
 /**
  * Binary Badge
@@ -25,17 +25,15 @@ const props = defineProps<{
   size?: BadgeSize;
 }>();
 
-const useVariant = computed(() => props.variant
-  ? [props.variant, props.variant]
-  : [props.variants?.[0] ?? 'info', props.variants?.[1] ?? 'warning']);
+const useVariant = computed(() =>
+  props.variant
+    ? [props.variant, props.variant]
+    : [props.variants?.[0] ?? 'info', props.variants?.[1] ?? 'warning'],
+);
 </script>
 
 <template>
-  <Badge
-    v-if="when || props.else"
-    :size
-    :variant="when ? useVariant[0] : useVariant[1]"
-  >
+  <Badge v-if="when || props.else" :size :variant="when ? useVariant[0] : useVariant[1]">
     {{ when ? then : props.else }}
   </Badge>
 </template>

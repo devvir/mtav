@@ -19,7 +19,10 @@ const disabled = ref(false);
       {{ disabled ? '{Enable Dropdown}' : '{Disable Dropdown}' }}
     </button>
 
-    <DropdownTrigger class="mb-10 rounded-2xl bg-blue-950 px-4 py-3 text-white" :class="{ 'bg-blue-950/70': disabled }">
+    <DropdownTrigger
+      class="mb-10 rounded-2xl bg-blue-950 px-4 py-3 text-white"
+      :class="{ 'bg-blue-950/70': disabled }"
+    >
       {Secondary Trigger}
     </DropdownTrigger>
     <DropdownTrigger
@@ -30,7 +33,9 @@ const disabled = ref(false);
         <h2 class="mb-4 leading-relaxed">
           <div class="text-xl font-extrabold">{Sample Dropdown Trigger}</div>
           <div class="text-sm opacity-50">{(see console for event-tracking)}</div>
-          <div class="mt-2 opacity-80">{Try: click, enter, space, escape and click-outside the Dropdown}</div>
+          <div class="mt-2 opacity-80">
+            {Try: click, enter, space, escape and click-outside the Dropdown}
+          </div>
         </h2>
 
         <div>
@@ -44,8 +49,12 @@ const disabled = ref(false);
         <div class="space-y-2">
           <h3 class="mb-2 text-lg font-bold">{Exposed Dropdown Actions}</h3>
           <div class="flex justify-center gap-2">
-            <button class="test-btn" :class="{ 'opacity-50': isOpen }" @click.stop="open()">{Open}</button>
-            <button class="test-btn" :class="{ 'opacity-50': !isOpen }" @click.stop="close()">{Close}</button>
+            <button class="test-btn" :class="{ 'opacity-50': isOpen }" @click.stop="open()">
+              {Open}
+            </button>
+            <button class="test-btn" :class="{ 'opacity-50': !isOpen }" @click.stop="close()">
+              {Close}
+            </button>
             <button class="test-btn" @click.stop="toggle()">{Toggle}</button>
           </div>
         </div>
@@ -66,10 +75,16 @@ const disabled = ref(false);
 </template>
 
 <style scoped>
-@reference 'tailwindcss';
-
 button.test-btn {
-  @apply ml-2 cursor-pointer rounded-md border-2 bg-white/10 px-3 py-0.5 shadow-black;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  border-width: 2px;
+  border-style: solid;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding-inline: 0.75rem;
+  padding-block: 0.125rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 </style>
 

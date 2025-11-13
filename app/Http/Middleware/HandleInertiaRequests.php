@@ -78,16 +78,16 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             'state' => [
-                'route' => $request->route()?->getName(),
-                'project' => Project::current(),
+                'route'        => $request->route()?->getName(),
+                'project'      => Project::current(),
                 'groupMembers' => state('groupMembers'),
             ],
 
             'flash' => [
                 'success' => $request->session()->get('success'),
-                'info' => $request->session()->get('info'),
+                'info'    => $request->session()->get('info'),
                 'warning' => $request->session()->get('warning'),
-                'error' => $request->session()->get('error'),
+                'error'   => $request->session()->get('error'),
             ],
 
             'sidebarOpen' => $request->cookie('sidebar_state', 'true') === 'true',
@@ -99,17 +99,17 @@ class HandleInertiaRequests extends Middleware
         return [
             'create' => [
                 'projects' => Gate::allows('create', Project::class),
-                'units' => Gate::allows('create', Unit::class),
-                'admins' => Gate::allows('create', Admin::class),
+                'units'    => Gate::allows('create', Unit::class),
+                'admins'   => Gate::allows('create', Admin::class),
                 'families' => Gate::allows('create', Family::class),
-                'members' => Gate::allows('create', Member::class),
+                'members'  => Gate::allows('create', Member::class),
             ],
             'viewAny' => [
                 'projects' => Gate::allows('viewAny', Project::class),
-                'units' => Gate::allows('viewAny', Unit::class),
-                'admins' => Gate::allows('viewAny', Admin::class),
+                'units'    => Gate::allows('viewAny', Unit::class),
+                'admins'   => Gate::allows('viewAny', Admin::class),
                 'families' => Gate::allows('viewAny', Family::class),
-                'members' => Gate::allows('viewAny', Member::class),
+                'members'  => Gate::allows('viewAny', Member::class),
             ],
         ];
     }

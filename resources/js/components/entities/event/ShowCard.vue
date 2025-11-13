@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/card';
 import { Badge, BinaryBadge } from '@/components/badge';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
@@ -15,9 +15,15 @@ defineProps<{
     <CardContent>
       <!-- Event Details -->
       <div class="space-y-2 text-sm">
-        <div><strong>{{ _('Start Date') }}:</strong> {{ event.start_date }}</div>
-        <div v-if="event.end_date"><strong>{{ _('Ends') }}:</strong> {{ event.end_date }}</div>
-        <div v-if="event.location"><strong>{{ _('Location') }}:</strong> {{ event.location }}</div>
+        <div>
+          <strong>{{ _('Start Date') }}:</strong> {{ event.start_date }}
+        </div>
+        <div v-if="event.end_date">
+          <strong>{{ _('Ends') }}:</strong> {{ event.end_date }}
+        </div>
+        <div v-if="event.location">
+          <strong>{{ _('Location') }}:</strong> {{ event.location }}
+        </div>
       </div>
 
       <!-- Status & Type -->
@@ -28,9 +34,9 @@ defineProps<{
       </div>
 
       <!-- Description -->
-      <div class="bg-surface-elevated border border-border rounded-lg p-3">
-        <h4 class="text-sm font-medium text-text mb-2">{{ _('Description') }}</h4>
-        <p class="text-sm text-text-muted line-clamp-3">{{ event.description }}</p>
+      <div class="rounded-lg border border-border bg-surface-elevated p-3">
+        <h4 class="mb-2 text-sm font-medium text-text">{{ _('Description') }}</h4>
+        <p class="line-clamp-3 text-sm text-text-muted">{{ event.description }}</p>
       </div>
     </CardContent>
 

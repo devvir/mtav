@@ -30,8 +30,10 @@ defineEmits<{
 const confirmText = ref('');
 
 const disabled = computed(() => {
-  return new Intl.Collator('en', { sensitivity: "base" })
-    .compare(confirmText.value, props.expectedText);
+  return new Intl.Collator('en', { sensitivity: 'base' }).compare(
+    confirmText.value,
+    props.expectedText,
+  );
 });
 </script>
 
@@ -68,11 +70,7 @@ const disabled = computed(() => {
             </Button>
           </DialogClose>
 
-          <Button
-            :variant="variant || 'default'"
-            :disabled="disabled"
-            @click="$emit('confirm')"
-          >
+          <Button :variant="variant || 'default'" :disabled="disabled" @click="$emit('confirm')">
             {{ confirmButtonText }}
           </Button>
         </DialogFooter>

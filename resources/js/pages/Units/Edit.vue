@@ -19,9 +19,16 @@ defineProps<{
 
   <Breadcrumbs>
     <Breadcrumb route="units.index" text="Units" />
-    <Breadcrumb route="units.show" :params="unit.id">{{ _('Unit') }} {{ unit.identifier }}</Breadcrumb>
+    <Breadcrumb route="units.show" :params="unit.id"
+      >{{ _('Unit') }} {{ unit.identifier }}</Breadcrumb
+    >
     <Breadcrumb route="units.edit" :params="unit.id" text="Edit" />
   </Breadcrumbs>
 
-  <CreateUpdate type="edit" action="units.update" :title="`${_('Edit Unit')}: ${unit.identifier}`" v-bind="$props" />
+  <CreateUpdate
+    type="edit"
+    action="units.update"
+    :title="`${_('Edit Unit')}: ${unit.identifier}`"
+    v-bind="$props"
+  />
 </template>

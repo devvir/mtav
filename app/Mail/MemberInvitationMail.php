@@ -55,9 +55,9 @@ class MemberInvitationMail extends Mailable
         return new Content(
             view: $view,
             with: [
-                'member' => $this->member,
-                'family' => $this->member->family,
-                'project' => $this->member->family->project,
+                'member'          => $this->member,
+                'family'          => $this->member->family,
+                'project'         => $this->member->family->project,
                 'confirmationUrl' => $confirmationUrl,
             ],
         );

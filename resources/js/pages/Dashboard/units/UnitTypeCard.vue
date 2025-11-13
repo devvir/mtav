@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import UnitCard from './UnitCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   unitType: UnitType;
@@ -9,11 +9,11 @@ defineProps<{
 </script>
 
 <template>
-  <div class="rounded-lg border border-border bg-surface-elevated shadow-sm overflow-hidden">
+  <div class="overflow-hidden rounded-lg border border-border bg-surface-elevated shadow-sm">
     <!-- Unit Type Header -->
     <ModalLink
       :href="route('unit_types.show', unitType.id)"
-      class="block border-b border-border-subtle bg-surface-sunken p-4 transition-all hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+      class="block border-b border-border-subtle bg-surface-sunken p-4 transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
     >
       <div class="flex items-center justify-between">
         <div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import PersonCard from '../shared/PersonCard.vue';
 import { entityLabel } from '@/composables/useResources';
+import PersonCard from '../shared/PersonCard.vue';
 
 defineProps<{
   family: Family;

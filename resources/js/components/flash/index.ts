@@ -57,4 +57,4 @@
 export { default as FlashMessages } from './FlashMessages.vue';
 export { default as FlashMessagesOverlay } from './FlashMessagesOverlay.vue';
 export { useFlashMessages } from './useFlashMessages';
-export type { MessageType, FlashMessage } from './useFlashMessages';
+export type { FlashMessage, MessageType } from './useFlashMessages';

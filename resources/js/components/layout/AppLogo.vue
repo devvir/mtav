@@ -17,7 +17,10 @@ const responsiveClasses = computed(() => {
 
 <template>
   <div class="flex items-center gap-4">
-    <AppLogoIcon :class="responsiveClasses" class="overflow-clip border border-current fill-current transition-all" />
+    <AppLogoIcon
+      :class="responsiveClasses"
+      class="overflow-clip border border-current fill-current transition-all"
+    />
 
     <span v-if="isMobile || isSidebarOpen" class="flex-1 overflow-hidden">
       <div class="truncate text-xl font-bold tracking-wider text-text">{{ $page.props.name }}</div>

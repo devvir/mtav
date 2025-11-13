@@ -22,7 +22,11 @@ const quickActions: QuickAction[] = [
   },
   { if: can.create('admins'), route: 'admins.create', text: 'New Admin' },
   { if: projectIsSelected, route: 'media.create', text: 'Upload Multimedia' }, // TODO : can.create('media') when the Media model is added
-  { if: computed(() => projectIsSelected.value && iAmAdmin.value), route: 'events.create', text: 'New Event' }, // TODO : idem, when the Event model is added
+  {
+    if: computed(() => projectIsSelected.value && iAmAdmin.value),
+    route: 'events.create',
+    text: 'New Event',
+  }, // TODO : idem, when the Event model is added
 ];
 
 const availableActions = computed(() =>
@@ -44,7 +48,7 @@ onClickOutside(trigger, () => (open.value = false), {
     <button
       ref="trigger"
       tabindex="0"
-      class="group -mr-2 flex min-h-[44px] @md:min-h-[36px] cursor-pointer items-center gap-3 rounded-xs px-2 text-text-subtle outline-offset-8"
+      class="group -mr-2 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xs px-2 text-text-subtle outline-offset-8 @md:min-h-[36px]"
       @click="open = !open"
       @keyup.enter="open = !open"
       @keyup.escape="open = false"
@@ -64,7 +68,11 @@ onClickOutside(trigger, () => (open.value = false), {
             : 'bg-foreground/90 group-hocus:scale-105 group-hocus:bg-foreground'
         "
       >
-        <svg class="size-7 stroke-current" viewBox="0 0 24 24" :aria-label="_('Open Quick Actions Menu')">
+        <svg
+          class="size-7 stroke-current"
+          viewBox="0 0 24 24"
+          :aria-label="_('Open Quick Actions Menu')"
+        >
           <path d="M6 12H18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M12 6L12 18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
@@ -80,9 +88,15 @@ onClickOutside(trigger, () => (open.value = false), {
         v-for="action in availableActions"
         :key="action.route"
         class="leading-10 text-nowrap"
-        :class="action.disabled ? 'disabled-action bg-accent-foreground/70' : 'hocus:bg-accent-foreground/35'"
+        :class="
+          action.disabled
+            ? 'disabled-action bg-accent-foreground/70'
+            : 'hocus:bg-accent-foreground/35'
+        "
       >
-        <div v-if="action.disabled" class="pointer-events-none size-full px-4">{{ _(action.text) }}</div>
+        <div v-if="action.disabled" class="pointer-events-none size-full px-4">
+          {{ _(action.text) }}
+        </div>
 
         <ModalLink v-else class="block size-full px-4" :href="route(action.route)" slideover>
           {{ _(action.text) }}

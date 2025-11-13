@@ -43,7 +43,12 @@ watch(
           class="invisible absolute size-full"
           tabindex="-1"
         >
-          <option v-for="(label, value) in options" :key="value" :value :selected="typeof model[value] !== 'undefined'">
+          <option
+            v-for="(label, value) in options"
+            :key="value"
+            :value
+            :selected="typeof model[value] !== 'undefined'"
+          >
             {{ label }}
           </option>
         </select>

@@ -12,7 +12,7 @@ test('users can authenticate using the login screen', function () {
     $user = User::find(11); // Admin #11 from universe
 
     $response = $this->post('/login', [
-        'email' => $user->email,
+        'email'    => $user->email,
         'password' => 'password',
     ]);
 
@@ -24,7 +24,7 @@ test('users can not authenticate with invalid password', function () {
     $user = User::find(11); // Admin #11 from universe
 
     $this->post('/login', [
-        'email' => $user->email,
+        'email'    => $user->email,
         'password' => 'wrong-password',
     ]);
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from '@/components/badge';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{

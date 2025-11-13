@@ -8,8 +8,8 @@ import CreateUpdate from './Crud/CreateUpdate.vue';
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  projects: Project[];
-  families: Family[];
+  projects: ApiResource<Project>[];
+  families: ApiResource<Family>[];
 }>();
 </script>
 

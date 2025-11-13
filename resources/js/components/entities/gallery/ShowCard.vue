@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { Badge } from '@/components/badge';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
 
 defineProps<{
   media: ApiResource<Media>;
@@ -13,11 +13,13 @@ defineProps<{
 
     <CardContent>
       <div class="space-y-2">
-        <div class="w-full h-20 bg-gray-200 rounded flex items-center justify-center text-gray-500 text-sm">
+        <div
+          class="flex h-20 w-full items-center justify-center rounded bg-gray-200 text-sm text-gray-500"
+        >
           📷 Image Preview
         </div>
 
-        <p class="text-sm line-clamp-2">{{ media.description }}</p>
+        <p class="line-clamp-2 text-sm">{{ media.description }}</p>
 
         <div class="flex flex-wrap gap-2">
           <Badge variant="outline">{{ media.filename.split('.').pop()?.toUpperCase() }}</Badge>

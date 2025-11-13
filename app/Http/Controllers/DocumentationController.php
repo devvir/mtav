@@ -25,11 +25,11 @@ class DocumentationController extends Controller
         $faqData = json_decode(File::get($faqPath), true);
 
         return inertia('Documentation/Faq', [
-            'questions' => $faqData['questions'],
-            'title' => $faqData['title'],
+            'questions'   => $faqData['questions'],
+            'title'       => $faqData['title'],
             'description' => $faqData['description'],
-            'guideText' => $faqData['guideText'],
-            'userRole' => $role,
+            'guideText'   => $faqData['guideText'],
+            'userRole'    => $role,
         ]);
     }
 
@@ -52,7 +52,7 @@ class DocumentationController extends Controller
 
         return inertia($component, [
             'userRole' => $role,
-            'content' => $content,
+            'content'  => $content,
         ]);
     }
 }

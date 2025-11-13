@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { _ } from '@/composables/useTranslations';
 import { User } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import MemberCard from './MemberCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   members: Member[];

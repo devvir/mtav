@@ -1,29 +1,38 @@
 <script setup lang="ts">
 import Head from '@/components/Head.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Building, Users, UserCheck, Home, Calendar, FileText, Image } from 'lucide-vue-next';
+import {
+  Building,
+  Calendar,
+  CreditCard,
+  FileText,
+  Home,
+  Image,
+  UserCheck,
+  Users,
+} from 'lucide-vue-next';
 
 // Import entity card components
 import AdminIndexCard from '@/components/entities/admin/IndexCard.vue';
 import AdminShowCard from '@/components/entities/admin/ShowCard.vue';
-import FamilyIndexCard from '@/components/entities/family/IndexCard.vue';
-import FamilyShowCard from '@/components/entities/family/ShowCard.vue';
-import ProjectIndexCard from '@/components/entities/project/IndexCard.vue';
-import ProjectShowCard from '@/components/entities/project/ShowCard.vue';
-import MemberIndexCard from '@/components/entities/member/IndexCard.vue';
-import MemberShowCard from '@/components/entities/member/ShowCard.vue';
 import EventIndexCard from '@/components/entities/event/IndexCard.vue';
 import EventShowCard from '@/components/entities/event/ShowCard.vue';
-import UnitIndexCard from '@/components/entities/unit/IndexCard.vue';
-import UnitShowCard from '@/components/entities/unit/ShowCard.vue';
-import LogIndexCard from '@/components/entities/log/IndexCard.vue';
-import LogShowCard from '@/components/entities/log/ShowCard.vue';
+import FamilyIndexCard from '@/components/entities/family/IndexCard.vue';
+import FamilyShowCard from '@/components/entities/family/ShowCard.vue';
 import GalleryIndexCard from '@/components/entities/gallery/IndexCard.vue';
 import GalleryShowCard from '@/components/entities/gallery/ShowCard.vue';
-import GenericSamples from './cards/Samples.vue';
+import LogIndexCard from '@/components/entities/log/IndexCard.vue';
+import LogShowCard from '@/components/entities/log/ShowCard.vue';
+import MemberIndexCard from '@/components/entities/member/IndexCard.vue';
+import MemberShowCard from '@/components/entities/member/ShowCard.vue';
+import ProjectIndexCard from '@/components/entities/project/IndexCard.vue';
+import ProjectShowCard from '@/components/entities/project/ShowCard.vue';
+import UnitIndexCard from '@/components/entities/unit/IndexCard.vue';
+import UnitShowCard from '@/components/entities/unit/ShowCard.vue';
 import EntitySection from './cards/EntitySection.vue';
+import GenericSamples from './cards/Samples.vue';
 
 // Define entities with their icons and metadata
 const entities = [
@@ -119,10 +128,13 @@ const entities = [
 
 // Track expanded state for each section
 const expandedSections = ref<Record<string, boolean>>(
-  entities.reduce((acc, entity) => {
-    acc[entity.key] = false;
-    return acc;
-  }, {} as Record<string, boolean>)
+  entities.reduce(
+    (acc, entity) => {
+      acc[entity.key] = false;
+      return acc;
+    },
+    {} as Record<string, boolean>,
+  ),
 );
 
 // Function to toggle section expansion
@@ -132,14 +144,14 @@ const toggleSection = (entityKey: string) => {
 
 // Function to expand all sections
 const expandAll = () => {
-  entities.forEach(entity => {
+  entities.forEach((entity) => {
     expandedSections.value[entity.key] = true;
   });
 };
 
 // Function to collapse all sections
 const collapseAll = () => {
-  entities.forEach(entity => {
+  entities.forEach((entity) => {
     expandedSections.value[entity.key] = false;
   });
 };
@@ -155,23 +167,19 @@ const collapseAll = () => {
 
   <div class="container mx-auto max-w-7xl py-8">
     <div class="mb-8">
-      <div class="flex items-center gap-3 mb-4">
+      <div class="mb-4 flex items-center gap-3">
         <CreditCard class="h-8 w-8 text-primary" />
         <h1 class="text-3xl font-bold">Entity Cards Preview</h1>
       </div>
-      <p class="text-text-muted mb-6">
-        Preview of how the Card component will look when used with each application entity.
-        This shows both "index cards" (for list views) and "show cards" (for detail views).
+      <p class="mb-6 text-text-muted">
+        Preview of how the Card component will look when used with each application entity. This
+        shows both "index cards" (for list views) and "show cards" (for detail views).
       </p>
 
       <!-- Expand/Collapse Controls -->
-      <div class="flex gap-3 mb-8">
-        <Button variant="outline" size="sm" @click="expandAll">
-          Expand All
-        </Button>
-        <Button variant="outline" size="sm" @click="collapseAll">
-          Collapse All
-        </Button>
+      <div class="mb-8 flex gap-3">
+        <Button variant="outline" size="sm" @click="expandAll"> Expand All </Button>
+        <Button variant="outline" size="sm" @click="collapseAll"> Collapse All </Button>
       </div>
     </div>
 
@@ -187,22 +195,23 @@ const collapseAll = () => {
     </div>
 
     <!-- Info Footer -->
-    <div class="mt-12 p-6 bg-muted/50 rounded-lg">
-      <h3 class="text-lg font-semibold mb-2">Next Steps</h3>
-      <div class="text-sm text-text-muted space-y-2">
+    <div class="mt-12 rounded-lg bg-muted/50 p-6">
+      <h3 class="mb-2 text-lg font-semibold">Next Steps</h3>
+      <div class="space-y-2 text-sm text-text-muted">
         <p>
-          This page provides a consolidated view of how the Card component will be used across all entities.
-          Once the actual card implementations are added, this will serve as a visual reference for:
+          This page provides a consolidated view of how the Card component will be used across all
+          entities. Once the actual card implementations are added, this will serve as a visual
+          reference for:
         </p>
-        <ul class="list-disc list-inside space-y-1 ml-4">
+        <ul class="ml-4 list-inside list-disc space-y-1">
           <li>Card component consistency across different entity types</li>
           <li>Responsive behavior in grid layouts</li>
           <li>Visual hierarchy and information density</li>
           <li>Icon and color scheme consistency</li>
         </ul>
-        <p class="text-xs pt-2 text-amber-600 dark:text-amber-400">
-          💡 The existing card preview page at <strong>/dev/cards</strong> shows the component system itself,
-          while this page shows real-world entity usage.
+        <p class="pt-2 text-xs text-amber-600 dark:text-amber-400">
+          💡 The existing card preview page at <strong>/dev/cards</strong> shows the component
+          system itself, while this page shows real-world entity usage.
         </p>
       </div>
     </div>

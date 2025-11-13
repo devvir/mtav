@@ -18,7 +18,7 @@ class AuthenticatedSessionController
     {
         return inertia('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
-            'status' => $request->session()->get('status'),
+            'status'           => $request->session()->get('status'),
         ]);
     }
 

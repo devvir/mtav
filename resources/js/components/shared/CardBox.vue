@@ -11,7 +11,7 @@ defineProps<{
   <div
     :class="
       cn(
-        'rounded-xl border border-border bg-surface-elevated text-surface-elevated-foreground shadow-sm transition-all hover:shadow-md focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 focus-within:ring-offset-focus-ring-offset',
+        'rounded-xl border border-border bg-surface-elevated text-surface-elevated-foreground shadow-sm transition-all focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 focus-within:ring-offset-focus-ring-offset hover:shadow-md',
         $props.class,
       )
     "

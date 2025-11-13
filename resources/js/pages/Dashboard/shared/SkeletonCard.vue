@@ -5,5 +5,10 @@ defineProps<{
 </script>
 
 <template>
-  <div :class="['animate-pulse rounded-lg bg-surface-sunken border border-border-subtle', height || 'h-20']" />
+  <div
+    :class="[
+      'animate-pulse rounded-lg border border-border-subtle bg-surface-sunken',
+      height || 'h-20',
+    ]"
+  />
 </template>

@@ -19,7 +19,10 @@ const pinia = createPinia();
 createInertiaApp({
   title: (title) => (title ? `${title} - ${appName}` : appName),
   resolve: async (name) => {
-    const page = await resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<Component>('./pages/**/*.vue'));
+    const page = await resolvePageComponent(
+      `./pages/${name}.vue`,
+      import.meta.glob<Component>('./pages/**/*.vue'),
+    );
 
     // Use default only if no layout is defined in the Page (use null for no layout)
     if (typeof page.default.layout === 'undefined') {

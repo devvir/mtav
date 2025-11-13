@@ -20,10 +20,10 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
-            'description' => $this->faker->sentence(10),
+            'name'         => $this->faker->company(),
+            'description'  => $this->faker->sentence(10),
             'organization' => $this->faker->randomElement(['FECOVI', 'FUCVAM', 'SUNCA']),
-            'active' => rand(1, 10) < 8,
+            'active'       => rand(1, 10) < 8,
         ];
     }
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import fixturesData from './fixtures.json';
-// import { currentProject } from '@/composables/useProjects';
 
 const props = defineProps<{
   entity: {
@@ -13,7 +12,9 @@ const props = defineProps<{
 }>();
 
 // Get the collection from fixtures based on the entity key
-const collection = fixturesData[props.entity.key as keyof typeof fixturesData] as ApiResource<any>[];
+const collection = fixturesData[
+  props.entity.key! as unknown as keyof typeof fixturesData
+] as unknown as ApiResource[];
 
 // Special handling for projects: replace first item with currentProject if available
 // if (props.entity.key === 'projects' && currentProject.value) {
@@ -25,13 +26,17 @@ const collection = fixturesData[props.entity.key as keyof typeof fixturesData] a
   <div class="space-y-8">
     <!-- Index Cards Section -->
     <div>
-      <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground text-sm font-semibold rounded">
+      <h3 class="mb-4 flex items-center gap-2 text-lg font-medium">
+        <span
+          class="inline-flex h-6 w-6 items-center justify-center rounded bg-primary text-sm font-semibold text-primary-foreground"
+        >
           I
         </span>
         Index Cards (List View)
       </h3>
-      <div class="grid place-items-stretch gap-4 auto-rows-auto grid-cols-[repeat(auto-fill,minmax(350px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(400px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(450px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(480px,1fr))]">
+      <div
+        class="grid auto-rows-auto grid-cols-[repeat(auto-fill,minmax(350px,1fr))] place-items-stretch gap-4 md:grid-cols-[repeat(auto-fill,minmax(400px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(450px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(480px,1fr))]"
+      >
         <component
           :is="entity.indexCard"
           v-for="item in collection"
@@ -43,13 +48,17 @@ const collection = fixturesData[props.entity.key as keyof typeof fixturesData] a
 
     <!-- Show Cards Section -->
     <div>
-      <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-6 h-6 bg-secondary text-secondary-foreground text-sm font-semibold rounded">
+      <h3 class="mb-4 flex items-center gap-2 text-lg font-medium">
+        <span
+          class="inline-flex h-6 w-6 items-center justify-center rounded bg-secondary text-sm font-semibold text-secondary-foreground"
+        >
           S
         </span>
         Show Cards (Detail View)
       </h3>
-      <div class="grid place-items-stretch gap-4 auto-rows-auto grid-cols-[repeat(auto-fill,minmax(350px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(400px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(450px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(480px,1fr))]">
+      <div
+        class="grid auto-rows-auto grid-cols-[repeat(auto-fill,minmax(350px,1fr))] place-items-stretch gap-4 md:grid-cols-[repeat(auto-fill,minmax(400px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(450px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(480px,1fr))]"
+      >
         <component
           :is="entity.showCard"
           v-for="item in collection"

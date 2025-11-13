@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Copilot - pending review
+import { _ } from '@/composables/useTranslations';
 import { UsersRound } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import FamilyCard from './FamilyCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   families: Family[];

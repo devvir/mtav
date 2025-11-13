@@ -20,17 +20,17 @@ class UnitFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
+            'project_id'   => Project::factory(),
             'unit_type_id' => fn (array $attributes) => UnitType::factory()->create(['project_id' => $attributes['project_id']])->id,
-            'family_id' => null,
-            'identifier' => $this->faker->randomLetter() . $this->faker->numerify('##'),
+            'family_id'    => null,
+            'identifier'   => $this->faker->randomLetter() . $this->faker->numerify('##'),
         ];
     }
 
     public function inProject(Project $project): static
     {
         return $this->state([
-            'project_id' => $project->id,
+            'project_id'   => $project->id,
             'unit_type_id' => fn () => UnitType::factory()->create([
                 'project_id' => $project->id,
             ])->id,

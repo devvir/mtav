@@ -11,7 +11,7 @@ class CreateUnitTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|between:2,255',
+            'name'        => 'required|string|between:2,255',
             'description' => 'required|string|between:3,200',
         ];
     }

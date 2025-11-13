@@ -5,7 +5,7 @@ import DropdownContent from '../dropdown/DropdownContent.vue';
 import DropdownTrigger from '../dropdown/DropdownTrigger.vue';
 import FormSelectAddOption from './FormSelectAddOption.vue';
 import * as keys from './keys';
-import { SelectAddOption } from './types';
+import { SelectAddOption, ValueType } from './types';
 
 const selected = defineModel<(string | number)[]>();
 
@@ -21,7 +21,7 @@ const props = defineProps<{
 
 const modelLabel = computed(() => {
   if (props.multiple) {
-    return selected.value?.map((value) => props.options[value]).join(', ') || '';
+    return selected.value?.map((value: ValueType) => props.options[value]).join(', ') || '';
   }
 
   return selected.value ? props.options[selected.value[0]] : '';
@@ -31,14 +31,14 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
   if (!props.multiple) {
     selected.value = [value];
     closeModal();
-  } else if (selected.value?.some((option) => option == value)) {
-    selected.value = selected.value.filter((v) => v != value);
+  } else if (selected.value?.some((option: ValueType) => option == value)) {
+    selected.value = selected.value.filter((v: ValueType) => v != value);
   } else {
     (selected.value as (string | number)[]).push(value);
   }
 };
 
-const isDisabled = computed(() => props.disabled || !Object.values(props.options).length)
+const isDisabled = computed(() => props.disabled || !Object.values(props.options).length);
 
 const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) => void;
 </script>
@@ -71,7 +71,12 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
           fill="currentColor"
           aria-hidden="true"
         >
-          <path d="M19 9L12 16L5 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path
+            d="M19 9L12 16L5 9"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </DropdownTrigger>
 
@@ -96,8 +101,8 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
               tabindex="0"
               class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-4 py-3 text-base transition-all"
               :class="
-                selected?.some((option) => option == value)
-                  ? 'bg-interactive text-interactive-foreground font-semibold'
+                selected?.some((option: ValueType) => option == value)
+                  ? 'bg-interactive font-semibold text-interactive-foreground'
                   : 'hover:bg-surface-interactive-hover hover:text-text focus:bg-surface-interactive-hover focus:text-text focus:outline-none'
               "
               @click.prevent.stop="toggleOption(value, close)"

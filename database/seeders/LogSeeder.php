@@ -62,8 +62,8 @@ class LogSeeder extends Seeder
 
             for ($i = 0; $i < $logCount; $i++) {
                 Log::create([
-                    'event' => $logEvents[array_rand($logEvents)],
-                    'user_id' => rand(0, 10) > 0 ? $allUsers->random()->id : null, // 90% have user, 10% are system logs
+                    'event'      => $logEvents[array_rand($logEvents)],
+                    'user_id'    => rand(0, 10) > 0 ? $allUsers->random()->id : null, // 90% have user, 10% are system logs
                     'project_id' => $projectId,
                     'created_at' => now()->subDays(rand(0, 365))->subHours(rand(0, 23))->subMinutes(rand(0, 59)),
                 ]);

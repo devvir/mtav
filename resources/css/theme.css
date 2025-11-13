@@ -138,8 +138,8 @@
   --text-muted: hsl(0 0% 70%);
   --text-subtle: hsl(0 0% 55%);
   --text-inverse: hsl(0 0% 9%);
-  --text-link: hsl(221, 83%, 70%);
-  --text-link-hover: hsl(221, 83%, 80%);
+  --text-link: hsl(221, 60%, 60%);
+  --text-link-hover: hsl(221, 93%, 70%);
 
   /* Interactive colors */
   --interactive: hsl(221, 83%, 60%);

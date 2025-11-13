@@ -25,7 +25,10 @@ const submit = () => {
 <template>
   <Head title="Forgot password" />
 
-  <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
+  <AuthLayout
+    title="Forgot password"
+    description="Enter your email to receive a password reset link"
+  >
     <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
       {{ status }}
     </div>

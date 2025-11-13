@@ -16,8 +16,8 @@ class UpdateMemberRequest extends FormRequest
     {
         return [
             'firstname' => ['required', 'string', 'between:2,80'],
-            'lastname' => ['nullable', 'string', 'between:2,80'],
-            'email' => ['required', 'email', 'max:255',
+            'lastname'  => ['nullable', 'string', 'between:2,80'],
+            'email'     => ['required', 'email', 'max:255',
                 Rule::unique(User::class)->ignore($this->route('member')),
             ],
         ];

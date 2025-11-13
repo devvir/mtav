@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Calendar } from 'lucide-vue-next';
+import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
+import { Calendar } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import SkeletonCard from '../shared/SkeletonCard.vue';
 import EventCard from './EventCard.vue';
-import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   events?: Event[];
@@ -18,17 +18,13 @@ defineProps<{
     <template v-if="events">
       <template v-if="events.length > 0">
         <div class="space-y-3">
-          <EventCard
-            v-for="event in events"
-            :key="event.id"
-            :event="event"
-          />
+          <EventCard v-for="event in events" :key="event.id" :event="event" />
         </div>
 
         <div class="mt-4 text-center">
           <Link
             :href="route('events.index')"
-            class="text-sm text-interactive hover:text-interactive-hover underline"
+            class="text-sm text-interactive underline hover:text-interactive-hover"
           >
             {{ _('View all Events') }}
           </Link>

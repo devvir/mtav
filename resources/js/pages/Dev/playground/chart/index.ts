@@ -9,7 +9,7 @@ export interface Colors {
   };
 }
 
-export interface Ohcl {
+export interface OHCL {
   o: number;
   h: number;
   c: number;

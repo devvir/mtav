@@ -14,7 +14,9 @@ const props = defineProps<{
 const id = `${useId()}-${props.name}`;
 const slotAfterId = `after-slot-${id}`;
 
-const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!props.model.length : !!props.model));
+const valueProvided = computed<boolean>(() =>
+  Array.isArray(props.model) ? !!props.model.length : !!props.model,
+);
 </script>
 
 <template>
@@ -23,7 +25,8 @@ const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!pr
       class="group relative z-1 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
       :class="{
         'border-border': !disabled,
-        'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20': !disabled,
+        'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20':
+          !disabled,
         'not-focus-within:has-[:valid]:border-success/20': valueProvided && !disabled,
         'not-focus-within:has-[:invalid]:border-error/60': valueProvided && !disabled,
         'border-border-subtle': disabled,
@@ -33,7 +36,7 @@ const valueProvided = computed<boolean>(() => (Array.isArray(props.model) ? !!pr
         v-if="label"
         :forId="id"
         v-bind="{ label, ...$props, ...$attrs }"
-        class="border-r-2 border-border bg-surface-sunken px-3 py-3 text-surface-sunken-foreground font-semibold @max-md:border-b-2 @max-md:border-r-0"
+        class="border-r-2 border-border bg-surface-sunken px-3 py-3 font-semibold text-surface-sunken-foreground @max-md:border-r-0 @max-md:border-b-2"
         :class="{
           'group-focus-within:bg-surface-elevated group-focus-within:text-text': !disabled,
           'opacity-50': disabled,

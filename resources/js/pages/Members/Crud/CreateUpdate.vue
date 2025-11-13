@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Form } from '@/components/forms';
-import { FormSpecs, FormType, FormUpdateEvent, SelectOptions, SelectSpecs } from '@/components/forms/types';
+import {
+  FormSpecs,
+  FormType,
+  FormUpdateEvent,
+  SelectOptions,
+  SelectSpecs,
+} from '@/components/forms/types';
 import { currentUser, iAmNotAdmin } from '@/composables/useAuth';
 import { currentProject } from '@/composables/useProjects';
 import { _ } from '@/composables/useTranslations';
@@ -10,13 +15,13 @@ const props = defineProps<{
   type: FormType;
   action: string;
   title: string;
-  projects: Project[];
-  families: Family[];
-  member?: Member; // Edit-only
+  projects: ApiResource<Project>[];
+  families: ApiResource<Family>[];
+  member?: ApiResource<Member>; // Edit-only
 }>();
 
 const projectOptions: SelectOptions = {};
-props.projects.forEach((project) => (projectOptions[project.id] = project.name));
+props.projects.forEach((project: Project) => (projectOptions[project.id] = project.name));
 
 const projectId = ref(props.member?.project?.id ?? currentProject.value?.id);
 
@@ -39,7 +44,13 @@ const specs: FormSpecs = {
     disabled: props.type === 'edit',
     create: { target: 'families.create', legend: 'Add a new Family' },
   },
-  firstname: { element: 'input', label: 'First Name', value: props.member?.firstname, required: true, minlength: 2 },
+  firstname: {
+    element: 'input',
+    label: 'First Name',
+    value: props.member?.firstname,
+    required: true,
+    minlength: 2,
+  },
   lastname: { element: 'input', label: 'Last Name', value: props.member?.lastname, minlength: 2 },
   email: {
     element: 'input',
@@ -56,7 +67,11 @@ const specs: FormSpecs = {
  */
 if (iAmNotAdmin.value || props.type === 'edit') {
   specs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  specs.family_id = { element: 'input', type: 'hidden', value: (currentUser.value as Member).family.id };
+  specs.family_id = {
+    element: 'input',
+    type: 'hidden',
+    value: (currentUser.value as Member).family.id,
+  };
 }
 
 const handleFormChange = ({ field, value }: FormUpdateEvent) => {
@@ -65,36 +80,41 @@ const handleFormChange = ({ field, value }: FormUpdateEvent) => {
 
 // Filter families based on selected projectId
 watchEffect(() => {
-    const options: Record<number, string> = {};
+  const options: Record<number, string> = {};
 
-    props.families
-        .filter(family => family.project.id === projectId.value)
-        .forEach(family => (options[family.id] = family.name));
+  props.families
+    .filter((family: Family) => family.project.id === projectId.value)
+    .forEach((family: Family) => (options[family.id] = family.name));
 
-    (specs.family_id as SelectSpecs).options = options;
-    (specs.family_id as SelectSpecs).selected = null;
-})
+  (specs.family_id as SelectSpecs).options = options;
+  (specs.family_id as SelectSpecs).selected = null;
+});
 </script>
 
 <template>
-    <Form v-bind="{ type, action, params: props.member?.id, title }" :specs="specs"
-        :buttonText="props.type === 'edit' ? undefined : 'Invite'" autocomplete="off" @update="handleFormChange">
-        <template v-slot:aside>
-            <h2 class="font-semibold text-foreground/60 uppercase text-shadow-2xs text-shadow-danger/20">
-                {{ _('Keep in mind') }}
-            </h2>
-            <ul class="list-inside list-disc text-base text-foreground/80">
-                <li class="list-item leading-tight @md:leading-wide">
-                    {{
-                    type === 'edit'
-                    ? _('Changes to the email remain on hold until the user confirms them')
-                    : _('The user will be sent a link to complete their registration')
-                    }}
-                </li>
-                <li class="list-item @md:leading-wide">
-                    {{ _('Double-check the email, as it will serve to authenticate the user') }}
-                </li>
-            </ul>
-        </template>
-    </Form>
+  <Form
+    v-bind="{ type, action, params: props.member?.id, title }"
+    :specs="specs"
+    :buttonText="props.type === 'edit' ? undefined : 'Invite'"
+    autocomplete="off"
+    @update="handleFormChange"
+  >
+    <template v-slot:aside>
+      <h2 class="font-semibold text-foreground/60 uppercase text-shadow-2xs text-shadow-danger/20">
+        {{ _('Keep in mind') }}
+      </h2>
+      <ul class="list-inside list-disc text-base text-foreground/80">
+        <li class="list-item leading-tight @md:leading-wide">
+          {{
+            type === 'edit'
+              ? _('Changes to the email remain on hold until the user confirms them')
+              : _('The user will be sent a link to complete their registration')
+          }}
+        </li>
+        <li class="list-item @md:leading-wide">
+          {{ _('Double-check the email, as it will serve to authenticate the user') }}
+        </li>
+      </ul>
+    </template>
+  </Form>
 </template>

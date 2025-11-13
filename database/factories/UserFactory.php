@@ -25,18 +25,18 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'family_id' => Family::factory(),
-            'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->unique()->phoneNumber(),
-            'legal_id' => fake()->optional()->numerify('#.###.###-#'),
-            'firstname' => fake()->firstName(),
-            'lastname' => fake()->lastName(),
-            'about' => fake()->optional(0.7)->realText(200),
-            'is_admin' => false,
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'family_id'              => Family::factory(),
+            'email'                  => fake()->unique()->safeEmail(),
+            'phone'                  => fake()->unique()->phoneNumber(),
+            'legal_id'               => fake()->optional()->numerify('#.###.###-#'),
+            'firstname'              => fake()->firstName(),
+            'lastname'               => fake()->lastName(),
+            'about'                  => fake()->optional(0.7)->realText(200),
+            'is_admin'               => false,
+            'password'               => static::$password ??= Hash::make('password'),
+            'remember_token'         => Str::random(10),
             'invitation_accepted_at' => now(),
-            'email_verified_at' => now(),
+            'email_verified_at'      => now(),
         ];
     }
 
@@ -47,7 +47,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => [
             'invitation_accepted_at' => null,
-            'email_verified_at' => null,
+            'email_verified_at'      => null,
         ]);
     }
 

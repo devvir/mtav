@@ -21,7 +21,11 @@ defineProps<{
         </div>
 
         <p class="text-sm">
-          {{ unit.family ? `${_('Assigned to Family:')} ${unit.family.id}` : _('Available for assignment') }}
+          {{
+            unit.family
+              ? `${_('Assigned to Family:')} ${unit.family.id}`
+              : _('Available for assignment')
+          }}
         </p>
       </div>
     </CardContent>

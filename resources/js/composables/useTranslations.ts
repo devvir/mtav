@@ -5,7 +5,9 @@ export const useTranslation = () => {
   const setLocale = async (newLocale: string): Promise<void> => {
     newLocale = newLocale.replace('-', '_');
 
-    const newTranslations: Record<string, string> = (await import(`../../../lang/${newLocale}.json`))?.default;
+    const newTranslations: Record<string, string> = (
+      await import(`../../../lang/${newLocale}.json`)
+    )?.default;
 
     if (!newTranslations) {
       return console.warn(`Locale '${newLocale}' not found.`);

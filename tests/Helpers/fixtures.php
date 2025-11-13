@@ -12,8 +12,7 @@ function loadUniverse(): void
 {
     Artisan::call('migrate:fresh');
 
-    $sql = file_get_contents(__DIR__.'/../_fixtures/universe.sql');
+    $sql = file_get_contents(__DIR__ . '/../_fixtures/universe.sql');
 
     DB::unprepared($sql);
 }
-

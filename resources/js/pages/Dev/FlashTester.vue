@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import Head from '@/components/Head.vue';
+import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
+import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { _ } from '@/composables/useTranslations';
-import { ref } from 'vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 
 const successMessage = ref('This is a success message!');
 const infoMessage = ref('This is an informational message.');
@@ -31,20 +30,14 @@ const sendFlash = (type: string, message: string) => {
     <Card>
       <CardHeader>
         <CardTitle>Flash Messages Tester</CardTitle>
-        <CardDescription>
-          Test all flash message types with custom messages
-        </CardDescription>
+        <CardDescription> Test all flash message types with custom messages </CardDescription>
       </CardHeader>
       <CardContent class="space-y-6">
         <!-- Success -->
         <div class="space-y-2">
           <Label for="success">Success Message</Label>
           <div class="flex gap-2">
-            <Input
-              id="success"
-              v-model="successMessage"
-              placeholder="Enter success message"
-            />
+            <Input id="success" v-model="successMessage" placeholder="Enter success message" />
             <Button @click="sendFlash('success', successMessage)" variant="default" class="w-36">
               Send Success
             </Button>
@@ -55,11 +48,7 @@ const sendFlash = (type: string, message: string) => {
         <div class="space-y-2">
           <Label for="info">Info Message</Label>
           <div class="flex gap-2">
-            <Input
-              id="info"
-              v-model="infoMessage"
-              placeholder="Enter info message"
-            />
+            <Input id="info" v-model="infoMessage" placeholder="Enter info message" />
             <Button @click="sendFlash('info', infoMessage)" variant="secondary" class="w-36">
               Send Info
             </Button>
@@ -70,11 +59,7 @@ const sendFlash = (type: string, message: string) => {
         <div class="space-y-2">
           <Label for="warning">Warning Message</Label>
           <div class="flex gap-2">
-            <Input
-              id="warning"
-              v-model="warningMessage"
-              placeholder="Enter warning message"
-            />
+            <Input id="warning" v-model="warningMessage" placeholder="Enter warning message" />
             <Button @click="sendFlash('warning', warningMessage)" variant="outline" class="w-36">
               Send Warning
             </Button>
@@ -85,11 +70,7 @@ const sendFlash = (type: string, message: string) => {
         <div class="space-y-2">
           <Label for="error">Error Message</Label>
           <div class="flex gap-2">
-            <Input
-              id="error"
-              v-model="errorMessage"
-              placeholder="Enter error message"
-            />
+            <Input id="error" v-model="errorMessage" placeholder="Enter error message" />
             <Button @click="sendFlash('error', errorMessage)" variant="error" class="w-36">
               Send Error
             </Button>
@@ -97,7 +78,7 @@ const sendFlash = (type: string, message: string) => {
         </div>
 
         <!-- Send All -->
-        <div class="pt-4 border-t">
+        <div class="border-t pt-4">
           <Button @click="router.get(route('dev.flash.all'))" variant="default" class="w-full">
             Send All Messages At Once
           </Button>

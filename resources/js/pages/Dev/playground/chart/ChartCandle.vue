@@ -25,7 +25,14 @@ const candleColors = colors[props.c < props.o ? 'red' : 'green'];
 
 <template>
   <g :title="{ o, h, c, l }" :transform="`translate(${idx * 20})`" width="8">
-    <line x1="7" x2="7" v-bind="line" stroke-width="2" stroke-linecap="round" :stroke="candleColors.stroke" />
+    <line
+      x1="7"
+      x2="7"
+      v-bind="line"
+      stroke-width="2"
+      stroke-linecap="round"
+      :stroke="candleColors.stroke"
+    />
     <rect width="14" v-bind="{ y: body.y, height: body.h }" :fill="candleColors.fill" rx="2" />
   </g>
 </template>

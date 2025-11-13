@@ -21,7 +21,7 @@ class UpdateProjectRequest extends FormRequest
                 'max:255',
                 Rule::unique(Project::class)->ignore($this->route('project')),
             ],
-            'description' => ['required', 'string', 'max:65535'],
+            'description'  => ['required', 'string', 'max:65535'],
             'organization' => ['required', 'string', 'max:255'],
         ];
     }

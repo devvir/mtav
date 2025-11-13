@@ -20,14 +20,14 @@ const { toggleSidebar, open } = useSidebar();
     variant="ghost"
     size="icon"
     class="cursor-pointer"
-    :class="cn(
-      'focus-visible-within:text-accent-foreground size-6 cursor-pointer',
-      $props.class
-    )"
+    :class="cn('focus-visible-within:text-accent-foreground size-6 cursor-pointer', $props.class)"
     @click="toggleSidebar"
   >
     <div class="text-foreground opacity-65 hocus:opacity-100">
-      <PanelLeftClose class="size-6 stroke-current duration-800 ease-out" :class="{ 'rotate-180': !open }" />
+      <PanelLeftClose
+        class="size-6 stroke-current duration-800 ease-out"
+        :class="{ 'rotate-180': !open }"
+      />
       <span class="sr-only">{{ _('Toggle Sidebar') }}</span>
     </div>
   </Button>

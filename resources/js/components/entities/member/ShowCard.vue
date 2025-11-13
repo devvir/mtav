@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardContent, CardFooter, ContentHighlight, ContentLine } from '@/components/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  ContentHighlight,
+  ContentLine,
+} from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{

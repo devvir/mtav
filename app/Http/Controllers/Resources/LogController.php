@@ -21,7 +21,7 @@ class LogController extends Controller
 
         return inertia('Logs/Index', [
             'logs' => Inertia::deepMerge(fn () => $logs->paginate(30)),
-            'q' => $request->q ?? '',
+            'q'    => $request->q ?? '',
         ]);
     }
 

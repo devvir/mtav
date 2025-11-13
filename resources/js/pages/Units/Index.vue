@@ -30,7 +30,7 @@ defineProps<{
           v-for="unit in units"
           :key="unit.id"
           :href="route('units.show', unit.id)"
-          class="block rounded-lg border border-border bg-surface-elevated p-3 transition-colors hover:border-border-interactive hover:bg-surface-interactive-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+          class="block rounded-lg border border-border bg-surface-elevated p-3 transition-colors hover:border-border-interactive hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-none"
         >
           <div class="flex items-center justify-between gap-4">
             <div class="flex-1">

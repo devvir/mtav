@@ -3,7 +3,6 @@
 use App\Models\Family;
 use App\Models\Member;
 use App\Models\Project;
-use App\Models\User;
 
 describe('Member Model', function () {
     it('has a Family relationship', function () {

@@ -18,12 +18,12 @@ class CompleteRegistrationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password'  => ['required', 'confirmed', Password::defaults()],
             'firstname' => 'string|between:2,120',
-            'lastname' => 'nullable|string|between:2,120',
-            'phone' => 'nullable|string|between:2,24',
-            'legal_id' => 'nullable|string|between:2,16',
-            'avatar' => 'nullable|image|max:2048', // 2MB max
+            'lastname'  => 'nullable|string|between:2,120',
+            'phone'     => 'nullable|string|between:2,24',
+            'legal_id'  => 'nullable|string|between:2,16',
+            'avatar'    => 'nullable|image|max:2048', // 2MB max
         ];
     }
 }

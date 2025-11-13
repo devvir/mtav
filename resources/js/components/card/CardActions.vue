@@ -53,7 +53,11 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
   <div v-if="type === 'subtle'" class="flex items-start justify-end" @click.stop>
     <Dropdown v-slot:default="{ close }">
       <DropdownTrigger tabindex="-1">
-        <Button variant="ghost" size="sm" class="mouse-events-none h-7 px-0! text-text-subtle hover:text-text">
+        <Button
+          variant="ghost"
+          size="sm"
+          class="mouse-events-none h-7 px-0! text-text-subtle hover:text-text"
+        >
           <ChevronDown class="size-6" />
         </Button>
       </DropdownTrigger>

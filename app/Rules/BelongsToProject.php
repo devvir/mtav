@@ -28,7 +28,7 @@ class BelongsToProject implements ValidationRule
         }
 
         $modelBelongsToProject = $this->modelClass::where([
-            'id' => $value,
+            'id'         => $value,
             'project_id' => $this->projectId,
         ])->exists();
 

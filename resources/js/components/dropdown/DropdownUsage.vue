@@ -1,9 +1,14 @@
 <template>
   <div class="space-y-4 text-left">
-    <h2 class="text-extrabold mb-4 inline-block border-b border-current pb-2 text-2xl">{Dropdown Menu Usage}</h2>
+    <h2 class="text-extrabold mb-4 inline-block border-b border-current pb-2 text-2xl">
+      {Dropdown Menu Usage}
+    </h2>
 
     <div>
-      <span>{Provide one or more triggers and one or more content boxes, using the following components}</span>:
+      <span
+        >{Provide one or more triggers and one or more content boxes, using the following
+        components}</span
+      >:
     </div>
 
     <ul class="mt-4 list-inside list-disc space-y-2 text-left">

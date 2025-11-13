@@ -7,4 +7,4 @@
  */
 
 // Import the new helpers
-require_once __DIR__.'/../_helpers/fixtures.php';
+require_once __DIR__ . '/../_helpers/fixtures.php';

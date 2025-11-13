@@ -101,7 +101,8 @@ const uploadAvatar = async (file: File) => {
     const response = await fetch(route(props.uploadRoute), {
       method: 'POST',
       headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-CSRF-TOKEN':
+          document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
       },
       body: formData,
     });
@@ -135,7 +136,11 @@ const clearPreview = () => {
 </script>
 
 <template>
-  <div :class="compact ? 'flex flex-row-reverse items-center gap-4' : 'flex flex-col items-center gap-4'">
+  <div
+    :class="
+      compact ? 'flex flex-row-reverse items-center gap-4' : 'flex flex-col items-center gap-4'
+    "
+  >
     <div class="relative flex-shrink-0">
       <Avatar :class="sizeClasses">
         <AvatarImage v-if="displayAvatar" :src="displayAvatar" :alt="_('Profile picture')" />
@@ -147,7 +152,7 @@ const clearPreview = () => {
       <!-- Upload overlay when hovering or uploading -->
       <div
         v-if="!isUploading"
-        class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity hover:opacity-100 cursor-pointer"
+        class="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity hover:opacity-100"
         @click="triggerFileInput"
       >
         <Camera class="size-8 text-white" />
@@ -158,21 +163,21 @@ const clearPreview = () => {
         v-if="isUploading"
         class="absolute inset-0 flex items-center justify-center rounded-full bg-black/70"
       >
-        <Loader2 class="size-8 text-white animate-spin" />
+        <Loader2 class="size-8 animate-spin text-white" />
       </div>
     </div>
 
     <!-- Hidden file input -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept="image/*"
-      class="hidden"
-      @change="handleFileSelect"
-    />
+    <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileSelect" />
 
     <!-- Info and cancel button (if previewing) -->
-    <div :class="compact ? 'flex flex-col items-start gap-2 min-h-[3rem]' : 'flex flex-col items-center gap-4 min-h-[3rem]'">
+    <div
+      :class="
+        compact
+          ? 'flex min-h-[3rem] flex-col items-start gap-2'
+          : 'flex min-h-[3rem] flex-col items-center gap-4'
+      "
+    >
       <!-- Cancel button (only shown when previewing) -->
       <Button
         v-if="previewUrl && !isUploading"
@@ -186,13 +191,21 @@ const clearPreview = () => {
       </Button>
 
       <!-- Error message -->
-      <p v-if="errorMessage" class="text-sm text-destructive" :class="compact ? 'text-left max-w-xs' : 'text-center'">
+      <p
+        v-if="errorMessage"
+        class="text-sm text-destructive"
+        :class="compact ? 'max-w-xs text-left' : 'text-center'"
+      >
         {{ errorMessage }}
       </p>
 
       <!-- Helper text -->
-      <p v-else-if="!previewUrl" class="text-xs text-text-muted/70" :class="compact ? 'text-left max-w-xs' : 'text-center'">
-        {{ _('Click to upload a profile picture') }}<br>
+      <p
+        v-else-if="!previewUrl"
+        class="text-xs text-text-muted/70"
+        :class="compact ? 'max-w-xs text-left' : 'text-center'"
+      >
+        {{ _('Click to upload a profile picture') }}<br />
         {{ _('Max 2MB, JPG, PNG or GIF') }}
       </p>
     </div>

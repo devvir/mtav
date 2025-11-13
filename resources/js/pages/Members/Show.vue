@@ -57,7 +57,7 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
             <ModalLink
               v-if="member.project?.name"
               :href="projectLink"
-              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-none"
             >
               <span class="text-text/70">{{ _('Project') }}:</span>
               <span class="font-medium">{{ member.project.name }}</span>
@@ -65,7 +65,7 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
 
             <ModalLink
               :href="route('families.show', member.family.id)"
-              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+              class="flex items-center-safe gap-2 text-base text-text-link hover:text-text-link-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-none"
             >
               <span class="text-text/70">{{ _('Family') }}:</span>
               <span class="font-medium">{{ (member.family as Family).name }}</span>
@@ -74,13 +74,15 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
 
           <!-- Bio -->
           <div class="rounded-lg bg-surface-sunken p-4">
-            <div class="text-sm font-medium text-text/70 mb-2">{{ _('About me') }}</div>
-            <p v-if="member.about" class="text-sm leading-relaxed text-text/90">{{ member.about }}</p>
-            <p v-else class="text-sm italic text-text/50">{{ _('Nothing written yet') }}</p>
+            <div class="mb-2 text-sm font-medium text-text/70">{{ _('About me') }}</div>
+            <p v-if="member.about" class="text-sm leading-relaxed text-text/90">
+              {{ member.about }}
+            </p>
+            <p v-else class="text-sm text-text/50 italic">{{ _('Nothing written yet') }}</p>
           </div>
 
           <!-- Member properties: Contact & identity info -->
-          <div class="space-y-2 text-sm border-t border-border pt-4">
+          <div class="space-y-2 border-t border-border pt-4 text-sm">
             <div class="flex items-center-safe gap-2 text-text/60">
               <span>{{ _('Email') }}:</span>
               <span class="text-text/80">{{ member.email }}</span>
@@ -98,7 +100,10 @@ const isCurrentUser = computed(() => currentUser.value?.id === props.member.id);
           </div>
 
           <!-- Admin-only: verification status -->
-          <div v-if="member.is_verified !== undefined" class="space-y-2 text-sm border-t border-border pt-4">
+          <div
+            v-if="member.is_verified !== undefined"
+            class="space-y-2 border-t border-border pt-4 text-sm"
+          >
             <div class="flex items-center-safe gap-2 text-text/60">
               <span>{{ _('Email verification') }}:</span>
               <span :class="member.is_verified ? 'text-success' : 'text-warning'">

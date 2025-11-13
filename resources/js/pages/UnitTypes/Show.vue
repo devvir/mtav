@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import Card from '@/components/shared/Card.vue';
 import EditButton from '@/components/EditButton.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import ShowWrapper from '../shared/ShowWrapper.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
+import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 import { Building2, Home, Users } from 'lucide-vue-next';
+import ShowWrapper from '../shared/ShowWrapper.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -52,7 +52,9 @@ defineProps<{
                 </div>
                 <div>
                   <div class="text-sm font-medium text-text-subtle">{{ _('Units') }}</div>
-                  <div class="text-2xl font-semibold text-text">{{ unit_type.units_count || 0 }}</div>
+                  <div class="text-2xl font-semibold text-text">
+                    {{ unit_type.units_count || 0 }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -65,15 +67,21 @@ defineProps<{
                 </div>
                 <div>
                   <div class="text-sm font-medium text-text-subtle">{{ _('Families') }}</div>
-                  <div class="text-2xl font-semibold text-text">{{ unit_type.families_count || 0 }}</div>
+                  <div class="text-2xl font-semibold text-text">
+                    {{ unit_type.families_count || 0 }}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Metadata -->
-          <div class="border-t border-border pt-4 text-sm text-text-subtle" :title="unit_type.created_at">
-            <span>{{ _('Created') }}</span>: {{ unit_type.created_ago }}
+          <div
+            class="border-t border-border pt-4 text-sm text-text-subtle"
+            :title="unit_type.created_at"
+          >
+            <span>{{ _('Created') }}</span
+            >: {{ unit_type.created_ago }}
           </div>
         </div>
 

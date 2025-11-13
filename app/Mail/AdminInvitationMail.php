@@ -13,7 +13,8 @@ use Illuminate\Queue\SerializesModels;
 
 class AdminInvitationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Create a new message instance.
@@ -52,8 +53,8 @@ class AdminInvitationMail extends Mailable
         return new Content(
             view: $view,
             with: [
-                'admin' => $this->admin,
-                'projects' => $this->admin->projects,
+                'admin'           => $this->admin,
+                'projects'        => $this->admin->projects,
                 'confirmationUrl' => $confirmationUrl,
             ],
         );

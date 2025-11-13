@@ -2,7 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import createServer from '@inertiajs/vue3/server';
 import { renderToString } from '@vue/server-renderer';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createSSRApp, DefineComponent } from 'vue';
+import { createSSRApp } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -26,7 +26,7 @@ createServer(
 );
 
 function resolvePage(name: string) {
-  const pages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
+  const pages = import.meta.glob<string[]>('./pages/**/*.vue');
 
-  return resolvePageComponent<DefineComponent>(`./pages/${name}.vue`, pages);
+  return resolvePageComponent(`./pages/${name}.vue`, pages);
 }

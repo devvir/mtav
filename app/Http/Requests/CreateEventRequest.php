@@ -21,12 +21,12 @@ class CreateEventRequest extends FormRequest
         $isOnlineEvent = ($this->input('type') === EventType::ONLINE->value);
 
         return [
-            'type' => ['required', Rule::enum(EventType::class)->except(EventType::LOTTERY)],
-            'title' => 'required|string|max:255',
-            'description' => 'required|string|between:20,500',
-            'location' => ['nullable', 'max:500', $isOnlineEvent ? 'url' : 'string'],
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after:start_date',
+            'type'         => ['required', Rule::enum(EventType::class)->except(EventType::LOTTERY)],
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string|between:20,500',
+            'location'     => ['nullable', 'max:500', $isOnlineEvent ? 'url' : 'string'],
+            'start_date'   => 'nullable|date',
+            'end_date'     => 'nullable|date|after:start_date',
             'is_published' => 'boolean',
         ];
     }

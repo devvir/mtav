@@ -27,7 +27,7 @@ export function updateColorTheme(value: ColorTheme) {
     'theme-forest',
     'theme-sunset',
     'theme-mono',
-    'theme-high-contrast'
+    'theme-high-contrast',
   );
 
   // Add new theme class if not default

@@ -12,9 +12,9 @@ class Event extends Model
     use ProjectScope;
 
     protected $casts = [
-        'type' => EventType::class,
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'type'         => EventType::class,
+        'start_date'   => 'datetime',
+        'end_date'     => 'datetime',
         'is_published' => 'boolean',
     ];
 

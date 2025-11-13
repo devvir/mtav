@@ -43,10 +43,10 @@ function createMember(array $attributes = [], bool $asUser = false): Member|User
             $project = \App\Models\Project::factory()->create();
             $unitType = \App\Models\UnitType::factory()->create([
                 'project_id' => $project->id,
-                'name' => 'Test Type',
+                'name'       => 'Test Type',
             ]);
             $family = \App\Models\Family::factory()->create([
-                'project_id' => $project->id,
+                'project_id'   => $project->id,
                 'unit_type_id' => $unitType->id,
             ]);
         }
@@ -86,10 +86,10 @@ function createMemberInProject($project, $family = null, array $attributes = [])
             // Create a unit type and Family for this Project
             $unitType = \App\Models\UnitType::factory()->create([
                 'project_id' => $project->id,
-                'name' => 'Test Type',
+                'name'       => 'Test Type',
             ]);
             $family = \App\Models\Family::factory()->create([
-                'project_id' => $project->id,
+                'project_id'   => $project->id,
                 'unit_type_id' => $unitType->id,
             ]);
         }
@@ -121,7 +121,7 @@ function createFamily(array $attributes = []): \App\Models\Family
         if (!$unitType) {
             $unitType = \App\Models\UnitType::factory()->create([
                 'project_id' => $attributes['project_id'],
-                'name' => 'Test Type',
+                'name'       => 'Test Type',
             ]);
         }
 

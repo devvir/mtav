@@ -229,7 +229,7 @@ const data = [
 </script>
 
 <template>
-    <div class="align-center flex justify-center p-4">
-        <Chart :data />
-    </div>
+  <div class="align-center flex justify-center p-4">
+    <Chart :data />
+  </div>
 </template>

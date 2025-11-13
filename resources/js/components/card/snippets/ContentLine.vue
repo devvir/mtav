@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div
     v-if="value || fallback"
-    class="grid grid-cols-[auto_1fr] text-sm truncate whitespace-nowrap space-x-1"
+    class="grid grid-cols-[auto_1fr] space-x-1 truncate text-sm whitespace-nowrap"
   >
     <strong class="font-semibold">{{ label }}:</strong>
     <span class="truncate">{{ value || fallback }}</span>

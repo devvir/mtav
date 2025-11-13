@@ -10,7 +10,7 @@ import { _ } from '@/composables/useTranslations';
 import { LogOut, Settings } from 'lucide-vue-next';
 
 interface Props {
-  user: User;
+  user: ApiResource<User>;
 }
 
 const handleLogout = () => {
@@ -37,7 +37,13 @@ defineProps<Props>();
   </DropdownMenuGroup>
   <DropdownMenuSeparator />
   <DropdownMenuItem :as-child="true">
-    <Link class="block w-full" method="post" :href="route('logout')" @click="handleLogout" as="button">
+    <Link
+      class="block w-full"
+      method="post"
+      :href="route('logout')"
+      @click="handleLogout"
+      as="button"
+    >
       <LogOut class="mr-2 size-4" />
       {{ _('Log out') }}
     </Link>

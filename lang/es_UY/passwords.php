@@ -13,10 +13,10 @@ return [
     |
     */
 
-    'reset' => 'Cambiamos tu contraseña correctamente.',
-    'sent' => 'Te enviamos el enlace para restablecer tu contraseña por email.',
+    'reset'     => 'Cambiamos tu contraseña correctamente.',
+    'sent'      => 'Te enviamos el enlace para restablecer tu contraseña por email.',
     'throttled' => 'Espera un momento antes de intentar de nuevo.',
-    'token' => 'El código de restablecimiento de contraseña no es válido.',
-    'user' => 'No encontramos ningún usuario con ese email.',
+    'token'     => 'El código de restablecimiento de contraseña no es válido.',
+    'user'      => 'No encontramos ningún usuario con ese email.',
 
 ];

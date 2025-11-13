@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Copilot - pending review
+import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
 import SectionHeader from '../shared/SectionHeader.vue';
-import { _ } from '@/composables/useTranslations';
 </script>
 
 <template>
@@ -14,7 +14,7 @@ import { _ } from '@/composables/useTranslations';
           <!-- Stacked images with rotation -->
           <div class="relative h-48 w-64">
             <div
-              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:rotate-0 hover:scale-105"
+              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:scale-105 hover:rotate-0"
               style="transform: rotate(-6deg) translateY(8px)"
             >
               <img
@@ -24,7 +24,7 @@ import { _ } from '@/composables/useTranslations';
               />
             </div>
             <div
-              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:rotate-0 hover:scale-105"
+              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:scale-105 hover:rotate-0"
               style="transform: rotate(3deg) translateY(4px)"
             >
               <img
@@ -34,7 +34,7 @@ import { _ } from '@/composables/useTranslations';
               />
             </div>
             <div
-              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:rotate-0 hover:scale-105"
+              class="absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform hover:scale-105 hover:rotate-0"
               style="transform: rotate(0deg)"
             >
               <img

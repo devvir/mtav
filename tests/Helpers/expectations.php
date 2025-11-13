@@ -7,8 +7,10 @@ use Illuminate\Testing\TestResponse;
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
 // Collection contains exactly the given items, in any order.
-expect()->extend('toCollect',
-    fn (...$list) => expect($this->value->all())->toEqualCanonicalizing($list));
+expect()->extend(
+    'toCollect',
+    fn (...$list) => expect($this->value->all())->toEqualCanonicalizing($list)
+);
 
 /**
  * Polymorphic expectations, base definitions.
@@ -33,35 +35,65 @@ expect()->extend('toBeMember', fn () => $this->fail('toBeMember is not defined f
  */
 
 // Expect an HTTP response's status to be 200.
-expect()->intercept('toBeOk', TestResponse::class,
-    fn () => $this->value->assertOk());
+expect()->intercept(
+    'toBeOk',
+    TestResponse::class,
+    fn () => $this->value->assertOk()
+);
 
 // Expect an HTTP response's status to be redirect to a given route.
-expect()->intercept('toRedirectTo', TestResponse::class,
-    fn (string $route, array $params = []) => $this->value->assertRedirect(route($route, $params)));
+expect()->intercept(
+    'toRedirectTo',
+    TestResponse::class,
+    fn (string $route, array $params = []) => $this->value->assertRedirect(route($route, $params))
+);
 
 // Expect an HTTP response's status to be 403.
-expect()->intercept('toBeForbidden', TestResponse::class,
-    fn () => $this->value->assertForbidden());
+expect()->intercept(
+    'toBeForbidden',
+    TestResponse::class,
+    fn () => $this->value->assertForbidden()
+);
 
 // Expect an HTTP response's status to be 404.
-expect()->intercept('toBeNotFound', TestResponse::class,
-    fn () => $this->value->assertNotFound());
+expect()->intercept(
+    'toBeNotFound',
+    TestResponse::class,
+    fn () => $this->value->assertNotFound()
+);
 
 // Builder query exists()
-expect()->intercept('toExist', Builder::class,
-    fn () => $this->exists()->toBeTrue(message: 'The entity or entities do not exist'));
-expect()->intercept('toNotExist', Builder::class,
-    fn () => $this->exists()->toBeFalse(message: 'The entity or entities do exist'));
+expect()->intercept(
+    'toExist',
+    Builder::class,
+    fn () => $this->exists()->toBeTrue(message: 'The entity or entities do not exist')
+);
+expect()->intercept(
+    'toNotExist',
+    Builder::class,
+    fn () => $this->exists()->toBeFalse(message: 'The entity or entities do exist')
+);
 
 // Assert User is Admin
-expect()->intercept('toBeAdmin', User::class,
-    fn () => $this->is_admin->toBeTrue(message: 'The given User is not an Admin'));
-expect()->intercept('toBeAdmin', User::class,
-    fn () => $this->fail('The given User is null'));
+expect()->intercept(
+    'toBeAdmin',
+    User::class,
+    fn () => $this->is_admin->toBeTrue(message: 'The given User is not an Admin')
+);
+expect()->intercept(
+    'toBeAdmin',
+    User::class,
+    fn () => $this->fail('The given User is null')
+);
 
 // Assert User is Member
-expect()->intercept('toBeMember', User::class,
-    fn () => $this->is_admin->toBeFalse(message: 'The given User is not an Member'));
-expect()->intercept('toBeMember', User::class,
-    fn () => $this->fail('The given User is null'));
+expect()->intercept(
+    'toBeMember',
+    User::class,
+    fn () => $this->is_admin->toBeFalse(message: 'The given User is not an Member')
+);
+expect()->intercept(
+    'toBeMember',
+    User::class,
+    fn () => $this->fail('The given User is null')
+);

@@ -2,14 +2,10 @@
 import PersonCard from '../shared/PersonCard.vue';
 
 defineProps<{
-  admin: Admin;
+  admin: ApiResource<Admin>;
 }>();
 </script>
 
 <template>
-  <PersonCard
-    :href="route('admins.show', admin.id)"
-    :subject="admin"
-    :subtitle="admin.email"
-  />
+  <PersonCard :href="route('admins.show', admin.id)" :subject="admin" :subtitle="admin.email" />
 </template>

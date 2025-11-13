@@ -16,8 +16,8 @@ class UnitTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
-            'name' => $this->faker->word(),
+            'project_id'  => Project::factory(),
+            'name'        => $this->faker->word(),
             'description' => $this->faker->sentence(),
         ];
     }

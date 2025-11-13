@@ -21,16 +21,16 @@ class MemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'family_id' => Family::factory(),
-            'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->unique()->phoneNumber(),
-            'firstname' => fake()->firstName(),
-            'lastname' => fake()->lastName(),
-            'password' => bcrypt('password'),
-            'remember_token' => \Illuminate\Support\Str::random(10),
+            'family_id'              => Family::factory(),
+            'email'                  => fake()->unique()->safeEmail(),
+            'phone'                  => fake()->unique()->phoneNumber(),
+            'firstname'              => fake()->firstName(),
+            'lastname'               => fake()->lastName(),
+            'password'               => bcrypt('password'),
+            'remember_token'         => \Illuminate\Support\Str::random(10),
             'invitation_accepted_at' => now(),
-            'email_verified_at' => now(),
-            'is_admin' => false,
+            'email_verified_at'      => now(),
+            'is_admin'               => false,
         ];
     }
 

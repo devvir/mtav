@@ -1,10 +1,9 @@
 <script setup lang="ts">
-// Copilot - pending review
 import Card from '@/components/shared/Card.vue';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
-  unitType: UnitType;
+  unitType: ApiResource<UnitType>;
 }>();
 </script>
 
@@ -13,7 +12,9 @@ defineProps<{
     <template v-slot:header>
       <div class="flex items-center justify-between gap-3">
         <div class="flex-1 text-right">
-          <div class="text-xs font-medium uppercase tracking-wide text-text-subtle">{{ _('Unit Type') }}</div>
+          <div class="text-xs font-medium tracking-wide text-text-subtle uppercase">
+            {{ _('Unit Type') }}
+          </div>
           <div class="truncate text-xl font-semibold text-text">{{ unitType.name }}</div>
         </div>
       </div>
