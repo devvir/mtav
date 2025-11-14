@@ -36,5 +36,7 @@ class AppServiceProvider extends ServiceProvider
         if (! app()->environment('production')) {
             Model::shouldBeStrict();
         }
+
+        Model::automaticallyEagerLoadRelationships();
     }
 }
