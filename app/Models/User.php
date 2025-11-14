@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\DerivedRelations;
 use App\Models\Concerns\HasPolicy;
 use App\Models\Concerns\ProjectScope;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
@@ -16,10 +17,8 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use ConvertsToJsonResource;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use DerivedRelations;
     use HasFactory;
-
     use HasPolicy;
     use Notifiable;
     use ProjectScope;
