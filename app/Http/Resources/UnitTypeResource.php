@@ -9,12 +9,10 @@ class UnitTypeResource extends JsonResource
     public function toArray(Request $_): array
     {
         return [
-            'id'          => $this->id,
+            ...$this->commonResourceData(),
+
             'name'        => $this->name,
             'description' => $this->description,
-            'created_at'  => $this->created_at->translatedFormat('M j, Y g:i A'),
-            'created_ago' => $this->created_at->diffForHumans(),
-            'deleted_at'  => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 
             ...$this->relationsData(),
         ];

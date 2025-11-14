@@ -468,6 +468,84 @@ INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) V
 -- - Project #1: 2 logs (#1 by Member #102, #2 by Admin #11)
 -- - Project #2: 2 logs (#3 by Member #136, #4 by Admin #12)
 -- ============================================================================
+-- EVENTS (12 total)
+-- ============================================================================
+-- Distribution:
+-- Project #1: 5 events (1 lottery, 2 online, 2 onsite - mix of RSVP/non-RSVP)
+-- Project #2: 4 events (1 lottery, 1 online, 2 onsite - mix of RSVP/non-RSVP)
+-- Project #3: 2 events (1 lottery, 1 online - both no RSVP)
+-- Project #4: 1 event (1 onsite - with RSVP but unpublished)
+-- Project #5: 0 events (deleted project)
+-- ============================================================================
+
+TRUNCATE TABLE events;
+
+INSERT INTO events (id, type, creator_id, project_id, title, description, location, start_date, end_date, is_published, rsvp, created_at, updated_at, deleted_at) VALUES
+-- Project #1 events (5 total)
+(1, 'lottery', 11, 1, 'Lottery', 'Unit assignment lottery for Project 1', NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(2, 'online', 11, 1, 'Online Community Meeting', 'Monthly community meeting via video call', 'https://meet.example.com/proj1', DATE_ADD(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
+(3, 'online', 11, 1, 'Past Online Workshop', 'Completed workshop on building rules', 'https://meet.example.com/workshop1', DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
+(4, 'onsite', 11, 1, 'Site Visit', 'Construction progress tour', '123 Building Street, Project 1', DATE_ADD(NOW(), INTERVAL 14 DAY), DATE_ADD(NOW(), INTERVAL 14 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
+(5, 'onsite', 11, 1, 'Unpublished Onsite Event', 'Draft event not yet published', '123 Building Street, Project 1', DATE_ADD(NOW(), INTERVAL 21 DAY), DATE_ADD(NOW(), INTERVAL 21 DAY), FALSE, FALSE, NOW(), NOW(), NULL),
+
+-- Project #2 events (4 total)
+(6, 'lottery', 12, 2, 'Lottery', 'Unit assignment lottery for Project 2', NULL, DATE_ADD(NOW(), INTERVAL 45 DAY), DATE_ADD(NOW(), INTERVAL 45 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(7, 'online', 12, 2, 'Virtual Info Session', 'Q&A session with architects', 'https://meet.example.com/proj2', DATE_ADD(NOW(), INTERVAL 10 DAY), DATE_ADD(NOW(), INTERVAL 10 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
+(8, 'onsite', 12, 2, 'Groundbreaking Ceremony', 'Official project launch event', '456 Development Ave, Project 2', DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
+(9, 'onsite', 12, 2, 'Past Onsite Meeting', 'Completed planning meeting', '456 Development Ave, Project 2', DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+
+-- Project #3 events (2 total)
+(10, 'lottery', 13, 3, 'Lottery', 'Unit assignment lottery for Project 3', NULL, DATE_ADD(NOW(), INTERVAL 60 DAY), DATE_ADD(NOW(), INTERVAL 60 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(11, 'online', 13, 3, 'Project Introduction', 'Introduction to Project 3 for new members', 'https://meet.example.com/proj3', DATE_ADD(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 5 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+
+-- Project #4 events (1 total)
+(12, 'onsite', 13, 4, 'Unpublished Planning Meeting', 'Internal planning session', '789 Planning St, Project 4', DATE_ADD(NOW(), INTERVAL 12 DAY), DATE_ADD(NOW(), INTERVAL 12 DAY), FALSE, TRUE, NOW(), NOW(), NULL);
+
+-- ============================================================================
+-- EVENT_RSVP (Pivot table for member event responses)
+-- ============================================================================
+-- RSVP patterns:
+-- - Event #2 (P1 online): 3 members responded (2 accepted, 1 rejected)
+-- - Event #3 (P1 past): 4 members responded (3 accepted, 1 pending)
+-- - Event #4 (P1 onsite): 2 members responded (1 accepted, 1 rejected)
+-- - Event #7 (P2 online): 2 members responded (both accepted)
+-- - Event #8 (P2 onsite): 5 members responded (3 accepted, 1 rejected, 1 pending)
+-- - Event #12 (P4 unpublished): 1 member responded (accepted)
+-- ============================================================================
+
+TRUNCATE TABLE event_rsvp;
+
+INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) VALUES
+-- Event #2 (Project 1 online meeting) - 3 RSVPs
+(1, 2, 102, TRUE, NOW(), NOW()),   -- Member 102 accepted
+(2, 2, 103, TRUE, NOW(), NOW()),   -- Member 103 accepted
+(3, 2, 105, FALSE, NOW(), NOW()),  -- Member 105 rejected
+
+-- Event #3 (Project 1 past workshop) - 4 RSVPs
+(4, 3, 102, TRUE, NOW(), NOW()),   -- Member 102 accepted
+(5, 3, 103, TRUE, NOW(), NOW()),   -- Member 103 accepted
+(6, 3, 105, TRUE, NOW(), NOW()),   -- Member 105 accepted
+(7, 3, 106, NULL, NOW(), NOW()),   -- Member 106 pending (no response)
+
+-- Event #4 (Project 1 site visit) - 2 RSVPs
+(8, 4, 107, TRUE, NOW(), NOW()),   -- Member 107 accepted
+(9, 4, 108, FALSE, NOW(), NOW()),  -- Member 108 rejected
+
+-- Event #7 (Project 2 online session) - 2 RSVPs
+(10, 7, 136, TRUE, NOW(), NOW()),  -- Member 136 accepted
+(11, 7, 137, TRUE, NOW(), NOW()),  -- Member 137 accepted
+
+-- Event #8 (Project 2 groundbreaking) - 5 RSVPs
+(12, 8, 136, TRUE, NOW(), NOW()),  -- Member 136 accepted
+(13, 8, 137, FALSE, NOW(), NOW()), -- Member 137 rejected
+(14, 8, 138, TRUE, NOW(), NOW()),  -- Member 138 accepted
+(15, 8, 139, TRUE, NOW(), NOW()),  -- Member 139 accepted
+(16, 8, 140, NULL, NOW(), NOW()),  -- Member 140 pending
+
+-- Event #12 (Project 4 unpublished) - 1 RSVP
+(17, 12, 145, TRUE, NOW(), NOW()); -- Member 145 accepted
+
+-- ============================================================================
 
 TRUNCATE TABLE logs;
 

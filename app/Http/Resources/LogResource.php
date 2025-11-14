@@ -12,13 +12,11 @@ class LogResource extends JsonResource
         $user = $this->whenLoaded('user');
 
         return [
-            'id'           => $this->id,
+            ...$this->commonResourceData(),
+
             'event'        => $this->event,
             'creator'      => $user?->name ?? __('System'),
             'creator_href' => $user ? $this->getCreatorHref($user) : null,
-            'created_at'   => $this->created_at->translatedFormat('M j, Y g:i A'),
-            'created_ago'  => $this->created_at->diffForHumans(),
-            'deleted_at'   => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
 
             ...$this->relationsData(),
         ];

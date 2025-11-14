@@ -23,6 +23,7 @@ return new class () extends Migration {
             $table->datetime('start_date')->nullable();
             $table->datetime('end_date')->nullable();
             $table->boolean('is_published')->default(false);
+            $table->boolean('rsvp')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

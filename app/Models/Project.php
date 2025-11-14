@@ -52,6 +52,11 @@ class Project extends Model
         return $this->hasMany(Event::class);
     }
 
+    public function upcomingEvents(): HasMany
+    {
+        return $this->events()->upcoming();
+    }
+
     public function logs(): HasMany
     {
         return $this->hasMany(Log::class);

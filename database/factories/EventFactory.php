@@ -37,6 +37,7 @@ class EventFactory extends Factory
             'type'         => $this->faker->randomElement([EventType::ONLINE, EventType::ONSITE]),
             'location'     => $this->faker->optional(0.6)->address(),
             'is_published' => $this->faker->boolean(80),
+            'rsvp'         => $this->faker->boolean(20),
         ];
     }
 

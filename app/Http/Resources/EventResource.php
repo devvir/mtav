@@ -6,15 +6,11 @@ use Illuminate\Http\Request;
 
 class EventResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
-            'id'           => $this->id,
+            ...$this->commonResourceData(),
+
             'type'         => $this->type->value,
             'title'        => $this->title,
             'description'  => $this->description,
@@ -22,9 +18,10 @@ class EventResource extends JsonResource
             'start_date'   => $this->start_date?->translatedFormat('M j, Y g:i A'),
             'end_date'     => $this->end_date?->translatedFormat('M j, Y g:i A'),
             'is_published' => $this->is_published,
-            'created_at'   => $this->created_at->translatedFormat('M j, Y g:i A'),
-            'created_ago'  => $this->created_at->diffForHumans(),
-            'deleted_at'   => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
+            'allows_rsvp'  => $this->allowsRsvp(),
+
+            'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, true)),
+            'rejected' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, false)),
 
             'type_label' => $this->type->label(),
             'is_lottery' => $this->isLottery(),
@@ -38,8 +35,20 @@ class EventResource extends JsonResource
     protected function relationsData(): array
     {
         return [
-            'creator' => $this->whenLoaded('creator', default: ['id' => $this->creator_id]),
-            'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
+            'creator'     => $this->whenLoaded('creator', default: ['id' => $this->creator_id]),
+            'project'     => $this->whenLoaded('project', default: ['id' => $this->project_id]),
+            'rsvps'       => $this->whenLoaded('rsvps'),
+            'rsvps_count' => $this->whenCountedOrLoaded('rsvps'),
         ];
+    }
+
+    protected function acknowledgedByMe(Request $request, bool $status)
+    {
+        $currentUser = $request->user();
+
+        return $this->rsvp && $currentUser?->isMember() && $this->rsvps->where([
+            'user_id'      => $currentUser->id,
+            'pivot.status' => $status,
+        ])->isNotEmpty();
     }
 }

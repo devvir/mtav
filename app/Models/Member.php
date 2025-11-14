@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends User
 {
@@ -28,8 +30,69 @@ class Member extends User
     public function project(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->projects->first(),
+            get: fn () => $this->projects->last(),
         );
+    }
+
+    /**
+     * Get all events for the member's project.
+     */
+    public function events(): HasMany
+    {
+        /** @var Project $project */
+        $project = $this->projects()->latest()->first();
+
+        return $project->events()->published();
+    }
+
+    /**
+     * Get upcoming published events for the member's project.
+     */
+    public function upcomingEvents(): HasMany
+    {
+        return $this->events()->upcoming();
+    }
+
+    /**
+     * Get upcoming published events for the member's project.
+     */
+    public function acknowledgedEvents(): BelongsToMany
+    {
+        return $this->rsvps()->wherePivotNotNull('status');
+    }
+
+    /**
+     * Get upcoming published events for the member's project.
+     */
+    public function acceptedEvents(): BelongsToMany
+    {
+        return $this->rsvps()->wherePivot('status', true);
+    }
+
+    /**
+     * Get upcoming published events for the member's project.
+     */
+    public function rejectedEvents(): BelongsToMany
+    {
+        return $this->rsvps()->wherePivot('status', false);
+    }
+
+    /**
+     * Get all events the member has RSVP'd to.
+     */
+    public function rsvps(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_rsvp', 'user_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get upcoming events the member has RSVP'd to.
+     */
+    public function upcomingRsvps(): BelongsToMany
+    {
+        return $this->rsvps()->upcoming();
     }
 
     public function joinProject(Project|int $project): self

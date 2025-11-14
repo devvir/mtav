@@ -7,20 +7,13 @@ use Illuminate\Support\Facades\Storage;
 
 class FamilyResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $_): array
     {
         return [
-            'id'          => $this->id,
-            'name'        => $this->name,
-            'avatar'      => $this->resolveAvatar(),
-            'created_at'  => $this->created_at->translatedFormat('M j, Y g:i A'),
-            'created_ago' => $this->created_at->diffForHumans(),
-            'deleted_at'  => $this->deleted_at?->translatedFormat('M j, Y g:i A'),
+            ...$this->commonResourceData(),
+
+            'name'   => $this->name,
+            'avatar' => $this->resolveAvatar(),
 
             ...$this->relationsData(),
         ];

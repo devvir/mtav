@@ -37,7 +37,17 @@ interface Subject {
   avatar: string;
 }
 
-interface Project extends Resource {
+type EventType = 'lottery' | 'online' | 'onsite';
+type EventTypes = Record<EventType, string>;
+
+interface HasEvents {
+  events?: ApiResource<Event>[];
+  events_count?: number;
+  upcoming_events?: ApiResource<Event>[];
+  upcoming_events_count?: number;
+}
+
+interface Project extends Resource, HasEvents {
   name: string;
   description: string;
   organization: string;
@@ -55,13 +65,11 @@ interface Project extends Resource {
   units_count?: number;
   media?: ApiResource<Media>[];
   media_count?: number;
-  events?: ApiResource<Event>[];
-  events_count?: number;
   log?: ApiResource<Log>[];
   log_count?: number;
 }
 
-interface User extends Resource, Subject {
+interface User extends Resource, Subject, HasEvents {
   email: string;
   phone: string;
   firstname: string;
@@ -70,6 +78,7 @@ interface User extends Resource, Subject {
   is_admin: boolean;
 
   projects?: ApiResource<Project>[];
+  projects_count?: number;
 
   // Sensitive data (only present for admins)
   legal_id?: string;
@@ -79,13 +88,29 @@ interface User extends Resource, Subject {
   invitation_accepted_at?: string;
 }
 
-interface Member extends User {
+interface MemberRsvpFields {
+  rsvps: ApiResource<Event>[];
+  rsvps_count: number;
+  upcoming_rsvps: ApiResource<Event>[];
+  upcoming_rsvps_count: number;
+  acknowledged_events: ApiResource<Event>[];
+  acknowledged_events_count: number;
+  accepted_events: ApiResource<Event>[];
+  accepted_events_count: number;
+  rejected_events: ApiResource<Event>[];
+  rejected_events_count: number;
+}
+
+interface Member extends User, Partial<MemberRsvpFields> {
   family: { id: number } | ApiResource<Family>;
   project?: ApiResource<Project> | null;
 }
 
+type MemberWithRsvps = Member & Required<MemberRsvpFields>;
+
 interface Admin extends User {
   manages?: ApiResource<Project>[];
+  manages_count?: number;
 }
 
 interface Family extends Resource, Subject {
@@ -121,25 +146,32 @@ interface Media extends Resource {
   thumbnail_url: string | null;
 }
 
-type EventType = 'lottery' | 'online' | 'onsite';
-type EventTypes = Record<EventType, string>;
+interface EventRsvpFields {
+  rsvps: ApiResource<User>[];
+  rsvps_count: number;
+  accepted: boolean;
+  rejected: boolean;
+}
 
-interface Event extends Resource {
+interface Event extends Resource, Partial<EventRsvpFields> {
   type: EventType;
+  type_label: string;
   title: string;
   description: string;
   start_date: string | null;
   end_date: string | null;
   location: string | null;
   is_published: boolean;
+  allows_rsvp: boolean;
   is_lottery: boolean;
   is_online: boolean;
   is_onsite: boolean;
-  type_label: string;
 
   creator: ApiResource<Admin> | { id: number };
   project: ApiResource<Project> | { id: number };
 }
+
+type EventWithRsvps = Event & Required<EventRsvpFields>;
 
 interface Log extends Resource {
   event: string;
