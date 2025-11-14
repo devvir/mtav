@@ -123,7 +123,7 @@ class Member extends User
     protected static function booted(): void
     {
         static::addGlobalScope('member', function ($query) {
-            $query->where('is_admin', false);
+            $query->where('is_admin', false)->whereNotNull('family_id');
         });
     }
 }

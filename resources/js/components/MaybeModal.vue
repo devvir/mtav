@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Modal, useModal } from '@inertiaui/modal-vue';
+import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
+import { Modal, useModal } from '@inertiaui/modal-vue';
 
 defineProps<{
   panelClasses?: HTMLAttributes['class'];
   paddingClasses?: HTMLAttributes['class'];
+  class?: HTMLAttributes['class'];
 }>();
 
 const modal = useTemplateRef<any>('modal');
@@ -19,17 +21,12 @@ onUnmounted(onNavigateDetacher);
 </script>
 
 <template>
-  <Modal
-    ref="modal"
-    v-if="useModal()"
-    v-slot="modal"
-    :panel-classes="panelClasses"
-    :padding-classes="paddingClasses"
-  >
+  <Modal ref="modal" v-if="useModal()" v-slot="modal" :panel-classes="cn(panelClasses, $props.class)"
+    :padding-classes="paddingClasses">
     <slot v-bind="modal" />
   </Modal>
 
-  <div v-else class="size-full">
+  <div v-else :class="cn('size-full', $props.class)">
     <slot />
   </div>
 </template>

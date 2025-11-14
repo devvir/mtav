@@ -168,7 +168,7 @@
   }
 
   [data-inertiaui-modal-id] .im-close-button {
-    @apply relative z-10 p-1 rounded-full hover:text-text active:scale-95 transition-transform hover:bg-error-subtle/50;
+    @apply relative z-10 p-1 rounded-full hover:text-text active:scale-95 transition-transform hover:bg-error-subtle/20;
   }
 
   [data-inertiaui-modal-id] .im-close-button svg {
@@ -192,7 +192,7 @@
   }
 
   [data-inertiaui-modal-id] [data-state='open'].im-backdrop {
-    @apply !bg-background/70 backdrop-blur-xs;
+    @apply bg-background/70 backdrop-blur-xs;
   }
 
   :root:has([data-inertiaui-modal-id] [data-state='open']) {

@@ -22,7 +22,7 @@ defineProps<{
 </script>
 
 <template>
-  <Collapsible :open="isExpanded" class="rounded-lg border border-border bg-surface">
+  <Collapsible :open="isExpanded" :id="entity.key" class="rounded-lg border border-border bg-surface">
     <CollapsibleTrigger as-child>
       <Button
         variant="ghost"

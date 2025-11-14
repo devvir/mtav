@@ -31,7 +31,7 @@ provide(exposed.routes, routes);
     :title="linksToDetails ? ($attrs.title ?? _('Click to see the Details Page')) : undefined"
     :class="
       cn(
-        'w-full max-w-3xl rounded-lg border [&>*]:p-4',
+        'w-full max-w-3xl rounded-lg border [&>*]:p-4 relative',
         'border-border bg-surface-elevated shadow-sm [&>*+*]:border-border-subtle',
         // Deleted resource styling
         resource.deleted_at && 'border-red-200 bg-surface opacity-60 shadow-sm',

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -62,6 +63,7 @@ class UserSeeder extends Seeder
             'firstname' => 'A Regular User',
             'lastname'  => 'With a Very Long Name',
             'email'     => 'longname@example.com',
+            'family_id' => Family::factory(['project_id' => $firstProject->id]),
         ])->asMember()->joinProject($firstProject);
 
         // Example inactive User (@see DatabaseSeeder for further setup of this User)

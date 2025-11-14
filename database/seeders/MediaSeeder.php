@@ -27,17 +27,15 @@ class MediaSeeder extends Seeder
                 return;
             }
 
-            // Create media items for this project - only images and videos for now
-            foreach (['image', 'video'] as $category) {
-                Media::factory()
-                    ->count(10) // 10 of each type = 20 total
-                    ->category($category)
-                    ->sequence(fn ($sequence) => [
-                        'project_id' => $projectId,
-                        'owner_id'   => $projectUserIds->random(),
-                    ])
-                    ->create();
-            }
+            // Create media items for this project - images only for now
+            Media::factory()
+                ->count(20) // 20 images per project
+                ->category('image')
+                ->sequence(fn ($sequence) => [
+                    'project_id' => $projectId,
+                    'owner_id'   => $projectUserIds->random(),
+                ])
+                ->create();
         });
     }
 }

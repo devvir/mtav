@@ -69,23 +69,40 @@ class MediaResource extends JsonResource
      */
     protected function getMockImageUrl(): string
     {
-        // For non-images, return a placeholder
-        if (! $this->isImage()) {
-            return 'https://via.placeholder.com/200x200/cccccc/666666?text=' . ucfirst($this->category);
+        // For videos, treat them like images (they need thumbnails anyway)
+        if ($this->isImage() || $this->category === 'video') {
+            // Use the stored dimensions or reasonable defaults
+            $width = $this->width ?? 800;
+            $height = $this->height ?? 600;
+
+            // Extract UUID from path for consistent image per media record
+            $filename = basename($this->path);
+            preg_match('/dev-([a-f0-9-]+)\./', $filename, $matches);
+            $seed = $matches[1] ?? 'default';
+
+            // Convert UUID to a simple number for Picsum seed
+            $numericSeed = abs(crc32($seed));
+
+            return "https://picsum.photos/{$width}/{$height}?random={$numericSeed}";
         }
 
-        // For images, use the stored dimensions or reasonable defaults
-        $width = $this->width ?? 800;
-        $height = $this->height ?? 600;
+        // For other file types (documents, archives), use a simple colored background
+        $width = 400;
+        $height = 400;
 
-        // Extract UUID from path for consistent image per media record
+        // Extract UUID from path for consistent color per media record
         $filename = basename($this->path);
         preg_match('/dev-([a-f0-9-]+)\./', $filename, $matches);
         $seed = $matches[1] ?? 'default';
 
-        // Convert UUID to a simple number for Picsum seed
-        $numericSeed = abs(crc32($seed));
+        // Generate a consistent color based on the seed
+        $hue = abs(crc32($seed)) % 360;
+        $color = sprintf('%02x%02x%02x',
+            (int)(127 + 127 * cos(deg2rad($hue))),
+            (int)(127 + 127 * cos(deg2rad($hue + 120))),
+            (int)(127 + 127 * cos(deg2rad($hue + 240)))
+        );
 
-        return "https://picsum.photos/{$width}/{$height}?random={$numericSeed}";
+        return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='{$width}' height='{$height}' viewBox='0 0 {$width} {$height}'%3E%3Crect width='100%25' height='100%25' fill='%23{$color}'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='24' fill='%23ffffff' text-anchor='middle' dominant-baseline='central'%3E" . strtoupper($this->category) . "%3C/text%3E%3C/svg%3E";
     }
 }

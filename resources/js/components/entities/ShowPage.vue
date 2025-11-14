@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { cn } from '@/lib/utils';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
@@ -11,6 +12,8 @@ const props = defineProps<{
   entity: AppEntity;
   resource: ApiResource;
   pageTitle?: string;
+  modalWidth?: string;
+  class?: HTMLAttributes['class'];
 }>();
 
 const title = props.pageTitle ?? props.resource.name ?? entityLabel(props.entity);
@@ -27,11 +30,14 @@ const ShowCard = defineAsyncComponent(
   <Head :title no-translation />
 
   <Breadcrumbs>
-    <Breadcrumb :route="routeIndex" :text="indexName" no-translation />
+    <Breadcrumb v-if="! pageTitle" :route="routeIndex" :text="indexName" no-translation />
     <Breadcrumb :route="routeShow" :params="resource.id">{{ title }}</Breadcrumb>
   </Breadcrumbs>
 
-  <MaybeModal max-width="xl">
-    <component :is="ShowCard" v-bind="{ [entity]: resource }" class="mx-auto max-w-xl p-base" />
+  <MaybeModal :max-width="modalWidth ?? 'xl'" class="h-auto">
+    <component
+      :is="ShowCard"
+      v-bind="{ [entity]: resource }"
+      :class="cn('mx-auto max-w-xl p-base', $props.class)" />
   </MaybeModal>
 </template>

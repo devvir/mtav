@@ -148,9 +148,68 @@ const expandedSections = ref<Record<string, boolean>>(
   ),
 );
 
-// Function to toggle section expansion
+// Initialize expanded sections from URL hash
+onMounted(() => {
+  const hash = window.location.hash.slice(1); // Remove the #
+  if (hash && expandedSections.value.hasOwnProperty(hash)) {
+    expandedSections.value[hash] = true;
+
+    // Scroll to section after DOM update
+    nextTick(() => {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+});
+
+// Watch for hash changes (e.g., browser back/forward)
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.slice(1);
+
+  // Collapse all sections first
+  Object.keys(expandedSections.value).forEach(key => {
+    expandedSections.value[key] = false;
+  });
+
+  // Expand the section from hash if valid
+  if (hash && expandedSections.value.hasOwnProperty(hash)) {
+    expandedSections.value[hash] = true;
+
+    // Scroll to section after DOM update
+    nextTick(() => {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+});// Function to toggle section expansion
 const toggleSection = (entityKey: string) => {
-  expandedSections.value[entityKey] = !expandedSections.value[entityKey];
+  const wasExpanded = expandedSections.value[entityKey];
+
+  // Collapse all sections first
+  Object.keys(expandedSections.value).forEach(key => {
+    expandedSections.value[key] = false;
+  });
+
+  // If the section wasn't expanded, expand it and update URL hash
+  if (!wasExpanded) {
+    expandedSections.value[entityKey] = true;
+    window.history.replaceState(null, '', `#${entityKey}`);
+
+    // Scroll to section after DOM update
+    nextTick(() => {
+      const element = document.getElementById(entityKey);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  } else {
+    // If it was expanded and we're collapsing, remove the hash
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
 };
 
 // Function to expand all sections
@@ -158,6 +217,8 @@ const expandAll = () => {
   entities.forEach((entity) => {
     expandedSections.value[entity.key] = true;
   });
+  // Clear hash when expanding all
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
 };
 
 // Function to collapse all sections
@@ -165,6 +226,8 @@ const collapseAll = () => {
   entities.forEach((entity) => {
     expandedSections.value[entity.key] = false;
   });
+  // Clear hash when collapsing all
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
 };
 </script>
 
