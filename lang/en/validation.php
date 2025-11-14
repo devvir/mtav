@@ -213,4 +213,10 @@ return [
     'unit_type_belongs_to_project'     => 'The selected Unit Type does not belong to the selected Project.',
     'unit_type_has_dependencies'       => 'Cannot delete a Unit Type that is assigned to Families or Units. Please reassign them first.',
 
+    // Media validation messages
+    'media_file_required'        => 'Please select a file to upload.',
+    'media_file_too_large'       => 'The file must not be larger than 10MB.',
+    'media_invalid_file_type'    => 'The file must be a valid image or document type.',
+    'media_description_required' => 'Please provide a description for the media.',
+    'media_description_too_long' => 'The description must not exceed 500 characters.',
 ];

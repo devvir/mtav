@@ -21,8 +21,8 @@ import EventIndexCard from '@/components/entities/event/IndexCard.vue';
 import EventShowCard from '@/components/entities/event/ShowCard.vue';
 import FamilyIndexCard from '@/components/entities/family/IndexCard.vue';
 import FamilyShowCard from '@/components/entities/family/ShowCard.vue';
-import GalleryIndexCard from '@/components/entities/gallery/IndexCard.vue';
-import GalleryShowCard from '@/components/entities/gallery/ShowCard.vue';
+import MediaIndexCard from '@/components/entities/media/IndexCard.vue';
+import MediaShowCard from '@/components/entities/media/ShowCard.vue';
 import LogIndexCard from '@/components/entities/log/IndexCard.vue';
 import LogShowCard from '@/components/entities/log/ShowCard.vue';
 import MemberIndexCard from '@/components/entities/member/IndexCard.vue';
@@ -40,7 +40,7 @@ const props = defineProps<{
   members: ApiResource<Member>[];
   families: ApiResource<Family>[];
   units: ApiResource<Unit>[];
-  gallery: ApiResource<Media>[];
+  media: ApiResource<Media>[];
   events: ApiResource<Event>[];
   logs: ApiResource<Log>[];
 }>();
@@ -50,7 +50,7 @@ const entities = [
   {
     key: 'projects',
     name: 'Projects',
-    propName: 'project',
+    propName: 'projects',
     icon: Building,
     description: 'Housing cooperative projects managed by admins',
     color: 'text-blue-500',
@@ -61,7 +61,7 @@ const entities = [
   {
     key: 'units',
     name: 'Units',
-    propName: 'unit',
+    propName: 'units',
     icon: Home,
     description: 'Living units within each project',
     color: 'text-green-500',
@@ -72,7 +72,7 @@ const entities = [
   {
     key: 'admins',
     name: 'Admins',
-    propName: 'admin',
+    propName: 'admins',
     icon: UserCheck,
     description: 'Project administrators and managers',
     color: 'text-purple-500',
@@ -83,7 +83,7 @@ const entities = [
   {
     key: 'members',
     name: 'Members',
-    propName: 'member',
+    propName: 'members',
     icon: Users,
     description: 'Family members participating in projects',
     color: 'text-indigo-500',
@@ -94,7 +94,7 @@ const entities = [
   {
     key: 'families',
     name: 'Families',
-    propName: 'family',
+    propName: 'families',
     icon: Home,
     description: 'Family units (atomic participation units)',
     color: 'text-orange-500',
@@ -105,7 +105,7 @@ const entities = [
   {
     key: 'events',
     name: 'Events',
-    propName: 'event',
+    propName: 'events',
     icon: Calendar,
     description: 'Project events and activities',
     color: 'text-rose-500',
@@ -116,7 +116,7 @@ const entities = [
   {
     key: 'logs',
     name: 'Logs',
-    propName: 'log',
+    propName: 'logs',
     icon: FileText,
     description: 'System activity logs and audit trails',
     color: 'text-gray-500',
@@ -132,8 +132,8 @@ const entities = [
     description: 'Photo galleries and media collections',
     color: 'text-pink-500',
     component: EntitySamples,
-    indexCard: GalleryIndexCard,
-    showCard: GalleryShowCard,
+    indexCard: MediaIndexCard,
+    showCard: MediaShowCard,
   },
 ];
 
@@ -197,7 +197,7 @@ const collapseAll = () => {
 
     <!-- Entity Sections -->
     <div class="space-y-6">
-      <EntitySection v-for="entity in entities" :key="entity.key" :entity="entity" :entity-data="props[entity.key]"
+      <EntitySection v-for="entity in entities" :key="entity.key" :entity="entity" :entity-data="props[entity.propName]"
         :is-expanded="expandedSections[entity.key]" @toggle="toggleSection(entity.key)" />
     </div>
 

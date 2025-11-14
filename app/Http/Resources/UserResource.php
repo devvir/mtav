@@ -3,12 +3,14 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\HasEvents;
+use App\Http\Resources\Concerns\HasMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
     use HasEvents;
+    use HasMedia;
 
     public function toArray(Request $request): array
     {
@@ -24,13 +26,14 @@ class UserResource extends JsonResource
             'avatar'    => $this->avatar ? Storage::url($this->avatar) : null,
             'is_admin'  => $this->isAdmin(),
 
-            ...$this->sensitiveData($request),
-
             /** Relations data */
             'projects'       => $this->whenLoaded('projects'),
             'projects_count' => $this->whenCountedOrLoaded('projects'),
 
+            ...$this->sharedMediaData(),
             ...$this->sharedEventsData(),
+
+            ...$this->sensitiveData($request),
         ];
     }
 

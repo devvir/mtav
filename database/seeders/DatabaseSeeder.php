@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             FamilySeeder::class,
             UnitSeeder::class,
+            MediaSeeder::class,
             EventSeeder::class,
             LogSeeder::class,
         ]);

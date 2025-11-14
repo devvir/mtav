@@ -8,22 +8,22 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="media" entity="gallery" type="show">
-    <CardHeader :title="media.filename" :subtitle="media.description" />
+  <Card :resource="media" entity="media" type="show">
+    <CardHeader :title="media.path.split('/').pop()" :subtitle="media.description" />
 
     <CardContent>
       <div class="space-y-2">
         <div
           class="flex h-20 w-full items-center justify-center rounded bg-gray-200 text-sm text-gray-500"
         >
-          📷 Image Preview
+          📷 {{ media.category }} Preview
         </div>
 
         <p class="line-clamp-2 text-sm">{{ media.description }}</p>
 
         <div class="flex flex-wrap gap-2">
-          <Badge variant="outline">{{ media.filename.split('.').pop()?.toUpperCase() }}</Badge>
-          <Badge variant="outline">Image</Badge>
+          <Badge variant="outline">{{ media.path.split('.').pop()?.toUpperCase() }}</Badge>
+          <Badge variant="outline">{{ media.category }}</Badge>
         </div>
       </div>
     </CardContent>

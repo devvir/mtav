@@ -47,6 +47,12 @@ return [
     'event_deleted'  => 'Event removed successfully.',
     'event_restored' => 'Event restored successfully.',
 
+    // Media operations
+    'media_uploaded' => 'File uploaded successfully!',
+    'media_updated'  => 'Media details updated.',
+    'media_deleted'  => 'Media file removed successfully.',
+    'media_restored' => 'Media file restored successfully.',
+
     // Registration/Authentication
     'registration_complete' => 'Welcome aboard! You\'re all set.',
     'registration_required' => 'Please complete your registration to continue.',

@@ -2,11 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\HasMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FamilyResource extends JsonResource
 {
+    use HasMedia;
+
     public function toArray(Request $_): array
     {
         return [
@@ -27,6 +30,8 @@ class FamilyResource extends JsonResource
 
             'project'   => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
+
+            ...$this->sharedMediaData(),
         ];
     }
 

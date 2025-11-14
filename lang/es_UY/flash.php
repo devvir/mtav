@@ -47,6 +47,12 @@ return [
     'event_deleted'  => 'Evento eliminado exitosamente.',
     'event_restored' => 'Evento restaurado exitosamente.',
 
+    // Media operations
+    'media_uploaded' => '¡Archivo subido exitosamente!',
+    'media_updated'  => 'Detalles del archivo actualizados.',
+    'media_deleted'  => 'Archivo eliminado exitosamente.',
+    'media_restored' => 'Archivo restaurado exitosamente.',
+
     // Registration/Authentication
     'registration_complete' => '¡Bienvenido! Ya estás pronto para comenzar.',
     'registration_required' => 'Por favor, completa tu registro para continuar.',

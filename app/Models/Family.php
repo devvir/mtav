@@ -6,6 +6,7 @@ use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Family extends Model
 {
@@ -24,6 +25,27 @@ class Family extends Model
     public function unitType(): BelongsTo
     {
         return $this->belongsTo(UnitType::class);
+    }
+
+    public function media(): HasManyThrough
+    {
+        return $this->hasManyThrough(Media::class, Member::class, secondKey: 'owner_id');
+    }
+
+    /**
+     * All images uploaded by family members.
+     */
+    public function images(): HasManyThrough
+    {
+        return $this->media()->images();
+    }
+
+    /**
+     * All videos uploaded by family members.
+     */
+    public function videos(): HasManyThrough
+    {
+        return $this->media()->videos();
     }
 
     public function addMember(Member|int $memberOrId): self

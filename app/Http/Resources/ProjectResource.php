@@ -3,11 +3,13 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\HasEvents;
+use App\Http\Resources\Concerns\HasMedia;
 use Illuminate\Http\Request;
 
 class ProjectResource extends JsonResource
 {
     use HasEvents;
+    use HasMedia;
 
     public function toArray(Request $_): array
     {
@@ -37,9 +39,7 @@ class ProjectResource extends JsonResource
             'units'            => $this->whenLoaded('units'),
             'units_count'      => $this->whenCountedOrLoaded('units'),
 
-            'media'       => $this->whenLoaded('media'),
-            'media_count' => $this->whenCountedOrLoaded('media'),
-
+            ...$this->sharedMediaData(),
             ...$this->sharedEventsData(),
         ];
     }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -69,6 +70,30 @@ class User extends Authenticatable
             ->belongsToMany(Project::class, 'project_user', 'user_id')
             ->wherePivot('active', true)
             ->withTimestamps();
+    }
+
+    /**
+     * All media uploaded by this user.
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class, 'owner_id');
+    }
+
+    /**
+     * All images uploaded by this user.
+     */
+    public function images(): HasMany
+    {
+        return $this->media()->images();
+    }
+
+    /**
+     * All videos uploaded by this user.
+     */
+    public function videos(): HasMany
+    {
+        return $this->media()->videos();
     }
 
     public function scopeAlphabetically(Builder $query): void

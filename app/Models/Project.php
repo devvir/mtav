@@ -62,6 +62,27 @@ class Project extends Model
         return $this->hasMany(Log::class);
     }
 
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class);
+    }
+
+    /**
+     * All images in this project.
+     */
+    public function images(): HasMany
+    {
+        return $this->media()->images();
+    }
+
+    /**
+     * All videos in this project.
+     */
+    public function videos(): HasMany
+    {
+        return $this->media()->videos();
+    }
+
     public function addMember(Member|int $memberOrId): self
     {
         $this->members()->syncWithPivotValues(

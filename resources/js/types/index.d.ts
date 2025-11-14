@@ -47,7 +47,16 @@ interface HasEvents {
   upcoming_events_count?: number;
 }
 
-interface Project extends Resource, HasEvents {
+interface HasMedia {
+  media?: ApiResource<Media>[];
+  media_count?: number;
+  images?: ApiResource<Media>[];
+  images_count?: number;
+  videos?: ApiResource<Media>[];
+  videos_count?: number;
+}
+
+interface Project extends Resource, HasEvents, HasMedia {
   name: string;
   description: string;
   organization: string;
@@ -63,13 +72,11 @@ interface Project extends Resource, HasEvents {
   unit_types_count?: number;
   units?: ApiResource<Unit>[];
   units_count?: number;
-  media?: ApiResource<Media>[];
-  media_count?: number;
   log?: ApiResource<Log>[];
   log_count?: number;
 }
 
-interface User extends Resource, Subject, HasEvents {
+interface User extends Resource, Subject, HasEvents, HasMedia {
   email: string;
   phone: string;
   firstname: string;
@@ -106,14 +113,12 @@ interface Member extends User, Partial<MemberRsvpFields> {
   project?: ApiResource<Project> | null;
 }
 
-type MemberWithRsvps = Member & Required<MemberRsvpFields>;
-
 interface Admin extends User {
   manages?: ApiResource<Project>[];
   manages_count?: number;
 }
 
-interface Family extends Resource, Subject {
+interface Family extends Resource, Subject, HasMedia {
   unit_type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   members?: ApiResource<User>[];
@@ -140,10 +145,20 @@ interface Unit extends Resource {
 }
 
 interface Media extends Resource {
-  filename: string;
-  description: string | null;
+  path: string;
   url: string;
-  thumbnail_url: string | null;
+  description: string;
+  alt_text: string | null;
+  width: number | null;
+  height: number | null;
+  dimensions: string | null;
+  category: string;
+  mime_type: string;
+  file_size: number;
+  is_image: boolean;
+
+  owner: { id: number } | ApiResource<User>;
+  project: { id: number } | ApiResource<Project>;
 }
 
 interface EventRsvpFields {
@@ -171,8 +186,6 @@ interface Event extends Resource, Partial<EventRsvpFields> {
   project: ApiResource<Project> | { id: number };
 }
 
-type EventWithRsvps = Event & Required<EventRsvpFields>;
-
 interface Log extends Resource {
   event: string;
   creator: string;
@@ -181,6 +194,16 @@ interface Log extends Resource {
   user: { id: number | null } | null | ApiResource<User>;
   project: { id: number | null } | null | ApiResource<Project>;
 }
+
+// WithRsvp type aliases
+type MemberWithRsvps = Member & Required<MemberRsvpFields>;
+type EventWithRsvps = Event & Required<EventRsvpFields>;
+
+// WithMedia type aliases
+type ProjectWithMedia = Project & Required<HasMedia>;
+type AdminWithMedia = Admin & Required<HasMedia>;
+type MemberWithMedia = Member & Required<HasMedia>;
+type FamilyWithMedia = Family & Required<HasMedia>;
 
 interface ApiResource<R extends Resource = Resource> extends R {
   allows: Record<ResourcePolicy, boolean>;
