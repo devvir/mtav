@@ -8,81 +8,114 @@
 
 ---
 
-## 📁 NEW ORGANIZED STRUCTURE (December 2024)
+## 🎯 How to Learn the App
 
-**Problem Solved**: 7,300-line monolithic `KNOWLEDGE_BASE.md` caused knowledge degradation over long conversations.
+### Start Here (Required Reading)
 
-**Solution**: Topic-focused files matching work contexts:
+**1. `KNOWLEDGE_BASE.md` - THE authoritative source**
+- Contains ALL critical architectural facts needed for 99% of development work
+- Docker commands, user roles, authorization, data patterns, tech stack
+- Read this FIRST and ALWAYS refer back to it
 
-```
-documentation/ai/
-├── core/                        # 🔴 REQUIRED - Read for 99% of work
-│   ├── USER_SYSTEM.md          # User/Member/Admin/Superadmin (STI, family atomicity)
-│   └── SCOPING.md              # ProjectScope global scopes (universe boundaries)
-├── testing/                     # 🟡 For test development
-│   └── PHILOSOPHY.md           # Universe fixture, rollback, 2-line ideal
-├── features/                    # 🟢 Feature-specific (to be populated)
-└── technical/                   # 🟢 Implementation details (to be populated)
-```
+### Deep Dive When Needed
 
-### Quick Start for AI Assistants
+**2. Topic-specific files** (read only when working on specific areas):
 
-**ALWAYS read first (foundational - needed 99% of time)**:
-1. `core/USER_SYSTEM.md` - User types, STI pattern, family atomicity
-2. `core/SCOPING.md` - ProjectScope system, authorization matrix
+**Authorization Work**:
+- `KNOWLEDGE_BASE.md` → Authorization Architecture section (has the critical facts)
+- `core/USER_SYSTEM.md` → Detailed user system patterns and database schema
+- `core/SCOPING.md` → Project scoping and authorization matrix details
+- `policies-reference.md` → Policy implementation patterns
 
-**If writing/running tests**:
-3. `testing/PHILOSOPHY.md` - Universe fixture, test patterns, helpers
+**UI/Frontend Work**:
+- `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` → WCAG requirements, elderly users, design constraints
+- `resources-reference.md` → Resource transformation patterns
 
-**For specific work**:
-4. `features/{TOPIC}.md` or `technical/{TOPIC}.md` (when created)
+**Testing Work**:
+- `testing/PHILOSOPHY.md` → Universe fixture, test patterns, helpers
 
-**Legacy reference**:
-- `KNOWLEDGE_BASE.md` - Original monolithic KB (kept during migration)
+**Context/Decisions**:
+- `DECISIONS.md` → Rationale for key architectural choices
 
 ---
 
-## Quick Start for AI Assistants (Legacy Workflow - Being Phased Out)
+## File Structure
 
-**When starting a new session:**
+```
+documentation/ai/
+├── KNOWLEDGE_BASE.md           # 🔴 PRIMARY - All critical facts
+├── README.md                   # 🔴 THIS FILE - Learning guide
+├── core/                       # 🟡 Detailed patterns
+│   ├── USER_SYSTEM.md         #     User/Member/Admin details & database schema
+│   └── SCOPING.md             #     Authorization matrix details
+├── testing/                    # 🟡 Testing-specific
+│   └── PHILOSOPHY.md          #     Universe fixture, patterns
+├── ACCESSIBILITY_AND_TARGET_AUDIENCE.md # 🟡 UI constraints
+├── DECISIONS.md               # 🟢 Architectural decisions
+├── policies-reference.md      # 🟢 Policy patterns
+└── resources-reference.md     # 🟢 Resource patterns
+```
 
-1. **Read these files in order** (essential context):
-   - `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` - Design constraints (WCAG, elderly users, old devices)
-   - **NEW**: `core/USER_SYSTEM.md` + `core/SCOPING.md` (foundational concepts)
-   - ~~`KNOWLEDGE_BASE.md`~~ - (Being replaced by organized structure)
-   - `DECISIONS.md` - Rationale for key choices and deferred features
-   - `TESTS_KB.md` - Testing philosophy and patterns (being migrated to `testing/`)
+## 🧠 Mental Model for AI Assistants
 
-2. **Current development approach** (Dec 2024):
-   - No formal sprints - knocking down TODOs daily as they arise
-   - Priorities may shift after tutor meetings
-   - Ask user for today's focus before starting work
+**Always keep in mind** (from KNOWLEDGE_BASE.md):
+- Docker-only: Everything through `./mtav` script
+- User roles: `config('auth.superadmins')` emails + `is_admin` boolean
+- Resources: Auto-transform via `ConvertsToJsonResource` trait, NEVER use `JsonResource::make()`
+- Authorization: Superadmins bypass all policies via `Gate::before()`
+- Scoping: Most models auto-scoped to current project context
 
-3. **Critical rules** (never violate):
-   - Always use semicolons in JavaScript/TypeScript (including Vue)
-   - Always use `<script setup lang="ts">` in Vue files
-   - Consult accessibility doc before ANY UI work
-   - Use `./mtav` wrapper, not direct Docker commands
-   - Test helpers go in `tests/Helpers/` (autoloaded by Pest)
+**When working on specific areas, check**:
+- Authorization issues → `core/USER_SYSTEM.md` + `core/SCOPING.md` + `policies-reference.md`
+- Resource patterns → `resources-reference.md`
+- UI work → `ACCESSIBILITY_AND_TARGET_AUDIENCE.md`
+- Test issues → `testing/PHILOSOPHY.md`
+- Architecture questions → `DECISIONS.md`
 
-4. **Key architectural patterns** (internalize these):
-   - **STI (Single Table Inheritance)**: User → Admin/Member (see `core/USER_SYSTEM.md`)
-   - **Family Atomicity**: Families are atomic units, members mirror family's project
-   - **Two-Level Auth**: Global scopes (query) + Policies (action) (see `core/SCOPING.md`)
-   - **Universe Fixture**: `universe.sql` loaded once, rolled back per test
-   - **2-Line Test Ideal**: act + assert (see `testing/PHILOSOPHY.md`)
+---
 
-5. **Ask before**:
-   - Modifying production code to fix tests
-   - Adding new test helpers (must be reviewed)
-   - Changing database schema
-   - Making accessibility trade-offs
+## Development Guidelines
+
+**Current development approach**:
+- No formal sprints - knocking down TODOs daily as they arise
+- Priorities may shift after tutor meetings
+- Ask user for today's focus before starting work
+
+**Critical rules** (never violate):
+- Always use semicolons in JavaScript/TypeScript (including Vue)
+- Always use `<script setup lang="ts">` in Vue files
+- Consult accessibility doc before ANY UI work
+- Use `./mtav` wrapper, not direct Docker commands
+- Test helpers go in `tests/Helpers/` (autoloaded by Pest)
+
+**Key architectural patterns** (internalize these):
+- **STI (Single Table Inheritance)**: User → Admin/Member (see `core/USER_SYSTEM.md`)
+- **Family Atomicity**: Families are atomic units, members mirror family's project
+- **Two-Level Auth**: Global scopes (query) + Policies (action) (see `core/SCOPING.md`)
+- **Universe Fixture**: `universe.sql` loaded once, rolled back per test
+- **2-Line Test Ideal**: act + assert (see `testing/PHILOSOPHY.md`)
+
+**Ask before**:
+- Modifying production code to fix tests
+- Adding new test helpers (must be reviewed)
+- Changing database schema
+- Making accessibility trade-offs
 
 ---
 
 ## File Inventory
 
 ### 🔴 CORE - Always Read (core/)
+
+#### `core/DEVELOPMENT_ENVIRONMENT.md`
+**What**: Docker commands, tech stack, development patterns, localization
+**Priority**: 🔴 CRITICAL - Read for 99% of work
+**Contains**:
+- Docker-only environment (`./mtav` commands)
+- Technology stack (Laravel 12, PHP 8.4, MariaDB 12)
+- Resource transformation patterns
+- Frontend/backend localization strategy
+- Business domain overview
 
 #### `core/USER_SYSTEM.md`
 **What**: Complete user type system (User/Member/Admin/Superadmin)

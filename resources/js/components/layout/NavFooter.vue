@@ -42,7 +42,7 @@ const allFooterItems: FooterItem[] = [
   },
   {
     title: _('Github Repo'),
-    href: 'https://github.com/laravel/vue-starter-kit', // TODO : replace with actual repository URL
+    href: 'https://github.com/devvir/mtav',
     icon: Folder,
     if: iAmAdmin.value,
     external: true,
