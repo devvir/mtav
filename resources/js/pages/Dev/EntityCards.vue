@@ -32,7 +32,18 @@ import ProjectShowCard from '@/components/entities/project/ShowCard.vue';
 import UnitIndexCard from '@/components/entities/unit/IndexCard.vue';
 import UnitShowCard from '@/components/entities/unit/ShowCard.vue';
 import EntitySection from './cards/EntitySection.vue';
-import GenericSamples from './cards/Samples.vue';
+import EntitySamples from './cards/EntitySamples.vue';
+
+const props = defineProps<{
+  projects: ApiResource<Project>[];
+  admins: ApiResource<Admin>[];
+  members: ApiResource<Member>[];
+  families: ApiResource<Family>[];
+  units: ApiResource<Unit>[];
+  gallery: ApiResource<Media>[];
+  events: ApiResource<Event>[];
+  logs: ApiResource<Log>[];
+}>();
 
 // Define entities with their icons and metadata
 const entities = [
@@ -43,7 +54,7 @@ const entities = [
     icon: Building,
     description: 'Housing cooperative projects managed by admins',
     color: 'text-blue-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: ProjectIndexCard,
     showCard: ProjectShowCard,
   },
@@ -54,7 +65,7 @@ const entities = [
     icon: Home,
     description: 'Living units within each project',
     color: 'text-green-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: UnitIndexCard,
     showCard: UnitShowCard,
   },
@@ -65,7 +76,7 @@ const entities = [
     icon: UserCheck,
     description: 'Project administrators and managers',
     color: 'text-purple-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: AdminIndexCard,
     showCard: AdminShowCard,
   },
@@ -76,7 +87,7 @@ const entities = [
     icon: Users,
     description: 'Family members participating in projects',
     color: 'text-indigo-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: MemberIndexCard,
     showCard: MemberShowCard,
   },
@@ -87,7 +98,7 @@ const entities = [
     icon: Home,
     description: 'Family units (atomic participation units)',
     color: 'text-orange-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: FamilyIndexCard,
     showCard: FamilyShowCard,
   },
@@ -98,7 +109,7 @@ const entities = [
     icon: Calendar,
     description: 'Project events and activities',
     color: 'text-rose-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: EventIndexCard,
     showCard: EventShowCard,
   },
@@ -109,7 +120,7 @@ const entities = [
     icon: FileText,
     description: 'System activity logs and audit trails',
     color: 'text-gray-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: LogIndexCard,
     showCard: LogShowCard,
   },
@@ -120,7 +131,7 @@ const entities = [
     icon: Image,
     description: 'Photo galleries and media collections',
     color: 'text-pink-500',
-    component: GenericSamples,
+    component: EntitySamples,
     indexCard: GalleryIndexCard,
     showCard: GalleryShowCard,
   },
@@ -158,6 +169,7 @@ const collapseAll = () => {
 </script>
 
 <template>
+
   <Head title="Entity Cards Preview" />
 
   <Breadcrumbs global>
@@ -185,13 +197,8 @@ const collapseAll = () => {
 
     <!-- Entity Sections -->
     <div class="space-y-6">
-      <EntitySection
-        v-for="entity in entities"
-        :key="entity.key"
-        :entity="entity"
-        :is-expanded="expandedSections[entity.key]"
-        @toggle="toggleSection(entity.key)"
-      />
+      <EntitySection v-for="entity in entities" :key="entity.key" :entity="entity" :entity-data="props[entity.key]"
+        :is-expanded="expandedSections[entity.key]" @toggle="toggleSection(entity.key)" />
     </div>
 
     <!-- Info Footer -->

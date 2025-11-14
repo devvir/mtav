@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import fixturesData from './fixtures.json';
-
 const props = defineProps<{
   entity: {
     key: string;
@@ -9,17 +7,11 @@ const props = defineProps<{
     indexCard: any;
     showCard: any;
   };
+  entityData: ApiResource[];
 }>();
 
-// Get the collection from fixtures based on the entity key
-const collection = fixturesData[
-  props.entity.key! as unknown as keyof typeof fixturesData
-] as unknown as ApiResource[];
-
-// Special handling for projects: replace first item with currentProject if available
-// if (props.entity.key === 'projects' && currentProject.value) {
-//   collection = [currentProject.value as ApiResource<any>, ...collection.slice(1)];
-// }
+// Use the real entity data from the controller
+const collection = props.entityData;
 </script>
 
 <template>

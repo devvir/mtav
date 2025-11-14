@@ -24,7 +24,7 @@ const toggleConfirmationState = (open: boolean) => {
   const inertiaUI = document.querySelectorAll('.im-dialog');
 
   inertiaUI.forEach((modal) => modal.classList[addRemove]('hidden'));
-  console.log(open);
+
   confirmationModalOpen.value = open;
 };
 

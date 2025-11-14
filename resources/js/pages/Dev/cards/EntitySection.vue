@@ -3,6 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-vue-next';
 
+defineEmits<{
+  toggle: [];
+}>();
+
 defineProps<{
   entity: {
     key: string;
@@ -12,11 +16,8 @@ defineProps<{
     color: string;
     component: any;
   };
+  entityData: ApiResource[];
   isExpanded: boolean;
-}>();
-
-defineEmits<{
-  toggle: [];
 }>();
 </script>
 
@@ -45,7 +46,7 @@ defineEmits<{
     </CollapsibleTrigger>
 
     <CollapsibleContent class="mt-4 px-10 pb-8">
-      <component :is="entity.component" :entity="entity" />
+      <component :is="entity.component" :entity="entity" :entity-data="entityData" />
     </CollapsibleContent>
   </Collapsible>
 </template>

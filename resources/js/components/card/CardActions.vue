@@ -32,7 +32,7 @@ const enabledActions = computed(() =>
       case 'restore':
         return resource.allows.restore && resource.deleted_at;
     }
-  }),
+  }).filter(action => route().has(`${entityNS(entity)}.${action}`)),
 );
 
 type CardAction = Exclude<ResourceAction, 'create'>;
