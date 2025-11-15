@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardFooter, CardHeader, HeaderSub } from '@/components/card';
+import { Card, CardFooter, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 

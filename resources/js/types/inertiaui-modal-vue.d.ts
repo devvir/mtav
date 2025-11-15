@@ -5,7 +5,7 @@ declare module '@inertiaui/modal-vue' {
   export interface ModalTypeConfig {
     closeButton?: boolean;
     closeExplicitly?: boolean;
-    maxWidth?: string;
+    maxWidth?: ModalWidth;
     paddingClasses?: string | boolean;
     panelClasses?: string | boolean;
     position?: string;
@@ -17,6 +17,11 @@ declare module '@inertiaui/modal-vue' {
     modal?: ModalTypeConfig;
     slideover?: ModalTypeConfig;
   }
+
+  // Modal width types
+  export type ModalWidth =
+    | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+    | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
 
   // Event listener types
   export type EventListener = (...args: any[]) => void;
@@ -68,7 +73,7 @@ declare module '@inertiaui/modal-vue' {
     // Modal configuration props
     closeButton?: boolean;
     closeExplicitly?: boolean;
-    maxWidth?: string;
+    maxWidth?: ModalWidth;
     paddingClasses?: string | boolean;
     panelClasses?: string | boolean;
     position?: string;
@@ -80,7 +85,7 @@ declare module '@inertiaui/modal-vue' {
     show?: boolean;
     closeButton?: boolean;
     closeExplicitly?: boolean;
-    maxWidth?: string;
+    maxWidth?: ModalWidth;
     paddingClasses?: string | boolean;
     panelClasses?: string | boolean;
     position?: string;

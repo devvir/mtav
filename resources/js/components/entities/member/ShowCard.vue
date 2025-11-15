@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  ContentHighlight,
-  ContentLine,
-} from '@/components/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { ContentHighlight, ContentDetail } from '@/components/card/snippets';
 import { _ } from '@/composables/useTranslations';
+import { MailIcon, PhoneIcon, UsersIcon, HomeIcon, CalendarIcon } from 'lucide-vue-next';
+import { iAmAdmin } from '@/composables/useAuth';
 
 defineProps<{
   member: ApiResource<Member>;
@@ -18,18 +14,61 @@ defineProps<{
   <Card :resource="member" entity="member" type="show">
     <CardHeader :title="member.name" avatar="lg" />
 
-    <CardContent>
+    <CardContent class="space-y-6">
       <!-- Contact Information -->
-      <div class="space-y-2 text-sm">
-        <ContentLine :label="_('Email')" :value="member.email" />
-        <ContentLine :label="_('Phone')" :value="member.phone" />
-        <ContentLine :label="_('Family')" :value="member.family.name" />
+      <div class="space-y-4">
+        <ContentDetail
+          :icon="MailIcon"
+          :title="_('Email')"
+          :content="member.email"
+        />
+
+        <ContentDetail
+          v-if="member.phone"
+          :icon="PhoneIcon"
+          :title="_('Phone')"
+          :content="member.phone"
+        />
+      </div>
+
+      <!-- Family Information -->
+      <div v-if="member.family" class="grid grid-cols-[auto_1fr] gap-3">
+        <component :is="HomeIcon" class="h-5 w-5 mt-0.5 text-text-muted" />
+        <div class="min-w-0">
+          <div class="font-medium text-sm">{{ _('Family') }}</div>
+          <div class="text-text-muted text-sm truncate">
+            <Link
+              :href="route('families.show', member.family.id)"
+              :modal="true"
+              class="truncate text-text-link hover:text-text-link-hover"
+            >
+              {{ member.family.name }}
+            </Link>
+          </div>
+        </div>
+      </div>      <!-- Membership Details -->
+      <div class="space-y-4">
+        <ContentDetail
+          v-if="iAmAdmin && member.email_verified_at"
+          :icon="CalendarIcon"
+          :title="_('Email Verified')"
+          :content="member.email_verified_at"
+        />
+
+        <ContentDetail
+          v-if="member.invitation_accepted_at"
+          :icon="UsersIcon"
+          :title="_('Member Since')"
+          :content="member.invitation_accepted_at"
+        />
       </div>
 
       <!-- About Section -->
-      <ContentHighlight :title="_('About me')" :fallback-text="_('Nothing written yet')">
-        {{ member.about }}
-      </ContentHighlight>
+      <div v-if="member.about">
+        <ContentHighlight :title="_('About me')">
+          {{ member.about }}
+        </ContentHighlight>
+      </div>
     </CardContent>
 
     <CardFooter />

@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import { entityLabel, entityNS, entityPlural } from '@/composables/useResources';
+import { ModalWidth } from '@inertiaui/modal-vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -12,7 +13,7 @@ const props = defineProps<{
   entity: AppEntity;
   resource: ApiResource;
   pageTitle?: string;
-  modalWidth?: string;
+  modalWidth?: ModalWidth;
   class?: HTMLAttributes['class'];
 }>();
 

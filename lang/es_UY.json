@@ -431,5 +431,7 @@
   "No confirmations yet": "Sin confirmaciones aún",
   "{accepted} accepted, {declined} declined ({total} invited)": "{accepted} aceptaron, {declined} declinaron ({total} invitados)",
   "accepted": "aceptado",
-  "declined": "declinado"
+  "declined": "declinado",
+  "Email Verified": "Email Verificado",
+  "Member Since": "Miembro desde"
 }
