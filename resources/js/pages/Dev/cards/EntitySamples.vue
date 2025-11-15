@@ -4,6 +4,7 @@ const props = defineProps<{
     key: string;
     name: string;
     propName: string;
+    singularPropName: string;
     indexCard: any;
     showCard: any;
   };
@@ -33,7 +34,7 @@ const collection = props.entityData;
           :is="entity.indexCard"
           v-for="item in collection"
           :key="`index-${item.id}`"
-          v-bind="{ [entity.propName]: item }"
+          v-bind="{ [entity.singularPropName]: item }"
         />
       </div>
     </div>
@@ -55,7 +56,7 @@ const collection = props.entityData;
           :is="entity.showCard"
           v-for="item in collection"
           :key="`show-${item.id}`"
-          v-bind="{ [entity.propName]: item }"
+          v-bind="{ [entity.singularPropName]: item }"
         />
       </div>
     </div>

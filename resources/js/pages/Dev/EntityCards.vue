@@ -1,40 +1,15 @@
 <script setup lang="ts">
+import type { PageProps } from '@inertiajs/core';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
-import {
-  Building,
-  Calendar,
-  CreditCard,
-  FileText,
-  Home,
-  Image,
-  UserCheck,
-  Users,
-} from 'lucide-vue-next';
-
-// Import entity card components
-import AdminIndexCard from '@/components/entities/admin/IndexCard.vue';
-import AdminShowCard from '@/components/entities/admin/ShowCard.vue';
-import EventIndexCard from '@/components/entities/event/IndexCard.vue';
-import EventShowCard from '@/components/entities/event/ShowCard.vue';
-import FamilyIndexCard from '@/components/entities/family/IndexCard.vue';
-import FamilyShowCard from '@/components/entities/family/ShowCard.vue';
-import MediaIndexCard from '@/components/entities/media/IndexCard.vue';
-import MediaShowCard from '@/components/entities/media/ShowCard.vue';
-import LogIndexCard from '@/components/entities/log/IndexCard.vue';
-import LogShowCard from '@/components/entities/log/ShowCard.vue';
-import MemberIndexCard from '@/components/entities/member/IndexCard.vue';
-import MemberShowCard from '@/components/entities/member/ShowCard.vue';
-import ProjectIndexCard from '@/components/entities/project/IndexCard.vue';
-import ProjectShowCard from '@/components/entities/project/ShowCard.vue';
-import UnitIndexCard from '@/components/entities/unit/IndexCard.vue';
-import UnitShowCard from '@/components/entities/unit/ShowCard.vue';
+import { CreditCard } from 'lucide-vue-next';
 import EntitySection from './cards/EntitySection.vue';
 import EntitySamples from './cards/EntitySamples.vue';
+import { useEntityCardsController } from './cards/useEntityCardsController';
 
-const props = defineProps<{
+const props = defineProps<PageProps & {
   projects: ApiResource<Project>[];
   admins: ApiResource<Admin>[];
   members: ApiResource<Member>[];
@@ -45,245 +20,87 @@ const props = defineProps<{
   logs: ApiResource<Log>[];
 }>();
 
-// Define entities with their icons and metadata
-const entities = [
-  {
-    key: 'projects',
-    name: 'Projects',
-    propName: 'projects',
-    icon: Building,
-    description: 'Housing cooperative projects managed by admins',
-    color: 'text-blue-500',
-    component: EntitySamples,
-    indexCard: ProjectIndexCard,
-    showCard: ProjectShowCard,
-  },
-  {
-    key: 'units',
-    name: 'Units',
-    propName: 'units',
-    icon: Home,
-    description: 'Living units within each project',
-    color: 'text-green-500',
-    component: EntitySamples,
-    indexCard: UnitIndexCard,
-    showCard: UnitShowCard,
-  },
-  {
-    key: 'admins',
-    name: 'Admins',
-    propName: 'admins',
-    icon: UserCheck,
-    description: 'Project administrators and managers',
-    color: 'text-purple-500',
-    component: EntitySamples,
-    indexCard: AdminIndexCard,
-    showCard: AdminShowCard,
-  },
-  {
-    key: 'members',
-    name: 'Members',
-    propName: 'members',
-    icon: Users,
-    description: 'Family members participating in projects',
-    color: 'text-indigo-500',
-    component: EntitySamples,
-    indexCard: MemberIndexCard,
-    showCard: MemberShowCard,
-  },
-  {
-    key: 'families',
-    name: 'Families',
-    propName: 'families',
-    icon: Home,
-    description: 'Family units (atomic participation units)',
-    color: 'text-orange-500',
-    component: EntitySamples,
-    indexCard: FamilyIndexCard,
-    showCard: FamilyShowCard,
-  },
-  {
-    key: 'events',
-    name: 'Events',
-    propName: 'events',
-    icon: Calendar,
-    description: 'Project events and activities',
-    color: 'text-rose-500',
-    component: EntitySamples,
-    indexCard: EventIndexCard,
-    showCard: EventShowCard,
-  },
-  {
-    key: 'logs',
-    name: 'Logs',
-    propName: 'logs',
-    icon: FileText,
-    description: 'System activity logs and audit trails',
-    color: 'text-gray-500',
-    component: EntitySamples,
-    indexCard: LogIndexCard,
-    showCard: LogShowCard,
-  },
-  {
-    key: 'gallery',
-    name: 'Gallery',
-    propName: 'media',
-    icon: Image,
-    description: 'Photo galleries and media collections',
-    color: 'text-pink-500',
-    component: EntitySamples,
-    indexCard: MediaIndexCard,
-    showCard: MediaShowCard,
-  },
-];
-
-// Track expanded state for each section
-const expandedSections = ref<Record<string, boolean>>(
-  entities.reduce(
-    (acc, entity) => {
-      acc[entity.key] = false;
-      return acc;
-    },
-    {} as Record<string, boolean>,
-  ),
-);
-
-// Initialize expanded sections from URL hash
-onMounted(() => {
-  const hash = window.location.hash.slice(1); // Remove the #
-  if (hash && expandedSections.value.hasOwnProperty(hash)) {
-    expandedSections.value[hash] = true;
-
-    // Scroll to section after DOM update
-    nextTick(() => {
-      const element = document.getElementById(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  }
+// Main controller - coordinates all the behavior
+const {
+  entities,
+  isExpanded,
+  handleSectionToggle,
+  handleExpandAll,
+  handleCollapseAll,
+  initializeNavigation,
+} = useEntityCardsController({
+  projects: props.projects,
+  admins: props.admins,
+  members: props.members,
+  families: props.families,
+  units: props.units,
+  media: props.media,
+  events: props.events,
+  logs: props.logs,
 });
 
-// Watch for hash changes (e.g., browser back/forward)
-window.addEventListener('hashchange', () => {
-  const hash = window.location.hash.slice(1);
+// Initialize navigation on mount
+onMounted(() => {
+  const cleanup = initializeNavigation();
 
-  // Collapse all sections first
-  Object.keys(expandedSections.value).forEach(key => {
-    expandedSections.value[key] = false;
+  onUnmounted(() => {
+    cleanup();
   });
-
-  // Expand the section from hash if valid
-  if (hash && expandedSections.value.hasOwnProperty(hash)) {
-    expandedSections.value[hash] = true;
-
-    // Scroll to section after DOM update
-    nextTick(() => {
-      const element = document.getElementById(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  }
-});// Function to toggle section expansion
-const toggleSection = (entityKey: string) => {
-  const wasExpanded = expandedSections.value[entityKey];
-
-  // Collapse all sections first
-  Object.keys(expandedSections.value).forEach(key => {
-    expandedSections.value[key] = false;
-  });
-
-  // If the section wasn't expanded, expand it and update URL hash
-  if (!wasExpanded) {
-    expandedSections.value[entityKey] = true;
-    window.history.replaceState(null, '', `#${entityKey}`);
-
-    // Scroll to section after DOM update
-    nextTick(() => {
-      const element = document.getElementById(entityKey);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  } else {
-    // If it was expanded and we're collapsing, remove the hash
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
-  }
-};
-
-// Function to expand all sections
-const expandAll = () => {
-  entities.forEach((entity) => {
-    expandedSections.value[entity.key] = true;
-  });
-  // Clear hash when expanding all
-  window.history.replaceState(null, '', window.location.pathname + window.location.search);
-};
-
-// Function to collapse all sections
-const collapseAll = () => {
-  entities.forEach((entity) => {
-    expandedSections.value[entity.key] = false;
-  });
-  // Clear hash when collapsing all
-  window.history.replaceState(null, '', window.location.pathname + window.location.search);
-};
+});
 </script>
 
 <template>
+  <Head title="Entity Cards" />
 
-  <Head title="Entity Cards Preview" />
+  <main class="max-w-6xl mx-auto space-y-6 py-8">
+    <header>
+      <Breadcrumbs>
+        <Breadcrumb route="dev.dashboard" text="Dev" />
+        <Breadcrumb route="dev.entity-cards" text="Cards" no-link />
+      </Breadcrumbs>
+    </header>
 
-  <Breadcrumbs global>
-    <Breadcrumb route="dev.dashboard">Dev</Breadcrumb>
-    <Breadcrumb route="dev.entity-cards" no-link>Entity Cards</Breadcrumb>
-  </Breadcrumbs>
+    <div class="px-4">
+      <!-- Page Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <CreditCard class="h-8 w-8 text-blue-500" />
+          <h1 class="text-3xl font-bold text-foreground">Entity Cards Preview</h1>
+        </div>
 
-  <div class="container mx-auto max-w-7xl py-8">
-    <div class="mb-8">
-      <div class="mb-4 flex items-center gap-3">
-        <CreditCard class="h-8 w-8 text-primary" />
-        <h1 class="text-3xl font-bold">Entity Cards Preview</h1>
+        <div class="flex items-center gap-2">
+          <Button @click="handleExpandAll" variant="outline" size="sm">
+            Expand All
+          </Button>
+          <Button @click="handleCollapseAll" variant="outline" size="sm">
+            Collapse All
+          </Button>
+        </div>
       </div>
-      <p class="mb-6 text-text-muted">
-        Preview of how the Card component will look when used with each application entity. This
-        shows both "index cards" (for list views) and "show cards" (for detail views).
+
+      <p class="text-gray-600 mb-8">
+        Interactive preview of all entity card components with both index and show card variations.
       </p>
 
-      <!-- Expand/Collapse Controls -->
-      <div class="mb-8 flex gap-3">
-        <Button variant="outline" size="sm" @click="expandAll"> Expand All </Button>
-        <Button variant="outline" size="sm" @click="collapseAll"> Collapse All </Button>
+      <!-- Entity Sections -->
+      <div v-if="entities.length === 0" class="text-center py-12 text-gray-500">
+        No entities with sample data found.
+      </div>
+
+      <div v-else class="space-y-6">
+        <EntitySection
+          v-for="entity in entities"
+          :key="entity.key"
+          :entity="entity"
+          :is-expanded="isExpanded(entity.key)"
+          @toggle="handleSectionToggle(entity.key)"
+        >
+          <EntitySamples
+            :entity="entity"
+            :entity-data="props[entity.propName]"
+          />
+        </EntitySection>
       </div>
     </div>
-
-    <!-- Entity Sections -->
-    <div class="space-y-6">
-      <EntitySection v-for="entity in entities" :key="entity.key" :entity="entity" :entity-data="props[entity.propName]"
-        :is-expanded="expandedSections[entity.key]" @toggle="toggleSection(entity.key)" />
-    </div>
-
-    <!-- Info Footer -->
-    <div class="mt-12 rounded-lg bg-muted/50 p-6">
-      <h3 class="mb-2 text-lg font-semibold">Next Steps</h3>
-      <div class="space-y-2 text-sm text-text-muted">
-        <p>
-          This page provides a consolidated view of how the Card component will be used across all
-          entities. Once the actual card implementations are added, this will serve as a visual
-          reference for:
-        </p>
-        <ul class="ml-4 list-inside list-disc space-y-1">
-          <li>Card component consistency across different entity types</li>
-          <li>Responsive behavior in grid layouts</li>
-          <li>Visual hierarchy and information density</li>
-          <li>Icon and color scheme consistency</li>
-        </ul>
-        <p class="pt-2 text-xs text-amber-600 dark:text-amber-400">
-          💡 The existing card preview page at <strong>/dev/cards</strong> shows the component
-          system itself, while this page shows real-world entity usage.
-        </p>
-      </div>
-    </div>
-  </div>
+  </main>
 </template>

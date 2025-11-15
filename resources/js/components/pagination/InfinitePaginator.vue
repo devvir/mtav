@@ -9,7 +9,7 @@ export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 const props = defineProps<{
   loadable: string;
   list: ApiResources;
-  filter: string;
+  filter?: string;
   cardSize?: CardSize;
   featured?: number | string;
 }>();

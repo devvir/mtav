@@ -28,7 +28,7 @@ provide(exposed.routes, routes);
     :is="linksToDetails ? ModalLink : 'article'"
     :href="linksToDetails ? route(routes.show, resource.id) : undefined"
     :prefetch="linksToDetails ? ($attrs.prefetch ?? 'hover') : undefined"
-    :title="linksToDetails ? ($attrs.title ?? _('Click to see the Details Page')) : undefined"
+    :title="linksToDetails ? ($attrs.title ?? _('Click for more information')) : undefined"
     :class="
       cn(
         'w-full max-w-3xl rounded-lg border [&>*]:p-4 relative',

@@ -104,8 +104,6 @@ class User extends Authenticatable
     public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
     {
         $query
-            ->whereLike('email', "%$q%")
-            ->orWhereLike('phone', "%$q%")
             ->orWhereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
             ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
                 'family',
