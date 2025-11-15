@@ -34,8 +34,8 @@ class MemberResource extends UserResource
             'acknowledged_events_count' => $this->whenCountedOrLoaded('acknowledgedEvents'),
             'accepted_events'           => $this->whenLoaded('acceptedEvents'),
             'accepted_events_count'     => $this->whenCountedOrLoaded('acceptedEvents'),
-            'rejected_events'           => $this->whenLoaded('rejectedEvents'),
-            'rejected_events_count'     => $this->whenCountedOrLoaded('rejectedEvents'),
+            'declined_events'           => $this->whenLoaded('declinedEvents'),
+            'declined_events_count'     => $this->whenCountedOrLoaded('declinedEvents'),
         ];
     }
 
@@ -51,7 +51,7 @@ class MemberResource extends UserResource
             'upcomingRsvps'      => fn ($rsvps) => $rsvps->where('end_date', '>', now()),
             'acknowledgedEvents' => fn ($rsvps) => $rsvps->whereNotNull('pivot.status'),
             'acceptedEvents'     => fn ($rsvps) => $rsvps->where('pivot.status', true),
-            'rejectedEvents'     => fn ($rsvps) => $rsvps->where('pivot.status', false),
+            'declinedEvents'     => fn ($rsvps) => $rsvps->where('pivot.status', false),
         ])->each(fn (Closure $using, string $derive) => $member->deriveRelation(
             from: 'rsvps',
             derive: $derive,

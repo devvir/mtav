@@ -1,42 +1,117 @@
 <script setup lang="ts">
-import { Badge, BinaryBadge } from '@/components/badge';
+import { BadgeGroup } from '@/components/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { ContentHighlight, ContentDetail } from '@/components/card/snippets';
+import EventBadge from './badges/EventBadge.vue';
+import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
+import { CalendarIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next';
 
-defineProps<{
+const props = defineProps<{
   event: ApiResource<Event>;
 }>();
+
+const { badges } = useEventBadges(props.event);
+
+// Check if current user has RSVP status
+const userRsvpStatus = computed(() => {
+  if (!props.event.allows_rsvp || !props.event.user_rsvp) {
+    return null;
+  }
+  return props.event.user_rsvp.status;
+});
+
+// Get RSVP status content with styling
+const userRsvpContent = computed(() => {
+  if (!userRsvpStatus.value) return null;
+  return _(userRsvpStatus.value);
+});
+
+// Get content class for RSVP status
+const userRsvpContentClass = computed(() => {
+  if (!userRsvpStatus.value) return '';
+  const baseClass = 'font-medium capitalize';
+  if (userRsvpStatus.value === 'accepted') return `${baseClass} text-emerald-600`;
+  if (userRsvpStatus.value === 'declined') return `${baseClass} text-rose-600`;
+  return baseClass;
+});
 </script>
 
 <template>
   <Card :resource="event" entity="event" type="show">
-    <CardHeader :title="event.title" :kicker="_('Event')" />
+    <CardHeader :title="event.title">
+      <BadgeGroup class="mt-3">
+        <EventBadge
+          v-for="badge in badges"
+          :key="badge.text"
+          :config="badge"
+        />
+      </BadgeGroup>
+    </CardHeader>
 
-    <CardContent>
-      <!-- Event Details -->
-      <div class="space-y-2 text-sm">
-        <div>
-          <strong>{{ _('Start Date') }}:</strong> {{ event.start_date }}
-        </div>
-        <div v-if="event.end_date">
-          <strong>{{ _('Ends') }}:</strong> {{ event.end_date }}
-        </div>
-        <div v-if="event.location">
-          <strong>{{ _('Location') }}:</strong> {{ event.location }}
-        </div>
+    <CardContent class="space-y-6">
+      <!-- Event Dates & Time -->
+      <div class="grid gap-4 @md:grid-cols-2">
+        <ContentDetail
+          :icon="CalendarIcon"
+          :title="_('Start Date')"
+          :content="event.start_date"
+          :fallback="_('Not set')"
+        />
+
+        <ContentDetail
+          v-if="event.end_date"
+          :icon="ClockIcon"
+          :title="_('End Date')"
+          :content="event.end_date"
+        />
       </div>
 
-      <!-- Status & Type -->
-      <div class="flex flex-wrap gap-2">
-        <BinaryBadge :when="event.is_published" :then="_('Published')" :else="_('Draft')" />
-        <Badge variant="outline">{{ event.type_label }}</Badge>
-        <BinaryBadge :when="event.is_lottery" :then="_('Lottery')" variant="danger" />
-      </div>
+      <!-- Location -->
+      <ContentDetail
+        :icon="MapPinIcon"
+        :title="event.is_online ? _('Meeting Link') : _('Location')"
+        :content="event.location"
+        :fallback="_('Not provided')"
+        :href="event.is_online && event.location ? event.location : undefined"
+      />
+
+      <!-- Event Organizer -->
+      <ContentDetail
+        :icon="UserIcon"
+        :title="_('Organizer')"
+        :content="event.creator?.name"
+        :fallback="_('System')"
+      />
 
       <!-- Description -->
-      <div class="rounded-lg border border-border bg-surface-elevated p-3">
-        <h4 class="mb-2 text-sm font-medium text-text">{{ _('Description') }}</h4>
-        <p class="line-clamp-3 text-sm text-text-muted">{{ event.description }}</p>
+      <div v-if="event.description">
+        <ContentHighlight :title="_('Description')">
+          {{ event.description }}
+        </ContentHighlight>
+      </div>
+
+      <!-- RSVP Information -->
+      <div v-if="event.allows_rsvp && event.rsvps_count" class="space-y-4">
+        <!-- Current User RSVP Status -->
+        <ContentDetail
+          v-if="userRsvpStatus"
+          :icon="UserIcon"
+          :title="_('Your RSVP')"
+          :content="userRsvpContent"
+          :content-class="userRsvpContentClass"
+        />
+
+        <!-- RSVP Counts -->
+        <ContentDetail
+          :icon="ClockIcon"
+          :title="_('RSVPs')"
+          :content="_('{accepted} accepted, {declined} declined ({total} invited)', {
+            accepted: event.accepted_count || 0,
+            declined: event.declined_count || 0,
+            total: event.rsvps_count || 0
+          })"
+        />
       </div>
     </CardContent>
 

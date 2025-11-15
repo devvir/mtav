@@ -143,22 +143,21 @@ const commonBadges = [
 // Event badge configurations organized by type
 const eventBadgesByType = {
   'Event Types': [
-    { variant: 'event-type-lottery', text: 'Sorteo', type: 'event-type', priority: 1, desc: 'Lottery events (elegant, non-tiring)' },
-    { variant: 'event-type-onsite', text: 'Presencial', type: 'event-type', priority: 1, desc: 'Onsite events (eye-catching, important)' },
-    { variant: 'event-type-online', text: 'En línea', type: 'event-type', priority: 1, desc: 'Online events' },
+    { variant: 'lottery', text: 'Sorteo', type: 'event-type', priority: 1, desc: 'Lottery events (elegant, non-tiring)' },
+    { variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1, desc: 'Onsite events (eye-catching, important)' },
+    { variant: 'online', text: 'En línea', type: 'event-type', priority: 1, desc: 'Online events' },
   ],
   'Status': [
-    { variant: 'status-published', text: 'Published', type: 'status', priority: 2, desc: 'Event is live' },
-    { variant: 'status-draft', text: 'Draft', type: 'status', priority: 2, desc: 'Event in progress' },
-  ],
-  'Temporal': [
-    { variant: 'temporal-upcoming', text: 'Upcoming', type: 'temporal', priority: 3, desc: 'Future event' },
-    { variant: 'temporal-ongoing', text: 'Ongoing', type: 'temporal', priority: 3, desc: 'Currently active' },
-    { variant: 'temporal-past', text: 'Past Event', type: 'temporal', priority: 3, desc: 'Completed (subtle)' },
-    { variant: 'temporal-no-date', text: 'No Date Set', type: 'temporal', priority: 2, desc: 'Very subtle - no info' },
+    { variant: 'upcoming', text: 'Upcoming', type: 'status', priority: 3, desc: 'Future event' },
+    { variant: 'completed', text: 'Past Event', type: 'status', priority: 3, desc: 'Completed (subtle)' },
+    { variant: 'ongoing', text: 'Ongoing', type: 'status', priority: 3, desc: 'Currently active' },
+    { variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2, desc: 'Very subtle - no info' },
   ],
   'RSVP': [
-    { variant: 'rsvp', text: 'RSVP', type: 'rsvp', priority: 4, desc: 'Requires confirmation' },
+    { variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 4, desc: 'Requires confirmation' },
+  ],
+  'Draft Status': [
+    { variant: 'draft', text: 'Draft', type: 'draft', priority: 2, desc: 'Event not yet published' },
   ],
 };
 </script>
@@ -385,37 +384,45 @@ const eventBadgesByType = {
               <div class="mt-8 space-y-4">
                 <h4 class="text-sm font-semibold text-text">Example Badge Combinations</h4>
                 <div class="space-y-3 rounded-lg bg-surface-elevated p-6">
-                  <div class="text-xs text-text-muted mb-3">Common badge combinations as they appear on event cards
+                  <div class="text-xs text-text-muted mb-3">Common badge combinations as they appear on event cards (up to 4 badges for admins)
                   </div>
 
-                  <!-- Lottery + Published + Upcoming + RSVP -->
+                  <!-- Lottery + No Date -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'event-type-lottery', text: 'Sorteo', type: 'event-type', priority: 1 }" />
+                      :config="{ variant: 'lottery', text: 'Lottery', type: 'event-type', priority: 1 }" />
                     <EventBadge
-                      :config="{ variant: 'status-published', text: 'Published', type: 'status', priority: 2 }" />
-                    <EventBadge
-                      :config="{ variant: 'temporal-upcoming', text: 'Upcoming', type: 'temporal', priority: 3 }" />
-                    <EventBadge :config="{ variant: 'rsvp', text: 'RSVP', type: 'rsvp', priority: 4 }" />
+                      :config="{ variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2 }" />
                   </BadgeGroup>
 
-                  <!-- Onsite + Draft + Past -->
+                  <!-- Onsite + Past -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'event-type-onsite', text: 'Presencial', type: 'event-type', priority: 1 }" />
-                    <EventBadge :config="{ variant: 'status-draft', text: 'Draft', type: 'status', priority: 2 }" />
+                      :config="{ variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1 }" />
                     <EventBadge
-                      :config="{ variant: 'temporal-past', text: 'Past Event', type: 'temporal', priority: 3 }" />
+                      :config="{ variant: 'completed', text: 'Past Event', type: 'status', priority: 3 }" />
                   </BadgeGroup>
 
-                  <!-- Online + No Date + Ongoing -->
+                  <!-- Online + No Date + RSVP + Draft -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'event-type-online', text: 'En línea', type: 'event-type', priority: 1 }" />
+                      :config="{ variant: 'online', text: 'En línea', type: 'event-type', priority: 1 }" />
                     <EventBadge
-                      :config="{ variant: 'temporal-no-date', text: 'No Date Set', type: 'temporal', priority: 2 }" />
+                      :config="{ variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2 }" />
                     <EventBadge
-                      :config="{ variant: 'temporal-ongoing', text: 'Ongoing', type: 'temporal', priority: 3 }" />
+                      :config="{ variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 2 }" />
+                    <EventBadge
+                      :config="{ variant: 'draft', text: 'Draft', type: 'draft', priority: 4 }" />
+                  </BadgeGroup>
+
+                  <!-- Onsite + Upcoming + RSVP -->
+                  <BadgeGroup>
+                    <EventBadge
+                      :config="{ variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1 }" />
+                    <EventBadge
+                      :config="{ variant: 'upcoming', text: 'Próximo evento', type: 'status', priority: 2 }" />
+                    <EventBadge
+                      :config="{ variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 2 }" />
                   </BadgeGroup>
                 </div>
               </div>

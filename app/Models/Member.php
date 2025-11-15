@@ -54,7 +54,7 @@ class Member extends User
     }
 
     /**
-     * Get upcoming published events for the member's project.
+     * Get the list of Events accepted or declined by the member.
      */
     public function acknowledgedEvents(): BelongsToMany
     {
@@ -62,7 +62,7 @@ class Member extends User
     }
 
     /**
-     * Get upcoming published events for the member's project.
+     * Get the list of Events accepted by the member (will go).
      */
     public function acceptedEvents(): BelongsToMany
     {
@@ -70,15 +70,15 @@ class Member extends User
     }
 
     /**
-     * Get upcoming published events for the member's project.
+     * Get the list of Events declined by the member (won't go).
      */
-    public function rejectedEvents(): BelongsToMany
+    public function declinedEvents(): BelongsToMany
     {
         return $this->rsvps()->wherePivot('status', false);
     }
 
     /**
-     * Get all events the member has RSVP'd to.
+     * Get all events the member has been invited to (acknowledged or not).
      */
     public function rsvps(): BelongsToMany
     {
@@ -88,7 +88,7 @@ class Member extends User
     }
 
     /**
-     * Get upcoming events the member has RSVP'd to.
+     * Get upcoming events the member has been invited to (acknowledged or not).
      */
     public function upcomingRsvps(): BelongsToMany
     {

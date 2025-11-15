@@ -66,7 +66,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
     <CardActions
       v-if="actionsType"
       :type="actionsType"
-      :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-4! basis-full' : '-mt-2']"
+      :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-2! basis-full' : '-mt-2']"
     />
   </header>
 </template>

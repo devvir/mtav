@@ -2,10 +2,10 @@
 import ShowPage from '@/components/entities/ShowPage.vue';
 
 defineProps<{
-  family: ApiResource<Family>;
+  event: ApiResource<Event>;
 }>();
 </script>
 
 <template>
-  <ShowPage entity="family" :resource="family" />
+  <ShowPage entity="event" :resource="event" />
 </template>

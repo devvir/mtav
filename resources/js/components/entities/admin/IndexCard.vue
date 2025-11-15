@@ -15,7 +15,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="admin" entity="admin" type="index">
+  <Card :resource="admin" entity="admin" type="index" :dimmed="!admin.projects!.length">
     <CardHeader :title="admin.name" avatar="md">
       <HeaderSub :title="admin.email">{{ admin.email }}</HeaderSub>
     </CardHeader>

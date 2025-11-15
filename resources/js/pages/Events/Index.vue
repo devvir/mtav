@@ -2,11 +2,11 @@
 import IndexPage from '@/components/entities/IndexPage.vue';
 
 defineProps<{
-  admins: ApiResources<Admin>;
+  events: ApiResources<Event>;
   q?: string;
 }>();
 </script>
 
 <template>
-  <IndexPage entity="admin" :resources="admins" :q />
+  <IndexPage entity="event" :resources="events" :q card-size="lg" />
 </template>

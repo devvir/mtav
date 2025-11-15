@@ -9,8 +9,8 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="family" entity="family" type="index">
-    <CardHeader :title="family.name" avatar="md" />
+  <Card :resource="family" entity="family" type="index" :dimmed="! family.members!.length">
+    <CardHeader :title="family.name" avatar="sm" />
 
     <CardContent class="flex-row items-center gap-wide">
       <Counter :count="family.members_count" singular="Member" plural="Members" size="lg" />

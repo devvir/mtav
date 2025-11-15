@@ -9,9 +9,9 @@ const props = withDefaults(
   { q: '', autofocus: true },
 );
 
-const search = ref(props.q);
+const search = ref<string>(props.q ?? '');
 
-watchDebounced(search, (q: string) => router.reload({ data: { q } }), {
+watchDebounced(search, (q?: string) => router.reload({ data: { q: q ?? '' } }), {
   debounce: 300,
   maxWait: 1000,
 });

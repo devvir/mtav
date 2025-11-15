@@ -1,39 +1,48 @@
 <script setup lang="ts">
 import Head from '@/components/Head.vue';
+import { _ } from '@/composables/useTranslations';
 import { Link, useForm } from '@inertiajs/vue3';
 
-defineProps<{
-  project: ApiResource<Project>;
+const props = defineProps<{
+  event: ApiResource<Event>;
   types: EventTypes;
 }>();
 
 const form = useForm({
-  title: '',
-  description: '',
-  start_date: '',
-  end_date: '',
-  type: 'onsite',
-  location: '',
-  is_published: false,
+  title: props.event.title,
+  description: props.event.description || '',
+  start_date: props.event.start_date,
+  end_date: props.event.end_date,
+  type: props.event.type,
+  location: props.event.location || '',
+  is_published: props.event.is_published,
 });
 
 const submit = () => {
-  form.post(route('events.store'));
+  form.put(route('events.update', props.event.id));
 };
 </script>
 
 <template>
   <div class="space-y-6">
-    <Head title="Create Event" />
+    <Head title="Edit Event" />
 
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create Event</h1>
-      <Link
-        :href="route('events.index')"
-        class="text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
-      >
-        Back to Events
-      </Link>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Event</h1>
+      <div class="flex items-center space-x-3">
+        <Link
+          :href="route('events.show', event.id)"
+          class="text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
+        >
+          View Event
+        </Link>
+        <Link
+          :href="route('events.index')"
+          class="text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
+        >
+          Back to Events
+        </Link>
+      </div>
     </div>
 
     <div
@@ -85,12 +94,13 @@ const submit = () => {
           </div>
         </div>
 
-        <!-- Type -->
+        <!-- Type (conditionally shown) -->
         <div>
           <label for="type" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Event Type
           </label>
           <select
+            v-if="!event.is_lottery"
             id="type"
             v-model="form.type"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -100,6 +110,13 @@ const submit = () => {
               {{ label }}
             </option>
           </select>
+          <div
+            v-else
+            class="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+          >
+            {{ _('Lottery') }}
+          </div>
+
           <div v-if="form.errors.type" class="mt-1 text-sm text-red-500">
             {{ form.errors.type }}
           </div>
@@ -183,7 +200,7 @@ const submit = () => {
         <!-- Actions -->
         <div class="flex items-center justify-end space-x-3 pt-6">
           <Link
-            :href="route('events.index')"
+            :href="route('events.show', event.id)"
             class="px-4 py-2 text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
           >
             Cancel
@@ -193,8 +210,8 @@ const submit = () => {
             :disabled="form.processing"
             class="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <span v-if="form.processing">Creating...</span>
-            <span v-else>Create Event</span>
+            <span v-if="form.processing">Updating...</span>
+            <span v-else>Update Event</span>
           </button>
         </div>
       </form>

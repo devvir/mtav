@@ -4,7 +4,7 @@ import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   media: ApiResources<Media>;
-  q: string;
+  q?: string;
 }>();
 </script>
 

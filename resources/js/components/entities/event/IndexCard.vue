@@ -1,28 +1,46 @@
 <script setup lang="ts">
-import { Badge, BadgeGroup, BinaryBadge } from '@/components/badge';
+import { BadgeGroup } from '@/components/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import EventBadge from './badges/EventBadge.vue';
+import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
 
-defineProps<{
+const props = defineProps<{
   event: ApiResource<Event>;
 }>();
+
+const { badges } = useEventBadges(props.event);
+
+const dimmed = computed(() => {
+  const event = props.event;
+
+  return event.type !== 'lottery' && (
+    event.status === 'completed' ||
+    !event.is_published ||
+    !event.start_date
+  );
+});
 </script>
 
 <template>
-  <Card :resource="event" entity="event" type="index">
-    <CardHeader :title="event.title" :kicker="_('Event')" />
-
-    <CardContent>
-      <div class="text-sm text-text-muted">{{ event.start_date }}</div>
-
-      <BadgeGroup>
-        <BinaryBadge :when="event.is_published" :then="_('Published')" :else="_('Draft')" />
-        <Badge variant="outline">{{ event.type_label }}</Badge>
+  <Card :resource="event" entity="event" type="index" :dimmed>
+    <CardHeader
+      :title="event.title"
+      :kicker="event.start_date ?? _('No date set')"
+    >
+      <BadgeGroup class="mt-3">
+        <EventBadge
+          v-for="badge in badges"
+          :key="badge.text"
+          :config="badge"
+        />
       </BadgeGroup>
+    </CardHeader>
 
-      <div v-if="event.location" class="text-sm text-text-muted">
-        📍 {{ event.location }}
-      </div>
+    <CardContent v-if="event.description">
+      <p class="line-clamp-3 text-sm text-text-muted">
+        {{ event.description }}
+      </p>
     </CardContent>
 
     <CardFooter />

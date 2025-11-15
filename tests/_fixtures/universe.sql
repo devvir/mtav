@@ -505,11 +505,11 @@ INSERT INTO events (id, type, creator_id, project_id, title, description, locati
 -- EVENT_RSVP (Pivot table for member event responses)
 -- ============================================================================
 -- RSVP patterns:
--- - Event #2 (P1 online): 3 members responded (2 accepted, 1 rejected)
+-- - Event #2 (P1 online): 3 members responded (2 accepted, 1 declined)
 -- - Event #3 (P1 past): 4 members responded (3 accepted, 1 pending)
--- - Event #4 (P1 onsite): 2 members responded (1 accepted, 1 rejected)
+-- - Event #4 (P1 onsite): 2 members responded (1 accepted, 1 declined)
 -- - Event #7 (P2 online): 2 members responded (both accepted)
--- - Event #8 (P2 onsite): 5 members responded (3 accepted, 1 rejected, 1 pending)
+-- - Event #8 (P2 onsite): 5 members responded (3 accepted, 1 declined, 1 pending)
 -- - Event #12 (P4 unpublished): 1 member responded (accepted)
 -- ============================================================================
 
@@ -519,7 +519,7 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 -- Event #2 (Project 1 online meeting) - 3 RSVPs
 (1, 2, 102, TRUE, NOW(), NOW()),   -- Member 102 accepted
 (2, 2, 103, TRUE, NOW(), NOW()),   -- Member 103 accepted
-(3, 2, 105, FALSE, NOW(), NOW()),  -- Member 105 rejected
+(3, 2, 105, FALSE, NOW(), NOW()),  -- Member 105 declined
 
 -- Event #3 (Project 1 past workshop) - 4 RSVPs
 (4, 3, 102, TRUE, NOW(), NOW()),   -- Member 102 accepted
@@ -529,7 +529,7 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 
 -- Event #4 (Project 1 site visit) - 2 RSVPs
 (8, 4, 107, TRUE, NOW(), NOW()),   -- Member 107 accepted
-(9, 4, 108, FALSE, NOW(), NOW()),  -- Member 108 rejected
+(9, 4, 108, FALSE, NOW(), NOW()),  -- Member 108 declined
 
 -- Event #7 (Project 2 online session) - 2 RSVPs
 (10, 7, 136, TRUE, NOW(), NOW()),  -- Member 136 accepted
@@ -537,7 +537,7 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 
 -- Event #8 (Project 2 groundbreaking) - 5 RSVPs
 (12, 8, 136, TRUE, NOW(), NOW()),  -- Member 136 accepted
-(13, 8, 137, FALSE, NOW(), NOW()), -- Member 137 rejected
+(13, 8, 137, FALSE, NOW(), NOW()), -- Member 137 declined
 (14, 8, 138, TRUE, NOW(), NOW()),  -- Member 138 accepted
 (15, 8, 139, TRUE, NOW(), NOW()),  -- Member 139 accepted
 (16, 8, 140, NULL, NOW(), NOW()),  -- Member 140 pending

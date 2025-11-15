@@ -29,7 +29,7 @@ class EventController extends Controller
     public function show(Event $event): Response
     {
         return inertia('Events/Show', [
-            'event' => $event->load('creator', 'project'),
+            'event' => $event->load('creator', 'project', 'rsvps'),
         ]);
     }
 

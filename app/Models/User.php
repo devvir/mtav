@@ -103,12 +103,14 @@ class User extends Authenticatable
 
     public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
     {
-        $query
-            ->orWhereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
-            ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
-                'family',
-                fn (Builder $query) => $query->whereLike('name', "%$q%")
-            ));
+        $query->where(
+            fn (Builder $query) => $query
+                ->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+                ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
+                    'family',
+                    fn (Builder $query) => $query->whereLike('name', "%$q%")
+                ))
+        );
     }
 
     public function isMember(): bool

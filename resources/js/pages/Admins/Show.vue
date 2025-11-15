@@ -7,5 +7,5 @@ defineProps<{
 </script>
 
 <template>
-  <ShowPage :entity="'admin'" :resource="admin" />
+  <ShowPage entity="admin" :resource="admin" />
 </template>

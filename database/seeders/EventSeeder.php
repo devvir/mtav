@@ -15,21 +15,29 @@ class EventSeeder extends Seeder
             $adminIds = $project->admins->pluck('id');
             $memberIds = $project->members->pluck('id');
 
-            // Create online events
-            $onlineEvents = Event::factory()->count(rand(1, 3))->online()
-                ->sequence(fn () => ['creator_id' => $adminIds->random()])
-                ->create(['project_id' => $project->id]);
+            // Create 2-10 events per project with random types
+            $totalEvents = rand(2, 10);
 
-            // Create onsite events
-            $onsiteEvents = Event::factory()->count(rand(1, 3))->onSite()
-                ->sequence(fn () => ['creator_id' => $adminIds->random()])
-                ->create(['project_id' => $project->id]);
+            for ($i = 0; $i < $totalEvents; $i++) {
+                // Randomly choose online or onsite for each event
+                $isOnline = rand(0, 1);
 
-            // Assign members to events that allow RSVP
-            $allEvents = $onlineEvents->concat($onsiteEvents);
+                if ($isOnline) {
+                    $event = Event::factory()->online()
+                        ->create([
+                            'project_id' => $project->id,
+                            'creator_id' => $adminIds->random()
+                        ]);
+                } else {
+                    $event = Event::factory()->onSite()
+                        ->create([
+                            'project_id' => $project->id,
+                            'creator_id' => $adminIds->random()
+                        ]);
+                }
 
-            $allEvents->filter(fn ($event) => $event->rsvp)->each(function ($event) use ($memberIds) {
-                if ($memberIds->isNotEmpty()) {
+                // Assign members to events that allow RSVP
+                if ($event->rsvp && $memberIds->isNotEmpty()) {
                     $numRsvps = rand(0, min(10, $memberIds->count()));
                     $selectedMembers = $memberIds->random($numRsvps);
 
@@ -39,7 +47,7 @@ class EventSeeder extends Seeder
                         ]);
                     }
                 }
-            });
+            }
         });
     }
 }

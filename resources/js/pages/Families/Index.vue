@@ -4,7 +4,7 @@ import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.v
 
 defineProps<{
   families: ApiResources<Family>;
-  q: string;
+  q?: string;
 }>();
 </script>
 

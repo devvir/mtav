@@ -104,8 +104,8 @@ interface MemberRsvpFields {
   acknowledged_events_count: number;
   accepted_events: ApiResource<Event>[];
   accepted_events_count: number;
-  rejected_events: ApiResource<Event>[];
-  rejected_events_count: number;
+  declined_events: ApiResource<Event>[];
+  declined_events_count: number;
 }
 
 interface Member extends User, Partial<MemberRsvpFields> {
@@ -165,12 +165,15 @@ interface EventRsvpFields {
   rsvps: ApiResource<User>[];
   rsvps_count: number;
   accepted: boolean;
-  rejected: boolean;
+  declined: boolean;
+  accepted_count: number;
+  declined_count: number;
 }
 
 interface Event extends Resource, Partial<EventRsvpFields> {
   type: EventType;
   type_label: string;
+  status: string;
   title: string;
   description: string;
   start_date: string | null;

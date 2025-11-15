@@ -11,6 +11,7 @@ const props = defineProps<{
   resource: ApiResource;
   linksToDetailsModal?: boolean;
   type?: CardType;
+  dimmed?: boolean;
 }>();
 
 const routes = entityRoutes(props.entity);
@@ -35,6 +36,8 @@ provide(exposed.routes, routes);
         'border-border bg-surface-elevated shadow-sm [&>*+*]:border-border-subtle',
         // Deleted resource styling
         resource.deleted_at && 'border-red-200 bg-surface opacity-60 shadow-sm',
+        // Dimmed styling for inactive/unpublished content
+        props.dimmed && 'opacity-60',
         $attrs.class,
         'flex h-full flex-col [&>*+*]:border-t', // No override allowed
         linksToDetails &&

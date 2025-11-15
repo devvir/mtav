@@ -12,6 +12,8 @@ class EventResource extends JsonResource
             ...$this->commonResourceData(),
 
             'type'         => $this->type->value,
+            'type_label'   => $this->type->label(),
+            'status'       => $this->status,
             'title'        => $this->title,
             'description'  => $this->description,
             'location'     => $this->location,
@@ -21,9 +23,8 @@ class EventResource extends JsonResource
             'allows_rsvp'  => $this->allowsRsvp(),
 
             'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, true)),
-            'rejected' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, false)),
+            'declined' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, false)),
 
-            'type_label' => $this->type->label(),
             'is_lottery' => $this->isLottery(),
             'is_online'  => $this->isOnline(),
             'is_onsite'  => $this->isOnSite(),
@@ -39,6 +40,15 @@ class EventResource extends JsonResource
             'project'     => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'rsvps'       => $this->whenLoaded('rsvps'),
             'rsvps_count' => $this->whenCountedOrLoaded('rsvps'),
+
+            'accepted_count' => $this->whenLoaded(
+                'rsvps',
+                fn () => $this->rsvps->where('pivot.status', true)->count()
+            ),
+            'declined_count' => $this->whenLoaded(
+                'rsvps',
+                fn () => $this->rsvps->where('pivot.status', false)->count()
+            ),
         ];
     }
 

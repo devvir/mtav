@@ -5,12 +5,18 @@ namespace App\Models;
 use App\Enums\EventType;
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
 {
     use ProjectScope;
+
+    /**
+     * Default Event duration (in minutes) if no end date is set.
+     */
+    public const IMPLICIT_DURATION = 60;
 
     protected $casts = [
         'type'         => EventType::class,
@@ -57,21 +63,68 @@ class Event extends Model
         return $this->type === EventType::ONSITE;
     }
 
+    public function status(): Attribute
+    {
+        $upcoming = is_null($this->start_date) || $this->start_date > now();
+        $completed = is_null($this->end_date) && isset($this->start_date)
+            ? $this->start_date < now()->subMinutes(self::IMPLICIT_DURATION)
+            : isset($this->end_date) && $this->end_date < now();
+
+        return Attribute::make(get: fn () => match(true) {
+            $completed => 'completed',
+            $upcoming  => 'upcoming',
+            default    => 'ongoing',
+        });
+    }
+
     public function scopePublished(Builder $query): void
     {
         $query->where('is_published', true);
     }
 
+    /**
+     * Upcoming Events
+     *   1. No start date set (i.e. TBD)
+     *   2. or has a start date in the future
+     */
     public function scopeUpcoming(Builder $query): void
     {
-        $query->where('end_date', '>', now());
+        $query->where(
+            fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '>', now())
+        );
     }
 
+    /**
+     * Ongoing Event
+     *   1. started in the past
+     *   2. hasn't finished (ends in future or started recently with no end date given)
+     */
+    public function scopeOngoing(Builder $query): void
+    {
+        $query
+            ->whereNot(fn ($q) => $this->scopeUpcoming($q))
+            ->whereNot(fn ($q) => $this->scopePast($q));
+    }
+
+    /**
+     * Past Event
+     *   1. ended in the past (explicit)
+     *   2. or started too long ago with no end date set
+     */
     public function scopePast(Builder $query): void
     {
-        $query->where('end_date', '<', now());
+        $timecut = now()->subMinutes(self::IMPLICIT_DURATION);
+
+        $query->where(  // Explicit end date in the past
+            fn ($q) => $q->whereNotNull('end_date')->where('end_date', '<', now())
+        )->orWhere(     // or implicitely ended (started too long ago)
+            fn ($q) => $q->whereNull('end_date')->where('start_date', '<', $timecut)
+        );
     }
 
+    /**
+     * Acknowledged by a Member (i.e. RSVP accepted or declined).
+     */
     public function scopeAcknowledgedBy(Builder $query, Member|int $member, bool $status = true): void
     {
         $memberId = $member instanceof Member ? $member->id : $member;
@@ -89,7 +142,7 @@ class Event extends Model
         $this->scopeAcknowledgedBy($query, $member, true);
     }
 
-    public function scopeRejectedBy(Builder $query, Member|int $member): void
+    public function scopeDeclinedBy(Builder $query, Member|int $member): void
     {
         $this->scopeAcknowledgedBy($query, $member, false);
     }

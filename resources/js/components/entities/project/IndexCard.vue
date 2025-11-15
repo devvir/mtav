@@ -11,7 +11,6 @@ import {
 import { currentProject } from '@/composables/useProjects';
 import { entityLabel } from '@/composables/useResources';
 import { _ } from '@/composables/useTranslations';
-import { cn } from '@/lib/utils';
 import { Home, Users } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -31,7 +30,7 @@ const actionRoute = computed(() =>
     :resource="project"
     entity="project"
     type="index"
-    :class="cn($props.class, { 'opacity-60': !project.active })"
+    :dimmed="!project.active"
   >
     <CardHeader :title="project.name">
       <BinaryBadge

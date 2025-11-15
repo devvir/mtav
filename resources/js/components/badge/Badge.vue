@@ -20,9 +20,10 @@ const variantClasses: Record<BadgeVariant, string> = {
 };
 
 const sizeClasses: Record<BadgeSize, string> = {
-  sm: 'px-2 py-0.5 text-xs',
-  md: 'px-2.5 py-0.5 text-xs',
-  lg: 'px-3 py-1 text-sm',
+  xs: 'px-1.5 py-0 text-xs',
+  sm: 'px-2 py-0 text-xs',
+  md: 'px-2.5 py-0 text-xs',
+  lg: 'px-3 py-0.5 text-sm',
 };
 </script>
 

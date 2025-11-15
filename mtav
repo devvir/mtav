@@ -36,6 +36,11 @@ print_help() {
     echo -e "  ${YELLOW}mtav npm <cmd>${NC}         # NPM package manager"
     echo -e "  ${YELLOW}mtav shell [container]${NC} # Shell into container (default: php)"
     echo ""
+    echo -e "${GREEN}Testing Aliases:${NC}"
+    echo -e "  ${YELLOW}mtav pest${NC}              # Run PHP tests with Pest (alias for 'mtav test --pest')"
+    echo -e "  ${YELLOW}mtav vitest${NC}            # Run JavaScript tests with Vitest (alias for 'mtav test --vitest')"
+    echo -e "  ${YELLOW}mtav tinker${NC}            # Laravel Tinker REPL (alias for 'mtav artisan tinker')"
+    echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
     echo -e "  1. ${YELLOW}git clone https://github.com/devvir/mtav${NC}"
     echo -e "  2. ${YELLOW}mtav up${NC}           # Everything will be built and ready"
@@ -149,6 +154,19 @@ case $COMMAND in
     deploy)
         echo -e "${BLUE}🚀 Deploying production build...${NC}"
         "$SCRIPTS_DIR/deploy.sh" "$@"
+        ;;
+
+    # Convenient aliases
+    pest)
+        "$SCRIPTS_DIR/test.sh" --pest "$@"
+        ;;
+
+    vitest)
+        "$SCRIPTS_DIR/test.sh" --vitest "$@"
+        ;;
+
+    tinker)
+        "$SCRIPTS_DIR/artisan.sh" tinker "$@"
         ;;
 
     help|--help|-h|"")

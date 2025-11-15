@@ -11,6 +11,7 @@ import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
 import {
   Building2Icon,
+  CalendarIcon,
   HomeIcon,
   LayoutGrid,
   LucideIcon,
@@ -35,10 +36,17 @@ const allNavItems: NavItem[] = [
   },
   {
     label: 'Gallery',
-    route: 'gallery',
+    route: 'media.index',
     icon: LayoutGrid,
     onlyIf: projectIsSelected,
-    routes: ['gallery'],
+    routes: ['media.*'],
+  },
+  {
+    label: 'Events',
+    route: 'events.index',
+    icon: CalendarIcon,
+    onlyIf: projectIsSelected,
+    routes: ['events.*'],
   },
   {
     label: 'Members',

@@ -5,17 +5,38 @@ use App\Models\Event;
 use App\Models\Member;
 use App\Models\Project;
 
-// $eventWithRsvps = Event::with('rsvps')->find(2); // Online meeting with 3 RSVPs
+describe('When counting Member invitations to RSVP Events', function () {
+    it(
+        'correctly counts total, acknowledged, accepted, and declined invitations',
+        function (Member $member, array $expectedCounts) {
+            $acknowledgedCount = $expectedCounts['accepted'] + $expectedCounts['declined'];
 
-// // Shared data fetches for read-only tests
-// $project1 = Project::find(1);
-// $admin11 = Admin::find(11);
-// $member102 = Member::find(102);
-// $member105 = Member::find(105);
-// $member106 = Member::find(106);
+            expect($member->rsvps)
+                ->toHaveCount($expectedCounts['total'])
+                ->each->toBeInstanceOf(Event::class);
 
-describe('Event model relations', function () use ($eventWithRsvps, $project1, $admin11) {
+            expect($member->acknowledgedEvents)->toHaveCount($acknowledgedCount);
+            expect($member->acceptedEvents)->toHaveCount($expectedCounts['accepted']);
+            expect($member->declinedEvents)->toHaveCount($expectedCounts['declined']);
 
+        }
+    )->with([
+        'Member with 2 accepted Events' => [
+            fn () => Member::find(102),
+            ['total' => 2, 'accepted' => 2, 'declined' => 0],
+        ],
+        'Member with 1 accepted and 1 declined Event' => [
+            fn () => Member::find(105),
+            ['total' => 2, 'accepted' => 1, 'declined' => 1],
+        ],
+        'Member with 1 pending RSVP' => [
+            fn () => Member::find(106),
+            ['total' => 1, 'accepted' => 0, 'declined' => 0],
+        ]
+    ]);
+});
+
+describe('PENDING REVIEW / REFACTOR', function () {
     it('belongs to a project', function () {
         $event = Event::find(1); // Lottery event for Project 1
 
@@ -34,7 +55,10 @@ describe('Event model relations', function () use ($eventWithRsvps, $project1, $
             ->firstname->toBe('Admin');
     });
 
-    it('has member rsvps with correct statuses and timestamps', function () use ($eventWithRsvps) {
+    it('has member rsvps with correct statuses and timestamps', function () {
+        // Online meeting with 3 RSVPs
+        $eventWithRsvps = Event::with('rsvps')->find(2);
+
         // Test count and instance types
         expect($eventWithRsvps->rsvps)
             ->toHaveCount(3)
@@ -42,9 +66,10 @@ describe('Event model relations', function () use ($eventWithRsvps, $project1, $
 
         // Test specific RSVP statuses via pivot
         $rsvps = $eventWithRsvps->rsvps->keyBy('id');
+
         expect($rsvps[102]->pivot->status)->toBe(true);  // accepted
         expect($rsvps[103]->pivot->status)->toBe(true);  // accepted
-        expect($rsvps[105]->pivot->status)->toBe(false); // rejected
+        expect($rsvps[105]->pivot->status)->toBe(false); // declined
 
         // Test pivot timestamps
         $firstMember = $eventWithRsvps->rsvps->first();
@@ -56,7 +81,6 @@ describe('Event model relations', function () use ($eventWithRsvps, $project1, $
 });
 
 describe('Event model scopes', function () {
-
     it('filters events by publication status', function () {
         $publishedEvents = Event::published()->get();
         $unpublishedEvent = Event::find(5); // Unpublished onsite event
@@ -112,17 +136,20 @@ describe('Event model scopes', function () {
         'location search' => ['Building Street', 4, 'finds events at "123 Building Street"']
     ]);
 
-    it('filters events by member rsvp status using scopes', function () use ($member102, $member105) {
+    it('filters events by member rsvp status using scopes', function () {
         // Member 102 accepted events 2 and 3
-        $acknowledgedEvents = Event::scopeAcknowledgedBy(Event::query(), $member102, true)->get();
+        $member102 = Member::find(102);
+        $member105 = Member::find(105);
+
+        $acknowledgedEvents = Event::acknowledgedBy($member102, true)->get();
         expect($acknowledgedEvents->pluck('id'))
             ->toContain(2) // Accepted online meeting
             ->toContain(3) // Accepted past workshop
             ->not->toContain(7); // Different project event
 
-        // Member 105 rejected event 2
-        $rejectedEvents = Event::scopeRejectedBy(Event::query(), $member105)->get();
-        expect($rejectedEvents->every(function ($event) use ($member105) {
+        // Member 105 declined event 2
+        $declinedEvents = Event::declinedBy($member105)->get();
+        expect($declinedEvents->every(function ($event) use ($member105) {
             $rsvp = $event->rsvps->where('id', $member105->id)->first();
             return $rsvp && $rsvp->pivot->status === false;
         }))->toBeTrue();
@@ -130,9 +157,10 @@ describe('Event model scopes', function () {
 
 });
 
-describe('Related model event relations', function () use ($project1, $admin11, $member102, $member105, $member106) {
+describe('Related model event relations', function () {
+    it('project has event relations', function () {
+        $project1 = Project::find(1);
 
-    it('project has event relations', function () use ($project1) {
         // Test events relation
         expect($project1->events)
             ->toHaveCount(5) // 5 events in Project 1
@@ -148,7 +176,9 @@ describe('Related model event relations', function () use ($project1, $admin11, 
             ->toBeTrue();
     });
 
-    it('admin has created event relations', function () use ($admin11) {
+    it('admin has created event relations', function () {
+        $admin11 = Admin::find(11);
+
         // Test created events relation
         expect($admin11->events)
             ->toHaveCount(5) // Created all 5 events in Project 1
@@ -165,63 +195,13 @@ describe('Related model event relations', function () use ($project1, $admin11, 
             ->toBeTrue();
     });
 
-    it('member has rsvp relations with different statuses', function ($memberId, $expectedCounts, $description) {
-        $member = Member::find($memberId);
+    it('member has upcoming rsvp events filtered correctly', function () {
+        $member102 = Member::find(102);
 
-        // Basic rsvps relation
-        expect($member->rsvps)
-            ->toHaveCount($expectedCounts['total'])
-            ->each->toBeInstanceOf(Event::class);
-
-        // Acknowledged events (any status)
-        if ($expectedCounts['acknowledged'] > 0) {
-            expect($member->acknowledgedEvents)
-                ->toHaveCount($expectedCounts['acknowledged'])
-                ->each->pivot->status->not->toBeNull();
-        }
-
-        // Accepted events
-        if ($expectedCounts['accepted'] > 0) {
-            expect($member->acceptedEvents)
-                ->toHaveCount($expectedCounts['accepted'])
-                ->each->pivot->status->toBe(true);
-        }
-
-        // Rejected events
-        if ($expectedCounts['rejected'] > 0) {
-            expect($member->rejectedEvents)
-                ->toHaveCount($expectedCounts['rejected'])
-                ->each->pivot->status->toBe(false);
-        }
-
-        // Pending events (null status)
-        $pendingRsvps = $member->rsvps->filter(fn ($event) => $event->pivot->status === null);
-        expect($pendingRsvps)->toHaveCount($expectedCounts['pending']);
-
-    })->with([
-        'member with accepted events' => [
-            102,
-            ['total' => 2, 'acknowledged' => 2, 'accepted' => 2, 'rejected' => 0, 'pending' => 0],
-            'Member 102 accepted 2 events'
-        ],
-        'member with rejected events' => [
-            105,
-            ['total' => 1, 'acknowledged' => 1, 'accepted' => 0, 'rejected' => 1, 'pending' => 0],
-            'Member 105 rejected 1 event'
-        ],
-        'member with pending rsvp' => [
-            106,
-            ['total' => 1, 'acknowledged' => 0, 'accepted' => 0, 'rejected' => 0, 'pending' => 1],
-            'Member 106 has 1 pending RSVP'
-        ]
-    ]);
-
-    it('member has upcoming rsvp events filtered correctly', function () use ($member102) {
         $upcomingRsvps = $member102->upcomingRsvps;
         $pastEvent = Event::find(3);
 
         expect($upcomingRsvps->pluck('id'))
             ->not->toContain($pastEvent->id);
     });
-
 });

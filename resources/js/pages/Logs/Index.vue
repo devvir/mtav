@@ -7,7 +7,7 @@ import { ModalLink } from '@inertiaui/modal-vue';
 
 defineProps<{
   logs: ApiResources<Log>;
-  q: string;
+  q?: string;
 }>();
 </script>
 

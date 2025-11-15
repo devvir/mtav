@@ -1,3 +1,5 @@
+type Replacements = Record<string, string>;
+
 export const useTranslation = () => {
   const locale = ref<string>(document.documentElement.lang || 'en');
   const translations = ref<Record<string, string>>({});
@@ -17,10 +19,15 @@ export const useTranslation = () => {
     translations.value = newTranslations;
   };
 
-  const trans = (key: string): string => {
+  const trans = (key: string, replacements: Replacements = {}): string => {
     const dict = translations.value ?? { [key]: key };
 
-    return dict[key] || key;
+    const translatedString = dict[key] || key;
+
+    return Object.entries(replacements).reduce((result, [placeholder, value]) => {
+      const regex = new RegExp(`\\{${placeholder}\\}`, 'g');
+      return result.replace(regex, String(value));
+    }, translatedString);
   };
 
   setLocale(locale.value);

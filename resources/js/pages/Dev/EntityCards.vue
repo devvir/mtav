@@ -52,7 +52,7 @@ onMounted(() => {
 <template>
   <Head title="Entity Cards" />
 
-  <main class="max-w-6xl mx-auto space-y-6 py-8">
+  <main class="max-w-7xl mx-auto space-y-6 py-8">
     <header>
       <Breadcrumbs>
         <Breadcrumb route="dev.dashboard" text="Dev" />

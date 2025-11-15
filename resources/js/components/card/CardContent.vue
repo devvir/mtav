@@ -8,7 +8,11 @@ defineProps<{
 </script>
 
 <template>
-  <main :class="cn('flex flex-1 flex-col items-start gap-4', $props.class, 'relative min-w-0')">
+  <main :class="cn(
+    'flex flex-1 flex-col items-start gap-4',
+    $props.class,
+    'relative min-w-0'
+  )">
     <slot />
   </main>
 </template>
