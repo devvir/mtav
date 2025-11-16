@@ -11,6 +11,7 @@ defineProps<{
   <main :class="cn(
     'flex flex-1 flex-col items-start gap-4',
     $props.class,
+    '@container/card-content',
     'relative min-w-0'
   )">
     <slot />

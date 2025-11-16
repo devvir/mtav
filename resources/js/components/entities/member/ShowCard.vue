@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
-import { ContentHighlight, ContentDetail } from '@/components/card/snippets';
+import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
 import { _ } from '@/composables/useTranslations';
 import { MailIcon, PhoneIcon, UsersIcon, HomeIcon, CalendarIcon } from 'lucide-vue-next';
 import { iAmAdmin } from '@/composables/useAuth';
@@ -15,22 +15,6 @@ defineProps<{
     <CardHeader :title="member.name" avatar="lg" />
 
     <CardContent class="space-y-6">
-      <!-- Contact Information -->
-      <div class="space-y-4">
-        <ContentDetail
-          :icon="MailIcon"
-          :title="_('Email')"
-          :content="member.email"
-        />
-
-        <ContentDetail
-          v-if="member.phone"
-          :icon="PhoneIcon"
-          :title="_('Phone')"
-          :content="member.phone"
-        />
-      </div>
-
       <!-- Family Information -->
       <div v-if="member.family" class="grid grid-cols-[auto_1fr] gap-3">
         <component :is="HomeIcon" class="h-5 w-5 mt-0.5 text-text-muted" />
@@ -46,8 +30,26 @@ defineProps<{
             </Link>
           </div>
         </div>
-      </div>      <!-- Membership Details -->
-      <div class="space-y-4">
+      </div>
+
+      <!-- Contact Information -->
+      <ContentGrid>
+        <ContentDetail
+          :icon="MailIcon"
+          :title="_('Email')"
+          :content="member.email"
+        />
+
+        <ContentDetail
+          v-if="member.phone"
+          :icon="PhoneIcon"
+          :title="_('Phone')"
+          :content="member.phone"
+        />
+      </ContentGrid>
+
+      <!-- Membership Details -->
+      <ContentGrid>
         <ContentDetail
           v-if="iAmAdmin && member.email_verified_at"
           :icon="CalendarIcon"
@@ -61,7 +63,7 @@ defineProps<{
           :title="_('Member Since')"
           :content="member.invitation_accepted_at"
         />
-      </div>
+      </ContentGrid>
 
       <!-- About Section -->
       <div v-if="member.about">

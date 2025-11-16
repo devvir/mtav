@@ -8,10 +8,10 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="media" entity="media" type="show"
-    class="overflow-hidden ring-2 ring-card-elevated-foreground/50 p-0!">
+  <Card :resource="media" entity="media" type="show" tabindex="1"
+    class="group overflow-hidden ring-2 ring-card-elevated-foreground/50 p-0!">
     <!-- CardActions positioned in top-left corner with background for visibility -->
-    <CardActions type="full" class="absolute left-3 top-3 z-10 rounded-lg bg-black/40 backdrop-blur-sm p-0!" />
+    <CardActions type="full" class="not-group-hover:not-group-active:not-group-focus:hidden absolute left-3 top-3 z-10 rounded-lg [&>*]:bg-black/30 backdrop-blur-sm p-0!" />
 
     <CardContent class="relative overflow-hidden p-0!">
       <!-- Dynamic container that respects original aspect ratio but uses more modal space -->

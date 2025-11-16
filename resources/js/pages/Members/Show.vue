@@ -7,5 +7,5 @@ defineProps<{
 </script>
 
 <template>
-  <ShowPage entity="member" :resource="member" modalWidth="2xl" />
+  <ShowPage entity="member" :resource="member" />
 </template>

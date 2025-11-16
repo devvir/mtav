@@ -429,7 +429,7 @@
   "person has confirmed": "persona confirmó",
   "people have confirmed": "personas confirmaron",
   "No confirmations yet": "Sin confirmaciones aún",
-  "{accepted} accepted, {declined} declined ({total} invited)": "{accepted} aceptaron, {declined} declinaron ({total} invitados)",
+  "{accepted} confirmed ({declined} declined)": "{accepted} confirmados ({declined} declinaron)",
   "accepted": "aceptado",
   "declined": "declinado",
   "Email Verified": "Email Verificado",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BadgeGroup } from '@/components/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
-import { ContentHighlight, ContentDetail } from '@/components/card/snippets';
+import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
@@ -50,8 +50,17 @@ const userRsvpContentClass = computed(() => {
     </CardHeader>
 
     <CardContent class="space-y-6">
+      <!-- Location -->
+      <ContentDetail
+        :icon="MapPinIcon"
+        :title="event.is_online ? _('Meeting Link') : _('Location')"
+        :content="event.location"
+        :fallback="_('Not provided')"
+        :href="event.is_online && event.location ? event.location : undefined"
+      />
+
       <!-- Event Dates & Time -->
-      <div class="grid gap-4 @md:grid-cols-2">
+      <ContentGrid>
         <ContentDetail
           :icon="CalendarIcon"
           :title="_('Start Date')"
@@ -65,24 +74,28 @@ const userRsvpContentClass = computed(() => {
           :title="_('End Date')"
           :content="event.end_date"
         />
-      </div>
+      </ContentGrid>
 
-      <!-- Location -->
-      <ContentDetail
-        :icon="MapPinIcon"
-        :title="event.is_online ? _('Meeting Link') : _('Location')"
-        :content="event.location"
-        :fallback="_('Not provided')"
-        :href="event.is_online && event.location ? event.location : undefined"
-      />
+      <ContentGrid min-width="10cqw">
+        <!-- Event Organizer -->
+        <ContentDetail
+          :icon="UserIcon"
+          :title="_('Organizer')"
+          :content="event.creator?.name"
+          :fallback="_('System')"
+        />
 
-      <!-- Event Organizer -->
-      <ContentDetail
-        :icon="UserIcon"
-        :title="_('Organizer')"
-        :content="event.creator?.name"
-        :fallback="_('System')"
-      />
+        <!-- RSVP Counts -->
+        <ContentDetail
+          :icon="ClockIcon"
+          :title="_('RSVPs')"
+          :content="_('{accepted} confirmed ({declined} declined)', {
+            accepted: event.accepted_count || 0,
+            declined: event.declined_count || 0,
+            total: event.rsvps_count || 0
+          })"
+        />
+      </ContentGrid>
 
       <!-- Description -->
       <div v-if="event.description">
@@ -100,17 +113,6 @@ const userRsvpContentClass = computed(() => {
           :title="_('Your RSVP')"
           :content="userRsvpContent"
           :content-class="userRsvpContentClass"
-        />
-
-        <!-- RSVP Counts -->
-        <ContentDetail
-          :icon="ClockIcon"
-          :title="_('RSVPs')"
-          :content="_('{accepted} accepted, {declined} declined ({total} invited)', {
-            accepted: event.accepted_count || 0,
-            declined: event.declined_count || 0,
-            total: event.rsvps_count || 0
-          })"
         />
       </div>
     </CardContent>
