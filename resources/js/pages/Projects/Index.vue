@@ -1,41 +1,23 @@
 <script setup lang="ts">
-import Head from '@/components/Head.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import InfinitePaginator from '@/components/pagination/InfinitePaginator.vue';
-import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
-import ActiveInactiveSwitch from '@/components/switches/ActiveInactiveSwitch.vue';
-import { currentProject } from '@/composables/useProjects';
-import IndexCard from './Crud/IndexCard.vue';
+import IndexPage from '@/components/entities/IndexPage.vue';
+import { SEARCH, SWITCH } from '@/components/filtering';
 
-defineProps<{
+const props = defineProps<{
   projects: ApiResources<Project>;
+  all?: boolean;
   q?: string;
-  all: boolean;
 }>();
+
+const filters = {
+  q: { type: SEARCH, value: props.q },
+  all: {
+    type: SWITCH,
+    options: { '0': 'Active', '1': 'All' },
+    value: props.all === false ? '0' : '1',
+  }
+};
 </script>
 
 <template>
-  <Head title="Projects" />
-
-  <Breadcrumbs global>
-    <Breadcrumb route="projects.index" text="Projects" />
-  </Breadcrumbs>
-
-  <InfinitePaginator
-    :list="projects"
-    loadable="projects"
-    :filter="q"
-    :featured="currentProject?.id"
-  >
-    <template v-slot:search-right>
-      <ActiveInactiveSwitch route="projects.index" :all />
-    </template>
-
-    <template v-slot:default="{ item }">
-      <IndexCard :project="item as Required<(typeof projects.data)[0]>" class="mx-auto max-w-2xl" />
-    </template>
-  </InfinitePaginator>
-
-  <InfiniteScroll :pageSpecs="projects" loadable="projects" />
+  <IndexPage entity="project" :resources="projects" :filters />
 </template>

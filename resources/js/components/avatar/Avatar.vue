@@ -14,8 +14,9 @@ defineProps<{
 const sizes: Record<AvatarSize, string> = {
   xs: 'size-6 text-[0.6rem]',
   sm: 'size-8 text-xs',
-  md: 'size-12 text-sm',
-  lg: 'size-16 text-lg',
+  md: 'size-10 text-base',
+  lg: 'size-12 text-sm',
+  xl: 'size-16 text-lg',
 };
 
 const { getInitials } = useInitials();

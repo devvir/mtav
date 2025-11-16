@@ -41,11 +41,12 @@ const handleUpdate = (key: string, value: OptionValue) => {
 const configEntries = computed(() => props.config ? Object.entries(props.config) : []);
 
 // Propagate defaults to model (if they're passed via config instead of v-model)
-watch(() => props.config, () => (model.value = Object.fromEntries(
-  Object.entries(props.config ?? {}).map(
-    ([k, v]: [string, any]) => [k, v.value ?? model.value[k]]
-  )
-)));
+const updateModelFromConfig = () => (model.value = Object.fromEntries(
+  configEntries.value.map(([k, v]: [string, any]) => [k, v.value ?? model.value[k]])
+));
+
+watch(() => props.config, updateModelFromConfig);
+onMounted(() => updateModelFromConfig());
 </script>
 
 <template>

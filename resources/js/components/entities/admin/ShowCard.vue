@@ -18,7 +18,7 @@ defineProps<{
 
 <template>
   <Card :resource="admin" entity="admin" type="show">
-    <CardHeader :title="admin.name" :kicker="_('Admin')" avatar="lg" />
+    <CardHeader :title="admin.name" :kicker="_('Admin')" avatar="xl" />
 
     <CardContent>
       <!-- Contact Information -->

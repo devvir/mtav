@@ -12,7 +12,7 @@ defineProps<{
 
 <template>
   <Card :resource="member" entity="member" type="show">
-    <CardHeader :title="member.name" avatar="lg" />
+    <CardHeader :title="member.name" avatar="xl" />
 
     <CardContent class="space-y-6">
       <!-- Family Information -->

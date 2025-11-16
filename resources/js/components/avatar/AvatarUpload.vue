@@ -142,7 +142,7 @@ const clearPreview = () => {
     "
   >
     <div class="relative flex-shrink-0">
-      <Avatar :class="sizeClasses">
+      <Avatar :class="sizeClasses" size="lg">
         <AvatarImage v-if="displayAvatar" :src="displayAvatar" :alt="_('Profile picture')" />
         <AvatarFallback :class="sizeClasses">
           <span class="text-2xl font-semibold">{{ avatarInitials }}</span>

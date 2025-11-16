@@ -5,15 +5,16 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  ContentGrid,
   ContentHighlight,
   ContentLine,
   CreatedMeta,
   FooterButton,
+  StatBox,
 } from '@/components/card';
 import { currentProject } from '@/composables/useProjects';
-import { entityLabel } from '@/composables/useResources';
 import { _ } from '@/composables/useTranslations';
-import { Home, Users } from 'lucide-vue-next';
+import { Calendar, Camera, Home, Shield, User, UsersRound } from 'lucide-vue-next';
 
 const props = defineProps<{
   project: ApiResource<Project>;
@@ -42,35 +43,65 @@ const actionRoute = computed(() =>
       <!-- Organization -->
       <ContentLine :label="_('Organization')" :value="project.organization" />
 
-      <!-- Description -->
-      <ContentHighlight>{{ project.description }}</ContentHighlight>
-
       <!-- Statistics -->
-      <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-lg border border-border bg-surface-elevated p-2 text-center">
-          <div class="mb-1 flex items-center justify-center gap-2">
-            <Users class="size-5 text-text-muted" />
-            <div class="text-lg font-semibold text-text">
-              {{ project.families_count }}
-            </div>
-          </div>
-          <div class="text-xs text-text-muted">
-            {{ entityLabel('family', project.families_count) }}
-          </div>
-        </div>
+      <ContentGrid>
+        <StatBox
+          :icon="UsersRound"
+          :count="project.families_count"
+          entity="family"
+          icon-color="text-blue-500"
+          route="families.index"
+        />
 
-        <div class="rounded-lg border border-border bg-surface-elevated p-2 text-center">
-          <div class="mb-1 flex items-center justify-center gap-2">
-            <Home class="size-5 text-text-muted" />
-            <div class="text-lg font-semibold text-text">
-              {{ project.units_count }}
-            </div>
-          </div>
-          <div class="text-xs text-text-muted">
-            {{ entityLabel('unit', project.units_count) }}
-          </div>
-        </div>
-      </div>
+        <StatBox
+          :icon="User"
+          :count="project.members_count"
+          entity="member"
+          icon-color="text-green-500"
+          route="members.index"
+        />
+
+        <StatBox
+          :icon="Shield"
+          :count="project.admins_count"
+          entity="admin"
+          icon-color="text-purple-500"
+          route="admins.index"
+        />
+      </ContentGrid>
+
+      <ContentGrid>
+        <StatBox
+          :icon="Home"
+          :count="project.units_count"
+          entity="unit"
+          icon-color="text-orange-500"
+          route="units.index"
+        />
+
+        <StatBox
+          v-if="project.events_count !== undefined"
+          :icon="Calendar"
+          :count="project.events_count"
+          entity="event"
+          icon-color="text-indigo-500"
+          route="events.index"
+        />
+
+        <StatBox
+          v-if="project.media_count !== undefined"
+          :icon="Camera"
+          :count="project.media_count"
+          entity="media"
+          icon-color="text-pink-500"
+          route="media.index"
+        />
+      </ContentGrid>
+
+      <!-- Description -->
+      <ContentHighlight class="min-h-32">
+        {{ project.description }}
+      </ContentHighlight>
     </CardContent>
 
     <CardFooter class="flex items-center justify-between">

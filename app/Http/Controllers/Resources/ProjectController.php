@@ -21,18 +21,13 @@ class ProjectController extends Controller
     public function index(IndexProjectsRequest $request): Response
     {
         $projects = Project::alphabetically()
-            ->withCount('admins', 'members', 'families')
-            ->with([
-                'admins'   => fn ($q) => $q->limit(5),
-                'members'  => fn ($q) => $q->limit(5),
-                'families' => fn ($q) => $q->limit(5),
-            ])
+            ->withCount('members', 'families')
             ->when($request->q, fn ($q, $search) => $q->whereLike('name', "%$search%"))
-            ->unless($request->showAll, fn ($q) => $q->where('projects.active', true));
+            ->unless($request->all, fn ($q) => $q->where('projects.active', true));
 
         return inertia('Projects/Index', [
             'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
-            'all'      => $request->boolean('showAll') ?? false,
+            'all'      => $request->boolean('all') ?? false,
             'q'        => $request->q ?? '',
         ]);
     }
@@ -42,15 +37,11 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        $project
-            ->load([
-                'admins'   => fn ($q) => $q->limit(7),
-                'members'  => fn ($q) => $q->limit(10),
-                'families' => fn ($q) => $q->limit(10),
-            ])
-            ->loadCount('admins', 'members', 'families');
+        $project->loadCount('members', 'families', 'units', 'media', 'events');
 
-        return inertia('Projects/Show', compact('project'));
+        return inertia('Projects/Show', [
+            'project' => $project->load('admins'),
+        ]);
     }
 
     public function create(): Response

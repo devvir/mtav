@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <Card :resource="member" entity="member" type="index">
-    <CardHeader :title="member.name" avatar="md">
+    <CardHeader :title="member.name" avatar="lg">
       <span class="pr-1 text-text/30">{{ _('Family') }}</span>
       <ModalLink :href="route('families.show', member.family.id)">
         <span class="text-text-link hover:text-text-link-hover">

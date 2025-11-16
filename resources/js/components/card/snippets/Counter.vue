@@ -17,7 +17,7 @@ const sizeClasses = {
 
 <template>
   <div class="text-sm whitespace-nowrap text-text-muted">
-    <span :class="['mr-3 font-extrabold', sizeClasses[size || 'md']]">{{ count }}</span>
+    <span :class="['mr-2 font-extrabold', sizeClasses[size || 'md']]">{{ count }}</span>
     {{ count === 1 ? _(singular) : _(plural) }}
   </div>
 </template>

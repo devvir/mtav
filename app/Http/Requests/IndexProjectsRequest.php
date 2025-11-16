@@ -15,8 +15,8 @@ class IndexProjectsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q'       => 'nullable|string|max:255',
-            'showAll' => 'nullable|boolean',
+            'q'   => 'nullable|string|max:255',
+            'all' => 'nullable|boolean',
         ];
     }
 }

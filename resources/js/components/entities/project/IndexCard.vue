@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BinaryBadge } from '@/components/badge';
 import {
   Card,
   CardContent,
@@ -9,9 +8,8 @@ import {
   FooterButton,
 } from '@/components/card';
 import { currentProject } from '@/composables/useProjects';
-import { entityLabel } from '@/composables/useResources';
 import { _ } from '@/composables/useTranslations';
-import { Home, Users } from 'lucide-vue-next';
+import { User, UsersRound } from 'lucide-vue-next';
 
 const props = defineProps<{
   project: ApiResource<Project>;
@@ -32,29 +30,27 @@ const actionRoute = computed(() =>
     type="index"
     :dimmed="!project.active"
   >
-    <CardHeader :title="project.name">
-      <BinaryBadge
-        :when="project.active"
-        :then="_('Active')"
-        :else="_('Inactive')"
-        :variants="['success', 'danger']"
-      />
-    </CardHeader>
+    <CardHeader :title="project.name" :kicker="_('Project')" />
 
     <CardContent>
-      <div class="text-sm text-text-muted">{{ project.organization }}</div>
+      <div v-if="project.organization" class="text-sm text-text-muted mb-3">
+        {{ project.organization }}
+      </div>
 
-      <div class="flex items-center gap-4 text-sm text-text-muted">
-        <div class="flex items-center gap-1">
-          <Users class="h-4 w-4" />
-          <span>
-            {{ project.families_count }} {{ entityLabel('family', project.families_count) }}
-          </span
-          >
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <!-- Families -->
+        <div class="flex items-center gap-2 text-text-muted">
+          <UsersRound class="h-4 w-4 text-amber-600" />
+          <span class="font-medium">{{ project.families_count }}</span>
+          <span>{{ project.families_count === 1 ? _('Family') : _('Families') }}</span>
         </div>
-        <div class="flex items-center gap-1">
-          <Home class="h-4 w-4" />
-          <span>{{ project.units_count }} {{ entityLabel('unit', project.units_count) }}</span>
+
+        <!-- Members -->
+        <div class="flex items-center gap-2 text-text-muted">
+          <User class="h-4 w-4 text-cyan-600" />
+          <span class="font-medium">{{ project.members_count }}</span>
+          <span>{{ project.members_count === 1 ? _('Member') : _('Members') }}</span>
         </div>
       </div>
     </CardContent>

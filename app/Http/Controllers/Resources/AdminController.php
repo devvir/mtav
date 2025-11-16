@@ -19,6 +19,7 @@ class AdminController extends Controller
     public function index(FilteredIndexRequest $request): Response
     {
         $admins = Admin::alphabetically()
+            ->with('projects')
             ->when($request->project_id, fn ($q, $projectId) => $q->inProject($projectId))
             ->when($request->q, fn ($q, $search) => $q->search($search));
 
