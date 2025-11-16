@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import IndexSearch from '@/components/pagination/IndexSearch.vue';
 import { _ } from '@/composables/useTranslations';
-import AppSidebarHeaderSlot from '../layout/header/AppSidebarHeaderSlot.vue';
-import InfiniteScroll from './InfiniteScroll.vue';
+import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 
 export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const props = defineProps<{
-  loadable: string;
   list: ApiResources;
-  filter?: string;
+  loadable: string;
   cardSize?: CardSize;
   featured?: number | string;
 }>();
@@ -28,14 +25,6 @@ const cardSizeMultiplier = computed<number>(
 </script>
 
 <template>
-  <AppSidebarHeaderSlot>
-    <IndexSearch :q="filter" class="px-base py-wide md:pt-0">
-      <template v-slot:right>
-        <slot name="search-right" />
-      </template>
-    </IndexSearch>
-  </AppSidebarHeaderSlot>
-
   <section v-if="!list.data.length" class="flex size-full items-center justify-center text-xl">
     {{ _('No results') }}
   </section>
@@ -59,7 +48,7 @@ const cardSizeMultiplier = computed<number>(
     </TransitionGroup>
   </section>
 
-  <InfiniteScroll :pageSpecs="list" :loadable="loadable" :params="{ q: filter }" />
+  <InfiniteScroll :pageSpecs="list" :loadable :params="{ q: usePage().props.q }" />
 </template>
 
 <style scoped>

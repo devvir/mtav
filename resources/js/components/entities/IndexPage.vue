@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Head from '@/components/Head.vue';
+import { FilterConfig, Filters, SEARCH } from '@/components/filtering';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import type { CardSize } from '@/components/pagination/InfinitePaginator.vue';
@@ -9,8 +10,8 @@ import { entityLabel, entityNS, entityPlural } from '@/composables/useResources'
 const props = defineProps<{
   entity: AppEntity;
   resources: ApiResources;
-  q?: string;
   pageTitle?: string;
+  filters?: FilterConfig;
   cardSize?: CardSize;
 }>();
 
@@ -21,6 +22,10 @@ const loadable = entityPlural(props.entity);
 const IndexCard = defineAsyncComponent(
   () => import(`@/components/entities/${props.entity}/IndexCard.vue`),
 );
+
+const filtersConfig = computed(
+  () => props.filters ?? { q: { type: SEARCH, value: usePage().props.q } },
+);
 </script>
 
 <template>
@@ -30,12 +35,12 @@ const IndexCard = defineAsyncComponent(
     <Breadcrumb :route :text="title" />
   </Breadcrumbs>
 
-  <InfinitePaginator :list="resources" :filter="q" :loadable :cardSize>
-    <template v-slot:search-right>
-      <slot name="search-right" />
-    </template>
+  <slot>
+    <Filters :config="filtersConfig" auto-filter />
+  </slot>
 
-    <template v-slot:default="{ item }">
+  <InfinitePaginator :list="resources" :loadable :cardSize>
+    <template v-slot="{ item }">
       <component :is="IndexCard" v-bind="{ [entity]: item }" />
     </template>
   </InfinitePaginator>

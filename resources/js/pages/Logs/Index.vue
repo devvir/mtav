@@ -7,7 +7,6 @@ import { ModalLink } from '@inertiaui/modal-vue';
 
 defineProps<{
   logs: ApiResources<Log>;
-  q?: string;
 }>();
 </script>
 
@@ -18,7 +17,7 @@ defineProps<{
     <Breadcrumb route="logs.index" text="Logs" />
   </Breadcrumbs>
 
-  <InfinitePaginator :list="logs" loadable="logs" :filter="q">
+  <InfinitePaginator :list="logs" loadable="logs">
     <template v-slot:default="{ item }">
       <ModalLink
         :href="route('logs.show', item.id)"

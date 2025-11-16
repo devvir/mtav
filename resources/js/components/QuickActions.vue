@@ -80,7 +80,7 @@ onClickOutside(trigger, () => (open.value = false), {
     </button>
 
     <ul
-      class="absolute top-12 right-base mr-3 flex min-w-42 origin-top flex-col divide-y-1 divide-accent/8 overflow-hidden rounded-xl border border-border bg-surface-elevated text-sm text-text shadow shadow-accent/70 backdrop-blur-2xl transition-all ease-out select-none"
+      class="absolute top-10 right-0 mr-3 flex min-w-42 origin-top flex-col divide-y-1 divide-accent/8 overflow-hidden rounded-xl border border-border bg-surface-elevated text-sm text-text shadow shadow-accent/70 backdrop-blur-2xl transition-all ease-out select-none"
       :class="{ 'invisible -rotate-x-90 opacity-0': !open }"
       @keyup.escape="open = false"
     >

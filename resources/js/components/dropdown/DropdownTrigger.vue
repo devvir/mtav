@@ -2,16 +2,16 @@
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
 import { CloseAction, OpenAction } from '.';
-import * as keys from './keys';
+import * as exposed from './exposed';
 
 defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-const isOpen = inject(keys.isOpen) as Ref<boolean>;
-const disabled = inject(keys.disabled) as Ref<boolean>;
-const close = inject(keys.close) as (action: CloseAction) => void;
-const toggle = inject(keys.toggle) as (action: OpenAction | CloseAction) => void;
+const isOpen = inject(exposed.isOpen) as Ref<boolean>;
+const disabled = inject(exposed.disabled) as Ref<boolean>;
+const close = inject(exposed.close) as (action: CloseAction) => void;
+const toggle = inject(exposed.toggle) as (action: OpenAction | CloseAction) => void;
 
 /**
  * Differentiate between actual mouse clicks and keyboard-triggered clicks (both

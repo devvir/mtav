@@ -4,12 +4,9 @@ import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   media: ApiResources<Media>;
-  q?: string;
 }>();
 </script>
 
 <template>
-  <IndexPage :pageTitle="_('Gallery')" entity="media" :resources="media" :q>
-    <!-- Add any media-specific toolbar items here if needed -->
-  </IndexPage>
+  <IndexPage :pageTitle="_('Gallery')" entity="media" :resources="media" />
 </template>

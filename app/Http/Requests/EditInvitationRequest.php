@@ -25,16 +25,16 @@ class EditInvitationRequest extends FormRequest
             $this->attemptToAuthenticate($this->email, $this->token);
         }
 
-        if (! Auth::user()?->isInvited()) {
+        if (! $this->user()?->isInvited()) {
             $this->failValidation();
         }
 
-        $this->merge(['invitedUser' => Auth::user()]);
+        $this->merge(['invitedUser' => $this->user()]);
     }
 
     protected function attemptToAuthenticate(string $email, string $token): void
     {
-        if (Auth::check()) {
+        if ($this->user()) {
             Auth::logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();

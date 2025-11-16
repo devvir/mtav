@@ -4,7 +4,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Code, CreditCard, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
+import { Code, CreditCard, Filter, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
 
 const devPages = [
   {
@@ -21,6 +21,13 @@ const devPages = [
     icon: Palette,
     route: 'dev.ui',
     color: 'text-purple-500',
+  },
+  {
+    title: 'Filtering Components',
+    description: 'Interactive filtering components with sticky header behavior and teleport functionality',
+    icon: Filter,
+    route: 'dev.filters',
+    color: 'text-emerald-500',
   },
   {
     title: 'Card Components',

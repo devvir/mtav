@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
-import * as keys from './keys';
+import * as exposed from './exposed';
 
 defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-const isOpen = inject<boolean>(keys.isOpen);
+const isOpen = inject<boolean>(exposed.isOpen);
 </script>
 
 <template>

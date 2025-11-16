@@ -1,17 +1,14 @@
 <script setup lang="ts">
+import MemberFamilyFilters from '@/components/entities/_shared/MemberFamilyFilters.vue';
 import IndexPage from '@/components/entities/IndexPage.vue';
-import MembersFamiliesSwitch from '@/components/switches/MembersFamiliesSwitch.vue';
 
 defineProps<{
   families: ApiResources<Family>;
-  q?: string;
 }>();
 </script>
 
 <template>
-  <IndexPage entity="family" :resources="families" :q card-size="lg">
-    <template v-slot:search-right>
-      <MembersFamiliesSwitch />
-    </template>
+  <IndexPage entity="family" :resources="families" card-size="lg">
+    <MemberFamilyFilters :grouped="true" />
   </IndexPage>
 </template>

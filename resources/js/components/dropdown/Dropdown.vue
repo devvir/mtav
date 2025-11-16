@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CloseAction, OpenAction } from '.';
-import DropdownUsage from './DropdownUsage.vue';
-import * as keys from './keys';
+import { DropdownUsage } from '.';
+import * as exposed from './exposed';
+import type { CloseAction, OpenAction } from './types.d';
 
 const emits = defineEmits<{ open: [OpenAction]; close: [CloseAction] }>();
 const props = defineProps<{ disabled?: boolean }>();
@@ -35,11 +35,11 @@ onClickOutside(dropdown, () => close('click-outside'), { ignore: ['.dropdown-con
 
 watchEffect(() => props.disabled && close('disabled'));
 
-provide(keys.isOpen, isOpen);
-provide(keys.disabled, props.disabled);
-provide(keys.open, open);
-provide(keys.close, close);
-provide(keys.toggle, toggle);
+provide(exposed.isOpen, isOpen);
+provide(exposed.disabled, props.disabled);
+provide(exposed.open, open);
+provide(exposed.close, close);
+provide(exposed.toggle, toggle);
 </script>
 
 <template>

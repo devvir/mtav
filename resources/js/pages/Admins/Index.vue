@@ -3,10 +3,9 @@ import IndexPage from '@/components/entities/IndexPage.vue';
 
 defineProps<{
   admins: ApiResources<Admin>;
-  q?: string;
 }>();
 </script>
 
 <template>
-  <IndexPage entity="admin" :resources="admins" :q />
+  <IndexPage entity="admin" :resources="admins" />
 </template>
