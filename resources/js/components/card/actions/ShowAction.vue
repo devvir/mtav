@@ -13,7 +13,7 @@ const routes = inject(exposed.routes) as Record<ResourceAction, string>;
   <Button variant="ghost" as-child>
     <ModalLink :href="route(routes.show, resource.id)" class="flex items-center gap-3">
       <Eye class="size-[1.2em]" />
-      <span>{{ _('View') }}</span>
+      <span class="@max-sm:hidden">{{ _('View') }}</span>
     </ModalLink>
   </Button>
 </template>

@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
     use ProjectScope;
+    use SoftDeletes;
 
     protected $casts = [
         'width'     => 'integer',

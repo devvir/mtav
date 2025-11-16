@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
+import { type CardType } from '.';
+import * as exposed from './exposed';
 
 defineProps<{
   class?: HTMLAttributes['class'];
 }>();
+
+const cardType = inject(exposed.type) as CardType;
+const routes = inject(exposed.routes);
 </script>
 
 <template>
@@ -14,6 +19,6 @@ defineProps<{
     '@container/card-content',
     'relative min-w-0'
   )">
-    <slot />
+    <slot :card-type="cardType" :entity-routes="routes" />
   </main>
 </template>

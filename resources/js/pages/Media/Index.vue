@@ -8,5 +8,5 @@ defineProps<{
 </script>
 
 <template>
-  <IndexPage :pageTitle="_('Gallery')" entity="media" :resources="media" />
+  <IndexPage :pageTitle="_('Gallery')" entity="media" :resources="media" cardSize="xl" />
 </template>

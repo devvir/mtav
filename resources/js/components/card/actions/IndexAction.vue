@@ -12,7 +12,7 @@ const routes = inject(exposed.routes) as Record<ResourceAction, string>;
   <Button variant="ghost" as-child>
     <Link :href="route(routes.index)" class="flex items-center gap-3">
       <List class="size-[1.2em]" />
-      <span>{{ _('List') }}</span>
+      <span class="@max-sm:hidden">{{ _('List') }}</span>
     </Link>
   </Button>
 </template>

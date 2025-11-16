@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
     use ProjectScope;
+    use SoftDeletes;
 
     public function project(): BelongsTo
     {
@@ -32,6 +34,15 @@ class Unit extends Model
 
     public function scopeSearch(Builder $query, string $q): void
     {
-        $query->whereLike('identifier', "%$q%");
+        $query
+            ->whereLike('identifier', "%$q%")
+            ->orWhereHas(
+                'type',
+                fn (Builder $query) => $query->whereLike('description', "%$q%")
+            )
+            ->orWhereHas(
+                'family',
+                fn (Builder $query) => $query->whereLike('name', "%$q%")
+            );
     }
 }

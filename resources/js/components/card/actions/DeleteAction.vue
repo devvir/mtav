@@ -45,7 +45,7 @@ const deleteResource = () => {
     @click.prevent="toggleConfirmationState(true)"
   >
     <Trash2 class="size-[1.2em] text-red-600" />
-    <span>{{ _('Delete') }}</span>
+    <span class="@max-md:hidden">{{ _('Delete') }}</span>
   </Button>
 
   <ConfirmationModal

@@ -20,8 +20,7 @@ class UnitController extends Controller
             ->when($request->q, fn ($q, $search) => $q->search($search));
 
         return inertia('Units/Index', [
-            // TODO : paginate (use infinite paginator)
-            'units' => Inertia::deepMerge(fn () => $units->get()),
+            'units' => Inertia::deepMerge(fn () => $units->paginate(30)),
         ]);
     }
 

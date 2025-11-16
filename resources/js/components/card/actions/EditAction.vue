@@ -13,7 +13,7 @@ const routes = inject(exposed.routes) as Record<ResourceAction, string>;
   <Button variant="ghost" as-child>
     <ModalLink slideover :href="route(routes.edit, resource.id)" class="flex items-center gap-3">
       <Edit class="size-[1.2em]" />
-      <span>{{ _('Edit') }}</span>
+      <span class="@max-sm:hidden">{{ _('Edit') }}</span>
     </ModalLink>
   </Button>
 </template>

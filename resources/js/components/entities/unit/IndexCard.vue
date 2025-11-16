@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { BinaryBadge } from '@/components/badge';
-import { Card, CardContent, CardHeader } from '@/components/card';
+import { Card } from '@/components/card';
+import UnitFooter from './shared/UnitFooter.vue';
+import UnitHeader from './shared/UnitHeader.vue';
 
 defineProps<{
   unit: ApiResource<Unit>;
@@ -9,11 +10,7 @@ defineProps<{
 
 <template>
   <Card :resource="unit" entity="unit" type="index">
-    <CardHeader :title="unit.identifier" />
-
-    <CardContent>
-      <BinaryBadge :when="unit.family" :then="'Assigned'" :else="'Available'" />
-      <span class="text-xs">Type {{ unit.type.id }}</span>
-    </CardContent>
+    <UnitHeader :unit />
+    <UnitFooter :unit />
   </Card>
 </template>

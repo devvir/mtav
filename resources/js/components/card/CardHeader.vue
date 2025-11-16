@@ -15,6 +15,7 @@ defineProps<{
 
 const resource = inject(exposed.resource) as ApiResource;
 const cardType = inject(exposed.type) as CardType;
+const routes = inject(exposed.routes);
 
 const autoActions = { index: 'subtle', show: 'full' };
 
@@ -23,7 +24,9 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 
 <template>
   <header :class="cn($props.class, 'relative flex min-w-0 flex-wrap gap-x-base')">
-    <Avatar v-if="avatar" :subject="resource" :size="avatar" />
+    <slot name="icon">
+      <Avatar v-if="avatar" :subject="resource" :size="avatar" />
+    </slot>
 
     <section class="min-w-0 flex-1 space-y-0.5 truncate">
       <h3
@@ -45,7 +48,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 
       <div class="flex min-w-0 items-center gap-2 text-xs text-text-subtle">
         <div class="flex-1 truncate">
-          <slot>
+          <slot :card-type="cardType" :entity-routes="routes">
             <HeaderSub v-if="resource.project?.name" :title="resource.project.name">
               {{ resource.project.name }}
             </HeaderSub>
