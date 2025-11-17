@@ -27,6 +27,8 @@ class ProjectResource extends JsonResource
     private function relationsData(): array
     {
         return [
+            'plan' => $this->whenLoaded('plan'),
+
             'admins'         => $this->whenLoaded('admins'),
             'admins_count'   => $this->whenCountedOrLoaded('admins'),
             'members'        => $this->whenLoaded('members'),

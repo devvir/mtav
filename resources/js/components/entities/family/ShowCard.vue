@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Avatar } from '@/components/avatar';
-import { Card, CardContent, CardFooter, CardHeader, CreatedMeta } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader, CreatedMeta } from '@/components/card';
 import ContentGrid from '@/components/card/snippets/ContentGrid.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="family" entity="family" type="show">
+  <EntityCard :resource="family" entity="family" type="show">
     <CardHeader :title="family.name" :kicker="_('Family')" avatar="xl" />
 
     <CardContent>
@@ -39,5 +39,5 @@ defineProps<{
 
       <CreatedMeta />
     </CardFooter>
-  </Card>
+  </EntityCard>
 </template>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\DerivedRelations;
+use App\Models\Concerns\ExtendedRelations;
 use App\Models\Concerns\HasPolicy;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,7 @@ class Model extends EloquentModel
 {
     use ConvertsToJsonResource;
     use DerivedRelations;
+    use ExtendedRelations;
     use HasFactory;
     use HasPolicy;
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
 import { _ } from '@/composables/useTranslations';
 import { MailIcon, PhoneIcon, UsersIcon, HomeIcon, CalendarIcon } from 'lucide-vue-next';
@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="member" entity="member" type="show">
+  <EntityCard :resource="member" entity="member" type="show">
     <CardHeader :title="member.name" avatar="xl" />
 
     <CardContent class="space-y-6">
@@ -74,5 +74,5 @@ defineProps<{
     </CardContent>
 
     <CardFooter />
-  </Card>
+  </EntityCard>
 </template>

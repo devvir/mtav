@@ -14,9 +14,9 @@ defineProps<{
   type: ActionsType;
 }>();
 
-const resource = inject(exposed.resource) as ApiResource;
-const entity = inject(exposed.entity) as AppEntity;
-const cardType = inject(exposed.type) as CardType;
+const entity = inject(exposed.entity, {}) as AppEntity;
+const resource = inject(exposed.resource, {}) as ApiResource;
+const cardType = inject(exposed.type, {}) as CardType;
 
 const enabledActions = computed(() =>
   actions.filter((action) => {

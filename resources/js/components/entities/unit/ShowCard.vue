@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Badge, BinaryBadge } from '@/components/badge';
-import { Card, CardContent } from '@/components/card';
+import { EntityCard, CardContent } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import UnitFooter from './shared/UnitFooter.vue';
 import UnitHeader from './shared/UnitHeader.vue';
@@ -11,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="unit" entity="unit" type="show">
+  <EntityCard :resource="unit" entity="unit" type="show">
     <UnitHeader :unit />
 
     <CardContent>
@@ -19,5 +18,5 @@ defineProps<{
     </CardContent>
 
     <UnitFooter :unit />
-  </Card>
+  </EntityCard>
 </template>

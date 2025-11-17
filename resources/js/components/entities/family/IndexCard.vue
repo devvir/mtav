@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Ellipsis from '@/components/Ellipsis.vue';
 import { Avatar } from '@/components/avatar';
-import { Card, CardContent, CardFooter, CardHeader, Counter } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader, Counter } from '@/components/card';
 import { ModalLink } from '@inertiaui/modal-vue';
 
 defineProps<{
@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="family" entity="family" type="index" :dimmed="! family.members!.length">
+  <EntityCard :resource="family" entity="family" type="index" :dimmed="! family.members!.length">
     <CardHeader :title="family.name" avatar="sm" />
 
     <CardContent class="group flex-row items-center gap-wide">
@@ -34,5 +34,5 @@ defineProps<{
     </CardContent>
 
     <CardFooter />
-  </Card>
+  </EntityCard>
 </template>

@@ -1,4 +1,4 @@
-export const resource = Symbol();
-export const entity = Symbol();
-export const routes = Symbol();
-export const type = Symbol();
+export const resource = Symbol('resource');
+export const entity = Symbol('entity');
+export const routes = Symbol('routes');
+export const type = Symbol('type');

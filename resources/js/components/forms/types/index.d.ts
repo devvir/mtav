@@ -24,6 +24,7 @@ export type InputTypes =
   | 'hidden'
   | 'color'
   | 'date'
+  | 'datetime-local'
   | 'time'
   | 'range';
 

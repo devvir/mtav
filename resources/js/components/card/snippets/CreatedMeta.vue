@@ -2,7 +2,7 @@
 import { _ } from '@/composables/useTranslations';
 import * as exposed from '../exposed';
 
-const resource = inject(exposed.resource);
+const resource = inject(exposed.resource, {});
 </script>
 
 <template>

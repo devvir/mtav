@@ -7,8 +7,8 @@ import { router } from '@inertiajs/vue3';
 import { RotateCcw } from 'lucide-vue-next';
 import * as exposed from '../exposed';
 
-const resource = inject(exposed.resource) as ApiResource;
-const entity = inject(exposed.entity) as AppEntity;
+const entity = inject(exposed.entity, {}) as AppEntity;
+const resource = inject(exposed.resource, {}) as ApiResource;
 
 const handleRestore = () => {
   router.post(

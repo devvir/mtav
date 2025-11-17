@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardContent } from '@/components/card';
+import { EntityCard, CardContent } from '@/components/card';
 
 defineProps<{
   media: ApiResource<Media>;
@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="media" entity="media" type="index" class="overflow-hidden">
+  <EntityCard :resource="media" entity="media" type="index" class="overflow-hidden">
     <CardContent class="group relative overflow-hidden p-0!">
       <!-- Fixed aspect ratio container for consistent sizing -->
       <div class="aspect-square w-full overflow-hidden">
@@ -61,5 +61,5 @@ defineProps<{
         </div>
       </div>
     </CardContent>
-  </Card>
+  </EntityCard>
 </template>

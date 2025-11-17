@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Card,
+  EntityCard,
   CardFooter,
   CardHeader,
   CreatedMeta,
@@ -15,7 +15,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="admin" entity="admin" type="index" :dimmed="!admin.projects!.length">
+  <EntityCard :resource="admin" entity="admin" type="index" :dimmed="!admin.projects!.length">
     <CardHeader :title="admin.name" avatar="lg">
       <HeaderSub :title="admin.email">{{ admin.email }}</HeaderSub>
     </CardHeader>
@@ -27,5 +27,5 @@ defineProps<{
         {{ _('Contact') }}
       </FooterButton>
     </CardFooter>
-  </Card>
+  </EntityCard>
 </template>

@@ -4,7 +4,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Code, CreditCard, Filter, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
+import { Code, CreditCard, Filter, Map, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
 
 const devPages = [
   {
@@ -43,6 +43,13 @@ const devPages = [
     icon: CreditCard,
     route: 'dev.entity-cards',
     color: 'text-rose-500',
+  },
+  {
+    title: 'Plans - Spatial Layout',
+    description: 'Development playground for spatial visualization of housing projects with unit positioning',
+    icon: Map,
+    route: 'dev.plans',
+    color: 'text-orange-500',
   },
   {
     title: 'Playground',

@@ -83,8 +83,8 @@ resources/js/components/card/
 
 **Basic Usage:**
 ```vue
-<Card type="index" :resource="member" />
-<Card type="show" :resource="family" />
+<EntityCard type="index" :resource="member" />
+<EntityCard type="show" :resource="family" />
 ```
 
 **Props:**

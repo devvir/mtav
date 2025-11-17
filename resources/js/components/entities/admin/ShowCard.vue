@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Card,
+  EntityCard,
   CardContent,
   CardFooter,
   CardHeader,
@@ -17,7 +17,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="admin" entity="admin" type="show">
+  <EntityCard :resource="admin" entity="admin" type="show">
     <CardHeader :title="admin.name" :kicker="_('Admin')" avatar="xl" />
 
     <CardContent>
@@ -40,5 +40,5 @@ defineProps<{
         {{ _('Contact') }}
       </FooterButton>
     </CardFooter>
-  </Card>
+  </EntityCard>
 </template>

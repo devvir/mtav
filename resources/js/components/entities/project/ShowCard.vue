@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BinaryBadge } from '@/components/badge';
 import {
-  Card,
+  EntityCard,
   CardContent,
   CardFooter,
   CardHeader,
@@ -29,7 +29,7 @@ const actionRoute = computed(() =>
 </script>
 
 <template>
-  <Card :resource="project" entity="project" type="show">
+  <EntityCard :resource="project" entity="project" type="show">
     <CardHeader :title="project.name" :kicker="_('Project')">
       <BinaryBadge
         :when="project.active"
@@ -111,5 +111,5 @@ const actionRoute = computed(() =>
         {{ isCurrentProject ? _('Selected') : _('Select') }}
       </FooterButton>
     </CardFooter>
-  </Card>
+  </EntityCard>
 </template>

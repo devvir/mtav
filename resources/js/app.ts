@@ -7,9 +7,10 @@ import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
+import VueKonva from 'vue-konva';
 import { ZiggyVue } from 'ziggy-js';
-import { initializeTheme } from './composables/useAppearance';
 import { autoRefreshCsrfToken } from './composables/useCsrfToken';
+import { initializeTheme } from './composables/useAppearance';
 import AppSidebarLayout from './layouts/app/AppSidebarLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MTAV';
@@ -36,6 +37,7 @@ createInertiaApp({
       .use(plugin)
       .use(pinia)
       .use(ZiggyVue)
+      .use(VueKonva)
       .use(autoAnimatePlugin)
       .component('Link', Link)
       .mount(el);

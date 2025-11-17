@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Card,
+  EntityCard,
   CardContent,
   CardFooter,
   CardHeader,
@@ -24,7 +24,7 @@ const actionRoute = computed(() =>
 </script>
 
 <template>
-  <Card
+  <EntityCard
     :resource="project"
     entity="project"
     type="index"
@@ -62,5 +62,5 @@ const actionRoute = computed(() =>
         {{ isCurrentProject ? _('Selected') : _('Select') }}
       </FooterButton>
     </CardFooter>
-  </Card>
+  </EntityCard>
 </template>

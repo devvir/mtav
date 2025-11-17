@@ -13,9 +13,9 @@ defineProps<{
   class?: any;
 }>();
 
-const resource = inject(exposed.resource) as ApiResource;
-const cardType = inject(exposed.type) as CardType;
-const routes = inject(exposed.routes);
+const resource = inject(exposed.resource, {}) as ApiResource;
+const cardType = inject(exposed.type, {}) as CardType;
+const routes = inject(exposed.routes, {}) as Record<ResourceAction, string>;
 
 const autoActions = { index: 'subtle', show: 'full' };
 
@@ -48,7 +48,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 
       <div class="flex min-w-0 items-center gap-2 text-xs text-text-subtle">
         <div class="flex-1 truncate">
-          <slot :card-type="cardType" :entity-routes="routes">
+          <slot :resource :card-type="cardType" :entity-routes="routes">
             <HeaderSub v-if="resource.project?.name" :title="resource.project.name">
               {{ resource.project.name }}
             </HeaderSub>
@@ -57,7 +57,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 
         <!-- Soft-Deleted Badge -->
         <Badge
-          v-if="resource.deleted_at"
+          v-if="resource?.deleted_at"
           variant="destructive"
           class="flex-shrink-0 px-2 py-0.5 text-xs"
         >

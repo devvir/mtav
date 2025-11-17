@@ -95,7 +95,7 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
     v-slot="{ close }: { close?: () => void }"
   >
     <form @submit.prevent="submit(close)">
-      <div class="flex h-full flex-col justify-center gap-[calc(var(--spacing-wide-y)*2)]">
+      <div class="flex h-full flex-col justify-center gap-[calc(var(--spacing-wide-y)*2)] px-wide">
         <h1 class="pl-2 text-3xl leading-loose font-bold">{{ title }}</h1>
 
         <div class="@container/form grid w-full grid-cols-[auto_1fr] gap-y-4">

@@ -4,6 +4,7 @@ export { default as CardActions } from './CardActions.vue';
 export { default as CardContent } from './CardContent.vue';
 export { default as CardFooter } from './CardFooter.vue';
 export { default as CardHeader } from './CardHeader.vue';
+export { default as EntityCard } from './EntityCard.vue';
 
 // Card Action Components
 export * from './actions';

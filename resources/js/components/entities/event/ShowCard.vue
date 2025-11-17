@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BadgeGroup } from '@/components/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
@@ -38,7 +38,7 @@ const userRsvpContentClass = computed(() => {
 </script>
 
 <template>
-  <Card :resource="event" entity="event" type="show">
+  <EntityCard :resource="event" entity="event" type="show">
     <CardHeader :title="event.title">
       <BadgeGroup class="mt-3">
         <EventBadge
@@ -98,11 +98,9 @@ const userRsvpContentClass = computed(() => {
       </ContentGrid>
 
       <!-- Description -->
-      <div v-if="event.description">
-        <ContentHighlight :title="_('Description')">
-          {{ event.description }}
-        </ContentHighlight>
-      </div>
+      <ContentHighlight v-if="event.description" :title="_('Description')">
+        {{ event.description }}
+      </ContentHighlight>
 
       <!-- RSVP Information -->
       <div v-if="event.allows_rsvp && event.rsvps_count" class="space-y-4">
@@ -118,5 +116,5 @@ const userRsvpContentClass = computed(() => {
     </CardContent>
 
     <CardFooter />
-  </Card>
+  </EntityCard>
 </template>

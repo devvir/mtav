@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardActions, CardContent } from '@/components/card';
+import { EntityCard, CardActions, CardContent } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="media" entity="media" type="show" tabindex="1"
+  <EntityCard :resource="media" entity="media" type="show" tabindex="1"
     class="group overflow-hidden ring-2 ring-card-elevated-foreground/50 p-0!">
     <!-- CardActions positioned in top-left corner with background for visibility -->
     <CardActions type="full" class="not-group-hover:not-group-active:not-group-focus:hidden absolute left-3 top-3 z-10 rounded-lg [&>*]:bg-black/30 backdrop-blur-sm p-0!" />
@@ -63,5 +63,5 @@ defineProps<{
         </div>
       </div>
     </CardContent>
-  </Card>
+  </EntityCard>
 </template>

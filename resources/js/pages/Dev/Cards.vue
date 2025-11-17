@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from '@/components/badge';
-import Card from '@/components/card/Card.vue';
+import EntityCard from '@/components/card/EntityCard.vue';
 import CardContent from '@/components/card/CardContent.vue';
 import CardFooter from '@/components/card/CardFooter.vue';
 import CardHeader from '@/components/card/CardHeader.vue';
@@ -37,18 +37,18 @@ const mockResource = {
 <template>
   <div class="mx-auto max-w-7xl space-y-8 p-8">
     <header class="mb-12 text-center">
-      <h1 class="mb-4 text-3xl font-bold text-text">Card Component System</h1>
+      <h1 class="mb-4 text-3xl font-bold text-text">EntityCard Component System</h1>
       <p class="text-lg text-text-muted">
-        Showcasing the flexible Card system with various combinations and styling options
+        Showcasing the flexible EntityCard system with various combinations and styling options
       </p>
     </header>
 
     <!-- Basic Cards Grid -->
     <section class="space-y-6">
-      <h2 class="text-2xl font-semibold text-text">Basic Card Variations</h2>
+      <h2 class="text-2xl font-semibold text-text">Basic EntityCard Variations</h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <!-- 1. Long Title with Edit Button -->
-        <Card :resource="sampleEventResource" entity="event">
+        <EntityCard :resource="sampleEventResource" entity="event">
           <CardHeader
             title="This is a very long card title that demonstrates how the grid layout handles text truncation alongside an edit button in the same row"
           />
@@ -58,20 +58,20 @@ const mockResource = {
               grid behavior.
             </p>
           </CardContent>
-        </Card>
+        </EntityCard>
 
-        <!-- 2. Card with Icon -->
-        <Card :resource="mockResource" entity="event">
-          <CardHeader title="Card with Icon" :icon="Calendar" />
+        <!-- 2. EntityCard with Icon -->
+        <EntityCard :resource="mockResource" entity="event">
+          <CardHeader title="EntityCard with Icon" :icon="Calendar" />
           <CardContent>
             <p class="text-text-muted">
               This card includes an icon in the header for visual context.
             </p>
           </CardContent>
-        </Card>
+        </EntityCard>
 
-        <!-- 3. Card with Subtitle -->
-        <Card :resource="mockResource" entity="event">
+        <!-- 3. EntityCard with Subtitle -->
+        <EntityCard :resource="mockResource" entity="event">
           <CardHeader
             title="Event Planning Meeting"
             subtitle="Monthly team sync for upcoming events"
@@ -81,16 +81,16 @@ const mockResource = {
               Cards can include subtitles for additional context below the main title.
             </p>
           </CardContent>
-        </Card>
+        </EntityCard>
       </div>
     </section>
 
     <!-- Advanced Cards Grid -->
     <section class="space-y-6">
-      <h2 class="text-2xl font-semibold text-text">Advanced Card Features</h2>
+      <h2 class="text-2xl font-semibold text-text">Advanced EntityCard Features</h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- 4. Full-featured Event Card -->
-        <Card :resource="sampleEventResource" entity="event">
+        <!-- 4. Full-featured Event EntityCard -->
+        <EntityCard :resource="sampleEventResource" entity="event">
           <CardHeader title="Annual Charity Gala" subtitle="Fundraising Event" :icon="Calendar">
             <Badge variant="outline">
               <Check class="mr-1 size-3" />
@@ -120,10 +120,10 @@ const mockResource = {
               <span class="text-xs">ID: #001</span>
             </div>
           </CardFooter>
-        </Card>
+        </EntityCard>
 
-        <!-- 5. Media Card -->
-        <Card :resource="mockResource" entity="media">
+        <!-- 5. Media EntityCard -->
+        <EntityCard :resource="mockResource" entity="media">
           <CardHeader
             title="Photography Workshop"
             subtitle="Learn professional techniques"
@@ -144,7 +144,7 @@ const mockResource = {
           <CardFooter>
             <span class="text-text-subtle">Unpublished • Needs review</span>
           </CardFooter>
-        </Card>
+        </EntityCard>
       </div>
     </section>
 
@@ -153,7 +153,7 @@ const mockResource = {
       <h2 class="text-2xl font-semibold text-text">Layout & Truncation Tests</h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <!-- 6. Long Title Truncation -->
-        <Card :resource="mockResource" entity="event">
+        <EntityCard :resource="mockResource" entity="event">
           <CardHeader
             title="This is an extremely long event title that should be properly truncated to prevent layout issues and maintain design consistency across all card instances"
             subtitle="Very long subtitle that also needs to be truncated properly to avoid breaking the card layout"
@@ -164,10 +164,10 @@ const mockResource = {
               Testing how the card handles very long titles and subtitles.
             </p>
           </CardContent>
-        </Card>
+        </EntityCard>
 
-        <!-- 7. Rich Content Card -->
-        <Card :resource="mockResource" entity="event">
+        <!-- 7. Rich Content EntityCard -->
+        <EntityCard :resource="mockResource" entity="event">
           <CardHeader title="Content Showcase">
             <Badge variant="danger">Urgent</Badge>
             <Badge variant="default">High Priority</Badge>
@@ -186,16 +186,16 @@ const mockResource = {
           <CardFooter>
             <div class="text-xs text-text-subtle">Last updated: 1 hour ago</div>
           </CardFooter>
-        </Card>
+        </EntityCard>
 
-        <!-- 8. Custom Styled Card -->
-        <Card
+        <!-- 8. Custom Styled EntityCard -->
+        <EntityCard
           :resource="mockResource"
           entity="event"
           class="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50"
         >
           <CardHeader
-            title="Custom Styled Card"
+            title="Custom Styled EntityCard"
             subtitle="With gradient background"
             class="text-blue-900"
           >
@@ -210,7 +210,7 @@ const mockResource = {
           <CardFooter class="border-blue-200 text-blue-600">
             <span>Styled with custom classes</span>
           </CardFooter>
-        </Card>
+        </EntityCard>
       </div>
     </section>
 
@@ -221,7 +221,7 @@ const mockResource = {
         <div>
           <h3 class="mb-2 font-medium text-text">Component Structure</h3>
           <ul class="space-y-1 text-text-muted">
-            <li>• <code>Card</code> - Root container with semantic HTML</li>
+            <li>• <code>EntityCard</code> - Root container with semantic HTML</li>
             <li>• <code>CardHeader</code> - Icon, title, subtitle, badges</li>
             <li>• <code>CardContent</code> - Main content area</li>
             <li>• <code>CardFooter</code> - Metadata and actions</li>

@@ -25,6 +25,21 @@ type AppEntityNS = AppEntityPluralForm;
 type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
+// WithRsvp type aliases
+type MemberWithRsvps = Member & Required<MemberRsvpFields>;
+type EventWithRsvps = Event & Required<EventRsvpFields>;
+
+// WithMedia type aliases
+type ProjectWithMedia = Project & Required<HasMedia>;
+type AdminWithMedia = Admin & Required<HasMedia>;
+type MemberWithMedia = Member & Required<HasMedia>;
+type FamilyWithMedia = Family & Required<HasMedia>;
+
+// Plan-specific types
+type PlanPolygon = number[];
+type PlanUnitSystem = 'meters' | 'feet';
+type PlanItemMetadata = Record<string, any>;
+
 interface Resource {
   id: number;
   created_at: string;
@@ -42,17 +57,19 @@ type EventTypes = Record<EventType, string>;
 
 interface HasEvents {
   events?: ApiResource<Event>[];
-  events_count?: number;
   upcoming_events?: ApiResource<Event>[];
+
+  events_count?: number;
   upcoming_events_count?: number;
 }
 
 interface HasMedia {
   media?: ApiResource<Media>[];
-  media_count?: number;
   images?: ApiResource<Media>[];
-  images_count?: number;
   videos?: ApiResource<Media>[];
+
+  media_count?: number;
+  images_count?: number;
   videos_count?: number;
 }
 
@@ -62,18 +79,43 @@ interface Project extends Resource, HasEvents, HasMedia {
   organization: string;
   active: boolean;
 
+  plan?: ApiResource<Plan>;
   admins?: ApiResource<Admin>[];
-  admins_count?: number;
   members?: ApiResource<Member>[];
-  members_count?: number;
   families?: ApiResource<Family>[];
-  families_count?: number;
   unit_types?: ApiResource<UnitType>[];
-  unit_types_count?: number;
   units?: ApiResource<Unit>[];
-  units_count?: number;
   log?: ApiResource<Log>[];
+
+  admins_count?: number;
+  members_count?: number;
+  families_count?: number;
+  unit_types_count?: number;
+  units_count?: number;
   log_count?: number;
+}
+
+interface Plan extends Resource {
+  polygon: PlanPolygon;
+  width: number;
+  height: number;
+  unit_system: PlanUnitSystem;
+
+  project: { id: number } | ApiResource<Project>;
+  items: ApiResource<PlanItem>[];
+
+  items_count: number;
+}
+
+interface PlanItem extends Resource {
+  type: string;
+  polygon: PlanPolygon;
+  floor: number;
+  name: string | null;
+  metadata: PlanItemMetadata | null;
+
+  plan: { id: number } | ApiResource<Plan>;
+  unit?: ApiResource<Unit> | null;
 }
 
 interface User extends Resource, Subject, HasEvents, HasMedia {
@@ -85,6 +127,7 @@ interface User extends Resource, Subject, HasEvents, HasMedia {
   is_admin: boolean;
 
   projects?: ApiResource<Project>[];
+
   projects_count?: number;
 
   // Sensitive data (only present for admins)
@@ -97,14 +140,15 @@ interface User extends Resource, Subject, HasEvents, HasMedia {
 
 interface MemberRsvpFields {
   rsvps: ApiResource<Event>[];
-  rsvps_count: number;
   upcoming_rsvps: ApiResource<Event>[];
-  upcoming_rsvps_count: number;
   acknowledged_events: ApiResource<Event>[];
-  acknowledged_events_count: number;
   accepted_events: ApiResource<Event>[];
-  accepted_events_count: number;
   declined_events: ApiResource<Event>[];
+
+  rsvps_count: number;
+  upcoming_rsvps_count: number;
+  acknowledged_events_count: number;
+  accepted_events_count: number;
   declined_events_count: number;
 }
 
@@ -115,6 +159,7 @@ interface Member extends User, Partial<MemberRsvpFields> {
 
 interface Admin extends User {
   manages?: ApiResource<Project>[];
+
   manages_count?: number;
 }
 
@@ -122,6 +167,7 @@ interface Family extends Resource, Subject, HasMedia {
   unit_type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   members?: ApiResource<User>[];
+
   members_count?: number;
 }
 
@@ -131,17 +177,20 @@ interface UnitType extends Resource {
 
   project: { id: number } | ApiResource<Project>;
   families?: ApiResource<Family>[];
-  families_count?: number;
   units?: ApiResource<Unit>[];
+
+  families_count?: number;
   units_count?: number;
 }
 
 interface Unit extends Resource {
   identifier: string | null;
 
-  project: ApiResource<Project> | { id: number };
   type: ApiResource<UnitType> | { id: number };
+  project: ApiResource<Project> | { id: number };
   family: ApiResource<Family> | { id: number } | null;
+  plan?: ApiResource<Plan>;
+  plan_item?: ApiResource<PlanItem>;
 }
 
 interface Media extends Resource {
@@ -163,9 +212,10 @@ interface Media extends Resource {
 
 interface EventRsvpFields {
   rsvps: ApiResource<User>[];
-  rsvps_count: number;
   accepted: boolean;
   declined: boolean;
+
+  rsvps_count: number;
   accepted_count: number;
   declined_count: number;
 }
@@ -197,16 +247,6 @@ interface Log extends Resource {
   user: { id: number | null } | null | ApiResource<User>;
   project: { id: number | null } | null | ApiResource<Project>;
 }
-
-// WithRsvp type aliases
-type MemberWithRsvps = Member & Required<MemberRsvpFields>;
-type EventWithRsvps = Event & Required<EventRsvpFields>;
-
-// WithMedia type aliases
-type ProjectWithMedia = Project & Required<HasMedia>;
-type AdminWithMedia = Admin & Required<HasMedia>;
-type MemberWithMedia = Member & Required<HasMedia>;
-type FamilyWithMedia = Family & Required<HasMedia>;
 
 interface ApiResource<R extends Resource = Resource> extends R {
   allows: Record<ResourcePolicy, boolean>;

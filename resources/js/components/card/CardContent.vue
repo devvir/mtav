@@ -8,8 +8,9 @@ defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-const cardType = inject(exposed.type) as CardType;
-const routes = inject(exposed.routes);
+const resource = inject(exposed.resource, {}) as ApiResource;
+const cardType = inject(exposed.type, {}) as CardType;
+const routes = inject(exposed.routes, {}) as Record<ResourceAction, string>;
 </script>
 
 <template>
@@ -19,6 +20,6 @@ const routes = inject(exposed.routes);
     '@container/card-content',
     'relative min-w-0'
   )">
-    <slot :card-type="cardType" :entity-routes="routes" />
+    <slot :resource :card-type="cardType" :entity-routes="routes" />
   </main>
 </template>

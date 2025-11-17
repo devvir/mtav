@@ -11,32 +11,48 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
-
-    /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
-        // Superadmins have full access to any action
-        Gate::before(
-            fn (User $user) => $user->isSuperadmin() ?: null
-        );
+        $this->configureModels();
 
-        // Uncomment to allow undefined policies by default
-        // Gate::after(fn (?User $user) => true);
+        $this->configureResources();
 
-        JsonResource::withoutWrapping();
+        $this->configurePolicies();
+    }
 
+    protected function configureModels(): void
+    {
+        /**
+         * For Dev only:
+         *  - preventLazyLoading();
+         *  - preventAccessingMissingAttributes();
+         *  - preventSilentlyDiscardingAttributes();
+         */
         if (! app()->environment('production')) {
             Model::shouldBeStrict();
         }
 
+        /**
+         * Automatically eager load relationships when accessed from Collection items.
+         */
         Model::automaticallyEagerLoadRelationships();
+    }
+
+    protected function configureResources(): void
+    {
+        /**
+         * Disable default data wrapper in JsonResource collections.
+         */
+        JsonResource::withoutWrapping();
+    }
+
+    protected function configurePolicies()
+    {
+        /**
+         * Superadmins have full access to any action, bypassing Policies.
+         */
+        Gate::before(fn (User $user) => $user->isSuperadmin() ?: null);
     }
 }

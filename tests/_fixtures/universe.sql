@@ -34,6 +34,91 @@ INSERT INTO projects (id, name, description, organization, active, created_at, u
 (5, 'Project 5 (deleted)',          'Description 5 (deleted)',          'Organization 5 (deleted)',          TRUE,  NOW(), NOW(), NOW());
 
 -- ============================================================================
+-- PLANS (5 total, one per project)
+-- ============================================================================
+-- Purpose: Spatial boundaries and layout information for projects
+-- Each plan defines the coordinate system and boundaries for spatial elements
+-- Default boundary is a simple rectangle, but custom shapes are supported
+-- Used for unit positioning, common area planning, and site layout
+--
+-- Field Descriptions:
+-- - polygon: JSON array of [x1,y1,x2,y2,...] coordinate pairs defining boundary
+-- - width/height: Bounding box dimensions for display scaling
+-- - unit_system: Physical measurement unit ('meters', 'feet', 'inches')
+--
+-- Distribution:
+-- - Plan #1: Project #1, default rectangle boundary
+-- - Plan #2: Project #2, custom pentagon shape
+-- - Plan #3: Project #3, small square (no units project)
+-- - Plan #4: Project #4, rectangular (inactive project)
+-- - Plan #5: Project #5, triangle (deleted project)
+-- ============================================================================
+
+TRUNCATE TABLE plans;
+
+INSERT INTO plans (id, project_id, polygon, width, height, unit_system, created_at, updated_at) VALUES
+(1, 1, '[0,0,800,0,800,600,0,600]',         800,  600, 'meters', NOW(), NOW()),
+(2, 2, '[0,0,600,0,700,200,500,400,0,300]', 700,  400, 'meters', NOW(), NOW()),
+(3, 3, '[0,0,400,0,400,400,0,400]',         400,  400, 'feet',   NOW(), NOW()),
+(4, 4, '[0,0,1000,0,1000,800,0,800]',       1000, 800, 'meters', NOW(), NOW()),
+(5, 5, '[0,0,300,0,150,300]',               300,  300, 'feet',   NOW(), NOW());
+
+-- ============================================================================
+-- PLAN ITEMS (21 total: 21 units for simple Unit X → PlanItem X mapping)
+-- ============================================================================
+-- Purpose: Spatial elements within plans (units, common areas, streets, etc.)
+-- Each plan_item represents a drawable spatial element with coordinates
+-- Units are linked to actual housing units via plan_item_id foreign key
+-- Simple mapping: Unit #X uses PlanItem #X (no gaps, no confusion)
+--
+-- Field Descriptions:
+-- - type: Element type ('unit', 'park', 'street', 'common', 'amenity')
+-- - polygon: JSON array of [x1,y1,x2,y2,...] coordinate pairs defining shape
+-- - floor: Floor level (0=ground, 1=first, etc.) for multi-story buildings
+-- - name: Optional display name for non-unit elements
+-- - metadata: JSON object for colors, labels, and other display properties
+--
+-- Distribution by Plan (predictable):
+-- - Plan #1: Units 1-3 (plan_items 1-3)
+-- - Plan #2: Units 4-15 (plan_items 4-15)
+-- - Plan #3: No units (edge case project)
+-- - Plan #4: Units 16-21 (plan_items 16-21)
+-- - Plan #5: No units (deleted project)
+--
+-- Simple grid layout for easy testing and debugging
+-- ============================================================================
+
+TRUNCATE TABLE plan_items;
+
+INSERT INTO plan_items (id, plan_id, type, polygon, floor, name, metadata, created_at, updated_at) VALUES
+-- Plan #1: Units 1-3
+(1,  1, 'unit', '[50,50,150,50,150,150,50,150]',     0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(2,  1, 'unit', '[200,50,300,50,300,150,200,150]',   0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(3,  1, 'unit', '[350,50,450,50,450,150,350,150]',   0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+
+-- Plan #2: Units 4-15
+(4,  2, 'unit', '[50,50,120,50,120,120,50,120]',     0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(5,  2, 'unit', '[130,50,200,50,200,120,130,120]',   0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(6,  2, 'unit', '[210,50,280,50,280,120,210,120]',   0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(7,  2, 'unit', '[290,50,360,50,360,120,290,120]',   0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(8,  2, 'unit', '[50,130,120,130,120,200,50,200]',   0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(9,  2, 'unit', '[130,130,200,130,200,200,130,200]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(10, 2, 'unit', '[210,130,280,130,280,200,210,200]', 0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(11, 2, 'unit', '[290,130,360,130,360,200,290,200]', 0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(12, 2, 'unit', '[50,210,120,210,120,280,50,280]',   0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(13, 2, 'unit', '[130,210,200,210,200,280,130,280]', 0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(14, 2, 'unit', '[210,210,280,210,280,280,210,280]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(15, 2, 'unit', '[290,210,360,210,360,280,290,280]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+
+-- Plan #4: Units 16-21
+(16, 4, 'unit', '[100,100,200,100,200,200,100,200]', 0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(17, 4, 'unit', '[250,100,350,100,350,200,250,200]', 0, NULL, '{"color": "#dbeafe"}', NOW(), NOW()),
+(18, 4, 'unit', '[400,100,500,100,500,200,400,200]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(19, 4, 'unit', '[100,250,200,250,200,350,100,350]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(20, 4, 'unit', '[250,250,350,250,350,350,250,350]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW()),
+(21, 4, 'unit', '[400,250,500,250,500,350,400,350]', 0, NULL, '{"color": "#dcfce7"}', NOW(), NOW());
+
+-- ============================================================================
 -- USERS - ADMINS (8 total)
 -- ============================================================================
 -- Distribution:
@@ -240,51 +325,51 @@ INSERT INTO families (id, project_id, unit_type_id, name, avatar, created_at, up
 
 TRUNCATE TABLE units;
 
-INSERT INTO units (id, project_id, unit_type_id, family_id, identifier, created_at, updated_at, deleted_at) VALUES
+INSERT INTO units (id, project_id, unit_type_id, family_id, identifier, plan_item_id, created_at, updated_at, deleted_at) VALUES
 -- Type #1: NO units
 
--- Type #2: 1 unit
-(1, 1, 2, NULL, 'Unit 1, Type 2',            NOW(), NOW(), NULL),
+-- Type #2: 1 unit (Unit #1 → PlanItem #1)
+(1, 1, 2, NULL, 'Unit 1, Type 2',            1, NOW(), NOW(), NULL),
 
--- Type #3: 2 units (1 active, 1 deleted)
-(2, 1, 3, NULL, 'Unit 2, Type 3',            NOW(), NOW(), NULL),
-(3, 1, 3, NULL, 'Unit 3, Type 3 (deleted)',  NOW(), NOW(), NOW()),
+-- Type #3: 2 units (Unit #2,3 → PlanItem #2,3)
+(2, 1, 3, NULL, 'Unit 2, Type 3',            2, NOW(), NOW(), NULL),
+(3, 1, 3, NULL, 'Unit 3, Type 3 (deleted)',  3, NOW(), NOW(), NOW()),
 
--- Type #4: 2 units
-(4, 2, 4, NULL, 'Unit 4, Type 4',            NOW(), NOW(), NULL),
-(5, 2, 4, NULL, 'Unit 5, Type 4',            NOW(), NOW(), NULL),
+-- Type #4: 2 units (Unit #4,5 → PlanItem #4,5)
+(4, 2, 4, NULL, 'Unit 4, Type 4',            4, NOW(), NOW(), NULL),
+(5, 2, 4, NULL, 'Unit 5, Type 4',            5, NOW(), NOW(), NULL),
 
--- Type #5: 2 units
-(6, 2, 5, NULL, 'Unit 6, Type 5',            NOW(), NOW(), NULL),
-(7, 2, 5, NULL, 'Unit 7, Type 5',            NOW(), NOW(), NULL),
+-- Type #5: 2 units (Unit #6,7 → PlanItem #6,7)
+(6, 2, 5, NULL, 'Unit 6, Type 5',            6, NOW(), NOW(), NULL),
+(7, 2, 5, NULL, 'Unit 7, Type 5',            7, NOW(), NOW(), NULL),
 
--- Type #6: 2 units
-(8, 2, 6, NULL, 'Unit 8, Type 6',            NOW(), NOW(), NULL),
-(9, 2, 6, NULL, 'Unit 9, Type 6',            NOW(), NOW(), NULL),
+-- Type #6: 2 units (Unit #8,9 → PlanItem #8,9)
+(8, 2, 6, NULL, 'Unit 8, Type 6',            8, NOW(), NOW(), NULL),
+(9, 2, 6, NULL, 'Unit 9, Type 6',            9, NOW(), NOW(), NULL),
 
--- Type #7: 2 units
-(10, 4, 7, NULL, 'Unit 10, Type 7',          NOW(), NOW(), NULL),
-(11, 4, 7, NULL, 'Unit 11, Type 7',          NOW(), NOW(), NULL),
+-- Type #7: 2 units (Unit #10,11 → PlanItem #10,11)
+(10, 2, 7, NULL, 'Unit 10, Type 7',          10, NOW(), NOW(), NULL),
+(11, 2, 7, NULL, 'Unit 11, Type 7',          11, NOW(), NOW(), NULL),
 
--- Type #8: 2 units
-(12, 4, 8, NULL, 'Unit 12, Type 8',          NOW(), NOW(), NULL),
-(13, 4, 8, NULL, 'Unit 13, Type 8',          NOW(), NOW(), NULL),
+-- Type #8: 2 units (Unit #12,13 → PlanItem #12,13)
+(12, 2, 8, NULL, 'Unit 12, Type 8',          12, NOW(), NOW(), NULL),
+(13, 2, 8, NULL, 'Unit 13, Type 8',          13, NOW(), NOW(), NULL),
 
--- Type #9: 2 units
-(14, 4, 9, NULL, 'Unit 14, Type 9',          NOW(), NOW(), NULL),
-(15, 4, 9, NULL, 'Unit 15, Type 9',          NOW(), NOW(), NULL),
+-- Type #9: 2 units (Unit #14,15 → PlanItem #14,15)
+(14, 2, 9, NULL, 'Unit 14, Type 9',          14, NOW(), NOW(), NULL),
+(15, 2, 9, NULL, 'Unit 15, Type 9',          15, NOW(), NOW(), NULL),
 
--- Type #10: 2 units
-(16, 5, 10, NULL, 'Unit 16, Type 10',        NOW(), NOW(), NULL),
-(17, 5, 10, NULL, 'Unit 17, Type 10',        NOW(), NOW(), NULL),
+-- Type #10: 2 units (Unit #16,17 → PlanItem #16,17)
+(16, 4, 10, NULL, 'Unit 16, Type 10',        16, NOW(), NOW(), NULL),
+(17, 4, 10, NULL, 'Unit 17, Type 10',        17, NOW(), NOW(), NULL),
 
--- Type #11: 2 units
-(18, 5, 11, NULL, 'Unit 18, Type 11',        NOW(), NOW(), NULL),
-(19, 5, 11, NULL, 'Unit 19, Type 11',        NOW(), NOW(), NULL),
+-- Type #11: 2 units (Unit #18,19 → PlanItem #18,19)
+(18, 4, 11, NULL, 'Unit 18, Type 11',        18, NOW(), NOW(), NULL),
+(19, 4, 11, NULL, 'Unit 19, Type 11',        19, NOW(), NOW(), NULL),
 
--- Type #12: 2 units
-(20, 5, 12, NULL, 'Unit 20, Type 12',        NOW(), NOW(), NULL),
-(21, 5, 12, NULL, 'Unit 21, Type 12',        NOW(), NOW(), NULL);
+-- Type #12: 2 units (Unit #20,21 → PlanItem #20,21)
+(20, 4, 12, NULL, 'Unit 20, Type 12',        20, NOW(), NOW(), NULL),
+(21, 4, 12, NULL, 'Unit 21, Type 12',        21, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- USERS - MEMBERS (48 total, IDs 100-149)
@@ -544,6 +629,10 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 
 -- Event #12 (Project 4 unpublished) - 1 RSVP
 (17, 12, 145, TRUE, NOW(), NOW()); -- Member 145 accepted
+
+
+
+
 
 -- ============================================================================
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from '@/components/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 
 defineProps<{
@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card :resource="log" entity="log" type="index">
+  <EntityCard :resource="log" entity="log" type="index">
     <CardHeader :title="log.event" :kicker="log.creator" />
 
     <CardContent>
@@ -19,5 +19,5 @@ defineProps<{
     </CardContent>
 
     <CardFooter />
-  </Card>
+  </EntityCard>
 </template>

@@ -6,8 +6,8 @@ import { router } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
 import * as exposed from '../exposed';
 
-const resource = inject(exposed.resource) as ApiResource;
-const routes = inject(exposed.routes) as Record<ResourceAction, string>;
+const resource = inject(exposed.resource, {}) as ApiResource;
+const routes = inject(exposed.routes, {}) as Record<ResourceAction, string>;
 
 const confirmationModalOpen = ref(false);
 

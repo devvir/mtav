@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BadgeGroup } from '@/components/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
@@ -23,7 +23,7 @@ const dimmed = computed(() => {
 </script>
 
 <template>
-  <Card :resource="event" entity="event" type="index" :dimmed>
+  <EntityCard :resource="event" entity="event" type="index" :dimmed>
     <CardHeader
       :title="event.title"
       :kicker="event.start_date ?? _('No date set')"
@@ -44,5 +44,5 @@ const dimmed = computed(() => {
     </CardContent>
 
     <CardFooter />
-  </Card>
+  </EntityCard>
 </template>
