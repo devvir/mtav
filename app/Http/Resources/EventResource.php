@@ -22,6 +22,9 @@ class EventResource extends JsonResource
             'is_published' => $this->is_published,
             'allows_rsvp'  => $this->allowsRsvp(),
 
+            'start_date_raw' => $this->start_date?->translatedFormat('Y-m-d\TH:i'),
+            'end_date_raw'   => $this->end_date?->translatedFormat('Y-m-d\TH:i'),
+
             'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, true)),
             'declined' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, false)),
 

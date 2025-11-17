@@ -235,6 +235,10 @@ interface Event extends Resource, Partial<EventRsvpFields> {
   is_online: boolean;
   is_onsite: boolean;
 
+  // yyyy-MM-ddThh:mm
+  start_date_raw: string;
+  end_date_raw: string;
+
   creator: ApiResource<Admin> | { id: number };
   project: ApiResource<Project> | { id: number };
 }
