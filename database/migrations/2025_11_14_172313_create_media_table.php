@@ -14,6 +14,7 @@ return new class () extends Migration {
             $table->foreignIdFor(User::class, 'owner_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Project::class)->constrained()->cascadeOnDelete();
             $table->string('path')->comment('relative');
+            $table->string('thumbnail');
             $table->text('description');
             $table->string('alt_text')->nullable();
             $table->unsignedInteger('width')->nullable()->comment('pixels');

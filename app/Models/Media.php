@@ -7,7 +7,6 @@ use App\Enums\MediaCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
@@ -29,14 +28,6 @@ class Media extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the public URL for this media file.
-     */
-    public function url(): string
-    {
-        return Storage::url($this->path);
     }
 
     public function isAudio(): bool

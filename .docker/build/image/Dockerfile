@@ -9,6 +9,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Install system dependencies for PHP extensions
 RUN apk add --no-cache \
         bash \
+        ffmpeg \
         freetype-dev \
         libjpeg-turbo-dev \
         libpng-dev \

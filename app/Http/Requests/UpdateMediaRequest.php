@@ -18,7 +18,7 @@ class UpdateMediaRequest extends FormRequest
     {
         return [
             'description.required' => __('validation.media_description_required'),
-            'description.max' => __('validation.media_description_too_long'),
+            'description.max'      => __('validation.media_description_too_long'),
         ];
     }
 }

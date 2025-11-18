@@ -22,9 +22,9 @@ class EventFactory extends Factory
         $timeScenario = $this->faker->randomElement(['past', 'present', 'future']);
 
         $startDate = match($timeScenario) {
-            'past' => $this->faker->optional(0.8)->dateTimeBetween('-6 months', '-1 day'),
+            'past'    => $this->faker->optional(0.8)->dateTimeBetween('-6 months', '-1 day'),
             'present' => $this->faker->optional(0.8)->dateTimeBetween('-2 hours', '+2 hours'),
-            'future' => $this->faker->optional(0.8)->dateTimeBetween('+1 day', '+6 months'),
+            'future'  => $this->faker->optional(0.8)->dateTimeBetween('+1 day', '+6 months'),
         };
 
         $endDate = $startDate

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MediaCategory;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -13,13 +14,14 @@ class MediaFactory extends Factory
 {
     public function definition(): array
     {
-        $categories = ['image', 'document', 'video', 'archive'];
-        $category = fake()->randomElement($categories);
+        $category = fake()->randomElement(MediaCategory::cases())->value;
+        $path = $this->generatePath($category);
 
         return [
             'owner_id'    => User::factory(),
             'project_id'  => Project::factory(),
-            'path'        => $this->generatePath($category),
+            'path'        => $path,
+            'thumbnail'   => $path,
             'description' => fake()->sentence(),
             'alt_text'    => fake()->optional(0.4)->words(3, true),
             'width'       => in_array($category, ['image', 'video']) ? fake()->numberBetween(800, 2400) : null,
@@ -70,10 +72,10 @@ class MediaFactory extends Factory
         $uuid = fake()->uuid();
 
         // Factory always creates dev files with dev flag for mock images
-        $filename = "dev-{$uuid}.{$extension}";
+        return "media/dev-{$uuid}.{$extension}";
+    }
 
-        return "media/{$filename}";
-    }    private function getMimeType(string $category): string
+    private function getMimeType(string $category): string
     {
         $mimeTypes = [
             'image'    => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],

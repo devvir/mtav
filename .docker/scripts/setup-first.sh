@@ -27,6 +27,6 @@ echo "Seeding database with sample data..."
 docker_exec php php artisan db:seed --no-interaction
 
 echo "Creating storage symlink..."
-docker_exec php php artisan storage:link --no-interaction --force
+docker_exec php php artisan storage:link --relative --no-interaction --force
 
 echo "✅ First-time setup completed successfully!"

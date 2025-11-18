@@ -200,7 +200,6 @@ interface Media extends Resource {
   alt_text: string | null;
   width: number | null;
   height: number | null;
-  dimensions: string | null;
   category: string;
   category_label: string;
   mime_type: string;

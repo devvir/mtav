@@ -50,7 +50,7 @@ class MediaController extends Controller
     public function store(StoreMediaRequest $request, MediaService $mediaService): RedirectResponse
     {
         $media = collect($request->file('files'))->map(
-            fn (UploadedFile $file) => $mediaService->storeFile(
+            fn (UploadedFile $file) => $mediaService->create(
                 file: $file,
                 attributes: [
                     'description' => $request->description,

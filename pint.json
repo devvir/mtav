@@ -1,5 +1,8 @@
 {
   "preset": "psr12",
+  "exclude": [
+    "packages"
+  ],
   "rules": {
     "concat_space": {
       "spacing": "one"

@@ -36,9 +36,6 @@ RUN mkdir -p \
         storage/framework/views \
         storage/logs
 
-# Create storage symlink for public access
-RUN php artisan storage:link --force
-
 # Set ownership of entire application to fpm user
 RUN chown -R www-data:www-data .
 

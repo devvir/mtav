@@ -5,57 +5,54 @@ namespace App\Services;
 use App\Enums\MediaCategory;
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MediaService
 {
-    /**
-     * Store an uploaded file and create a media record.
-     */
-    public function storeFile(UploadedFile $file, array $attributes = []): Media
-    {
-        // Generate unique filename
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('media', $filename, 'public');
+    public function __construct(
+        private MediaThumbnailService $thumbnailService
+    ) {
+        // ...
+    }
 
-        // Get file metadata
+    /**
+     * Create a new Media record and store its associated file and thumbnail.
+     */
+    public function create(UploadedFile $file, array $attributes = []): Media
+    {
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
         $metadata = $this->extractFileMetadata($file);
 
-        return Media::create([
-            'path'      => $path,
+        $media = Media::make([
+            'path'      => $file->storeAs('media', $filename, 'public'),
             'width'     => $metadata['width'] ?? null,
             'height'    => $metadata['height'] ?? null,
             'category'  => $metadata['category'],
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
-            ...$attributes,
+            ...Arr::only($attributes, ['description', 'alt_text', 'owner_id', 'project_id']),
         ]);
+
+        $media->thumbnail = $this->thumbnailService->generateThumbnail($media);
+        $media->save();
+
+        return $media;
     }
 
     /**
-     * Delete a media file from storage (use for force delete only).
-     * For soft deletes, keep the file so it can be restored.
+     * Force delete a media record, its file and its thumbnail.
      */
-    public function deleteFile(Media $media): bool
+    public function forceDeleteMedia(Media $media): bool
     {
         if (Storage::disk('public')->exists($media->path)) {
             return Storage::disk('public')->delete($media->path);
         }
 
-        return true; // Consider non-existent file as successfully deleted
-    }
+        $this->thumbnailService->deleteThumbnail($media);
 
-    /**
-     * Force delete a media record and its file.
-     * This permanently removes both the database record and the physical file.
-     */
-    public function forceDeleteMedia(Media $media): bool
-    {
-        $fileDeleted = $this->deleteFile($media);
-        $media->forceDelete();
-
-        return $fileDeleted;
+        return $media->forceDelete();
     }
 
     /**
@@ -64,7 +61,7 @@ class MediaService
     public function extractFileMetadata(UploadedFile $file): array
     {
         $metadata = [
-            'category' => $this->determineCategory($file->getMimeType()),
+            'category' => $this->mime2category($file->getMimeType()),
         ];
 
         // Add dimensions for images
@@ -100,7 +97,7 @@ class MediaService
     /**
      * Determine the media category based on MIME type.
      */
-    public function determineCategory(string $mimeType): MediaCategory
+    public function mime2category(string $mimeType): MediaCategory
     {
         if (str_starts_with($mimeType, 'image/')) {
             return MediaCategory::IMAGE;

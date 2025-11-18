@@ -54,6 +54,7 @@ print_help() {
     echo ""
     echo -e "${GREEN}Production Commands:${NC}"
     echo -e "  ${YELLOW}mtav build <service> <tag>${NC}  # Build production images"
+    echo -e "  ${YELLOW}mtav rebuild-php-base <version>${NC} # Build and push PHP base image"
     echo -e "  ${YELLOW}mtav deploy${NC}                 # Deploy to production (pull + migrate + start)"
     echo ""
     echo -e "${GREEN}Advanced Commands:${NC}"
@@ -119,6 +120,10 @@ case $COMMAND in
 
     rebuild)
         "$SCRIPTS_DIR/rebuild.sh" "$@"
+        ;;
+
+    rebuild-php-base)
+        "$SCRIPTS_DIR/rebuild-php-base.sh" "$@"
         ;;
 
     logs)
