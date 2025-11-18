@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Concerns;
 
+use App\Enums\MediaCategory;
+
 trait HasMedia
 {
     public function sharedMediaData(): array
@@ -10,14 +12,14 @@ trait HasMedia
         $this->resource->deriveRelation(
             from: 'media',
             derive: 'images',
-            using: fn ($media) => $media->where('category', 'image'),
+            using: fn ($media) => $media->where('category', MediaCategory::IMAGE),
         );
 
         /** Auto-set videos relation, if media relation is loaded */
         $this->resource->deriveRelation(
             from: 'media',
             derive: 'videos',
-            using: fn ($media) => $media->where('category', 'video'),
+            using: fn ($media) => $media->where('category', MediaCategory::VIDEO),
         );
 
         return [

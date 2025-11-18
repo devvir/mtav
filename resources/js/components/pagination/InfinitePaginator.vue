@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
+import NoItems from '@/components/NoItems.vue';
 
 export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
@@ -9,6 +10,7 @@ const props = defineProps<{
   loadable: string;
   cardSize?: CardSize;
   featured?: number | string;
+  noItemsMessage?: string;
 }>();
 
 const sizeMultipliers: Record<CardSize, number> = {
@@ -25,11 +27,7 @@ const cardSizeMultiplier = computed<number>(
 </script>
 
 <template>
-  <section v-if="!list.data.length" class="flex size-full items-center justify-center text-xl">
-    {{ _('No results') }}
-  </section>
-
-  <section>
+  <section v-if="list.data.length">
     <TransitionGroup
       name="fade"
       tag="ul"
@@ -46,9 +44,11 @@ const cardSizeMultiplier = computed<number>(
         <slot :item="item" />
       </li>
     </TransitionGroup>
+
+    <InfiniteScroll :pageSpecs="list" :loadable :params="{ q: usePage().props.q }" />
   </section>
 
-  <InfiniteScroll :pageSpecs="list" :loadable :params="{ q: usePage().props.q }" />
+  <NoItems v-else :message="noItemsMessage" />
 </template>
 
 <style scoped>

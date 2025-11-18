@@ -2,8 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Admin;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Admin $resource
+ * @mixin Admin
+ */
 class AdminResource extends UserResource
 {
     public function toArray(Request $request): array

@@ -4,9 +4,14 @@ namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\HasEvents;
 use App\Http\Resources\Concerns\HasMedia;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property-read User $resource
+ * @mixin User
+ */
 class UserResource extends JsonResource
 {
     use HasEvents;

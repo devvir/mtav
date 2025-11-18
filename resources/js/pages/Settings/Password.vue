@@ -60,7 +60,7 @@ const updatePassword = () => {
 
       <form @submit.prevent="updatePassword" class="space-y-6">
         <div class="grid gap-2">
-          <Label for="current_password">{{ _('Current password') }}</Label>
+          <Label for="current_password">{{ _('Current Password') }}</Label>
           <Input
             id="current_password"
             ref="currentPasswordInput"
@@ -68,13 +68,13 @@ const updatePassword = () => {
             type="password"
             class="mt-1 block w-full"
             autocomplete="current-password"
-            :placeholder="_('Current password')"
+            :placeholder="_('Current Password')"
           />
           <InputError :message="form.errors.current_password" />
         </div>
 
         <div class="grid gap-2">
-          <Label for="password">{{ _('New password') }}</Label>
+          <Label for="password">{{ _('New Password') }}</Label>
           <Input
             id="password"
             ref="passwordInput"
@@ -82,7 +82,7 @@ const updatePassword = () => {
             type="password"
             class="mt-1 block w-full"
             autocomplete="new-password"
-            :placeholder="_('New password')"
+            :placeholder="_('New Password')"
           />
           <InputError :message="form.errors.password" />
         </div>

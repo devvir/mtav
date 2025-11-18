@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import {
-  EntityCard,
-  CardFooter,
-  CardHeader,
-  CreatedMeta,
-  FooterButton,
-  HeaderSub,
-} from '@/components/card';
-import { _ } from '@/composables/useTranslations';
+import { EntityCard, CardHeader, HeaderSub } from '@/components/card';
+import AdminCardFooter from './AdminCardFooter.vue';
 
 defineProps<{
   admin: ApiResource<Admin>;
@@ -20,12 +13,6 @@ defineProps<{
       <HeaderSub :title="admin.email">{{ admin.email }}</HeaderSub>
     </CardHeader>
 
-    <CardFooter class="flex items-center justify-between">
-      <CreatedMeta />
-
-      <FooterButton :href="route('contact', admin.id)">
-        {{ _('Contact') }}
-      </FooterButton>
-    </CardFooter>
+    <AdminCardFooter :admin />
   </EntityCard>
 </template>

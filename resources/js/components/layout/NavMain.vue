@@ -12,6 +12,7 @@ import { _ } from '@/composables/useTranslations';
 import {
   Building2Icon,
   CalendarIcon,
+  FilesIcon,
   HomeIcon,
   LayoutGrid,
   LucideIcon,
@@ -35,11 +36,13 @@ const allNavItems: NavItem[] = [
     routes: ['dashboard'],
   },
   {
-    label: 'Gallery',
-    route: 'media.index',
-    icon: LayoutGrid,
-    onlyIf: projectIsSelected,
-    routes: ['media.*'],
+    label: 'Families',
+    route: computed(() =>
+      usePage().props.state.groupMembers ? 'families.index' : 'members.index',
+    ),
+    icon: UsersIcon,
+    onlyIf: can.viewAny('members'),
+    routes: ['families.*', 'members.*'],
   },
   {
     label: 'Events',
@@ -49,13 +52,18 @@ const allNavItems: NavItem[] = [
     routes: ['events.*'],
   },
   {
-    label: 'Members',
-    route: computed(() =>
-      usePage().props.state.groupMembers ? 'families.index' : 'members.index',
-    ),
-    icon: UsersIcon,
-    onlyIf: can.viewAny('members'),
-    routes: ['families.*', 'members.*'],
+    label: 'Gallery',
+    route: 'media.index',
+    icon: LayoutGrid,
+    onlyIf: projectIsSelected,
+    routes: ['media.*'],
+  },
+  {
+    label: 'Documents',
+    route: 'documents.index',
+    icon: FilesIcon,
+    onlyIf: projectIsSelected,
+    routes: ['documents.*'],
   },
   {
     label: 'Projects',

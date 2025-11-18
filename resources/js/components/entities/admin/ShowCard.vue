@@ -2,14 +2,12 @@
 import {
   EntityCard,
   CardContent,
-  CardFooter,
   CardHeader,
   ContentHighlight,
   ContentLine,
-  CreatedMeta,
-  FooterButton,
 } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
+import AdminCardFooter from './AdminCardFooter.vue';
 
 defineProps<{
   admin: ApiResource<Admin>;
@@ -33,12 +31,6 @@ defineProps<{
       </ContentHighlight>
     </CardContent>
 
-    <CardFooter class="flex items-center justify-between">
-      <CreatedMeta />
-
-      <FooterButton :href="route('contact', admin.id)">
-        {{ _('Contact') }}
-      </FooterButton>
-    </CardFooter>
+    <AdminCardFooter :admin />
   </EntityCard>
 </template>

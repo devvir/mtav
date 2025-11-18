@@ -2,8 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Media;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Media $resource
+ * @mixin Media
+ */
 class MediaResource extends JsonResource
 {
     public function toArray(Request $_): array
@@ -11,17 +16,18 @@ class MediaResource extends JsonResource
         return [
             ...$this->commonResourceData(),
 
-            'path'        => $this->path,
-            'url'         => $this->getUrl(),
-            'description' => $this->description,
-            'alt_text'    => $this->alt_text,
-            'width'       => $this->width,
-            'height'      => $this->height,
-            'dimensions'  => $this->dimensions(),
-            'category'    => $this->category,
-            'mime_type'   => $this->mime_type,
-            'file_size'   => $this->file_size,
-            'is_image'    => $this->isImage(),
+            'path'           => $this->path,
+            'url'            => $this->getUrl(),
+            'description'    => $this->description,
+            'alt_text'       => $this->alt_text,
+            'width'          => $this->width,
+            'height'         => $this->height,
+            'dimensions'     => $this->dimensions(),
+            'category'       => $this->category->value,
+            'category_label' => $this->category->label(),
+            'mime_type'      => $this->mime_type,
+            'file_size'      => $this->file_size,
+            'is_image'       => $this->isImage(),
 
             ...$this->relationsData(),
         ];
@@ -70,7 +76,7 @@ class MediaResource extends JsonResource
     protected function getMockImageUrl(): string
     {
         // For videos, treat them like images (they need thumbnails anyway)
-        if ($this->isImage() || $this->category === 'video') {
+        if ($this->isVisual()) {
             // Use the stored dimensions or reasonable defaults
             $width = $this->width ?? 800;
             $height = $this->height ?? 600;
@@ -97,7 +103,8 @@ class MediaResource extends JsonResource
 
         // Generate a consistent color based on the seed
         $hue = abs(crc32($seed)) % 360;
-        $color = sprintf('%02x%02x%02x',
+        $color = sprintf(
+            '%02x%02x%02x',
             (int)(127 + 127 * cos(deg2rad($hue))),
             (int)(127 + 127 * cos(deg2rad($hue + 120))),
             (int)(127 + 127 * cos(deg2rad($hue + 240)))

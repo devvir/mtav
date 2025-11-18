@@ -26,7 +26,7 @@ const dimmed = computed(() => {
   <EntityCard :resource="event" entity="event" type="index" :dimmed>
     <CardHeader
       :title="event.title"
-      :kicker="event.start_date ?? _('No date set')"
+      :kicker="event.start_date ?? _('No Date Set')"
     >
       <BadgeGroup class="mt-3">
         <EventBadge

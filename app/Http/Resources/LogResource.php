@@ -2,9 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Log;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Log $resource
+ * @mixin Log
+ */
 class LogResource extends JsonResource
 {
     public function toArray(Request $_): array

@@ -2,8 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Plan;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Plan $resource
+ * @mixin Plan
+ */
 class PlanResource extends JsonResource
 {
     public function toArray(Request $_): array

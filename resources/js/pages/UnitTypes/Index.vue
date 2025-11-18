@@ -40,11 +40,11 @@ defineProps<{
             <div class="mt-2 flex gap-4 text-sm text-text-subtle">
               <div v-if="unitType.units_count !== undefined" class="flex items-center gap-1">
                 <span class="font-medium text-text">{{ unitType.units_count }}</span>
-                {{ unitType.units_count === 1 ? _('unit') : _('units') }}
+                {{ unitType.units_count === 1 ? _('Unit') : _('Units') }}
               </div>
               <div v-if="unitType.families_count !== undefined" class="flex items-center gap-1">
                 <span class="font-medium text-text">{{ unitType.families_count }}</span>
-                {{ unitType.families_count === 1 ? _('family') : _('families') }}
+                {{ unitType.families_count === 1 ? _('Family') : _('Families') }}
               </div>
             </div>
           </div>

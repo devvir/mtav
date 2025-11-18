@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\Admin;
+use App\Models\Event;
 use App\Models\Family;
+use App\Models\Media;
 use App\Models\Member;
 use App\Models\Project;
 use App\Models\Unit;
@@ -98,18 +100,22 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             'create' => [
+                'admins'   => Gate::allows('create', Admin::class),
+                'events'   => Gate::allows('create', Event::class),
+                'families' => Gate::allows('create', Family::class),
+                'media'    => Gate::allows('create', Media::class),
+                'members'  => Gate::allows('create', Member::class),
                 'projects' => Gate::allows('create', Project::class),
                 'units'    => Gate::allows('create', Unit::class),
-                'admins'   => Gate::allows('create', Admin::class),
-                'families' => Gate::allows('create', Family::class),
-                'members'  => Gate::allows('create', Member::class),
             ],
             'viewAny' => [
+                'admins'   => Gate::allows('viewAny', Admin::class),
+                'events'   => Gate::allows('viewAny', Event::class),
+                'families' => Gate::allows('viewAny', Family::class),
+                'media'    => Gate::allows('viewAny', Media::class),
+                'members'  => Gate::allows('viewAny', Member::class),
                 'projects' => Gate::allows('viewAny', Project::class),
                 'units'    => Gate::allows('viewAny', Unit::class),
-                'admins'   => Gate::allows('viewAny', Admin::class),
-                'families' => Gate::allows('viewAny', Family::class),
-                'members'  => Gate::allows('viewAny', Member::class),
             ],
         ];
     }

@@ -81,7 +81,5 @@ class PlanSeeder extends Seeder
                 'stroke' => '#6b7280'   // Subtle gray stroke
             ]
         ]);
-
-        $this->command->info('Plan #1 updated with realistic housing project layout - 18 properly sized units with access roads and logical block organization.');
     }
 }

@@ -69,7 +69,7 @@ const getTypeLabel = (type: string) => {
         <div class="mt-2 flex items-center gap-4 text-xs text-text-subtle">
           <div class="flex items-center gap-1">
             <Clock class="h-3 w-3" />
-            <span>{{ event.start_date || _('No date set') }}</span>
+            <span>{{ event.start_date || _('No Date Set') }}</span>
           </div>
           <div v-if="event.location" class="flex items-center gap-1 truncate">
             <component :is="event.is_online ? Globe : MapPin" class="h-3 w-3 flex-shrink-0" />

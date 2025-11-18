@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { can, iAmAdmin } from '@/composables/useAuth';
-import { projectIsSelected } from '@/composables/useProjects';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
@@ -14,19 +13,16 @@ type QuickAction = {
 
 const quickActions: QuickAction[] = [
   { if: can.create('projects'), route: 'projects.create', text: 'New Project' },
+  { if: can.create('admins'), route: 'admins.create', text: 'New Admin' },
   { if: can.create('families'), route: 'families.create', text: 'New Family' },
   {
     if: can.create('members'),
     route: 'members.create',
-    text: iAmAdmin.value ? 'New User' : 'Invite Family Member',
+    text: iAmAdmin.value ? 'New Member' : 'New Family Member',
   },
-  { if: can.create('admins'), route: 'admins.create', text: 'New Admin' },
-  { if: projectIsSelected, route: 'media.create', text: 'Upload Multimedia' }, // TODO : can.create('media') when the Media model is added
-  {
-    if: computed(() => projectIsSelected.value && iAmAdmin.value),
-    route: 'events.create',
-    text: 'New Event',
-  }, // TODO : idem, when the Event model is added
+  { if: can.create('events'), route: 'events.create', text: 'New Event' },
+  { if: can.create('media'), route: 'media.create', text: 'Upload Multimedia' },
+  { if: can.create('media'), route: 'documents.create', text: 'Upload Documents' },
 ];
 
 const availableActions = computed(() =>

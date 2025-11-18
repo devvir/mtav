@@ -4,8 +4,13 @@ namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\HasEvents;
 use App\Http\Resources\Concerns\HasMedia;
+use App\Models\Project;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Project $resource
+ * @mixin Project
+ */
 class ProjectResource extends JsonResource
 {
     use HasEvents;

@@ -3,7 +3,7 @@ import { capitalize } from '@/lib/utils';
 
 type EntityLabelCount = number | 'singular' | 'plural';
 
-const type2plural: Record<AppEntity, AppEntityPluralForm> = {
+const type2ns: Record<AppEntity, AppEntityNS> = {
   project: 'projects',
   unit: 'units',
   unit_type: 'unit_types',
@@ -15,7 +15,10 @@ const type2plural: Record<AppEntity, AppEntityPluralForm> = {
   log: 'logs',
 };
 
-const type2ns: Record<AppEntity, AppEntityNS> = type2plural;
+const type2plural = {
+  ...type2ns,
+  media: 'files',
+} as Record<AppEntity, AppEntityPluralForm>;
 
 const ns2type = Object.fromEntries(
   Object.entries(type2ns).map(([ns, name]) => [name, ns]) as [AppEntityNS, AppEntity][],

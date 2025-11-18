@@ -23,7 +23,7 @@ defineProps<{
           </div>
         </div>
         <div class="text-sm text-text-subtle">
-          {{ unitType.units_count }} {{ unitType.units_count === 1 ? _('unit') : _('units') }}
+          {{ unitType.units_count }} {{ unitType.units_count === 1 ? _('Unit') : _('Units') }}
         </div>
       </div>
     </ModalLink>

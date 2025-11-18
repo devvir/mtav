@@ -9,7 +9,7 @@ type AppEntity =
   | 'media'
   | 'log';
 
-type AppEntityPluralForm =
+type AppEntityNS =
   | 'projects'
   | 'units'
   | 'unit_types'
@@ -20,7 +20,7 @@ type AppEntityPluralForm =
   | 'media'
   | 'logs';
 
-type AppEntityNS = AppEntityPluralForm;
+type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'files';
 
 type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
@@ -202,6 +202,7 @@ interface Media extends Resource {
   height: number | null;
   dimensions: string | null;
   category: string;
+  category_label: string;
   mime_type: string;
   file_size: number;
   is_image: boolean;

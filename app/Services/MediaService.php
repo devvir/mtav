@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\MediaCategory;
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -67,7 +68,7 @@ class MediaService
         ];
 
         // Add dimensions for images
-        if ($metadata['category'] === 'image') {
+        if ($metadata['category'] === MediaCategory::IMAGE) {
             $dimensions = $this->getImageDimensions($file);
             $metadata = array_merge($metadata, $dimensions);
         }
@@ -99,18 +100,18 @@ class MediaService
     /**
      * Determine the media category based on MIME type.
      */
-    public function determineCategory(string $mimeType): string
+    public function determineCategory(string $mimeType): MediaCategory
     {
         if (str_starts_with($mimeType, 'image/')) {
-            return 'image';
+            return MediaCategory::IMAGE;
         }
 
         if (str_starts_with($mimeType, 'video/')) {
-            return 'video';
+            return MediaCategory::VIDEO;
         }
 
         if (str_starts_with($mimeType, 'audio/')) {
-            return 'audio';
+            return MediaCategory::AUDIO;
         }
 
         if (in_array($mimeType, [
@@ -123,18 +124,9 @@ class MediaService
             'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             'text/plain',
         ])) {
-            return 'document';
+            return MediaCategory::DOCUMENT;
         }
 
-        if (in_array($mimeType, [
-            'application/zip',
-            'application/x-rar-compressed',
-            'application/x-7z-compressed',
-            'application/gzip',
-        ])) {
-            return 'archive';
-        }
-
-        return 'other';
+        return MediaCategory::UNKNOWN; // Unrecognized or not-yet-supported types
     }
 }

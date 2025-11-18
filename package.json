@@ -1,4 +1,5 @@
 {
+  "name": "mtav",
   "private": true,
   "type": "module",
   "scripts": {

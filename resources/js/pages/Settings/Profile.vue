@@ -123,7 +123,7 @@ const submit = () => form.post(route('profile.update'), { preserveScroll: true }
 
       <!-- Submit button -->
       <div class="flex items-center gap-4">
-        <Button type="submit" :disabled="form.processing" size="lg">{{ _('Save changes') }}</Button>
+        <Button type="submit" :disabled="form.processing" size="lg">{{ _('Save Changes') }}</Button>
       </div>
     </form>
   </SettingsLayout>

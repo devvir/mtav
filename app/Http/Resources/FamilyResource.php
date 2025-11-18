@@ -3,9 +3,14 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\HasMedia;
+use App\Models\Family;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property-read Family $resource
+ * @mixin Family
+ */
 class FamilyResource extends JsonResource
 {
     use HasMedia;

@@ -6,6 +6,10 @@ use App\Models\Member;
 use Closure;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read Member $resource
+ * @mixin Member
+ */
 class MemberResource extends UserResource
 {
     public function toArray(Request $request): array
@@ -44,7 +48,6 @@ class MemberResource extends UserResource
      */
     protected function fillDerivedRsvpRelations(): void
     {
-        /** @var Member $resource */
         $member = $this->resource;
 
         collect([ /** from 'rsvps', derive => using */

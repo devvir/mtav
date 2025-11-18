@@ -2,8 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\UnitType;
 use Illuminate\Http\Request;
 
+/**
+ * @property-read UnitType $resource
+ * @mixin UnitType
+ */
 class UnitTypeResource extends JsonResource
 {
     public function toArray(Request $_): array
