@@ -3,6 +3,7 @@
 * Always run commands on the app with the mtav command (i.e. remember dev runs on docker)
 * If you need general context, refer to documentation/ai/README.md
 * Never build npm, and assume I already have a dev server running
+* Never start, stop, or manage the development server - assume it's already running and accessible
 * When generating code, always follow the existing code style and conventions used in the project (see similar files for reference)
 * Any user-facing text in the frontend should be in English, with a translation in lang/es_UY.json for Spanish (Uruguay) (in alphabetical order)
 * The lang/en.json file should stay as '{}' (empty) to reflect that the keys are the English text already

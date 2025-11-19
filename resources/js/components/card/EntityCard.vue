@@ -5,6 +5,7 @@ import type { CardType } from '.';
 import * as exposed from './exposed';
 import Card from './Card.vue';
 import { cn } from '@/lib/utils';
+import { HTMLAttributes } from 'vue';
 
 const props = defineProps<{
   resource: ApiResource;
@@ -12,6 +13,8 @@ const props = defineProps<{
   type?: CardType;
   dimmed?: boolean;
   cardLink?: string;
+  class?: HTMLAttributes['class'];
+  panelClasses?: HTMLAttributes['class'];
 }>();
 
 const routes = entityRoutes(props.entity);
@@ -26,9 +29,10 @@ provide(exposed.routes, routes);
 <template>
   <Card :dimmed
   :cardLink="cardLink ?? (type === 'index' ? detailsRoute : undefined)"
+  :panel-classes
   :class="cn(
     { 'border-red-200 bg-surface opacity-60 shadow-sm': resource.deleted_at },
-    $attrs.class,
+    $props.class,
   )">
     <slot :card-type="type" :entity-routes="routes" />
   </Card>

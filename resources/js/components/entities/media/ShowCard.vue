@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <EntityCard :resource="media" entity="media" type="show" tabindex="1"
-    class="group overflow-hidden ring-2 ring-card-elevated-foreground/50 p-0!">
+    class="group overflow-hidden ring-2 ring-card-elevated-foreground/50">
     <!-- CardActions positioned in top-left corner with background for visibility -->
     <CardActions type="full" class="not-group-hover:not-group-active:not-group-focus:hidden absolute left-3 top-3 z-10 rounded-lg [&>*]:bg-black/30 backdrop-blur-sm p-0!" />
 

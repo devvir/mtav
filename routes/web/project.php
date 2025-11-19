@@ -15,8 +15,8 @@ Route::get('/', DashboardController::class)->name('dashboard');
 Route::get('gallery', [MediaController::class, 'index'])->name('gallery');
 Route::get('contact/{admin}', [ContactController::class, 'create'])->name('contact');
 
-Route::resource('audios', AudioController::class);
-Route::resource('documents', DocumentController::class);
+Route::resource('audios', AudioController::class)->only('index', 'create');
+Route::resource('documents', DocumentController::class)->only('index', 'create');
 Route::resource('events', EventController::class);
 Route::resource('media', MediaController::class)->parameter('media', 'media'); // NOT medium
 Route::resource('plans', PlanController::class)->only('show', 'edit', 'update');

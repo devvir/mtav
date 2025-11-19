@@ -26,7 +26,7 @@ enum MediaCategory: string
             self::IMAGE    => __('Image'),
             self::UNKNOWN  => __('Unknown'),
             self::VIDEO    => __('Video'),
-            self::VISUAL   => __('Visual'),
+            self::VISUAL   => __('Media'),
         };
     }
 }

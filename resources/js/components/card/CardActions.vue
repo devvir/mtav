@@ -71,6 +71,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
           v-for="action in enabledActions"
           :key="action"
           class="w-full justify-start py-5 hocus:bg-surface-interactive-hover"
+          @click.stop
         />
       </DropdownContent>
     </Dropdown>

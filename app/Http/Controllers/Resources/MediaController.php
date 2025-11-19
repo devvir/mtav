@@ -43,7 +43,8 @@ class MediaController extends Controller
     public function create(Request $request): Response
     {
         return inertia('Media/Create', [
-            'category' => $request->get('category', MediaCategory::VISUAL),
+            'category'   => $request->get('category', MediaCategory::VISUAL),
+            'categories' => MediaCategory::labels(),
         ]);
     }
 
@@ -68,10 +69,12 @@ class MediaController extends Controller
             ->with('success', $flashMessage);
     }
 
-    public function edit(Media $media): Response
+    public function edit(Request $request, Media $media): Response
     {
         return inertia('Media/Edit', [
-            'media' => $media,
+            'media'      => $media,
+            'category'   => $request->get('category', MediaCategory::VISUAL),
+            'categories' => MediaCategory::labels(),
         ]);
     }
 

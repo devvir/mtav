@@ -12,7 +12,7 @@ defineProps<{
   <EntityCard :resource="member" entity="member" type="index">
     <CardHeader :title="member.name" avatar="lg">
       <span class="pr-1 text-text/30">{{ _('Family') }}</span>
-      <ModalLink :href="route('families.show', member.family.id)">
+      <ModalLink :href="route('families.show', member.family.id)" @click.stop>
         <span class="text-text-link hover:text-text-link-hover">
           {{ member.family?.name }}
         </span>

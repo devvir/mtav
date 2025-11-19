@@ -21,12 +21,17 @@ onUnmounted(onNavigateDetacher);
 </script>
 
 <template>
-  <Modal ref="modal" v-if="useModal()" v-slot="modal" :panel-classes="cn(panelClasses, $props.class)"
-    :padding-classes="paddingClasses">
+  <Modal
+    v-if="useModal()"
+    v-slot="modal"
+    ref="modal"
+    :panel-classes="cn('modalPanel', panelClasses, $props.class)"
+    :padding-classes="cn('modalPadding', paddingClasses)"
+  >
     <slot v-bind="modal" />
   </Modal>
 
   <div v-else :class="cn('size-full', $props.class)">
-    <slot />
+    <slot :close="() => null" />
   </div>
 </template>

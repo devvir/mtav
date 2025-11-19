@@ -16,11 +16,14 @@ class MediaThumbnailService
     public function generateThumbnail(Media $media): string
     {
         try {
-            return match(true) {
-                $media->isImage() => $this->imageThumbnail($media),
-                $media->isVideo() => $this->videoThumbnail($media),
-                $media->isAudio() => $this->audioThumbnail($media),
-                default           => $this->genericThumbnailIcon($media),
+            return match (true) {
+                $this->isAnimatedGif($media) => $this->animatedGifThumbnail($media),
+                $this->isGif($media)         => $this->staticGifThumbnail($media),
+                $this->isSvg($media)         => $this->svgThumbnail($media),
+                $media->isImage()            => $this->imageThumbnail($media),
+                $media->isVideo()            => $this->videoThumbnail($media),
+                $media->isAudio()            => $this->audioThumbnail($media),
+                default                      => $this->genericThumbnail($media),
             };
         } catch (Exception $e) {
             logger()->error('Thumbnail generation failed', [
@@ -30,6 +33,46 @@ class MediaThumbnailService
 
             return '/thumbnails/unknown.png';
         }
+    }
+
+    /**
+     * Check if media file is a GIF.
+     */
+    private function isGif(Media $media): bool
+    {
+        return $media->isImage() && strtolower(pathinfo($media->path, PATHINFO_EXTENSION)) === 'gif';
+    }
+
+    /**
+     * Check if media file is an SVG.
+     */
+    private function isSvg(Media $media): bool
+    {
+        return $media->isImage() && strtolower(pathinfo($media->path, PATHINFO_EXTENSION)) === 'svg';
+    }
+
+    /**
+     * Check if GIF is animated.
+     */
+    private function isAnimatedGif(Media $media): bool
+    {
+        if (! $this->isGif($media)) {
+            return false;
+        }
+
+        // Check if GIF is animated by examining the file structure
+        $sourcePath = Storage::disk('public')->path($media->path);
+
+        if (!file_exists($sourcePath)) {
+            return false;
+        }
+
+        // Read the first part of the file to check for animation indicators
+        $fileContent = file_get_contents($sourcePath, false, null, 0, 1024);
+
+        // Look for multiple image blocks which indicate animation
+        // Animated GIFs have multiple image separators (0x21 0xF9)
+        return substr_count($fileContent, "\x21\xF9") > 1;
     }
 
     /**
@@ -56,7 +99,7 @@ class MediaThumbnailService
         $imageInfo = getimagesize($sourcePath);
 
         if ($imageInfo === false) {
-            return $this->genericThumbnailIcon($media);
+            return $this->genericThumbnail($media);
         }
 
         [$width, $height] = $imageInfo;
@@ -64,7 +107,7 @@ class MediaThumbnailService
 
         // If image is small enough, use original image
         if ($width <= $maxDimension && $height <= $maxDimension) {
-            return $media->url();
+            return Storage::url($media->path);
         }
 
         // Generate resized thumbnail
@@ -77,10 +120,39 @@ class MediaThumbnailService
         Storage::disk('public')->makeDirectory('thumbnails');
 
         if (! $this->createOptimizedImageThumbnail($sourcePath, $thumbnailFullPath, $maxDimension)) {
-            return $this->genericThumbnailIcon($media);
+            return $this->genericThumbnail($media);
         }
 
         return $thumbnailPath;
+    }
+
+    /**
+     * Handle animated GIF by using original file (preserves animation).
+     */
+    private function animatedGifThumbnail(Media $media): string
+    {
+        // For animated GIFs, use the original file as thumbnail
+        // since they provide better user experience than static frames
+        return Storage::url($media->path);
+    }
+
+    /**
+     * Handle static GIF with optimized thumbnail generation.
+     */
+    private function staticGifThumbnail(Media $media): string
+    {
+        // Treat static GIFs like regular images
+        return $this->imageThumbnail($media);
+    }
+
+    /**
+     * Handle SVG by using original file (vector graphics scale infinitely).
+     */
+    private function svgThumbnail(Media $media): string
+    {
+        // SVGs are vector graphics that scale infinitely and are typically small
+        // Use the original file as its own thumbnail
+        return Storage::url($media->path);
     }
 
     /**
@@ -126,8 +198,13 @@ class MediaThumbnailService
      *
      * Priority: extension-based -> mime-type-based -> unknown
      */
-    private function genericThumbnailIcon(Media $media): string
+    private function genericThumbnail(Media $media): string
     {
+        // For images, use a properly sized generic image instead of a generic icon
+        if ($media->isImage() || $this->isGif($media)) {
+            return '/thumbnails/mimetypes/image-x-generic.png';
+        }
+
         $extension = strtolower(pathinfo($media->path, PATHINFO_EXTENSION));
         $extensionIconPath = public_path("thumbnails/extensions/{$extension}.png");
         $mimeIconPath = public_path("thumbnails/mimetypes/{$media->mime_type}.png");
@@ -256,7 +333,7 @@ class MediaThumbnailService
         }
 
         if (! $result) {
-            return $this->genericThumbnailIcon($media);
+            return $this->genericThumbnail($media);
         }
 
         return $thumbnailPath;

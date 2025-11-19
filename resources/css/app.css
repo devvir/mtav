@@ -164,7 +164,7 @@
   }
 
   [data-inertiaui-modal-id] .modalPanel {
-    @apply rounded-lg border-2 border-foreground/15 bg-background/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-md @md:rounded-2xl;
+    @apply rounded-lg border-2 border-foreground/15 bg-card-elevated/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-lg @md:rounded-2xl;
   }
 
   [data-inertiaui-modal-id] .im-close-button {
@@ -187,8 +187,8 @@
     @apply p-0;
   }
 
-  [data-inertiaui-modal-id] .modalPadding.modalSlideover {
-    @apply p-4 @md:p-6;
+  [data-inertiaui-modal-id] .im-slideover-content {
+    @apply py-6;
   }
 
   [data-inertiaui-modal-id] [data-state='open'].im-backdrop {

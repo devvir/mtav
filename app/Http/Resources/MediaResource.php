@@ -52,7 +52,7 @@ class MediaResource extends JsonResource
             return $this->getMockImageUrl();
         }
 
-        return str_starts_with($path, '//') ? $path : Storage::url($path);
+        return str_starts_with($path, '/') ? $path : Storage::url($path);
     }
 
     /**

@@ -217,6 +217,6 @@ return [
     'media_file_required'        => 'Please select a file to upload.',
     'media_file_too_large'       => 'The file must not be larger than 10MB.',
     'media_invalid_file_type'    => 'The file must be a valid image or document type.',
-    'media_description_required' => 'Please provide a description for the media.',
+    'media_description_required' => 'Please provide a description for this content.',
     'media_description_too_long' => 'The description must not exceed 500 characters.',
 ];

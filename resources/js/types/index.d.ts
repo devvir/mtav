@@ -25,6 +25,8 @@ type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'files';
 type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
+type MediaCategory = 'audio' | 'document' | 'image' | 'unknown' | 'video' | 'visual';
+
 // WithRsvp type aliases
 type MemberWithRsvps = Member & Required<MemberRsvpFields>;
 type EventWithRsvps = Event & Required<EventRsvpFields>;

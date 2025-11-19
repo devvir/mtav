@@ -218,6 +218,6 @@ return [
     'media_file_required'        => 'Por favor selecciona un archivo para subir.',
     'media_file_too_large'       => 'El archivo no debe ser mayor a 10MB.',
     'media_invalid_file_type'    => 'El archivo debe ser una imagen o documento válido.',
-    'media_description_required' => 'Por favor proporciona una descripción para el medio.',
+    'media_description_required' => 'Por favor proporciona una descripción para este contenido.',
     'media_description_too_long' => 'La descripción no debe exceder 500 caracteres.',
 ];
