@@ -42,7 +42,7 @@ const deleteResource = () => {
     variant="ghost"
     v-bind="$attrs"
     class="flex items-center gap-3"
-    @click.prevent="toggleConfirmationState(true)"
+    @click.stop.prevent="toggleConfirmationState(true)"
   >
     <Trash2 class="size-[1.2em] text-red-600" />
     <span class="@max-md:hidden">{{ _('Delete') }}</span>

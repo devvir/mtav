@@ -167,6 +167,19 @@
     @apply rounded-lg border-2 border-foreground/15 bg-card-elevated/80 text-foreground shadow-xl shadow-accent/20 backdrop-blur-lg @md:rounded-2xl;
   }
 
+  /* Allow modal wrapper to fit content width for video modals */
+  [data-inertiaui-modal-id]:has(.inertia-ui-sucks) .im-modal-positioner {
+    @apply items-stretch;
+
+    .im-modal-wrapper {
+      @apply max-w-screen! w-auto!;
+
+      .im-modal-content {
+        @apply h-full!;
+      }
+    }
+  }
+
   [data-inertiaui-modal-id] .im-close-button {
     @apply relative z-10 p-1 rounded-full hover:text-text active:scale-95 transition-transform hover:bg-error-subtle/20;
   }

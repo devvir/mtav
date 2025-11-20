@@ -39,6 +39,6 @@ const ShowCard = defineAsyncComponent(
     <component
       :is="ShowCard"
       v-bind="{ [entity]: resource }"
-      :class="cn('mx-auto max-w-xl pt-4 pb-1 [&>*]:px-8!', $props.class)" />
+      :class="cn('mx-auto max-w-xl pt-4 pb-1 [&>*]:px-8', $props.class)" />
   </MaybeModal>
 </template>

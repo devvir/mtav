@@ -79,7 +79,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
           v-for="action in enabledActions"
           :key="action"
           class="w-full justify-start py-5 hocus:bg-surface-interactive-hover"
-          @click="$emit('execute', action); closeModal()"
+          @click="action === 'destroy' ? ($emit('execute', action) & closeModal()) : null"
         />
       </DropdownContent>
     </Dropdown>
@@ -92,7 +92,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
       v-for="action in enabledActions"
       :key="action"
       class="border border-border/30 text-xs first:rounded-l-md last:rounded-r-md"
-      @click.stop.prevent="$emit('execute', action); closeModal()"
+      @click.stop.prevent="action === 'destroy' ? ($emit('execute', action) & closeModal()) : null"
     />
   </div>
 </template>

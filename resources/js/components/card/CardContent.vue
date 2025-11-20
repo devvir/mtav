@@ -16,9 +16,9 @@ const routes = inject(exposed.routes, {}) as Record<ResourceAction, string>;
 <template>
   <main :class="cn(
     'flex flex-1 flex-col items-start gap-4',
+    'relative min-w-0',
     $props.class,
     '@container/card-content',
-    'relative min-w-0'
   )">
     <slot :resource :card-type="cardType" :entity-routes="routes" />
   </main>

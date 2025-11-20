@@ -5,6 +5,7 @@ import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
 import { ActionsType, CardActions, type CardType, HeaderSub } from '.';
 import * as exposed from './exposed';
+import { HTMLAttributes } from 'vue';
 
 defineEmits<{
   (e: 'execute', action: ResourceAction): void;
@@ -14,7 +15,7 @@ defineProps<{
   title: string;
   kicker?: string;
   avatar?: AvatarSize;
-  class?: any;
+  class?: HTMLAttributes['class'];
 }>();
 
 const resource = inject(exposed.resource, {}) as ApiResource;
@@ -27,7 +28,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
 </script>
 
 <template>
-  <header :class="cn($props.class, 'relative flex min-w-0 flex-wrap gap-x-base')">
+  <header :class="cn('relative flex min-w-0 flex-wrap gap-x-base', $props.class)">
     <slot name="icon">
       <Avatar v-if="avatar" :subject="resource" :size="avatar" />
     </slot>
@@ -44,7 +45,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       </h3>
 
       <h2
-        class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg"
+        class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg @2xl:text-xl @4xl:text-2xl"
         :title="title"
       >
         {{ title }}

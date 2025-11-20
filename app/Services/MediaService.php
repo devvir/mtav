@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\MediaCategory;
 use App\Models\Media;
+use Exception;
+use FFMpeg\FFMpeg;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -70,6 +72,12 @@ class MediaService
             $metadata = array_merge($metadata, $dimensions);
         }
 
+        // Add dimensions for videos
+        if ($metadata['category'] === MediaCategory::VIDEO) {
+            $dimensions = $this->getVideoDimensions($file);
+            $metadata = array_merge($metadata, $dimensions);
+        }
+
         return $metadata;
     }
 
@@ -89,7 +97,40 @@ class MediaService
                 'width'  => $imageSize[0] ?? null,
                 'height' => $imageSize[1] ?? null,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get video dimensions if the file is a video.
+     */
+    public function getVideoDimensions(UploadedFile $file): array
+    {
+        if (!str_starts_with($file->getMimeType(), 'video/')) {
+            return [];
+        }
+
+        try {
+            $ffmpeg = FFMpeg::create([
+                'ffmpeg.binaries'  => '/usr/bin/ffmpeg',
+                'ffprobe.binaries' => '/usr/bin/ffprobe',
+            ]);
+
+            $video = $ffmpeg->open($file->getPathname());
+            $streams = $video->getStreams()->videos();
+
+            if ($streams->count() === 0) {
+                return [];
+            }
+
+            $videoStream = $streams->first();
+
+            return [
+                'width'  => $videoStream->get('width'),
+                'height' => $videoStream->get('height'),
+            ];
+        } catch (Exception $e) {
             return [];
         }
     }
