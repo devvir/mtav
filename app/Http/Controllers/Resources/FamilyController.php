@@ -31,7 +31,7 @@ class FamilyController extends Controller
 
     public function show(Family $family): Response
     {
-        $family->load('project', 'members');
+        $family->load('project', 'members', 'unitType');
 
         return inertia('Families/Show', compact('family'));
     }

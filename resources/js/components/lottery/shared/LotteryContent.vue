@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-wide">
+  <div class="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-wide">
     <!-- Left Column: Project Plan -->
     <ProjectPlan :plan class="flex flex-col w-full p-base pb-wide" />
 

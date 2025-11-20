@@ -1,6 +1,6 @@
 # MTAV - Core Knowledge Base
 
-**Last Updated:** 2025-11-13
+**Last Updated:** 2025-11-20
 
 This document contains the essential architectural principles, patterns, and constraints needed for daily development work on MTAV.
 
@@ -121,6 +121,16 @@ This document contains the essential architectural principles, patterns, and con
 - Preferences stored in `unit_preferences` pivot table
 - Assignments stored as `family_id` on `units` table
 - Lottery execution tracked via `Event` model with `EventType::LOTTERY`
+
+**Current Implementation Status**:
+- ✅ Complete preference management system (backend + frontend)
+- ✅ Drag-and-drop preference ordering with responsive grid layout
+- ✅ Dynamic preference resolution with auto-sanitization
+- ✅ Role-based interfaces (admin lottery config + member preferences)
+- ⏳ Lottery execution engine (Phase 1.B - pending)
+- ⏳ Interactive project plan integration (Phase 3 - pending)
+
+**Reference**: See `resources/js/components/lottery/README.md` for complete technical documentation
 
 ---
 

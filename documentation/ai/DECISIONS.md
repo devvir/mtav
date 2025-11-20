@@ -276,6 +276,63 @@ This file documents:
 
 ---
 
+## Lottery Preferences System Completion (2025-11-20)
+
+### Complete Responsive Grid Implementation
+
+**Decision**: Implemented comprehensive lottery preferences UI with fixed numbered slots + moving unit cards architecture.
+
+**Key Design Decisions**:
+1. **Full Drop Zone Coverage**: Outer container handles ALL drops (no dead zones between cards)
+2. **Fixed Numbered Slots**: Background layer with large numbers, dashed borders, 30% opacity
+3. **Moving Unit Cards**: Foreground layer, semi-transparent with backdrop-blur, inset from slot edges
+4. **Subtle Random Rotations**: ±2° seeded by unit ID using sine-based pseudo-random for even distribution
+5. **Smooth Animations**: 400ms cubic-bezier transitions, inspired by InfinitePaginator
+6. **Monospaced Typography**: `font-mono` for consistent unit identifier layout
+7. **Responsive Grid**: `repeat(auto-fill, minmax(150px, 1fr))` auto-fits columns
+8. **Layout Proportions**: 40% project plan, 60% preferences picker (grid-cols-[2fr_3fr])
+9. **Keyboard Accessibility**: Arrow buttons + drag handles for non-drag reordering
+10. **Priority Badges**: Small heart icon for top 3 choices
+
+**Rationale**:
+- Visual separation between "preference positions" (slots) and "units" (cards)
+- No frustrating drop failures - entire cell is droppable
+- Rotations create "hand-placed cards" aesthetic vs computer-perfect grid
+- Monospace prevents inconsistent wrapping with systematic naming
+- Full accessibility for keyboard and screen reader users
+
+**Reference**: Complete documentation in `resources/js/components/lottery/README.md`
+
+### Drag-and-Drop Composable Extraction (2025-11-20)
+
+**Decision**: Extract drag-and-drop logic into reusable `useDragAndDrop` composable.
+
+**Architecture**:
+```typescript
+// Composable with callback-based API
+useDragAndDrop({ onMove: (from, to) => { /* reorder logic */ } })
+
+// Returns: draggedIndex, handleDragStart, handleDrop, handleDragEnd
+```
+
+**Rationale**:
+- **Reusability**: Same logic needed for Phase 3 project plan canvas (drag units from canvas to preferences)
+- **Maintainability**: Single source of truth for drag-and-drop behavior
+- **Type Safety**: TypeScript ensures correct usage
+- **Separation of Concerns**: PreferencesManager focuses on preference logic, composable handles drag mechanics
+
+**Rejected Alternative**: Creating multiple small Vue components (UnitCard, PreferenceSlot, etc.)
+- **Reason**: Over-engineering - would fragment template readability without clear benefit
+- **Better Solution**: Keep cohesive template with extracted logic composable
+
+**Impact**:
+- PreferencesManager.vue: Cleaner organization with clear sections (preference logic, drag-and-drop, keyboard, UI helpers)
+- Future work: Project plan canvas can reuse same composable for consistent UX
+
+**Reference**: `documentation/ai/refactoring-preferences-manager.md`
+
+---
+
 ## Guidelines for AI Sessions
 
 **When starting new session**:

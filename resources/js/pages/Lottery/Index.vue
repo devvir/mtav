@@ -18,7 +18,7 @@ defineProps<{
     <Breadcrumb route="lottery" text="Lottery" />
   </Breadcrumbs>
 
-  <div class="w-full max-w-none space-y-6 pt-8">
+  <div class="w-full max-w-none space-y-6">
     <LotteryHeader />
     <LotteryContent :lottery :units :plan />
   </div>

@@ -94,6 +94,7 @@ documentation/ai/
 - **Two-Level Auth**: Global scopes (query) + Policies (action) (see `core/SCOPING.md`)
 - **Universe Fixture**: `universe.sql` loaded once, rolled back per test
 - **2-Line Test Ideal**: act + assert (see `testing/PHILOSOPHY.md`)
+- **Reusable Composables**: Extract shared logic (e.g., `useDragAndDrop` for lottery + project plan)
 
 **Ask before**:
 - Modifying production code to fix tests
@@ -152,18 +153,36 @@ documentation/ai/
 - Helper functions, running tests
 - Testing ProjectScope specifically
 
-### 🟢 FEATURES - Read as Needed (features/) - TO BE POPULATED
+### 🟢 FEATURES - Read as Needed
+
+#### Lottery System
+**Location**: `resources/js/components/lottery/README.md`
+**Status**: ✅ Preferences complete, ⏳ Execution pending
+**Contains**:
+- Complete lottery preferences system (backend + frontend)
+- Drag-and-drop UI with responsive grid layout
+- Dynamic preference resolution architecture
+- UI/UX design principles (fixed slots + moving units)
+- Phase roadmap (execution engine, project plan integration)
 
 **Planned files**:
-- `LOTTERY.md` - Lottery system, preferences, unit assignment
 - `UNITS.md` - Unit types, characteristics, blueprints
 - `FAMILIES.md` - Family management, project switching
 - `EVENTS.md` - Community events, RSVP
 - `MEDIA.md` - Profile images, gallery, uploads
 
-### 🟢 TECHNICAL - Read as Needed (technical/) - TO BE POPULATED
+### 🟢 TECHNICAL - Read as Needed
 
-**Planned files**:
+#### `refactoring-preferences-manager.md`
+**What**: Lottery preferences refactoring documentation
+**Priority**: 🟢 Reference for composable patterns
+**Contains**:
+- `useDragAndDrop` composable architecture
+- Refactoring rationale and benefits
+- Testing checklist for drag-and-drop functionality
+- Future work: project plan canvas integration
+
+**Planned files** (technical/):
 - `DOCKER.md` - Docker setup, wrapper, build process
 - `INERTIA.md` - Inertia.js patterns, modal system
 - `VALIDATION.md` - Form requests, custom rules

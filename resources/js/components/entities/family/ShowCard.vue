@@ -34,8 +34,10 @@ defineProps<{
       </ContentGrid>
     </CardContent>
 
-    <CardFooter class="flex justify-between text-xs">
-      <span>{{ family.unit_type?.name || _('No unit type') }}</span>
+    <CardFooter class="flex justify-between text-xs gap-base text-nowrap">
+      <span class="truncate">
+        {{ `${_('Unit Type')}: ${family.unit_type?.description || _('No Unit Type')}` }}
+      </span>
 
       <CreatedMeta />
     </CardFooter>
