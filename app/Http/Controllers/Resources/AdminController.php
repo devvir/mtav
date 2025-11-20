@@ -76,8 +76,12 @@ class AdminController extends Controller
 
     public function destroy(User $admin): RedirectResponse
     {
-        $required = $admin->project?->admins()->count() === 1;
-        Gate::denyIf($required, __('validation.project_requires_admin'));
+        $admin->projects()->with('admins')->each(
+            fn (Project $project) => Gate::denyIf(
+                $project->admins->count() === 1,
+                __('validation.project_requires_admin', ['project' => $project->name])
+            )
+        );
 
         $admin->delete();
 

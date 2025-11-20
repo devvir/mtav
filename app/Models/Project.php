@@ -66,6 +66,11 @@ class Project extends Model
         return $this->events()->upcoming();
     }
 
+    public function lottery(): HasOne
+    {
+        return $this->events()->whereType('lottery')->one();
+    }
+
     public function logs(): HasMany
     {
         return $this->hasMany(Log::class);

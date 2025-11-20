@@ -211,7 +211,6 @@ User provided detailed clarification on Nov 3rd MVP scope, emphasizing that lott
 
 2. **Family Preferences** (lottery input)
    - Create family_preferences table
-   - FamilyPreference model
    - Preference CRUD for members
    - Drag-and-drop ranking UI
 

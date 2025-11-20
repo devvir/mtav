@@ -68,14 +68,6 @@ class Family extends Model
     }
 
     /**
-     * Una familia tiene muchas preferencias de unidades
-     */
-    public function preferences(): HasMany
-    {
-        return $this->hasMany(FamilyPreference::class);
-    }
-
-    /**
      * Verificar si la familia tiene una unidad asignada
      */
     public function hasAssignedUnit(): bool
@@ -562,10 +554,9 @@ mismo tipo que la familia y del mismo proyecto.
 ```
 Sugiero crear:
 1. Migración para tabla family_preferences
-2. Modelo FamilyPreference con relaciones
-3. Policy para verificar permisos
-4. Controlador con validación
-5. Componentes Vue para UI
+2. Policy para verificar permisos
+3. Controlador con validación
+4. Componentes Vue para UI
 
 ¿Empiezo con la migración?
 ```

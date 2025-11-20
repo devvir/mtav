@@ -207,7 +207,7 @@ return [
     'invalid_invitation_credentials'   => 'Invitación expirada o inválida. Por favor revisa tu email y sigue el enlace.',
     'project_context_mismatch'         => 'No se puede especificar un Proyecto cuando ya hay un contexto de Proyecto activo.',
     'project_has_active_members'       => 'No se puede eliminar un Proyecto con Miembros activos. Por favor remuévelos primero.',
-    'project_requires_admin'           => 'No se puede eliminar el único Administrador del Proyecto. Por favor registra otro Administrador primero.',
+    'project_requires_admin'           => 'No se puede eliminar el único Admin del Proyecto ":project".',
     'unauthorized_project_access'      => 'No tienes permiso para realizar esta acción en el Proyecto seleccionado.',
     'unauthorized_projects_assignment' => 'Solo puedes asignar Proyectos que gestionas. Proyectos no autorizados: :ids',
     'unit_type_belongs_to_project'     => 'El Tipo de Unidad seleccionado no pertenece al Proyecto seleccionado.',
@@ -220,4 +220,7 @@ return [
     'media_invalid_file_type'    => 'El archivo debe ser una imagen o documento válido.',
     'media_description_required' => 'Por favor proporciona una descripción para este contenido.',
     'media_description_too_long' => 'La descripción no debe exceder 500 caracteres.',
+
+    // Mensajes de validación del sorteo
+    'unit_must_match_family_type' => 'La unidad debe pertenecer al tipo de unidad de tu familia.',
 ];

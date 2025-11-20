@@ -23,8 +23,7 @@ class MemberInvitationMail extends Mailable
         public Member $member,
         public string $token
     ) {
-        // Eager load relationships to prevent lazy loading violations
-        $this->member->loadMissing('family.project');
+        // ...
     }
 
     /**
@@ -57,7 +56,7 @@ class MemberInvitationMail extends Mailable
             with: [
                 'member'          => $this->member,
                 'family'          => $this->member->family,
-                'project'         => $this->member->family->project,
+                'project'         => $this->member->project,
                 'confirmationUrl' => $confirmationUrl,
             ],
         );

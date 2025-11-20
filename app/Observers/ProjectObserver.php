@@ -21,7 +21,7 @@ class ProjectObserver
      */
     public function created(Project $project): void
     {
-        $this->lotteryService->createEvent($project, Auth::user());
+        $this->lotteryService->createLotteryEvent($project, Auth::user());
         $this->planService->addProject($project);
     }
 }

@@ -2,24 +2,43 @@
 
 ## Overview
 
-The Project Plans system provides spatial visualization and management for housing cooperative projects. It enables administrators to create, view, and edit floor plans that show the spatial relationship between units, common areas, and circulation paths within a project.
+The Project Plans system provides spatial visualization for housing cooperative projects using a clean, layered architecture that separates business logic from rendering logic. The system enables viewing interactive floor plans that show spatial relationships between units, common areas, and project boundaries.
 
-## Core Concepts
+## Problem Statement
 
-### Plan Entity
-Each project has exactly one **Plan** that defines:
-- **Project boundary**: The overall outline/perimeter of the housing project
-- **Canvas dimensions**: Width and height in real-world units (meters/feet)
-- **Unit system**: Whether measurements are in meters or feet
-- **Scale management**: Automatic scaling to fit display containers (no fixed scale factor)
+Housing cooperatives need to visualize the spatial layout of their projects, showing:
+- Unit locations and assignments to families
+- Common areas (parks, courtyards, amenities)
+- Project boundaries and circulation paths
+- Multi-floor building layouts
+- Interactive highlighting and navigation
 
-### PlanItem Entity
-Each **PlanItem** represents a discrete spatial element within a plan:
-- **Units**: Residential units that belong to families
-- **Common areas**: Parks, courtyards, playgrounds, community gardens
-- **Circulation**: Streets, walkways, internal paths
-- **Buildings**: Building outlines and structures
-- **Utilities**: Parking areas, waste management, etc.
+The system must handle varying polygon shapes (not just rectangles) and provide a foundation for future editing capabilities.
+
+## Architecture
+
+### Three-Layer Component System
+
+```
+┌─────────────────────┐
+│   Business Layer    │ ← Plans/Show.vue, PlanViewer.vue
+│   (Domain Logic)    │   (Assignment logic, coloring rules)
+├─────────────────────┤
+│   Adapter Layer     │ ← usePlanCanvasAdapter.ts
+│   (Data Transform)  │   (Plan → CanvasItem conversion)
+├─────────────────────┤
+│   Rendering Layer   │ ← PlanCanvas.vue, usePlanCanvas.ts
+│   (Pure Graphics)   │   (Konva.js polygon rendering)
+└─────────────────────┘
+```
+
+**Key Principle**: The rendering layer has no business logic knowledge. It only knows how to draw colored polygons.
+
+### Data Flow
+
+1. **Plan data** (from Laravel API) contains business entities
+2. **Adapter** transforms Plan data into abstract CanvasItems with colors/labels
+3. **Canvas** renders CanvasItems as interactive Konva.js shapes
 
 ## Database Structure
 
@@ -27,7 +46,7 @@ Each **PlanItem** represents a discrete spatial element within a plan:
 ```sql
 plans
 - id, project_id (FK)
-- polygon (json) -- Project boundary polygon coordinates
+- polygon (json) -- Project boundary coordinates
 - width, height -- Canvas dimensions in chosen units
 - unit_system (enum) -- 'meters', 'feet'
 - created_at, updated_at
@@ -37,280 +56,275 @@ plans
 ```sql
 plan_items
 - id, plan_id (FK)
-- type (string) -- 'unit', 'park', 'street', 'building', 'parking', etc.
-- polygon (json) -- Polygon coordinates defining the shape
+- type (string) -- 'unit', 'park', 'street', 'building', etc.
+- polygon (json) -- Polygon coordinates [x1,y1,x2,y2,...]
 - floor (integer) -- 0=ground, 1=first floor, etc.
-- name (varchar, nullable) -- "Central Courtyard", "Building A", etc.
-- metadata (json, nullable) -- Color overrides, notes, measurements
+- name (varchar, nullable) -- Display names for non-units
+- metadata (json, nullable) -- Additional properties
 - created_at, updated_at
 ```
 
-### Unit Reference
+### Units Table (Relationship)
 ```sql
 units
-- ... existing fields ...
 - plan_item_id (FK) -- Links unit to its spatial representation
+- identifier (string) -- User-facing identifier (e.g., "A-101")
+- family_id (FK, nullable) -- Assignment status
 ```
-
-**Note**: No soft deletes on plan tables - these are admin-only features with confirmation dialogs. Auditing not required for spatial data.
 
 ## Model Relationships
 
-### Project → Plan (1:1)
+### Core Relationships
 ```php
-public function plan(): HasOne
-{
-    return $this->hasOne(Plan::class);
-}
+// Project has exactly one Plan
+Project::class → Plan::class (HasOne)
+
+// Plan contains multiple spatial elements
+Plan::class → PlanItem::class (HasMany)
+
+// Units reference their spatial representation
+Unit::class → PlanItem::class (BelongsTo)
 ```
 
-### Plan → PlanItems (1:many)
+### Data Access Patterns
 ```php
-public function items(): HasMany
-{
-    return $this->hasMany(PlanItem::class);
-}
+// Load plan with all spatial data
+$plan = Plan::with(['items.unit.type', 'project'])->find($id);
+
+// Unit assignment logic (business rule)
+$isAssigned = !is_null($unit->family_id);
 ```
-
-### Unit → PlanItem (1:1)
-```php
-public function planItem(): BelongsTo
-{
-    return $this->belongsTo(PlanItem::class);
-}
-```
-
-### Unit → Plan (through PlanItem)
-```php
-public function plan(): BelongsToThrough
-{
-    return $this->belongsToThrough(Plan::class, PlanItem::class);
-}
-```
-
-## Automatic Creation (Observers)
-
-### ProjectObserver
-When a project is created:
-1. Automatically creates a Plan with default boundary
-2. Sets default canvas dimensions (800x600)
-3. Uses meters as default unit system
-
-### UnitObserver
-When a unit is created:
-1. PlanService calculates next available grid position
-2. Creates PlanItem with type='unit' and default rectangular shape
-3. Links unit to plan item via foreign key
-4. Positions units in a simple grid layout by default
-
-## Resource Layer
-
-### PlanResource & PlanItemResource
-```php
-// app/Http/Resources/PlanResource.php
-class PlanResource extends JsonResource
-{
-    // Extends base JsonResource with automatic:
-    // - commonResourceData() for id, timestamps
-    // - whenLoaded() patterns for relationships
-    // - belongsTo relations always include .id
-    // - hasMany relations get counts via whenCountedOrLoaded()
-}
-
-// app/Http/Resources/PlanItemResource.php
-class PlanItemResource extends JsonResource
-{
-    // Same base class benefits
-    // Includes unit relationship when loaded
-}
-```
-
-Benefits of the base Resource pattern:
-- **Automatic timestamp formatting**: No manual `toISOString()` calls
-- **Consistent relationship handling**: `belongsTo` always provides `.id`, rest optional
-- **Automatic counters**: `hasMany` relations get `{relation}_count` automatically
-- **Minimal boilerplate**: Resources focus only on unique model fields
-
-### ProjectResource Integration
-```php
-private function relationsData(): array
-{
-    return [
-        // ... other relations
-        'plan' => $this->whenLoaded('plan'),
-    ];
-}
-```
-
-Direct relationship inclusion - no special traits needed since plans follow standard resource patterns.
 
 ## Frontend Architecture
 
-### TypeScript Types
-```typescript
-// resources/js/types/index.d.ts (global types)
-export type PlanPolygon = number[]; // Semantic alias for polygon coordinates
-export type PlanUnitSystem = 'meters' | 'feet';
-export type PlanItemMetadata = Record<string, any>;
+### Component Hierarchy
 
-export interface Plan extends Resource {
-  polygon: PlanPolygon;
+#### 1. PlanCanvas.vue (Pure Rendering)
+```vue
+<script setup lang="ts">
+interface Props {
+  plan: Plan;
+  highlightUnitId?: number; // Unit database ID for highlighting
+}
+</script>
+```
+
+**Responsibilities:**
+- Accepts Plan data and optional highlight ID
+- Uses adapter to convert Plan → CanvasItems
+- Delegates rendering to usePlanCanvas composable
+- Contains only template (4 lines) and setup (15 lines)
+
+#### 2. usePlanCanvasAdapter.ts (Data Transform)
+```typescript
+interface CanvasItem {
+  polygon: number[];
+  floor?: number;
+  label?: string;
+  color: string;
+  stroke: string;
+  isHighlighted?: boolean;
+}
+
+function usePlanCanvasAdapter(plan: Plan, options: {
+  highlightUnitId?: number;
+  colorAssignedUnits?: string;
+  colorAvailableUnits?: string;
+}): { items: CanvasItem[], boundary?: number[] }
+```
+
+**Responsibilities:**
+- Contains all business logic (unit assignment rules, color schemes)
+- Transforms PlanItems into abstract CanvasItems
+- Applies highlighting based on unit ID comparison
+- Determines colors based on unit.family_id presence
+- Maps unit.identifier to CanvasItem.label for display
+
+#### 3. usePlanCanvas.ts (Konva Rendering)
+```typescript
+function usePlanCanvas({
+  items: Ref<CanvasItem[]>;
+  boundary?: Ref<number[]>;
+}): { containerRef: Ref<HTMLDivElement> }
+```
+
+**Responsibilities:**
+- Pure Konva.js rendering logic
+- Draws polygons using provided colors/labels
+- Handles floor offsets for multi-story visualization
+- Manages hover effects and basic interactivity
+- No business domain knowledge
+
+#### 4. PlanViewer.vue (Future Extension Point)
+```vue
+<!-- Currently just wraps PlanCanvas -->
+<!-- Future: Add toolbar, controls, legends, etc. -->
+```
+
+### TypeScript Types
+
+#### Global Types (types/index.d.ts)
+```typescript
+interface Plan extends Resource {
+  polygon: number[]; // Project boundary coordinates
   width: number;
   height: number;
-  unit_system: PlanUnitSystem;
+  unit_system: 'meters' | 'feet';
 
-  project: { id: number } | ApiResource<Project>;
-  items: ApiResource<PlanItem>[];
-  items_count: number;
+  project: ApiResource<Project> | { id: number };
+  items: PlanItem[];
 }
 
-export interface PlanItem extends Resource {
-  type: string;
-  polygon: PlanPolygon;
+interface PlanItem extends Resource {
+  type: string; // 'unit', 'park', 'street', etc.
+  polygon: number[]; // Shape coordinates
   floor: number;
   name: string | null;
-  metadata: PlanItemMetadata | null;
+  metadata: Record<string, any> | null;
 
-  plan: { id: number } | ApiResource<Plan>;
-  unit?: ApiResource<Unit> | null;
+  plan: ApiResource<Plan> | { id: number };
+  unit?: ApiResource<Unit> | null; // Only present for type='unit'
+}
+
+interface Unit extends Resource {
+  identifier: string | null; // User-facing identifier (display only)
+
+  project: ApiResource<Project> | { id: number };
+  type: ApiResource<UnitType> | { id: number };
+  family: ApiResource<Family> | { id: number } | null; // Assignment
 }
 ```
 
-**Key improvements:**
-- **Extends base Resource**: Gets `id`, `created_at`, `updated_at` automatically
-- **Global types**: Moved to `types/index.d.ts` for project-wide reusability
-- **Semantic naming**: `PlanPolygon` instead of raw `number[]`
-- **Consistent patterns**: Relationships follow the same patterns as all other resources
+**Key Type Decisions:**
+- **Unit.id** (number): Programming identifier for relationships/highlighting
+- **Unit.identifier** (string): User-facing display label, may contain spaces/special chars
+- **Polygon coordinates**: Flat array format [x1,y1,x2,y2,...] for direct Konva compatibility
 
-### Component System
+## Resource Layer (API)
+
+### UnitResource (Source of Truth)
+```php
+class UnitResource extends JsonResource {
+    public function toArray(Request $_): array {
+        return [
+            ...$this->commonResourceData(), // id, timestamps
+            'identifier' => $this->identifier,
+            ...$this->relationsData(), // type, project, family
+        ];
+    }
+}
 ```
-components/plans/
-├── index.ts              // Single entry point
-├── types.d.ts           // TypeScript definitions
-├── PlanViewer.vue       // Main visualization component
-└── (future components)
+
+**Critical Business Rule**: Unit assignment determined by presence of `family` relationship, not a separate `assigned` boolean field.
+
+### PlanResource & PlanItemResource
+```php
+// Follow standard JsonResource patterns
+// Automatic relationship loading with whenLoaded()
+// Consistent ID-only fallbacks for unloaded relations
 ```
 
-### PlanViewer Component
-Built with **Konva.js** for high-performance 2D canvas rendering:
-- **Polygonal shapes**: Uses `Konva.Line` with closed polygons (not rectangles)
-- **Multi-floor support**: Visual displacement for floor stacking
-- **Interactive features**: Hover effects, click handlers, unit highlighting
-- **Unit type coloring**: Color-coded by unit type, not just assignment status
-- **Responsive scaling**: Automatically fits container dimensions
+## Current Features
 
-## Visualization Features
+### Visualization Capabilities
+- ✅ **Multi-floor support**: Visual stacking with opacity and offset
+- ✅ **Unit assignment colors**: Green (assigned) vs Blue (available)
+- ✅ **Interactive highlighting**: Hover effects and unit ID-based highlighting
+- ✅ **Project boundaries**: Dashed outline showing project perimeter
+- ✅ **Responsive canvas**: Auto-sizing to container dimensions
+- ✅ **Polygon rendering**: Arbitrary shapes, not limited to rectangles
 
-### Current Implementation
-- ✅ **Polygonal unit rendering** with varied shapes
-- ✅ **Unit type-based coloring** from unit type definitions
-- ✅ **Floor layering** with visual offset for multi-story buildings
-- ✅ **Interactive hover** and click effects
-- ✅ **Project boundary** display with dashed outline
-- ✅ **Responsive canvas** sizing
+### Pages & Routes
+- ✅ **Plans/Show.vue**: Full plan display with project context and statistics
+- ✅ **Dev/Plans.vue**: Development testing interface
+- ✅ **Resource routes**: RESTful PlanController with standard operations
 
-### Floor Management
-Multi-story buildings are handled by:
-- **Floor integer**: 0=ground, 1=first floor, etc.
-- **Visual offset**: Higher floors displaced by (floor * 5px) horizontally and (floor * -5px) vertically
-- **Opacity**: Higher floors slightly transparent to show layering
-- **Z-index**: Proper rendering order
+### Color Scheme
+```typescript
+const colors = {
+  assignedUnits: '#dcfce7',    // Light green
+  availableUnits: '#e0f2fe',   // Light blue
+  highlighted: '#fbbf24',      // Amber border
+  commonAreas: {
+    park: '#f0fdf4',
+    street: '#f1f5f9',
+    common: '#fefce8',
+    amenity: '#fef3f2'
+  }
+};
+```
 
-## Development & Testing
+## Development Environment
 
-### Dev Playground
-- **Route**: `/dev/plans`
-- **Purpose**: Test plan visualization with real project data
-- **Features**:
-  - Loads first project with plan and unit relationships
-  - Displays project metadata and plan structure
-  - Shows plan item statistics and controls
-- **Access**: Available in development environment
+### Testing Route
+- **URL**: `/dev/plans`
+- **Purpose**: Live testing with real project data
+- **Features**: Project selection, plan statistics, interactive canvas
 
-### Sample Data
-Seeded projects automatically get:
-- Default plan with 800x600 canvas
-- Units positioned in grid layout
-- All units get 'unit' type plan items
-- Basic rectangular shapes for initial layout
+### Sample Data Generation
+```php
+// ProjectObserver: Auto-creates Plan on project creation
+// UnitObserver: Auto-creates PlanItem on unit creation
+// Grid layout positioning for initial unit placement
+```
 
-## Planned Features (Not Yet Implemented)
+## Architecture Benefits
 
-### Plan Editor Interface
-- **Global editing**: Edit entire project plan in dedicated interface
-- **No individual unit editing**: Maintain consistency by editing whole plan
-- **Drag & drop**: Move and reshape plan items
-- **Add/remove tools**:
-  - Removing shapes triggers unit deletion confirmation
-  - Adding shapes opens unit creation modal
-- **Auto-save**: Persist changes automatically as items are modified
-- **Real-time validation**: Prevent overlaps on same floor
+### Clean Separation of Concerns
+1. **Business logic** isolated in adapter layer
+2. **Rendering logic** pure and reusable across contexts
+3. **Component props** minimal and focused
 
-### Unit Context Display
-- **Unit ShowCard integration**: Display plan with current unit highlighted
-- **Project context**: Show where unit sits within larger project
-- **Navigation**: Click other units in plan to navigate between unit pages
+### Maintainability
+- Canvas can render any polygonal data, not just plans
+- Business rules centralized in adapter
+- TypeScript ensures type safety across layers
+- Standard Laravel resource patterns
 
-### Enhanced Visualization
-- **Zoom & pan**: Navigate large floor plans
-- **Layer switching**: Toggle between floors
-- **Common areas**: Parks, streets, circulation paths
-- **Building outlines**: Structural boundaries and labels
-- **Export/import**: CAD file integration for architectural plans
+### Extensibility
+- New canvas use cases: Add different adapters
+- New business rules: Modify adapter logic
+- New rendering features: Extend canvas composable
+- Additional UI: Compose around PlanCanvas
 
-### User Experience
-- **Responsive design**: Mobile and tablet friendly
-- **Keyboard shortcuts**: Power user navigation
-- **Undo/redo**: Multi-step action history
-- **Collaboration**: Real-time multi-user editing
+## Future Development
 
-## Technical Considerations
-
-### Performance
-- **Canvas rendering**: Konva.js provides hardware-accelerated graphics
-- **Selective updates**: Only redraw changed elements
-- **Efficient queries**: Eager loading with proper relationships
-
-### Data Consistency
-- **UI-driven validation**: Collision detection and spatial constraints in frontend
-- **No database constraints**: Flexibility for complex architectural layouts
-- **Observer pattern**: Automatic creation maintains referential integrity
-
-### Scalability
-- **Component architecture**: Encapsulated plan system with clean interfaces
-- **Type safety**: Full TypeScript coverage for plan-related code
-- **Resource consistency**: Plans follow established resource patterns for predictable behavior
-
-## Recent Architectural Improvements
-
-### Resource Pattern Adoption
-- **Eliminated HasPlan trait**: No longer needed since plans follow standard resource patterns
-- **Dedicated resources**: `PlanResource` and `PlanItemResource` extend base `JsonResource`
-- **Automatic features**: Timestamps, relationship loading, and counts handled by base class
-- **Minimal code**: Resources focus only on unique model fields
-
-### Type System Enhancements
-- **Global type integration**: Plan types moved to `types/index.d.ts` and extend base `Resource`
-- **Semantic naming**: `PlanPolygon` instead of confusing field names
-- **Consistent patterns**: Same relationship typing as all other models
-
-### Data Structure Clarification
-- **Polygon semantics**: Renamed database fields from `outline_points`/`points` to `polygon`
-- **Clear documentation**: Polygon coordinates as flat arrays for Konva.js compatibility
-- **No conversion overhead**: Direct compatibility between database storage and graphics rendering
-
-These changes demonstrate how good abstractions reduce code while increasing maintainability and consistency.
-
-## Future Extensions
+### Immediate Opportunities
+- **Unit click handling**: Navigate to unit details
+- **Legend display**: Color coding explanation
+- **Export functionality**: Image/PDF generation
+- **Performance optimization**: Large plan rendering
 
 ### Advanced Features
-- **3D visualization**: CSS 3D transforms or Three.js integration
-- **Measurement tools**: Distance and area calculations
-- **Accessibility**: Screen reader support for spatial data
-- **Analytics**: Usage patterns and space utilization metrics
+- **Plan editing**: Drag/drop interface for spatial modification
+- **Zoom/pan controls**: Navigation for large plans
+- **Layer management**: Toggle floors, filter by type
+- **CAD integration**: Import/export architectural drawings
+- **Real-time updates**: Multi-user collaborative editing
 
-### Integration Points
-- **CAD software**: Import/export from architectural tools
-- **Mapping services**: Geographic context and addressing
-- **Facilities management**: Maintenance scheduling and asset tracking
-- **Member portal**: Interactive maps for residents
+### Technical Debt
+- ❌ **No error handling**: Canvas rendering failures not gracefully handled
+- ❌ **No loading states**: Plan data fetching shows no progress
+- ❌ **No accessibility**: Screen reader support for spatial data
+- ❌ **Limited mobile**: Touch interactions not optimized
+
+## Implementation Guidelines
+
+### Adding New Canvas Use Cases
+1. Create adapter composable for your domain data
+2. Transform domain objects → CanvasItems
+3. Reuse existing usePlanCanvas for rendering
+4. No modifications to canvas layer needed
+
+### Modifying Business Logic
+1. Update usePlanCanvasAdapter with new rules
+2. Canvas automatically reflects changes
+3. Keep rendering layer unchanged
+
+### Extension Points
+- **PlanViewer.vue**: Add controls, legends, toolbars
+- **Plans/Show.vue**: Add plan-specific UI elements
+- **Adapter options**: New color schemes, highlighting rules
+- **Canvas events**: Click handlers, selection logic
+
+This architecture demonstrates clean abstraction: the canvas draws colored shapes without knowing what a "unit" or "assignment" means, while business components focus on domain logic without graphics concerns.

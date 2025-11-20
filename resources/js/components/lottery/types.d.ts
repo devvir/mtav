@@ -1,0 +1,2 @@
+// Lottery module type definitions
+

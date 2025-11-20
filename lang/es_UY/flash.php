@@ -1,6 +1,18 @@
 <?php
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lineas de Idioma de Mensajes Flash
+    |--------------------------------------------------------------------------
+    |
+    | Las siguientes líneas de idioma se utilizan para los Mensajes Flash al
+    | redirigir usuarios luego de acciones de Controladores. Puedes modificar
+    | estas traducciones.
+    |
+    */
+
     // Admin operations
     'admin_invitation_sent' => '¡La invitación está en camino!',
     'admin_updated'         => '¡Listo! La información del Admin fue actualizada.',
@@ -8,9 +20,9 @@ return [
     'admin_restored'        => 'Administrador restaurado y listo.',
 
     // Event operations
-    'event_created'  => '¡Perfecto! Tu Evento está listo.',
-    'event_updated'  => '¡Genial! Los detalles del Evento se actualizaron.',
-    'event_deleted'  => 'El Evento fue removido.',
+    'event_created'  => '¡Genial! Tu Evento está listo.',
+    'event_updated'  => '¡Perfecto! Los detalles del Evento fueron actualizados.',
+    'event_deleted'  => 'El Evento ha sido eliminado.',
     'event_restored' => '¡Perfecto! El Evento está de vuelta.',
 
     // Family operations
@@ -18,6 +30,10 @@ return [
     'family_updated'  => '¡Genial! La información de la Familia fue actualizada.',
     'family_deleted'  => 'La Familia y sus Miembros fueron removidos del sistema.',
     'family_restored' => '¡Perfecto! La Familia y sus Miembros están de vuelta.',
+
+    // Lottery operations
+    'lottery_updated'             => '¡Excelente! Los detalles del sorteo fueron actualizados.',
+    'lottery_preferences_updated' => '¡Perfecto! Tus preferencias de unidades fueron guardadas.',
 
     // Media operations
     'media_uploaded'          => '¡Perfecto! Tu archivo ya se subió.',
@@ -65,4 +81,5 @@ return [
     'unit_type_updated'  => '¡Listo! El Tipo de Unidad fue actualizado.',
     'unit_type_deleted'  => 'El Tipo de Unidad fue removido.',
     'unit_type_restored' => 'Tipo de Unidad restaurado y listo.',
+
 ];

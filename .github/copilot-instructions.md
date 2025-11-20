@@ -12,6 +12,7 @@
 * Vue core functions are auto-imported, so do not import them manually (i.e. ref, computed, defineProps, etc)
 * Inertia's Link component is auto-imported as 'Link', so do not import it manually
 * Typescript entity/resource definitions in types/index.d.ts are auto-imported, so do not import them manually
+* NEVER convert models to their resources. This happens AUTOMATICALLY when sent to the frontend. Do not use JsonResource::make, JsonResource::collection, $model->toResource(), or ANY OTHER explicit conversion. It will be converted and you should always assume the FE receives the corresponding JsonResource representation of each model, be it the root model or its related moels.
 * In Vue template blocks do NOT use `props.` to access props, just use the prop name directly
 * PHP Controllers do NOT validate data directly; they always use Form Request classes for validation
 * Do not add new components to componetns/ui/. Those are third-party, not mine!

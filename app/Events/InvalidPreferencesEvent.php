@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Family;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class InvalidPreferencesEvent implements ShouldQueue
+{
+    use Dispatchable;
+    use SerializesModels;
+
+    /**
+     * Create a new event instance.
+     *
+     * @param Family $family The family with invalid preferences
+     * @param array $unitIds List of invalid unit IDs
+     */
+    public function __construct(
+        public Family $family,
+        public array $unitIds
+    ) {
+    }
+}

@@ -7,6 +7,7 @@ export const currentUser = computed(() =>
   iAmAdmin ? (auth.value.user as AuthUser & Admin) : (auth.value.user as AuthUser & Member),
 );
 
+export const iAmMember = computed(() => auth.value.user?.is_admin === false);
 export const iAmAdmin = computed(() => auth.value.user?.is_admin ?? false);
 export const iAmNotAdmin = computed(() => !iAmAdmin.value);
 export const iAmSuperadmin = computed(() => auth.value.user?.is_superadmin ?? false);

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Relations\BelongsToOneOrMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +17,14 @@ class Member extends User
     protected $table = 'users';
 
     /**
+     * Get the project that the member is currently member of (one or none).
+     */
+    public function project(): BelongsToOneOrMany
+    {
+        return $this->projects()->one();
+    }
+
+    /**
      * A member may belong to exactly one family or none.
      */
     public function family(): BelongsTo
@@ -25,17 +33,7 @@ class Member extends User
     }
 
     /**
-     * Get the project that the member is currently an active member of (one or none).
-     */
-    public function project(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->projects->last(),
-        );
-    }
-
-    /**
-     * Get all events for the member's project.
+     * Get all events for the Member's Project.
      */
     public function events(): HasMany
     {
@@ -46,7 +44,7 @@ class Member extends User
     }
 
     /**
-     * Get upcoming published events for the member's project.
+     * Get upcoming published events for the member's Project.
      */
     public function upcomingEvents(): HasMany
     {

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -27,6 +28,28 @@ class Family extends Model
     public function unitType(): BelongsTo
     {
         return $this->belongsTo(UnitType::class);
+    }
+
+    /**
+     * Explicit Units preferences for this family, ordered by preference.
+     *
+     * IMPORTANT
+     *
+     * This relation only serves as implicit input to the LotteryService method.
+     *
+     * Do NOT use this relation as a source of truth. Given the dynamic nature of
+     * this relation (units added/removed or switching unitType, families switching
+     * unitTypes, etc.), the source of truth for the whole list of preferences of
+     * each Family is LotteryService@preferences:
+     *
+     * $familyPreferences = app(LotteryService::class)->preferences($this);
+     */
+    public function preferences(): BelongsToMany
+    {
+        return $this->belongsToMany(Unit::class, 'unit_preferences')
+            ->withPivot('order')
+            ->orderBy('unit_preferences.order')
+            ->withTimestamps();
     }
 
     public function media(): HasManyThrough

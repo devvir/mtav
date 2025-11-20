@@ -1,6 +1,17 @@
 <?php
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Flash Messages Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used for Flash Messages when redirecting
+    | users after Controller actions. You are free to modify these translations.
+    |
+    */
+
     // Admin operations
     'admin_invitation_sent' => 'Admin invitation is on its way!',
     'admin_updated'         => 'Great! The Admin info was updated.',
@@ -18,6 +29,10 @@ return [
     'family_updated'  => 'Awesome! The Family info was updated.',
     'family_deleted'  => 'The Family and its Members have been removed from the system.',
     'family_restored' => 'Perfect! The Family and its Members are back.',
+
+    // Lottery operations
+    'lottery_updated'             => 'Great! The lottery details were updated.',
+    'lottery_preferences_updated' => 'Perfect! Your unit preferences were saved.',
 
     // Media operations
     'media_uploaded'          => 'Perfect! Your file is here.',
@@ -65,4 +80,5 @@ return [
     'unit_type_updated'  => 'Great! The Unit Type was updated.',
     'unit_type_deleted'  => 'The Unit Type has been removed.',
     'unit_type_restored' => 'The Unit Type restored and ready.',
+
 ];

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LotteryController;
 use App\Http\Controllers\Resources\AudioController;
 use App\Http\Controllers\Resources\DocumentController;
 use App\Http\Controllers\Resources\EventController;
@@ -22,3 +23,7 @@ Route::resource('media', MediaController::class)->parameter('media', 'media'); /
 Route::resource('plans', PlanController::class)->only('show', 'edit', 'update');
 Route::resource('units', UnitController::class);
 Route::resource('unit_types', UnitTypeController::class);
+
+Route::get('lottery', [LotteryController::class, 'index'])->name('lottery');
+Route::patch('lottery/{lottery}', [LotteryController::class, 'update'])->name('lottery.update');
+Route::post('lottery/preferences', [LotteryController::class, 'preferences'])->name('lottery.preferences');

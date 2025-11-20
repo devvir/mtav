@@ -568,12 +568,6 @@ class Family extends Model
         return $this->hasMany(Member::class);
     }
 
-    // Relación: Una familia tiene muchas preferencias
-    public function preferences(): HasMany
-    {
-        return $this->hasMany(FamilyPreference::class);
-    }
-
     // Lógica de negocio
     public function hasCompletedPreferences(): bool
     {

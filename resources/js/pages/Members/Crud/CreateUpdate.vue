@@ -112,7 +112,7 @@ watchEffect(() => {
           }}
         </li>
         <li class="list-item @md:leading-wide">
-          {{ _('Double-check the email, as it will serve to authenticate the user') }}
+          {{ _('Double-check the email, as it will serve to authenticate the User') }}
         </li>
       </ul>
     </template>

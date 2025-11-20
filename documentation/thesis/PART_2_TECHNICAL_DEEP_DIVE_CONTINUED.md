@@ -874,18 +874,6 @@ class FamilyObserver
 }
 ```
 
-**Registro del observer:**
-
-```php
-// app/Providers/EventServiceProvider.php
-public function boot(): void
-{
-    Family::observe(FamilyObserver::class);
-    Unit::observe(UnitObserver::class);
-    FamilyPreference::observe(PreferenceObserver::class);
-}
-```
-
 ### 11.6. Consulta de Auditoría
 
 **Interface para admins:**

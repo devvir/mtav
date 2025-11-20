@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  * 1. If the User (Member or regular Admin) has no Projects, log them out
  * 2. The Users exits this middleware with either a valid pick or no pick at all
  */
-class HandleProjects
+class HandleSelectedProject
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -45,6 +45,8 @@ class HandleProjects
             defineState('project', $user->projects->last());
         } elseif ($this->shouldResetCurrentProject($user)) {
             defineState('project', null);
+        } else {
+            Project::current()?->fresh();
         }
     }
 

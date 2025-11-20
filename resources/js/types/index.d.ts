@@ -27,6 +27,18 @@ type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
 
 type MediaCategory = 'audio' | 'document' | 'image' | 'unknown' | 'video' | 'visual';
 
+interface Lottery extends Event {
+  type: 'lottery';
+  end_date: null;
+  end_date_raw: null;
+  allows_rsvp: false;
+  is_lottery: true;
+  is_online: false;
+  is_onsite: false;
+  is_published: true;
+  creator: null;
+}
+
 // WithRsvp type aliases
 type MemberWithRsvps = Member & Required<MemberRsvpFields>;
 type EventWithRsvps = Event & Required<EventRsvpFields>;
@@ -169,8 +181,10 @@ interface Family extends Resource, Subject, HasMedia {
   unit_type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
   members?: ApiResource<User>[];
+  preferences?: ApiResource<Unit>[];
 
   members_count?: number;
+  preferences_count?: number;
 }
 
 interface UnitType extends Resource {
@@ -190,7 +204,7 @@ interface Unit extends Resource {
 
   type: ApiResource<UnitType> | { id: number };
   project: ApiResource<Project> | { id: number };
-  family: ApiResource<Family> | { id: number } | null;
+  family: ApiResource<Family> | { id: number | null } | null;
   plan?: ApiResource<Plan>;
   plan_item?: ApiResource<PlanItem>;
 }
@@ -238,11 +252,11 @@ interface Event extends Resource, Partial<EventRsvpFields> {
   is_onsite: boolean;
 
   // yyyy-MM-ddThh:mm
-  start_date_raw: string;
-  end_date_raw: string;
+  start_date_raw: string | null;
+  end_date_raw: string | null;
 
-  creator: ApiResource<Admin> | { id: number };
   project: ApiResource<Project> | { id: number };
+  creator: ApiResource<Admin> | { id: number | null } | null;
 }
 
 interface Log extends Resource {

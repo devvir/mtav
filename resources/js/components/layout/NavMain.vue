@@ -16,6 +16,7 @@ import {
   HomeIcon,
   LayoutGrid,
   LucideIcon,
+  TrophyIcon,
   UsersIcon,
 } from 'lucide-vue-next';
 
@@ -36,6 +37,13 @@ const allNavItems: NavItem[] = [
     routes: ['dashboard'],
   },
   {
+    label: 'Lottery',
+    route: 'lottery',
+    icon: TrophyIcon,
+    onlyIf: projectIsSelected,
+    routes: ['lottery.*'],
+  },
+  {
     label: 'Families',
     route: computed(() =>
       usePage().props.state.groupMembers ? 'families.index' : 'members.index',
@@ -45,18 +53,18 @@ const allNavItems: NavItem[] = [
     routes: ['families.*', 'members.*'],
   },
   {
-    label: 'Events',
-    route: 'events.index',
-    icon: CalendarIcon,
-    onlyIf: projectIsSelected,
-    routes: ['events.*'],
-  },
-  {
     label: 'Gallery',
     route: 'media.index',
     icon: LayoutGrid,
     onlyIf: projectIsSelected,
     routes: ['media.*'],
+  },
+  {
+    label: 'Events',
+    route: 'events.index',
+    icon: CalendarIcon,
+    onlyIf: projectIsSelected,
+    routes: ['events.*'],
   },
   {
     label: 'Documents',

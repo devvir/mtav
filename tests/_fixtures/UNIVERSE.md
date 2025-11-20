@@ -1,53 +1,84 @@
-# Test Universe Quick Reference
+# Test Universe
 
 ## Overview
-This fixture provides a complete, self-documenting test dataset with predictable IDs and descriptive names.
 
-## User ID Scheme
-- **IDs 1-9**: Superadmins (currently only #1)
-- **IDs 10-99**: Regular admins
-- **IDs 100+**: Members and other non-admin users
+The Test Universe is a comprehensive, predictable test dataset that provides a stable foundation for feature testing. It's loaded once per test run and uses database transactions to ensure each test sees exactly the same data state, regardless of execution order.
 
-## Quick Stats
-- **5 Projects** (1-2 normal, 3 no types, 4 inactive, 5 deleted)
-- **9 Admins** (1 superadmin, 7 verified admins, 1 unverified admin)
-- **12 Unit Types** (3 per project except #3)
-- **21 Units** (various distributions and states)
-- **15 Families** (various member counts and states)
-- **47 Members** (IDs 100-146, various states)
-- **1 Unverified User** (ID 147 for email verification testing)
+## Design Principles
 
----
+### Predictable IDs
+- **Superadmins**: IDs 1-9 (currently only #1 exists)
+- **Regular Admins**: IDs 10-99
+- **Members**: IDs 100+
 
-## Projects
+This ID scheme allows tests to reference specific entities without fragile lookups, while leaving room for expansion.
 
-| ID | Name | State | Unit Types | Families | Members |
-|----|------|-------|------------|----------|---------|
-| 1  | Project 1 | Active | 3 (#1-#3) | 12 (#1-#12) | 40 (#100-#135) |
-| 2  | Project 2 | Active | 3 (#4-#6) | 3 (#13-#15) | 9 (#136-#144) |
-| 3  | Project 3 (no unit types) | Active | **0** | 0 | 0 |
-| 4  | Project 4 (inactive) | **Inactive** | 3 (#7-#9) | 2 (#22) | 1 (#145) |
-| 5  | Project 5 (deleted) | **Soft-deleted** | 3 (#10-#12) | 1 (#23) | 1 (#146) |
+### Comprehensive Coverage
+The universe includes edge cases and various entity states:
+- Empty relationships (families with no members, unit types with no units)
+- Inactive and soft-deleted entities
+- Various project states (active, inactive, deleted)
+- Different permission scenarios
+- Unverified users for email testing
 
----
+### Isolated Testing
+Each entity type has examples in different states, allowing tests to focus on specific scenarios without interference from other test data.
 
-## Admins
+## Usage
 
-### Superadmins (IDs 1-9)
-| ID | Email | Lastname | Projects Managed | Active In |
-|----|-------|----------|------------------|-----------|
-| 1  | superadmin1@example.com | 1 (no projects) | **None** | - |
+### Loading
+The universe is automatically loaded via the `loadUniverse()` helper function, which:
+1. Runs fresh migrations
+2. Executes the `universe.sql` fixture
+3. Provides a consistent baseline for all tests
 
-### Regular Admins (IDs 10-99)
-| ID | Email | Lastname | Projects Managed | Active In | Notes |
-|----|-------|----------|------------------|-----------|-------|
-| 10 | admin10@example.com | 10 (no projects) | **None** | - | |
-| 11 | admin11@example.com | 11 (manages 1) | #1 | #1 ✓ | |
-| 12 | admin12@example.com | 12 (manages 2,3) | #2, #3 | #2 ✓, #3 ✓ | |
-| 13 | admin13@example.com | 13 (manages 2-,3+,4+) | #2, #3, #4 | #2 ✗, #3 ✓, #4 ✓ | |
-| 14 | admin14@example.com | 14 (manages deleted 5) | #5 (deleted) | #5 ✓ | |
-| 15 | admin15@example.com | 15 (manages 2, deleted 5) | #2, #5 | #2 ✓, #5 ✓ | |
-| 16 | admin16@example.com | 16 (manages 2,3,4, deleted 5) | #2, #3, #4, #5 | All ✓ | |
+### In Tests
+```php
+// Access entities directly by predictable IDs
+$superadmin = User::find(1);
+$regularAdmin = User::find(11);
+$member = User::find(100);
+
+// Use families, projects, units with known relationships
+$activeProject = Project::find(1);
+$inactiveProject = Project::find(4);
+$deletedProject = Project::find(5);
+```
+
+### Data Exploration
+To understand current universe contents:
+```php
+// Debug helpers in tests
+dump('Projects:', Project::with('families.members')->get()->toArray());
+dump('Families:', Family::with('unitType', 'members')->get()->toArray());
+dump('Units:', Unit::with('type')->get()->toArray());
+```
+
+## Maintenance
+
+### Adding New Entities
+When adding new features that require test data:
+
+1. **Add to `universe.sql`**: Include sample entities with predictable IDs
+2. **Follow ID conventions**: Use appropriate ID ranges for entity types
+3. **Include edge cases**: Add examples of empty, inactive, or problematic states
+4. **Test isolation**: Ensure new data doesn't break existing tests
+
+### Updating Structure
+When models change:
+1. Update the SQL fixture
+2. Verify existing tests still pass
+3. Add new test scenarios if needed
+
+The documentation should **NOT** be updated with specific counts, IDs, or relationships - those details live in the SQL file and test code.
+
+## Benefits
+
+- **Speed**: One-time data load per test suite
+- **Reliability**: Transactions ensure clean state between tests
+- **Maintainability**: Predictable IDs reduce test fragility
+- **Coverage**: Edge cases built into the foundation
+- **Debugging**: Consistent data makes issues reproducible
 | 17 | admin17@example.com | 17 (manages 1) | #1 | #1 ✓ | **Unverified** |
 
 **Note**: Admin #17 is unverified (verified_at = NULL) but has full project access for testing invitation acceptance independently

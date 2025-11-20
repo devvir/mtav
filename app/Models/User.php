@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\DerivedRelations;
+use App\Models\Concerns\ExtendedRelations;
 use App\Models\Concerns\HasPolicy;
 use App\Models\Concerns\ProjectScope;
+use App\Relations\BelongsToOneOrMany;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -19,6 +20,7 @@ class User extends Authenticatable
 {
     use ConvertsToJsonResource;
     use DerivedRelations;
+    use ExtendedRelations;
     use HasFactory;
     use HasPolicy;
     use Notifiable;
@@ -62,12 +64,14 @@ class User extends Authenticatable
     }
 
     /**
-     * All projects that the user belongs to.
+     * All projects this User belongs to.
+     *
+     * Uses BelongsToOneOrMany to allow Members to call @one() on it.
      */
-    public function projects(): BelongsToMany
+    public function projects(): BelongsToOneOrMany
     {
         return $this
-            ->belongsToMany(Project::class, 'project_user', 'user_id')
+            ->belongsToOneOrMany(Project::class, 'project_user', 'user_id')
             ->wherePivot('active', true)
             ->withTimestamps();
     }

@@ -98,6 +98,32 @@ This document contains the essential architectural principles, patterns, and con
 
 ---
 
+## Lottery System
+
+**Core Concept**: The lottery is a ONE-TIME, ATOMIC assignment event that permanently assigns ALL units to ALL families simultaneously.
+
+**Critical Facts**:
+- **Before Execution**: Families can set/modify preferences for any unit of their type
+- **After Execution**: NO further preference changes allowed - the assignment is final
+- **No "Available" Units**: Units are never "available" or "unavailable" individually
+- **Binary State**: The entire lottery is either "pending" (not executed) or "completed" (executed)
+
+**Preferences vs Assignment**:
+- **Preferences**: Family's ordered list of desired units (can be modified until execution)
+- **Assignment**: The final result after lottery execution (immutable)
+
+**UI Implications**:
+- Show preference management ONLY if lottery not executed
+- Show assignment results ONLY if lottery executed
+- Never use terms like "available units" - all units of family's type are preference candidates
+
+**Database State**:
+- Preferences stored in `unit_preferences` pivot table
+- Assignments stored as `family_id` on `units` table
+- Lottery execution tracked via `Event` model with `EventType::LOTTERY`
+
+---
+
 ## Technology Stack
 - **Backend**: Laravel 12, PHP 8.4, MariaDB 12
 - **Frontend**: Vue 3, TypeScript, Inertia.js
@@ -116,6 +142,15 @@ This document contains the essential architectural principles, patterns, and con
 - **NEVER bypass global scopes** in business logic (use `withoutGlobalScope()` only in maintenance tools)
 - **NEVER update existing pivot entries** - always create new entries to preserve history
 - **NEVER commit `.env` files** - they're git-ignored
+- **NEVER convert models to resources manually** - automatic conversion happens when sending to frontend
+- **NEVER pass authorization data from controllers** - use frontend composables like `iAmAdmin`, `iAmMember`
+- **PREFER expressive Eloquent syntax** - use `project()->events()` over `Event::where('project_id', $project->id)`
+
+**Controller Best Practices**:
+- Only pass specific data needed by the view
+- Let frontend handle authorization logic via composables
+- Use expressive relationship methods instead of raw queries
+- Models auto-convert to JsonResource when sent to frontend
 
 ---
 

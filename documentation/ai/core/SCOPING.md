@@ -24,7 +24,7 @@ MTAV implements a **two-level authorization system**:
 
 ### ProjectScope Trait
 
-**Applied to Models**: Family, Unit, Member, Admin, UnitType, FamilyPreference
+**Applied to Models**: Family, Unit, Member, Admin, UnitType
 
 **Mechanism**: Automatically adds `WHERE` clause to ALL queries on scoped models
 

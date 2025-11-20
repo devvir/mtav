@@ -184,6 +184,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Business Rule Validation Messages
+    |--------------------------------------------------------------------------
+    */
+
+    'unit_must_match_family_type' => 'The unit must belong to your family\'s unit type.',
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |
@@ -206,7 +214,7 @@ return [
     'invalid_invitation_credentials'   => 'Invitation expired or invalid. If you received an invitation, please check your email and follow the link.',
     'project_context_mismatch'         => 'Cannot specify a Project when a Project context is already active.',
     'project_has_active_members'       => 'Cannot delete a Project with active Members. Please remove them first.',
-    'project_requires_admin'           => 'Cannot delete the only Admin in the Project. Please register a new Admin first.',
+    'project_requires_admin'           => 'Cannot delete the only Admin in Project ":project".',
     'unauthorized_project_access'      => 'You do not have permission to perform this action on the selected Project.',
     'unauthorized_projects_assignment' => 'You can only assign Projects you manage. Unauthorized Projects: :ids',
     'unit_already_assigned'            => 'Cannot delete a Unit that was already assigned to a Family.',

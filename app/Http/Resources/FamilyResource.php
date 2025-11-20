@@ -33,6 +33,9 @@ class FamilyResource extends JsonResource
             'members'       => $this->whenLoaded('members'),
             'members_count' => $this->whenCountedOrLoaded('members'),
 
+            'preferences'       => $this->whenLoaded('preferences'),
+            'preferences_count' => $this->whenCountedOrLoaded('preferences'),
+
             'project'   => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
 
