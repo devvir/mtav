@@ -9,10 +9,18 @@ import { ChevronDown } from 'lucide-vue-next';
 import { ActionsType, CardType } from '.';
 import * as buttons from './actions';
 import * as exposed from './exposed';
+import { MAYBEMODAL } from '@/composables/useInertiaUIModal';
+
+defineEmits<{
+  (e: 'execute', action: ResourceAction): void;
+}>();
 
 defineProps<{
   type: ActionsType;
 }>();
+
+const modal = inject(MAYBEMODAL, ref({ close: () => null }));
+const closeModal = modal.value.close;
 
 const entity = inject(exposed.entity, {}) as AppEntity;
 const resource = inject(exposed.resource, {}) as ApiResource;
@@ -64,14 +72,14 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
 
       <DropdownContent
         class="right-0 mt-1 w-32 overflow-hidden rounded-md border border-border bg-popover/85 shadow-lg backdrop-blur-lg"
-        @click="close"
+        @click.stop="close"
       >
         <component
           :is="actionComponent(action)"
           v-for="action in enabledActions"
           :key="action"
           class="w-full justify-start py-5 hocus:bg-surface-interactive-hover"
-          @click.stop
+          @click="$emit('execute', action); closeModal()"
         />
       </DropdownContent>
     </Dropdown>
@@ -84,6 +92,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
       v-for="action in enabledActions"
       :key="action"
       class="border border-border/30 text-xs first:rounded-l-md last:rounded-r-md"
+      @click.stop.prevent="$emit('execute', action); closeModal()"
     />
   </div>
 </template>

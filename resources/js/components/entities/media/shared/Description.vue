@@ -10,7 +10,7 @@ const description = defineModel<string>();
 
 defineProps<{
   form: InertiaForm<MediaUploadForm>;
-  action: 'upload' | 'edit';
+  action?: 'upload' | 'edit';
 }>();
 </script>
 

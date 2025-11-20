@@ -1,3 +1,5 @@
+export const MAYBEMODAL = Symbol('MaybeModal');
+
 export type Modal = {
   id: string;
   config: {

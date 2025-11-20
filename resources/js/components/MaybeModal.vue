@@ -2,6 +2,7 @@
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
 import { Modal, useModal } from '@inertiaui/modal-vue';
+import { MAYBEMODAL } from '@/composables/useInertiaUIModal';
 
 defineProps<{
   panelClasses?: HTMLAttributes['class'];
@@ -10,6 +11,8 @@ defineProps<{
 }>();
 
 const modal = useTemplateRef<any>('modal');
+
+provide(MAYBEMODAL, modal || { close: () => null });
 
 const onNavigateDetacher = router.on('navigate', () => modal.value?.close());
 onUnmounted(onNavigateDetacher);

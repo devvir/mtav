@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils';
 import { ActionsType, CardActions, type CardType, HeaderSub } from '.';
 import * as exposed from './exposed';
 
+defineEmits<{
+  (e: 'execute', action: ResourceAction): void;
+}>(); /** CardActions event */
+
 defineProps<{
   title: string;
   kicker?: string;
@@ -70,6 +74,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       v-if="actionsType"
       :type="actionsType"
       :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-2! basis-full' : '-mt-2']"
+      @execute="$emit('execute', $event)"
     />
   </header>
 </template>
