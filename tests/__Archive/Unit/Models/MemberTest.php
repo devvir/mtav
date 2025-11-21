@@ -23,10 +23,8 @@ describe('Member Model', function () {
 
 
     it('can leave a Project', function () {
-        $project = Project::find(1);
         $member = Member::find(102); // Member in Project #1
-
-        $member->leaveProject($project);
+        $member->leaveProject();
 
         expect($member->fresh()->project)->toBeNull();
     });

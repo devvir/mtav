@@ -1,71 +1,25 @@
 <script setup lang="ts">
-// Copilot - pending review
 import StatCard from '@/components/dashboard/StatCard.vue';
 import { _ } from '@/composables/useTranslations';
-import {
-  Building2,
-  Calendar,
-  Image as ImageIcon,
-  Layers,
-  Shield,
-  User,
-  UsersRound,
-} from 'lucide-vue-next';
+import { Building2Icon, Calendar, FilesIcon, Image as ImageIcon, Shield, User, UsersRound } from 'lucide-vue-next';
 
 defineProps<{
-  stats: {
-    families?: number;
-    members?: number;
-    units?: number;
-    unit_types?: number;
-    admins?: number;
-    media?: number;
-    events?: number;
-  };
+  stats?: Project;
 }>();
 </script>
 
 <template>
   <section>
     <h2 class="mb-3 text-lg font-semibold">{{ _('Overview') }}</h2>
+
     <div class="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4 @4xl:grid-cols-7">
-      <StatCard
-        :title="_('Families')"
-        :value="stats.families"
-        :icon="UsersRound"
-        linkToRoute="families.index"
-      />
-      <StatCard
-        :title="_('Members')"
-        :value="stats.members"
-        :icon="User"
-        linkToRoute="members.index"
-      />
-      <StatCard
-        :title="_('Admins')"
-        :value="stats.admins"
-        :icon="Shield"
-        linkToRoute="admins.index"
-      />
-      <StatCard
-        :title="_('Units')"
-        :value="stats.units"
-        :icon="Building2"
-        linkToRoute="units.index"
-      />
-      <StatCard
-        :title="_('Unit Types')"
-        :value="stats.unit_types"
-        :icon="Layers"
-        linkToRoute="unit_types.index"
-      />
-      <StatCard :title="_('Media')" :value="stats.media" :icon="ImageIcon" linkToRoute="gallery" />
-      <StatCard
-        :title="_('Events')"
-        :value="stats.events"
-        :icon="Calendar"
-        linkToRoute="events.index"
-      />
+      <StatCard :title="_('Units')" :value="stats?.units_count" :icon="Building2Icon" linkToRoute="units.index" />
+      <StatCard :title="_('Families')" :value="stats?.families_count" :icon="UsersRound" linkToRoute="families.index" />
+      <StatCard :title="_('Members')" :value="stats?.members_count" :icon="User" linkToRoute="members.index" />
+      <StatCard :title="_('Admins')" :value="stats?.admins_count" :icon="Shield" linkToRoute="admins.index" />
+      <StatCard :title="_('Multimedia')" :value="stats?.visual_media_count" :icon="ImageIcon" linkToRoute="gallery" />
+      <StatCard :title="_('Documents')" :value="stats?.documents_count" :icon="FilesIcon" linkToRoute="documents.index" />
+      <StatCard :title="_('Events')" :value="stats?.events_count" :icon="Calendar" linkToRoute="events.index" />
     </div>
   </section>
 </template>

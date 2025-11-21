@@ -24,7 +24,6 @@ beforeEach(function () {
 
 describe('When submitting the invitation acceptance form', function () {
     it('requires a password', function () {
-        /** @var \Illuminate\Testing\TestResponse $response */
         $response = $this->submitFormToRoute('invitation.update', asMember: 148, data: [
             // password missing
         ], redirects: false);

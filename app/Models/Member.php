@@ -93,25 +93,38 @@ class Member extends User
         return $this->rsvps()->upcoming();
     }
 
-    public function joinProject(Project|int $project): self
+    public function rsvp(Event|int $event, bool $status = true): self
+    {
+        $eventId = $event->id ?? $event;
+
+        $this->rsvps()->syncWithoutDetaching([
+            $eventId => ['status' => $status],
+        ]);
+
+        return $this;
+    }
+
+    public function joinProject(Project|int $projectOrId): self
     {
         $this->projects->each->removeMember($this);
 
-        model($project, Project::class)->addMember($this);
+        model($projectOrId, Project::class)->addMember($this);
 
         return $this;
     }
 
-    public function leaveProject(Project $project): self
-    {
-        $project->removeMember($this);
-
-        return $this;
-    }
-
-    public function switchProject(Project $project): self
+    public function leaveProject(): self
     {
         $this->project?->removeMember($this);
+
+        return $this;
+    }
+
+    public function switchProject(Project|int $projectOrId): self
+    {
+        $this->project?->removeMember($this);
+
+        $project = model($projectOrId, Project::class);
 
         $project->addMember($this);
 

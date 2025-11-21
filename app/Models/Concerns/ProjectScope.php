@@ -18,7 +18,7 @@ trait ProjectScope
      */
     public function scopeInProject(Builder $query, int|Project $project): void
     {
-        $projectId = is_int($project) ? $project : $project->getKey();
+        $projectId = $project->id ?? $project;
 
         if (method_exists($this, 'projects') && $this->projects() instanceof BelongsToMany) {
             $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectId));

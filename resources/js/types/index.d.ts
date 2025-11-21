@@ -79,12 +79,18 @@ interface HasEvents {
 
 interface HasMedia {
   media?: ApiResource<Media>[];
+  audios?: ApiResource<Media>[];
+  documents?: ApiResource<Media>[];
   images?: ApiResource<Media>[];
   videos?: ApiResource<Media>[];
+  visual_media?: ApiResource<Media>[];
 
   media_count?: number;
+  audios_count?: number;
+  documents_count?: number;
   images_count?: number;
   videos_count?: number;
+  visual_media_count?: number;
 }
 
 interface Project extends Resource, HasEvents, HasMedia {

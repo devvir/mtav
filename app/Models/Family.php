@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Family extends Model
 {
+    use HasMedia;
     use ProjectScope;
     use SoftDeletes;
 
@@ -55,22 +57,6 @@ class Family extends Model
     public function media(): HasManyThrough
     {
         return $this->hasManyThrough(Media::class, Member::class, secondKey: 'owner_id');
-    }
-
-    /**
-     * All images uploaded by family members.
-     */
-    public function images(): HasManyThrough
-    {
-        return $this->media()->images();
-    }
-
-    /**
-     * All videos uploaded by family members.
-     */
-    public function videos(): HasManyThrough
-    {
-        return $this->media()->videos();
     }
 
     public function addMember(Member|int $memberOrId): self

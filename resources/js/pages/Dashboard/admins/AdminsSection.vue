@@ -6,12 +6,17 @@ import AdminCard from './AdminCard.vue';
 
 defineProps<{
   admins: Admin[];
+  totalCount: number;
 }>();
 </script>
 
 <template>
   <section>
-    <SectionHeader :title="_('Admins')" />
+    <SectionHeader
+      :title="_('Admins')"
+      :view-all-href="admins.length > 0 ? '/admins' : undefined"
+      :view-all-text="admins.length > 0 ? `${_('View all')} (${totalCount})` : undefined"
+    />
     <div v-if="admins.length > 0" class="grid gap-4 @md:grid-cols-2">
       <AdminCard v-for="admin in admins" :key="admin.id" :admin="admin" />
     </div>

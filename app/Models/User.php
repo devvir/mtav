@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\DerivedRelations;
 use App\Models\Concerns\ExtendedRelations;
+use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasPolicy;
 use App\Models\Concerns\ProjectScope;
 use App\Relations\BelongsToOneOrMany;
@@ -22,6 +23,7 @@ class User extends Authenticatable
     use DerivedRelations;
     use ExtendedRelations;
     use HasFactory;
+    use HasMedia;
     use HasPolicy;
     use Notifiable;
     use ProjectScope;
@@ -84,22 +86,6 @@ class User extends Authenticatable
     public function media(): HasMany
     {
         return $this->hasMany(Media::class, 'owner_id');
-    }
-
-    /**
-     * All images uploaded by this user.
-     */
-    public function images(): HasMany
-    {
-        return $this->media()->images();
-    }
-
-    /**
-     * All videos uploaded by this user.
-     */
-    public function videos(): HasMany
-    {
-        return $this->media()->videos();
     }
 
     public function scopeAlphabetically(Builder $query): void

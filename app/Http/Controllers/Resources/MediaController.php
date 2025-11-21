@@ -108,9 +108,9 @@ class MediaController extends Controller
         $category = $media?->category ?? request('category', MediaCategory::VISUAL);
 
         return match ($category) {
-            MediaCategory::AUDIO    => "audios.$action",
-            MediaCategory::DOCUMENT => "documents.$action",
-            default                 => "media.$action",
+            MediaCategory::AUDIO    => "audios.{$action}",
+            MediaCategory::DOCUMENT => "documents.{$action}",
+            default                 => "media.{$action}",
         };
     }
 }

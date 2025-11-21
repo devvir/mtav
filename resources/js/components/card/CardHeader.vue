@@ -37,7 +37,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       <h3
         v-if="kicker || $slots.kicker"
         class="text-xs tracking-wide text-text-subtle"
-        :class="{ 'uppercase text-text-subtle/60': !$slots.kicker }"
+        :class="{ 'uppercase text-text-subtle/60 text-2xs': !$slots.kicker }"
       >
         <slot name="kicker">
           {{ kicker }}
@@ -45,7 +45,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       </h3>
 
       <h2
-        class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg @2xl:text-xl @4xl:text-2xl"
+        class="truncate text-sm font-semibold tracking-wide text-text @2xs:text-base @xs:text-lg"
         :title="title"
       >
         {{ title }}

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMedia;
 use App\Observers\ProjectObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 #[ObservedBy([ProjectObserver::class])]
 class Project extends Model
 {
+    use HasMedia;
     use SoftDeletes;
 
     public static function current(): ?Project
@@ -25,6 +27,13 @@ class Project extends Model
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->wherePivot('active', true)
+            ->withTimestamps();
     }
 
     public function members(): BelongsToMany
@@ -81,26 +90,10 @@ class Project extends Model
         return $this->hasMany(Media::class);
     }
 
-    /**
-     * All images in this project.
-     */
-    public function images(): HasMany
-    {
-        return $this->media()->images();
-    }
-
-    /**
-     * All videos in this project.
-     */
-    public function videos(): HasMany
-    {
-        return $this->media()->videos();
-    }
-
     public function addMember(Member|int $memberOrId): self
     {
         $this->members()->syncWithPivotValues(
-            model($memberOrId, Member::class),
+            $memberOrId,
             ['active' => true],
             detaching: false
         );
@@ -111,7 +104,7 @@ class Project extends Model
     public function removeMember(Member|int $memberOrId): self
     {
         $this->members()->updateExistingPivot(
-            model($memberOrId, Member::class),
+            $memberOrId,
             ['active' => false]
         );
 
@@ -121,7 +114,7 @@ class Project extends Model
     public function addAdmin(Admin|int $adminOrId): self
     {
         $this->admins()->syncWithPivotValues(
-            model($adminOrId, Admin::class),
+            $adminOrId,
             ['active' => true],
             detaching: false
         );
