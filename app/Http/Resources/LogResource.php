@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Log $resource
+ *
  * @mixin Log
  */
 class LogResource extends JsonResource

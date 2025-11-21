@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read PlanItem $resource
+ *
  * @mixin PlanItem
  */
 class PlanItemResource extends JsonResource

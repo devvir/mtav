@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\Media;
 use Exception;
-use FFMpeg\FFMpeg;
 use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use FFMpeg\Media\Video;
 use Illuminate\Support\Facades\Storage;
 
 class MediaThumbnailService
@@ -22,17 +23,32 @@ class MediaThumbnailService
                 $this->isSvg($media)         => $this->svgThumbnail($media),
                 $media->isImage()            => $this->imageThumbnail($media),
                 $media->isVideo()            => $this->videoThumbnail($media),
-                $media->isAudio()            => $this->audioThumbnail($media),
+                $media->isAudio()            => $this->audioThumbnail(),
                 default                      => $this->genericThumbnail($media),
             };
         } catch (Exception $e) {
             logger()->error('Thumbnail generation failed', [
                 'media_id' => $media->id,
-                'error'    => $e->getMessage()
+                'error'    => $e->getMessage(),
             ]);
 
             return '/thumbnails/unknown.png';
         }
+    }
+
+    /**
+     * Delete the thumbnail file for a media item.
+     */
+    public function deleteThumbnail(Media $media): bool
+    {
+        // Only delete if it's a generated thumbnail (not a generic icon or symlink)
+        if (! str_contains($media->thumbnail, '/thumbnails/thumb_')) {
+            return true;
+        }
+
+        $thumbnailPath = str_replace(Storage::url(''), '', $media->thumbnail);
+
+        return Storage::disk('public')->delete($thumbnailPath);
     }
 
     /**
@@ -63,7 +79,7 @@ class MediaThumbnailService
         // Check if GIF is animated by examining the file structure
         $sourcePath = Storage::disk('public')->path($media->path);
 
-        if (!file_exists($sourcePath)) {
+        if (! file_exists($sourcePath)) {
             return false;
         }
 
@@ -73,21 +89,6 @@ class MediaThumbnailService
         // Look for multiple image blocks which indicate animation
         // Animated GIFs have multiple image separators (0x21 0xF9)
         return substr_count($fileContent, "\x21\xF9") > 1;
-    }
-
-    /**
-     * Delete the thumbnail file for a media item.
-     */
-    public function deleteThumbnail(Media $media): bool
-    {
-        // Only delete if it's a generated thumbnail (not a generic icon or symlink)
-        if (! str_contains($media->thumbnail, '/thumbnails/thumb_')) {
-            return true;
-        }
-
-        $thumbnailPath = str_replace(Storage::url(''), '', $media->thumbnail);
-
-        return Storage::disk('public')->delete($thumbnailPath);
     }
 
     /**
@@ -188,7 +189,7 @@ class MediaThumbnailService
     /**
      * Handle audio thumbnail using generic audio icon.
      */
-    private function audioThumbnail(Media $media): string
+    private function audioThumbnail(): string
     {
         return '/thumbnails/audio.jpg';
     }
@@ -233,7 +234,7 @@ class MediaThumbnailService
             $newWidth = (int) ($width * $ratio);
             $newHeight = (int) ($height * $ratio);
 
-            $sourceImage = match($type) {
+            $sourceImage = match ($type) {
                 IMAGETYPE_JPEG => imagecreatefromjpeg($sourcePath),
                 IMAGETYPE_PNG  => imagecreatefrompng($sourcePath),
                 IMAGETYPE_GIF  => imagecreatefromgif($sourcePath),
@@ -258,12 +259,7 @@ class MediaThumbnailService
             imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
             // Save as JPEG for consistency
-            $result = imagejpeg($thumbnail, $thumbnailPath, 85);
-
-            imagedestroy($sourceImage);
-            imagedestroy($thumbnail);
-
-            return $result;
+            return imagejpeg($thumbnail, $thumbnailPath, 85);
         } catch (Exception $e) {
             logger()->error('Image thumbnail creation failed', ['error' => $e->getMessage()]);
             return false;
@@ -289,7 +285,7 @@ class MediaThumbnailService
 
             // Create gradient background (dark gray to black)
             for ($y = 0; $y < $size; $y++) {
-                $gradientValue = (int)(40 - ($y / $size * 30)); // 40 to 10
+                $gradientValue = (int) (40 - ($y / $size * 30)); // 40 to 10
                 $color = imagecolorallocate($image, $gradientValue, $gradientValue, $gradientValue);
                 imageline($image, 0, $y, $size, $y, $color);
             }
@@ -311,7 +307,7 @@ class MediaThumbnailService
             $triangle = [
                 $triangleX - $triangleSize / 2, $triangleY - $triangleSize / 2,
                 $triangleX - $triangleSize / 2, $triangleY + $triangleSize / 2,
-                $triangleX + $triangleSize / 2, $triangleY
+                $triangleX + $triangleSize / 2, $triangleY,
             ];
 
             $whiteColor = imagecolorallocate($image, 255, 255, 255);
@@ -327,7 +323,6 @@ class MediaThumbnailService
             imagestring($image, $fontSize, $textX, $textY, $text, $textColor);
 
             $result = imagejpeg($image, $thumbnailFullPath, 85);
-            imagedestroy($image);
         } catch (Exception $e) {
             logger()->error('Generic video thumbnail creation failed', ['error' => $e->getMessage()]);
         }
@@ -377,7 +372,7 @@ class MediaThumbnailService
     /**
      * Find the best frame in a video using quality analysis.
      */
-    private function findBestVideoFrame($video, float $duration): TimeCode
+    private function findBestVideoFrame(Video $video, float $duration): TimeCode
     {
         $samplePoints = [
             $duration * 0.1,  // 10% into video
@@ -456,8 +451,6 @@ class MediaThumbnailService
             }
         }
 
-        imagedestroy($image);
-
         $sampledPixels = ($width / 10) * ($height / 10);
         $avgBrightness = $totalBrightness / $sampledPixels;
         $darkRatio = $darkPixels / $sampledPixels;
@@ -502,9 +495,9 @@ class MediaThumbnailService
             $height = imagesy($image);
 
             // Calculate play button size (15% of smallest dimension)
-            $buttonSize = (int)(min($width, $height) * 0.15);
-            $buttonX = (int)(($width - $buttonSize) / 2);
-            $buttonY = (int)(($height - $buttonSize) / 2);
+            $buttonSize = (int) (min($width, $height) * 0.15);
+            $buttonX = (int) (($width - $buttonSize) / 2);
+            $buttonY = (int) (($height - $buttonSize) / 2);
 
             // Create semi-transparent black circle
             $circleColor = imagecolorallocatealpha($image, 0, 0, 0, 50);
@@ -525,16 +518,13 @@ class MediaThumbnailService
             $triangle = [
                 $triangleX, $triangleY - $triangleSize / 2,
                 $triangleX, $triangleY + $triangleSize / 2,
-                $triangleX + $triangleSize, $triangleY
+                $triangleX + $triangleSize, $triangleY,
             ];
 
             $whiteColor = imagecolorallocate($image, 255, 255, 255);
             imagefilledpolygon($image, $triangle, 3, $whiteColor);
 
-            $result = imagejpeg($image, $outputPath, 85);
-            imagedestroy($image);
-
-            return $result;
+            return imagejpeg($image, $outputPath, 85);
         } catch (Exception $e) {
             logger()->error('Play button overlay failed', ['error' => $e->getMessage()]);
             return false;

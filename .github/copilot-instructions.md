@@ -16,3 +16,4 @@
 * In Vue template blocks do NOT use `props.` to access props, just use the prop name directly
 * PHP Controllers do NOT validate data directly; they always use Form Request classes for validation
 * Do not add new components to componetns/ui/. Those are third-party, not mine!
+* Never use fully qualified class names (FQNs) in code - always import classes and use the short class name. This applies to ALL classes including root namespace classes like Exception, Closure, Throwable, etc. Use `use Exception;` then `Exception`, not `\Exception`

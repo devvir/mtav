@@ -16,7 +16,7 @@ class InvalidPreferencesEvent implements ShouldQueue
      * Create a new event instance.
      *
      * @param Family $family The family with invalid preferences
-     * @param array $unitIds List of invalid unit IDs
+     * @param array<int> $unitIds List of invalid unit IDs
      */
     public function __construct(
         public Family $family,

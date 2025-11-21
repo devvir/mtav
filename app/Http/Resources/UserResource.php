@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @property-read User $resource
+ *
  * @mixin User
  */
 class UserResource extends JsonResource

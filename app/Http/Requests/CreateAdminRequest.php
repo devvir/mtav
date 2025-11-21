@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Project;
+use Illuminate\Validation\Validator;
 
 /**
  * @property-read array<int> $project_ids
@@ -26,7 +27,7 @@ class CreateAdminRequest extends FormRequest
     /**
      * Configure the validator instance.
      */
-    public function withValidator($validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
             // Regular admins can only assign available Projects (i.e. those they manage)

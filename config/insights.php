@@ -3,22 +3,20 @@
 declare(strict_types=1);
 
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenDefineFunctions;
-use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenFinalClasses;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenNormalClasses;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenPrivateMethods;
 use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenTraits;
 use NunoMaduro\PhpInsights\Domain\Metrics\Architecture\Classes;
-use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
-use PhpCsFixer\Fixer\Comment\NoEmptyCommentFixer;
+use PHP_CodeSniffer\Standards\Generic\Sniffs\CodeAnalysis\UselessOverridingMethodSniff;
+use PHP_CodeSniffer\Standards\Generic\Sniffs\Commenting\TodoSniff;
 use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
-use PhpCsFixer\Fixer\StringNotation\ExplicitStringVariableFixer;
-use SlevomatCodingStandard\Sniffs\Commenting\UselessFunctionDocCommentSniff;
+use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\AssignmentInConditionSniff;
 use SlevomatCodingStandard\Sniffs\ControlStructures\DisallowShortTernaryOperatorSniff;
 use SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff;
-use SlevomatCodingStandard\Sniffs\Namespaces\AlphabeticallySortedUsesSniff;
+use SlevomatCodingStandard\Sniffs\PHP\UselessParenthesesSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\DeclareStrictTypesSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\DisallowMixedTypeHintSniff;
-use SlevomatCodingStandard\Sniffs\TypeHints\ParameterTypeHintSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\PropertyTypeHintSniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\ReturnTypeHintSniff;
 
@@ -57,7 +55,7 @@ return [
     |
     */
 
-    'ide' => null,
+    'ide' => 'vscode',
 
     /*
     |--------------------------------------------------------------------------
@@ -72,35 +70,73 @@ return [
 
     'exclude' => [
         'packages',
+        'app/Relations',
     ],
 
     'add' => [
         Classes::class => [
-            ForbiddenFinalClasses::class,
         ],
     ],
 
     'remove' => [
-        AlphabeticallySortedUsesSniff::class,
-        BinaryOperatorSpacesFixer::class,
+        // Disallows assignment within if/while conditions.
+        // Example violation: `if ($user = Auth::user()) { ... }`
+        AssignmentInConditionSniff::class,
+
+        // Requires `declare(strict_types=1);` at the top of every file.
+        // Example violation: Missing `declare(strict_types=1);`
         DeclareStrictTypesSniff::class,
+
+        // Disallows `mixed` type hints.
+        // Example violation: `public function process(mixed $data): mixed`
         DisallowMixedTypeHintSniff::class,
+
+        // Disallows short ternary operator (Elvis operator).
+        // Example violation: `$value = $foo ?: 'default';`
         DisallowShortTernaryOperatorSniff::class,
-        ExplicitStringVariableFixer::class,
-        ForbiddenDefineFunctions::class,
+
+        // Requires all classes to be either `final` or `abstract`.
+        // Example violation: `class User extends Model { }` (should be `final class User extends Model { }`)
         ForbiddenNormalClasses::class,
+
+        // Disallows use of traits.
+        // Example violation: `use HasFactory, SoftDeletes;`
         ForbiddenTraits::class,
-        LineLengthSniff::class,
-        NoEmptyCommentFixer::class,
-        ParameterTypeHintSniff::class,
-        PropertyTypeHintSniff::class,
+
+        // Requires @return annotations for methods returning traversable values.
+        // Example violation: `public function getItems(): array` without `@return array<int, Item>`
         ReturnTypeHintSniff::class,
-        UselessFunctionDocCommentSniff::class,
+
+        // Flags TODO comments in code.
+        // Example violation: `TODO: refactor this later`
+        TodoSniff::class,
+
+        // Flags useless parentheses in expressions.
+        // Example violation: `if (($x === 1)) { }`
+        UselessParenthesesSniff::class,
     ],
 
     'config' => [
+        BinaryOperatorSpacesFixer::class => [
+            'operators' => [
+                '=>' => 'align_single_space',
+            ],
+        ],
+        ForbiddenDefineFunctions::class => [
+            'exclude' => ['app/Enums', 'app/helpers.php'],
+        ],
         ForbiddenPrivateMethods::class => [
             'title' => 'The usage of private methods is not idiomatic in Laravel.',
+        ],
+        LineLengthSniff::class => [
+            'lineLimit'         => 120,
+            'absoluteLineLimit' => 120,
+            'exclude'           => ['lang'],
+        ],
+        PropertyTypeHintSniff::class => [
+            // Exclude Models: Laravel's Eloquent Model properties ($casts, $guarded, $fillable, etc.)
+            // are inherited from parent class and cannot have their types redeclared in child classes
+            'exclude' => ['app/Models', 'app/Middleware'],
         ],
         UnusedParameterSniff::class => [
             'allowedParameterPatterns' => ['~^_$~'],
@@ -108,6 +144,9 @@ return [
             // Even when not directly used, "User $user" ensures only authenticated users can reach the method
             'exclude' => ['app/Policies'],
         ],
+        UselessOverridingMethodSniff::class => [
+            'exclude' => ['app/Http/Requests']
+        ]
     ],
 
     /*

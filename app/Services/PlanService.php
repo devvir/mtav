@@ -43,6 +43,8 @@ class PlanService
 
     /**
      * Calculate the next available position for a Unit in a grid layout.
+     *
+     * @return array{x: int, y: int, z: int}
      */
     private function getNextAvailablePosition(Plan $plan): array
     {
@@ -68,7 +70,7 @@ class PlanService
             $x, $y,                             // Top-left
             $x + $unitWidth, $y,                // Top-right
             $x + $unitWidth, $y + $unitHeight,  // Bottom-right
-            $x, $y + $unitHeight                // Bottom-left
+            $x, $y + $unitHeight,               // Bottom-left
         ];
     }
 }

@@ -106,10 +106,10 @@ class Family extends Model
     public function scopeSearch(Builder $query, string $q, bool $searchMembers = false): void
     {
         $query
-            ->whereLike('name', "%$q%")
+            ->whereLike('name', "%{$q}%")
             ->when($searchMembers, fn (Builder $query) => $query->orWhereHas(
                 'members',
-                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%")
             ));
     }
 }

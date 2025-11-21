@@ -72,7 +72,7 @@ class Event extends Model
             ? $this->start_date < now()->subMinutes(self::IMPLICIT_DURATION)
             : isset($this->end_date) && $this->end_date < now();
 
-        return Attribute::make(get: fn () => match(true) {
+        return Attribute::make(get: fn () => match (true) {
             $completed => 'completed',
             $upcoming  => 'upcoming',
             default    => 'ongoing',
@@ -134,8 +134,8 @@ class Event extends Model
         $query->whereHas(
             'rsvps',
             fn (Builder $q) => $q
-            ->where('user_id', $memberId)
-            ->wherePivot('status', $status),
+                ->where('user_id', $memberId)
+                ->wherePivot('status', $status),
         );
     }
 

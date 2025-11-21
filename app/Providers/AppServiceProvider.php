@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
         JsonResource::withoutWrapping();
     }
 
-    protected function configurePolicies()
+    protected function configurePolicies(): void
     {
         /**
          * Superadmins have full access to any action, bypassing Policies.

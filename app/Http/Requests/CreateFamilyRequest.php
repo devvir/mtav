@@ -16,11 +16,14 @@ class CreateFamilyRequest extends ProjectScopedRequest
     {
         return [
             'project_id'   => 'required|exists:projects,id',
-            'unit_type_id' => ['required', new BelongsToProject(
-                UnitType::class,
-                $this->project_id,
-                'validation.unit_type_belongs_to_project'
-            )],
+            'unit_type_id' => [
+                'required',
+                new BelongsToProject(
+                    UnitType::class,
+                    $this->project_id,
+                    'validation.unit_type_belongs_to_project'
+                ),
+            ],
             'name' => 'required|string|between:2,255',
         ];
     }

@@ -153,6 +153,11 @@ class Project extends Model
         $query->orderBy('name');
     }
 
+    public function scopeSearch(Builder $query, string $q): void
+    {
+        $query->whereLike('name', "%{$q}%");
+    }
+
     public static function boot(): void
     {
         parent::boot();

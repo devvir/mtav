@@ -7,7 +7,7 @@ use App\Models\User;
 
 class MemberPolicy
 {
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
         return true;
     }

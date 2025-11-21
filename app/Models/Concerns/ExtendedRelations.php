@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Relations\BelongsToOneOrMany;
 use App\Relations\BelongsToThrough;
+use Illuminate\Database\Eloquent\Model;
 
 trait ExtendedRelations
 {
@@ -12,6 +13,9 @@ trait ExtendedRelations
      *
      * Example: Log belongsTo Post and Post belongsTo User
      *          > Log@user(): $this->belongsToThrough(User, Post)
+     *
+     * @param class-string<Model> $related
+     * @param class-string<Model> $through
      */
     public function belongsToThrough(
         string $related,
@@ -20,7 +24,7 @@ trait ExtendedRelations
         ?string $secondKey = null,
         ?string $localKey = null,
         ?string $secondLocalKey = null
-    ) {
+    ): BelongsToThrough {
         $related = $this->newRelatedInstance($related);
         $through = $this->newRelatedThroughInstance($through);
 
@@ -37,15 +41,17 @@ trait ExtendedRelations
 
     /**
      * Extension of BelongsToMany allowing @one() as in HasMany relationships.
+     *
+     * @param class-string<Model> $related
      */
     public function belongsToOneOrMany(
-        $related,
-        $table = null,
-        $foreignPivotKey = null,
-        $relatedPivotKey = null,
-        $parentKey = null,
-        $relatedKey = null,
-        $relation = null,
+        string $related,
+        ?string $table = null,
+        ?string $foreignPivotKey = null,
+        ?string $relatedPivotKey = null,
+        ?string $parentKey = null,
+        ?string $relatedKey = null,
+        ?string $relation = null,
     ): BelongsToOneOrMany {
         $instance = $this->newRelatedInstance($related);
 

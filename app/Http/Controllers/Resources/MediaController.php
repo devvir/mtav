@@ -61,7 +61,7 @@ class MediaController extends Controller
             )
         );
 
-        $flashMessage = ($media->count() === 1)
+        $flashMessage = $media->count() === 1
             ? __('flash.media_uploaded')
             : __('flash.media_multiple_uploaded', ['count' => $media->count()]);
 

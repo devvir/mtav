@@ -22,6 +22,6 @@ class Log extends Model
 
     public function scopeSearch(Builder $query, string $q): void
     {
-        $query->whereLike('event', "%$q%");
+        $query->whereLike('event', "%{$q}%");
     }
 }

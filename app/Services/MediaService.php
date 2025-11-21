@@ -21,6 +21,8 @@ class MediaService
 
     /**
      * Create a new Media record and store its associated file and thumbnail.
+     *
+     * @param array<string, mixed> $attributes
      */
     public function create(UploadedFile $file, array $attributes = []): Media
     {
@@ -59,6 +61,8 @@ class MediaService
 
     /**
      * Extract metadata from an uploaded file.
+     *
+     * @return array{category: MediaCategory, width?: int, height?: int}
      */
     public function extractFileMetadata(UploadedFile $file): array
     {
@@ -83,10 +87,12 @@ class MediaService
 
     /**
      * Get image dimensions if the file is an image.
+     *
+     * @return array{width?: int, height?: int}
      */
     public function getImageDimensions(UploadedFile $file): array
     {
-        if (!str_starts_with($file->getMimeType(), 'image/')) {
+        if (! str_starts_with($file->getMimeType(), 'image/')) {
             return [];
         }
 
@@ -104,10 +110,12 @@ class MediaService
 
     /**
      * Get video dimensions if the file is a video.
+     *
+     * @return array{width?: int, height?: int}
      */
     public function getVideoDimensions(UploadedFile $file): array
     {
-        if (!str_starts_with($file->getMimeType(), 'video/')) {
+        if (! str_starts_with($file->getMimeType(), 'video/')) {
             return [];
         }
 

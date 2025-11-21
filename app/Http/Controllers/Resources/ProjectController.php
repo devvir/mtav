@@ -22,7 +22,7 @@ class ProjectController extends Controller
     {
         $projects = Project::alphabetically()
             ->withCount('members', 'families')
-            ->when($request->q, fn ($q, $search) => $q->whereLike('name', "%$search%"))
+            ->when($request->q, fn ($q, $search) => $q->search($search))
             ->unless($request->all, fn ($q) => $q->where('projects.active', true));
 
         return inertia('Projects/Index', [

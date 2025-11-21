@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @property-read Media $resource
+ *
  * @mixin Media
  */
 class MediaResource extends JsonResource

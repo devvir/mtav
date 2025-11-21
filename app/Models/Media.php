@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\ProjectScope;
 use App\Enums\MediaCategory;
+use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -94,10 +94,10 @@ class Media extends Model
     public function scopeSearch(Builder $query, string $q, bool $searchOwner = false): void
     {
         $query
-            ->whereLike('description', "%$q%")
+            ->whereLike('description', "%{$q}%")
             ->when($searchOwner, fn (Builder $query) => $query->orWhereHas(
                 'owner',
-                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%")
             ));
     }
 }

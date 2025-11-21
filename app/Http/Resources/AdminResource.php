@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Admin $resource
+ *
  * @mixin Admin
  */
 class AdminResource extends UserResource

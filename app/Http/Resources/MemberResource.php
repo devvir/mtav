@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Member $resource
+ *
  * @mixin Member
  */
 class MemberResource extends UserResource

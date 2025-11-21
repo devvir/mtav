@@ -7,37 +7,52 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Event $resource
+ *
  * @mixin Event
  */
 class EventResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray(Request $_): array
     {
         return [
             ...$this->commonResourceData(),
 
-            'type'         => $this->type->value,
-            'type_label'   => $this->type->label(),
-            'status'       => $this->status,
-            'title'        => $this->title,
-            'description'  => $this->description,
-            'location'     => $this->location,
-            'start_date'   => $this->start_date?->translatedFormat('M j, Y g:i A'),
-            'end_date'     => $this->end_date?->translatedFormat('M j, Y g:i A'),
+            'type'        => $this->type->value,
+            'type_label'  => $this->type->label(),
+            'status'      => $this->status,
+            'title'       => $this->title,
+            'description' => $this->description,
+            'location'    => $this->location,
+
+            ...$this->booleanProps(),
+            ...$this->datetimeProps(),
+
+            ...$this->relationsData(),
+        ];
+    }
+
+    protected function booleanProps(): array
+    {
+        return [
             'is_published' => $this->is_published,
             'allows_rsvp'  => $this->allowsRsvp(),
 
-            'start_date_raw' => $this->start_date?->translatedFormat('Y-m-d\TH:i'),
-            'end_date_raw'   => $this->end_date?->translatedFormat('Y-m-d\TH:i'),
-
-            'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, true)),
-            'declined' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe($request, false)),
+            'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe(true)),
+            'declined' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe(false)),
 
             'is_lottery' => $this->isLottery(),
             'is_online'  => $this->isOnline(),
             'is_onsite'  => $this->isOnSite(),
+        ];
+    }
 
-            ...$this->relationsData(),
+    protected function datetimeProps(): array
+    {
+        return [
+            'start_date'     => $this->start_date?->translatedFormat('M j, Y g:i A'),
+            'end_date'       => $this->end_date?->translatedFormat('M j, Y g:i A'),
+            'start_date_raw' => $this->start_date?->translatedFormat('Y-m-d\TH:i'),
+            'end_date_raw'   => $this->end_date?->translatedFormat('Y-m-d\TH:i'),
         ];
     }
 
@@ -60,9 +75,9 @@ class EventResource extends JsonResource
         ];
     }
 
-    protected function acknowledgedByMe(Request $request, bool $status)
+    protected function acknowledgedByMe(bool $status)
     {
-        $currentUser = $request->user();
+        $currentUser = request()->user();
 
         return $this->rsvp && $currentUser?->isMember() && $this->rsvps->where([
             'user_id'      => $currentUser->id,

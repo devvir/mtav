@@ -15,6 +15,6 @@ abstract class Controller extends RoutingController
         $model = preg_replace('/Controller$/', '', class_basename(static::class));
         $parameter = Str::snake($model);
 
-        $this->authorizeResource("App\\Models\\$model", $parameter);
+        $this->authorizeResource("App\\Models\\{$model}", $parameter);
     }
 }

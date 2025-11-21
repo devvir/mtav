@@ -48,5 +48,5 @@ use Illuminate\Support\Collection;
  */
 abstract class FormRequest extends BaseFormRequest
 {
-    //
+    // ...
 }

@@ -27,18 +27,20 @@ class User extends Authenticatable
     use ProjectScope;
     use SoftDeletes;
 
+    /** @var array<string> */
     protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /** @var array<string, string> */
     protected $casts = [
         'is_admin'               => 'boolean',
         'password'               => 'hashed',
@@ -109,10 +111,10 @@ class User extends Authenticatable
     {
         $query->where(
             fn (Builder $query) => $query
-                ->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%$q%")
+                ->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%")
                 ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
                     'family',
-                    fn (Builder $query) => $query->whereLike('name', "%$q%")
+                    fn (Builder $query) => $query->whereLike('name', "%{$q}%")
                 ))
         );
     }
@@ -167,7 +169,7 @@ class User extends Authenticatable
         );
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         $doCast = fn (User $user) => $user->isAdmin()
             ? ($user->adminCast = Admin::make($user->getAttributes()))

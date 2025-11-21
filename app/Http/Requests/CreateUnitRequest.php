@@ -14,11 +14,14 @@ class CreateUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unit_type_id' => ['required', new BelongsToProject(
-                UnitType::class,
-                currentProjectId(),
-                'validation.unit_type_belongs_to_project'
-            )],
+            'unit_type_id' => [
+                'required',
+                new BelongsToProject(
+                    UnitType::class,
+                    currentProjectId(),
+                    'validation.unit_type_belongs_to_project'
+                ),
+            ],
             'identifier' => 'required|string|max:255',
         ];
     }

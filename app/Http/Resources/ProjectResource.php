@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Project $resource
+ *
  * @mixin Project
  */
 class ProjectResource extends JsonResource

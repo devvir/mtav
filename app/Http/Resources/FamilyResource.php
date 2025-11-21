@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @property-read Family $resource
+ *
  * @mixin Family
  */
 class FamilyResource extends JsonResource

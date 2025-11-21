@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 /**
  * @property-read Unit $resource
+ *
  * @mixin Unit
  */
 class UnitResource extends JsonResource

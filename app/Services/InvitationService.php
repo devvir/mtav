@@ -14,6 +14,9 @@ class InvitationService
 {
     /**
      * Create and invite a new admin.
+     *
+     * @param array{email: string, firstname: string} $input
+     * @param array<int> $projectIds
      */
     public function inviteAdmin(array $input, array $projectIds): Admin
     {
@@ -35,6 +38,8 @@ class InvitationService
 
     /**
      * Create and invite a new member.
+     *
+     * @param array{family_id: int, email: string, firstname: string, lastname?: string} $input
      */
     public function inviteMember(array $input, int $projectId): Member
     {
@@ -54,6 +59,8 @@ class InvitationService
 
     /**
      * Complete the user's registration.
+     *
+     * @param array{avatar?: UploadedFile, firstname: string} $data
      */
     public function completeRegistration(User $user, string $password, array $data): User
     {

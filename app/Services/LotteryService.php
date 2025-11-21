@@ -54,6 +54,8 @@ class LotteryService
      * Update family unit preferences (replaces existing preferences).
      *
      * Note: $preferences must include all Units of the Family's UnitType.
+     *
+     * @param array<array{id: int}> $preferences
      */
     public function updatePreferences(Family $family, array $preferences): void
     {

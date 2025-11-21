@@ -35,6 +35,6 @@ class UnitType extends Model
 
     public function scopeSearch(Builder $query, string $q): void
     {
-        $query->whereLike('name', "%$q%");
+        $query->whereLike('name', "%{$q}%");
     }
 }

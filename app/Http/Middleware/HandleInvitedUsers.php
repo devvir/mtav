@@ -11,8 +11,10 @@ class HandleInvitedUsers
 {
     /**
      * Routes where invited users can roam freely without restriction.
+     *
+     * @var array<string>
      */
-    protected $skippedRoutePatterns = [
+    protected array $skippedRoutePatterns = [
         'invitation.*',
         'documentation.*',
     ];

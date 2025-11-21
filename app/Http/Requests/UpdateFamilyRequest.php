@@ -14,11 +14,13 @@ class UpdateFamilyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unit_type_id' => ['required', new BelongsToProject(
-                UnitType::class,
-                $this->route('family')->project_id,
-                'validation.unit_type_belongs_to_project'
-            )],
+            'unit_type_id' => [
+                'required', new BelongsToProject(
+                    UnitType::class,
+                    $this->route('family')->project_id,
+                    'validation.unit_type_belongs_to_project'
+                ),
+            ],
             'name' => 'required|string|between:2,255',
         ];
     }

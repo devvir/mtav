@@ -4,7 +4,6 @@ namespace App\Services\Lottery;
 
 use App\Events\InvalidPreferencesEvent;
 use App\Models\Family;
-use App\Models\Unit;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -26,7 +25,7 @@ class ConsistencyService
     {
         // Bypass any and all scopes (e.g. Units from other Projects or soft-deleted)
         $scopelessUnits = DB::select(
-            "SELECT unit_id FROM unit_preferences WHERE family_id = ?",
+            'SELECT unit_id FROM unit_preferences WHERE family_id = ?',
             [$family->id]
         );
 
@@ -48,6 +47,8 @@ class ConsistencyService
 
     /**
      * Validate that new preferences for a Family are complete and valid.
+     *
+     * @param array<array{id: int}> $preferences
      *
      * @throws InvalidArgumentException if validation fails.
      */

@@ -49,14 +49,14 @@ class Unit extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query
-            ->whereLike('identifier', "%$q%")
+            ->whereLike('identifier', "%{$q}%")
             ->orWhereHas(
                 'type',
-                fn (Builder $query) => $query->whereLike('description', "%$q%")
+                fn (Builder $query) => $query->whereLike('description', "%{$q}%")
             )
             ->orWhereHas(
                 'family',
-                fn (Builder $query) => $query->whereLike('name', "%$q%")
+                fn (Builder $query) => $query->whereLike('name', "%{$q}%")
             );
     }
 }
