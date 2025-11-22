@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Project;
 use App\Models\UnitType;
+use Database\Factories\Concerns\InProject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Factories\Sequence;
  */
 class UnitFactory extends Factory
 {
+    use InProject;
+
     /**
      * Define the model's default state.
      *
@@ -21,22 +24,25 @@ class UnitFactory extends Factory
     {
         return [
             'project_id'   => Project::factory(),
-            'unit_type_id' => fn (array $attributes) => UnitType::factory()->create(['project_id' => $attributes['project_id']])->id,
-            'family_id'    => null,
-            'identifier'   => $this->faker->randomLetter() . $this->faker->numerify('##'),
+            'unit_type_id' => $this->inSameProject(UnitType::class),
         ];
     }
 
-    public function inProject(Project $project): static
+    public function configure()
+    {
+        static $unitsCreated = 0;
+
+        return $this->sequence(
+            fn (Sequence $sequence) => [
+                'identifier' => __('Unit') . ' ' . (++$unitsCreated + $sequence->index),
+            ]
+        );
+    }
+
+    public function withType(UnitType|int $unitType): static
     {
         return $this->state([
-            'project_id'   => $project->id,
-            'unit_type_id' => fn () => UnitType::factory()->create([
-                'project_id' => $project->id,
-            ])->id,
-            'identifier' => new Sequence(
-                fn (Sequence $seq) => $this->faker->randomLetter() . ($seq->index + 1)
-            ),
+            'unit_type_id' => $unitType instanceof UnitType ? $unitType->id : $unitType,
         ]);
     }
 }

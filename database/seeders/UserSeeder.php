@@ -2,75 +2,78 @@
 
 namespace Database\Seeders;
 
-use App\Models\Family;
+use App\Models\Admin;
+use App\Models\Member;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        if (User::count()) {
+        /**
+         * This seeder is supposed to run only once.
+         */
+        if (User::whereEmail('superadmin@example.com')->exists()) {
             return;
         }
 
-        $firstProject = Project::first();
+        $projects = Project::all();
 
-        User::factory()->admin()->create([
+        Admin::factory()->create([
             'id'        => 1,
             'firstname' => 'Test',
             'lastname'  => 'Superadmin',
             'email'     => 'superadmin@example.com',
         ]);
 
-        User::factory()->admin()->create([
+        Admin::factory()->create([
             'firstname' => 'Test',
             'lastname'  => 'Admin',
             'email'     => 'admin@example.com',
-        ])->projects()->attach(Project::pluck('id'));
+        ])->projects()->attach($projects);
 
-        User::factory()->admin()->create([
+        Admin::factory()->inProject($projects[0])->create([
             'firstname' => '1-Project',
             'lastname'  => 'Admin',
             'email'     => 'admin.x1@example.com',
-        ])->projects()->attach(Project::skip(0)->take(1)->pluck('id'));
+        ]);
 
-        User::factory()->admin()->create([
+        Admin::factory()->create([
             'firstname' => '2-Projects',
             'lastname'  => 'Admin',
             'email'     => 'admin.x2@example.com',
-        ])->projects()->attach(Project::skip(1)->take(2)->pluck('id'));
+        ])->projects()->attach($projects->slice(1, 2));
 
-        ($testMember = User::factory()->create([
+        Member::factory()->inProject($projects[0])->create([
             'firstname' => 'Test',
             'lastname'  => 'Member',
             'email'     => 'member@example.com',
-        ])->asMember())->joinProject($testMember->family->project_id);
+            'family_id' => 1,
+        ]);
 
         // Example orphan User (data inconsistency: no family, no project)
-        User::factory()->create([
+        Member::factory()->create([
             'firstname' => 'Test',
             'lastname'  => 'Orphan',
             'email'     => 'orphan@example.com',
             'family_id' => null,
         ]);
 
-        User::factory()->create([
+        Member::factory()->inProject($projects[0])->create([
             'firstname' => 'A Regular User',
             'lastname'  => 'With a Very Long Name',
             'email'     => 'longname@example.com',
-            'family_id' => Family::factory(['project_id' => $firstProject->id]),
-        ])->asMember()->joinProject($firstProject);
+            'family_id' => 1,
+        ]);
 
         // Example inactive User (@see DatabaseSeeder for further setup of this User)
-        User::factory()->create([
+        Member::factory()->inProject($projects[0])->create([
             'firstname' => 'Test',
             'lastname'  => 'Inactive',
             'email'     => 'inactive@example.com',
-        ])->asMember()->joinProject($firstProject)->leaveProject($firstProject);
+            'family_id' => 1,
+        ])->leaveProject();
     }
 }

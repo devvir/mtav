@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Project;
-use App\Models\UnitType;
+use Database\Factories\Concerns\InProject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,14 +11,26 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UnitTypeFactory extends Factory
 {
-    protected $model = UnitType::class;
+    use InProject;
+
+    public const TYPES = [
+        ['Duplex', 'Two-story unit'],
+        ['Penthouse', 'Top-floor unit'],
+        ['Studio', 'Small single-room unit'],
+        ['Loft', 'Open-plan industrial-style unit'],
+        ['1 Bedroom', 'One bedroom apartment'],
+        ['2 Bedroom', 'Two bedroom apartment'],
+        ['3 Bedroom', 'Three bedroom apartment'],
+    ];
 
     public function definition(): array
     {
+        $type = fake()->randomElement(self::TYPES);
+
         return [
             'project_id'  => Project::factory(),
-            'name'        => $this->faker->word(),
-            'description' => $this->faker->sentence(),
+            'name'        => $type[0],
+            'description' => $type[1],
         ];
     }
 }

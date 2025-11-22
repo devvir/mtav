@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Family;
 use App\Models\Project;
 use App\Models\UnitType;
-use App\Models\User;
+use Database\Factories\Concerns\InProject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -13,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class FamilyFactory extends Factory
 {
+    use InProject;
+
     /**
      * Define the model's default state.
      *
@@ -21,29 +22,9 @@ class FamilyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'         => $this->faker->lastName() . ' ' . $this->faker->lastName(),
             'project_id'   => Project::factory(),
-            'unit_type_id' => fn (array $attributes) => UnitType::factory()->create([
-                'project_id' => $attributes['project_id'],
-            ])->id,
+            'name'         => fake()->lastName() . ' ' . fake()->lastName(),
+            'unit_type_id' => $this->inSameProject(UnitType::class),
         ];
-    }
-
-    public function withMembers(): static
-    {
-        return $this->afterCreating(
-            fn (Family $family) => $family->members()->saveMany(tap(
-                User::factory()->count(rand(1, 6))->create(['family_id' => $family->id]),
-                fn ($users) => $family->project->members()->attach($users->pluck('id'))
-            ))
-        );
-    }
-
-    public function inProject(Project $project): static
-    {
-        return $this->state([
-            'project_id'   => $project->id,
-            'unit_type_id' => fn () => UnitType::factory()->create(['project_id' => $project->id])->id,
-        ]);
     }
 }

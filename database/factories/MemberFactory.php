@@ -4,41 +4,37 @@ namespace Database\Factories;
 
 use App\Models\Family;
 use App\Models\Member;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Project;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Member>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<Member>
  */
-class MemberFactory extends Factory
+class MemberFactory extends UserFactory
 {
     protected $model = Member::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    public function configure(): static
     {
-        return [
-            'family_id'              => Family::factory(),
-            'email'                  => fake()->unique()->safeEmail(),
-            'phone'                  => fake()->unique()->phoneNumber(),
-            'firstname'              => fake()->firstName(),
-            'lastname'               => fake()->lastName(),
-            'password'               => bcrypt('password'),
-            'remember_token'         => \Illuminate\Support\Str::random(10),
-            'invitation_accepted_at' => now(),
-            'email_verified_at'      => now(),
-            'is_admin'               => false,
-        ];
+        $this->state(fn (array $attributes) => [
+            'family_id' => Family::factory()->inProject($attributes['project_id']),
+        ]);
+
+        return $this->member()->afterCreating(
+            fn (Member $member) => $member->family?->project->addMember($member)
+        );
     }
 
-    /**
-     * Indicate that the member should belong to a specific family.
-     */
-    public function inFamily(Family $family): static
+    public function inProject(Project|int $projectOrId): static
     {
-        return $this->state(['family_id' => $family->id]);
+        $project = model($projectOrId, Project::class);
+
+        return parent::inProject($project)->recycle($project->families);
+    }
+
+    public function inFamily(Family|int $family): static
+    {
+        return $this->state([
+            'family_id' => $family->id ?? $family,
+        ]);
     }
 }

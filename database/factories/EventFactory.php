@@ -3,14 +3,19 @@
 namespace Database\Factories;
 
 use App\Enums\EventType;
+use App\Models\Admin;
 use App\Models\Project;
+use Database\Factories\Concerns\InProject;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Event>
  */
 class EventFactory extends Factory
 {
+    use InProject;
+
     /**
      * Define the model's default state.
      *
@@ -18,32 +23,28 @@ class EventFactory extends Factory
      */
     public function definition(): array
     {
-        // Create a mix of past, present, and future events for better testing
-        $timeScenario = $this->faker->randomElement(['past', 'present', 'future']);
-
-        $startDate = match($timeScenario) {
-            'past'    => $this->faker->optional(0.8)->dateTimeBetween('-6 months', '-1 day'),
-            'present' => $this->faker->optional(0.8)->dateTimeBetween('-2 hours', '+2 hours'),
-            'future'  => $this->faker->optional(0.8)->dateTimeBetween('+1 day', '+6 months'),
-        };
-
-        $endDate = $startDate
-            ? $this->faker
-                ->optional(0.6) // 40% chance of no end date
-                ->dateTimeBetween($startDate, $startDate->format('Y-m-d H:i:s') . ' +4 hours')
-            : null;
-
         return [
             'project_id'   => Project::factory(),
-            'title'        => $this->faker->sentence(3),
-            'description'  => $this->faker->paragraph(3),
-            'start_date'   => $startDate,
-            'end_date'     => $endDate,
-            'type'         => $this->faker->randomElement([EventType::ONLINE, EventType::ONSITE]),
-            'location'     => $this->faker->optional(0.6)->address(),
-            'is_published' => $this->faker->boolean(80),
-            'rsvp'         => $this->faker->boolean(30), // Increased chance for RSVP events
+            'creator_id'   => $this->inSameProject(Admin::class),
+            'start_date'   => fake()->optional(0.8)->dateTimeBetween('-1 month', '+3 month'),
+            'title'        => fake()->sentence(3),
+            'description'  => fake()->paragraph(3),
+            'type'         => fake()->randomElement([EventType::ONLINE, EventType::ONSITE]),
+            'location'     => fake()->optional(0.6)->address(),
+            'is_published' => fake()->boolean(80),
+            'rsvp'         => fake()->boolean(30), // Increased chance for RSVP events
         ];
+    }
+
+    public function configure()
+    {
+        return $this->state(function (array $attributes) {
+            $start = $attributes['start_date'] ? Carbon::parse($attributes['start_date']) : null;
+
+            return [
+                'end_date' => $start ? fake()->optional(0.5)->dateTimeBetween($start->addMinutes(5), $start->addHours(2)) : null,
+            ];
+        });
     }
 
     /**
@@ -53,7 +54,7 @@ class EventFactory extends Factory
     {
         return $this->state(fn () => [
             'title'        => __('Lottery'),
-            'description'  => __('The lottery event determines the allocation of units based on family preferences. This is a fair and transparent process where each family\'s preferences are considered according to the established lottery algorithm.'),
+            'description'  => __("general.lottery_default_description"),
             'type'         => EventType::LOTTERY,
             'is_published' => true,
         ]);
@@ -66,7 +67,7 @@ class EventFactory extends Factory
     {
         return $this->state(fn () => [
             'type'     => EventType::ONLINE,
-            'location' => $this->faker->url(),
+            'location' => fake()->url(),
         ]);
     }
 
@@ -77,7 +78,7 @@ class EventFactory extends Factory
     {
         return $this->state(fn () => [
             'type'     => EventType::ONSITE,
-            'location' => $this->faker->address(),
+            'location' => fake()->address(),
         ]);
     }
 }

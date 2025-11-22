@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - Pending review
+
 namespace Database\Seeders;
 
 use App\Models\Plan;
@@ -10,7 +12,7 @@ class PlanSeeder extends Seeder
 {
     public function run(): void
     {
-        $plan = Plan::find(12);
+        $plan = Plan::find(1);
 
         if (!$plan) {
             $this->command->warn('Plan #1 not found. Skipping PlanSeeder.');

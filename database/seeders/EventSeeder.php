@@ -4,50 +4,37 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\Project;
+use Exception;
 use Illuminate\Database\Seeder;
 
 class EventSeeder extends Seeder
 {
+    /**
+     * NOTE: Lottery events are created automatically by ProjectObserver
+     */
     public function run(): void
     {
-        // NOTE: Lottery events are created automatically by ProjectObserver
-        Project::with(['admins', 'members'])->get()->each(function (Project $project) {
-            $adminIds = $project->admins->pluck('id');
-            $memberIds = $project->members->pluck('id');
+        Project::with('admins', 'members')->get()->each(
+            fn (Project $project) => Event::factory()
+                ->count(rand(5, 20))
+                ->inProject($project)
+                ->recycle($project->admins)
+                ->create()
+                ->each(function (Event $event) use ($project) {
+                    $membersCount = $project->members->count();
 
-            // Create 2-10 events per project with random types
-            $totalEvents = rand(2, 10);
+                    if ($event->rsvp && $membersCount) {
+                        $rsvpsTrue = $project->members->random(rand(1, floor($membersCount / 2)));
+                        $rsvpsFalse = $project->members->random(rand(1, floor($membersCount / 2)));
 
-            for ($i = 0; $i < $totalEvents; $i++) {
-                // Randomly choose online or onsite for each event
-                $isOnline = rand(0, 1);
-
-                if ($isOnline) {
-                    $event = Event::factory()->online()
-                        ->create([
-                            'project_id' => $project->id,
-                            'creator_id' => $adminIds->random()
-                        ]);
-                } else {
-                    $event = Event::factory()->onSite()
-                        ->create([
-                            'project_id' => $project->id,
-                            'creator_id' => $adminIds->random()
-                        ]);
-                }
-
-                // Assign members to events that allow RSVP
-                if ($event->rsvp && $memberIds->isNotEmpty()) {
-                    $numRsvps = rand(0, min(10, $memberIds->count()));
-                    $selectedMembers = $memberIds->random($numRsvps);
-
-                    foreach ($selectedMembers as $memberId) {
-                        $event->rsvps()->attach($memberId, [
-                            'status' => rand(0, 1) ? true : (rand(0, 1) ? false : null),
-                        ]);
+                        try {
+                            $event->rsvps()->attach($rsvpsTrue, [ 'status' => true ]);
+                            $event->rsvps()->attach($rsvpsFalse, [ 'status' => false ]);
+                        } catch (Exception $e) {
+                            // Ignore duplicate entries
+                        }
                     }
-                }
-            }
-        });
+                })
+        );
     }
 }

@@ -3,33 +3,16 @@
 namespace Database\Factories;
 
 use App\Models\Admin;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Admin>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<Admin>
  */
-class AdminFactory extends Factory
+class AdminFactory extends UserFactory
 {
     protected $model = Admin::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    public function configure(): static
     {
-        return [
-            'email'                  => fake()->unique()->safeEmail(),
-            'phone'                  => fake()->unique()->phoneNumber(),
-            'firstname'              => fake()->firstName(),
-            'lastname'               => fake()->lastName(),
-            'password'               => bcrypt('password'),
-            'remember_token'         => \Illuminate\Support\Str::random(10),
-            'invitation_accepted_at' => now(),
-            'email_verified_at'      => now(),
-            'is_admin'               => true,
-            'family_id'              => null,
-        ];
+        return $this->admin();
     }
 }
