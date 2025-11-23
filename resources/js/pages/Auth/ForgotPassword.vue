@@ -44,7 +44,7 @@ const submit = () => {
             autocomplete="off"
             v-model="form.email"
             autofocus
-            placeholder="email@example.com"
+            :placeholder="_('email@example.com')"
           />
           <InputError :message="form.errors.email" />
         </div>

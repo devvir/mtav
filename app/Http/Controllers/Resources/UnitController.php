@@ -15,7 +15,7 @@ class UnitController extends Controller
 {
     public function index(FilteredIndexRequest $request): Response
     {
-        $units = currentProject()->units()->alphabetically()
+        $units = currentProject()->units()
             ->with('project', 'type', 'family')
             ->when($request->q, fn ($q, $search) => $q->search($search));
 

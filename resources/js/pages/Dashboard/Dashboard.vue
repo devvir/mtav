@@ -10,7 +10,6 @@ import {
   GallerySection,
   MembersSection,
   OverviewSection,
-  SkeletonCard,
   UnitsSection,
   WhileLoading,
 } from '.';
@@ -47,14 +46,6 @@ const visibleFamilies = computed<Family[]>(() => {
   <div class="flex h-full flex-1 flex-col gap-8 p-4">
     <Deferred :data="['stats', 'admins', 'members', 'families', 'events', 'media', 'unitTypes']">
       <template #fallback>
-        <!-- Overview skeleton -->
-        <section>
-          <div class="mb-3 h-7 w-32 animate-pulse rounded bg-surface-sunken" />
-          <div class="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4 @4xl:grid-cols-7">
-            <SkeletonCard v-for="i in 7" :key="i" height="h-24" />
-          </div>
-        </section>
-
         <WhileLoading />
       </template>
 
@@ -63,10 +54,10 @@ const visibleFamilies = computed<Family[]>(() => {
       <!-- Gallery and Events side by side -->
       <div class="grid gap-6 @4xl:grid-cols-2">
         <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
-          <GallerySection :media />
+          <GallerySection :media :total-count="stats.visual_media_count" />
         </div>
         <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
-          <EventsSection :events />
+          <EventsSection :events :total-count="stats.events_count" />
         </div>
       </div>
 
@@ -74,13 +65,13 @@ const visibleFamilies = computed<Family[]>(() => {
       <div class="grid gap-6 @4xl:grid-cols-2">
         <!-- Left column: Families + Admins -->
         <div class="flex flex-col gap-6 rounded-xl bg-card-elevated p-6 shadow-sm">
-          <FamiliesSection :families="visibleFamilies" :total-count="stats?.families_count" />
-          <AdminsSection :admins :total-count="stats?.admins_count" />
+          <FamiliesSection :families="visibleFamilies" :total-count="stats.families_count" />
+          <AdminsSection :admins :total-count="stats.admins_count" />
         </div>
 
         <!-- Right column: Members -->
         <div class="rounded-xl bg-card-elevated p-6 shadow-sm">
-          <MembersSection :members :total-count="stats?.members_count" />
+          <MembersSection :members :total-count="stats.members_count" />
         </div>
       </div>
 

@@ -4,7 +4,8 @@ import { Link } from '@inertiajs/vue3';
 import SectionHeader from '../shared/SectionHeader.vue';
 
 const props = defineProps<{
-  media?: Media[];
+  media: Media[];
+  totalCount: number;
 }>();
 
 const rotations = [
@@ -20,7 +21,7 @@ const placeholders = [
 ];
 
 const images = computed(() => {
-  const mediaUrls = props.media?.slice(0, 3).map((m: Media) => m.url) || [];
+  const mediaUrls = props.media.slice(0, 3).map((m: Media) => m.url) || [];
 
   return rotations.map((config, index) => ({
     url: mediaUrls[index] || placeholders[index],
@@ -31,7 +32,11 @@ const images = computed(() => {
 
 <template>
   <section>
-    <SectionHeader :title="_('Gallery')" :view-all-href="route('gallery')" />
+    <SectionHeader
+      :title="_('Gallery')"
+      view-all-href="gallery"
+      :view-all-text="totalCount > 1 ? `${_('View all')} (${totalCount})` : undefined"
+    />
 
     <Link :href="route('gallery')" class="block">
       <div class="relative h-64 overflow-hidden rounded-lg">

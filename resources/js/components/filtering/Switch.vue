@@ -30,7 +30,7 @@ const selectOption = (value: OptionValue) => {
       v-for="(label, value) in options"
       :key="value"
       type="button"
-      class="flex items-center justify-center px-4 py-2 text-sm font-medium transition-all duration-200 min-h-[48px] whitespace-nowrap"
+      class="flex items-center justify-center px-4 py-1 text-sm font-medium transition-all duration-100 whitespace-nowrap"
       :class="
         (selected === value)
           ? 'bg-primary text-primary-foreground shadow-sm'

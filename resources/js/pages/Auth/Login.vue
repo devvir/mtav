@@ -57,7 +57,7 @@ export default {
             :tabindex="1"
             autocomplete="email"
             v-model="form.email"
-            placeholder="email@example.com"
+            :placeholder="_('email@example.com')"
           />
           <InputError :message="form.errors.email" />
         </div>

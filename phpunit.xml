@@ -28,7 +28,6 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- Test database uses separate MySQL container (mysql_test service) -->
         <env name="DB_HOST" value="mysql_test"/>
         <env name="DB_DATABASE" value="mtav_test"/>
         <env name="MAIL_MAILER" value="array"/>

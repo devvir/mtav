@@ -11,7 +11,7 @@ uses()->group('Feature.Authentication');
 
 describe('When visiting an authorized-only page', function () {
     describe('as a Guest', function () {
-        it('it redirects to the Login page', function () {
+        it('redirects to the Login page', function () {
             $response = $this->visitRoute('members.index', redirects: false);
 
             expect($response)->toRedirectTo('login');

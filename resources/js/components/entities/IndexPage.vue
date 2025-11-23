@@ -18,12 +18,11 @@ const props = defineProps<{
 
 const route = `${entityNS(props.entity)}.index`;
 const loadable = entityNS(props.entity);
-const search = ref(usePage().props.q);
 const entitiesLabel = entityLabel(props.entity, 'plural');
 const title = props.pageTitle ?? entitiesLabel;
 
 const noItemsMessage = computed(() => {
-  return search
+  return usePage().props.q
     ? _('There are no {entities} matching your search', { entities: entitiesLabel })
     : _('There are no {entities} to display', { entities: entitiesLabel });
 });
@@ -33,7 +32,7 @@ const IndexCard = defineAsyncComponent(
 );
 
 const filtersConfig = computed(
-  () => props.filters ?? { q: { type: SEARCH, value: search.value } },
+  () => props.filters ?? { q: { type: SEARCH, value: usePage().props.q } },
 );
 </script>
 

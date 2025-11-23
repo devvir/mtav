@@ -14,9 +14,6 @@ docker_exec php composer install --no-interaction
 echo "Waiting for vendor volume to sync..."
 sleep 2
 
-echo "Installing NPM dependencies..."
-docker_exec assets npm install --force
-
 echo "Generating Laravel app key..."
 docker_exec php php artisan key:generate --no-interaction
 

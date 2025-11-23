@@ -8,17 +8,17 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 </script>
 
 <template>
-  <Head title="Appearance settings" />
+  <Head title="Appearance Settings" />
 
   <Breadcrumbs global>
     <Breadcrumb route="profile.edit" text="Settings" />
-    <Breadcrumb route="appearance" text="Appearance settings" />
+    <Breadcrumb route="appearance" text="Appearance Settings" />
   </Breadcrumbs>
 
   <SettingsLayout>
     <div class="space-y-6">
       <HeadingSmall
-        title="Appearance settings"
+        title="Appearance Settings"
         description="Update your account's appearance settings"
       />
       <AppearanceTabs />

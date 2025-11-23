@@ -3,6 +3,14 @@ import SkeletonCard from './SkeletonCard.vue';
 </script>
 
 <template>
+  <!-- Overview skeleton -->
+  <section>
+    <div class="mb-3 h-7 w-32 animate-pulse rounded bg-surface-sunken" />
+    <div class="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4 @4xl:grid-cols-7">
+      <SkeletonCard v-for="i in 7" :key="i" height="h-24" />
+    </div>
+  </section>
+
   <!-- Gallery and Events side by side -->
   <div class="grid gap-6 @4xl:grid-cols-2">
     <div class="rounded-xl bg-card-elevated p-6 shadow-sm">

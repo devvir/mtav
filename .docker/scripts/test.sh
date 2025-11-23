@@ -48,24 +48,31 @@ if [ "$RUN_VITEST" = true ]; then
 fi
 echo ""
 
-# Step 1: Ensure containers are up
-echo -e "${YELLOW}📋 Step 1: Ensuring containers are running...${NC}"
-docker_compose up --detach --quiet-pull
+# Step 1: Start test containers
+echo -e "${YELLOW}📋 Step 1: Starting test containers...${NC}"
 
-# Also start the test database (uses profile 'test')
+export APP_ENV=testing
+export COMPOSE_PROJECT_NAME=test
+export DB_HOST=mysql_test
+export DB_DATABASE=mtav_test
+export DOCKER_NGINX_PORT=8001
+export DOCKER_VITE_PORT=5174
+export DOCKER_MAILHOG_SMTP_PORT=1026
+export DOCKER_MAILHOG_WEB_PORT=8026
+export DOCKER_MYSQL_TEST_PORT=3308
+
+docker_compose --profile test up --detach --quiet-pull
+
+# Wait for test database to be healthy (if running Pest)
 if [ "$RUN_PEST" = true ]; then
-    echo -e "${YELLOW}🔧 Starting test database container...${NC}"
-    docker_compose --profile test up mysql_test --detach --quiet-pull 2>/dev/null
-
-    # Wait for test database to be healthy
     echo -e "${YELLOW}⏳ Waiting for test database to be ready...${NC}"
-    timeout 30 bash -c 'until docker inspect dev-mysql_test-1 --format="{{.State.Health.Status}}" 2>/dev/null | grep -q "healthy"; do sleep 0.5; done' || {
+    timeout 30 bash -c 'until docker inspect test-mysql_test-1 --format="{{.State.Health.Status}}" 2>/dev/null | grep -q "healthy"; do sleep 0.5; done' || {
         echo -e "${RED}❌ Test database failed to become healthy${NC}"
         exit 1
     }
 fi
 
-echo -e "${GREEN}✅ Containers are ready${NC}"
+echo -e "${GREEN}✅ Test containers are ready${NC}"
 echo ""
 
 # Step 2: Run Vitest tests (frontend)
@@ -127,6 +134,13 @@ else
 fi
 
 echo ""
+
+# Cleanup test containers
+if [ "$RUN_PEST" = true ]; then
+    echo -e "${YELLOW}🧹 Stopping test containers...${NC}"
+    export COMPOSE_PROJECT_NAME=test
+    docker_compose --profile test down 2>/dev/null
+fi
 
 # Exit with appropriate code (only in run-once mode)
 if [ "$RUN_ONCE" = true ] || [ "$RUN_VITEST" = false ]; then

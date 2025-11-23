@@ -14,8 +14,8 @@ defineProps<{
   <section>
     <SectionHeader
       :title="_('Recent Members')"
-      :view-all-href="members.length > 0 ? '/members' : undefined"
-      :view-all-text="members.length > 0 ? `${_('View all')} (${totalCount})` : undefined"
+      view-all-href="members.index"
+      :view-all-text="totalCount > members.length ? `${_('View all')} (${totalCount})` : undefined"
     />
     <div v-if="members.length > 0" class="grid gap-4 @md:grid-cols-2">
       <MemberCard v-for="member in members" :key="member.id" :member="member" />

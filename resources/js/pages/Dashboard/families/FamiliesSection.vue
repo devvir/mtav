@@ -15,8 +15,8 @@ defineProps<{
   <section class="flex-1">
     <SectionHeader
       :title="_('Families')"
-      :view-all-href="families.length > 0 ? '/families' : undefined"
-      :view-all-text="families.length > 0 ? `${_('View all')} (${totalCount})` : undefined"
+      view-all-href="families.index"
+      :view-all-text="totalCount > families.length ? `${_('View all')} (${totalCount})` : undefined"
     />
     <div v-if="families.length > 0" class="grid gap-4 @md:grid-cols-2">
       <FamilyCard v-for="family in families" :key="family.id" :family="family" />

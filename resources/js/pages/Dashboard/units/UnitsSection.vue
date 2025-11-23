@@ -12,7 +12,7 @@ defineProps<{
 
 <template>
   <section>
-    <SectionHeader :title="_('Project Units')" />
+    <SectionHeader :title="_('Project Units')" view-all-href="units.index" />
     <div v-if="unitTypes.length > 0" class="grid gap-4 @2xl:grid-cols-2">
       <UnitTypeCard v-for="unitType in unitTypes" :key="unitType.id" :unitType="unitType" />
     </div>

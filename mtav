@@ -39,6 +39,7 @@ print_help() {
     echo -e "${GREEN}Testing Aliases:${NC}"
     echo -e "  ${YELLOW}mtav pest${NC}              # Run PHP tests with Pest (alias for 'mtav test --pest')"
     echo -e "  ${YELLOW}mtav vitest${NC}            # Run JavaScript tests with Vitest (alias for 'mtav test --vitest')"
+    echo -e "  ${YELLOW}mtav cypress <cmd>${NC}     # Run Cypress E2E tests"
     echo -e "  ${YELLOW}mtav tinker${NC}            # Laravel Tinker REPL (alias for 'mtav artisan tinker')"
     echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
@@ -168,6 +169,10 @@ case $COMMAND in
 
     vitest)
         "$SCRIPTS_DIR/test.sh" --vitest "$@"
+        ;;
+
+    cypress)
+        "$SCRIPTS_DIR/cypress.sh" "$@"
         ;;
 
     tinker)

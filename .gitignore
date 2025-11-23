@@ -24,3 +24,9 @@ yarn-error.log
 /.vscode
 /.zed
 /.in-progress
+
+# Cypress
+/.cypress-cache
+/resources/js/tests/screenshots
+/resources/js/tests/videos
+/resources/js/tests/downloads
