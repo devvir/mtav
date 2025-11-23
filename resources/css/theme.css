@@ -446,6 +446,9 @@
   --background: hsl(200, 35%, 8%);
   --sidebar-background: hsl(195, 40%, 12%);
 
+  /* Card colors */
+  --card-elevated: hsl(195, 22%, 11%);
+
   /* Surface colors */
   --surface: hsl(200, 30%, 8%);
   --surface-foreground: hsl(200 20% 95%);
@@ -489,6 +492,9 @@
 .dark.theme-forest {
   --background: hsl(140, 25%, 8%);
   --sidebar-background: hsl(145, 30%, 10%);
+
+  /* Card colors */
+  --card-elevated: hsl(145, 18%, 11%);
 
   /* Surface colors */
   --surface: hsl(140, 22%, 8%);
@@ -534,6 +540,9 @@
   --background: hsl(25, 30%, 8%);
   --sidebar-background: hsl(30, 35%, 10%);
 
+  /* Card colors */
+  --card-elevated: hsl(30, 18%, 10%);
+
   /* Surface colors */
   --surface: hsl(25, 28%, 8%);
   --surface-foreground: hsl(25 18% 95%);
@@ -578,6 +587,9 @@
   --background: hsl(0 0% 8%);
   --sidebar-background: hsl(0 0% 10%);
 
+  /* Card colors */
+  --card-elevated: hsl(0 0% 11%);
+
   /* Surface colors */
   --surface: hsl(0 0% 8%);
   --surface-foreground: hsl(0 0% 100%);
@@ -621,6 +633,9 @@
 .dark.theme-high-contrast {
   --background: hsl(0 0% 0%);
   --sidebar-background: hsl(0 0% 5%);
+
+  /* Card colors */
+  --card-elevated: hsl(0 0% 6%);
 
   /* Surface colors */
   --surface: hsl(0 0% 0%);
