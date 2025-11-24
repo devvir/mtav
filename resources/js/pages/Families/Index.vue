@@ -3,7 +3,7 @@ import MemberFamilyFilters from '@/components/entities/_shared/MemberFamilyFilte
 import IndexPage from '@/components/entities/IndexPage.vue';
 
 defineProps<{
-  families: ApiResources<Family>;
+  families?: ApiResources<Family>;
 }>();
 </script>
 

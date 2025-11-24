@@ -26,7 +26,7 @@ class MemberController extends Controller
             ->when($request->q, fn ($q, $search) => $q->search($search, searchFamily: true));
 
         return inertia('Members/Index', [
-            'members' => Inertia::deepMerge(fn () => $members->paginate(30)),
+            'members' => Inertia::defer(fn () => $members->paginate(30))->deepMerge(),
             'q'       => $request->q ?? '',
         ]);
     }

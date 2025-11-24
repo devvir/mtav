@@ -10,7 +10,7 @@ import { _ } from '@/composables/useTranslations';
 
 const props = defineProps<{
   entity: AppEntity;
-  resources: ApiResources;
+  resources: MaybeDeferred<ApiResources>;
   pageTitle?: string;
   filters?: FilterConfig;
   cardSize?: CardSize;
@@ -47,7 +47,7 @@ const filtersConfig = computed(
     <Filters :config="filtersConfig" auto-filter />
   </slot>
 
-  <InfinitePaginator :list="resources" :loadable :cardSize :no-items-message="noItemsMessage">
+  <InfinitePaginator :resources :loadable :cardSize :no-items-message="noItemsMessage">
     <template v-slot="{ item }">
       <component :is="IndexCard" v-bind="{ [entity]: item }" />
     </template>

@@ -24,7 +24,7 @@ class FamilyController extends Controller
             ->when($request->q, fn ($q, $search) => $q->search($search, searchMembers: true));
 
         return inertia('Families/Index', [
-            'families' => Inertia::deepMerge(fn () => $families->paginate(30)),
+            'families' => Inertia::defer(fn () => $families->paginate(30))->deepMerge(),
             'q'        => $request->q ?? '',
         ]);
     }
