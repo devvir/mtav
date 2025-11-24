@@ -119,7 +119,8 @@
     "resources/js/**/*.tsx",
     "resources/js/**/*.vue",
     "resources/js/**/*.json",
-    "auto-imports.d.ts"
+    "auto-imports.d.ts",
+    "tests/e2e/**/*.ts"
   ],
   "exclude": [
     "node_modules"

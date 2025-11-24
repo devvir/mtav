@@ -1,3 +1,5 @@
+type MaybeDeferred<T> = T | undefined;
+
 type AppEntity =
   | 'project'
   | 'unit'
@@ -20,7 +22,7 @@ type AppEntityNS =
   | 'media'
   | 'logs';
 
-type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'files';
+type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'gallery';
 
 type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';

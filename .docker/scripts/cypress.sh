@@ -9,10 +9,16 @@ source "$(dirname "$0")/compose.sh"
 
 # Parse mode (open or run)
 MODE="${1:-open}"
+shift # Remove first argument to get remaining args
 
 if [[ "$MODE" != "open" && "$MODE" != "run" ]]; then
     echo -e "${RED}Invalid mode: $MODE${NC}"
-    echo "Usage: mtav cypress [open|run]"
+    echo "Usage: mtav cypress [open|run] [--spec <pattern>]"
+    echo "Examples:"
+    echo "  mtav cypress open                          # Open Cypress GUI"
+    echo "  mtav cypress run                           # Run all tests"
+    echo "  mtav cypress run --spec tests/e2e/Views/lottery.cy.ts"
+    echo "  mtav cypress run --spec 'tests/e2e/Views/**/*.cy.ts'"
     exit 1
 fi
 
@@ -23,6 +29,7 @@ echo -e "${BLUE}🧪 Starting Cypress E2E test environment...${NC}"
 echo ""
 
 # Start test environment (separate from dev)
+# TODO : use its own assets container (for some reason it's broken so I removed it for now)
 echo -e "${YELLOW}Starting test containers...${NC}"
 DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
     docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
@@ -87,14 +94,24 @@ if [ "$MODE" = "open" ]; then
     DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
         docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
         --profile test \
-        run --rm e2e npx cypress open
+        run --rm e2e npx cypress open "$@"
     EXIT_CODE=$?
 else
-    echo -e "${BLUE}Running Cypress tests in parallel (4 workers)...${NC}"
+    # Check if --spec argument provided
+    SPEC_ARG=""
+    if [[ "$*" == *"--spec"* ]]; then
+        echo -e "${BLUE}Running specified Cypress tests...${NC}"
+        DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
+            docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
+            --profile test \
+            run --rm e2e npx cypress run "$@"
+        EXIT_CODE=$?
+    else
+        echo -e "${BLUE}Running Cypress tests in parallel (4 workers)...${NC}"
 
-    # Get all spec files
-    SPEC_FILES=($(cd "$DOCKER_DIR/.." && find tests/e2e/Views -name "*.cy.ts" | sort))
-    TOTAL_SPECS=${#SPEC_FILES[@]}
+        # Get all spec files
+        SPEC_FILES=($(cd "$DOCKER_DIR/.." && find tests/e2e/Views -name "*.cy.ts" | sort))
+        TOTAL_SPECS=${#SPEC_FILES[@]}
 
     # Number of parallel workers (adjust based on your CPU cores)
     WORKERS=4
@@ -107,6 +124,30 @@ else
     # Run specs in parallel
     pids=()
     EXIT_CODE=0
+
+    # Trap SIGINT and SIGTERM to kill all workers on Ctrl+C
+    cleanup_workers() {
+        echo ""
+        echo -e "${YELLOW}Caught interrupt signal, stopping all workers...${NC}"
+        for pid in "${pids[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -TERM "$pid" 2>/dev/null
+            fi
+        done
+        # Wait a moment for graceful shutdown
+        sleep 1
+        # Force kill any remaining processes
+        for pid in "${pids[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -KILL "$pid" 2>/dev/null
+            fi
+        done
+        # Kill any remaining docker compose processes
+        docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" --profile test kill e2e 2>/dev/null
+        EXIT_CODE=130
+        exit 130
+    }
+    trap cleanup_workers SIGINT SIGTERM
 
     for ((i=0; i<WORKERS; i++)); do
         # Get specs for this worker (round-robin distribution)
@@ -143,8 +184,12 @@ else
         fi
     done
 
-    echo ""
-    echo -e "${BLUE}Worker logs saved to: $LOG_DIR${NC}"
+    # Remove the trap now that workers are done
+    trap - SIGINT SIGTERM
+
+        echo ""
+        echo -e "${BLUE}Worker logs saved to: $LOG_DIR${NC}"
+    fi
 fi
 
 echo ""
