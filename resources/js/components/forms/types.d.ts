@@ -41,6 +41,7 @@ export interface InputSpecs extends CommonElementSpecs {
 }
 
 export type SelectOptions = { [key: string | number]: string | number };
+export type FilteredSelectOptions = { [parentId: string | number]: SelectOptions };
 
 export interface SelectAddOption {
   target: string;
@@ -49,9 +50,10 @@ export interface SelectAddOption {
 
 export interface CommonSelectSpecs extends CommonElementSpecs {
   element: 'select';
-  options: SelectOptions;
   displayId?: boolean;
   create?: SelectAddOption;
+  placeholder?: string;
+  hidden?: boolean;
 }
 
 export interface SingleSelectSpecs extends CommonSelectSpecs {
@@ -64,7 +66,17 @@ export interface MultipleSelectSpecs extends CommonSelectSpecs {
   selected?: string[] | number[] | [];
 }
 
-export type SelectSpecs = SingleSelectSpecs | MultipleSelectSpecs;
+export interface UnfiteredOptionsSpecs {
+  options: SelectOptions;
+  filteredBy?: undefined | null;
+}
+
+export interface FilteredOptionsSpecs {
+  options: FilteredSelectOptions;
+  filteredBy: string;
+}
+
+export type SelectSpecs = (SingleSelectSpecs | MultipleSelectSpecs) & (FilteredOptionsSpecs | UnfiteredOptionsSpecs);
 
 export type ElementSpecs = InputSpecs | HiddenInputSpecs | SelectSpecs;
 
@@ -73,3 +85,10 @@ export type FormSpecs = Record<string, ElementSpecs>;
 export type FormType = 'create' | 'edit';
 
 export type FormUpdateEvent = { field: string; value: ValueType | ValueType[] };
+
+export interface FormServiceData {
+  type: FormType;
+  action: [string, number | string | null];
+  title: string;
+  specs: FormSpecs;
+}

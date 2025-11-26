@@ -6,14 +6,14 @@ import FormInput from './FormInput.vue';
 import FormSelect from './FormSelect.vue';
 import FormSubmit from './FormSubmit.vue';
 import * as keys from './keys';
-import { FormSpecs, FormUpdateEvent, ValueType } from './types';
+import { FormSpecs, FilteredOptionsSpecs, FormUpdateEvent, ValueType, FilteredSelectOptions } from '.';
 
 const emit = defineEmits<{
   update: [payload: FormUpdateEvent];
 }>();
 
 const props = defineProps<{
-  type: string;
+  type: 'create' | 'update' | 'delete';
   action: string;
   params: unknown;
   title: string;
@@ -34,7 +34,7 @@ const name2component = (name: string) => formElements[name as keyof typeof formE
 
 const type2button: Record<string, string> = {
   create: 'Create',
-  edit: 'Update',
+  update: 'Update',
   delete: 'Delete',
 };
 
@@ -48,6 +48,29 @@ const formFields: Record<string, ValueType | ValueType[]> = props.specs
   : {}; // TODO : for inline definition (no specs), infer fields from v-model bindings in slot content
 
 const form = useForm(formFields);
+
+const dependencies: [string, string, FilteredSelectOptions][] = Object.entries((props.specs ?? {}) as FormSpecs)
+  .filter(([, spec]) => spec.element === 'select' && spec.filteredBy)
+  .map(([name, spec]) => [name, (spec as FilteredOptionsSpecs).filteredBy, (spec as FilteredOptionsSpecs).options]);
+
+const options = reactive<{ [key: string]: FilteredSelectOptions }>({});
+const placeholders = reactive<{ [key: string]: string }>({});
+
+// Handle dependant selects (e.g. those with project-scoped options)
+watch(() => form, () => {
+  dependencies.forEach(([name, filteredBy, allOptions]) => {
+    const selectedParent = form[filteredBy] as string | number;
+    options[name] = selectedParent ? allOptions[selectedParent] ?? [] : [];
+
+    // Set placeholder based on parent selection
+    delete placeholders[name];
+
+    if (!selectedParent && props.specs[filteredBy]) {
+      const parentLabel = _(props.specs![filteredBy].label);
+      placeholders[name] = _('Please select a {parent} first', { parent: parentLabel });
+    }
+  });
+}, { immediate: true, deep: true });
 
 // Emit update event when a form value changes
 watch(form, (data: InertiaForm<object>) =>
@@ -75,7 +98,7 @@ watch(
 );
 
 const submit = (onSuccess?: () => void) => {
-  const method = props.type === 'edit' ? 'put' : 'post';
+  const method = props.type === 'update' ? 'put' : 'post';
 
   form.submit(method, route(props.action, props.params), {
     preserveScroll: true,
@@ -104,7 +127,7 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
               <Component
                 :is="name2component(element)"
                 :name="<keyof typeof formFields>name"
-                v-bind="{ ...def }"
+                v-bind="def.filteredBy ? { ...def, options: options[name], placeholder: placeholders[name] } : def"
                 v-model="form[name] as ValueType"
                 :error="form.errors[name]"
                 @input="form.clearErrors(<keyof typeof formFields>name)"

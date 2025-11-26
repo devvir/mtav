@@ -1,17 +1,17 @@
-import type { AuthUser } from '@/types/inertia';
+import type { Auth, AuthUser } from '@/types/inertia';
 
 const page = usePage();
 
-export const auth = computed(() => page.props.auth);
-export const currentUser = computed(() =>
+export const auth = computed<Auth>(() => page.props.auth);
+export const currentUser = computed<Admin | Member>(() =>
   iAmAdmin ? (auth.value.user as AuthUser & Admin) : (auth.value.user as AuthUser & Member),
 );
 
-export const iAmMember = computed(() => auth.value.user?.is_admin === false);
-export const iAmAdmin = computed(() => auth.value.user?.is_admin ?? false);
-export const iAmNotAdmin = computed(() => !iAmAdmin.value);
-export const iAmSuperadmin = computed(() => auth.value.user?.is_superadmin ?? false);
-export const iAmNotSuperadmin = computed(() => !iAmSuperadmin.value);
+export const iAmMember = computed<boolean>(() => auth.value.user?.is_admin === false);
+export const iAmAdmin = computed<boolean>(() => auth.value.user?.is_admin ?? false);
+export const iAmNotAdmin = computed<boolean>(() => !iAmAdmin.value);
+export const iAmSuperadmin = computed<boolean>(() => auth.value.user?.is_superadmin ?? false);
+export const iAmNotSuperadmin = computed<boolean>(() => !iAmSuperadmin.value);
 
 export const can = reactive({
   create: (resource: AppEntityNS): boolean => currentUser.value?.can.create[resource] ?? false,

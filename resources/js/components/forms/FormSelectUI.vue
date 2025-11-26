@@ -5,7 +5,7 @@ import DropdownContent from '../dropdown/DropdownContent.vue';
 import DropdownTrigger from '../dropdown/DropdownTrigger.vue';
 import FormSelectAddOption from './FormSelectAddOption.vue';
 import * as keys from './keys';
-import { SelectAddOption, ValueType } from './types';
+import { SelectAddOption, ValueType } from '.';
 
 const selected = defineModel<(string | number)[]>();
 
@@ -38,7 +38,7 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
   }
 };
 
-const isDisabled = computed(() => props.disabled || !Object.values(props.options).length);
+const isDisabled = computed(() => props.disabled || Object.values(props.options).length < 2);
 
 const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) => void;
 </script>
@@ -57,7 +57,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
         tabindex="-1"
         :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"
-        :placeholder="isDisabled ? '' : (placeholder ?? _('Click to select an option'))"
+        :placeholder="disabled ? '' : (placeholder ?? _('Click to select an option'))"
       />
 
       <DropdownTrigger

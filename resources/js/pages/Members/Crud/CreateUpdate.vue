@@ -65,13 +65,11 @@ const specs: FormSpecs = {
 /**
  * Members cannot choose project or family; these are set automatically
  */
-if (iAmNotAdmin.value || props.type === 'edit') {
+if (props.type === 'edit' || iAmNotAdmin.value) {
+  const family = props.type === 'edit' ? props.member.family : (currentUser.value as Member).family;
+
   specs.project_id = { element: 'input', type: 'hidden', value: currentProject.value?.id };
-  specs.family_id = {
-    element: 'input',
-    type: 'hidden',
-    value: (currentUser.value as Member).family.id,
-  };
+  specs.family_id = { element: 'input', type: 'hidden', value: family.id };
 }
 
 const handleFormChange = ({ field, value }: FormUpdateEvent) => {
@@ -93,9 +91,9 @@ watchEffect(() => {
 
 <template>
   <Form
-    v-bind="{ type, action, params: props.member?.id, title }"
+    v-bind="{ type, action, params: member?.id, title }"
     :specs="specs"
-    :buttonText="props.type === 'edit' ? undefined : 'Invite'"
+    :buttonText="type === 'edit' ? undefined : 'Invite'"
     autocomplete="off"
     @update="handleFormChange"
   >

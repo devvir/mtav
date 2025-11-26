@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 /**
  * @property-read string $name
  * @property-read string $description
- * @property-read string $organization
+ * @property-read string|null $organization
  * @property-read array<int> $admins
  */
 class CreateProjectRequest extends FormRequest
@@ -16,13 +16,10 @@ class CreateProjectRequest extends FormRequest
     {
         return [
             'name'         => 'required|string|max:255|unique:projects,name',
-            'description'  => 'required|string|between:20,500',
-            'organization' => 'required|string|between:2,255',
-            'admins'       => 'required|array',
-            'admins.*'     => [
-                'required',
-                Rule::exists('users', 'id')->where('is_admin', true),
-            ],
+            'description'  => 'required|string|between:2,500',
+            'organization' => 'string|between:2,255',
+            'admins'       => 'array',
+            'admins.*'     => [ Rule::exists('users', 'id')->where('is_admin', true) ],
         ];
     }
 }

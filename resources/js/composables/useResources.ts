@@ -17,7 +17,7 @@ const type2ns: Record<AppEntity, AppEntityNS> = {
 
 const type2plural = {
   ...type2ns,
-  media: 'gallery',
+  media: 'items',
 } as Record<AppEntity, AppEntityPluralForm>;
 
 const ns2type = Object.fromEntries(

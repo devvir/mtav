@@ -1,9 +1,9 @@
-import Form from './Form.vue';
-import FormElement from './FormElement.vue';
-import FormError from './FormError.vue';
-import FormInput from './FormInput.vue';
-import FormLabel from './FormLabel.vue';
-import FormSelect from './FormSelect.vue';
-import FormSubmit from './FormSubmit.vue';
+export { default as Form } from './Form.vue';
+export { default as FormElement } from './FormElement.vue';
+export { default as FormError } from './FormError.vue';
+export { default as FormInput } from './FormInput.vue';
+export { default as FormLabel } from './FormLabel.vue';
+export { default as FormSelect } from './FormSelect.vue';
+export { default as FormSubmit } from './FormSubmit.vue';
 
-export { Form, FormElement, FormError, FormInput, FormLabel, FormSelect, FormSubmit };
+export * from './types.d';

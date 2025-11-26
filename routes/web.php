@@ -20,9 +20,6 @@ Route::middleware('auth')->group(__DIR__ . '/web/auth.php');
 /** Documentation Routes */
 Route::middleware('auth')->group(__DIR__ . '/web/documentation.php');
 
-/** Development Routes */
-Route::middleware('auth')->group(__DIR__ . '/web/dev.php');
-
 /** User Settings Routes */
 Route::middleware('auth', 'verified')->group(__DIR__ . '/web/settings.php');
 
@@ -37,5 +34,5 @@ Route::middleware('auth', 'verified')->group(__DIR__ . '/web/users.php');
 
 /** Development Routes (only in development environments) */
 if (app()->environment('local', 'testing')) {
-    Route::middleware('auth')->group(__DIR__ . '/web/dev.php');
+    Route::middleware('auth')->prefix('dev')->group(__DIR__ . '/web/dev.php');
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FormError from './FormError.vue';
 import FormLabel from './FormLabel.vue';
-import { ValueType } from './types';
+import { ValueType } from '.';
 
 const props = defineProps<{
   model: ValueType | ValueType[];
@@ -27,8 +27,8 @@ const valueProvided = computed<boolean>(() =>
         'border-border': !disabled,
         'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20':
           !disabled,
-        'not-focus-within:has-[:valid]:border-success/20': valueProvided && !disabled,
-        'not-focus-within:has-[:invalid]:border-error/60': valueProvided && !disabled,
+        'not-focus-within:has-valid:border-success/20': valueProvided && !disabled,
+        'not-focus-within:has-invalid:border-error/60': valueProvided && !disabled,
         'border-border-subtle': disabled,
       }"
     >

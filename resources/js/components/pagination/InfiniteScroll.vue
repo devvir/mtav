@@ -28,7 +28,7 @@ watchEffect(() => window.history.replaceState({}, '', props.pageSpecs.path));
     :buffer="600"
   />
 
-  <div v-if="pendingResults" class="my-5 flex justify-center">
+  <div v-if="pendingResults && pageSpecs.current_page > 1" class="my-5 flex justify-center">
     <span class="text-xs">{{ _('Loading...') }}</span>
   </div>
 </template>

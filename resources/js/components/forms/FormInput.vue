@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FormElement from './FormElement.vue';
-import { ValueType } from './types';
+import { ValueType } from '.';
 
 const model = defineModel<ValueType>();
 

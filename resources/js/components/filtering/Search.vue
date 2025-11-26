@@ -28,7 +28,7 @@ watchDebounced(
       type="search"
       :autofocus="autofocus"
       v-model.trim="search"
-      class="w-full rounded-xl border-1 border-border bg-background/80 px-6 py-2 text-lg text-text placeholder-text-muted/50 shadow-sm outline-0 backdrop-blur-sm focus:placeholder-transparent focus:ring-2 focus:ring-focus-ring hocus:bg-background/90"
+      class="w-full rounded-xl border border-border bg-background/80 px-base py-1 text-lg text-text placeholder-text-muted/50 shadow-sm outline-0 backdrop-blur-sm focus:placeholder-transparent focus:ring-2 focus:ring-focus-ring hocus:bg-background/90"
       :placeholder="_(placeholder ?? 'Search...')"
     />
   </div>

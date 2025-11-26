@@ -20,7 +20,7 @@ defineProps<{
 }>();
 
 const modal = inject(MAYBEMODAL, ref({ close: () => null }));
-const closeModal = modal.value.close;
+const closeModal = modal.value?.close;
 
 const entity = inject(exposed.entity, {}) as AppEntity;
 const resource = inject(exposed.resource, {}) as ApiResource;

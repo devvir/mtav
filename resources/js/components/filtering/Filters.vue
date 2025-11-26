@@ -53,8 +53,7 @@ onMounted(() => updateModelFromConfig());
   <Sticky>
     <div :class="cn(
       'flex flex-col justify-between gap-wide lg:flex-row lg:items-center',
-      'px-base py-wide backdrop-blur-sm',
-      'border-b border-border/20 shadow-accent-foreground/25',
+      'p-wide pt-0 border-b border-border/20 shadow-accent-foreground/25',
       $props.class
     )">
       <!-- Config-driven components -->

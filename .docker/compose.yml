@@ -19,6 +19,10 @@ services:
       - APP_ENV=${APP_ENV:-local}
     networks:
       - mtav-network
+    profiles:
+      - "" # Default profile (dev)
+      - test # Pest/Vitest tests
+      - cypress # Cypress e2e tests
 
   # Assets development server (Vite w/HMR)
   assets:
@@ -37,6 +41,9 @@ services:
       - CHOKIDAR_USEPOLLING=true
     networks:
       - mtav-network
+    profiles:
+      - "" # Default profile (dev)
+      - test # Pest/Vitest tests
 
   # Nginx web server
   nginx:
@@ -44,22 +51,21 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_NGINX_PORT:-8000}:80"
-    profiles:
-      - "" # Default profile (always runs)
-      - test # Also runs in test environment
     volumes:
       - ..:/var/www/html:cached
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - mtav-network
+    profiles:
+      - "" # Default profile (dev)
+      - test # Pest/Vitest tests
+      - cypress # Cypress e2e tests
 
   # Database
   mysql:
     image: mariadb:12
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
-    profiles:
-      - "" # Default profile only (not in test)
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: ${DB_DATABASE:-mtav}
@@ -95,7 +101,8 @@ services:
     networks:
       - mtav-network
     profiles:
-      - test
+      - test # Pest/Vitest tests
+      - cypress # Cypress e2e tests
 
   # Mail testing server
   mailhog:
@@ -106,6 +113,9 @@ services:
       - "${DOCKER_MAILHOG_WEB_PORT:-8025}:8025"
     networks:
       - mtav-network
+    profiles:
+      - "" # Default profile (dev)
+      - cypress # Cypress e2e tests
 
   # E2E Testing (Cypress)
   e2e:
@@ -119,12 +129,12 @@ services:
       - CYPRESS_baseUrl=http://nginx
     networks:
       - mtav-network
-    profiles:
-      - test
     depends_on:
       - nginx
       - php
       - mysql_test
+    profiles:
+      - cypress # Cypress e2e tests only
 
 volumes:
   mysql_data:

@@ -31,10 +31,10 @@ echo ""
 # Start test environment (separate from dev)
 # TODO : use its own assets container (for some reason it's broken so I removed it for now)
 echo -e "${YELLOW}Starting test containers...${NC}"
-DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
+DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8002 DOCKER_MYSQL_TEST_PORT=3309 DOCKER_MAILHOG_SMTP_PORT=1027 DOCKER_MAILHOG_WEB_PORT=8027 \
     docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
-    --profile test \
-    up php nginx mysql_test --detach --quiet-pull
+    --profile cypress \
+    up --detach --quiet-pull
 
 # Wait for mysql_test to be healthy
 echo -e "${YELLOW}Waiting for test database...${NC}"
@@ -91,9 +91,9 @@ echo ""
 # Run Cypress (using e2e container)
 if [ "$MODE" = "open" ]; then
     echo -e "${BLUE}Opening Cypress GUI...${NC}"
-    DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
+    DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8002 DOCKER_MYSQL_TEST_PORT=3309 DOCKER_MAILHOG_SMTP_PORT=1027 DOCKER_MAILHOG_WEB_PORT=8027 \
         docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
-        --profile test \
+        --profile cypress \
         run --rm e2e npx cypress open "$@"
     EXIT_CODE=$?
 else
@@ -101,9 +101,9 @@ else
     SPEC_ARG=""
     if [[ "$*" == *"--spec"* ]]; then
         echo -e "${BLUE}Running specified Cypress tests...${NC}"
-        DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
+        DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8002 DOCKER_MYSQL_TEST_PORT=3309 DOCKER_MAILHOG_SMTP_PORT=1027 DOCKER_MAILHOG_WEB_PORT=8027 \
             docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
-            --profile test \
+            --profile cypress \
             run --rm e2e npx cypress run "$@"
         EXIT_CODE=$?
     else
@@ -143,7 +143,7 @@ else
             fi
         done
         # Kill any remaining docker compose processes
-        docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" --profile test kill e2e 2>/dev/null
+        docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" --profile cypress kill e2e 2>/dev/null
         EXIT_CODE=130
         exit 130
     }
@@ -162,9 +162,9 @@ else
 
             # Run worker in background, output to log file
             (
-                DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8001 \
+                DB_HOST=mysql_test DB_DATABASE=mtav_test DB_USERNAME=mtav DB_PASSWORD=password APP_ENV=testing DOCKER_NGINX_PORT=8002 DOCKER_MYSQL_TEST_PORT=3309 DOCKER_MAILHOG_SMTP_PORT=1027 DOCKER_MAILHOG_WEB_PORT=8027 \
                     docker compose -f "$DOCKER_DIR/compose.yml" --project-name "$TEST_PROJECT" \
-                    --profile test \
+                    --profile cypress \
                     run --rm e2e npx cypress run --spec "$spec_list" 2>&1 | tee "$LOG_DIR/worker-$((i+1)).log"
             ) &
             pids+=($!)

@@ -5,6 +5,8 @@ use App\Models\Event;
 use App\Models\Member;
 use App\Models\Project;
 
+uses()->group('Unit.Models');
+
 describe('When counting Member invitations to RSVP Events', function () {
     it(
         'correctly counts total, acknowledged, accepted, and declined invitations',

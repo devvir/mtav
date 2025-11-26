@@ -4,7 +4,7 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Code, CreditCard, Filter, Map, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
+import { Code, CreditCard, FileText, Filter, Map, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
 
 const devPages = [
   {
@@ -28,6 +28,13 @@ const devPages = [
     icon: Filter,
     route: 'dev.filters',
     color: 'text-emerald-500',
+  },
+  {
+    title: 'Forms',
+    description: 'Interactive preview and testing interface for form components',
+    icon: FileText,
+    route: 'dev.forms',
+    color: 'text-cyan-500',
   },
   {
     title: 'Card Components',

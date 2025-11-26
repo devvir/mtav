@@ -4,7 +4,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
-import { entityLabel, entityNS, entityPlural } from '@/composables/useResources';
+import { entityLabel, entityNS } from '@/composables/useResources';
 import { ModalWidth } from '@inertiaui/modal-vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
@@ -20,7 +20,7 @@ const props = defineProps<{
 const title = props.pageTitle ?? props.resource.name ?? entityLabel(props.entity);
 const routeIndex = `${entityNS(props.entity)}.index`;
 const routeShow = `${entityNS(props.entity)}.show`;
-const indexName = entityPlural(props.entity);
+const indexName = entityLabel(props.entity, 'plural');
 
 const ShowCard = defineAsyncComponent(
   () => import(`@/components/entities/${props.entity}/ShowCard.vue`),
@@ -39,6 +39,6 @@ const ShowCard = defineAsyncComponent(
     <component
       :is="ShowCard"
       v-bind="{ [entity]: resource }"
-      :class="cn('mx-auto max-w-xl pt-4 pb-1 [&>*]:px-8', $props.class)" />
+      :class="cn('mx-auto max-w-xl pt-4 pb-1 *:px-8', $props.class)" />
   </MaybeModal>
 </template>

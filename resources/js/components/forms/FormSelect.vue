@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FormElement from './FormElement.vue';
 import FormSelectUI from './FormSelectUI.vue';
-import { ValueType } from './types';
+import { ValueType } from '.';
 
 const originalModel = defineModel<ValueType | ValueType[]>();
 
@@ -11,12 +11,13 @@ const props = defineProps<{
   label: string;
   options: { [key: string | number]: string };
   error?: string;
+  hidden?: boolean;
 }>();
 
 const model = ref<ValueType[]>(
   Array.isArray(originalModel.value)
     ? originalModel.value
-    : originalModel.value !== undefined
+    : originalModel.value != null
       ? [originalModel.value]
       : [],
 );
@@ -31,7 +32,7 @@ watch(
 </script>
 
 <template>
-  <FormElement v-bind="{ model, ...$props, ...$attrs }">
+  <FormElement v-bind="{ model, ...$props, ...$attrs }" :class="{ hidden }">
     <template v-slot:default="{ id, slotAfter }">
       <div class="relative">
         <select

@@ -22,7 +22,7 @@ type AppEntityNS =
   | 'media'
   | 'logs';
 
-type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'gallery';
+type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'items';
 
 type ResourceAction = 'index' | 'show' | 'create' | 'edit' | 'destroy' | 'restore';
 type ResourcePolicy = 'view' | 'update' | 'delete' | 'restore' | 'forceDelete';
