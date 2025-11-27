@@ -6,7 +6,8 @@ use App\Http\Requests\CreateFamilyRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Models\Family;
-use App\Models\Project;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,8 +39,10 @@ class FamilyController extends Controller
 
     public function create(): Response
     {
+        $formSpecs = FormService::make(Family::class, FormType::CREATE);
+
         return inertia('Families/Create', [
-            'projects' => Project::alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 
@@ -53,9 +56,10 @@ class FamilyController extends Controller
 
     public function edit(Family $family): Response
     {
+        $formSpecs = FormService::make($family, FormType::UPDATE);
+
         return inertia('Families/Edit', [
-            'family'   => $family->load('project'),
-            'projects' => Project::alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 
