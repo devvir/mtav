@@ -12,44 +12,42 @@ const form = useForm({
   password: '',
 });
 
-const submit = () => {
-  form.post(route('password.confirm'), {
-    onFinish: () => {
-      form.reset();
-    },
-  });
-};
+const submit = () => form.post(route('password.confirm'), {
+  onFinish: () => form.reset(),
+});
+</script>
+
+<script lang="ts">
+export default { layout: null };
 </script>
 
 <template>
-  <Head title="Confirm password" />
+
+  <Head title="Confirm Password" />
 
   <AuthLayout
     title="Confirm your password"
     description="This is a secure area of the application. Please confirm your password before continuing."
   >
-    <form @submit.prevent="submit">
-      <div class="space-y-6">
-        <div class="grid gap-2">
-          <Label htmlFor="password">{{ _('Password') }}</Label>
-          <Input
-            id="password"
-            type="password"
-            class="mt-1 block w-full"
-            v-model="form.password"
-            required
-            autocomplete="current-password"
-            autofocus
-          />
-          <InputError :message="form.errors.password" />
-        </div>
+    <form @submit.prevent="submit" class="space-y-6">
+      <div class="grid gap-2">
+        <Label htmlFor="password">{{ _('Password') }}</Label>
+        <Input
+          id="password"
+          type="password"
+          class="mt-1 block w-full"
+          v-model="form.password"
+          required
+          autocomplete="current-password" autofocus
+        />
+        <InputError :message="form.errors.password" />
+      </div>
 
-        <div class="flex items-center">
-          <Button class="w-full" :disabled="form.processing">
-            <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
-            {{ _('Confirm Password') }}
-          </Button>
-        </div>
+      <div class="flex items-center">
+        <Button class="w-full" :disabled="form.processing">
+          <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
+          {{ _('Confirm Password') }}
+        </Button>
       </div>
     </form>
   </AuthLayout>

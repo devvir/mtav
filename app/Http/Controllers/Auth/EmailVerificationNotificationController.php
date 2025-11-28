@@ -18,6 +18,6 @@ class EmailVerificationNotificationController
 
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('status', 'verification-link-sent');
+        return back()->with('info', __('A new verification link has been sent to the email address you provided during registration.'));
     }
 }

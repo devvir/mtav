@@ -88,14 +88,14 @@ const updatePassword = () => {
         </div>
 
         <div class="grid gap-2">
-          <Label for="password_confirmation">{{ _('Confirm password') }}</Label>
+          <Label for="password_confirmation">{{ _('Confirm Password') }}</Label>
           <Input
             id="password_confirmation"
             v-model="form.password_confirmation"
             type="password"
             class="mt-1 block w-full"
             autocomplete="new-password"
-            :placeholder="_('Confirm password')"
+            :placeholder="_('Confirm Password')"
           />
           <InputError :message="form.errors.password_confirmation" />
         </div>

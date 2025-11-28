@@ -77,6 +77,8 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - mtav-network
+    profiles:
+      - "" # Default profile (dev)
 
   # Test Database
   mysql_test:

@@ -41,7 +41,7 @@ class NewPasswordController
         $status = $this->resetPassword($request);
 
         if ($status === Password::PasswordReset) {
-            return to_route('login')->with('status', __($status));
+            return to_route('login')->with('info', __($status));
         }
 
         throw ValidationException::withMessages([

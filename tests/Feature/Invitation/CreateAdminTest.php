@@ -12,7 +12,8 @@
  * - Malicious data rejection
  */
 
-use App\Mail\AdminInvitationMail;
+use App\Notifications\AdminInvitationNotification;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -212,6 +213,8 @@ describe('Upon a successful Admin invitation', function () {
     });
 
     it('sends an invitation email', function () {
+        Notification::fake();
+
         $this->submitFormToRoute('admins.store', asAdmin: 11, data: [
             'email'       => 'adminemail@example.com',
             'firstname'   => 'John',
@@ -219,8 +222,9 @@ describe('Upon a successful Admin invitation', function () {
             'project_ids' => [1],
         ]);
 
-        Mail::assertSent(AdminInvitationMail::class, function ($mail) {
-            return $mail->hasTo('adminemail@example.com');
-        });
+        Notification::assertSentTo(
+            Admin::where('email', 'adminemail@example.com')->first(),
+            AdminInvitationNotification::class
+        );
     });
 });

@@ -10,7 +10,8 @@
  * - Malicious data rejection
  */
 
-use App\Mail\MemberInvitationMail;
+use App\Notifications\MemberInvitationNotification;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -185,6 +186,8 @@ describe('Upon a successful Member invitation', function () {
     });
 
     it('sends an invitation email', function () {
+        Notification::fake();
+
         $this->submitFormToRoute('members.store', asAdmin: 11, data: [
             'email'     => 'newmember@example.com',
             'firstname' => 'Jane',
@@ -192,8 +195,9 @@ describe('Upon a successful Member invitation', function () {
             'family_id' => 4,
         ]);
 
-        Mail::assertSent(MemberInvitationMail::class, function ($mail) {
-            return $mail->hasTo('newmember@example.com');
-        });
+        Notification::assertSentTo(
+            Member::where('email', 'newmember@example.com')->first(),
+            MemberInvitationNotification::class
+        );
     });
 });

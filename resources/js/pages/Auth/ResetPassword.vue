@@ -22,21 +22,20 @@ const form = useForm({
   password_confirmation: '',
 });
 
-const submit = () => {
-  form.post(route('password.store'), {
-    onFinish: () => {
-      form.reset('password', 'password_confirmation');
-    },
-  });
-};
+const submit = () => form.post(route('password.store'), {
+  onFinish: () => form.reset('password', 'password_confirmation'),
+});
+</script>
+
+<script lang="ts">
+export default { layout: null };
 </script>
 
 <template>
-  <Head title="Reset password" />
+  <Head title="Reset Password" />
 
-  <AuthLayout title="Reset password" description="Please enter your new password below">
-    <form @submit.prevent="submit">
-      <div class="grid gap-6">
+  <AuthLayout title="Reset Password" description="Please enter your new password below">
+    <form @submit.prevent="submit" class="space-y-6">
         <div class="grid gap-2">
           <Label for="email">{{ _('Email') }}</Label>
           <Input
@@ -75,16 +74,15 @@ const submit = () => {
             autocomplete="new-password"
             v-model="form.password_confirmation"
             class="mt-1 block w-full"
-            :placeholder="_('Confirm password')"
+            :placeholder="_('Confirm Password')"
           />
           <InputError :message="form.errors.password_confirmation" />
         </div>
 
-        <Button type="submit" class="mt-4 w-full" :disabled="form.processing">
-          <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
-          {{ _('Reset password') }}
-        </Button>
-      </div>
+      <Button type="submit" class="w-full" :disabled="form.processing">
+        <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
+        {{ _('Reset Password') }}
+      </Button>
     </form>
   </AuthLayout>
 </template>

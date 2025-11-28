@@ -12,11 +12,9 @@ class PasswordResetLinkController
     /**
      * Show the password reset link request page.
      */
-    public function create(Request $request): Response
+    public function create(): Response
     {
-        return inertia('Auth/ForgotPassword', [
-            'status' => $request->session()->get('status'),
-        ]);
+        return inertia('Auth/ForgotPassword');
     }
 
     /**
@@ -34,6 +32,6 @@ class PasswordResetLinkController
             $request->only('email')
         );
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+        return to_route('login')->with('info', __('passwords.sent'));
     }
 }

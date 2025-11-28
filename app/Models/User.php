@@ -7,6 +7,8 @@ use App\Models\Concerns\ExtendedRelations;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasPolicy;
 use App\Models\Concerns\ProjectScope;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use App\Relations\BelongsToOneOrMany;
 use Devvir\ResourceTools\Concerns\ConvertsToJsonResource;
 use Illuminate\Database\Eloquent\Builder;
@@ -143,6 +145,22 @@ class User extends Authenticatable
     public function completedRegistration(): bool
     {
         return ! $this->isInvited();
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification());
     }
 
     /**

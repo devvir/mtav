@@ -9,32 +9,25 @@ import { _ } from '@/composables/useTranslations';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { LoaderCircle } from 'lucide-vue-next';
 
-defineProps<{
-  status?: string;
-}>();
-
 const form = useForm({
   email: '',
 });
 
-const submit = () => {
-  form.post(route('password.email'));
-};
+const submit = () => form.post(route('password.email'));
+</script>
+
+<script lang="ts">
+export default { layout: null };
 </script>
 
 <template>
-  <Head title="Forgot password" />
+  <Head title="Forgot Password" />
 
   <AuthLayout
-    title="Forgot password"
+    title="Forgot Password"
     description="Enter your email to receive a password reset link"
   >
-    <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
-      {{ status }}
-    </div>
-
-    <div class="space-y-6">
-      <form @submit.prevent="submit">
+    <form @submit.prevent="submit" class="space-y-6">
         <div class="grid gap-2">
           <Label for="email">{{ _('Email address') }}</Label>
           <Input
@@ -49,18 +42,17 @@ const submit = () => {
           <InputError :message="form.errors.email" />
         </div>
 
-        <div class="my-6 flex items-center justify-start">
-          <Button class="w-full" :disabled="form.processing">
-            <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
-            {{ _('Email password reset link') }}
-          </Button>
-        </div>
-      </form>
-
-      <div class="space-x-1 text-center text-sm text-text-muted">
-        <span>{{ _('Or, return to') }}</span>
-        <TextLink :href="route('login')">{{ _('Log in') }}</TextLink>
+      <div class="flex items-center justify-start">
+        <Button class="w-full" :disabled="form.processing">
+          <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
+          {{ _('Email password reset link') }}
+        </Button>
       </div>
+    </form>
+
+    <div class="space-x-1 text-center text-sm text-text-muted">
+      <span>{{ _('Or, return to') }}</span>
+      <TextLink :href="route('login')">{{ _('Log in') }}</TextLink>
     </div>
   </AuthLayout>
 </template>
