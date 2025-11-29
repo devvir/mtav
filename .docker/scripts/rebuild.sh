@@ -24,6 +24,6 @@ else
     echo ""
     echo -e "${GREEN}✅ $SERVICE image rebuilt successfully!${NC}"
     echo -e "${YELLOW}Restarting $SERVICE container...${NC}"
-    docker_compose up -d "$SERVICE"
+    "$(dirname "$0")/up.sh" dev -d "$SERVICE"
     echo -e "${GREEN}✅ $SERVICE container restarted${NC}"
 fi

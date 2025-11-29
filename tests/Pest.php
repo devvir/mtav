@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
+use Pest\Browser\Playwright\Servers\ExternalPlaywrightServer;
 use Tests\TestCase;
 
 /**
@@ -10,6 +11,11 @@ pest()
     ->extend(TestCase::class)
     ->beforeEach(fn () => DB::beginTransaction())
     ->afterEach(fn () => DB::rollback());
+
+/**
+ * Browser testing
+ */
+ExternalPlaywrightServer::use('playwright', 5000);
 
 /**
  * Custom Expectations

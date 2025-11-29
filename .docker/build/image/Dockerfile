@@ -20,14 +20,17 @@ RUN apk add --no-cache \
         zip \
         zlib-dev
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+# Install PHP extensions (linux-headers needed only for sockets compilation)
+RUN apk add --no-cache --virtual .build-deps linux-headers \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         exif \
         pcntl \
         bcmath \
         gd \
-        zip
+        zip \
+        sockets \
+    && apk del .build-deps
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

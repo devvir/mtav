@@ -27,19 +27,18 @@ print_help() {
     echo -e "  ${YELLOW}mtav status${NC}            # Show container status and URLs"
     echo -e "  ${YELLOW}mtav logs${NC}              # Show all logs"
     echo -e "  ${YELLOW}mtav fresh${NC}             # Complete fresh rebuild (down + build)"
-    echo -e "  ${YELLOW}mtav test${NC}              # Run all tests (frontend + backend) in watch mode"
-    echo -e "  ${YELLOW}mtav test --once${NC}       # Run all tests once and exit"
+    echo ""
+    echo -e "${GREEN}Testing Commands:${NC}"
+    echo -e "  ${YELLOW}mtav test [args]${NC}       # Run all tests (Pest + Vitest + Playwright)"
+    echo -e "  ${YELLOW}mtav pest [args]${NC}       # Run PHP tests (Pest)"
+    echo -e "  ${YELLOW}mtav vitest [args]${NC}     # Run Vue tests (Vitest)"
+    echo -e "  ${YELLOW}mtav playwright [args]${NC} # Run E2E browser tests (Playwright)"
     echo ""
     echo -e "${GREEN}Development Shortcuts:${NC}"
     echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
     echo -e "  ${YELLOW}mtav composer <cmd>${NC}    # Composer package manager"
     echo -e "  ${YELLOW}mtav npm <cmd>${NC}         # NPM package manager"
     echo -e "  ${YELLOW}mtav shell [container]${NC} # Shell into container (default: php)"
-    echo ""
-    echo -e "${GREEN}Testing Aliases:${NC}"
-    echo -e "  ${YELLOW}mtav pest${NC}              # Run PHP tests with Pest (alias for 'mtav test --pest')"
-    echo -e "  ${YELLOW}mtav vitest${NC}            # Run JavaScript tests with Vitest (alias for 'mtav test --vitest')"
-    echo -e "  ${YELLOW}mtav cypress <cmd>${NC}     # Run Cypress E2E tests"
     echo -e "  ${YELLOW}mtav tinker${NC}            # Laravel Tinker REPL (alias for 'mtav artisan tinker')"
     echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
@@ -54,9 +53,10 @@ print_help() {
     echo -e "  ${YELLOW}mtav down${NC}         # End your day (clean shutdown)"
     echo ""
     echo -e "${GREEN}Production Commands:${NC}"
-    echo -e "  ${YELLOW}mtav build <service> <tag>${NC}  # Build production images"
-    echo -e "  ${YELLOW}mtav rebuild-php-base <version>${NC} # Build and push PHP base image"
-    echo -e "  ${YELLOW}mtav deploy${NC}                 # Deploy to production (pull + migrate + start)"
+    echo -e "  ${YELLOW}mtav build <service> <tag>${NC}       # Build production image for single service"
+    echo -e "  ${YELLOW}mtav build --all <tag> [--push]${NC}  # Build all production services"
+    echo -e "  ${YELLOW}mtav rebuild-php-base <version>${NC}  # Build and push PHP base image"
+    echo -e "  ${YELLOW}mtav deploy${NC}                      # Deploy to production (pull + migrate + start)"
     echo ""
     echo -e "${GREEN}Advanced Commands:${NC}"
     echo -e "  See ${YELLOW}.docker/scripts/README.md${NC} for detailed script usage"
@@ -73,14 +73,13 @@ case $COMMAND in
         if [ ! -f .docker/first-run-executed ]; then
             echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
             "$SCRIPTS_DIR/env-setup.sh"
-            "$SCRIPTS_DIR/compose.sh" up --build --detach
+            "$SCRIPTS_DIR/up.sh" dev --build --detach
             sleep 5
             "$SCRIPTS_DIR/setup-first.sh"
             touch .docker/first-run-executed
             "$SCRIPTS_DIR/status.sh"
         else
-            echo -e "${GREEN}🚀 Starting development environment...${NC}"
-            "$SCRIPTS_DIR/compose.sh" up --detach "$@"
+            "$SCRIPTS_DIR/up.sh" dev --detach "$@"
             sleep 2
             "$SCRIPTS_DIR/status.sh"
         fi
@@ -99,7 +98,7 @@ case $COMMAND in
     update)
         echo -e "${BLUE}🔄 Updating containers and dependencies...${NC}"
         "$SCRIPTS_DIR/env-setup.sh"
-        "$SCRIPTS_DIR/compose.sh" up --build --detach
+        "$SCRIPTS_DIR/up.sh" dev --build --detach
         sleep 5
         "$SCRIPTS_DIR/setup.sh"
         "$SCRIPTS_DIR/status.sh"
@@ -149,7 +148,19 @@ case $COMMAND in
         ;;
 
     test)
-        "$SCRIPTS_DIR/test.sh" "$@"
+        "$SCRIPTS_DIR/test.sh" all "$@"
+        ;;
+
+    pest)
+        "$SCRIPTS_DIR/test.sh" php "$@"
+        ;;
+
+    vitest)
+        "$SCRIPTS_DIR/test.sh" vue "$@"
+        ;;
+
+    playwright)
+        "$SCRIPTS_DIR/test.sh" e2e "$@"
         ;;
 
     build)
@@ -163,18 +174,6 @@ case $COMMAND in
         ;;
 
     # Convenient aliases
-    pest)
-        "$SCRIPTS_DIR/test.sh" --pest "$@"
-        ;;
-
-    vitest)
-        "$SCRIPTS_DIR/test.sh" --vitest "$@"
-        ;;
-
-    cypress)
-        "$SCRIPTS_DIR/cypress.sh" "$@"
-        ;;
-
     tinker)
         "$SCRIPTS_DIR/artisan.sh" tinker "$@"
         ;;

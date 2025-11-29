@@ -3,6 +3,7 @@
 * Always run commands on the app with the mtav command (i.e. remember dev runs on docker)
 * If you need general context, refer to documentation/ai/README.md
 * Never build npm, and assume I already have a dev server running
+* NEVER redirect command output to /dev/null (e.g., 2>/dev/null) - Copilot does NOT allow users to pre-approve such commands
 * Every file created by Copilot OR significantly modified (10%+ lines changed) MUST include a comment at the top: "Copilot - Pending review" (using appropriate syntax for the file type: // for JS/TS/Vue, # for Python/Shell, /* */ for CSS, <!-- --> for HTML/Markdown, etc.)
 * Never start, stop, or manage the development server - assume it's already running and accessible
 * When generating code, always follow the existing code style and conventions used in the project (see similar files for reference)

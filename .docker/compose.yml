@@ -1,3 +1,7 @@
+# Profiles:
+#   dev (dev environment): php, nginx, mysql, assets, mailhog   ~ .docker/scripts/up.sh
+#   testing (unit/feature): php, nginx, mysql_test, assets      ~ .docker/scripts/up.sh testing
+#   browser (e2e testing): php-e2e, mysql_test, playwright      ~ .docker/scripts/up.sh browser
 services:
   # PHP-FPM for Laravel
   php:
@@ -13,16 +17,30 @@ services:
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     environment:
       - DB_HOST=${DB_HOST:-mysql}
-      - DB_DATABASE=${DB_DATABASE:-mtav}
-      - DB_USERNAME=${DB_USERNAME:-mtav}
-      - DB_PASSWORD=${DB_PASSWORD:-password}
       - APP_ENV=${APP_ENV:-local}
-    networks:
-      - mtav-network
     profiles:
-      - "" # Default profile (dev)
-      - test # Pest/Vitest tests
-      - cypress # Cypress e2e tests
+      - dev
+      - testing
+
+  # PHP with asset building for E2E testing
+  php-e2e:
+    build:
+      context: ..
+      dockerfile: .docker/php-e2e/Dockerfile
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    restart: unless-stopped
+    volumes:
+      - ..:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    tmpfs:
+      - /var/www/html/public/build:uid=${PUID:-1000},gid=${PGID:-1000}  # No leaking to host
+    environment:
+      - DB_HOST=${DB_HOST:-mysql}
+      - APP_ENV=${APP_ENV:-local}
+    profiles:
+      - browser
 
   # Assets development server (Vite w/HMR)
   assets:
@@ -39,11 +57,9 @@ services:
       - ..:/var/www/html:cached
     environment:
       - CHOKIDAR_USEPOLLING=true
-    networks:
-      - mtav-network
     profiles:
-      - "" # Default profile (dev)
-      - test # Pest/Vitest tests
+      - dev
+      - testing
 
   # Nginx web server
   nginx:
@@ -54,12 +70,9 @@ services:
     volumes:
       - ..:/var/www/html:cached
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - mtav-network
     profiles:
-      - "" # Default profile (dev)
-      - test # Pest/Vitest tests
-      - cypress # Cypress e2e tests
+      - dev
+      - testing
 
   # Database
   mysql:
@@ -68,17 +81,13 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ${DB_DATABASE:-mtav}
-      MYSQL_USER: ${DB_USERNAME:-mtav}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_DATABASE: mtav
     ports:
       - "${DOCKER_MYSQL_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - mtav-network
     profiles:
-      - "" # Default profile (dev)
+      - dev
 
   # Test Database
   mysql_test:
@@ -87,9 +96,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mtav_test
-      MYSQL_USER: ${DB_USERNAME:-mtav}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_DATABASE: mtav
     ports:
       - "${DOCKER_MYSQL_TEST_PORT:-3308}:3306"
     tmpfs:
@@ -99,12 +106,9 @@ services:
       interval: 3s
       timeout: 5s
       retries: 15
-      start_period: 3s
-    networks:
-      - mtav-network
     profiles:
-      - test # Pest/Vitest tests
-      - cypress # Cypress e2e tests
+      - testing
+      - browser
 
   # Mail testing server
   mailhog:
@@ -113,36 +117,17 @@ services:
     ports:
       - "${DOCKER_MAILHOG_SMTP_PORT:-1025}:1025"
       - "${DOCKER_MAILHOG_WEB_PORT:-8025}:8025"
-    networks:
-      - mtav-network
     profiles:
-      - "" # Default profile (dev)
-      - cypress # Cypress e2e tests
+      - dev
 
-  # E2E Testing (Cypress)
-  e2e:
-    image: cypress/included:14.5.4
-    working_dir: /var/www/html
-    user: "${PUID:-1000}:${PGID:-1000}"
-    volumes:
-      - ..:/var/www/html:cached
-      - cypress_cache:/home/node/.cache/Cypress
-    environment:
-      - CYPRESS_baseUrl=http://nginx
-    networks:
-      - mtav-network
-    depends_on:
-      - nginx
-      - php
-      - mysql_test
+  # Playwright server for browser testing
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    command: npx playwright run-server --host 0.0.0.0 --port 5000
+    restart: unless-stopped
     profiles:
-      - cypress # Cypress e2e tests only
+      - browser
 
 volumes:
   mysql_data:
   mysql_test_data:
-  cypress_cache:
-
-networks:
-  mtav-network:
-    driver: bridge

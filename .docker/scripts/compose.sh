@@ -20,7 +20,7 @@ fi
 # Common Docker Compose command with standard options
 docker_compose() {
     local project_name="${COMPOSE_PROJECT_NAME:-dev}"
-    docker compose -f "$DOCKER_DIR/compose.yml" --env-file .env -p "$project_name" "$@"
+    docker compose -f "$DOCKER_DIR/compose.yml" -p "$project_name" "$@"
 }
 
 # Docker Compose exec with TTY detection

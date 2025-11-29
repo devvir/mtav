@@ -69,9 +69,9 @@ describe('PENDING REVIEW / REFACTOR', function () {
         // Test specific RSVP statuses via pivot
         $rsvps = $eventWithRsvps->rsvps->keyBy('id');
 
-        expect($rsvps[102]->pivot->status)->toBe(true);  // accepted
-        expect($rsvps[103]->pivot->status)->toBe(true);  // accepted
-        expect($rsvps[105]->pivot->status)->toBe(false); // declined
+        expect($rsvps[102]->pivot->status)->toEqual(true);  // accepted
+        expect($rsvps[103]->pivot->status)->toEqual(true);  // accepted
+        expect($rsvps[105]->pivot->status)->toEqual(false); // declined
 
         // Test pivot timestamps
         $firstMember = $eventWithRsvps->rsvps->first();

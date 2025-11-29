@@ -18,7 +18,7 @@ echo "Generating Laravel app key..."
 docker_exec php php artisan key:generate --no-interaction
 
 echo "Running database migrations..."
-docker_exec php php artisan migrate --no-interaction
+docker_exec php php artisan migrate:fresh --no-interaction
 
 echo "Seeding database with sample data..."
 docker_exec php php artisan db:seed --no-interaction

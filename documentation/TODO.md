@@ -1,6 +1,6 @@
 # MTAV TODO List
 
-**Last Updated**: 2025-11-19
+**Last Updated**: 2025-11-28
 
 ---
 
@@ -42,6 +42,15 @@
 ---
 
 ## P2 (Medium Priority - Nice to Have)
+
+### Docker Infrastructure
+- [ ] **Create and publish `mtav-php-base-dev` image**
+  - Separate dev base image with Node.js, npm, Playwright, and browser dependencies
+  - Based on production base, adding dev-only tools on top
+  - Would speed up dev container builds (currently rebuilds Playwright each time)
+  - Push to `ghcr.io/devvir/mtav-php-base-dev:latest`
+  - Status: Not implemented - currently installing in `.docker/php/Dockerfile`
+  - Impact: Faster dev container rebuilds, cleaner separation of concerns
 
 ### Invitation System Enhancements
 - [ ] **Token expiration**
