@@ -8,6 +8,8 @@ use App\Http\Requests\UpdateAdminRequest;
 use App\Models\Admin;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -38,8 +40,10 @@ class AdminController extends Controller
 
     public function create(): Response
     {
+        $formSpecs = FormService::make(Admin::class, FormType::CREATE);
+
         return inertia('Admins/Create', [
-            'projects' => Project::alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 
@@ -61,9 +65,11 @@ class AdminController extends Controller
 
     public function edit(Admin $admin): Response
     {
-        $admin->load('projects');
+        $formSpecs = FormService::make($admin, FormType::UPDATE);
 
-        return inertia('Admins/Edit', compact('admin'));
+        return inertia('Admins/Edit', [
+            'form' => $formSpecs,
+        ]);
     }
 
     public function update(UpdateAdminRequest $request, Admin $admin): RedirectResponse

@@ -1,32 +1,23 @@
 <script setup lang="ts">
-import Head from '@/components/Head.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import CreateUpdate from './Crud/CreateUpdate.vue';
+import { type FormServiceData } from '@/components/forms';
+import FormAside from '@/components/forms/FormAside.vue';
+import FormPage from '@/components/entities/FormPage.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  event: Event;
-  types: EventTypes;
+  form: FormServiceData;
 }>();
 </script>
 
 <template>
-  <Head title="Edit Event" />
-
-  <Breadcrumbs>
-    <Breadcrumb route="events.index" text="Events" />
-    <Breadcrumb route="events.show" :params="event.id">{{ event.title }}</Breadcrumb>
-    <Breadcrumb route="events.edit" :params="event.id" text="Edit" />
-  </Breadcrumbs>
-
-  <CreateUpdate
-    title="Update Event"
-    type="update"
-    action="events.update"
-    class="mx-auto size-full max-w-2xl"
-    :event
-    :types
-  />
+  <FormPage :form>
+    <FormAside
+      title="Event Guidelines"
+      :list="[
+        'Project Members only see published Events',
+        'RSVP allows members to confirm their attendance',
+      ]"
+    />
+  </FormPage>
 </template>

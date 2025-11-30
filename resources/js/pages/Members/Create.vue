@@ -1,32 +1,23 @@
 <script setup lang="ts">
-import Head from '@/components/Head.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { _ } from '@/composables/useTranslations';
-import CreateUpdate from './Crud/CreateUpdate.vue';
+import { type FormServiceData } from '@/components/forms';
+import FormAside from '@/components/forms/FormAside.vue';
+import FormPage from '@/components/entities/FormPage.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
 defineProps<{
-  projects: ApiResource<Project>[];
-  families: ApiResource<Family>[];
+  form: FormServiceData;
 }>();
 </script>
 
 <template>
-  <Head title="Invite Member" />
-
-  <Breadcrumbs>
-    <Breadcrumb route="members.index" text="Members" />
-    <Breadcrumb route="members.create" text="Invite" />
-  </Breadcrumbs>
-
-  <CreateUpdate
-    :title="_('Invite a new Member')"
-    type="create"
-    action="members.store"
-    class="mx-auto size-full max-w-2xl"
-    :families
-    :projects
-  />
+  <FormPage :form>
+    <FormAside
+      title="Keep in mind"
+      :list="[
+        'The user will be sent a link to complete their registration',
+        'Double-check the email, as it will serve to authenticate the User',
+      ]"
+    />
+  </FormPage>
 </template>

@@ -7,6 +7,8 @@ use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -35,8 +37,10 @@ class EventController extends Controller
 
     public function create(): Response
     {
+        $formSpecs = FormService::make(Event::class, FormType::CREATE);
+
         return inertia('Events/Create', [
-            'types' => Arr::except(EventType::labels(), 'lottery'),
+            'form' => $formSpecs,
         ]);
     }
 
@@ -52,9 +56,10 @@ class EventController extends Controller
 
     public function edit(Event $event): Response
     {
+        $formSpecs = FormService::make($event, FormType::UPDATE);
+
         return inertia('Events/Edit', [
-            'event' => $event,
-            'types' => Arr::except(EventType::labels(), 'lottery'),
+            'form' => $formSpecs,
         ]);
     }
 

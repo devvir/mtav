@@ -1,28 +1,23 @@
 <script setup lang="ts">
-import Head from '@/components/Head.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import CreateUpdate from './Crud/CreateUpdate.vue';
+import { type FormServiceData } from '@/components/forms';
+import FormAside from '@/components/forms/FormAside.vue';
+import FormPage from '@/components/entities/FormPage.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
-defineProps<{ admin: Admin }>();
+
+defineProps<{
+  form: FormServiceData;
+}>();
 </script>
 
 <template>
-  <Head title="Update Admin" />
-
-  <Breadcrumbs>
-    <Breadcrumb route="admins.index" text="Admins" />
-    <Breadcrumb route="admins.show" :params="admin.id">{{ admin.name }}</Breadcrumb>
-    <Breadcrumb route="admins.update" :params="admin.id" text="Edit" />
-  </Breadcrumbs>
-
-  <CreateUpdate
-    title="Update Admin"
-    type="update"
-    action="admins.update"
-    class="mx-auto size-full max-w-2xl"
-    :admin
-    :projects="admin.projects!"
-  />
+  <FormPage :form>
+    <FormAside
+      title="Keep in mind"
+      :list="[
+        'Changes to the email remain on hold until the Admin confirms them',
+        'Double-check the email, as it will serve to authenticate the Admin',
+      ]"
+    />
+  </FormPage>
 </template>

@@ -9,6 +9,8 @@ use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Family;
 use App\Models\Member;
 use App\Models\Project;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -40,11 +42,10 @@ class MemberController extends Controller
 
     public function create(ProjectScopedRequest $request): Response
     {
-        $families = Family::when($request->project_id, fn ($q, $id) => $q->inProject($id));
+        $formSpecs = FormService::make(Member::class, FormType::CREATE);
 
         return inertia('Members/Create', [
-            'families' => $families->alphabetically()->get(),
-            'projects' => Project::alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 
@@ -66,9 +67,11 @@ class MemberController extends Controller
 
     public function edit(Member $member): Response
     {
-        $member->load('family', 'projects');
+        $formSpecs = FormService::make($member, FormType::UPDATE);
 
-        return inertia('Members/Edit', compact('member'));
+        return inertia('Members/Edit', [
+            'form' => $formSpecs,
+        ]);
     }
 
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse

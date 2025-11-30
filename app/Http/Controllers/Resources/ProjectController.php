@@ -7,6 +7,8 @@ use App\Http\Requests\IndexProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -46,8 +48,10 @@ class ProjectController extends Controller
 
     public function create(): Response
     {
+        $formSpecs = FormService::make(Project::class, FormType::CREATE);
+
         return inertia('Projects/Create', [
-            'admins' => User::whereIsAdmin(true)->alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 
@@ -64,9 +68,10 @@ class ProjectController extends Controller
 
     public function edit(Project $project): Response
     {
+        $formSpecs = FormService::make($project, FormType::UPDATE);
+
         return inertia('Projects/Edit', [
-            'project' => $project->load('admins'),
-            'admins'  => User::whereIsAdmin(true)->alphabetically()->get(),
+            'form' => $formSpecs,
         ]);
     }
 

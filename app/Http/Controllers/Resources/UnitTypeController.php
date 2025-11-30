@@ -6,6 +6,8 @@ use App\Http\Requests\CreateUnitTypeRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateUnitTypeRequest;
 use App\Models\UnitType;
+use App\Services\Form\FormService;
+use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -34,7 +36,11 @@ class UnitTypeController extends Controller
 
     public function create(): Response
     {
-        return inertia('UnitTypes/Create');
+        $formSpecs = FormService::make(UnitType::class, FormType::CREATE);
+
+        return inertia('UnitTypes/Create', [
+            'form' => $formSpecs,
+        ]);
     }
 
     public function store(CreateUnitTypeRequest $request): RedirectResponse
@@ -49,8 +55,10 @@ class UnitTypeController extends Controller
 
     public function edit(UnitType $unitType): Response
     {
+        $formSpecs = FormService::make($unitType, FormType::UPDATE);
+
         return inertia('UnitTypes/Edit', [
-            'unit_type' => $unitType,
+            'form' => $formSpecs,
         ]);
     }
 
