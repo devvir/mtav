@@ -22,6 +22,7 @@ print_help() {
     echo -e "  ${YELLOW}mtav up${NC}                # Start development environment (builds everything on first run)"
     echo -e "  ${YELLOW}mtav stop${NC}              # Stop containers (keeps containers for quick restart)"
     echo -e "  ${YELLOW}mtav down${NC}              # Stop and remove containers (clean shutdown)"
+    echo -e "  ${YELLOW}mtav restart${NC}           # Restart: up then down (quick restart cycle)"
     echo -e "  ${YELLOW}mtav update${NC}            # Update containers and install all dependencies"
     echo -e "  ${YELLOW}mtav rebuild [service]${NC} # Rebuild images (all services or specific one)"
     echo -e "  ${YELLOW}mtav status${NC}            # Show container status and URLs"
@@ -93,6 +94,11 @@ case $COMMAND in
     down)
         echo -e "${YELLOW}🛑 Stopping and removing containers...${NC}"
         "$SCRIPTS_DIR/compose.sh" down "$@"
+        ;;
+
+    restart)
+        echo -e "${BLUE}🔄 Restarting: down then up...${NC}"
+        "$0" down && "$0" up
         ;;
 
     update)
