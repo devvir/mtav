@@ -80,7 +80,7 @@ const isUpdateJsonExpanded = ref(false);
       <!-- FormService-based Form -->
       <div v-if="updateFormSpec?.specs" class="rounded-lg border border-border bg-background p-4">
         <Form
-          type="edit"
+          type="update"
           :action="updateFormSpec.action?.route"
           :params="updateFormSpec.action?.params"
           :title="updateFormSpec.title"

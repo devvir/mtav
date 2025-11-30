@@ -86,6 +86,11 @@ services:
       - "${DOCKER_MYSQL_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 5s
+      retries: 15
     profiles:
       - dev
 

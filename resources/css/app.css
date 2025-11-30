@@ -192,7 +192,7 @@
     @apply right-auto left-0 pr-0 pl-3;
   }
 
-  [data-inertiaui-modal-id] .modalSlideover {
+  [data-inertiaui-modal-id] .im-slideover-content {
     @apply min-h-[50lvh] rounded-r-none border-r-0;
   }
 

@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { cn } from '@/lib/utils';
 import { DropdownUsage } from '.';
 import * as exposed from './exposed';
 import type { CloseAction, OpenAction } from './types.d';
 
 const emits = defineEmits<{ open: [OpenAction]; close: [CloseAction] }>();
-const props = defineProps<{ disabled?: boolean }>();
+const props = defineProps<{
+  disabled?: boolean;
+  class?: string;
+}>();
 
 const isOpen = ref(false);
 
@@ -43,7 +47,7 @@ provide(exposed.toggle, toggle);
 </script>
 
 <template>
-  <div ref="dropdown" class="relative">
+  <div ref="dropdown" :class="cn(['relative', $props.class])">
     <slot :isOpen :open :close :toggle>
       <DropdownUsage />
     </slot>

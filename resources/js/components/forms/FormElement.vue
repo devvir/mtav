@@ -22,7 +22,7 @@ const valueProvided = computed<boolean>(() =>
 <template>
   <div class="col-span-2 grid-cols-subgrid grid-rows-[1fr_1rem] @md:grid">
     <div
-      class="group relative z-1 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
+      class="group relative z-1 min-h-12 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
       :class="{
         'border-border': !disabled,
         'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20':
@@ -36,7 +36,7 @@ const valueProvided = computed<boolean>(() =>
         v-if="label"
         :forId="id"
         v-bind="{ label, ...$props, ...$attrs }"
-        class="border-r-2 border-border bg-surface-sunken px-3 py-3 font-semibold text-surface-sunken-foreground @max-md:border-r-0 @max-md:border-b-2"
+        class="border-r-2 border-border bg-surface-sunken px-3 py-1 font-semibold text-surface-sunken-foreground @max-md:border-r-0 @max-md:border-b-2"
         :class="{
           'group-focus-within:bg-surface-elevated group-focus-within:text-text': !disabled,
           'opacity-50': disabled,
@@ -44,7 +44,7 @@ const valueProvided = computed<boolean>(() =>
       />
 
       <div
-        class="h-full min-h-12 bg-surface text-lg text-text transition-colors"
+        class="h-full bg-surface text-lg text-text transition-colors"
         :class="{
           'group-focus-within:bg-surface': !disabled,
           'bg-surface-sunken opacity-50': disabled,

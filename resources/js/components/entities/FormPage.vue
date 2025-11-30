@@ -30,9 +30,13 @@ const indexTitle = entityLabel(props.form.entity, 'plural');
       :title="title ?? form.title"
       :specs="form.specs"
       autocomplete="off"
-    />
+    >
+      <template v-slot:header><slot name="header" /></template>
 
-    <slot />
+      <template v-slot:aside v-if="$slots.default"><slot /></template>
+
+      <template v-slot:footer><slot name="footer" /></template>
+    </Form>
   </div>
 
 </template>

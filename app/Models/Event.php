@@ -79,6 +79,21 @@ class Event extends Model
         });
     }
 
+    public function scopeOnsite(Builder $query): void
+    {
+        $query->whereType(EventType::ONSITE);
+    }
+
+    public function scopeOnline(Builder $query): void
+    {
+        $query->whereType(EventType::ONLINE);
+    }
+
+    public function scopeLottery(Builder $query): void
+    {
+        $query->whereType(EventType::LOTTERY);
+    }
+
     public function scopePublished(Builder $query): void
     {
         $query->where('is_published', true);

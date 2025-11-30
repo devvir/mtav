@@ -68,3 +68,16 @@ esac
 
 # Start containers with the specified profile
 docker_compose --profile "$PROFILE" up "$@"
+
+# Wait for database to be healthy (only for dev and testing profiles)
+if [[ "$PROFILE" == "dev" ]] || [[ "$PROFILE" == "testing" ]]; then
+    DB_CONTAINER="${COMPOSE_PROJECT_NAME}-mysql-1"
+    if [[ "$PROFILE" == "testing" ]] || [[ "$PROFILE" == "browser" ]]; then
+        DB_CONTAINER="${COMPOSE_PROJECT_NAME}-mysql_test-1"
+    fi
+
+    echo -e "${BLUE}⏳ Waiting for database to be ready...${NC}"
+    timeout 60 sh -c "until [ \"\$(docker inspect --format='{{.State.Health.Status}}' $DB_CONTAINER 2>/dev/null)\" = 'healthy' ]; do sleep 1; done" && \
+        echo -e "${GREEN}✅ Database is ready!${NC}" || \
+        echo -e "${YELLOW}⚠️  Database health check timed out (containers may still be starting)${NC}"
+fi

@@ -19,7 +19,7 @@ defineProps<{ member: Member }>();
 
   <CreateUpdate
     title="Update Member"
-    type="edit"
+    type="update"
     action="members.update"
     class="mx-auto size-full max-w-2xl"
     :member

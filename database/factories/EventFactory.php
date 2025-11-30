@@ -30,7 +30,6 @@ class EventFactory extends Factory
             'title'        => fake()->sentence(3),
             'description'  => fake()->paragraph(3),
             'type'         => fake()->randomElement([EventType::ONLINE, EventType::ONSITE]),
-            'location'     => fake()->optional(0.6)->address(),
             'is_published' => fake()->boolean(80),
             'rsvp'         => fake()->boolean(30), // Increased chance for RSVP events
         ];
@@ -43,6 +42,11 @@ class EventFactory extends Factory
 
             return [
                 'end_date' => $start ? fake()->optional(0.5)->dateTimeBetween($start->addMinutes(5), $start->addHours(2)) : null,
+                'location' => match ($attributes['type']) {
+                    EventType::ONLINE => fake()->optional(0.6)->url(),
+                    EventType::ONSITE => fake()->optional(0.6)->address(),
+                    default           => null,
+                },
             ];
         });
     }

@@ -19,7 +19,7 @@ defineProps<{ admin: Admin }>();
 
   <CreateUpdate
     title="Update Admin"
-    type="edit"
+    type="update"
     action="admins.update"
     class="mx-auto size-full max-w-2xl"
     :admin

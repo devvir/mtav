@@ -24,7 +24,7 @@ defineProps<{
 
   <MaybeModal>
     <CreateUpdate
-      type="edit"
+      type="update"
       :action="route('unit_types.update', unit_type.id)"
       :title="_('Edit Unit Type')"
       :unit_type="unit_type"

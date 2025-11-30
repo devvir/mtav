@@ -26,7 +26,7 @@ defineProps<{
   </Breadcrumbs>
 
   <CreateUpdate
-    type="edit"
+    type="update"
     action="units.update"
     :title="`${_('Edit Unit')}: ${unit.identifier}`"
     v-bind="$props"

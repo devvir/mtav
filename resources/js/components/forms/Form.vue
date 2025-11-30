@@ -98,7 +98,7 @@ watch(
 );
 
 const submit = (onSuccess?: () => void) => {
-  const method = props.type === 'update' ? 'put' : 'post';
+  const method = props.type === 'create' ? 'post' : 'put';
 
   form.submit(method, route(props.action, props.params), {
     preserveScroll: true,
@@ -117,11 +117,13 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
     :close-explicitly="pauseModalClosing || form.isDirty"
     v-slot="{ close }: { close?: () => void }"
   >
+    <slot name="header" />
+
     <form @submit.prevent="submit(close)">
-      <div class="flex h-full flex-col justify-center gap-[calc(var(--spacing-wide-y)*2)] px-wide">
+      <div class="flex h-full flex-col justify-center gap-wide-y px-wide">
         <h1 class="pl-2 text-3xl leading-loose font-bold">{{ title }}</h1>
 
-        <div class="@container/form grid w-full grid-cols-[auto_1fr] gap-y-4">
+        <div class="@container/form grid w-full grid-cols-[auto_1fr] gap-y-3">
           <slot :form="form">
             <template v-for="({ element, ...def }, name) of specs" :key="name">
               <Component
@@ -136,19 +138,16 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
           </slot>
         </div>
 
-        <aside
-          v-if="$slots.aside"
-          class="space-y-4 rounded-xl bg-surface-sunken px-5 py-4 text-text"
-        >
+        <aside v-if="$slots.aside" class="w-full mb-base">
           <slot name="aside" />
         </aside>
 
-        <div class="text-right">
-          <FormSubmit :disabled="form.processing">
-            {{ _(buttonText ?? type2button[props.type]) }}
-          </FormSubmit>
-        </div>
+        <FormSubmit :disabled="form.processing" class="text-right">
+          {{ _(buttonText ?? type2button[props.type]) }}
+        </FormSubmit>
       </div>
     </form>
+
+    <slot name="footer" />
   </MaybeModal>
 </template>

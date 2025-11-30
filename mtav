@@ -75,25 +75,23 @@ case $COMMAND in
             echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
             "$SCRIPTS_DIR/env-setup.sh"
             "$SCRIPTS_DIR/up.sh" dev --build --detach
-            sleep 5
             "$SCRIPTS_DIR/setup-first.sh"
             touch .docker/first-run-executed
             "$SCRIPTS_DIR/status.sh"
         else
             "$SCRIPTS_DIR/up.sh" dev --detach "$@"
-            sleep 2
             "$SCRIPTS_DIR/status.sh"
         fi
         ;;
 
     stop)
         echo -e "${YELLOW}🛑 Stopping development environment...${NC}"
-        "$SCRIPTS_DIR/compose.sh" stop "$@"
+        "$SCRIPTS_DIR/stop.sh" "$@"
         ;;
 
     down)
         echo -e "${YELLOW}🛑 Stopping and removing containers...${NC}"
-        "$SCRIPTS_DIR/compose.sh" down "$@"
+        "$SCRIPTS_DIR/down.sh" "$@"
         ;;
 
     restart)

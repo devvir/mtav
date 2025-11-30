@@ -24,7 +24,7 @@ defineProps<{
 
   <CreateUpdate
     :title="_('Update Project')"
-    type="edit"
+    type="update"
     action="projects.update"
     class="mx-auto size-full max-w-2xl"
     :project

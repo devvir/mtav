@@ -43,7 +43,7 @@ class SpecSelect extends Spec
         $this->spec['selected'] = $this->determineSelectedValue();
 
         // Hide project_id if user has only one project
-        if ($this->fieldName === 'project_id' && $this->userHasOnlyOneProject()) {
+        if (in_array($this->fieldName, ['project_id', 'project_ids']) && $this->userHasOnlyOneProject()) {
             $this->spec['hidden'] = true;
         }
 

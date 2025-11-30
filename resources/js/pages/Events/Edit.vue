@@ -6,7 +6,7 @@ import CreateUpdate from './Crud/CreateUpdate.vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
-defineProps<{ 
+defineProps<{
   event: Event;
   types: EventTypes;
 }>();
@@ -23,7 +23,7 @@ defineProps<{
 
   <CreateUpdate
     title="Update Event"
-    type="edit"
+    type="update"
     action="events.update"
     class="mx-auto size-full max-w-2xl"
     :event

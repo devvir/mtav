@@ -44,16 +44,17 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
 </script>
 
 <template>
-  <div class="relative" v-bind="{ ...$props, ...$attrs }">
+  <div class="relative size-full" v-bind="{ ...$props, ...$attrs }">
     <Dropdown
       v-slot="{ isOpen, close }"
       :disabled="isDisabled"
+      class="size-full"
       @open="pauseModalClosing()"
       @close="pauseModalClosing(false)"
     >
       <!-- Visible input-->
       <input
-        class="pointer-events-none w-full truncate p-3 pr-10 text-text outline-0"
+        class="size-full pointer-events-none truncate px-3 pr-10 text-text outline-0"
         tabindex="-1"
         :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"

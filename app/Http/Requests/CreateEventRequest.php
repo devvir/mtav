@@ -6,6 +6,7 @@ use App\Enums\EventType;
 use Illuminate\Validation\Rule;
 
 /**
+ * @property-read int $project_id
  * @property-read string $type
  * @property-read string $title
  * @property-read string $description
@@ -21,6 +22,7 @@ class CreateEventRequest extends FormRequest
         $isOnlineEvent = ($this->input('type') === EventType::ONLINE->value);
 
         return [
+            'project_id'   => 'required|exists:projects,id',
             'type'         => ['required', Rule::enum(EventType::class)->except(EventType::LOTTERY)],
             'title'        => 'required|string|max:255',
             'description'  => 'required|string|between:20,500',

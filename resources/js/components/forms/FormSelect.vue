@@ -34,14 +34,14 @@ watch(
 <template>
   <FormElement v-bind="{ model, ...$props, ...$attrs }" :class="{ hidden }">
     <template v-slot:default="{ id, slotAfter }">
-      <div class="relative">
+      <div class="relative size-full">
         <select
           multiple
           v-model="model"
           :id
           :name="`${name}[]`"
           v-bind="$attrs"
-          class="invisible absolute size-full"
+          class="invisible absolute"
           tabindex="-1"
         >
           <option

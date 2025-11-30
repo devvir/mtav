@@ -26,7 +26,7 @@ defineProps<{
     v-bind="{ model, type, ...$props, ...$attrs }"
   >
     <input
-      class="w-full bg-transparent p-3 text-text caret-interactive outline-0 focus:outline-0 [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[&::-webkit-calendar-picker-indicator]:[filter:invert(1)]"
+      class="size-full bg-transparent px-3 text-text caret-interactive outline-0 focus:outline-0 [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
       v-model="model"
       :id="id"
       :name
