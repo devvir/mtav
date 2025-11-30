@@ -78,7 +78,7 @@ describe('When visiting the login page', function () {
 
         it('redirects to Projects index and resets current Project if they do not manage the selected one', function () {
             // Admin #12 manages Projects #2 and #3, but NOT #1
-            setCurrentProject(1);
+            setFirstProjectAsCurrent();
 
             $response = $this->visitRoute('login', asUser: 12);
 

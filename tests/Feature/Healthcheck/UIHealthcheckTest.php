@@ -12,7 +12,7 @@ uses()->group('Feature.Healthcheck');
 
 describe('For an Admin', function () {
     it('includes Project name when visiting the Dashboard', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('dashboard', asAdmin: 11);
 
@@ -21,7 +21,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Details of a Family without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['families.show', 4], asAdmin: 11);
 
@@ -30,7 +30,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Families Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('families.index', asAdmin: 11);
 
@@ -38,7 +38,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Details of a Member without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['members.show', 102], asAdmin: 11);
 
@@ -47,7 +47,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Members Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('members.index', asAdmin: 11);
 
@@ -87,7 +87,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Details of a Unit without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['units.show', 1], asAdmin: 11);
 
@@ -96,7 +96,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Units Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('units.index', asAdmin: 11);
 
@@ -104,7 +104,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Details of a Unit Type without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['unit_types.show', 1], asAdmin: 11);
 
@@ -113,7 +113,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Unit Types Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('unit_types.index', asAdmin: 11);
 
@@ -121,7 +121,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Gallery page without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('gallery', asAdmin: 11);
 
@@ -129,7 +129,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Details of an Event without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['events.show', 1], asAdmin: 11);
 
@@ -138,7 +138,7 @@ describe('For an Admin', function () {
     });
 
     it('loads the Events Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('events.index', asAdmin: 11);
 
@@ -161,7 +161,7 @@ describe('For an Admin', function () {
 
 describe('For a Member', function () {
     it('includes Project name when visiting the Dashboard', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('dashboard', asMember: 102);
 
@@ -170,7 +170,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of a Family without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['families.show', 4], asMember: 102);
 
@@ -179,7 +179,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Families Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('families.index', asMember: 102);
 
@@ -187,7 +187,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of a Member without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['members.show', 102], asMember: 102);
 
@@ -196,7 +196,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Members Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('members.index', asMember: 102);
 
@@ -204,7 +204,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of an Admin without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['admins.show', 11], asMember: 102);
 
@@ -213,7 +213,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Admins Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('admins.index', asMember: 102);
 
@@ -221,7 +221,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of a Unit without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['units.show', 1], asMember: 102);
 
@@ -230,7 +230,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Units Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('units.index', asMember: 102);
 
@@ -238,7 +238,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of a Unit Type without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['unit_types.show', 1], asMember: 102);
 
@@ -247,7 +247,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Unit Types Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('unit_types.index', asMember: 102);
 
@@ -255,7 +255,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Gallery page without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('media.index', asMember: 102);
 
@@ -263,7 +263,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Details of an Event without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute(['events.show', 1], asMember: 102);
 
@@ -272,7 +272,7 @@ describe('For a Member', function () {
     });
 
     it('loads the Events Index without errors', function () {
-        setCurrentProject(1);
+        setFirstProjectAsCurrent();
 
         $response = $this->visitRoute('events.index', asMember: 102);
 

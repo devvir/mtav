@@ -2,6 +2,11 @@
 
 use App\Models\Project;
 
+function setFirstProjectAsCurrent(): void
+{
+    setCurrentProject(once(fn () => Project::withoutGlobalScopes()->findOrFail(1)));
+}
+
 /**
  * Set the current Project context for the authenticated user.
  */

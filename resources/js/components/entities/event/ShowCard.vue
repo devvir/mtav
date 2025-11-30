@@ -87,6 +87,7 @@ const userRsvpContentClass = computed(() => {
 
         <!-- RSVP Counts -->
         <ContentDetail
+          v-if="event.allows_rsvp"
           :icon="ClockIcon"
           :title="_('RSVPs')"
           :content="_('{accepted} confirmed ({declined} declined)', {

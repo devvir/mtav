@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Resources;
 
-use App\Enums\EventType;
 use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\FilteredIndexRequest;
 use App\Http\Requests\UpdateEventRequest;
@@ -58,6 +57,11 @@ class EventController extends Controller
     {
         $formSpecs = FormService::make($event, FormType::UPDATE);
 
+        // Lottery events do not allow certain fields to be modified
+        if ($event->isLottery()) {
+            $formSpecs->removeSpecs('type', 'title', 'end_date', 'is_published');
+        }
+
         return inertia('Events/Edit', [
             'form' => $formSpecs,
         ]);
@@ -65,7 +69,14 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
-        $event->update($request->validated());
+        $input = $request->validated();
+
+        // Lottery events do not allow certain fields to be modified
+        if ($event->isLottery()) {
+            Arr::forget($input, ['type', 'title', 'end_date', 'is_published']);
+        }
+
+        $event->update($input);
 
         return to_route('events.show', $event)
             ->with('success', __('flash.event_updated'));

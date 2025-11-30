@@ -24,6 +24,11 @@ ExternalPlaywrightServer::use('playwright', 5000);
  */
 
 /**
+ * Helper Functions
+ */
+require_once __DIR__ . '/Helpers/formService.php';
+
+/**
  * Archived suite, phased out but still in use
  */
 require_once __DIR__ . '/__Archive/Helpers/UserHelpers.php';

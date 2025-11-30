@@ -61,17 +61,6 @@ PHP_SUCCESS=true
 VUE_SUCCESS=true
 E2E_SUCCESS=true
 
-# Wait for database to be healthy
-wait_for_database() {
-    local project_name=$1
-    echo -e "${BLUE}Waiting for database...${NC}"
-    timeout 30 bash -c "until docker inspect ${project_name}-mysql_test-1 --format='{{.State.Health.Status}}' 2>/dev/null | grep -q 'healthy'; do sleep 0.5; done" || {
-        echo -e "${RED}❌ Database failed to become healthy${NC}"
-        return 1
-    }
-    return 0
-}
-
 # Wait for php-e2e container to be healthy (browser tests only)
 wait_for_php_e2e() {
     local project_name=$1
@@ -106,11 +95,11 @@ cleanup_environment() {
     local project_name=$1
     local profile=$2
 
-    echo ""
-    echo -e "${BLUE}Stopping ${profile} environment...${NC}"
-    export COMPOSE_PROJECT_NAME=$project_name
-    docker_compose --profile $profile down 2>/dev/null
-    echo ""
+    # echo ""
+    # echo -e "${BLUE}Stopping ${profile} environment...${NC}"
+    # export COMPOSE_PROJECT_NAME=$project_name
+    # docker_compose --profile $profile down 2>/dev/null
+    # echo ""
 }
 
 echo -e "${BLUE}🧪 Test Suite${NC}"
@@ -136,21 +125,15 @@ if [ "$RUN_PHP" = true ]; then
     echo -e "${BLUE}Starting testing environment...${NC}"
     "$(dirname "$0")/up.sh" testing --detach --quiet-pull
 
-    if ! wait_for_database testing; then
-        PHP_SUCCESS=false
-    fi
-
-    if [ "$PHP_SUCCESS" = true ]; then
-        if run_php_tests testing php "${TEST_ARGS[@]}"; then
-            echo ""
-            echo -e "${GREEN}✅ PHP tests passed${NC}"
-            PHP_SUCCESS=true
-        else
-            echo ""
-            echo -e "${RED}❌ PHP tests failed${NC}"
-            PHP_SUCCESS=false
-        fi
-    fi
+      if run_php_tests testing php "${TEST_ARGS[@]}"; then
+          echo ""
+          echo -e "${GREEN}✅ PHP tests passed${NC}"
+          PHP_SUCCESS=true
+      else
+          echo ""
+          echo -e "${RED}❌ PHP tests failed${NC}"
+          PHP_SUCCESS=false
+      fi
 
     cleanup_environment testing testing
 fi
@@ -195,14 +178,8 @@ if [ "$RUN_E2E" = true ]; then
     echo -e "${BLUE}Starting browser environment...${NC}"
     "$(dirname "$0")/up.sh" browser --detach --quiet-pull
 
-    if ! wait_for_database browser; then
+    if ! wait_for_php_e2e browser; then
         E2E_SUCCESS=false
-    fi
-
-    if [ "$E2E_SUCCESS" = true ]; then
-        if ! wait_for_php_e2e browser; then
-            E2E_SUCCESS=false
-        fi
     fi
 
     if [ "$E2E_SUCCESS" = true ]; then
