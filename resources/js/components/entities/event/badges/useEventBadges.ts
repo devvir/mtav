@@ -88,7 +88,7 @@ export const useEventBadges = (event: ComputedRef<Event>) => {
     priority: 10, // Move to end of list
     type: 'draft',
     variant: 'draft',
-    show: !event.is_published,
+    show: !event.is_published && event.status === 'upcoming',
     adminOnly: true,
   }));
 

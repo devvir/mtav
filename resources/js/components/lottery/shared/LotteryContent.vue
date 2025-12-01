@@ -17,7 +17,7 @@ defineProps<{
     <!-- Right Column: Admin Management or Member Preferences -->
     <div class="flex flex-col w-full">
       <LotteryManagement v-if="iAmAdmin" :lottery />
-      <PreferencesManager v-if="iAmMember" :units />
+      <PreferencesManager v-if="iAmMember" :units :lottery />
     </div>
   </div>
 </template>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Avatar } from '@/components/avatar';
-import { EntityCard, CardContent, CardFooter, CardHeader, CreatedMeta } from '@/components/card';
+import { EntityCard, CardContent, CardHeader } from '@/components/card';
 import ContentGrid from '@/components/card/snippets/ContentGrid.vue';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
+import FamilyFooter from './shared/FamilyFooter.vue';
 
 defineProps<{
   family: ApiResource<Family>;
@@ -34,12 +35,6 @@ defineProps<{
       </ContentGrid>
     </CardContent>
 
-    <CardFooter class="flex justify-between text-xs gap-base text-nowrap">
-      <span class="truncate">
-        {{ `${_('Unit Type')}: ${family.unit_type?.description || _('No Unit Type')}` }}
-      </span>
-
-      <CreatedMeta />
-    </CardFooter>
+    <FamilyFooter :family />
   </EntityCard>
 </template>

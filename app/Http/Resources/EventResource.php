@@ -34,7 +34,7 @@ class EventResource extends JsonResource
     protected function booleanProps(): array
     {
         return [
-            'is_published' => $this->is_published,
+            'is_published' => $this->isPublished(),
             'allows_rsvp'  => $this->allowsRsvp(),
 
             'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe(true)),
@@ -51,8 +51,8 @@ class EventResource extends JsonResource
         return [
             'start_date'     => $this->start_date?->translatedFormat('M j, Y g:i A'),
             'end_date'       => $this->end_date?->translatedFormat('M j, Y g:i A'),
-            'start_date_raw' => $this->start_date?->translatedFormat('Y-m-d\TH:i'),
-            'end_date_raw'   => $this->end_date?->translatedFormat('Y-m-d\TH:i'),
+            'start_date_raw' => $this->start_date,
+            'end_date_raw'   => $this->end_date,
         ];
     }
 

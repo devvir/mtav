@@ -25,5 +25,6 @@ Route::resource('units', UnitController::class);
 Route::resource('unit_types', UnitTypeController::class);
 
 Route::get('lottery', [LotteryController::class, 'index'])->name('lottery');
-Route::patch('lottery/{lottery}', [LotteryController::class, 'update'])->name('lottery.update');
 Route::post('lottery/preferences', [LotteryController::class, 'preferences'])->name('lottery.preferences');
+Route::patch('lottery/{lottery}', [LotteryController::class, 'update'])->name('lottery.update');
+Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])->name('lottery.execute');

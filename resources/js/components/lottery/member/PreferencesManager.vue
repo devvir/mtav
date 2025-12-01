@@ -6,13 +6,17 @@ import PreferencesEmptyState from './PreferencesEmptyState.vue';
 import PreferencesGridMobile from './PreferencesGridMobile.vue';
 import PreferencesGridDesktop from './PreferencesGridDesktop.vue';
 import PreferencesGridMobileSlot from './PreferencesGridMobileSlot.vue';
+import LotteryExecutedStatus from '../shared/LotteryExecutedStatus.vue';
 
 const props = defineProps<{
   units: Unit[];
+  lottery: Lottery;
 }>();
 
 const preferences = reactive(props.units);
 const form = useForm({ preferences });
+
+const isExecutedOrExecuting = computed(() => !props.lottery.is_published);
 
 const submit = (updatedPreferences: Unit[]) => {
   form.preferences = updatedPreferences;
@@ -21,7 +25,16 @@ const submit = (updatedPreferences: Unit[]) => {
 </script>
 
 <template>
-  <Card class="h-full flex flex-col max-w-auto">
+  <!-- Show message if lottery is executed/executing -->
+  <Card v-if="isExecutedOrExecuting" class="h-full flex flex-col max-w-auto">
+    <CardHeader :title="_('Lottery Status')">
+      {{ _('The lottery has been executed or is currently in progress.') }}
+    </CardHeader>
+    <LotteryExecutedStatus />
+  </Card>
+
+  <!-- Show preferences manager if lottery not executed -->
+  <Card v-else class="h-full flex flex-col max-w-auto">
     <CardHeader :title="_('Unit Preferences')">
       <span class="lg:hidden">{{ _('Drag and drop to rank your preferred units or use the arrow buttons') }}</span>
       <span class="hidden lg:inline">{{ _('Drag units to numbered slots to set your preferences (1 = highest priority)') }}</span>

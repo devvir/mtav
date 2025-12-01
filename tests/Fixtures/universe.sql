@@ -247,7 +247,7 @@ INSERT INTO unit_types (id, project_id, name, description, created_at, updated_a
 -- - Project #1: 12 families (#1-#12) - 4 per unit type
 -- - Project #2: 3 families (#13-#15) - distributed across types
 -- - Project #3: 0 families (no unit types = no families)
--- - Project #4: 3 families (#16-#18) - 1 per type
+-- - Project #4: 5 families (#16-#18, #22, #27-#28) - 2 per type (balanced)
 -- - Project #5: 3 families (#19-#21) - 1 per type
 --
 -- Special states:
@@ -308,16 +308,22 @@ INSERT INTO families (id, project_id, unit_type_id, name, avatar, created_at, up
 (25, 1, 1, 'Family 25 (invited member)', NULL, NOW(), NOW(), NULL),
 
 -- Project #2 test family (for invited member test)
-(26, 2, 4, 'Family 26 (invited member)', NULL, NOW(), NOW(), NULL);
+(26, 2, 4, 'Family 26 (invited member)', NULL, NOW(), NOW(), NULL),
+
+-- Project #4 additional families (for balanced lottery testing)
+(27, 4, 8, 'Family 27', NULL, NOW(), NOW(), NULL),
+(28, 4, 9, 'Family 28', NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
--- UNITS (22 total)
+-- UNITS (24 total)
 -- ============================================================================
 -- Distribution by Unit Type:
 -- - Type #1: 0 units (edge case - type with no units)
 -- - Type #2: 1 unit (#1)
 -- - Type #3: 2 units (#2 active, #3 deleted) - one unit per state
--- - Types #4-#12: 2 units each (#4-#22)
+-- - Types #4-#6: 2 units each (#4-#9) for Project #2
+-- - Types #7-#9: 2 units each (#13-#18) for Project #4
+-- - Types #10-#12: 2 units each (#19-#24) for Project #5
 --
 -- Units are NOT assigned to families in this fixture (family_id = NULL)
 -- Tests can assign units as needed for their specific scenarios
@@ -343,33 +349,37 @@ INSERT INTO units (id, project_id, unit_type_id, family_id, identifier, plan_ite
 (6, 2, 5, NULL, 'Unit 6, Type 5',            6, NOW(), NOW(), NULL),
 (7, 2, 5, NULL, 'Unit 7, Type 5',            7, NOW(), NOW(), NULL),
 
--- Type #6: 2 units (Unit #8,9 → PlanItem #8,9)
+-- Type #6: 2 units for Project #2 (Unit #8,9 → PlanItem #8,9)
 (8, 2, 6, NULL, 'Unit 8, Type 6',            8, NOW(), NOW(), NULL),
 (9, 2, 6, NULL, 'Unit 9, Type 6',            9, NOW(), NOW(), NULL),
 
--- Type #7: 2 units (Unit #10,11 → PlanItem #10,11)
-(10, 2, 7, NULL, 'Unit 10, Type 7',          10, NOW(), NOW(), NULL),
-(11, 2, 7, NULL, 'Unit 11, Type 7',          11, NOW(), NOW(), NULL),
+-- Type #10,11,12 belong to Project #5, not #2
+-- Project #2 only has Types #4-#6
+-- Units #10-12 removed (gap in IDs)
 
--- Type #8: 2 units (Unit #12,13 → PlanItem #12,13)
-(12, 2, 8, NULL, 'Unit 12, Type 8',          12, NOW(), NOW(), NULL),
-(13, 2, 8, NULL, 'Unit 13, Type 8',          13, NOW(), NOW(), NULL),
+-- Type #7: 2 units for Project #4 (Unit #13,14 → PlanItem #13,14)
+(13, 4, 7, NULL, 'Unit 13, Type 7',          13, NOW(), NOW(), NULL),
+(14, 4, 7, NULL, 'Unit 14, Type 7',          14, NOW(), NOW(), NULL),
 
--- Type #9: 2 units (Unit #14,15 → PlanItem #14,15)
-(14, 2, 9, NULL, 'Unit 14, Type 9',          14, NOW(), NOW(), NULL),
-(15, 2, 9, NULL, 'Unit 15, Type 9',          15, NOW(), NOW(), NULL),
+-- Type #8: 2 units for Project #4 (Unit #15,16 → PlanItem #15,16)
+(15, 4, 8, NULL, 'Unit 15, Type 8',          15, NOW(), NOW(), NULL),
+(16, 4, 8, NULL, 'Unit 16, Type 8',          16, NOW(), NOW(), NULL),
 
--- Type #10: 2 units (Unit #16,17 → PlanItem #16,17)
-(16, 4, 10, NULL, 'Unit 16, Type 10',        16, NOW(), NOW(), NULL),
-(17, 4, 10, NULL, 'Unit 17, Type 10',        17, NOW(), NOW(), NULL),
+-- Type #9: 2 units for Project #4 (Unit #17,18 → PlanItem #17,18)
+(17, 4, 9, NULL, 'Unit 17, Type 9',          17, NOW(), NOW(), NULL),
+(18, 4, 9, NULL, 'Unit 18, Type 9',          18, NOW(), NOW(), NULL),
 
--- Type #11: 2 units (Unit #18,19 → PlanItem #18,19)
-(18, 4, 11, NULL, 'Unit 18, Type 11',        18, NOW(), NOW(), NULL),
-(19, 4, 11, NULL, 'Unit 19, Type 11',        19, NOW(), NOW(), NULL),
+-- Type #10: 2 units for Project #5 (Unit #19,20 → PlanItem #19,20)
+(19, 5, 10, NULL, 'Unit 19, Type 10',        19, NOW(), NOW(), NULL),
+(20, 5, 10, NULL, 'Unit 20, Type 10',        20, NOW(), NOW(), NULL),
 
--- Type #12: 2 units (Unit #20,21 → PlanItem #20,21)
-(20, 4, 12, NULL, 'Unit 20, Type 12',        20, NOW(), NOW(), NULL),
-(21, 4, 12, NULL, 'Unit 21, Type 12',        21, NOW(), NOW(), NULL);
+-- Type #11: 2 units for Project #5 (Unit #21,22 → PlanItem #21,22)
+(21, 5, 11, NULL, 'Unit 21, Type 11',        21, NOW(), NOW(), NULL),
+(22, 5, 11, NULL, 'Unit 22, Type 11',        22, NOW(), NOW(), NULL),
+
+-- Type #12: 2 units for Project #5 (Unit #23,24 → PlanItem #23,24)
+(23, 5, 12, NULL, 'Unit 23, Type 12',        23, NOW(), NOW(), NULL),
+(24, 5, 12, NULL, 'Unit 24, Type 12',        24, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- USERS - MEMBERS (48 total, IDs 100-149)
@@ -553,14 +563,21 @@ INSERT INTO project_user (user_id, project_id, active, created_at, updated_at) V
 -- - Project #1: 2 logs (#1 by Member #102, #2 by Admin #11)
 -- - Project #2: 2 logs (#3 by Member #136, #4 by Admin #12)
 -- ============================================================================
--- EVENTS (12 total)
+-- EVENTS (14 total)
 -- ============================================================================
 -- Distribution:
 -- Project #1: 5 events (1 lottery, 2 online, 2 onsite - mix of RSVP/non-RSVP)
 -- Project #2: 4 events (1 lottery, 1 online, 2 onsite - mix of RSVP/non-RSVP)
 -- Project #3: 2 events (1 lottery, 1 online - both no RSVP)
--- Project #4: 1 event (1 onsite - with RSVP but unpublished)
--- Project #5: 0 events (deleted project)
+-- Project #4: 2 events (1 lottery, 1 onsite - unpublished onsite)
+-- Project #5: 1 event (1 lottery - deleted project)
+--
+-- Lottery Events Summary:
+-- - Event #1 (P1): Future (+30 days), published, unbalanced (12 families, 2 units)
+-- - Event #6 (P2): Future (+45 days), published, unbalanced (3 families, 6 units)
+-- - Event #10 (P3): Past (-5 days), published, 0 families
+-- - Event #13 (P4): Past (-3 days), published, balanced (6 families, 6 units)
+-- - Event #14 (P5): Past (-7 days), published, deleted project
 -- ============================================================================
 
 TRUNCATE TABLE events;
@@ -580,11 +597,15 @@ INSERT INTO events (id, type, creator_id, project_id, title, description, locati
 (9, 'onsite', 12, 2, 'Past Onsite Meeting', 'Completed planning meeting', '456 Development Ave, Project 2', DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
 
 -- Project #3 events (2 total)
-(10, 'lottery', 13, 3, 'Lottery', 'Unit assignment lottery for Project 3', NULL, DATE_ADD(NOW(), INTERVAL 60 DAY), DATE_ADD(NOW(), INTERVAL 60 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(10, 'lottery', 13, 3, 'Lottery', 'Unit assignment lottery for Project 3', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
 (11, 'online', 13, 3, 'Project Introduction', 'Introduction to Project 3 for new members', 'https://meet.example.com/proj3', DATE_ADD(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 5 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
 
--- Project #4 events (1 total)
-(12, 'onsite', 13, 4, 'Unpublished Planning Meeting', 'Internal planning session', '789 Planning St, Project 4', DATE_ADD(NOW(), INTERVAL 12 DAY), DATE_ADD(NOW(), INTERVAL 12 DAY), FALSE, TRUE, NOW(), NOW(), NULL);
+-- Project #4 events (2 total)
+(12, 'onsite', 13, 4, 'Unpublished Planning Meeting', 'Internal planning session', '789 Planning St, Project 4', DATE_ADD(NOW(), INTERVAL 12 DAY), DATE_ADD(NOW(), INTERVAL 12 DAY), FALSE, TRUE, NOW(), NOW(), NULL),
+(13, 'lottery', 13, 4, 'Lottery', 'Unit assignment lottery for Project 4', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+
+-- Project #5 events (1 total - deleted project)
+(14, 'lottery', 14, 5, 'Lottery', 'Unit assignment lottery for Project 5 (deleted project)', NULL, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), TRUE, FALSE, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- EVENT_RSVP (Pivot table for member event responses)

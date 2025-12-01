@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Ellipsis from '@/components/Ellipsis.vue';
 import { Avatar } from '@/components/avatar';
-import { EntityCard, CardContent, CardFooter, CardHeader, Counter } from '@/components/card';
+import { EntityCard, CardContent, CardHeader, Counter } from '@/components/card';
 import { ModalLink } from '@inertiaui/modal-vue';
+import FamilyFooter from './shared/FamilyFooter.vue';
 
 defineProps<{
   family: ApiResource<Family>;
@@ -33,6 +34,6 @@ defineProps<{
       />
     </CardContent>
 
-    <CardFooter />
+    <FamilyFooter :family />
   </EntityCard>
 </template>

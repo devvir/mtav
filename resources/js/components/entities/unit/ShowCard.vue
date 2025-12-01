@@ -14,7 +14,7 @@ defineProps<{
     <UnitHeader :unit />
 
     <CardContent>
-      TODO
+      <!-- TODO -->
     </CardContent>
 
     <UnitFooter :unit />

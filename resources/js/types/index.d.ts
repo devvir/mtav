@@ -186,8 +186,9 @@ interface Admin extends User {
 }
 
 interface Family extends Resource, Subject, HasMedia {
-  unit_type: { id: number } | ApiResource<UnitType>;
   project: { id: number } | ApiResource<Project>;
+  unit_type: { id: number } | ApiResource<UnitType>;
+  unit?: ApiResource<Unit>;
   members?: ApiResource<User>[];
   preferences?: ApiResource<Unit>[];
 
@@ -247,7 +248,7 @@ interface EventRsvpFields {
 interface Event extends Resource, Partial<EventRsvpFields> {
   type: EventType;
   type_label: string;
-  status: string;
+  status: 'completed' | 'upcoming' | 'ongoing';
   title: string;
   description: string;
   start_date: string | null;

@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\User;
 
@@ -15,7 +14,7 @@ class EventPolicy
 
     public function view(User $user, Event $event): bool
     {
-        return $event->is_published || $user->isAdmin();
+        return $event->isPublished() || $user->isAdmin();
     }
 
     public function create(User $user): bool
@@ -23,14 +22,14 @@ class EventPolicy
         return $user->isAdmin();
     }
 
-    public function update(User $user): bool
+    public function update(User $user, Event $event): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && ($event->isPublished() || ! $event->isLottery());
     }
 
     public function delete(User $user, Event $event): bool
     {
-        return $user->isAdmin() && $event->type !== EventType::LOTTERY;
+        return $user->isAdmin() && ! $event->isLottery();
     }
 
     public function restore(User $user): bool

@@ -50,7 +50,7 @@ describe('Form Output Structure', function () {
     it('generates correct CREATE form structure', function () {
         $form = FormService::make(TestModel::class, FormType::CREATE);
         $data = $form->jsonSerialize();
-        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']->toArray());
+        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']);
 
         expect($data)->toHaveKeys(['type', 'entity', 'action', 'title', 'specs'])
             ->and($data['type'])->toBe('create')
@@ -67,7 +67,7 @@ describe('Form Output Structure', function () {
         $model->exists = true;
         $form = FormService::make($model, FormType::UPDATE);
         $data = $form->jsonSerialize();
-        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']->toArray());
+        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']);
 
         expect($data)->toHaveKeys(['type', 'entity', 'action', 'title', 'specs'])
             ->and($data['type'])->toBe('update')
@@ -80,7 +80,7 @@ describe('Form Output Structure', function () {
     it('generates specs for simple form fields', function () {
         $form = FormService::make(TestModel::class, FormType::CREATE);
         $data = $form->jsonSerialize();
-        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']->toArray());
+        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']);
 
         expect($specs)->toBeArray()
             ->and($specs)->toHaveKey('name')
@@ -92,7 +92,7 @@ describe('Form Output Structure', function () {
     it('generates specs for complex mixed form', function () {
         $form = FormService::make(TestModel::class, FormType::CREATE);
         $data = $form->jsonSerialize();
-        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']->toArray());
+        $specs = array_map(fn ($spec) => $spec->toArray(), $data['specs']);
 
         expect($specs)->toBeArray()
             ->and($data['type'])->toBe('create');

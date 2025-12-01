@@ -8,8 +8,8 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Services\Form\FormService;
 use App\Services\Form\FormType;
+use App\Services\LotteryService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -71,12 +71,9 @@ class EventController extends Controller
     {
         $input = $request->validated();
 
-        // Lottery events do not allow certain fields to be modified
-        if ($event->isLottery()) {
-            Arr::forget($input, ['type', 'title', 'end_date', 'is_published']);
-        }
-
-        $event->update($input);
+        $event->isLottery()
+            ? app(LotteryService::class)->updateLotteryEvent($event, $input)
+            : $event->update($input);
 
         return to_route('events.show', $event)
             ->with('success', __('flash.event_updated'));

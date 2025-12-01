@@ -85,6 +85,11 @@ class Project extends Model
         return $this->hasMany(Log::class);
     }
 
+    public function audits(): HasMany
+    {
+        return $this->hasMany(LotteryAudit::class);
+    }
+
     public function media(): HasMany
     {
         return $this->hasMany(Media::class);

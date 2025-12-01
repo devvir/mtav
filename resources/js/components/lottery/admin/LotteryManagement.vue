@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Textarea from '@/components/Textarea.vue';
+import ConfirmationModal from '@/components/ConfirmationModal.vue';
+import LotteryExecutedStatus from '../shared/LotteryExecutedStatus.vue';
 
 import { CalendarIcon, PlayIcon } from 'lucide-vue-next';
 
@@ -12,19 +14,63 @@ const props = defineProps<{
   lottery: Lottery;
 }>();
 
+const page = usePage();
+
 const form = useForm({
   start_date: props.lottery.start_date || '',
   description: props.lottery.description,
 });
 
+const executionForm = useForm({
+  override_count_mismatch: false,
+});
+const confirmationModalOpen = ref(false);
+
+const mismatchError = computed(() => (page.props as any).mismatchError as string | undefined);
+
+// If there was a mismatch error, next execution should override the count mismatch
+watch(mismatchError, (error: string | undefined) => {
+  if (error) {
+    executionForm.override_count_mismatch = true;
+  }
+});
+
+const confirmationDescription = computed(() => {
+  const baseText = _('This action is irreversible. All units will be permanently assigned to families.');
+
+  if (mismatchError.value) {
+    return `${baseText}\n\n⚠️ ${mismatchError.value}`;
+  }
+
+  return baseText;
+});
+
 const updateLottery = () => form.patch(route('lottery.update', props.lottery.id));
 
 const executeLottery = () => {
-  // TODO: Implement lottery execution
-  console.log('Execute lottery clicked');
+  confirmationModalOpen.value = true;
 };
 
+const confirmExecution = () => {
+  executionForm.post(route('lottery.execute', props.lottery.id), {
+    onSuccess: () => {
+      confirmationModalOpen.value = false;
+      executionForm.override_count_mismatch = false;
+    },
+    onError: () => {
+      confirmationModalOpen.value = false;
+    },
+  });
+};
+
+const isExecutedOrExecuting = computed(() => !props.lottery.is_published);
+
 const canExecute = computed(() => {
+  // Can't execute if already executed/executing
+  if (isExecutedOrExecuting.value) {
+    return false;
+  }
+
   const startDate = props.lottery.start_date ? new Date(props.lottery.start_date) : null;
   return startDate && startDate <= new Date();
 });
@@ -37,8 +83,11 @@ const canExecute = computed(() => {
     </CardHeader>
 
     <CardContent class="flex-1 flex flex-col">
+      <!-- Execution Status Message -->
+      <LotteryExecutedStatus v-if="isExecutedOrExecuting" />
+
       <!-- Lottery Configuration -->
-      <form @submit.prevent="updateLottery" class="flex-1 flex flex-col w-full">
+      <form v-else @submit.prevent="updateLottery" class="flex-1 flex flex-col w-full">
         <div class="space-y-8 flex-1 flex flex-col">
           <!-- Start Date -->
           <div class="space-y-3">
@@ -86,11 +135,16 @@ const canExecute = computed(() => {
 
     <!-- Lottery Execution -->
     <CardFooter class="flex gap-4 border-t pt-6 items-center">
-      <div v-if="!canExecute" class="text-sm text-text-muted text-center flex-1">
+      <div v-if="isExecutedOrExecuting" class="text-sm text-green-600 dark:text-green-400 text-center flex-1">
+        {{ _('Lottery has been executed or is currently executing.') }}
+      </div>
+
+      <div v-else-if="!canExecute" class="text-sm text-text-muted text-center flex-1">
         {{ _('The lottery will be available for execution after the scheduled date.') }}
       </div>
 
       <Button
+        v-if="!isExecutedOrExecuting"
         @click="executeLottery"
         :disabled="!canExecute"
         variant="default"
@@ -102,4 +156,15 @@ const canExecute = computed(() => {
       </Button>
     </CardFooter>
   </Card>
+
+  <!-- Confirmation Modal -->
+  <ConfirmationModal
+    v-model:open="confirmationModalOpen"
+    :title="_('Confirm Lottery Execution')"
+    :description="confirmationDescription"
+    :expected-text="_('EXECUTE')"
+    :confirm-button-text="_('Execute Lottery')"
+    variant="default"
+    @confirm="confirmExecution"
+  />
 </template>

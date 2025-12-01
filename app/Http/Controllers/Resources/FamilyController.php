@@ -20,7 +20,7 @@ class FamilyController extends Controller
 
         $families = Family::alphabetically()
             ->withMembers()
-            ->with(['members' => fn ($q) => $q->alphabetically()])
+            ->with(['members' => fn ($q) => $q->alphabetically(), 'unitType', 'unit'])
             ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))
             ->when($request->q, fn ($q, $search) => $q->search($search, searchMembers: true));
 
@@ -32,7 +32,7 @@ class FamilyController extends Controller
 
     public function show(Family $family): Response
     {
-        $family->load('project', 'members', 'unitType');
+        $family->load('project', 'members', 'unitType', 'unit');
 
         return inertia('Families/Show', compact('family'));
     }

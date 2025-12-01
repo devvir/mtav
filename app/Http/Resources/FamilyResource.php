@@ -39,6 +39,7 @@ class FamilyResource extends JsonResource
 
             'project'   => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
+            'unit'      => $this->whenLoaded('unit'),
 
             ...$this->sharedMediaData(),
         ];

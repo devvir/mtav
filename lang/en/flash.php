@@ -31,8 +31,9 @@ return [
     'family_restored' => 'Perfect! The Family and its Members are back.',
 
     // Lottery operations
-    'lottery_updated'             => 'Great! The lottery details were updated.',
-    'lottery_preferences_updated' => 'Perfect! Your unit preferences were saved.',
+    'lottery_updated'               => 'Great! The lottery details were updated.',
+    'lottery_preferences_updated'   => 'Perfect! Your unit preferences were saved.',
+    'lottery_executed_successfully' => 'The lottery was executed successfully. All units have been assigned.',
 
     // Media operations
     'media_uploaded'          => 'Perfect! Your file is here.',

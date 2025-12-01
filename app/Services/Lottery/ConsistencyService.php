@@ -2,8 +2,9 @@
 
 namespace App\Services\Lottery;
 
-use App\Events\InvalidPreferencesEvent;
+use App\Events\InvalidPreferences;
 use App\Models\Family;
+use App\Services\Lottery\Exceptions\LockedLotteryPreferencesException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -19,7 +20,7 @@ class ConsistencyService
     /**
      * Sanitize family preferences by removing invalid entries.
      *
-     * Dispatches InvalidPreferencesEvent if invalid preferences are found.
+     * Dispatches InvalidPreferences if invalid preferences are found.
      */
     public function sanitizeBeforeFetch(Family $family): void
     {
@@ -41,7 +42,7 @@ class ConsistencyService
             // Ensure consumers holding a reference to this Family instance get fresh data
             $family->unsetRelation('preferences');
 
-            InvalidPreferencesEvent::dispatch($family, $invalidUnitIds->values()->all());
+            InvalidPreferences::dispatch($family, $invalidUnitIds->values()->all());
         }
     }
 
@@ -51,9 +52,14 @@ class ConsistencyService
      * @param array<array{id: int}> $preferences
      *
      * @throws InvalidArgumentException if validation fails.
+     * @throws LockedLotteryPreferencesException if lottery execution has started.
      */
     public function validateBeforeUpdate(Family $family, array $preferences): void
     {
+        if (! $family->project->lottery->isPublished()) {
+            throw new LockedLotteryPreferencesException();
+        }
+
         $inputUnitIds = collect($preferences)->pluck('id');
         $candidateIds = $family->unitType->units()->pluck('id');
 

@@ -12,10 +12,7 @@ defineProps<{
 <template>
   <CardFooter class="flex justify-between items-center gap-2" v-slot="{ cardType }">
     <div v-if="unit.family" class="flex items-center gap-2 min-w-0 flex-1">
-      <Badge variant="success" class="px-2 py-0.5 text-xs flex-shrink-0">
-        {{ _('Assigned') }}
-      </Badge>
-
+      {{ _('Family') }}
       <ModalLink :href="route('families.show', unit.family.id)" class="min-w-0">
         <span
           class="text-text-link hover:text-text-link-hover truncate block"

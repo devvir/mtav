@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
@@ -45,6 +46,11 @@ class Event extends Model
             ->withTimestamps();
     }
 
+    public function audits(): HasMany
+    {
+        return $this->hasMany(LotteryAudit::class, 'lottery_id');
+    }
+
     public function allowsRsvp(): bool
     {
         return $this->rsvp;
@@ -63,6 +69,11 @@ class Event extends Model
     public function isOnSite(): bool
     {
         return $this->type === EventType::ONSITE;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->is_published;
     }
 
     public function status(): Attribute

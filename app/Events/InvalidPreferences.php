@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class InvalidPreferencesEvent implements ShouldQueue
+class InvalidPreferences implements ShouldQueue
 {
     use Dispatchable;
     use SerializesModels;

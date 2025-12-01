@@ -8,12 +8,16 @@ use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\Lottery\ConsistencyService;
+use App\Services\Lottery\Exceptions\LockedLotteryException;
+use App\Services\Lottery\ExecutionService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 
 class LotteryService
 {
     public function __construct(
-        private ConsistencyService $consistencyService
+        private ConsistencyService $consistencyService,
+        private ExecutionService $executionService
     ) {
         // ...
     }
@@ -28,6 +32,24 @@ class LotteryService
             'type'         => EventType::LOTTERY,
             'is_published' => true,
         ]);
+    }
+
+    /**
+     * Update lottery event details.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws LockedLotteryException if lottery execution has started.
+     */
+    public function updateLotteryEvent(Event $lottery, array $data): void
+    {
+        if (! $lottery->is_published) {
+            throw new LockedLotteryException();
+        }
+
+        $lottery->update(
+            Arr::only($data, ['title', 'description', 'start_date'])
+        );
     }
 
     /**
@@ -67,5 +89,18 @@ class LotteryService
                 'order'   => $idx + 1,
             ])->keyBy('unit_id')
         );
+    }
+
+    /**
+     * Execute Lottery and assign all Units to Families.
+     *
+     * @param  bool  $force  Bypass Unit/Family mismatch validation
+     *
+     * @throws Lottery\Exceptions\CannotExecuteLotteryException
+     * @throws Lottery\Exceptions\LotteryExecutionException
+     */
+    public function execute(Event $lottery, bool $force = false): void
+    {
+        $this->executionService->execute($lottery, $force);
     }
 }

@@ -336,7 +336,7 @@ describe('When bypassing Project Scope', function () {
 
         expect($unscopedCount)
             ->toBeGreaterThan($scopedCount)
-            ->and($unscopedCount)->toBe(26); // Total Families in universe
+            ->and($unscopedCount)->toBe(28); // Total Families in universe
     });
 
     it('allows bypassing all global scopes with withoutGlobalScopes', function () {

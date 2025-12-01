@@ -46,7 +46,7 @@ class HandleSelectedProject
         } elseif ($this->shouldResetCurrentProject($user)) {
             defineState('project', null);
         } else {
-            Project::current()?->fresh();
+            Project::current()?->refresh();
         }
     }
 

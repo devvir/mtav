@@ -14,29 +14,19 @@ const props = defineProps<{
   noItemsMessage?: string;
 }>();
 
-const loadingCards = ref<{ id: number }[]>(
-  Array.from({ length: Math.floor(5 + Math.random() * 5) }, (_, i) => ({ id: i }))
-);
+// Skeleton cards to show on first page load only
+let loadingCards = Array.from({ length: Math.floor(5 + Math.random() * 5) }, (_, i) => ({ id: i }));
+watch(() => props.resources , () => loadingCards = []);
 
-const resourcesList = computed(() => props.resources?.data ?? loadingCards.value);
+const resourcesList = computed(() => props.resources?.data ?? loadingCards);
 
-const sizeMultipliers: Record<CardSize, number> = {
-  xs: 0.8,
-  sm: 0.9,
-  md: 1,
-  lg: 1.2,
-  xl: 1.4,
-};
-
-const cardSizeMultiplier = computed<number>(
-  () => sizeMultipliers[(props.cardSize ?? 'md') as CardSize],
-);
-
+const size: Record<CardSize, number> = { xs: 0.8, sm: 0.9, md: 1, lg: 1.2, xl: 1.4 };
+const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') as CardSize]);
 </script>
 
 <template>
   <section v-if="resourcesList.length">
-    <TransitionGroup name="fade" tag="ul" :appear="!loadingCards.length"
+    <TransitionGroup name="fade" tag="ul" :appear="!! resources"
       class="grid list-none place-items-stretch gap-wide sm:auto-rows-auto @md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))]"
       :style="{ '--card-size-multiplier': cardSizeMultiplier }">
       <li
@@ -49,7 +39,6 @@ const cardSizeMultiplier = computed<number>(
         <slot v-if="resources" :item />
 
         <!-- Loading Skeleton Card -->
-        <!-- TODO: configure approximate height depending on entity -->
         <!-- TODO: extract to IndexSkeletonCard (placeholder closer to the real Cards) -->
         <div v-else class="animate animate-pulse h-40"><Card class="opacity-60" /></div>
       </li>
