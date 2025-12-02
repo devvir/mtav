@@ -20,7 +20,7 @@ const props = defineProps<{
     :title="cardLink ? ($attrs.title ?? _('Click for more information')) : undefined"
     :panel-classes
     :class="cn(
-      'w-full max-w-3xl rounded-lg border [&>*]:p-4 relative',
+      'w-full max-w-3xl rounded-lg border *:p-4 relative',
       'border-border bg-surface-elevated shadow-sm [&>*+*]:border-border-subtle',
       // Dimmed styling for inactive/unpublished content
       props.dimmed && 'opacity-60',

@@ -2,6 +2,7 @@
 import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
 import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
 import { _ } from '@/composables/useTranslations';
+import { fromUTC } from '@/composables/useDates';
 import { MailIcon, PhoneIcon, UsersIcon, HomeIcon, CalendarIcon } from 'lucide-vue-next';
 import { iAmAdmin } from '@/composables/useAuth';
 
@@ -54,14 +55,14 @@ defineProps<{
           v-if="iAmAdmin && member.email_verified_at"
           :icon="CalendarIcon"
           :title="_('Email Verified')"
-          :content="member.email_verified_at"
+          :content="fromUTC(member.email_verified_at)"
         />
 
         <ContentDetail
           v-if="member.invitation_accepted_at"
           :icon="UsersIcon"
           :title="_('Member Since')"
-          :content="member.invitation_accepted_at"
+          :content="fromUTC(member.invitation_accepted_at)"
         />
       </ContentGrid>
 

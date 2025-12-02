@@ -55,11 +55,13 @@ class ExecutionService
      *
      * @param  array<int, int>  $picks  Array of family_id => unit_id
      */
-    public function applyResults(array $picks): void
+    public function applyResults(int $lotteryId, array $picks): void
     {
         foreach ($picks as $familyId => $unitId) {
             Unit::where('id', $unitId)->update(['family_id' => $familyId]);
         }
+
+        Event::whereId($lotteryId)->delete(); // soft-delete
     }
 
     /**

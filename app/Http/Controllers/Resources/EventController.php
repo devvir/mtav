@@ -17,7 +17,7 @@ class EventController extends Controller
 {
     public function index(FilteredIndexRequest $request): Response
     {
-        $events = currentProject()->events()->upcoming()->sorted()
+        $events = currentProject()->events()->sorted()
             ->with('project')
             ->when($request->user()->isMember(), fn ($query) => $query->published())
             ->when($request->q, fn ($q, $search) => $q->search($search));

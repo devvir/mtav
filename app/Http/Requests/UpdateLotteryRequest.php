@@ -19,8 +19,8 @@ class UpdateLotteryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date'  => 'nullable|date|after:now',
-            'description' => 'required|string|max:1000',
+            'start_date'  => 'nullable|date',
+            'description' => 'required|string|between:5,500',
         ];
     }
 }

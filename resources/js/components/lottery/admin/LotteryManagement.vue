@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
-import { Card, CardContent, CardHeader, CardFooter } from '@/components/card';
+import { Card, CardContent, CardHeader } from '@/components/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import FormInput from '@/components/forms/FormInput.vue';
 import Textarea from '@/components/Textarea.vue';
 import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import LotteryExecutedStatus from '../shared/LotteryExecutedStatus.vue';
 
-import { CalendarIcon, PlayIcon } from 'lucide-vue-next';
+import { PlayIcon } from 'lucide-vue-next';
+import { Label } from '@/components/ui/label';
 
 const props = defineProps<{
   lottery: Lottery;
@@ -45,7 +45,7 @@ const confirmationDescription = computed(() => {
   return baseText;
 });
 
-const updateLottery = () => form.patch(route('lottery.update', props.lottery.id));
+const updateLottery = () => form.patch(route('lottery.update', props.lottery.id), { preserveScroll: true });
 
 const executeLottery = () => {
   confirmationModalOpen.value = true;
@@ -63,99 +63,87 @@ const confirmExecution = () => {
   });
 };
 
-const isExecutedOrExecuting = computed(() => !props.lottery.is_published);
+// Lottery is executing when it's no longer published and executed when it's soft-deleted
+const isExecutedOrExecuting = computed(() => props.lottery.is_deleted || !props.lottery.is_published);
 
-const canExecute = computed(() => {
-  // Can't execute if already executed/executing
-  if (isExecutedOrExecuting.value) {
-    return false;
-  }
-
-  const startDate = props.lottery.start_date ? new Date(props.lottery.start_date) : null;
-  return startDate && startDate <= new Date();
-});
+const canExecute = computed(
+  () => !isExecutedOrExecuting.value
+    && props.lottery.start_date
+    && new Date(props.lottery.start_date) < new Date()
+);
 </script>
 
 <template>
-  <Card class="h-full flex flex-col max-w-auto p-base">
-    <CardHeader :title="_('Lottery Management')">
-      {{ _('Configure lottery settings and execution') }}
-    </CardHeader>
+  <div class="space-y-6" :class="{ 'h-full': isExecutedOrExecuting }">
+    <!-- Lottery Execution -->
+    <Card class="p-base max-w-full">
+      <CardHeader :title="_('Lottery Execution')">
+        <span v-if="! isExecutedOrExecuting">{{ _('Execute the lottery when ready') }}</span>
+      </CardHeader>
 
-    <CardContent class="flex-1 flex flex-col">
-      <!-- Execution Status Message -->
-      <LotteryExecutedStatus v-if="isExecutedOrExecuting" />
+      <CardContent>
+        <LotteryExecutedStatus v-if="isExecutedOrExecuting" />
 
-      <!-- Lottery Configuration -->
-      <form v-else @submit.prevent="updateLottery" class="flex-1 flex flex-col w-full">
-        <div class="space-y-8 flex-1 flex flex-col">
+        <div v-else-if="!canExecute" class="text-sm text-text-muted text-center py-4">
+          {{ _('The lottery will be available for execution after the scheduled date.') }}
+        </div>
+
+        <Button
+          v-else
+          @click="executeLottery"
+          variant="default"
+          size="lg"
+          class="w-full gap-2"
+        >
+          <PlayIcon class="h-5 w-5" />
+          {{ _('Execute Lottery') }}
+        </Button>
+      </CardContent>
+    </Card>
+
+    <!-- Lottery Configuration Form (always shown) -->
+    <Card v-if="! isExecutedOrExecuting" class="max-w-full">
+      <CardHeader :title="_('Lottery Settings')">
+        {{ _('Configure lottery date and description') }}
+      </CardHeader>
+
+      <CardContent>
+        <form @submit.prevent="updateLottery" class="w-full space-y-6">
           <!-- Start Date -->
-          <div class="space-y-3">
-            <Label for="start_date" class="text-base">{{ _('Lottery Date') }}</Label>
-            <div class="relative">
-              <CalendarIcon class="absolute left-3 top-3.5 size-5 text-text-subtle" />
-              <Input
-                id="start_date"
-                v-model="form.start_date"
-                type="datetime-local"
-                class="pl-11 h-12 text-base"
-                :error="form.errors.start_date"
-              />
-            </div>
-          </div>
+          <FormInput
+            v-model="form.start_date"
+            name="start_date"
+            type="datetime-local"
+            :label="_('Lottery Date')"
+          />
 
           <!-- Description -->
-          <div class="space-y-3 flex-1 flex flex-col">
+          <div class="space-y-2">
             <Label for="description" class="text-base">{{ _('Description') }}</Label>
             <Textarea
               v-model="form.description"
               id="description"
               :error="form.errors.description"
-              class="flex-1 resize-none"
-              placeholder="Describe the lottery event and any important details..."
+              :rows="4"
+              :placeholder="_('Describe the lottery event and any important details...')"
             />
           </div>
-        </div>
 
-        <!-- Error Display -->
-        <div v-if="form.hasErrors" class="mt-6 rounded-lg bg-red-50 dark:bg-red-950/20 p-4">
-          <p class="text-sm text-red-800 dark:text-red-200">
-            {{ Object.values(form.errors).flat().join(' ') }}
-          </p>
-        </div>
+          <!-- Error Display -->
+          <div v-if="form.hasErrors" class="rounded-lg bg-red-50 dark:bg-red-950/20 p-4">
+            <p class="text-sm text-red-800 dark:text-red-200">
+              {{ Object.values(form.errors).flat().join(' ') }}
+            </p>
+          </div>
 
-        <!-- Save Button -->
-        <div class="mt-6 max-w-48">
-          <Button type="submit" :loading="form.processing" class="w-full h-11" size="lg">
+          <!-- Save Button -->
+          <Button type="submit" :loading="form.processing" variant="outline">
             {{ _('Update') }}
           </Button>
-        </div>
-      </form>
-    </CardContent>
-
-    <!-- Lottery Execution -->
-    <CardFooter class="flex gap-4 border-t pt-6 items-center">
-      <div v-if="isExecutedOrExecuting" class="text-sm text-green-600 dark:text-green-400 text-center flex-1">
-        {{ _('Lottery has been executed or is currently executing.') }}
-      </div>
-
-      <div v-else-if="!canExecute" class="text-sm text-text-muted text-center flex-1">
-        {{ _('The lottery will be available for execution after the scheduled date.') }}
-      </div>
-
-      <Button
-        v-if="!isExecutedOrExecuting"
-        @click="executeLottery"
-        :disabled="!canExecute"
-        variant="default"
-        size="lg"
-        class="gap-2 h-12"
-      >
-        <PlayIcon class="h-5 w-5" />
-        {{ _('Execute Lottery') }}
-      </Button>
-    </CardFooter>
-  </Card>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
 
   <!-- Confirmation Modal -->
   <ConfirmationModal

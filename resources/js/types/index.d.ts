@@ -32,7 +32,6 @@ type MediaCategory = 'audio' | 'document' | 'image' | 'unknown' | 'video' | 'vis
 interface Lottery extends Event {
   type: 'lottery';
   end_date: null;
-  end_date_raw: null;
   allows_rsvp: false;
   is_lottery: true;
   is_online: false;
@@ -58,6 +57,7 @@ type PlanItemMetadata = Record<string, any>;
 
 interface Resource {
   id: number;
+  is_deleted: boolean;
   created_at: string;
   created_ago: string;
   deleted_at: string | null;
@@ -259,10 +259,6 @@ interface Event extends Resource, Partial<EventRsvpFields> {
   is_lottery: boolean;
   is_online: boolean;
   is_onsite: boolean;
-
-  // yyyy-MM-ddThh:mm
-  start_date_raw: string | null;
-  end_date_raw: string | null;
 
   project: ApiResource<Project> | { id: number };
   creator: ApiResource<Admin> | { id: number | null } | null;

@@ -10,7 +10,7 @@ class Log extends Model
 {
     use ProjectScope;
 
-    public function user(): BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

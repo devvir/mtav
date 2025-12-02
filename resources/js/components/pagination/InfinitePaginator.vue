@@ -4,7 +4,7 @@ import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 import NoItems from '@/components/NoItems.vue';
 import { Card } from '@/components/card';
 
-export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 const props = defineProps<{
   resources: MaybeDeferred<ApiResources>;
@@ -20,14 +20,17 @@ watch(() => props.resources , () => loadingCards = []);
 
 const resourcesList = computed(() => props.resources?.data ?? loadingCards);
 
-const size: Record<CardSize, number> = { xs: 0.8, sm: 0.9, md: 1, lg: 1.2, xl: 1.4 };
+const size: Record<CardSize, number> = { xs: 0.8, sm: 0.9, md: 1, lg: 1.2, xl: 1.4, full: 1 };
 const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') as CardSize]);
 </script>
 
 <template>
   <section v-if="resourcesList.length">
     <TransitionGroup name="fade" tag="ul" :appear="!! resources"
-      class="grid list-none place-items-stretch gap-wide sm:auto-rows-auto @md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))]"
+      class="grid list-none place-items-stretch sm:auto-rows-auto"
+      :class="cardSize === 'full'
+        ? 'gap-2'
+        : '@md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))] gap-base'"
       :style="{ '--card-size-multiplier': cardSizeMultiplier }">
       <li
         v-for="item in resourcesList"

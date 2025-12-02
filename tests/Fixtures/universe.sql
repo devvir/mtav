@@ -659,7 +659,7 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 
 TRUNCATE TABLE logs;
 
-INSERT INTO logs (id, event, user_id, project_id, created_at, updated_at) VALUES
+INSERT INTO logs (id, event, creator_id, project_id, created_at, updated_at) VALUES
 -- Project #1 logs
 (1, 'Member logged in', 102, 1, NOW(), NOW()),
 (2, 'Admin updated project settings', 11, 1, NOW(), NOW()),

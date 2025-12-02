@@ -166,6 +166,16 @@ class User extends Authenticatable
     /**
      * Ensure email is always stored in lowercase.
      */
+    protected function fullname(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => trim($this->firstname . ' ' . $this->lastname),
+        );
+    }
+
+    /**
+     * Ensure email is always stored in lowercase.
+     */
     protected function email(): Attribute
     {
         return Attribute::make(

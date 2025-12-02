@@ -6,6 +6,7 @@ import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
 import { CalendarIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next';
+import { fromUTC } from '@/composables/useDates';
 
 const props = defineProps<{
   event: ApiResource<Event>;
@@ -64,7 +65,7 @@ const userRsvpContentClass = computed(() => {
         <ContentDetail
           :icon="CalendarIcon"
           :title="_('Start Date')"
-          :content="event.start_date"
+          :content="fromUTC(event.start_date)"
           :fallback="_('Not set')"
         />
 
@@ -72,7 +73,7 @@ const userRsvpContentClass = computed(() => {
           v-if="event.end_date"
           :icon="ClockIcon"
           :title="_('End Date')"
-          :content="event.end_date"
+          :content="fromUTC(event.end_date)"
         />
       </ContentGrid>
 

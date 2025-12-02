@@ -15,14 +15,11 @@ class LogResource extends JsonResource
 {
     public function toArray(Request $_): array
     {
-        $user = $this->whenLoaded('user');
-
         return [
             ...$this->commonResourceData(),
-
             'event'        => $this->event,
-            'creator'      => $user?->name ?? __('System'),
-            'creator_href' => $user ? $this->getCreatorHref($user) : null,
+            'created_by'   => $this->creator?->fullname ?? __('System'),
+            'creator_href' => $this->creator ? $this->getCreatorHref($this->creator) : null,
 
             ...$this->relationsData(),
         ];
@@ -31,7 +28,7 @@ class LogResource extends JsonResource
     protected function relationsData(): array
     {
         return [
-            'user'    => $this->whenLoaded('user', default: ['id' => $this->user_id]),
+            'creator' => $this->whenLoaded('creator', default: ['id' => $this->creator_id]),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
         ];
     }

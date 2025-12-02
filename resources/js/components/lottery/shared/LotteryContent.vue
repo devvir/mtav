@@ -15,7 +15,7 @@ defineProps<{
     <ProjectPlan :plan class="flex flex-col w-full p-base pb-wide" />
 
     <!-- Right Column: Admin Management or Member Preferences -->
-    <div class="flex flex-col w-full">
+    <div>
       <LotteryManagement v-if="iAmAdmin" :lottery />
       <PreferencesManager v-if="iAmMember" :units :lottery />
     </div>

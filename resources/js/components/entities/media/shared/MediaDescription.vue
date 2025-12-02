@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
+import { fromUTC } from '@/composables/useDates';
 
 defineProps<{
   media: ApiResource<Media>;
@@ -8,7 +9,7 @@ defineProps<{
 
 <template>
   <div
-    class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/60 via-60% to-transparent p-4 text-white"
+    class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/85 via-black/60 via-60% to-transparent p-4 text-white"
   >
     <div class="space-y-2">
       <p class="text-lg leading-relaxed">
@@ -16,7 +17,7 @@ defineProps<{
       </p>
       <div class="flex items-center justify-between text-sm opacity-90">
         <span>{{ _('Published by') }} {{ media.owner?.name || _('Unknown user') }}</span>
-        <span :title="media.created_at">{{ media.created_ago }}</span>
+        <span :title="fromUTC(media.created_at)">{{ media.created_ago }}</span>
       </div>
     </div>
   </div>

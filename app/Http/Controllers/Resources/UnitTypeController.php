@@ -22,8 +22,7 @@ class UnitTypeController extends Controller
             ->when($request->q, fn ($q, $search) => $q->search($search));
 
         return inertia('UnitTypes/Index', [
-            // TODO : paginate (use infinite paginator)
-            'unit_types' => Inertia::deepMerge(fn () => $unitTypes->get()),
+            'unit_types' => Inertia::deepMerge(fn () => $unitTypes->paginate(30)),
         ]);
     }
 

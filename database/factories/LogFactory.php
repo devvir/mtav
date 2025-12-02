@@ -41,7 +41,7 @@ class LogFactory extends Factory
     {
         return [
             'project_id' => Project::factory(),
-            'user_id'    => $this->inSameProject(User::class),
+            'creator_id' => $this->inSameProject(User::class),
             'event'      => fake()->randomElement(self::EVENTS),
         ];
     }

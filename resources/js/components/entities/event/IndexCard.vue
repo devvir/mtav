@@ -4,6 +4,7 @@ import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/ca
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
 import { _ } from '@/composables/useTranslations';
+import { fromUTC } from '@/composables/useDates';
 
 const props = defineProps<{
   event: ApiResource<Event>;
@@ -26,7 +27,7 @@ const dimmed = computed(() => {
   <EntityCard :resource="event" entity="event" type="index" :dimmed>
     <CardHeader
       :title="event.title"
-      :kicker="event.start_date ?? _('No Date Set')"
+      :kicker="event.start_date ? fromUTC(event.start_date) : _('No Date Set')"
     >
       <BadgeGroup class="mt-3">
         <EventBadge

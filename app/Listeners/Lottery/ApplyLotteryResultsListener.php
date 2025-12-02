@@ -12,6 +12,6 @@ class ApplyLotteryResultsListener
 {
     public function handle(ProjectLotteryExecuted $event, ExecutionService $service): void
     {
-        $service->applyResults($event->report->picks);
+        $service->applyResults($event->lottery_id, $event->report->picks);
     }
 }

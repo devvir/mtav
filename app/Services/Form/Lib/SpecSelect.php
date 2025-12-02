@@ -6,6 +6,7 @@ namespace App\Services\Form\Lib;
 
 use App\Models\Project;
 use Closure;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -250,15 +251,18 @@ class SpecSelect extends Spec
             throw new InvalidArgumentException("Model class does not exist: {$modelClass}");
         }
 
-        $optionLabel = config('forms.optionLabel')[$modelClass] ?? 'name';
         $query = $modelClass::query();
 
-        // Apply where constraints from exists rule
         foreach ($wheres as $where) {
             $query->where($where['column'], $where['value']);
         }
 
-        $models = $query->get();
+        return $this->convertModelsToOptions($modelClass, $query->get());
+    }
+
+    protected function convertModelsToOptions(string $modelClass, Collection $models): array
+    {
+        $optionLabel = config('forms.optionLabel')[$modelClass] ?? 'name';
 
         // If optionLabel is a Closure, we need to map manually
         if ($optionLabel instanceof Closure) {
@@ -300,8 +304,7 @@ class SpecSelect extends Spec
 
     protected function userHasOnlyOneProject(): bool
     {
-        $user = Auth::user();
-        return $user && $user->projects->count() === 1;
+        return Auth::user()?->projects->count() === 1;
     }
 
     protected function getOptionsForModels($models, string $modelClass): array

@@ -9,13 +9,10 @@ use Inertia\Response;
 
 class LogController extends Controller
 {
-    /**
-     * Show the logs list.
-     */
     public function index(FilteredIndexRequest $request): Response
     {
         $logs = Log::latest()
-            ->with('user')
+            ->with('creator')
             ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))
             ->when($request->q, fn ($q, $search) => $q->search($search));
 
@@ -25,13 +22,10 @@ class LogController extends Controller
         ]);
     }
 
-    /**
-     * Show the log details.
-     */
     public function show(Log $log): Response
     {
-        $log->load('user');
-
-        return inertia('Logs/Show', compact('log'));
+        return inertia('Logs/Show', [
+            'log' => $log->load('creator', 'project'),
+        ]);
     }
 }

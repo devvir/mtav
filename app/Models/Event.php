@@ -177,7 +177,7 @@ class Event extends Model
 
     public function scopeSorted(Builder $query): void
     {
-        $query->orderByRaw("IF(type = 'lottery', 0, 1), start_date, title");
+        $query->orderByRaw("IF(type = 'lottery', 0, 1), start_date DESC, title");
     }
 
     public function scopeSearch(Builder $query, string $search): void

@@ -367,7 +367,7 @@ describe('EventController::create()', function () {
                 'element'  => 'input',
                 'label'    => 'Description',
                 'max'      => 500,
-                'min'      => 20,
+                'min'      => 5,
                 'required' => true,
                 'type'     => 'text',
                 'value'    => null,

@@ -27,7 +27,7 @@ class UserResource extends JsonResource
             'phone'     => $this->phone ?? '',
             'firstname' => $this->firstname ?? '',
             'lastname'  => $this->lastname ?? '',
-            'name'      => trim($this->firstname . ' ' . ($this->lastname ?? '')),
+            'name'      => $this->fullname,
             'about'     => $this->about ?? null,
             'avatar'    => $this->avatar ? Storage::url($this->avatar) : null,
             'is_admin'  => $this->isAdmin(),

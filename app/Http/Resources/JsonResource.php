@@ -16,12 +16,10 @@ abstract class JsonResource extends BaseJsonResource
     {
         return [
             'id'          => $this->id,
-            'created_at'  => $this->created_at->translatedFormat('M j, Y g:i A'),
+            'is_deleted'  => $this->whenHas('deleted_at', fn () => !! $this->deleted_at),
+            'created_at'  => $this->created_at,
             'created_ago' => $this->created_at->diffForHumans(),
-            'deleted_at'  => $this->whenHas(
-                'deleted_at',
-                fn () => $this->deleted_at?->translatedFormat('M j, Y g:i A')
-            ),
+            'deleted_at'  => $this->whenHas('deleted_at', fn () => $this->deleted_at),
         ];
     }
 

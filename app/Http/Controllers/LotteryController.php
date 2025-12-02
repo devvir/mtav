@@ -33,7 +33,7 @@ class LotteryController extends Controller
         $preferences = $family ? $this->lotteryService->preferences($family) : [];
 
         return Inertia::render('Lottery/Index', [
-            'lottery' => Project::current()->lottery,
+            'lottery' => Project::current()->lottery()->withTrashed()->first(),
             'units'   => $preferences, /** For Members only */
             'plan'    => currentProject()->plan,
         ]);

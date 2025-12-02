@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Badge } from '@/components/badge';
 import { CardFooter, CreatedMeta } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';

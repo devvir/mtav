@@ -49,10 +49,8 @@ class EventResource extends JsonResource
     protected function datetimeProps(): array
     {
         return [
-            'start_date'     => $this->start_date?->translatedFormat('M j, Y g:i A'),
-            'end_date'       => $this->end_date?->translatedFormat('M j, Y g:i A'),
-            'start_date_raw' => $this->start_date,
-            'end_date_raw'   => $this->end_date,
+            'start_date' => $this->start_date,
+            'end_date'   => $this->end_date,
         ];
     }
 

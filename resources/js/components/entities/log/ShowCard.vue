@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Badge } from '@/components/badge';
-import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
-import { _ } from '@/composables/useTranslations';
+import { EntityCard, CardContent, CardFooter } from '@/components/card';
+import CreatedMeta from '@/components/card/snippets/CreatedMeta.vue';
+import { User } from 'lucide-vue-next';
 
 defineProps<{
   log: ApiResource<Log>;
@@ -10,25 +10,26 @@ defineProps<{
 
 <template>
   <EntityCard :resource="log" entity="log" type="show">
-    <CardHeader :title="log.event" :kicker="log.creator" />
-
-    <CardContent>
-      <div class="space-y-2">
-        <p class="text-sm">
-          <span class="font-medium">{{ _('Action') }}:</span> {{ log.event }}
-        </p>
-
-        <div class="flex flex-wrap gap-2">
-          <Badge v-if="log.user?.id" variant="outline">User {{ log.user.id }}</Badge>
-          <Badge v-if="log.project?.id" variant="outline">Project {{ log.project.id }}</Badge>
-        </div>
-
-        <p v-if="log.creator_href" class="text-xs">
-          👤 <a :href="log.creator_href" class="text-primary underline">{{ log.creator }}</a>
-        </p>
+    <CardContent class="gap-3">
+      <div class="flex items-center gap-2 text-sm text-text-muted">
+        <User class="h-4 w-4" />
+        <span v-if="log.creator_href">
+          <Link :href="log.creator_href" class="text-primary hover:underline">
+            {{ log.created_by }}
+          </Link>
+        </span>
+        <span v-else>{{ log.created_by }}</span>
       </div>
+
+      <h3 class="text-lg font-semibold text-text">{{ log.event }}</h3>
     </CardContent>
 
-    <CardFooter />
+    <CardFooter class="flex items-center justify-between">
+      <span v-if="log.project.name" class="text-sm text-text-muted">
+        {{ log.project.name }}
+      </span>
+
+      <CreatedMeta />
+    </CardFooter>
   </EntityCard>
 </template>

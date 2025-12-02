@@ -3,9 +3,10 @@ import type { HTMLAttributes } from 'vue'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  defaultValue?: string | number
-  modelValue?: string | number
-  class?: HTMLAttributes['class']
+  defaultValue?: string | number;
+  modelValue?: string | number;
+  type?: string;
+  class?: HTMLAttributes['class'];
 }>()
 
 const emits = defineEmits<{
@@ -19,7 +20,7 @@ const modelValue = useVModel(props, 'modelValue', emits, {
 </script>
 
 <template>
-  <input
+  <input :type
     v-model="modelValue"
     data-slot="input"
     :class="cn(
