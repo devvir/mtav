@@ -103,4 +103,14 @@ class LotteryService
     {
         $this->executionService->execute($lottery, $force);
     }
+
+    /**
+     * Invalidate a partial or completed Lottery execution.
+     *
+     * Restores lottery, removes assignments, and adds an INVALIDATE audit.
+     */
+    public function invalidate(Event $lottery): void
+    {
+        $this->executionService->invalidate($lottery);
+    }
 }

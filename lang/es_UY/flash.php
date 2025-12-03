@@ -31,11 +31,6 @@ return [
     'family_deleted'  => 'La Familia y sus Miembros fueron removidos del sistema.',
     'family_restored' => '¡Perfecto! La Familia y sus Miembros están de vuelta.',
 
-    // Lottery operations
-    'lottery_updated'             => '¡Excelente! Los detalles del sorteo fueron actualizados.',
-    'lottery_preferences_updated' => '¡Perfecto! Tus preferencias de unidades fueron guardadas.',
-    'lottery_executed_successfully' => 'El sorteo se ejecutó exitosamente. Todas las unidades han sido asignadas.',
-
     // Media operations
     'media_uploaded'          => '¡Perfecto! Tu archivo ya se subió.',
     'media_multiple_uploaded' => '¡Genial! Los :count archivos están listos.',

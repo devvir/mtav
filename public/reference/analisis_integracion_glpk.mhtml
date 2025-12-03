@@ -1,0 +1,1132 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: file:///data/Development/Repos/MTAV/mtav/documentation/INTEGRACION_GLPK.html
+Subject: =?utf-8?Q?Integraci=C3=B3n=20del=20Sistema=20de=20Optimizaci=C3=B3n=20GLP?=
+ =?utf-8?Q?K=20-=20Migraci=C3=B3n=20MTAV?=
+Date: Thu, 4 Dec 2025 04:40:05 +0400
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--NslqulYvjf9JpiB9mqh1XeLZKMxdSzvyZOsQ4gmIEA----"
+
+
+------MultipartBoundary--NslqulYvjf9JpiB9mqh1XeLZKMxdSzvyZOsQ4gmIEA----
+Content-Type: text/html
+Content-ID: <frame-68DD2D091BCF42DB25F2A25144B6675C@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///data/Development/Repos/MTAV/mtav/documentation/INTEGRACION_GLPK.html
+
+<!DOCTYPE html><html lang=3D"es"><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/=
+css" href=3D"cid:css-f5d2486f-b48b-4cbe-af14-975b949b7acd@mhtml.blink" />
+   =20
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=
+=3D1.0">
+    <title>Integraci=C3=B3n del Sistema de Optimizaci=C3=B3n GLPK - Migraci=
+=C3=B3n MTAV</title>
+   =20
+</head>
+<body>
+    <div class=3D"container">
+        <h1>Integraci=C3=B3n del Sistema de Optimizaci=C3=B3n - Migraci=C3=
+=B3n desde Windows a Web</h1>
+
+        <div class=3D"metadata">
+            <strong>Asunto:</strong> An=C3=A1lisis t=C3=A9cnico para migrac=
+i=C3=B3n MTAV<br>
+            <strong>Objetivo:</strong> Reemplazar la aplicaci=C3=B3n de esc=
+ritorio Windows (Qt/C++) con servicios web para el algoritmo de sorteo<p></=
+p>
+        </div>
+
+        <div class=3D"toc">
+            <h2>Tabla de Contenidos</h2>
+            <ul>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#contexto">1. Contexto y Problema</a></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#sistema-actual">2. Sistema Actual (Windows=
+)</a></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#algoritmo">3. El Algoritmo de Optimizaci=
+=C3=B3n</a></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#opciones">4. Opciones de Migraci=C3=B3n</a=
+></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#recomendacion">5. Recomendaci=C3=B3n: NEOS=
+ Server</a></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#implementacion">6. Plan de Implementaci=C3=
+=B3n</a></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#alternativas">7. Alternativas Evaluadas</a=
+></li>
+                <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/doc=
+umentation/INTEGRACION_GLPK.html#referencias">8. Referencias T=C3=A9cnicas<=
+/a></li>
+            </ul>
+        </div>
+
+        <h2 id=3D"contexto">1. Contexto y Problema</h2>
+
+        <h3>Estado Actual</h3>
+        <p>El sistema MTAV anterior funcionaba as=C3=AD:</p>
+        <ol>
+            <li><strong>Excel</strong> =E2=86=92 Los administradores ingres=
+aban datos manualmente</li>
+            <li><strong>Aplicaci=C3=B3n Windows</strong> =E2=86=92 Procesab=
+a los datos y ejecutaba el modelo matem=C3=A1tico</li>
+            <li><strong>GLPK local</strong> =E2=86=92 Software de optimizac=
+i=C3=B3n instalado en Windows</li>
+            <li><strong>Resultados</strong> =E2=86=92 Se mostraban en la in=
+terfaz de la aplicaci=C3=B3n</li>
+        </ol>
+
+        <div class=3D"warning-box">
+            <h4>Limitaciones de este enfoque:</h4>
+            <ul>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Solo=
+ funciona en Windows</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Requ=
+iere instalaci=C3=B3n local de software especializado</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> No e=
+s escalable (una ejecuci=C3=B3n a la vez)</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Dif=
+=C3=ADcil de mantener y actualizar</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> No s=
+e integra con aplicaci=C3=B3n web moderna</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Proc=
+eso manual propenso a errores</li>
+            </ul>
+        </div>
+
+        <h3>Nueva Arquitectura Web</h3>
+        <div class=3D"success-box">
+            <p>La nueva aplicaci=C3=B3n MTAV es:</p>
+            <ul>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+Aplicaci=C3=B3n web (PHP/Laravel + Vue.js)</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+Corre en servidores Linux</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+Base de datos centralizada</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+Interfaz moderna y accesible</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+Gesti=C3=B3n completa del proceso de sorteo</li>
+            </ul>
+        </div>
+
+        <div class=3D"info-box">
+            <p><strong>El desaf=C3=ADo:</strong> =C2=BFC=C3=B3mo ejecutar e=
+l algoritmo de optimizaci=C3=B3n GLPK desde una aplicaci=C3=B3n web sin dep=
+ender de Windows?</p>
+        </div>
+
+        <h2 id=3D"sistema-actual">2. Sistema Actual (Windows)</h2>
+
+        <h3>Arquitectura de la Aplicaci=C3=B3n Qt</h3>
+        <div class=3D"diagram">
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82         Interfaz Gr=C3=A1fica (Qt/C++)                   =E2=94=
+=82
+=E2=94=82  - Ingreso manual de datos                          =E2=94=82
+=E2=94=82  - Configuraci=C3=B3n de par=C3=A1metros                      =E2=
+=94=82
+=E2=94=82  - Visualizaci=C3=B3n de resultados                      =E2=94=
+=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=AC=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+                   =E2=94=82
+                   =E2=96=BC
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82         M=C3=B3dulo GLPK (glpk.cpp)                      =E2=94=
+=82
+=E2=94=82  - Genera archivos .dat con los datos              =E2=94=82
+=E2=94=82  - Ejecuta GLPK.exe mediante l=C3=ADnea de comandos     =E2=94=82
+=E2=94=82  - Lee archivos .sol con resultados                =E2=94=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=AC=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+                   =E2=94=82
+                   =E2=96=BC
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82         GLPK Ejecutable (Windows)                   =E2=94=82
+=E2=94=82  - Carga modelo matem=C3=A1tico (.mod)                  =E2=94=82
+=E2=94=82  - Carga datos del problema (.dat)                 =E2=94=82
+=E2=94=82  - Resuelve problema de optimizaci=C3=B3n               =E2=94=82
+=E2=94=82  - Genera archivo de soluci=C3=B3n (.sol)               =E2=94=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+        </div>
+
+        <h3>Flujo de Ejecuci=C3=B3n (2 Fases)</h3>
+
+        <h4>Fase 1: Maximizar Satisfacci=C3=B3n M=C3=ADnima</h4>
+        <p><strong>Archivo:</strong> <code>MTAV.mod</code></p>
+
+        <pre><code># Modelo de Optimizaci=C3=B3n de Sorteo MTAV - Fase 1
+# Objetivo: Maximizar la satisfacci=C3=B3n m=C3=ADnima (max-min fairness)
+
+set C;              # Cooperativistas (familias)
+set V;              # Viviendas (unidades)
+
+param p{c in C, v in V};
+# Prioridad: qu=C3=A9 tan preferida es la vivienda v para el cooperativista=
+ c
+# Valor m=C3=A1s BAJO =3D m=C3=A1s preferida (1 =3D primera opci=C3=B3n)
+
+var x{c in C, v in V}, binary;
+# Variable de decisi=C3=B3n: 1 si cooperativista c recibe vivienda v
+
+var z, integer;
+# Variable auxiliar: representa la PEOR satisfacci=C3=B3n individual
+
+minimize resultado: z;
+# OBJETIVO: Minimizar la peor satisfacci=C3=B3n (max-min fairness)
+
+s.t. z_menorIgual{c in C}:
+    z &gt;=3D sum{v in V} p[c,v] * x[c,v];
+# z debe ser al menos tan grande como la satisfacci=C3=B3n de CADA cooperat=
+ivista
+
+s.t. unicaAsignacionCoperativista_mayorIgual{c in C}:
+    sum{v in V} x[c,v] &gt;=3D 1;
+s.t. unicaAsignacionCoperativista_menorIgual{c in C}:
+    sum{v in V} x[c,v] &lt;=3D 1;
+# Cada cooperativista recibe EXACTAMENTE una vivienda
+
+s.t. unicaAsignacionCasa_mayorIgual{v in V}:
+    sum{c in C} x[c,v] &gt;=3D 1;
+s.t. unicaAsignacionCasa_menorIgual{v in V}:
+    sum{c in C} x[c,v] &lt;=3D 1;
+# Cada vivienda es asignada a EXACTAMENTE un cooperativista</code></pre>
+
+        <h4>=C2=BFQu=C3=A9 hace esto?</h4>
+        <p>Imagina 3 familias y 3 viviendas:</p>
+        <ul>
+            <li>Familia A prefiere: [Vivienda 1, Vivienda 2, Vivienda 3]</l=
+i>
+            <li>Familia B prefiere: [Vivienda 1, Vivienda 3, Vivienda 2]</l=
+i>
+            <li>Familia C prefiere: [Vivienda 2, Vivienda 1, Vivienda 3]</l=
+i>
+        </ul>
+
+        <p>El algoritmo busca una asignaci=C3=B3n donde <strong>la familia =
+m=C3=A1s infeliz sea lo m=C3=A1s feliz posible</strong>.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Asignaci=C3=B3n</th>
+                    <th>Familia A</th>
+                    <th>Familia B</th>
+                    <th>Familia C</th>
+                    <th>Peor Caso</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Sin optimizaci=C3=B3n</strong></td>
+                    <td>Vivienda 1 (1=C2=AA opci=C3=B3n) =F0=9F=98=8A=F0=9F=
+=98=8A=F0=9F=98=8A</td>
+                    <td>Vivienda 2 (3=C2=AA opci=C3=B3n) =F0=9F=98=A2</td>
+                    <td>Vivienda 3 (3=C2=AA opci=C3=B3n) =F0=9F=98=A2</td>
+                    <td style=3D"background-color: #fee;">3=C2=AA opci=C3=
+=B3n</td>
+                </tr>
+                <tr>
+                    <td><strong>Con optimizaci=C3=B3n</strong></td>
+                    <td>Vivienda 2 (2=C2=AA opci=C3=B3n) =F0=9F=98=8A=F0=9F=
+=98=8A</td>
+                    <td>Vivienda 3 (2=C2=AA opci=C3=B3n) =F0=9F=98=8A=F0=9F=
+=98=8A</td>
+                    <td>Vivienda 1 (2=C2=AA opci=C3=B3n) =F0=9F=98=8A=F0=9F=
+=98=8A</td>
+                    <td style=3D"background-color: #dfd;">2=C2=AA opci=C3=
+=B3n</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>En el segundo caso, nadie est=C3=A1 super feliz, pero <strong>na=
+die est=C3=A1 muy infeliz tampoco</strong>. Esto es m=C3=A1s justo.</p>
+
+        <h4>Fase 2: Optimizaci=C3=B3n de Empates</h4>
+        <p><strong>Archivo:</strong> <code>MTAV_empate.mod</code></p>
+
+        <p>A veces hay m=C3=BAltiples asignaciones que logran el mismo nive=
+l de satisfacci=C3=B3n m=C3=ADnima. La Fase 2 rompe el empate optimizando l=
+a <strong>felicidad global</strong>.</p>
+
+        <div class=3D"info-box">
+            <p><strong>Ejemplo:</strong> Supongamos que Fase 1 encontr=C3=
+=B3 <code>S =3D 2</code> (nadie recibe peor que su 2=C2=AA opci=C3=B3n).</p=
+>
+            <ul>
+                <li><strong>Soluci=C3=B3n A:</strong> Todas las familias co=
+n 2=C2=AA opci=C3=B3n =E2=86=92 Suma total =3D 6</li>
+                <li><strong>Soluci=C3=B3n B:</strong> Una familia con 1=C2=
+=AA opci=C3=B3n, dos con 2=C2=AA =E2=86=92 Suma total =3D 5 =E2=9C=85 <stro=
+ng>=C2=A1Mejor!</strong></li>
+            </ul>
+            <p>Ambas soluciones respetan <code>S</code>, pero B tiene mejor=
+ satisfacci=C3=B3n global.</p>
+        </div>
+
+        <h3>Formato de Datos (.dat)</h3>
+        <p>El c=C3=B3digo C++ genera archivos <code>.dat</code> con esta es=
+tructura:</p>
+        <pre><code>data;
+
+set C :=3D c0 c1 c2;                    # IDs de familias
+
+set V :=3D v0 v1 v2;                    # IDs de viviendas
+
+param p : v0 v1 v2 :=3D                 # Matriz de preferencias
+c0        1  2  3                     # Familia 0: prefiere v0, luego v1, l=
+uego v2
+c1        2  1  3                     # Familia 1: prefiere v1, luego v0, l=
+uego v2
+c2        3  2  1                     # Familia 2: prefiere v2, luego v1, l=
+uego v0
+;
+
+end;</code></pre>
+
+        <p><strong>Nota importante:</strong> Los valores m=C3=A1s bajos son=
+ mejores (1 =3D primera opci=C3=B3n).</p>
+
+        <h2 id=3D"algoritmo">3. El Algoritmo de Optimizaci=C3=B3n</h2>
+
+        <h3>=C2=BFQu=C3=A9 es GLPK?</h3>
+        <p><strong>GLPK</strong> =3D GNU Linear Programming Kit</p>
+        <p>Es un software <strong>gratuito y de c=C3=B3digo abierto</strong=
+> para resolver problemas de:</p>
+        <ul>
+            <li><strong>Programaci=C3=B3n Lineal</strong> (LP)</li>
+            <li><strong>Programaci=C3=B3n Lineal Entera</strong> (MIP - Mix=
+ed Integer Programming)</li>
+            <li><strong>Programaci=C3=B3n Lineal Entera Binaria</strong> (c=
+omo nuestro caso)</li>
+        </ul>
+
+        <h3>=C2=BFPor Qu=C3=A9 Necesitamos Software Especializado?</h3>
+        <p><strong>Opci=C3=B3n ingenua:</strong> Probar todas las combinaci=
+ones posibles</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tama=C3=B1o del Problema</th>
+                    <th>Posibilidades</th>
+                    <th>Tiempo de C=C3=A1lculo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>10 familias =C3=97 10 viviendas</td>
+                    <td>10! =3D 3,628,800</td>
+                    <td>Segundos</td>
+                </tr>
+                <tr>
+                    <td>50 familias =C3=97 50 viviendas</td>
+                    <td>50! =E2=89=88 3.04 =C3=97 10<sup>64</sup></td>
+                    <td style=3D"background-color: #fee;"><strong>M=C3=A1s =
+tiempo que la edad del universo =F0=9F=8C=8C</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class=3D"success-box">
+            <p><strong>GLPK usa algoritmos inteligentes:</strong></p>
+            <ul>
+                <li><strong>Simplex</strong> para problemas lineales</li>
+                <li><strong>Branch and Bound</strong> para problemas entero=
+s</li>
+                <li><strong>Heur=C3=ADsticas</strong> para acelerar b=C3=BA=
+squeda</li>
+            </ul>
+            <p><strong>Resultado:</strong> Resuelve problemas grandes en se=
+gundos o minutos.</p>
+        </div>
+
+        <h3>Criterio de Optimizaci=C3=B3n: Max-Min Fairness</h3>
+        <p><strong>Concepto:</strong> Maximizar el bienestar del m=C3=A1s d=
+esfavorecido</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Alternativa</th>
+                    <th>Descripci=C3=B3n</th>
+                    <th>Evaluaci=C3=B3n</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Maximizar suma total</strong></td>
+                    <td>Optimizar satisfacci=C3=B3n promedio</td>
+                    <td><span class=3D"status-icon cross">=E2=9D=8C</span> =
+Algunas familias pueden ser muy infelices</td>
+                </tr>
+                <tr>
+                    <td><strong>Aleatorio puro</strong></td>
+                    <td>No considera preferencias</td>
+                    <td><span class=3D"status-icon cross">=E2=9D=8C</span> =
+Injusto</td>
+                </tr>
+                <tr>
+                    <td><strong>Max-Min Fairness</strong></td>
+                    <td>Maximizar satisfacci=C3=B3n m=C3=ADnima, luego opti=
+mizar global</td>
+                    <td><span class=3D"status-icon checkmark">=E2=9C=85</sp=
+an> Garantiza equidad, luego eficiencia</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class=3D"info-box">
+            <p><strong>Ventaja para cooperativas:</strong> Este criterio re=
+fleja los valores de solidaridad y equidad fundamentales del cooperativismo=
+.</p>
+        </div>
+
+        <h2 id=3D"opciones">4. Opciones de Migraci=C3=B3n</h2>
+
+        <h3>Opci=C3=B3n 1: GLPK en Servidor Propio (=E2=AD=90 RECOMENDADO)<=
+/h3>
+
+        <h4>=C2=BFQu=C3=A9 es GLPK Local?</h4>
+        <p>Instalar GLPK directamente en el servidor Linux donde corre la a=
+plicaci=C3=B3n web, ejecut=C3=A1ndolo mediante comandos del sistema.</p>
+
+        <div class=3D"success-box">
+            <h4>Ventajas:</h4>
+            <ul>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Control total</strong> - Sin dependencias externas ni conexiones a =
+internet</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Privacidad completa</strong> - Los datos nunca salen del servidor</=
+li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Sin l=C3=ADmites</strong> - No hay timeouts ni colas de espera</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Ejecuci=C3=B3n s=C3=ADncrona simple</strong> - No necesita polling =
+ni async</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Docker-friendly</strong> - Instalar una vez, correr en cualquier la=
+do</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Velocidad</strong> - Para problemas peque=C3=B1os (20-100 entidades=
+): &lt; 5 segundos</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Los mismos archivos .mod funcionan</strong> sin cambios</li>
+            </ul>
+        </div>
+
+        <div class=3D"warning-box">
+            <h4>Consideraciones:</h4>
+            <ul>
+                <li><span class=3D"status-icon warning">=E2=9A=A0=EF=B8=8F<=
+/span> Requiere instalaci=C3=B3n en Docker (una sola vez)</li>
+                <li><span class=3D"status-icon warning">=E2=9A=A0=EF=B8=8F<=
+/span> Administraci=C3=B3n de versiones (pero GLPK es muy estable)</li>
+            </ul>
+        </div>
+
+        <div class=3D"info-box">
+            <p><strong>Para nuestro caso espec=C3=ADfico (20-100 familias/u=
+nidades):</strong></p>
+            <ul>
+                <li>Memoria requerida: ~5-10 MB</li>
+                <li>Tiempo de ejecuci=C3=B3n: 2-5 segundos t=C3=ADpicamente=
+</li>
+                <li>Resultado determin=C3=ADstico: mismo input =3D mismo ou=
+tput siempre</li>
+            </ul>
+        </div>
+
+        <p><strong>Instalaci=C3=B3n en Ubuntu/Debian:</strong></p>
+        <pre><code>sudo apt-get update
+sudo apt-get install glpk-utils</code></pre>
+
+        <p><strong>Instalaci=C3=B3n en Docker:</strong></p>
+        <pre><code># Agregar a Dockerfile
+RUN apt-get update &amp;&amp; apt-get install -y glpk-utils</code></pre>
+
+        <h4>Arquitectura de Ejecuci=C3=B3n:</h4>
+        <div class=3D"diagram">
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82      Aplicaci=C3=B3n Web MTAV (Laravel)          =E2=94=82
+=E2=94=82  - Genera archivo .mod                      =E2=94=82
+=E2=94=82  - Genera archivo .dat                      =E2=94=82
+=E2=94=82  - Escribe a /tmp/                          =E2=94=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=AC=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+                 =E2=94=82 exec()
+                 =E2=96=BC
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82          GLPK Local (glpsol)                =E2=94=82
+=E2=94=82  - Lee .mod y .dat                          =E2=94=82
+=E2=94=82  - Resuelve problema                        =E2=94=82
+=E2=94=82  - Escribe .sol                             =E2=94=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=AC=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+                 =E2=94=82 file_get_contents()
+                 =E2=96=BC
+=E2=94=8C=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+=E2=94=82      Aplicaci=C3=B3n Web MTAV (Laravel)          =E2=94=82
+=E2=94=82  - Lee archivo .sol                         =E2=94=82
+=E2=94=82  - Parsea resultados                        =E2=94=82
+=E2=94=82  - Guarda asignaciones en BD                =E2=94=82
+=E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=
+=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=
+=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=
+=80=E2=94=80=E2=94=80=E2=94=80=E2=94=80=E2=94=98
+        </div>
+
+        <h3>Opci=C3=B3n 2: NEOS Server</h3>
+
+        <h4>=C2=BFQu=C3=A9 es NEOS?</h4>
+        <ul>
+            <li><strong>Network-Enabled Optimization System</strong></li>
+            <li>Servicio web <strong>gratuito</strong> de la Universidad de=
+ Wisconsin-Madison</li>
+            <li>Permite ejecutar solvers de optimizaci=C3=B3n (incluido GLP=
+K) mediante API</li>
+            <li>Usado por investigadores y empresas de todo el mundo</li>
+        </ul>
+
+        <div class=3D"success-box">
+            <h4>Ventajas:</h4>
+            <ul>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Gratuito</strong> (financiado por NSF y DOE)</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Sin instalaci=C3=B3n</strong> de software</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>Mantenci=C3=B3n incluida</strong> (ellos actualizan GLPK)</li>
+                <li><span class=3D"status-icon checkmark">=E2=9C=85</span> =
+<strong>API simple</strong> (XML-RPC o REST)</li>
+            </ul>
+        </div>
+
+        <div class=3D"warning-box">
+            <h4>Desventajas:</h4>
+            <ul>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Depe=
+ndencia de servicio externo e internet</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Comp=
+lejidad: async, polling, manejo de errores de red</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Dato=
+s salen del servidor</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> L=C3=
+=ADmite de tiempo por trabajo</li>
+            </ul>
+        </div>
+
+        <p><strong>URL:</strong> <a href=3D"https://neos-server.org/neos/" =
+target=3D"_blank">https://neos-server.org/neos/</a></p>
+
+        <h3>Opci=C3=B3n 3: Google OR-Tools</h3>
+        <p><strong>=C2=BFQu=C3=A9 es OR-Tools?</strong> Biblioteca de optim=
+izaci=C3=B3n de Google</p>
+
+        <div class=3D"warning-box">
+            <p><strong>No recomendado para nuestro caso</strong> porque:</p=
+>
+            <ul>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Requ=
+iere reescribir el modelo (no podemos usar .mod directamente)</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> Nece=
+sitamos servicio adicional (Python microservice)</li>
+                <li><span class=3D"status-icon cross">=E2=9D=8C</span> M=C3=
+=A1s complejidad arquitect=C3=B3nica</li>
+            </ul>
+            <p>Ya tenemos modelos .mod funcionando. NEOS hace lo mismo m=C3=
+=A1s simple.</p>
+        </div>
+
+        <h3>Opci=C3=B3n 4: Servicio Comercial</h3>
+        <p><strong>Ejemplos:</strong> AIMMS PRO, GUROBI Cloud, IBM CPLEX on=
+ Cloud</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Servicio</th>
+                    <th>Costo Mensual</th>
+                    <th>Evaluaci=C3=B3n</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>GUROBI Cloud</td>
+                    <td>$500+</td>
+                    <td rowspan=3D"3" style=3D"background-color: #fee;"><sp=
+an class=3D"status-icon cross">=E2=9D=8C</span> No justificado para este pr=
+oyecto</td>
+                </tr>
+                <tr>
+                    <td>AIMMS PRO</td>
+                    <td>$1000+</td>
+                </tr>
+                <tr>
+                    <td>IBM CPLEX Cloud</td>
+                    <td>$300+</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id=3D"recomendacion">5. Recomendaci=C3=B3n: GLPK Local</h2>
+
+        <h3>Justificaci=C3=B3n</h3>
+        <p>Para el proyecto MTAV, <strong>GLPK Local es la mejor opci=C3=B3=
+n</strong> porque:</p>
+        <ol>
+            <li><strong>Sin dependencias externas</strong> =E2=86=92 No req=
+uiere internet, sin puntos de falla externos</li>
+            <li><strong>Simplicidad</strong> =E2=86=92 Ejecuci=C3=B3n s=C3=
+=ADncrona simple, sin async/polling/timeouts</li>
+            <li><strong>Mismo modelo</strong> =E2=86=92 Los archivos .mod a=
+ctuales funcionan sin cambios</li>
+            <li><strong>Privacidad total</strong> =E2=86=92 Los datos nunca=
+ salen del servidor</li>
+            <li><strong>Docker-friendly</strong> =E2=86=92 Instalar una vez=
+ en Dockerfile, correr en cualquier lado</li>
+            <li><strong>Velocidad =C3=B3ptima</strong> =E2=86=92 Para 20-10=
+0 entidades: 2-5 segundos (suficiente)</li>
+            <li><strong>Control total</strong> =E2=86=92 Sin l=C3=ADmites d=
+e tiempo ni colas de espera</li>
+            <li><strong>Gratuito</strong> =E2=86=92 Sin costos operativos</=
+li>
+        </ol>
+
+        <h3>Comparaci=C3=B3n de Opciones</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Criterio</th>
+                    <th>NEOS</th>
+                    <th>GLPK Local</th>
+                    <th>OR-Tools</th>
+                    <th>Comercial</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Costo</strong></td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Gratis</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Gratis</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Gratis</td>
+                    <td style=3D"background-color: #fee;"><span class=3D"st=
+atus-icon cross">=E2=9D=8C</span> Caro</td>
+                </tr>
+                <tr>
+                    <td><strong>Mantenci=C3=B3n</strong></td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Ninguna</td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Nosotros</td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Nosotros</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Vendor</td>
+                </tr>
+                <tr>
+                    <td><strong>Complejidad</strong></td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Baja</td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Media</td>
+                    <td style=3D"background-color: #fee;"><span class=3D"st=
+atus-icon cross">=E2=9D=8C</span> Alta</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Baja</td>
+                </tr>
+                <tr>
+                    <td><strong>Reutiliza .mod</strong></td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> S=C3=AD</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> S=C3=AD</td>
+                    <td style=3D"background-color: #fee;"><span class=3D"st=
+atus-icon cross">=E2=9D=8C</span> No</td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Depende</td>
+                </tr>
+                <tr>
+                    <td><strong>Control</strong></td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Medio</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Total</td>
+                    <td style=3D"background-color: #dfd;"><span class=3D"st=
+atus-icon checkmark">=E2=9C=85</span> Alto</td>
+                    <td style=3D"background-color: #ffd;"><span class=3D"st=
+atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Bajo</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class=3D"success-box">
+            <p><strong>Conclusi=C3=B3n:</strong> NEOS gana en la mayor=C3=
+=ADa de criterios relevantes.</p>
+        </div>
+
+        <h2 id=3D"implementacion">6. Plan de Implementaci=C3=B3n</h2>
+
+        <h3>Fase 1: Implementar LocalGlpkSolver (1 d=C3=ADa)</h3>
+        <p><strong>Archivos a crear:</strong></p>
+        <ol>
+            <li><code>app/Services/Lottery/Solvers/LocalGlpkSolver.php</cod=
+e></li>
+            <li><code>app/Services/Lottery/Glpk/ModelGenerator.php</code></=
+li>
+            <li><code>app/Services/Lottery/Glpk/DataGenerator.php</code></l=
+i>
+            <li><code>app/Services/Lottery/Glpk/SolutionParser.php</code></=
+li>
+        </ol>
+
+        <h4>Flujo Principal (LocalGlpkSolver.php):</h4>
+        <pre><code class=3D"language-php">&lt;?php
+
+namespace App\Services\Lottery\Solvers;
+
+class LocalGlpkSolver implements SolverInterface
+{
+    public function execute(LotterySpec $spec): array
+    {
+        // FASE 1: Maximizar satisfacci=C3=B3n m=C3=ADnima
+        $modFile1 =3D $this-&gt;writeModel($this-&gt;generator-&gt;generate=
+Phase1Model());
+        $datFile1 =3D $this-&gt;writeData($this-&gt;generator-&gt;generateD=
+ata($spec));
+        $solFile1 =3D $this-&gt;runGlpk($modFile1, $datFile1);
+        $minSatisfaction =3D $this-&gt;parser-&gt;extractObjective($solFile=
+1);
+
+        // FASE 2: Optimizar empates
+        $modFile2 =3D $this-&gt;writeModel($this-&gt;generator-&gt;generate=
+Phase2Model());
+        $datFile2 =3D $this-&gt;writeData($this-&gt;generator-&gt;generateD=
+ataWithS($spec, $minSatisfaction));
+        $solFile2 =3D $this-&gt;runGlpk($modFile2, $datFile2);
+        $picks =3D $this-&gt;parser-&gt;extractAssignments($solFile2);
+
+        // Cleanup temp files
+        $this-&gt;cleanup([$modFile1, $datFile1, $solFile1, $modFile2, $dat=
+File2, $solFile2]);
+
+        return [
+            'picks' =3D&gt; $picks,
+            'orphans' =3D&gt; $this-&gt;calculateOrphans($spec, $picks),
+        ];
+    }
+
+    private function runGlpk(string $modFile, string $datFile): string
+    {
+        $solFile =3D tempnam(sys_get_temp_dir(), 'mtav_sol_') . '.sol';
+
+        $command =3D sprintf(
+            'glpsol --model %s --data %s --output %s 2&gt;&amp;1',
+            escapeshellarg($modFile),
+            escapeshellarg($datFile),
+            escapeshellarg($solFile)
+        );
+
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !=3D=3D 0) {
+            throw new GlpkException("GLPK failed: " . implode("\n", $output=
+));
+        }
+
+        return $solFile;
+    }
+}</code></pre>
+
+        <h3>Fase 2: Configuraci=C3=B3n Docker (30 minutos)</h3>
+        <p><strong>Agregar a Dockerfile:</strong></p>
+        <pre><code>RUN apt-get update &amp;&amp; apt-get install -y glpk-ut=
+ils &amp;&amp; rm -rf /var/lib/apt/lists/*</code></pre>
+
+        <p><strong>Variable de entorno (.env):</strong></p>
+        <pre><code>LOTTERY_SOLVER=3Dlocal_glpk</code></pre>
+
+        <h3>Fase 3: Testing (medio d=C3=ADa)</h3>
+        <p><strong>Verificar instalaci=C3=B3n:</strong></p>
+        <pre><code>mtav exec glpsol --version</code></pre>
+
+        <h3>Fase 4: Documentaci=C3=B3n (medio d=C3=ADa)</h3>
+        <p>Actualizar README y documentaci=C3=B3n t=C3=A9cnica</p>
+
+        <h3>Cronograma de Implementaci=C3=B3n</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fase</th>
+                    <th>Duraci=C3=B3n</th>
+                    <th>Entregables</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Fase 1</strong>: LocalGlpkSolver</td>
+                    <td>1 d=C3=ADa</td>
+                    <td>LocalGlpkSolver.php, ModelGenerator.php, DataGenera=
+tor.php, SolutionParser.php</td>
+                </tr>
+                <tr>
+                    <td><strong>Fase 2</strong>: Config Docker</td>
+                    <td>30 min</td>
+                    <td>Dockerfile actualizado, .env configurado</td>
+                </tr>
+                <tr>
+                    <td><strong>Fase 3</strong>: Testing</td>
+                    <td>medio d=C3=ADa</td>
+                    <td>Tests unitarios y de integraci=C3=B3n</td>
+                </tr>
+                <tr>
+                    <td><strong>Fase 4</strong>: Documentaci=C3=B3n</td>
+                    <td>0.5 d=C3=ADas</td>
+                    <td>README actualizado, gu=C3=ADas</td>
+                </tr>
+                <tr style=3D"background-color: #e7f2fa;">
+                    <td><strong>Total</strong></td>
+                    <td><strong>2 d=C3=ADas</strong></td>
+                    <td>Sistema completo funcionando con GLPK Local</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id=3D"alternativas">7. Alternativas Evaluadas</h2>
+
+        <h3>=C2=BFPor qu=C3=A9 NO Google OR-Tools?</h3>
+        <p><strong>Razones t=C3=A9cnicas:</strong></p>
+        <ol>
+            <li><strong>Incompatibilidad de formato</strong> - OR-Tools no =
+lee archivos <code>.mod</code> de GLPK. Tendr=C3=ADamos que reescribir el m=
+odelo completo</li>
+            <li><strong>Complejidad arquitect=C3=B3nica</strong> - Necesita=
+mos microservicio adicional (Python/Docker). M=C3=A1s puntos de falla, m=C3=
+=A1s overhead de mantenci=C3=B3n</li>
+            <li><strong>Sin ventaja clara</strong> - Para nuestro tama=C3=
+=B1o de problema, GLPK =3D OR-Tools en velocidad y calidad</li>
+        </ol>
+
+        <h3>=C2=BFPor qu=C3=A9 NO servicios comerciales?</h3>
+        <p><strong>Evaluaci=C3=B3n de costos:</strong> $300-1000+ USD/mes p=
+ara resolver 1 sorteo por proyecto con &lt; 100 familias.</p>
+        <p><strong>ROI:</strong> No justifica el costo. NEOS (gratis) es m=
+=C3=A1s que suficiente.</p>
+
+        <h3>=C2=BFPor qu=C3=A9 NO implementar algoritmo propio?</h3>
+        <p><strong>Tentaci=C3=B3n:</strong> "Es solo un problema de asignac=
+i=C3=B3n, =C2=BFqu=C3=A9 tan dif=C3=ADcil puede ser?"</p>
+
+        <div class=3D"warning-box">
+            <p><strong>Realidad:</strong></p>
+            <ul>
+                <li>Algoritmos ingenuos no escalan - Fuerza bruta: O(n!) im=
+posible para n &gt; 15</li>
+                <li>Algoritmos =C3=B3ptimos son complejos - Branch and Boun=
+d, Simplex: dif=C3=ADcil de implementar correctamente</li>
+                <li>GLPK ya lo hace bien - 20+ a=C3=B1os de desarrollo, opt=
+imizado y probado</li>
+            </ul>
+            <p><strong>=C2=BFPara qu=C3=A9 reinventar la rueda?</strong></p=
+>
+        </div>
+
+        <h2 id=3D"referencias">8. Referencias T=C3=A9cnicas</h2>
+
+        <h3>Documentaci=C3=B3n NEOS</h3>
+        <ul>
+            <li><strong>Portal principal:</strong> <a href=3D"https://neos-=
+server.org/neos/" target=3D"_blank">https://neos-server.org/neos/\\
+            </a></li><li><a href=3D"https://neos-server.org/neos/" target=
+=3D"_blank"><strong>API Documentation:</strong> </a><a href=3D"https://neos=
+-server.org/neos/xml-rpc.html" target=3D"_blank">https://neos-server.org/ne=
+os/xml-rpc.html\\
+            </a></li><li><a href=3D"https://neos-server.org/neos/xml-rpc.ht=
+ml" target=3D"_blank"><strong>GLPK en NEOS:</strong> </a><a href=3D"https:/=
+/neos-server.org/neos/solvers/milp:GLPK/GMPL.html" target=3D"_blank">https:=
+//neos-server.org/neos/solvers/milp:GLPK/GMPL.html\\
+        </a></li></ul><a href=3D"https://neos-server.org/neos/solvers/milp:=
+GLPK/GMPL.html" target=3D"_blank">
+
+        <h3>Documentaci=C3=B3n GLPK</h3>
+        </a><ul><a href=3D"https://neos-server.org/neos/solvers/milp:GLPK/G=
+MPL.html" target=3D"_blank">
+            </a><li><a href=3D"https://neos-server.org/neos/solvers/milp:GL=
+PK/GMPL.html" target=3D"_blank"><strong>Manual oficial:</strong> </a><a hre=
+f=3D"https://www.gnu.org/software/glpk/" target=3D"_blank">https://www.gnu.=
+org/software/glpk/\\
+            </a></li><li><a href=3D"https://www.gnu.org/software/glpk/" tar=
+get=3D"_blank"><strong>Modeling Language:</strong> </a><a href=3D"https://e=
+n.wikibooks.org/wiki/GLPK/GMPL_(MathProg)" target=3D"_blank">https://en.wik=
+ibooks.org/wiki/GLPK/GMPL_\(MathProg\)\\
+        </a></li></ul><a href=3D"https://en.wikibooks.org/wiki/GLPK/GMPL_(M=
+athProg)" target=3D"_blank">
+
+        <h3>Teor=C3=ADa de Optimizaci=C3=B3n</h3>
+        </a><ul><a href=3D"https://en.wikibooks.org/wiki/GLPK/GMPL_(MathPro=
+g)" target=3D"_blank">
+            </a><li><a href=3D"https://en.wikibooks.org/wiki/GLPK/GMPL_(Mat=
+hProg)" target=3D"_blank"><strong>Max-Min Fairness:</strong> </a><a href=3D=
+"https://en.wikipedia.org/wiki/Max-min_fairness" target=3D"_blank">https://=
+en.wikipedia.org/wiki/Max-min_fairness\\
+            </a></li><li><a href=3D"https://en.wikipedia.org/wiki/Max-min_f=
+airness" target=3D"_blank"><strong>Assignment Problem:</strong> </a><a href=
+=3D"https://en.wikipedia.org/wiki/Assignment_problem" target=3D"_blank">htt=
+ps://en.wikipedia.org/wiki/Assignment_problem\\
+            </a></li><li><a href=3D"https://en.wikipedia.org/wiki/Assignmen=
+t_problem" target=3D"_blank"><strong>Linear Programming:</strong> </a><a hr=
+ef=3D"https://en.wikipedia.org/wiki/Linear_programming" target=3D"_blank">h=
+ttps://en.wikipedia.org/wiki/Linear_programming\\
+        </a></li></ul><a href=3D"https://en.wikipedia.org/wiki/Linear_progr=
+amming" target=3D"_blank">
+
+        <h3>Glosario de T=C3=A9rminos</h3>
+        <dl>
+            <dt><strong>GLPK</strong></dt>
+            <dd>GNU Linear Programming Kit - Software open source para reso=
+lver problemas de programaci=C3=B3n lineal y entera.</dd>
+
+            <dt><strong>NEOS</strong></dt>
+            <dd>Network-Enabled Optimization System - Servicio web gratuito=
+ para ejecutar solvers de optimizaci=C3=B3n.</dd>
+
+            <dt><strong>Max-Min Fairness</strong></dt>
+            <dd>Criterio de optimizaci=C3=B3n que maximiza el bienestar del=
+ individuo m=C3=A1s desfavorecido.</dd>
+
+            <dt><strong>MIP / MILP</strong></dt>
+            <dd>Mixed Integer (Linear) Programming - Programaci=C3=B3n con =
+variables enteras donde todas las restricciones son lineales.</dd>
+
+            <dt><strong>Solver</strong></dt>
+            <dd>Software que resuelve problemas de optimizaci=C3=B3n matem=
+=C3=A1tica.</dd>
+
+            <dt><strong>.mod file</strong></dt>
+            <dd>Archivo que contiene la definici=C3=B3n del modelo matem=C3=
+=A1tico (sets, variables, restricciones, objetivo).</dd>
+
+            <dt><strong>.dat file</strong></dt>
+            <dd>Archivo que contiene los datos espec=C3=ADficos del problem=
+a (valores de par=C3=A1metros).</dd>
+
+            <dt><strong>.sol file</strong></dt>
+            <dd>Archivo que contiene la soluci=C3=B3n encontrada por el sol=
+ver.</dd>
+
+            <dt><strong>Binary Variable</strong></dt>
+            <dd>Variable que solo puede valer 0 o 1.</dd>
+
+            <dt><strong>Assignment Problem</strong></dt>
+            <dd>Problema de asignar n recursos a n tareas minimizando costo=
+/maximizando beneficio.</dd>
+        </dl>
+
+        <hr style=3D"margin: 40px 0; border: none; border-top: 2px solid #e=
+1e4e8;">
+
+        <h2>Conclusiones</h2>
+
+        <div class=3D"success-box">
+            <ol>
+                <li><strong>GLPK Local es la mejor opci=C3=B3n</strong> par=
+a migrar el sistema de sorteo de Windows a web
+                    <ul>
+                        <li>Sin dependencias externas ni internet</li>
+                        <li>Reutiliza los modelos <code>.mod</code> existen=
+tes</li>
+                        <li>Ejecuci=C3=B3n simple y s=C3=ADncrona</li>
+                        <li>Privacidad total de los datos</li>
+                    </ul>
+                </li>
+                <li><strong>La implementaci=C3=B3n es muy directa</strong>
+                    <ul>
+                        <li>Instalaci=C3=B3n en Docker (una l=C3=ADnea)</li=
+>
+                        <li>Ejecuci=C3=B3n mediante exec() (sin complejidad=
+ async)</li>
+                        <li>Parsing de archivos .sol</li>
+                        <li>2 d=C3=ADas de desarrollo</li>
+                    </ul>
+                </li>
+                <li><strong>Escala perfecta para nuestro caso</strong>
+                    <ul>
+                        <li>20-100 familias/unidades: 2-5 segundos</li>
+                        <li>Memoria: ~5-10 MB</li>
+                        <li>Determin=C3=ADstico y reproducible</li>
+                    </ul>
+                </li>
+                <li><strong>Sin costo operativo</strong>
+                    <ul>
+                        <li>GLPK es gratis y open source</li>
+                        <li>Sin licencias que pagar</li>
+                        <li>Sin servicios externos que contratar</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <p style=3D"margin-top: 30px; font-size: 1.1em;"><strong>Recome=
+ndaci=C3=B3n final:</strong> Proceder con implementaci=C3=B3n de LocalGlpkS=
+olver como solver principal de producci=C3=B3n.</p>
+        </div>
+    </a></div><a href=3D"https://en.wikipedia.org/wiki/Linear_programming" =
+target=3D"_blank">
+
+
+</a></body></html>
+------MultipartBoundary--NslqulYvjf9JpiB9mqh1XeLZKMxdSzvyZOsQ4gmIEA----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-f5d2486f-b48b-4cbe-af14-975b949b7acd@mhtml.blink
+
+@charset "utf-8";
+
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetic=
+a, Arial, sans-serif; line-height: 1.6; max-width: 1000px; margin: 0px auto=
+; padding: 20px; background-color: rgb(246, 248, 250); color: rgb(36, 41, 4=
+6); }
+
+.container { background-color: white; padding: 40px; border-radius: 6px; bo=
+x-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px; }
+
+h1 { color: rgb(3, 102, 214); border-bottom: 2px solid rgb(3, 102, 214); pa=
+dding-bottom: 10px; margin-top: 0px; }
+
+h2 { color: rgb(36, 41, 46); border-bottom: 1px solid rgb(225, 228, 232); p=
+adding-bottom: 8px; margin-top: 40px; }
+
+h3 { color: rgb(3, 102, 214); margin-top: 30px; }
+
+h4 { color: rgb(88, 96, 105); margin-top: 20px; }
+
+code { background-color: rgb(246, 248, 250); padding: 2px 6px; border-radiu=
+s: 3px; font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, mo=
+nospace; font-size: 0.9em; }
+
+pre { background-color: rgb(246, 248, 250); border: 1px solid rgb(225, 228,=
+ 232); border-radius: 6px; padding: 16px; overflow-x: auto; line-height: 1.=
+45; }
+
+pre code { background-color: transparent; padding: 0px; font-size: 0.85em; =
+}
+
+table { border-collapse: collapse; width: 100%; margin: 20px 0px; }
+
+th, td { border: 1px solid rgb(225, 228, 232); padding: 12px; text-align: l=
+eft; }
+
+th { background-color: rgb(246, 248, 250); font-weight: 600; }
+
+tr:nth-child(2n) { background-color: rgb(246, 248, 250); }
+
+.status-icon { font-size: 1.2em; margin-right: 5px; }
+
+.checkmark { color: rgb(40, 167, 69); }
+
+.cross { color: rgb(215, 58, 73); }
+
+.warning { color: rgb(255, 165, 0); }
+
+.info-box { background-color: rgb(231, 242, 250); border-left: 4px solid rg=
+b(3, 102, 214); padding: 15px; margin: 20px 0px; }
+
+.warning-box { background-color: rgb(255, 243, 205); border-left: 4px solid=
+ rgb(255, 193, 7); padding: 15px; margin: 20px 0px; }
+
+.success-box { background-color: rgb(212, 237, 218); border-left: 4px solid=
+ rgb(40, 167, 69); padding: 15px; margin: 20px 0px; }
+
+.diagram { background-color: rgb(246, 248, 250); border: 1px solid rgb(225,=
+ 228, 232); border-radius: 6px; padding: 20px; margin: 20px 0px; font-famil=
+y: monospace; white-space: pre; overflow-x: auto; }
+
+ul, ol { padding-left: 30px; }
+
+li { margin: 8px 0px; }
+
+.toc { background-color: rgb(246, 248, 250); border: 1px solid rgb(225, 228=
+, 232); border-radius: 6px; padding: 20px; margin: 30px 0px; }
+
+.toc ul { list-style: none; padding-left: 20px; }
+
+.toc li { margin: 10px 0px; }
+
+.toc a { color: rgb(3, 102, 214); text-decoration: none; }
+
+.toc a:hover { text-decoration: underline; }
+
+.metadata { color: rgb(88, 96, 105); font-size: 0.9em; margin-bottom: 30px;=
+ }
+------MultipartBoundary--NslqulYvjf9JpiB9mqh1XeLZKMxdSzvyZOsQ4gmIEA------

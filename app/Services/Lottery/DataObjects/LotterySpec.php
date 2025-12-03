@@ -7,7 +7,7 @@ namespace App\Services\Lottery\DataObjects;
  *
  * Represents the data needed to execute one lottery: families, units,
  * and their preferences. This is the atomic unit of lottery execution -
- * executors process one LotterySpec at a time.
+ * solvers process one LotterySpec at a time.
  */
 class LotterySpec
 {

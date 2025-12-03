@@ -22,26 +22,6 @@ services:
       - dev
       - testing
 
-  # PHP with asset building for E2E testing
-  php-e2e:
-    build:
-      context: ..
-      dockerfile: .docker/php-e2e/Dockerfile
-      args:
-        PUID: ${PUID:-1000}
-        PGID: ${PGID:-1000}
-    restart: unless-stopped
-    volumes:
-      - ..:/var/www/html
-      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-    tmpfs:
-      - /var/www/html/public/build:uid=${PUID:-1000},gid=${PGID:-1000}  # No leaking to host
-    environment:
-      - DB_HOST=${DB_HOST:-mysql}
-      - APP_ENV=${APP_ENV:-local}
-    profiles:
-      - browser
-
   # Assets development server (Vite w/HMR)
   assets:
     build:
@@ -81,7 +61,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mtav
+      MYSQL_DATABASE: ${DB_DATABASE:-mtav}
+      MYSQL_USER: ${DB_USERNAME:-mtav}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     ports:
       - "${DOCKER_MYSQL_PORT:-3307}:3306"
     volumes:
@@ -101,7 +83,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mtav
+      MYSQL_DATABASE: ${DB_DATABASE:-mtav}
+      MYSQL_USER: ${DB_USERNAME:-mtav}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     ports:
       - "${DOCKER_MYSQL_TEST_PORT:-3308}:3306"
     tmpfs:
@@ -124,6 +108,26 @@ services:
       - "${DOCKER_MAILHOG_WEB_PORT:-8025}:8025"
     profiles:
       - dev
+
+  # PHP with asset building for E2E testing
+  php-e2e:
+    build:
+      context: ..
+      dockerfile: .docker/php-e2e/Dockerfile
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    restart: unless-stopped
+    volumes:
+      - ..:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    tmpfs:
+      - /var/www/html/public/build:uid=${PUID:-1000},gid=${PGID:-1000}  # No leaking to host
+    environment:
+      - DB_HOST=${DB_HOST:-mysql}
+      - APP_ENV=${APP_ENV:-local}
+    profiles:
+      - browser
 
   # Playwright server for browser testing
   playwright:

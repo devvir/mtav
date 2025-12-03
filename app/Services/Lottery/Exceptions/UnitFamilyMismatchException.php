@@ -43,19 +43,19 @@ class UnitFamilyMismatchException extends Exception
 
             if ($unitsCount > $familiesCount) {
                 return __('lottery.mismatch_excess_units', [
-                    'unit_type' => $unitTypeName,
+                    'unit_type' => "\"{$unitTypeName}\"",
                     'units' => $unitsCount,
                     'families' => $familiesCount,
                 ]);
             }
 
             return __('lottery.mismatch_insufficient_units', [
-                'unit_type' => $unitTypeName,
+                'unit_type' => "\"{$unitTypeName}\"",
                 'units' => $unitsCount,
                 'families' => $familiesCount,
             ]);
-        })->join("\n");
+        })->join(", ");
 
-        return __('lottery.unit_family_mismatch_intro')."\n\n".$details;
+        return __('lottery.unit_family_mismatch_intro')." ".$details;
     }
 }

@@ -4,7 +4,7 @@
 
 The lottery is the **primary purpose** of the entire MTAV application - a fair, transparent, ONE-TIME housing unit assignment system for cooperative projects. It's an atomic event that permanently assigns ALL units to ALL families simultaneously using mathematical optimization to maximize overall satisfaction.
 
-**Current Status**: Phase 1 HTTP Layer complete (controllers, routes, UI, validation, locking). Phase 2 Business Logic (execution algorithm) pending implementation.
+**Current Status**: Phase 1 & 2 complete (HTTP layer, orchestration, solvers, audit, persistence). Phase 3 in progress (LocalGlpkSolver for production). Only pending: notifications (low priority).
 
 ## Core Business Rules
 
@@ -500,7 +500,7 @@ The lottery system is built in distinct layers with clear boundaries:
    - Data transformation and execution delegation
 
 3. **Execution Layer (Phase 2)** - 🚧 In Progress
-   - Strategy pattern for different executors
+   - Strategy pattern for different solvers
    - Single-lottery execution (per unit type)
    - Result generation
 
@@ -515,14 +515,14 @@ The lottery system is built in distinct layers with clear boundaries:
 ExecutionService (validates & transforms)
   → LotteryManifest (complete project data)
     → LotteryExecution (queued)
-      → ExecuteLotteryListener (resolves executor)
+      → ExecuteLotteryListener (resolves solver)
         → LotteryOrchestrator (multi-phase coordination)
           ├─ Reports progress → LotteryService::executionReport()
           │                      ├─ ReportType (PHASE_1_START, etc.)
           │                      └─ ExecutionResult (picks + orphans)
           └─ Per phase:
               → LotterySpec (single unit type)
-                → ExecutorInterface (RandomExecutor, TestExecutor, ApiExecutor...)
+                → SolverInterface (RandomSolver, TestSolver, ApiSolver...)
                   → Results (picks + orphans)
                     → [Audit Collaborator - TODO in executionReport()]
                       → Database & Notifications
@@ -548,7 +548,10 @@ ExecutionService (validates & transforms)
 
 **ExecutionService** (`app/Services/Lottery/ExecutionService.php`):
 - ✅ `execute()` - Entry point: validates and dispatches execution event
-- ✅ `reserveLotteryForExecution()` - Atomic flag update (`is_published` → false)
+- ✅ `reserveLotteryForExecution()` - Atomic flag update (`is_published` → false), generates execution UUID
+- ✅ Creates `LotteryManifest` with UUID before validation
+- ✅ Calls `AuditService::init()` to create INIT audit record with manifest data
+- ✅ UUID generated at reservation time, making it available throughout sync and async flow
 - ✅ `validateDataIntegrity()` - Check sufficient families, no existing assignments
 - ✅ `validateCountsConsistency()` - Verify unit/family counts match per type (with override option)
 - ✅ Creates `LotteryManifest` from validated project
@@ -638,7 +641,7 @@ Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])-
 
 ### 🚧 Phase 2: Orchestration & Execution (IN PROGRESS)
 
-**Current State**: Event-driven architecture implemented with clean layer separation. Core execution components created.
+**Current State**: Event-driven architecture implemented with clean layer separation. Core execution components created. GLPK integration is **pending** - needs LocalGlpkSolver implementation.
 
 #### Completed Components
 
@@ -649,29 +652,33 @@ Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])-
 - ✅ Clean boundary - no return value, just triggers process
 
 **Data Objects** (`app/Services/Lottery/DataObjects/`):
-- ✅ `LotteryManifest` - Complete project lottery inventory (all unit types)
+- ✅ `LotteryManifest` - Complete project lottery inventory (all unit types) with execution UUID
+  - Constructor: `__construct(string $uuid, Event $lottery)`
+  - UUID is first-class citizen, generated at reservation and passed throughout flow
+  - Stored in INIT audit for complete execution context
 - ✅ `LotterySpec` - Single unit type specification for execution
 - ✅ `ExecutionResult` - Encapsulates picks and orphans from execution phase
 - ✅ `LotteryManifest` and `LotterySpec` implement `__serialize/__unserialize` for queue compatibility
 
 **Event System**:
 - ✅ `LotteryExecution` - Implements `ShouldQueue`, carries `LotteryManifest`
-- ✅ `ExecuteLotteryListener` - Resolves executor from config, delegates to orchestrator
-- ✅ Config-driven executor resolution (`config/lottery.php`)
+- ✅ `ExecuteLotteryListener` - Resolves solver from config, delegates to orchestrator
+- ✅ Config-driven solver resolution (`config/lottery.php`)
 
-**Executor Strategy** (`app/Services/Lottery/Contracts/ExecutorInterface.php`):
-- ✅ Interface defined: `execute(LotterySpec $spec): array`
-- ✅ Returns: `['picks' => [...], 'orphans' => ['families' => [...], 'units' => [...]]]`
-- ✅ `RandomExecutor` - Fully implemented (shuffles families and units, pairs via array_combine)
-- ✅ `TestExecutor` - Fully implemented (sorts both lists by ID, pairs via array_combine - deterministic)
+**Solver Strategy** (`app/Services/Lottery/Contracts/SolverInterface.php`):
+- ✅ Interface defined: `execute(LotterySpec $spec): ExecutionResult`
+- ✅ Returns: `ExecutionResult` with `picks` and `orphans` arrays
+- ✅ `RandomSolver` - Fully implemented (shuffles families and units, pairs via array_combine)
+- ✅ `TestSolver` - Fully implemented (sorts both lists by ID, pairs via array_combine - deterministic)
+- ⏳ `LocalGlpkSolver` - **NOT YET IMPLEMENTED** - Will integrate with GLPK solver
 
 **Configuration** (`config/lottery.php`):
-- ✅ Default executor via `LOTTERY_EXECUTOR` env variable
-- ✅ Executor definitions with class FQN and config array
-- ✅ Example commented for external API executor (Acme)
+- ✅ Default solver via `LOTTERY_SOLVER` env variable
+- ✅ Solver definitions with class FQN and config array
+- ✅ Example commented for external API solver (Acme)
 
 **LotteryOrchestrator** (`app/Services/Lottery/LotteryOrchestrator.php`):
-- ✅ Receives `LotteryManifest` and `ExecutorInterface`
+- ✅ Receives `LotteryManifest` and `SolverInterface`
 - ✅ Unpacks manifest into `LotterySpec` objects (one per unit type)
 - ✅ Three-phase execution strategy implemented:
   - Phase 1: Complete & Partial Distribution (units >= families)
@@ -691,14 +698,14 @@ $manifest = new LotteryManifest($lottery->project);
 LotteryExecution::dispatch($manifest);
 
 // Listener → Orchestrator (just passes data)
-$executor = $this->resolveExecutor();
-$orchestrator = LotteryOrchestrator::make($executor, $event->manifest);
+$solver = $this->resolveSolver();
+$orchestrator = LotteryOrchestrator::make($solver, $event->manifest);
 $orchestrator->execute(); // No return value
 
-// Orchestrator → Executor (per unit type)
+// Orchestrator → Solver (per unit type)
 foreach ($this->manifest->getData() as $unitTypeId => $typeData) {
     $spec = new LotterySpec($typeData['families'], $typeData['units']);
-    $result = $this->executor->execute($spec);
+    $result = $this->solver->execute($spec);
     // Aggregate picks and orphans, report progress
 }
 ```
@@ -706,19 +713,27 @@ foreach ($this->manifest->getData() as $unitTypeId => $typeData) {
 **Config-Driven Execution**:
 ```php
 // config/lottery.php
-'executors' => [
+'solvers' => [
     'random' => [
-        'executor' => RandomExecutor::class,
+        'solver' => RandomSolver::class,
         'config' => [],
     ],
     'test' => [
-        'executor' => TestExecutor::class,
+        'solver' => TestSolver::class,
         'config' => [],
     ],
+    // 'local_glpk' => [  // ⏳ TO BE ADDED
+    //     'solver' => LocalGlpkSolver::class,
+    //     'config' => [
+    //         'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
+    //         'temp_dir' => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
+    //         'timeout' => env('GLPK_TIMEOUT', 30),
+    //     ],
+    // ],
 ],
 
 // Resolved via Laravel container
-$executor = app()->makeWith($executorClass, ['config' => $config]);
+$solver = app()->makeWith($solverClass, ['config' => $config]);
 ```
 
 **Reporting System**:
@@ -728,23 +743,56 @@ $executor = app()->makeWith($executorClass, ['config' => $config]);
 - ✅ Phase-by-phase reporting integrated into orchestrator
 - ⏳ TODO: Implement persistence and audit trail in `executionReport()`
 
+#### Completed Components (Continued)
+
+**AuditService** (`app/Services/Lottery/AuditService.php`):
+- ✅ `init(LotteryManifest $manifest)` - Create INIT audit at execution start, soft-delete previous audits, stores manifest
+- ✅ `audit()` - Create audit records for GROUP_EXECUTION and PROJECT_EXECUTION types
+- ✅ `invalidate()` - Create INVALIDATE audit record when lottery is invalidated
+- ✅ `exception()` - Create FAILURE audit record when execution fails
+- ✅ Records include: execution_uuid, project_id, lottery_id, type (LotteryAuditType), audit data (admin, picks, orphans, manifest)
+- ✅ Audit data stored as JSON in `lottery_audits` table with soft deletes
+
+**Assignment Application** (`ExecutionService::applyResults()`):
+- ✅ Bulk UPDATE `units.family_id` based on picks
+- ✅ Soft-deletes lottery event after successful application
+- ✅ Called by `ApplyLotteryResultsListener` after `ProjectLotteryExecuted` event
+- ✅ Works with ANY solver implementation (RandomSolver, TestSolver, future LocalGlpkSolver)
+
+**Invalidation System** (`ExecutionService::invalidate()`):
+- ✅ Restores soft-deleted lottery event
+- ✅ Republishes lottery (is_published = true)
+- ✅ Removes all family assignments from units
+- ✅ Creates INVALIDATE audit record
+- ✅ All operations in single DB transaction
+
+**Event Listeners**:
+- ✅ `LotteryExecutedListener` - Handles both `GroupLotteryExecuted` and `ProjectLotteryExecuted` events
+- ✅ `ApplyLotteryResultsListener` - Applies final results to database after project completion
+
+**Audit Model** (`app/Models/LotteryAudit.php`):
+- ✅ Uses execution_uuid for grouping related audits
+- ✅ LotteryAuditType enum: INIT, GROUP_EXECUTION, PROJECT_EXECUTION, INVALIDATE, FAILURE
+- ✅ Stores complete audit trail as JSON
+- ✅ Relationships to Project and Event (lottery)
+- ✅ Soft deletes enabled - previous execution audits soft-deleted on new execution
+
 #### Pending Components
 
-1. **Audit Collaborator Service** (invoked from `LotteryService::executionReport()`)
-   - Persist execution results
-   - Create audit records with phase progression
-   - Track input/output data with metadata
-   - Soft-delete lottery event on completion
+1. **LocalGlpkSolver Implementation** ⭐ **CRITICAL - See GLPK Integration section below**
+   - Generate GLPK model files (.mod) for Phase 1 and Phase 2
+   - Generate data files (.dat) from LotterySpec
+   - Execute glpsol command-line tool
+   - Parse solution files (.sol)
+   - Return ExecutionResult with optimal assignments
+   - Install GLPK in Docker container
 
-2. **Assignment Application**
-   - Bulk UPDATE `units.family_id`
-   - Single transaction for atomicity
-
-3. **Notification System**
+2. **Notification System** (LOW PRIORITY)
    - Queue `LotteryResultNotification` to families
    - Email with assignment details
+   - **Note**: Members are expected to be aware of lottery date and watch results in real-time
 
-4. **Frontend Updates**
+3. **Frontend Updates**
    - Loading states during execution
    - Display assignment results
    - Success/error messaging
@@ -752,15 +800,15 @@ $executor = app()->makeWith($executorClass, ['config' => $config]);
 #### Testing Strategy
 
 **Unit Tests**:
-- ✅ `RandomExecutorTest` - Validate pick/orphan counts, no duplicate IDs in picks
-- ✅ `TestExecutorTest` - Validate exact deterministic output for balanced/unbalanced data
+- ✅ `RandomSolverTest` - Validate pick/orphan counts, no duplicate IDs in picks
+- ✅ `TestSolverTest` - Validate exact deterministic output for balanced/unbalanced data
 - ✅ `LotteryOrchestratorTest` - Three-phase logic with various manifest scenarios
 - ⏳ Event/Listener integration - End-to-end event dispatch through orchestrator
 
 **Feature Tests**:
 - ✅ `PreferencesValidationTest` - Preference management and validation
 - ✅ `ExecutionServiceTest` - Execution endpoint authorization, validation, and locking
-- ⏳ End-to-end execution with RandomExecutor
+- ⏳ End-to-end execution with RandomSolver
 - ⏳ Result persistence and retrieval
 
 **Integration Tests**:
@@ -768,9 +816,692 @@ $executor = app()->makeWith($executorClass, ['config' => $config]);
 - ⏳ Multi-type projects (apartments + houses)
 - ⏳ Orphan handling (mismatched counts)
 
-### 📅 Phase 3: Audit Trail & Persistence (NEXT)
+## GLPK Integration (Production Solver)
+
+### Overview
+
+The **production solver** for the lottery system uses **GLPK (GNU Linear Programming Kit)** to solve the assignment problem with **max-min fairness** optimization. This is the algorithm that ensures the most equitable distribution of units to families based on their stated preferences.
+
+**Status**: ✅ **ALGORITHM IMPLEMENTED** ✅ **ASYNC ERROR HANDLING COMPLETE** ⏳ **TESTING PENDING**
+
+### Execution State Machine
+
+The lottery uses **publish status** and **soft-deletion** to track execution state:
+
+| State | `is_published` | `deleted_at` | Meaning |
+|-------|----------------|--------------|---------|
+| **Ready** | `true` | `NULL` | Lottery scheduled, awaiting execution |
+| **Reserved (Executing)** | `false` | `NULL` | Execution in progress (async) |
+| **Completed** | `false` | `timestamp` | Execution succeeded, results applied |
+
+**State Transitions**:
+1. **Reservation**: `ExecutionService::execute()` atomically unpublishes (`is_published = false`) - prevents concurrent executions
+2. **Success**: `ExecutionService::applyResults()` soft-deletes the lottery - marks completion
+3. **Failure (sync)**: `ExecutionService::cancelExecutionReservation()` republishes - allows retry
+4. **Failure (async)**: ⚠️ **MISSING** - lottery stuck in Reserved state
+
+### Existing Safety Net: 30-Second UI Timeout
+
+**Frontend polling mechanism** (when lottery is Reserved):
+- UI detects `is_published = false && deleted_at = NULL`
+- Polls server every few seconds using Inertia partial reload
+- Waits for `deleted_at` to be set (completion) for up to **30 seconds**
+- After 30s timeout: Shows warning to admins + members that execution is taking longer than expected
+
+**Purpose**: Catch-all to prevent users being stuck in limbo, but doesn't tell them:
+- ✅ Whether execution actually failed or is just slow
+- ✅ What the error was if it did fail
+- ✅ How to fix it or retry
+
+### Implementation Status Summary
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **GLPK Installation** | ✅ Complete | GLPK 5.0 in Docker, verified working |
+| **LocalGlpkSolver** | ✅ Complete | Two-phase optimization implemented |
+| **ModelGenerator** | ✅ Complete | Phase 1 & 2 GMPL models |
+| **DataGenerator** | ✅ Complete | LotterySpec → .dat conversion |
+| **SolutionParser** | ✅ Complete | .sol file parsing |
+| **GlpkException** | ✅ Complete | Basic exception with i18n |
+| **Configuration** | ✅ Complete | Config in lottery.php |
+| **UI Timeout Safety Net** | ✅ Complete | 30s polling with user notification |
+| **Orchestrator Error Handling** | ✅ Complete | Try/catch with audit + invalidate |
+| **Failure Audit Records** | ✅ Complete | AuditService::exception() implemented |
+| **ExecutionType::FAILURE** | ✅ Complete | New enum case for failure audits |
+| **Failure Notifications** | ⏳ Pending | Event + listener needed |
+| **Unit Tests** | ⏳ Pending | LocalGlpkSolver tests |
+| **Integration Tests** | ⏳ Pending | universe.sql fixture tests |
+| **Failure Scenario Tests** | ⏳ Pending | Test async failures in queue |
+
+✅ **ASYNC ERROR HANDLING COMPLETE**: Orchestrator catches all exceptions gracefully (log, audit, invalidate) without re-throwing.
+
+### Why GLPK?
+
+**From INTEGRACION_GLPK.html analysis:**
+
+The lottery algorithm must optimize for fairness, not just random assignment:
+- **Max-Min Fairness**: Maximize the satisfaction of the least-satisfied family
+- **Two-Phase Optimization**:
+  1. Phase 1: Find the minimum satisfaction level `S` (no family gets worse than this)
+  2. Phase 2: Among all solutions with `S`, maximize overall satisfaction
+- **Proven Algorithm**: Used in original Windows application, same `.mod` files can be reused
+- **Efficiency**: Solves 20-100 entity problems in 2-5 seconds
+
+### Architecture Decision: Local GLPK (Not NEOS)
+
+**Decision**: Install GLPK locally in the Docker container
+
+**Rationale** (from INTEGRACION_GLPK.html):
+- ✅ **No external dependencies**: No internet required, no external service to rely on
+- ✅ **Simplicity**: Synchronous execution, no async/polling/timeout complexity
+- ✅ **Privacy**: Data never leaves the server
+- ✅ **Control**: No rate limits, no queues, no timeouts
+- ✅ **Docker-friendly**: Install once in Dockerfile, runs anywhere
+- ✅ **Same models work**: Existing `.mod` files from Windows app work without changes
+- ✅ **Sufficient performance**: 2-5 seconds for typical problem sizes
+- ✅ **Zero cost**: Free and open source
+
+**Rejected Alternative**: NEOS Server (external API)
+- ❌ Adds external dependency and internet requirement
+- ❌ More complex: async, polling, network error handling
+- ❌ Data leaves server (privacy concern)
+- ❌ Has execution time limits
+- Not justified for our problem size
+
+### Implementation Plan
+
+#### 1. Docker Installation ✅ COMPLETE
+
+**Already added** to `.docker/build/image/Dockerfile`:
+
+```dockerfile
+RUN apk add --no-cache \
+        bash \
+        ffmpeg \
+        freetype-dev \
+        git \
+        glpk glpk-dev \  # ← GLPK installed here
+        libjpeg-turbo-dev \
+        # ... other dependencies
+```
+
+**Verified working**:
+```bash
+mtav shell php -c "glpsol --version"
+# Output: GLPSOL--GLPK LP/MIP Solver 5.0
+```
+
+#### 2. LocalGlpkSolver Class ✅ COMPLETE
+
+**Location**: `app/Services/Lottery/Solvers/LocalGlpkSolver.php`
+
+**Status**: ✅ **FULLY IMPLEMENTED** - Complete two-phase solver with all helper services
+
+**Implemented Responsibilities**:
+1. ✅ Generate GLPK model files (.mod) for Phase 1 and Phase 2
+2. ✅ Generate data files (.dat) from LotterySpec
+3. ✅ Execute glpsol via exec()
+4. ✅ Parse solution files (.sol)
+5. ✅ Clean up temporary files
+6. ✅ Return ExecutionResult with picks and orphans
+
+**Implementation**:
+```php
+namespace App\Services\Lottery\Solvers;
+
+use App\Services\Lottery\Contracts\SolverInterface;
+use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotterySpec;
+
+class LocalGlpkSolver implements SolverInterface
+{
+    public function __construct(protected array $config = [])
+    {
+        // config: glpsol_path, temp_dir, timeout
+    }
+
+    public function execute(LotterySpec $spec): ExecutionResult
+    {
+        // 1. Execute Phase 1: Maximize minimum satisfaction
+        $minSatisfaction = $this->executePhase1($spec);
+
+        // 2. Execute Phase 2: Optimize overall satisfaction given minSatisfaction
+        $picks = $this->executePhase2($spec, $minSatisfaction);
+
+        // 3. Calculate orphans (unmatched families/units)
+        $orphans = $this->calculateOrphans($spec, $picks);
+
+        return new ExecutionResult($picks, $orphans);
+    }
+
+    protected function executePhase1(LotterySpec $spec): int
+    {
+        // Generate MTAV.mod (Phase 1 model)
+        // Generate data.dat (families, units, preferences)
+        // Run: glpsol --model phase1.mod --data data.dat --output phase1.sol
+        // Parse phase1.sol to extract objective value (minimum satisfaction)
+        // Clean up temp files
+        // Return: minimum satisfaction level
+    }
+
+    protected function executePhase2(LotterySpec $spec, int $minSatisfaction): array
+    {
+        // Generate MTAV_empate.mod (Phase 2 model)
+        // Generate data.dat (families, units, preferences, S = minSatisfaction)
+        // Run: glpsol --model phase2.mod --data data.dat --output phase2.sol
+        // Parse phase2.sol to extract assignments (family_id => unit_id pairs)
+        // Clean up temp files
+        // Return: picks array
+    }
+
+    protected function runGlpk(string $modFile, string $datFile): string
+    {
+        $solFile = tempnam($this->config['temp_dir'], 'mtav_sol_') . '.sol';
+
+        $command = sprintf(
+            '%s --model %s --data %s --output %s 2>&1',
+            $this->config['glpsol_path'],
+            escapeshellarg($modFile),
+            escapeshellarg($datFile),
+            escapeshellarg($solFile)
+        );
+
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            throw new GlpkException("GLPK execution failed: " . implode("\n", $output));
+        }
+
+        return $solFile;
+    }
+}
+```
+
+#### 3. Supporting Services ✅ COMPLETE
+
+**All helper services implemented** in `app/Services/Lottery/Glpk/`:
+
+**ModelGenerator.php** ✅:
+- ✅ `generatePhase1Model()`: Returns Phase 1 .mod content (max-min fairness)
+- ✅ `generatePhase2Model()`: Returns Phase 2 .mod content (optimize ties)
+- ✅ Models based on MTAV.mod and MTAV_empate.mod from Windows application
+- ✅ Uses Spanish constraint names matching original (z_menorIgual, unicaAsignacionCoperativista, etc.)
+
+**DataGenerator.php** ✅:
+- ✅ `generateData(LotterySpec $spec)`: Converts LotterySpec to .dat format
+- ✅ `generateDataWithS(LotterySpec $spec, int $S)`: Adds S parameter for Phase 2
+- ✅ Format: GMPL data section with sets C (families), V (units), param p (preferences)
+- ✅ Builds preference matrix with proper formatting (1-indexed ranks, 999 for missing)
+
+**SolutionParser.php** ✅:
+- ✅ `extractObjective(string $solFile)`: Parse Phase 1 objective value
+- ✅ `extractAssignments(string $solFile)`: Parse Phase 2 variable values (x[c,v] = 1)
+- ✅ Returns: array of family_id => unit_id assignments
+- ✅ Error handling for missing/invalid solution files
+
+#### 4. GLPK Model Files
+
+**Phase 1 Model** (MTAV.mod - from INTEGRACION_GLPK.html):
+```gmpl
+# Maximize minimum satisfaction (max-min fairness)
+set C;              # Cooperativistas (families)
+set V;              # Viviendas (units)
+
+param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
+
+var x{c in C, v in V}, binary;  # Assignment decision
+var z, integer;                  # Worst satisfaction (to minimize)
+
+minimize resultado: z;
+
+s.t. z_menorIgual{c in C}:
+    z >= sum{v in V} p[c,v] * x[c,v];
+
+s.t. unicaAsignacionCoperativista_mayorIgual{c in C}:
+    sum{v in V} x[c,v] >= 1;
+s.t. unicaAsignacionCoperativista_menorIgual{c in C}:
+    sum{v in V} x[c,v] <= 1;
+
+s.t. unicaAsignacionCasa_mayorIgual{v in V}:
+    sum{c in C} x[c,v] >= 1;
+s.t. unicaAsignacionCasa_menorIgual{v in V}:
+    sum{c in C} x[c,v] <= 1;
+```
+
+**Phase 2 Model** (MTAV_empate.mod):
+```gmpl
+# Maximize overall satisfaction given minimum satisfaction constraint
+# Note: We MINIMIZE the sum of preference ranks (where lower rank = better preference)
+# This effectively MAXIMIZES satisfaction
+set C;
+set V;
+
+param p{c in C, v in V};  # Lower = better (1 = first choice, 2 = second, etc.)
+param S;  # Minimum satisfaction from Phase 1 (worst-case rank)
+
+var x{c in C, v in V}, binary;
+
+minimize resultado: sum{c in C, v in V} p[c,v] * x[c,v];
+# Minimizing sum of ranks = Maximizing satisfaction
+
+s.t. satisfaccionMinima{c in C}:
+    sum{v in V} p[c,v] * x[c,v] <= S;
+
+s.t. unicaAsignacionCoperativista_mayorIgual{c in C}:
+    sum{v in V} x[c,v] >= 1;
+s.t. unicaAsignacionCoperativista_menorIgual{c in C}:
+    sum{v in V} x[c,v] <= 1;
+
+s.t. unicaAsignacionCasa_mayorIgual{v in V}:
+    sum{c in C} x[c,v] >= 1;
+s.t. unicaAsignacionCasa_menorIgual{v in V}:
+    sum{c in C} x[c,v] <= 1;
+```
+
+**Data File Format** (.dat):
+```gmpl
+data;
+
+set C := c1 c2 c3;
+set V := v10 v11 v12;
+
+param p : v10 v11 v12 :=
+c1        1   2   3      # Family 1 prefers: v10, v11, v12
+c2        2   1   3      # Family 2 prefers: v11, v10, v12
+c3        3   2   1      # Family 3 prefers: v12, v11, v10
+;
+
+# For Phase 2 only:
+# param S := 2;
+
+end;
+```
+
+#### 5. Configuration ✅ COMPLETE
+
+**Already added** to `config/lottery.php`:
+
+```php
+'solvers' => [
+    'random' => [...],
+    'test' => [...],
+
+    'local_glpk' => [  // ← GLPK solver configured
+        'solver' => LocalGlpkSolver::class,
+        'config'   => [
+            'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
+            'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
+            'timeout'     => env('GLPK_TIMEOUT', 30),
+        ],
+    ],
+],
+```
+
+**To activate** in `.env`:
+```bash
+LOTTERY_SOLVER=local_glpk
+```
+
+#### 6. Exception Handling ✅ COMPLETE (Basic) ⚠️ NEEDS ASYNC ERROR HANDLING
+
+**Already created** `app/Services/Lottery/Exceptions/GlpkException.php`:
+
+```php
+class GlpkException extends LotteryExecutionException
+{
+    public function getUserMessage(): string
+    {
+        return __('lottery.glpk_execution_failed');
+    }
+}
+```
+
+**Translation keys added**:
+- ✅ `lang/en/lottery.php`: "The optimization algorithm failed to execute. Please contact support."
+- ✅ `lang/es_UY/lottery.php`: "El algoritmo de optimización falló al ejecutarse. Por favor contacta a soporte."
+
+**⚠️ REQUIRED: Orchestrator-Level Error Handling**
+
+**Current Problem**:
+```
+User Request → ExecutionService::execute() [SYNC]
+                ↓ (atomically reserves lottery: is_published = false)
+                ↓ (returns immediately)
+                ↓ dispatch(LotteryExecutionTriggered) [ASYNC]
+                ↓
+            Queue Worker picks up event
+                ↓
+            ExecuteLotteryListener → LotteryOrchestrator::execute()
+                ↓ (exception thrown here!)
+                ↓
+            Exception bubbles up to Laravel queue handler
+                ↓
+            Job goes to failed_jobs table
+                ↓
+            🔴 Lottery STUCK in Reserved state (is_published = false, deleted_at = NULL)
+            🔴 UI polls for 30s, shows generic "taking too long" message
+            🔴 No audit record of what failed
+            🔴 Admin must manually use ExecutionService::invalidate()
+```
+
+**The Solution: Orchestrator Handles Its Own Failures**
+
+Since GLPK is local and deterministic, **retries make no sense** (same input = same failure). Instead:
+
+**✅ IMPLEMENTED: Orchestrator execution wrapped in try/catch** to handle failures gracefully:
+
+```php
+// app/Services/Lottery/LotteryOrchestrator.php
+public function execute(): ExecutionResult
+{
+    try {
+        // Execute all lottery phases
+        foreach ($this->manifest->groups as $groupManifest) {
+            $result = $this->solver->execute($groupManifest);
+            $this->aggregatedResults->addGroupResult($groupManifest->groupId, $result);
+        }
+
+        // Store results in database
+        $this->executionService->applyResults($this->manifest->lotteryId, $this->aggregatedResults);
+
+        // Create audit records
+        $this->auditService->recordExecution($this->manifest, $this->aggregatedResults);
+
+        return $this->aggregatedResults;
+
+    } catch (GlpkException $e) {
+        // GLPK-specific failure (e.g., glpsol not found, invalid model, timeout)
+        $this->handleExecutionFailure($e, 'glpk_error');
+
+    } catch (LotteryExecutionException $e) {
+        // Business logic failure (e.g., data validation, constraints)
+        $this->handleExecutionFailure($e, 'execution_error');
+
+    } catch (Throwable $e) {
+        // Unexpected system error
+        $this->handleExecutionFailure($e, 'system_error');
+    }
+
+    // Return empty result on failure (job completes successfully, lottery invalidated)
+    return new ExecutionResult([], ['families' => [], 'units' => []]);
+}
+
+/**
+ * ✅ IMPLEMENTED: Handle execution failure: log, audit, invalidate, report.
+ *
+ * Do NOT let exception bubble up - there's no point in Laravel retrying.
+ */
+protected function handleExecutionFailure(Throwable $exception, string $errorType): void
+{
+    // Extract user-friendly message if available
+    $userMessage = method_exists($exception, 'getUserMessage')
+        ? $exception->getUserMessage()
+        : __('lottery.execution_failed');
+
+    // 1. Log for immediate debugging
+    Log::error('Lottery execution failed', [
+        'lottery_id' => $this->manifest->lotteryId,
+        'error_type' => $errorType,
+        'exception' => get_class($exception),
+        'message' => $exception->getMessage(),
+        'user_message' => $userMessage,
+    ]);
+
+    // 2. Create persistent audit record (can be queried by admins)
+    $this->auditService->exception($this->manifest, $exception);
+
+    // 3. Cancel reservation (restore is_published = true) - accepts Event or int
+    $this->executionService->cancelExecutionReservation($this->manifest->lotteryId);
+
+    // 4. Report exception to error tracking (Sentry, logs, etc.)
+    report($exception);
+
+    // DO NOT re-throw - execution is handled, users can retry manually
+    // Job will complete successfully, lottery is invalidated and can be re-run
+}
+```
+
+**✅ IMPLEMENTED Components**:
+
+1. **`AuditService::exception()`** - Create FAILURE audit record
+   ```php
+   public function exception(LotteryManifest $manifest, Throwable $exception): LotteryAudit
+   {
+       return LotteryAudit::create([
+           'execution_uuid' => Str::uuid(),
+           'project_id' => $manifest->projectId,
+           'lottery_id' => $manifest->lotteryId,
+           'type' => ExecutionType::FAILURE,
+           'audit' => [
+               'exception' => get_class($exception),
+               'message' => $exception->getMessage(),
+               'user_message' => method_exists($exception, 'getUserMessage')
+                   ? $exception->getUserMessage()
+                   : __('lottery.execution_failed'),
+               'file' => $exception->getFile(),
+               'line' => $exception->getLine(),
+               'trace' => $exception->getTraceAsString(),
+               'manifest_data' => $manifest->data, // Full input data for debugging
+           ],
+       ]);
+   }
+   ```
+
+2. **`ExecutionType::FAILURE`** - ✅ Added to enum
+   ```php
+   enum ExecutionType: string
+   {
+       case GROUP = 'group';
+       case PROJECT = 'project';
+       case INVALIDATE = 'invalidate';
+       case FAILURE = 'failure';  // ✅ IMPLEMENTED
+   }
+   ```
+
+3. **`ExecutionService::cancelExecutionReservation()`** - ✅ Updated to accept Event|int
+   ```php
+   public function cancelExecutionReservation(Event|int $lottery): void
+   {
+       $lottery = $lottery instanceof Event ? $lottery : Event::findOrFail($lottery);
+       $lottery->update(['is_published' => true]);
+       $lottery->refresh();
+   }
+   ```
+
+4. **⏳ Failure notifications** (PENDING)
+
+   **`LotteryExecutionFailed` event**:
+   ```php
+   class LotteryExecutionFailed
+   {
+       public function __construct(
+           public Event $lottery,
+           public Throwable $exception,
+           public string $errorType,
+       ) {}
+   }
+   ```
+
+   **Notification listener** - Send detailed error info to admins
+   ```php
+   class NotifyAdminsOfLotteryFailure
+   {
+       public function handle(LotteryExecutionFailed $event): void
+       {
+           $admins = $event->lottery->project->admins;
+
+           Notification::send($admins, new LotteryExecutionFailedNotification(
+               $event->lottery,
+               $event->exception,
+               $event->errorType
+           ));
+       }
+   }
+   ```
+
+**Why No Retries?**
+
+- GLPK is **local and deterministic**: same input → same result
+- If it fails once, it will fail again with same data
+- Retries waste queue resources and delay user feedback
+- Better: fail fast, audit, notify, allow manual retry after fix
+
+**User Experience**:
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| **GLPK fails** | 30s timeout → generic warning | Immediate invalidation + specific error notification |
+| **Admin action** | Manual invalidate via superadmin | Retry button in UI (once fixed) |
+| **Debugging** | Check logs + failed_jobs table | Query audit records + detailed error |
+| **Monitoring** | Silent failure | Proper alerts via LotteryExecutionFailed event |
+
+**Testing Requirements**:
+- ✅ Test with sync queue (dev environment)
+- ⚠️ Test with async queue (production-like environment)
+- ⚠️ Test failure scenarios (GLPK not installed, timeout, invalid data)
+- ⚠️ Verify lottery is released after failure
+- ⚠️ Verify admins are notified
+- ⚠️ Verify failed jobs can be retried
+
+### Testing Strategy
+
+#### Unit Tests
+
+**LocalGlpkSolverTest.php**:
+- Test Phase 1 execution and objective extraction
+- Test Phase 2 execution with given S
+- Test solution parsing for various scenarios
+- Test error handling (GLPK not installed, invalid models, etc.)
+- Test temp file cleanup
+
+**Integration Tests**:
+- Test with universe.sql fixture data
+- Verify assignments respect all constraints
+- Verify max-min fairness is achieved
+- Compare with known optimal solutions for small problems
+
+#### Manual Verification
+
+Create test cases with 3-5 families/units where optimal solution is known:
+- Verify GLPK finds the correct assignment
+- Verify satisfaction scores match expectations
+- Test with balanced and unbalanced scenarios
+
+### Performance Expectations
+
+Based on INTEGRACION_GLPK.html analysis:
+
+| Problem Size | Expected Time | Memory Usage |
+|--------------|---------------|--------------|
+| 10 families × 10 units | < 1 second | ~5 MB |
+| 50 families × 50 units | 2-5 seconds | ~10 MB |
+| 100 families × 100 units | 5-10 seconds | ~20 MB |
+
+Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a one-time operation.
+
+### Benefits of GLPK Integration
+
+1. **True Fairness**: Max-min optimization ensures no family is unfairly disadvantaged
+2. **Proven Algorithm**: Same approach as original Windows application
+3. **Deterministic**: Same input always produces same optimal output
+4. **Auditable**: Input preferences and output assignments are mathematically verifiable
+5. **Cooperative Values**: Reflects solidarity and equity principles of cooperativism
+6. **No Manual Intervention**: Eliminates human bias and disputes
+
+### Rollout Strategy
+
+1. **Phase 1** ✅: ~~Implement LocalGlpkSolver with basic functionality~~ **COMPLETE**
+2. **Phase 2** ⏳: Test extensively with universe.sql fixture **← NEXT STEP**
+3. **Phase 3**: Deploy to staging with LOTTERY_SOLVER=local_glpk
+4. **Phase 4**: Run parallel executions (random vs glpk) to compare results
+5. **Phase 5**: Enable in production once validated
+6. **Fallback**: Keep RandomSolver available via env variable if issues arise
+
+### Current Implementation Status
+
+**✅ Completed Components**:
+- LocalGlpkSolver with two-phase optimization
+- ModelGenerator (Phase 1 & 2 GMPL models)
+- DataGenerator (converts LotterySpec to .dat format)
+- SolutionParser (extracts results from .sol files)
+- GlpkException with user-facing error messages
+- Configuration in lottery.php
+- Translation keys (English + Spanish)
+- GLPK 5.0 installed and verified in Docker container
+- UI 30-second timeout safety net
+
+**⚠️ REQUIRED: Orchestrator-Level Error Handling**
+
+**Why Orchestrator Handles Errors (Not Listener)**:
+- GLPK is **local and deterministic** → retries are pointless (same input = same failure)
+- Better to **fail fast** with proper audit than retry and delay feedback
+- Orchestrator knows execution context better than listener
+
+**Implementation Checklist**:
+
+1. ✅ **Wrap `LotteryOrchestrator::execute()` in try/catch**
+   - Catch `GlpkException`, `LotteryExecutionException`, `Throwable`
+   - Call `handleExecutionFailure()` instead of re-throwing
+   - Log + audit + invalidate
+
+2. ✅ **Create `AuditService::exception()` method**
+   - Add `ExecutionType::FAILURE` to enum
+   - Store exception details, manifest data
+   - Allow admins to query failure audits
+
+3. ⏳ **Create `LotteryExecutionFailed` event**
+   - Carries: lottery, exception, errorType
+   - Replaces generic "taking too long" with specific error
+   - Enables targeted notifications to admins
+
+4. ⚠️ **Create failure notification listener**
+   - Send detailed error to project admins
+   - Include: error type, message, link to retry
+   - Better than current 30s timeout generic message
+
+5. ⏳ **Add admin UI for failure management**
+   - View failure audit records
+   - See error details and stack trace
+   - Retry button (after fixing issue)
+   - Filter by error type
+
+**Environment-Specific Behavior**:
+- **Development** (`QUEUE_CONNECTION=sync`): Failures return immediately to controller
+- **Production** (`QUEUE_CONNECTION=redis|database`): Failures handled in orchestrator, events dispatched
+
+**✅ Completed Steps**:
+1. ✅ Document async execution architecture
+2. ✅ Implement orchestrator try/catch with `handleExecutionFailure()`
+3. ✅ Add `AuditService::exception()` + `ExecutionType::FAILURE`
+4. ✅ Update `ExecutionService::cancelExecutionReservation()` to accept Event|int
+
+**⏳ Next Steps**:
+5. ⏳ Create `LotteryExecutionFailed` event + notification listener
+6. ⏳ Create unit tests for LocalGlpkSolver
+7. ⏳ Create integration tests with universe.sql fixture
+8. ⏳ Test with small known-optimal problems (3-5 families/units)
+9. ⏳ Verify max-min fairness is achieved
+10. ⏳ Performance testing with typical problem sizes (20-100 entities)
+11. ⏳ **Test failure scenarios** (GLPK not installed, timeouts, invalid data) in async queue
+12. ⏳ Add admin UI to view/retry failed executions
+
+**🚀 Ready for**: Unit testing and integration testing
+
+### Documentation References
+
+- **INTEGRACION_GLPK.html**: Complete technical analysis and decision rationale
+- **GLPK Documentation**: https://www.gnu.org/software/glpk/
+- **GMPL (MathProg) Language**: https://en.wikibooks.org/wiki/GLPK/GMPL_(MathProg)
+- **Assignment Problem**: https://en.wikipedia.org/wiki/Assignment_problem
+- **Max-Min Fairness**: https://en.wikipedia.org/wiki/Max-min_fairness
+
+---
+
+### ✅ Phase 3: Audit Trail & Persistence (COMPLETE)
 
 #### Audit System Architecture
+
+**Status**: ✅ **FULLY IMPLEMENTED** - Working audit trail with support for multiple runs, invalidations, and debugging.
 
 **Purpose**: Complete audit trail for lottery executions with support for multiple runs, invalidations, and debugging.
 
@@ -798,54 +1529,47 @@ Project (1) ──→ Lottery Events (N) ──→ Execution Runs (N) ──→ 
     └─ Housing project
 ```
 
-**UUID Grouping**: All audit records from a single orchestrator run share the same UUID:
-- Allows grouping phase executions together
+**UUID Grouping**: All audit records from a single execution share the same UUID:
+- UUID generated at `reserveLotteryForExecution()` time (before validation)
+- Passed to `LotteryManifest` constructor as first-class property
+- Available throughout sync flow (ExecutionService) and async flow (Orchestrator)
+- Allows grouping all related audits (INIT, GROUP_EXECUTION, PROJECT_EXECUTION, FAILURE)
 - Essential for debugging failed runs
-- Enables tracing execution flow
-- Supports multiple runs per lottery (e.g., after failures)
+- Enables tracing complete execution flow from start to finish
+- Supports multiple runs per lottery (previous audits soft-deleted on new execution)
 
-**Audit Types**:
+**Audit Types** (LotteryAuditType enum):
 
-1. **Type: `execution`** (Granular Trail)
-   - Created by: `LotteryGroupExecuted` event (one per unit-type group)
+1. **Type: `INIT`** (Execution Start)
+   - Created by: `AuditService::init()` immediately after lottery reservation
+   - Purpose: Mark execution start and store complete manifest for debugging
+   - Created before validation, so exists even if execution fails early
+   - Contains: Admin info, complete LotteryManifest (all project data, preferences, UUIDs)
+   - Side effect: Soft-deletes all previous audits for this lottery
+   - Benefit: Complete execution context available from the very start
+
+2. **Type: `GROUP_EXECUTION`** (Granular Trail)
+   - Created by: `GroupLotteryExecuted` event (one per unit-type group)
    - Purpose: Track individual group executions for debugging/auditing
    - Multiple per project execution (one per unit type)
-   - Contains: Unit type data, picks, orphans, executor config
-   - User visibility: Internal only (auditing/debugging)
-   - Example audit data:
-     ```json
-     {
-       "status": "created|inprogress|complete",
-       "unit_type_id": 1,
-       "families": [1, 2, 3],
-       "units": [10, 11, 12],
-       "picks": {1: 10, 2: 11},
-       "orphans": {"families": [3], "units": [12]},
-       "executor": "random",
-       "metadata": {...}
-     }
-     ```
+   - Contains: Admin info, picks, orphans from this group
 
-2. **Type: `result`** (Completion Marker)
-   - Created by: `LotteryExecuted` event (once per complete execution)
+3. **Type: `PROJECT_EXECUTION`** (Completion Marker)
+   - Created by: `ProjectLotteryExecuted` event (once per complete execution)
    - Purpose: Mark project lottery as complete
    - Single per successful execution
-   - Contains: Final aggregated results, all picks, all orphans
+   - Contains: Admin info, final aggregated picks and orphans for entire project
    - User visibility: Determines lottery completion status
-   - Example audit data:
-     ```json
-     {
-       "status": "complete",
-       "total_families": 10,
-       "total_units": 10,
-       "total_picks": 9,
-       "total_orphans": 1,
-       "picks": {1: 10, 2: 11, ...},
-       "orphans": {"families": [3], "units": [12]},
-       "execution_time_ms": 245,
-       "phases_completed": 3
-     }
-     ```
+
+4. **Type: `INVALIDATE`** (Execution Reversal)
+   - Created by: `AuditService::invalidate()` when superadmin invalidates lottery
+   - Purpose: Audit trail of lottery invalidation
+   - Contains: Admin info
+
+5. **Type: `FAILURE`** (Execution Error)
+   - Created by: `AuditService::exception()` when execution fails
+   - Purpose: Record execution failures with detailed error information
+   - Contains: Error type, exception class, message, user-facing message
 
 **Status Tracking Strategy**:
 - No dedicated status column in lottery_audits table
@@ -857,16 +1581,17 @@ Project (1) ──→ Lottery Events (N) ──→ Execution Runs (N) ──→ 
 **Multiple Runs Scenario**:
 ```
 Project #1, Lottery #50:
-  Run 1 (UUID: abc-123) - Failed during Phase 2
-    ├─ execution audit (Phase 1, UnitType 1)
-    ├─ execution audit (Phase 1, UnitType 2)
-    └─ execution audit (Phase 2, partial) ← failure point
+  Run 1 (UUID: abc-123) - Failed during validation
+    ├─ INIT audit (contains complete manifest)
+    └─ FAILURE audit (validation error)
+    Note: Run 1 audits soft-deleted when Run 2 starts
 
   Run 2 (UUID: def-456) - Succeeded
-    ├─ execution audit (Phase 1, UnitType 1)
-    ├─ execution audit (Phase 1, UnitType 2)
-    ├─ execution audit (Phase 2, complete)
-    └─ result audit (final completion) ← marks lottery as complete
+    ├─ INIT audit (soft-deleted Run 1 audits)
+    ├─ GROUP_EXECUTION audit (UnitType 1)
+    ├─ GROUP_EXECUTION audit (UnitType 2)
+    ├─ GROUP_EXECUTION audit (Second-chance)
+    └─ PROJECT_EXECUTION audit (final completion) ← marks lottery as complete
 ```
 
 **Invalidation Scenario**:
@@ -883,15 +1608,12 @@ Project #1:
         └─ result audit ← new official result
 ```
 
-**Model** (`app/Models/LotteryAudit.php`):
+**Model** (`app/Models/LotteryAudit.php`) - ✅ **IMPLEMENTED**:
 ```php
-use HasUuids;
-
-protected $primaryKey = 'uuid';
-protected $keyType = 'string';
-public $incrementing = false;
+use SoftDeletes;
 
 protected $casts = [
+    'type' => LotteryAuditType::class,
     'audit' => 'array',
 ];
 
@@ -904,60 +1626,34 @@ public function lottery(): BelongsTo
 {
     return $this->belongsTo(Event::class, 'lottery_id');
 }
-
-// Query scopes
-public function scopeExecution(Builder $query): void
-{
-    $query->where('type', 'execution');
-}
-
-public function scopeResult(Builder $query): void
-{
-    $query->where('type', 'result');
-}
-
-public function scopeForRun(Builder $query, string $uuid): void
-{
-    $query->where('uuid', $uuid);
-}
 ```
 
-**Events** (`app/Events/Lottery/`):
-```php
-// Dispatched after each group execution
-class LotteryGroupExecuted
-{
-    public function __construct(
-        public string $uuid,                    // Orchestrator run ID
-        public LotteryManifest $manifest,       // Full project data
-        public ExecutorInterface $executor,     // Which executor ran
-        public ExecutionResult $result          // Picks + orphans
-    ) {}
-}
+**Note**: Uses standard auto-incrementing ID, not UUID as primary key. The `execution_uuid` column groups related audits together.
 
-// Dispatched after all groups complete
-class LotteryExecuted
-{
-    public function __construct(
-        public string $uuid,                    // Orchestrator run ID
-        public LotteryManifest $manifest,       // Full project data
-        public ExecutorInterface $executor,     // Which executor ran
-        public array $report                    // Aggregated results
-    ) {}
-}
-```
+**Events** (`app/Events/Lottery/`) - ✅ **IMPLEMENTED**:
 
-**Listener** (`app/Listeners/Lottery/LotteryExecutedListener.php`):
-- Handles both `LotteryGroupExecuted` and `LotteryExecuted`
-- Creates appropriate audit records based on event type
-- ⏳ TODO: Implement audit creation logic
-- ⏳ TODO: Handle assignment application (bulk update units.family_id)
-- ⏳ TODO: Queue notifications to families
+- `GroupLotteryExecuted` - Dispatched after each group execution
+- `ProjectLotteryExecuted` - Dispatched after complete project execution
+- Both extend abstract `LotteryExecuted` base class
+- Each provides `executionType()` method returning `LotteryAuditType::GROUP_EXECUTION` or `LotteryAuditType::PROJECT_EXECUTION`
+- Events carry: uuid (from manifest), project_id, lottery_id, manifest, solver, report (ExecutionResult)
+
+**Listeners** - ✅ **IMPLEMENTED**:
+
+1. `LotteryExecutedListener` - Handles both `GroupLotteryExecuted` and `ProjectLotteryExecuted`
+   - ✅ Creates audit records via `AuditService::audit()`
+   - ✅ Records execution type (GROUP or PROJECT)
+   - ✅ Stores complete audit trail with picks and orphans
+
+2. `ApplyLotteryResultsListener` - Handles `ProjectLotteryExecuted`
+   - ✅ Applies results via `ExecutionService::applyResults()`
+   - ✅ Updates `units.family_id` for all picks
+   - ✅ Soft-deletes lottery event after completion
 
 **Integration Points**:
 - `LotteryOrchestrator::execute()`: Generates UUID, dispatches events
-- `LotteryOrchestrator::executeLottery()`: Dispatches `LotteryGroupExecuted` after each phase
-- `LotteryOrchestrator::reportResults()`: Dispatches `LotteryExecuted` after completion
+- `LotteryOrchestrator::executeLottery()`: Dispatches `GroupLotteryExecuted` after each group
+- `LotteryOrchestrator::reportResults()`: Dispatches `ProjectLotteryExecuted` after completion
 - Events queued for async processing (ShouldQueue)
 
 **Benefits**:
@@ -969,8 +1665,13 @@ class LotteryExecuted
 - ✅ Preserve historical data for legal requirements
 - ✅ Easy to query: "Show me all runs for this lottery"
 
-### 📅 Phase 4: Production Enhancements (FUTURE)
+### 📅 Phase 4: Future Enhancements
 
+**Notifications** (LOW PRIORITY):
+- Email notifications with assignment details to families
+- **Note**: Members are expected to be aware of lottery date and watch results in real-time
+
+**Additional Enhancements**:
 - Advanced validation (deadline enforcement)
 - Real-time progress updates during execution
 - Satisfaction scoring display
@@ -978,7 +1679,6 @@ class LotteryExecuted
 - Result verification system
 - Regulatory compliance features
 - Performance monitoring and analytics
-- Email notifications with assignment details
 
 ### 🎨 Phase 5: Interactive Project Plan (FUTURE)
 
@@ -1177,25 +1877,25 @@ $executed = $project->lotteryEvent?->executed_at !== null;
 
 ## Configuration
 
-### Executor Selection
+### Solver Selection
 
 ```php
 // config/lottery.php
 return [
-    'default' => env('LOTTERY_EXECUTOR', 'random'),
+    'default' => env('LOTTERY_SOLVER', 'random'),
 
-    'executors' => [
+    'solvers' => [
         'random' => [
-            'executor' => \App\Services\Lottery\Executors\RandomExecutor::class,
+            'solver' => \App\Services\Lottery\Solvers\RandomSolver::class,
         ],
 
         'test' => [
-            'executor' => \App\Services\Lottery\Executors\TestExecutor::class,
+            'solver' => \App\Services\Lottery\Solvers\TestSolver::class,
         ],
 
-        // Example: External API executor
+        // Example: External API solver
         // 'acme' => [
-        //     'executor' => \App\Services\Lottery\Executors\AcmeExecutor::class,
+        //     'solver' => \App\Services\Lottery\Solvers\AcmeSolver::class,
         //     'config' => [
         //         'api_key' => env('ACME_API_KEY'),
         //         'api_secret' => env('ACME_API_SECRET'),
@@ -1207,22 +1907,22 @@ return [
 ];
 ```
 
-**Usage**: Set `LOTTERY_EXECUTOR=random` (default) or `LOTTERY_EXECUTOR=test` in `.env`
+**Usage**: Set `LOTTERY_SOLVER=random` (default) or `LOTTERY_SOLVER=test` in `.env`
 
-### Executor Resolution
+### Solver Resolution
 
-Executors are resolved in `ExecuteLotteryListener` using Laravel's service container:
+Solvers are resolved in `ExecuteLotteryListener` using Laravel's service container:
 
 ```php
-protected function resolveExecutor(): ExecutorInterface
+protected function resolveSolver(): SolverInterface
 {
     $default = config('lottery.default');
-    $executorConfig = config("lottery.executors.{$default}");
+    $solverConfig = config("lottery.solvers.{$default}");
 
-    $executorClass = $executorConfig['executor'];
-    $config = $executorConfig['config'] ?? [];
+    $solverClass = $solverConfig['solver'];
+    $config = $solverConfig['config'] ?? [];
 
-    return app()->makeWith($executorClass, ['config' => $config]);
+    return app()->makeWith($solverClass, ['config' => $config]);
 }
 ```
 

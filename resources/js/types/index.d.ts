@@ -40,6 +40,16 @@ interface Lottery extends Event {
   creator: null;
 }
 
+type LotteryAuditType = 'init' | 'group_execution' | 'project_execution' | 'invalidate' | 'failure';
+
+interface LotteryAudit extends Resource {
+  execution_uuid: string;
+  type: LotteryAuditType;
+  audit: Record<string, any>;
+  project: ApiResource<Project> | { id: number };
+  lottery: ApiResource<Lottery> | { id: number };
+}
+
 // WithRsvp type aliases
 type MemberWithRsvps = Member & Required<MemberRsvpFields>;
 type EventWithRsvps = Event & Required<EventRsvpFields>;
@@ -107,6 +117,7 @@ interface Project extends Resource, HasEvents, HasMedia {
   families?: ApiResource<Family>[];
   unit_types?: ApiResource<UnitType>[];
   units?: ApiResource<Unit>[];
+  audits?: ApiResource<LotteryAudit>[];
   log?: ApiResource<Log>[];
 
   admins_count?: number;
@@ -262,6 +273,7 @@ interface Event extends Resource, Partial<EventRsvpFields> {
 
   project: ApiResource<Project> | { id: number };
   creator: ApiResource<Admin> | { id: number | null } | null;
+  audits?: ApiResource<LotteryAudit>[];
 }
 
 interface Log extends Resource {

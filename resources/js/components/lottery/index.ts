@@ -11,7 +11,6 @@ export { default as PreferencesManager } from './member/PreferencesManager.vue';
 
 // Shared Components
 export { default as LotteryHeader } from './shared/LotteryHeader.vue';
-export { default as LotteryContent } from './shared/LotteryContent.vue';
 export { default as ProjectPlan } from './shared/ProjectPlan.vue';
 
 // Composables

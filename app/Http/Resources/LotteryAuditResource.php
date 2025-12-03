@@ -18,7 +18,7 @@ class LotteryAuditResource extends JsonResource
             ...$this->commonResourceData(),
 
             'execution_uuid' => $this->execution_uuid,
-            'execution_type' => $this->execution_type->value,
+            'type'           => $this->type->value,
             'audit'          => $this->audit,
 
             ...$this->relationsData(),

@@ -3,18 +3,18 @@
 // Copilot - Pending review
 
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Executors\TestExecutor;
+use App\Services\Lottery\Solvers\TestSolver;
 
 uses()->group('Unit.Lottery');
 
-describe('TestExecutor', function () {
+describe('TestSolver', function () {
     test('balanced deterministic assignment', function () {
         $families = [1 => [], 3 => [], 5 => []];
         $units = [2, 4, 6];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([1 => 2, 3 => 4, 5 => 6]);
         expect($result->orphans['families'])->toBe([]);
@@ -25,9 +25,9 @@ describe('TestExecutor', function () {
         $families = [10 => [], 20 => []];
         $units = [5, 15, 25, 35];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([10 => 5, 20 => 15]);
         expect($result->orphans['families'])->toBe([]);
@@ -38,9 +38,9 @@ describe('TestExecutor', function () {
         $families = [2 => [], 4 => [], 6 => [], 8 => []];
         $units = [1, 3];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([2 => 1, 4 => 3]);
         expect($result->orphans['families'])->toBe([6, 8]);
@@ -51,9 +51,9 @@ describe('TestExecutor', function () {
         $families = [100 => []];
         $units = [200];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([100 => 200]);
         expect($result->orphans['families'])->toBe([]);
@@ -64,9 +64,9 @@ describe('TestExecutor', function () {
         $families = [];
         $units = [];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -77,13 +77,13 @@ describe('TestExecutor', function () {
         $families = [5 => [], 2 => [], 8 => [], 1 => []];
         $units = [30, 10, 20, 40];
 
-        $executor = new TestExecutor();
+        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
 
         // Execute multiple times
-        $result1 = $executor->execute($spec);
-        $result2 = $executor->execute($spec);
-        $result3 = $executor->execute($spec);
+        $result1 = $solver->execute($spec);
+        $result2 = $solver->execute($spec);
+        $result3 = $solver->execute($spec);
 
         // Should produce identical picks and orphans (deterministic)
         expect($result1->picks)->toBe($result2->picks);

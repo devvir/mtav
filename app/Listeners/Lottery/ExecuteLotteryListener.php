@@ -3,40 +3,44 @@
 namespace App\Listeners\Lottery;
 
 use App\Events\Lottery\LotteryExecutionTriggered;
-use App\Services\Lottery\Contracts\ExecutorInterface;
+use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\LotteryOrchestrator;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
  * Picks up lottery execution event and delegates to orchestrator.
  */
-class ExecuteLotteryListener
+class ExecuteLotteryListener implements ShouldQueue
 {
     public function handle(LotteryExecutionTriggered $event): void
     {
-        $executor = $this->resolveExecutor();
+        Log::info('ExecuteLotteryListener handling LotteryExecutionTriggered event.', [
+            'manifest' => $event->manifest,
+        ]);
 
-        $orchestrator = LotteryOrchestrator::make($executor, $event->manifest);
+        $solver = $this->fetchSolver();
+
+        $orchestrator = LotteryOrchestrator::make($solver, $event->manifest);
         $orchestrator->execute();
     }
 
     /**
-     * Resolve the executor from configuration.
+     * Resolve the solver from the IoC container, based on lottery configuration.
      */
-    protected function resolveExecutor(): ExecutorInterface
+    protected function fetchSolver(): SolverInterface
     {
         $default = config('lottery.default');
-        $executorConfig = config("lottery.executors.{$default}");
+        $solverConfig = config("lottery.solvers.{$default}");
 
-        if (! $executorConfig) {
-            throw new RuntimeException(
-                "Lottery executor [{$default}] not found in configuration."
-            );
+        if (! $solverConfig) {
+            throw new RuntimeException("Lottery solver [{$default}] not found in configuration.");
         }
 
-        $executorClass = $executorConfig['executor'];
-        $config = $executorConfig['config'] ?? [];
+        $solverClass = $solverConfig['solver'];
+        $config = $solverConfig['config'] ?? [];
 
-        return app()->makeWith($executorClass, ['config' => $config]);
+        return app()->makeWith($solverClass, ['config' => $config]);
     }
 }

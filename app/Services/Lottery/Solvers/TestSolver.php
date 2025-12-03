@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Services\Lottery\Executors;
+namespace App\Services\Lottery\Solvers;
 
-use App\Services\Lottery\Contracts\ExecutorInterface;
+use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
- * Test executor for predictable lottery assignments.
+ * Test solver for predictable lottery assignments.
  *
  * Sorts families and units, then pairs them, ignoring preferences.
  * Useful for deterministic automated testing.
  */
-class TestExecutor implements ExecutorInterface
+class TestSolver implements SolverInterface
 {
     /**
      * Execute test lottery assignment.

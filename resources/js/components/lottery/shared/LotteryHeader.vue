@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
+import { useLocalState } from '@/composables/useLocalState';
 import { TrophyIcon, SparklesIcon, UsersIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 
-const isCollapsed = ref(false);
+const { get, set } = useLocalState();
+const isCollapsed = ref(get('lottery-hero-collapsed', false));
 
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
+  set('lottery-hero-collapsed', isCollapsed.value);
 };
 </script>
 
 <template>
   <div
-    class="relative overflow-hidden rounded-xl @sm:rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 transition-all duration-300 ease-in-out"
+    class="relative overflow-hidden rounded-xl @sm:rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 transition-all duration-300 ease-in-out"
   >
     <!-- Background decorative elements -->
     <div class="absolute inset-0">

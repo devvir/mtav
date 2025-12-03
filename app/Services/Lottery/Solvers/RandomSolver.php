@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Services\Lottery\Executors;
+namespace App\Services\Lottery\Solvers;
 
-use App\Services\Lottery\Contracts\ExecutorInterface;
+use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
- * Random executor for lottery assignments.
+ * Random solver for lottery assignments.
  *
  * Shuffles families and units, then pairs them, ignoring preferences.
  * Useful for development and manual testing.
  */
-class RandomExecutor implements ExecutorInterface
+class RandomSolver implements SolverInterface
 {
     /**
      * Execute random lottery assignment.

@@ -23,9 +23,10 @@ class EventResource extends JsonResource
             'title'       => $this->title,
             'description' => $this->description,
             'location'    => $this->location,
+            'start_date' => $this->start_date,
+            'end_date'   => $this->end_date,
 
             ...$this->booleanProps(),
-            ...$this->datetimeProps(),
 
             ...$this->relationsData(),
         ];
@@ -46,14 +47,6 @@ class EventResource extends JsonResource
         ];
     }
 
-    protected function datetimeProps(): array
-    {
-        return [
-            'start_date' => $this->start_date,
-            'end_date'   => $this->end_date,
-        ];
-    }
-
     protected function relationsData(): array
     {
         return [
@@ -70,6 +63,8 @@ class EventResource extends JsonResource
                 'rsvps',
                 fn () => $this->rsvps->where('pivot.status', false)->count()
             ),
+
+            'audits' => $this->whenLoaded('audits'),
         ];
     }
 

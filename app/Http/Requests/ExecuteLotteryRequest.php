@@ -15,7 +15,7 @@ class ExecuteLotteryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'override_count_mismatch' => ['sometimes', 'boolean'],
+            'override_mismatch' => ['sometimes', 'boolean'],
         ];
     }
 }

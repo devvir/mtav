@@ -2,18 +2,19 @@
 
 namespace App\Listeners\Lottery;
 
-use App\Events\Lottery\LotteryExecuted;
-use App\Services\Lottery\LotteryAuditService;
+use App\Events\Lottery\GroupLotteryExecuted;
+use App\Events\Lottery\ProjectLotteryExecuted;
+use App\Services\Lottery\AuditService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
- * Listener for lottery execution events.
- * Handles both group and project executions for audit trail.
+ * Generate Lottery audits for both group and project wide Lottery executions.
  */
-class LotteryExecutedListener
+class LotteryExecutedListener implements ShouldQueue
 {
-    public function handle(LotteryExecuted $event): void
+    public function handle(GroupLotteryExecuted|ProjectLotteryExecuted $event): void
     {
-        app(LotteryAuditService::class)->audit(
+        app(AuditService::class)->audit(
             type: $event->executionType(),
             execution_uuid: $event->uuid,
             project_id: $event->project_id,

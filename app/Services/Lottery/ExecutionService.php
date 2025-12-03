@@ -12,6 +12,9 @@ use App\Services\Lottery\Exceptions\CannotExecuteLotteryException;
 use App\Services\Lottery\Exceptions\InsufficientFamiliesException;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\Exceptions\UnitFamilyMismatchException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Service for validating and initiating lottery execution.
@@ -26,6 +29,11 @@ use App\Services\Lottery\Exceptions\UnitFamilyMismatchException;
  */
 class ExecutionService
 {
+    public function __construct(private AuditService $auditService)
+    {
+        // ...
+    }
+
     /**
      * Validate lottery execution data and dispatch execution event on success.
      *
@@ -38,14 +46,20 @@ class ExecutionService
      */
     public function execute(Event $lottery, bool $overrideCountMismatch = false): void
     {
-        $this->reserveLotteryForExecution($lottery);
-        $this->validateDataIntegrity($lottery);
+        try {
+            $uuid = $this->reserveLotteryForExecution($lottery);
 
-        if (! $overrideCountMismatch) {
-            $this->validateCountsConsistency($lottery->project);
+            $manifest = new LotteryManifest($uuid, $lottery);
+
+            $this->auditService->init($manifest);
+
+            $this->validateDataIntegrity($lottery);
+
+            $overrideCountMismatch || $this->validateCountsConsistency($lottery->project);
+        } catch (Throwable $e) {
+            $this->cancelExecutionReservation($lottery);
+            throw $e;
         }
-
-        $manifest = new LotteryManifest($lottery);
 
         LotteryExecutionTriggered::dispatch($manifest);
     }
@@ -65,20 +79,59 @@ class ExecutionService
     }
 
     /**
+     * Invalidate a completed lottery execution.
+     *
+     *  - Restores the soft-deleted lottery
+     *  - Republishes it (is_published = true)
+     *  - Removes all family assignments from units
+     *  - Creates an INVALIDATE audit record
+     */
+    public function invalidate(Event $lottery): void
+    {
+        DB::transaction(function () use ($lottery) {
+            // Restore the lottery (un-soft-delete)
+            $lottery->restore();
+
+            // Make it published again
+            $lottery->update(['is_published' => true]);
+
+            // Remove all unit assignments
+            $lottery->project->units()->update(['family_id' => null]);
+
+            // Create invalidation audit record
+            $this->auditService->invalidate($lottery);
+        });
+    }
+
+    /**
+     * Cancel the execution reservation, making the lottery available again.
+     */
+    public function cancelExecutionReservation(Event|int $lotteryOrId): void
+    {
+        $lottery = model($lotteryOrId, Event::class, withTrashed: true);
+
+        $lottery->update(['is_published' => true]);
+        $lottery->refresh();
+    }
+
+    /**
      * Reserve Lottery for execution (executing/executed) in one atomic operation:
      *
-     * - validates that lottery is published and past its scheduled date
-     * - validates that it has not been served for execution yet
-     * - flags it as reserved for execution (by setting is_published = false)
+     *  - validates that lottery is published and past its scheduled date
+     *  - validates that it has not been served for execution yet
+     *  - flags it as reserved for execution (by setting is_published = false)
+     *  - generates unique identifier (UUID) for this execution
      *
      * This protects against race conditions or any other cause of double execution.
      *
      * @throws CannotExecuteLotteryException if lottery cannot be executed
+     * @return string The execution UUID
      */
-    protected function reserveLotteryForExecution(Event $lottery): void
+    protected function reserveLotteryForExecution(Event $lottery): string
     {
-        $reserved = (bool) Event::query()
-            ->past()->published()->whereId($lottery->id)
+        $reserved = (bool) Event::whereId($lottery->id)
+            ->published()
+            ->past(implicitDuration: 0)
             ->update(['is_published' => false]);
 
         if (! $reserved) {
@@ -86,6 +139,8 @@ class ExecutionService
         }
 
         $lottery->refresh();
+
+        return Str::uuid()->toString();
     }
 
     /**

@@ -2,10 +2,11 @@
 
 // Copilot - Pending review
 
-use App\Services\Lottery\Executors\TestExecutor;
+use App\Services\Lottery\Solvers\TestSolver;
 use App\Services\Lottery\LotteryOrchestrator;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 uses()->group('Unit.Lottery');
 
@@ -19,6 +20,7 @@ function createManifest(int $projectId, array $data, int $lotteryId = 1): Lotter
     $manifest = new class ($projectId, $lotteryId, $data) extends LotteryManifest {
         public function __construct(int $projectId, int $lotteryId, array $data)
         {
+            $this->uuid = Str::uuid()->toString();
             $this->projectId = $projectId;
             $this->lotteryId = $lotteryId;
             $this->data = $data;
@@ -43,8 +45,8 @@ describe('LotteryOrchestrator', function () {
             ],
         ]);
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         expect($report->picks)->toHaveCount(5);
@@ -73,8 +75,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         // Expect 3 picks total (2 + 1), 4 orphan units, 0 orphan families
@@ -100,8 +102,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         // Expect 3 picks total (2 + 1), 0 orphan units, 4 orphan families
@@ -127,8 +129,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         // Phase 1: 2 picks, 3 orphan units (202, 203, 204)
@@ -157,8 +159,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         // Phase 1: 1 pick, 3 orphan units (201, 202, 203)
@@ -187,8 +189,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         // Phase 1: 1 pick, 5 orphan units (201-205)
@@ -203,8 +205,8 @@ describe('LotteryOrchestrator', function () {
     test('empty manifest', function () {
         $manifest = createManifest(7, []);
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         expect($report->picks)->toHaveCount(0);
@@ -223,8 +225,8 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $executor = new TestExecutor();
-        $orchestrator = LotteryOrchestrator::make($executor, $manifest);
+        $solver = new TestSolver();
+        $orchestrator = LotteryOrchestrator::make($solver, $manifest);
         $report = $orchestrator->execute();
 
         expect($report->picks)->toHaveCount(1);

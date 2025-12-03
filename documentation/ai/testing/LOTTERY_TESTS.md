@@ -3,7 +3,7 @@
 ## Overview
 
 Comprehensive test coverage for the lottery execution system, focusing on:
-1. Individual executor behavior (RandomExecutor, TestExecutor)
+1. Individual solver behavior (RandomSolver, TestSolver)
 2. Multi-phase orchestration logic (LotteryOrchestrator)
 3. Event-driven integration (ExecutionService → Event → Listener → Orchestrator)
 
@@ -11,15 +11,15 @@ Comprehensive test coverage for the lottery execution system, focusing on:
 
 ```
 tests/Unit/Lottery/
-├── RandomExecutorTest.php      # Random assignment validation
-├── TestExecutorTest.php         # Deterministic assignment verification
+├── RandomSolverTest.php      # Random assignment validation
+├── TestSolverTest.php         # Deterministic assignment verification
 ├── LotteryOrchestratorTest.php  # Multi-phase orchestration
 └── ExecutionIntegrationTest.php # Event/listener bridge
 ```
 
-## 1. RandomExecutorTest
+## 1. RandomSolverTest
 
-**Purpose**: Validate that RandomExecutor produces valid, random assignments without duplicates.
+**Purpose**: Validate that RandomSolver produces valid, random assignments without duplicates.
 
 ### Test Cases
 
@@ -63,7 +63,7 @@ tests/Unit/Lottery/
   - Set of family IDs in picks matches input
   - Set of unit IDs in picks matches input
 
-## 2. TestExecutorTest
+## 2. TestSolverTest
 
 **Purpose**: Validate deterministic behavior for predictable testing.
 
@@ -197,17 +197,17 @@ tests/Unit/Lottery/
   - Manifest has correct project_id
   - Manifest data structure matches expected format
 
-#### test_listener_resolves_executor()
-- **Setup**: Mock executor in config
+#### test_listener_resolves_solver()
+- **Setup**: Mock solver in config
 - **Action**: Dispatch LotteryExecution
 - **Assertions**:
   - ExecuteLotteryListener invoked
-  - Correct executor resolved from config
-  - Orchestrator created with executor + manifest
+  - Correct solver resolved from config
+  - Orchestrator created with solver + manifest
 
-#### test_end_to_end_with_test_executor()
+#### test_end_to_end_with_test_solver()
 - **Setup**:
-  - Configure TestExecutor as default
+  - Configure TestSolver as default
   - Create project with multiple unit types
   - Create families and units
 - **Action**: Execute lottery via ExecutionService
@@ -218,9 +218,9 @@ tests/Unit/Lottery/
   - Results logged
   - Deterministic output matches expectations
 
-#### test_end_to_end_with_random_executor()
+#### test_end_to_end_with_random_solver()
 - **Setup**:
-  - Configure RandomExecutor as default
+  - Configure RandomSolver as default
   - Create balanced project
 - **Action**: Execute lottery via ExecutionService
 - **Assertions**:
@@ -281,8 +281,8 @@ trait LotteryAssertions
 ./mtav test tests/Unit/Lottery/
 
 # Individual test suites
-./mtav test tests/Unit/Lottery/RandomExecutorTest.php
-./mtav test tests/Unit/Lottery/TestExecutorTest.php
+./mtav test tests/Unit/Lottery/RandomSolverTest.php
+./mtav test tests/Unit/Lottery/TestSolverTest.php
 ./mtav test tests/Unit/Lottery/LotteryOrchestratorTest.php
 ./mtav test tests/Unit/Lottery/ExecutionIntegrationTest.php
 
@@ -293,8 +293,8 @@ trait LotteryAssertions
 ## Success Criteria
 
 - ✅ **COMPLETED**: All tests pass without modifying implementation code
-- ✅ **COMPLETED**: TestExecutor - 6/6 tests passing (deterministic behavior verified)
-- ✅ **COMPLETED**: RandomExecutor - 6/6 tests passing (randomness verified)
+- ✅ **COMPLETED**: TestSolver - 6/6 tests passing (deterministic behavior verified)
+- ✅ **COMPLETED**: RandomSolver - 6/6 tests passing (randomness verified)
 - ✅ **COMPLETED**: LotteryOrchestrator - 8/8 tests passing (all phases verified)
 - ✅ **COMPLETED**: All edge cases handled (empty, single, unbalanced)
 - ✅ **COMPLETED**: Logging verified (reportResults)

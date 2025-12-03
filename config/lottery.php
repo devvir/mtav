@@ -4,57 +4,78 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Lottery Executor
+    | Default Lottery Solver
     |--------------------------------------------------------------------------
     |
-    | This option controls the default executor used for lottery execution.
-    | The executor determines how units are assigned to families based on
+    | This option controls the default solver used for lottery execution.
+    | The solver determines how units are assigned to families based on
     | their preferences.
     |
-    | Supported: "random", "test", or any custom executor defined below
+    | Supported: "random", "test", or any custom solver defined below
     |
     */
 
-    'default' => env('LOTTERY_EXECUTOR', 'random'),
+    'default' => env('LOTTERY_SOLVER', 'random'),
 
     /*
     |--------------------------------------------------------------------------
-    | Lottery Executors
+    | Lottery Solvers
     |--------------------------------------------------------------------------
     |
-    | Here you may configure the lottery executors for your application.
-    | Each executor requires a fully qualified class name and a config array.
+    | Here you may configure the lottery solvers for your application.
+    | Each solver requires a fully qualified class name and a config array.
     |
-    | To add a new executor:
-    |  1. Create a class implementing ExecutorInterface
+    | To add a new solver:
+    |  1. Create a class implementing SolverInterface
     |  2. Add a new entry below with a unique key
-    |  3. Specify the executor class and any required config
-    |  4. Set LOTTERY_EXECUTOR env variable and any additional config variable
-    |     that your Executor needs (e.g. API keys, secrets, etc.)
+    |  3. Specify the solver class and any required config
+    |  4. Set LOTTERY_SOLVER env variable and any additional config variable
+    |     that your Solver needs (e.g. API keys, secrets, etc.)
     |
     */
 
-    'executors' => [
+    'solvers' => [
 
         'random' => [
-            'executor' => \App\Services\Lottery\Executors\RandomExecutor::class,
+            'solver' => \App\Services\Lottery\Solvers\RandomSolver::class,
         ],
 
         'test' => [
-            'executor' => \App\Services\Lottery\Executors\TestExecutor::class,
+            'solver' => \App\Services\Lottery\Solvers\TestSolver::class,
         ],
 
         /*
         |--------------------------------------------------------------------------
-        | Example: External API Executor
+        | Local GLPK Solver (Production)
         |--------------------------------------------------------------------------
         |
-        | Sample configuration for an executor that uses an external optimization API.
+        | Uses GLPK (GNU Linear Programming Kit) installed locally in the container
+        | for optimal max-min fairness lottery assignments.
+        |
+        | Requirements: glpk-utils package installed (see Dockerfile)
+        |
+        */
+
+        'local_glpk' => [
+            'solver' => \App\Services\Lottery\Solvers\LocalGlpkSolver::class,
+            'config' => [
+                'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
+                'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
+                'timeout'     => env('GLPK_TIMEOUT', 30),
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Example: External API Solver
+        |--------------------------------------------------------------------------
+        |
+        | Sample configuration for an solver that uses an external optimization API.
         |
         */
 
         // 'acme' => [
-        //     'executor' => \App\Services\Lottery\Executors\AcmeExecutor::class,
+        //     'solver' => \App\Services\Lottery\Solvers\AcmeSolver::class,
         //     'config' => [
         //         'api_key' => env('ACME_API_KEY'),
         //         'api_secret' => env('ACME_API_SECRET'),

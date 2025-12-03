@@ -12,11 +12,11 @@ use Illuminate\Support\Collection;
  *
  * @throws ModelNotFoundException if $modelOrId is an invalid id for $modelClass
  */
-function model(Model|int $modelOrId, string $modelClass): Model
+function model(Model|int $modelOrId, string $modelClass, bool $withTrashed = false): Model
 {
     return $modelOrId instanceof Model
         ? $modelOrId
-        : $modelClass::findOrFail($modelOrId);
+        : $modelClass::when($withTrashed, fn ($q) => $q->withTrashed())->findOrFail($modelOrId);
 }
 
 /**

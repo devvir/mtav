@@ -1,10 +1,8 @@
-# AI-Owned Documentation
+# AI Development Documentation - MTAV Project
 
-**Purpose**: This folder contains artifacts fully managed by AI assistants to maintain context and guide task execution.
+**Purpose**: Enable GitHub Copilot (Claude Sonnet 4.5) to work effectively with the MTAV cooperative housing management platform.
 
 **Target Audience**: AI assistants (GitHub Copilot, Claude, etc.)
-
-**Human Usage**: Review for understanding AI decision-making, but DO NOT manually edit.
 
 ---
 
@@ -22,17 +20,27 @@
 **2. Topic-specific files** (read only when working on specific areas):
 
 **Authorization Work**:
-- `KNOWLEDGE_BASE.md` → Authorization Architecture section (has the critical facts)
+- `KNOWLEDGE_BASE.md` → Authorization Architecture section
 - `core/USER_SYSTEM.md` → Detailed user system patterns and database schema
-- `core/SCOPING.md` → Project scoping and authorization matrix details
+- `core/SCOPING.md` → Project scoping and authorization matrix
 - `policies-reference.md` → Policy implementation patterns
+
+**Lottery System**:
+- `LOTTERY.md` → Complete lottery system reference, business rules, GLPK integration
+
+**Project Plans**:
+- `ProjectPlans.md` → Spatial visualization, canvas architecture, component hierarchy
 
 **UI/Frontend Work**:
 - `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` → WCAG requirements, elderly users, design constraints
 - `resources-reference.md` → Resource transformation patterns
+- `refactoring-preferences-manager.md` → Component refactoring patterns
 
 **Testing Work**:
 - `testing/PHILOSOPHY.md` → Universe fixture, test patterns, helpers
+- `testing/BROWSER_TESTING.md` → Cypress/browser test guidelines
+- `testing/FORMS.md` → Form interaction test patterns
+- `testing/LOTTERY_TESTS.md` → Lottery-specific testing
 
 **Context/Decisions**:
 - `DECISIONS.md` → Rationale for key architectural choices
@@ -45,14 +53,20 @@
 documentation/ai/
 ├── KNOWLEDGE_BASE.md           # 🔴 PRIMARY - All critical facts
 ├── README.md                   # 🔴 THIS FILE - Learning guide
+├── LOTTERY.md                  # 🔴 Complete lottery system reference
+├── ProjectPlans.md             # 🔴 Project plan visualization system
 ├── core/                       # 🟡 Detailed patterns
 │   ├── USER_SYSTEM.md         #     User/Member/Admin details & database schema
 │   └── SCOPING.md             #     Authorization matrix details
 ├── testing/                    # 🟡 Testing-specific
-│   └── PHILOSOPHY.md          #     Universe fixture, patterns
+│   ├── PHILOSOPHY.md          #     Universe fixture, patterns
+│   ├── BROWSER_TESTING.md     #     Cypress patterns
+│   ├── FORMS.md               #     Form test patterns
+│   └── LOTTERY_TESTS.md       #     Lottery tests
 ├── ACCESSIBILITY_AND_TARGET_AUDIENCE.md # 🟡 UI constraints
 ├── DECISIONS.md               # 🟢 Architectural decisions
 ├── policies-reference.md      # 🟢 Policy patterns
+├── refactoring-preferences-manager.md # 🟢 Component refactoring
 └── resources-reference.md     # 🟢 Resource patterns
 ```
 
@@ -104,136 +118,106 @@ documentation/ai/
 
 ---
 
-## File Inventory
+## Navigation Guide
 
-### 🔴 CORE - Always Read (core/)
+### When You Need...
 
-#### `core/DEVELOPMENT_ENVIRONMENT.md`
-**What**: Docker commands, tech stack, development patterns, localization
-**Priority**: 🔴 CRITICAL - Read for 99% of work
-**Contains**:
-- Docker-only environment (`./mtav` commands)
-- Technology stack (Laravel 12, PHP 8.4, MariaDB 12)
-- Resource transformation patterns
-- Frontend/backend localization strategy
-- Business domain overview
-
-#### `core/USER_SYSTEM.md`
-**What**: Complete user type system (User/Member/Admin/Superadmin)
-**Priority**: 🔴 CRITICAL - Read for 99% of work
-**Contains**:
-- STI (Single Table Inheritance) pattern on users table
-- Member: `is_admin=false`, must have family, family atomicity
-- Admin: `is_admin=true`, manages projects, no family
-- Superadmin: admin + config array, bypasses all policies
-- Database schema, relationships, validation rules
-- Capabilities matrix, workflows, constraints
-
-#### `core/SCOPING.md`
-**What**: Two-level authorization (global scopes + policies)
-**Priority**: 🔴 CRITICAL - Read for 99% of work
-**Contains**:
-- ProjectScope trait implementation
-- Query-level filtering (what "exists" for user)
-- Action-level permissions (what user can DO)
-- Universe definitions (Member/Admin/Superadmin boundaries)
-- Authorization matrix (complete permissions table)
-- Policy patterns, testing scopes
-
-### 🟡 TESTING - Read for Test Work (testing/)
-
-#### `testing/PHILOSOPHY.md`
-**What**: Test infrastructure, universe fixture, patterns
-**Priority**: 🟡 REQUIRED for test development
-**Contains**:
-- Universe fixture concept (`universe.sql`)
-- Transaction rollback strategy
-- 2-line test ideal
-- Test patterns (scope, auth, controller, business logic)
-- Helper functions, running tests
-- Testing ProjectScope specifically
-
-### 🟢 FEATURES - Read as Needed
-
-#### Lottery System
-**Location**: `resources/js/components/lottery/README.md`
-**Status**: ✅ Preferences complete, ⏳ Execution pending
-**Contains**:
-- Complete lottery preferences system (backend + frontend)
-- Drag-and-drop UI with responsive grid layout
-- Dynamic preference resolution architecture
-- UI/UX design principles (fixed slots + moving units)
-- Phase roadmap (execution engine, project plan integration)
-
-**Planned files**:
-- `UNITS.md` - Unit types, characteristics, blueprints
-- `FAMILIES.md` - Family management, project switching
-- `EVENTS.md` - Community events, RSVP
-- `MEDIA.md` - Profile images, gallery, uploads
-
-### 🟢 TECHNICAL - Read as Needed
-
-#### `refactoring-preferences-manager.md`
-**What**: Lottery preferences refactoring documentation
-**Priority**: 🟢 Reference for composable patterns
-**Contains**:
-- `useDragAndDrop` composable architecture
-- Refactoring rationale and benefits
-- Testing checklist for drag-and-drop functionality
-- Future work: project plan canvas integration
-
-**Planned files** (technical/):
-- `DOCKER.md` - Docker setup, wrapper, build process
-- `INERTIA.md` - Inertia.js patterns, modal system
-- `VALIDATION.md` - Form requests, custom rules
-- `DEPLOYMENT.md` - Build images, registry, deployment
+**General technical answers** → `KNOWLEDGE_BASE.md`
+**Architecture rationale** → `DECISIONS.md`
+**User/accessibility info** → `ACCESSIBILITY_AND_TARGET_AUDIENCE.md`
+**Lottery system details** → `LOTTERY.md`
+**Project plans system** → `ProjectPlans.md`
+**Authentication patterns** → `core/USER_SYSTEM.md`
+**Scoping patterns** → `core/SCOPING.md`
+**Testing approach** → `testing/PHILOSOPHY.md`
+**Browser test examples** → `testing/BROWSER_TESTING.md`
+**Form test patterns** → `testing/FORMS.md`
+**Lottery test details** → `testing/LOTTERY_TESTS.md`
+**Policy patterns** → `policies-reference.md`
+**Component refactoring** → `refactoring-preferences-manager.md`
+**Resource patterns** → `resources-reference.md`
 
 ---
 
-## Legacy Files (Being Phased Out)
+## Key Reference Files
 
-### `KNOWLEDGE_BASE.md`
+### Primary Technical Documentation
 
-- **Type**: Permanent system specification (single source of truth)
-- **Owner**: AI (generated and maintained by AI based on user requirements)
-- **Content**:
-  - Complete system vision (DESIRED state, not current implementation)
-  - Business domain and rules
-  - Actor definitions and capabilities
-  - Entity models and relationships
-  - Technical architecture
-  - Development workflows
-  - Testing strategies
-- **Size**: ~7,300 lines
-- **Lifecycle**: Permanent, continuously updated
-- **Human Action**: Review derived docs (Member Guide, etc.), report issues to AI for KB updates
+**`KNOWLEDGE_BASE.md`** - Complete system specification (single source of truth)
+- Docker commands, tech stack, development patterns
+- User roles, authorization architecture
+- Entity models and relationships
+- Business domain and rules
+- Development workflows, testing strategies
 
-### `ACCESSIBILITY_AND_TARGET_AUDIENCE.md`
+**`DECISIONS.md`** - Architectural decisions and rationale
+- Key architectural choices with justification
+- Temporal scope (MVP boundaries, deferred features)
+- Implementation strategies
+- Alternatives considered/rejected
 
-- **Type**: Permanent design principles reference
-- **Owner**: AI (maintained by AI)
-- **Content**:
-  - Target audience characteristics (elderly, disabilities, old devices)
-  - WCAG AA/AAA requirements
-  - Typography, color, contrast standards
-  - Touch targets, focus indicators
-  - Performance considerations
-  - Testing checklist
-- **Size**: ~120 lines
-- **Lifecycle**: Permanent, updated as design system evolves
-- **Human Action**: Critical reference - consulted before ANY UI implementation
+**`ACCESSIBILITY_AND_TARGET_AUDIENCE.md`** - Design principles
+- Target audience (elderly, disabilities, old devices)
+- WCAG AA/AAA requirements
+- Typography, color, contrast standards
+- Touch targets, focus indicators
+- Performance considerations
 
-### `DECISIONS.md`
+### Domain-Specific Systems
 
-- **Type**: Permanent decision log
-- **Owner**: AI (created/updated based on user input)
-- **Content**:
-  - Key architectural decisions with rationale
-  - Temporal scope decisions (MVP boundaries, deferred features)
-  - Implementation strategy choices
-  - Alternatives considered and rejected
-  - Test organization approaches
-- **Size**: ~200 lines
+**`LOTTERY.md`** - Complete lottery system reference
+- Business rules, one-time execution principle
+- Data architecture, entity relationships
+- Dynamic preference management
+- Multi-phase execution strategy
+- GLPK integration details
+- Implementation status and roadmap
+
+**`ProjectPlans.md`** - Project plan visualization
+- Canvas architecture (3-layer component system)
+- Database structure for spatial data
+- Component hierarchy (PlanCanvas, adapter, rendering)
+- Data flow and transformation patterns
+
+### Core System Patterns
+
+**`core/USER_SYSTEM.md`** - Complete user type system
+- STI (Single Table Inheritance) pattern
+- Member/Admin/Superadmin capabilities
+- Database schema, relationships
+- Validation rules, constraints
+
+**`core/SCOPING.md`** - Two-level authorization
+- ProjectScope trait implementation
+- Query-level filtering vs action-level permissions
+- Authorization matrix
+- Policy patterns, testing scopes
+
+### Testing Documentation
+
+**`testing/PHILOSOPHY.md`** - Test infrastructure
+- Universe fixture concept (`universe.sql`)
+- Transaction rollback strategy
+- 2-line test ideal
+- Test patterns (scope, auth, controller)
+
+**`testing/BROWSER_TESTING.md`** - Cypress patterns
+- Browser test guidelines
+- Common patterns and helpers
+
+**`testing/FORMS.md`** - Form interaction patterns
+- Form testing approaches
+- Validation testing
+
+**`testing/LOTTERY_TESTS.md`** - Lottery-specific testing
+- Lottery domain test patterns
+- Execution testing strategies
+
+### Additional References
+
+**`policies-reference.md`** - Policy implementation patterns
+**`refactoring-preferences-manager.md`** - Component refactoring patterns (useDragAndDrop composable)
+**`resources-reference.md`** - Resource transformation patterns
 - **Lifecycle**: Permanent, grows over time
 - **Human Action**: Reference when making new decisions, ask AI to update
 
@@ -263,61 +247,52 @@ documentation/ai/
 - AI operational guidelines
 - NOT for thesis/academic documentation
 
-**Human-Owned** (`documentation/guides/`):
+---
 
-- Member Guide (EN + ES_UY) - For cooperative members
-- Admin Manual (future) - For project administrators
-- User-facing documentation generated from KNOWLEDGE_BASE
+## Context Gathering Strategy
 
-**Technical/Development** (`documentation/`):
+**When starting new work:**
+1. Start with KNOWLEDGE_BASE.md - scan relevant sections
+2. Check DECISIONS.md if architecture affects approach
+3. Dive into core/ or testing/ for domain knowledge
+4. Cross-reference when concepts span files
 
-- Build, deployment, docker, testing docs
-- Scripts and troubleshooting guides
-- Developer-focused README files
-
-**Academic** (`documentation/copilot/`):
-
-- Session transcripts for thesis appendix
-- Process documentation for tribunal
-- AI collaboration evidence
-- Historical record of methodology
+**When documenting new features:**
+- Technical details → Update KNOWLEDGE_BASE.md
+- Architectural choices → DECISIONS.md (if significant)
+- New major component → Create core/*.md
+- New test patterns → Add to testing/*.md
 
 ---
 
-## Workflow
+## Maintenance
 
-**When AI starts new session**:
+**When to update:**
+- Architectural patterns change
+- New major features added
+- Testing approaches evolve
+- Policies/authorization rules change
 
-1. Read KNOWLEDGE_BASE.md for complete system vision
-2. Read ACCESSIBILITY_AND_TARGET_AUDIENCE.md for design principles
-3. Read DECISIONS.md for constraints and past choices
-4. Read TESTS_KB.md if working on testing
-5. Ask user for today's focus
-
-**When AI updates this folder**:
-
-1. Update KNOWLEDGE_BASE if system vision changes
-2. Add new decisions to DECISIONS if major choices made
-3. Update ACCESSIBILITY if design principles evolve
-4. Update TESTS_KB if testing patterns change
-5. Generate/update user guides (Member Guide, etc.) from KB changes
-
-**When human needs AI context**:
-
-1. Read DECISIONS for "why we chose this approach"
-2. Read KNOWLEDGE_BASE for "what the complete system should be"
-3. Read ACCESSIBILITY for "how to design for our users"
-4. Ask AI to clarify or update if needed
-
-**When human reviews work**:
-
-1. Review user guides (Member Guide, Admin Manual, etc.)
-2. Report issues: "Section X says Y but should say Z"
-3. AI updates KNOWLEDGE_BASE first
-4. AI regenerates affected guides
-5. Human reviews again
+**How to update:**
+1. Identify right file using navigation guide
+2. Update in place - no "Updated on..." notes
+3. Remove outdated info - don't mark deprecated
+4. Keep concise - link to code vs duplicating
 
 ---
 
-**Last Updated**: 2025-11-03
+## Quality Standards
+
+**Good documentation:**
+- ✅ Actionable - what to do, not just what exists
+- ✅ Current - reflects actual codebase
+- ✅ Findable - organized logically
+- ✅ Concise - gets to the point
+- ✅ Cross-referenced - links related concepts
+
+**Avoid:**
+- ❌ Listing every file/class
+- ❌ Documenting obvious things
+- ❌ Preserving irrelevant history
+- ❌ Duplicating across files
 

@@ -13,6 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { _ } from '@/composables/useTranslations';
 
+defineEmits<{
+  confirm: [];
+  'update:open': [value: boolean];
+}>();
+
 const props = defineProps<{
   open?: boolean;
   title: string;
@@ -22,18 +27,16 @@ const props = defineProps<{
   variant?: 'default' | 'destructive';
 }>();
 
-defineEmits<{
-  confirm: [];
-  'update:open': [value: boolean];
-}>();
-
 const confirmText = ref('');
 
-const disabled = computed(() => {
-  return new Intl.Collator('en', { sensitivity: 'base' }).compare(
-    confirmText.value,
-    props.expectedText,
-  );
+const disabled = computed(() => new Intl.Collator('en', { sensitivity: 'base' }).compare(
+  confirmText.value,
+  props.expectedText,
+));
+
+// Clear input when modal closes
+watch(() => props.open, (isOpen: boolean) => {
+  if (! isOpen) confirmText.value = '';
 });
 </script>
 

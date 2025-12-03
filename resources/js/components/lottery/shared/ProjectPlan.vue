@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
-import { Card, CardHeader } from '@/components/card';
+import { Card, CardContent, CardHeader } from '@/components/card';
 import { Plan } from '@/components/plans';
 
 defineProps<{
@@ -9,13 +9,15 @@ defineProps<{
 </script>
 
 <template>
-  <Card class="h-full flex flex-col max-w-auto">
+  <Card>
     <CardHeader :title="_('Project Plan View')">
       <p class="text-sm">
         {{ _('Interactive Project Layout Plan') }}
       </p>
     </CardHeader>
 
-    <Plan :plan class="w-full mx-auto" />
+    <CardContent>
+      <Plan :plan class="w-full mx-auto" />
+    </CardContent>
   </Card>
 </template>

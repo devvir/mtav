@@ -1,0 +1,1066 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: file:///data/Development/Repos/MTAV/mtav/documentation/ai/PROBLEMA_SORTEO_DESBALANCEADO.html
+Subject: =?utf-8?Q?Conjuntos=20Desbalanceados=20en=20Sorteos:=20An=C3=A1lisis=20y?=
+ =?utf-8?Q?=20Soluciones?=
+Date: Thu, 4 Dec 2025 02:29:43 +0400
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--zyGkFHWjQ37uue831rtHlmSwDDmft60JAg6LITaYQC----"
+
+
+------MultipartBoundary--zyGkFHWjQ37uue831rtHlmSwDDmft60JAg6LITaYQC----
+Content-Type: text/html
+Content-ID: <frame-38C2FA189EE5C93A928CF83247254D9C@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///data/Development/Repos/MTAV/mtav/documentation/ai/PROBLEMA_SORTEO_DESBALANCEADO.html
+
+<!DOCTYPE html><html lang=3D"es-UY"><head><meta http-equiv=3D"Content-Type"=
+ content=3D"text/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"te=
+xt/css" href=3D"cid:css-667d7d87-25c4-47ff-8c9e-4e379cbe90f6@mhtml.blink" /=
+>
+   =20
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=
+=3D1.0">
+    <title>Conjuntos Desbalanceados en Sorteos: An=C3=A1lisis y Soluciones<=
+/title>
+   =20
+  </head>
+  <body>
+    <div class=3D"container">
+      <h1>=F0=9F=8E=B2 Conjuntos Desbalanceados en Sorteos: An=C3=A1lisis y=
+ Soluciones</h1>
+
+      <p>
+        <strong>Fecha:</strong> 4 de diciembre de 2025<br>
+        <strong>Contexto:</strong> Sistema de Sorteo MTAV para Viviendas Co=
+operativas<br>
+        <strong>Algoritmo:</strong> Optimizaci=C3=B3n Max-Min Fairness basa=
+da en GLPK
+      </p>
+
+      <h2>=F0=9F=93=8B =C3=8Dndice</h2>
+      <ol>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#problema">El Problema</a></li>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#arquitectura-actual">Arquitectura =
+Actual</a></li>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#escenario1">Escenario 1: M=C3=A1s =
+Familias que Unidades</a></li>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#escenario2">Escenario 2: M=C3=A1s =
+Unidades que Familias</a></li>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#enfoques">Enfoque Orquestador vs H=
+ol=C3=ADstico</a></li>
+        <li><a href=3D"file:///data/Development/Repos/MTAV/mtav/documentati=
+on/ai/PROBLEMA_SORTEO_DESBALANCEADO.html#recomendacion">Recomendaci=C3=B3n =
+Final</a></li>
+      </ol>
+
+      <h2 id=3D"problema">=F0=9F=8E=AF El Problema</h2>
+
+      <p>
+        El modelo de optimizaci=C3=B3n GLPK requiere <strong>entrada balanc=
+eada</strong> donde cada
+        familia recibe exactamente una unidad y cada unidad va a exactament=
+e una familia. Esto crea
+        un problema inviable cuando las cantidades no coinciden.
+      </p>
+
+      <div class=3D"scenario">
+        <h3>Por Qu=C3=A9 GLPK Necesita Entrada Balanceada</h3>
+        <p>El modelo GMPL actual tiene estas restricciones:</p>
+        <div class=3D"code-block">
+          <pre><code># Cada familia recibe exactamente una unidad
+s.t. familyConstraint{c in C}:
+    sum{v in V} x[c,v] =3D 1;  # Debe igualar 1
+
+# Cada unidad asignada a exactamente una familia
+s.t. unitConstraint{v in V}:
+    sum{c in C} x[c,v] =3D 1;  # Debe igualar 1</code></pre>
+        </div>
+        <p>
+          <strong>Resultado:</strong> Si |C| =E2=89=A0 |V|, el problema es =
+<strong>INVIABLE</strong> - no
+          existe soluci=C3=B3n.
+        </p>
+      </div>
+
+      <h2 id=3D"arquitectura-actual">=F0=9F=8F=97=EF=B8=8F Arquitectura Act=
+ual</h2>
+
+      <p>El sistema usa un <strong>enfoque de orquestaci=C3=B3n multi-fase<=
+/strong>:</p>
+
+      <table>
+        <tbody><tr>
+          <th>Fase</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Rol del Solver</th>
+        </tr>
+        <tr>
+          <td>Fase 1: Distribuci=C3=B3n Completa</td>
+          <td>Grupos donde unidades =3D familias</td>
+          <td>Asignaciones (balanceadas)</td>
+          <td>Resolver problema balanceado</td>
+        </tr>
+        <tr>
+          <td>Fase 2: Distribuci=C3=B3n Parcial</td>
+          <td>Grupos donde unidades &gt; familias</td>
+          <td>Asignaciones + Unidades Hu=C3=A9rfanas</td>
+          <td>Resolver desbalanceado (surplus unidades)</td>
+        </tr>
+        <tr>
+          <td>Fase 3: Mejor Intento</td>
+          <td>Grupos donde unidades &lt; familias</td>
+          <td>Asignaciones + Familias Hu=C3=A9rfanas</td>
+          <td>Resolver desbalanceado (surplus familias)</td>
+        </tr>
+        <tr>
+          <td>Fase 4: Segunda Oportunidad</td>
+          <td>Todos los hu=C3=A9rfanos (tipos mezclados)</td>
+          <td>Asignaciones finales + remanentes</td>
+          <td>Resolver problema mezclado</td>
+        </tr>
+      </tbody></table>
+
+      <div class=3D"warning">
+        <h3>=E2=9A=A0=EF=B8=8F Decisi=C3=B3n de Dise=C3=B1o Clave</h3>
+        <p>
+          El <strong>orquestador separa por tipo de unidad</strong> y llama=
+ al solver para cada
+          grupo independientemente. Esto significa:
+        </p>
+        <ul>
+          <li>=E2=9C=85 El solver recibe UN grupo de tipo de unidad a la ve=
+z</li>
+          <li>=E2=9C=85 El orquestador maneja la coordinaci=C3=B3n multi-ti=
+po</li>
+          <li>=E2=9D=8C El solver no puede considerar optimizaci=C3=B3n cru=
+zada entre tipos</li>
+          <li>
+            =E2=9D=93 Pregunta: =C2=BFDeber=C3=ADa el solver ver el proyect=
+o completo para optimizaci=C3=B3n global?
+          </li>
+        </ul>
+      </div>
+
+      <h2 id=3D"escenario1">=F0=9F=93=8A Escenario 1: M=C3=A1s Familias que=
+ Unidades (Fase 3)</h2>
+
+      <div class=3D"scenario">
+        <h3>Ejemplo</h3>
+        <p>5 familias quieren Apartamento Tipo A, pero solo hay 3 unidades =
+disponibles.</p>
+        <ul>
+          <li>Familias: F1, F2, F3, F4, F5</li>
+          <li>Unidades: U10, U20, U30</li>
+          <li>Resultado: 3 familias obtienen apartamentos, 2 quedan hu=C3=
+=A9rfanas para Fase 4</li>
+        </ul>
+      </div>
+
+      <h3>Soluci=C3=B3n: Unidades Simuladas con Peor Preferencia</h3>
+
+      <div class=3D"solution">
+        <h4>=E2=9C=85 Enfoque: Rellenar con Unidades Simuladas</h4>
+        <p>
+          <strong>Estrategia:</strong> Agregar 2 unidades simuladas (U-1, U=
+-2) para tener 5 unidades
+          totales.
+        </p>
+
+        <h4>Dise=C3=B1o de Matriz de Preferencias</h4>
+        <div class=3D"code-block">
+          <pre><code># Preferencias originales
+F1: [U10=3D1, U20=3D2, U30=3D3]
+F2: [U20=3D1, U10=3D2, U30=3D3]
+F3: [U30=3D1, U20=3D2, U10=3D3]
+F4: [U10=3D1, U30=3D2, U20=3D3]
+F5: [U30=3D1, U10=3D2, U20=3D3]
+
+# Despu=C3=A9s de rellenar con unidades simuladas
+F1: [U10=3D1, U20=3D2, U30=3D3, U-1=3D999, U-2=3D999]
+F2: [U20=3D1, U10=3D2, U30=3D3, U-1=3D999, U-2=3D999]
+F3: [U30=3D1, U20=3D2, U10=3D3, U-1=3D999, U-2=3D999]
+F4: [U10=3D1, U30=3D2, U20=3D3, U-1=3D999, U-2=3D999]
+F5: [U30=3D1, U10=3D2, U20=3D3, U-1=3D999, U-2=3D999]</code></pre>
+        </div>
+
+        <h4>P: =C2=BFLas unidades simuladas necesitan preferencias distinta=
+s?</h4>
+        <p><strong>Respuesta: No, todas pueden ser 999.</strong></p>
+        <p>
+          <strong>Razonamiento:</strong> GLPK optimiza para equidad min-max=
+. Como todas las familias
+          tienen preferencia 999 para todas las unidades simuladas, el algo=
+ritmo las trata
+          id=C3=A9nticamente. Las familias que son asignadas a unidades sim=
+uladas (U-1 o U-2) tendr=C3=A1n
+          satisfacci=C3=B3n =3D 999, convirti=C3=A9ndolas en claras perdedo=
+ras, que es lo que queremos para
+          identificar hu=C3=A9rfanos.
+        </p>
+
+        <h4>Garant=C3=ADa de Max-Min Fairness</h4>
+        <p>Con este enfoque:</p>
+        <ul>
+          <li>
+            <strong>Fase 1:</strong> GLPK minimiza la satisfacci=C3=B3n del=
+ peor caso. Las unidades
+            reales tienen rangos 1-3, las simuladas tienen rango 999.
+          </li>
+          <li>
+            <strong>Resultado:</strong> Satisfacci=C3=B3n m=C3=ADnima =3D 9=
+99 (inevitable - 2 familias deben
+            perder)
+          </li>
+          <li>
+            <strong>Fase 2:</strong> Entre todas las soluciones donde 2 fam=
+ilias obtienen rango 999,
+            maximizar satisfacci=C3=B3n de las 3 ganadoras.
+          </li>
+          <li>
+            <strong>Resultado:</strong> Las 3 familias que obtienen unidade=
+s reales tienen la mejor
+            distribuci=C3=B3n posible de preferencias.
+          </li>
+          <li>
+            <strong>Equidad:</strong> GLPK decide qu=C3=A9 2 familias pierd=
+en basado en optimizaci=C3=B3n
+            global - si dos familias quieren U10 como primera opci=C3=B3n, =
+poner ambas en el conjunto
+            ganador crea competencia. GLPK puede elegir poner una en el con=
+junto perdedor para dar
+            mejores asignaciones a todos los dem=C3=A1s.
+          </li>
+        </ul>
+      </div>
+
+      <h3>Detalles de Implementaci=C3=B3n</h3>
+
+      <div class=3D"code-block">
+        <pre><code>/**
+ * Ejecutar escenario con m=C3=A1s familias que unidades.
+ *
+ * Estrategia: Agregar unidades falsas para balancear el problema,
+ * luego filtrarlas. Las familias asignadas a unidades falsas
+ * se convierten en hu=C3=A9rfanas (sin unidad real disponible).
+ */
+protected function executeMoreFamilies(LotterySpec $spec): ExecutionResult
+{
+    $paddedSpec =3D $this-&gt;padWithMockUnits($spec);
+    $result =3D $this-&gt;executeBalanced($paddedSpec);
+
+    return $this-&gt;separateRealAssignmentsFromOrphans($result);
+}
+
+/**
+ * Agregar unidades falsas para balancear cantidad de familias y unidades.
+ *
+ * Cada familia ranquear=C3=A1 estas unidades falsas como 999 (peor posible=
+).
+ * Esto permite a GLPK decidir qu=C3=A9 familias deber=C3=ADan perder de fo=
+rma justa.
+ */
+protected function padWithMockUnits(LotterySpec $spec): LotterySpec
+{
+    $mockUnits =3D $this-&gt;createMockUnits($spec);
+    $paddedUnits =3D array_merge($spec-&gt;units, $mockUnits);
+    $paddedFamilies =3D $this-&gt;addMockUnitsToPreferences($spec-&gt;famil=
+ies, $mockUnits);
+
+    return new LotterySpec($paddedFamilies, $paddedUnits);
+}
+
+/**
+ * Crear unidades falsas (usando IDs negativos para distinguirlas de unidad=
+es reales).
+ */
+protected function createMockUnits(LotterySpec $spec): array
+{
+    $familyCount =3D count($spec-&gt;families);
+    $unitCount =3D count($spec-&gt;units);
+    $mockUnitsNeeded =3D $familyCount - $unitCount;
+
+    return range(-1, -$mockUnitsNeeded);
+}
+
+/**
+ * Agregar unidades simuladas a la lista de preferencias de cada familia co=
+n rango 999.
+ *
+ * Rango 999 significa "esto es terrible, pero mejor que nada".
+ * GLPK intentar=C3=A1 minimizar cu=C3=A1ntas familias obtienen este mal re=
+sultado.
+ */
+protected function addMockUnitsToPreferences(array $families, array $mockUn=
+its): array
+{
+    $paddedFamilies =3D [];
+
+    foreach ($families as $familyId =3D&gt; $preferences) {
+        $paddedPreferences =3D $preferences;
+
+        foreach ($mockUnits as $mockUnitId) {
+            $paddedPreferences[$mockUnitId] =3D 999;
+        }
+
+        $paddedFamilies[$familyId] =3D $paddedPreferences;
+    }
+
+    return $paddedFamilies;
+}
+
+/**
+ * Separar asignaciones reales de las falsas.
+ *
+ * Las familias que obtuvieron unidades falsas (IDs negativos) se vuelven h=
+u=C3=A9rfanas.
+ * Las asignaciones reales se devuelven normalmente.
+ */
+protected function separateRealAssignmentsFromOrphans(ExecutionResult $resu=
+lt): ExecutionResult
+{
+    $realPicks =3D [];
+    $orphanFamilies =3D [];
+
+    foreach ($result-&gt;picks as $familyId =3D&gt; $unitId) {
+        if ($this-&gt;isMockUnit($unitId)) {
+            $orphanFamilies[] =3D $familyId;
+        } else {
+            $realPicks[$familyId] =3D $unitId;
+        }
+    }
+
+    return new ExecutionResult($realPicks, [
+        'families' =3D&gt; $orphanFamilies,
+        'units' =3D&gt; [],
+    ]);
+}
+
+/**
+ * Verificar si un ID de unidad representa una unidad simulada.
+ */
+protected function isMockUnit(int $unitId): bool
+{
+    return $unitId &lt; 0;
+}</code></pre>
+      </div>
+
+      <h2 id=3D"escenario2">=F0=9F=93=8A Escenario 2: M=C3=A1s Unidades que=
+ Familias (Fase 2)</h2>
+
+      <div class=3D"scenario">
+        <h3>Ejemplo</h3>
+        <p>3 familias quieren Apartamento Tipo B, pero hay 5 unidades dispo=
+nibles.</p>
+        <ul>
+          <li>Familias: F1, F2, F3</li>
+          <li>Unidades: U10, U20, U30, U40, U50</li>
+          <li>Resultado: Las 3 familias obtienen apartamentos, 2 unidades q=
+uedan sin asignar</li>
+        </ul>
+      </div>
+
+      <h3>Desaf=C3=ADo: Problema de Familias Simuladas</h3>
+
+      <div class=3D"warning">
+        <h4>=E2=9A=A0=EF=B8=8F La Trampa de Familias Simuladas</h4>
+        <p>
+          Si ingenuamente agregamos familias simuladas con las mismas prefe=
+rencias que familias
+          reales, =C2=A1GLPK podr=C3=ADa optimizar para familias simuladas =
+a expensas de familias reales!
+        </p>
+
+        <div class=3D"code-block">
+          <pre><code># MALO: Familias simuladas con preferencias arbitraria=
+s
+F1: [U10=3D1, U20=3D2, U30=3D3, U40=3D4, U50=3D5]  # Familia real
+F2: [U20=3D1, U10=3D2, U30=3D3, U40=3D4, U50=3D5]  # Familia real
+F3: [U30=3D1, U20=3D2, U10=3D3, U40=3D4, U50=3D5]  # Familia real
+MOCK-1: [U40=3D1, U50=3D2, ...]              # Familia simulada
+MOCK-2: [U50=3D1, U40=3D2, ...]              # Familia simulada
+
+# Problema: =C2=A1GLPK podr=C3=ADa dar U10 a MOCK-1 si mejora la satisfacci=
+=C3=B3n global!
+# Esto ser=C3=ADa terrible - las familias reales deber=C3=ADan tener priori=
+dad.</code></pre>
+        </div>
+      </div>
+
+      <h3>Opciones de Soluci=C3=B3n</h3>
+
+      <div class=3D"comparison">
+        <div class=3D"comparison-item">
+          <h4>=E2=9D=8C Opci=C3=B3n A (Ingenua): Familias Simuladas con Tod=
+as Prefs =3D 999</h4>
+          <p>Dar a familias simuladas todas las preferencias =3D 999</p>
+          <div class=3D"pros">
+            <strong>=E2=9C=85 Ventajas:</strong>
+            <ul>
+              <li>Simple de implementar</li>
+              <li>Familias reales garantizan mejor satisfacci=C3=B3n</li>
+              <li>Todas las familias reales son asignadas</li>
+            </ul>
+          </div>
+          <div class=3D"cons">
+            <strong>=E2=9D=8C Desventajas:</strong>
+            <ul>
+              <li>No ayuda a identificar qu=C3=A9 unidades deber=C3=ADan se=
+r hu=C3=A9rfanas</li>
+              <li>
+                Todas las familias simuladas igualmente malas - no hay form=
+a de distinguir unidades
+                hu=C3=A9rfanas
+              </li>
+              <li>
+                GLPK elegir=C3=A1 unidades arbitrarias para simuladas (=C2=
+=A1podr=C3=ADan ser las mejores
+                unidades!)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class=3D"comparison-item">
+          <h4>=E2=9D=8C Opci=C3=B3n B: Restricciones Relajadas</h4>
+          <p>Permitir que familias y unidades permanezcan sin asignar</p>
+          <div class=3D"pros">
+            <strong>=E2=9C=85 Ventajas:</strong>
+            <ul>
+              <li>No se necesitan entidades simuladas</li>
+              <li>Modelo m=C3=A1s limpio</li>
+              <li>GLPK naturalmente deja sin asignar las peores unidades</l=
+i>
+            </ul>
+          </div>
+          <div class=3D"cons">
+            <strong>=E2=9D=8C Desventajas:</strong>
+            <ul>
+              <li>Pierde garant=C3=ADa de equidad max-min</li>
+              <li>GLPK podr=C3=ADa no asignar todas las familias</li>
+              <li>
+                Necesita agregar restricciones para asegurar que todas las =
+familias obtengan
+                asignaciones
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class=3D"solution">
+        <h4>
+          =E2=9C=85 Soluci=C3=B3n Recomendada: Familias Simuladas con Prefe=
+rencias Invertidas + Objetivo
+          Ponderado
+        </h4>
+        <p>
+          <strong>Esto NO es la Opci=C3=B3n A ni la Opci=C3=B3n B - es una =
+tercera estrategia que combina lo mejor
+            de ambas.</strong>
+        </p>
+
+        <p>
+          <strong>Estrategia:</strong> Usar familias simuladas pero asegura=
+r que las familias reales
+          tienen prioridad a trav=C3=A9s de restricciones.
+        </p>
+
+        <div class=3D"code-block">
+          <pre><code># Modelo Fase 1 Modificado para M=C3=A1s Unidades que =
+Familias
+set C_real;  # Familias reales
+set C_mock;  # Familias simuladas
+set C :=3D C_real union C_mock;  # Todas las familias
+set V;  # Unidades
+
+param p{c in C, v in V};  # Preferencias
+var x{c in C, v in V}, binary;
+var z_real, integer;  # Peor satisfacci=C3=B3n para familias REALES solamen=
+te
+var z_mock, integer;  # Peor satisfacci=C3=B3n para familias simuladas
+
+# Objetivo de dos niveles: minimizar peor caso de familias reales primero
+minimize resultado: 1000000 * z_real + z_mock;
+
+# Restricci=C3=B3n de peor caso para familias reales
+s.t. realFamilySatisfaction{c in C_real}:
+    z_real &gt;=3D sum{v in V} p[c,v] * x[c,v];
+
+# Restricci=C3=B3n de peor caso para familias simuladas (mucha menor priori=
+dad)
+s.t. mockFamilySatisfaction{c in C_mock}:
+    z_mock &gt;=3D sum{v in V} p[c,v] * x[c,v];
+
+# Cada familia recibe exactamente una unidad
+s.t. familyGetsOne{c in C}:
+    sum{v in V} x[c,v] =3D 1;
+
+# Cada unidad a como mucho una familia
+s.t. unitGetsOne{v in V}:
+    sum{c in C} x[c,v] =3D 1;
+
+end;</code></pre>
+        </div>
+
+        <h4>C=C3=B3mo Funciona Esto</h4>
+        <ul>
+          <li>
+            <strong>Objetivo Ponderado:</strong> Satisfacci=C3=B3n de famil=
+ias reales ponderada
+            1,000,000x m=C3=A1s alta que satisfacci=C3=B3n simulada
+          </li>
+          <li>
+            <strong>Efecto:</strong> GLPK optimiza familias reales primero,=
+ solo considera
+            satisfacci=C3=B3n simulada como desempate
+          </li>
+          <li>
+            <strong>Resultado:</strong> Familias reales obtienen asignacion=
+es =C3=B3ptimas, familias
+            simuladas obtienen sobras
+          </li>
+          <li>
+            <strong>Unidades Hu=C3=A9rfanas:</strong> Las unidades asignada=
+s a familias simuladas se
+            vuelven hu=C3=A9rfanas
+          </li>
+        </ul>
+
+        <h4>Preferencias de Familias Simuladas</h4>
+        <div class=3D"code-block">
+          <pre><code># Dar a familias simuladas preferencias invertidas par=
+a distribuirlas
+# (Previene que todas las simuladas quieran las mismas unidades)
+F1: [U10=3D1, U20=3D2, U30=3D3, U40=3D4, U50=3D5]      # Real
+F2: [U20=3D1, U10=3D2, U30=3D3, U40=3D4, U50=3D5]      # Real
+F3: [U30=3D1, U20=3D2, U10=3D3, U40=3D4, U50=3D5]      # Real
+MOCK-1: [U50=3D1, U40=3D2, U30=3D3, U20=3D4, U10=3D5]  # Invertida
+MOCK-2: [U40=3D1, U50=3D2, U30=3D3, U20=3D4, U10=3D5]  # Invertida
+
+# Familias reales compiten por U10, U20, U30 (sus mejores opciones)
+# Familias simuladas obtienen U40, U50 (las unidades que familias reales ra=
+nquearon bajo)
+# Esto identifica naturalmente las unidades menos deseadas como hu=C3=A9rfa=
+nas</code></pre>
+        </div>
+      </div>
+
+      <h2 id=3D"enfoques">=F0=9F=A4=94 Enfoque Orquestador vs Hol=C3=ADstic=
+o</h2>
+
+      <div class=3D"warning">
+        <h3>=E2=AD=90 Contexto Importante: El Caso Normal vs Excepcional</h=
+3>
+        <p>
+          <strong>El requisito original:</strong> Resolver el problema bala=
+nceado (|C| =3D |V|)
+          perfectamente.
+        </p>
+        <p>
+          <strong>La extensi=C3=B3n robusta:</strong> Manejar grupos desbal=
+anceados como red de seguridad
+          para situaciones excepcionales.
+        </p>
+        <ul>
+          <li>
+            =E2=9C=85 <strong>Caso Normal:</strong> Todos los grupos est=C3=
+=A1n balanceados - cada familia
+            obtiene una unidad de su tipo asignado
+          </li>
+          <li>
+            =E2=9A=A0=EF=B8=8F <strong>Caso Excepcional:</strong> Algunos g=
+rupos desbalanceados - el sistema
+            advierte y pide confirmaci=C3=B3n antes de proceder
+          </li>
+        </ul>
+        <p>
+          <strong>Objetivo de Dise=C3=B1o:</strong> El caso balanceado debe=
+ ser perfecto. El caso
+          desbalanceado debe ser "tan bueno como sea posible" pero no debe =
+quitarle protagonismo al
+          caso normal ni comprometer su simplicidad.
+        </p>
+      </div>
+
+      <h3>Enfoque Actual: Orquestador Separa por Tipo</h3>
+
+      <div class=3D"comparison-item">
+        <h4>C=C3=B3mo Funciona</h4>
+        <ol>
+          <li>El orquestador agrupa familias/unidades por TipoUnidad</li>
+          <li>Llama al solver una vez por grupo (optimizaciones independien=
+tes)</li>
+          <li>Recolecta hu=C3=A9rfanos de cada grupo</li>
+          <li>Crea grupo de hu=C3=A9rfanos mezclados para Fase 4 (segunda o=
+portunidad)</li>
+        </ol>
+
+        <h4 class=3D"pros">=E2=9C=85 Ventajas (Aplicables a Ambos Casos)</h=
+4>
+        <ul>
+          <li>
+            <strong>Segregaci=C3=B3n de Tipos:</strong> Respeta regla de ne=
+gocio de que familias
+            prefieren su tipo asignado
+          </li>
+          <li><strong>Simplicidad:</strong> Cada llamada al solver es auto-=
+contenida</li>
+          <li><strong>Paralelizable:</strong> Podr=C3=ADa ejecutar grupos e=
+n paralelo</li>
+          <li><strong>Depurable:</strong> F=C3=A1cil rastrear qu=C3=A9 grup=
+o caus=C3=B3 problemas</li>
+          <li><strong>Flexible:</strong> Diferentes solvers pueden manejar =
+diferentes grupos</li>
+        </ul>
+
+        <h4 class=3D"pros">=E2=9C=85 Ventajas Adicionales en el Caso Normal=
+ (Grupos Balanceados)</h4>
+        <ul>
+          <li>
+            <strong>Matem=C3=A1ticamente Perfecto:</strong> Cada grupo obti=
+ene soluci=C3=B3n =C3=B3ptima
+            garantizada por GLPK
+          </li>
+          <li>
+            <strong>Sin Compromisos:</strong> No hay mock entities, no hay =
+ponderaciones, solo
+            optimizaci=C3=B3n pura
+          </li>
+          <li>
+            <strong>Predecible:</strong> Cada familia obtiene exactamente u=
+na unidad de su tipo -
+            cero excepciones
+          </li>
+          <li>
+            <strong>Eficiente:</strong> Problemas peque=C3=B1os independien=
+tes se resuelven mucho m=C3=A1s
+            r=C3=A1pido que un problema gigante
+          </li>
+          <li>
+            <strong>Transparente:</strong> F=C3=A1cil explicar a familias: =
+"Tu grupo de Apartamentos tuvo
+            asignaci=C3=B3n justa"
+          </li>
+        </ul>
+
+        <h4 class=3D"cons">=E2=9D=8C Limitaciones (Solo Relevantes en Caso =
+Excepcional)</h4>
+        <ul>
+          <li><strong>Optimizaci=C3=B3n Local:</strong> Cada grupo optimiza=
+do independientemente</li>
+          <li>
+            <strong>Sin Conciencia Cruzada entre Tipos:</strong> El grupo d=
+e Apartamentos no sabe
+            sobre el grupo de Casas
+          </li>
+          <li>
+            <strong>=C2=BFSoluci=C3=B3n Global Sub=C3=B3ptima?</strong> Tal=
+ vez alguien deber=C3=ADa intercambiar tipos
+            para mejor satisfacci=C3=B3n general
+          </li>
+        </ul>
+        <p>
+          <em>Nota: Estas "limitaciones" son irrelevantes en el caso normal=
+ donde todos los grupos
+            est=C3=A1n balanceados.</em>
+        </p>
+      </div>
+
+      <h3>Alternativa: Optimizaci=C3=B3n Global Hol=C3=ADstica</h3>
+
+      <div class=3D"comparison-item">
+        <h4>Concepto</h4>
+        <p>
+          Pasar el proyecto ENTERO (todos los tipos de unidad, todas las fa=
+milias) a GLPK en un
+          problema de optimizaci=C3=B3n gigante.
+        </p>
+
+        <div class=3D"code-block">
+          <pre><code># Modelo GLPK Hol=C3=ADstico
+set TYPES;  # Tipos de unidad (Apartamento, Casa, etc.)
+set C;  # Todas las familias
+set V;  # Todas las unidades
+
+param assigned_type{c in C};  # Tipo asignado de cada familia
+param unit_type{v in V};      # Tipo de cada unidad
+param p{c in C, v in V};      # Preferencias (cruzadas entre tipos posibles=
+)
+
+# Penalizaci=C3=B3n por asignaciones cruzadas entre tipos
+param cross_type_penalty :=3D 1000;
+
+var x{c in C, v in V}, binary;
+var z, integer;
+
+minimize resultado: z;
+
+s.t. familyWorstCase{c in C}:
+    z &gt;=3D sum{v in V} (
+        p[c,v] +
+        (if unit_type[v] !=3D assigned_type[c] then cross_type_penalty else=
+ 0)
+    ) * x[c,v];
+
+# ... resto de restricciones</code></pre>
+        </div>
+
+        <h4 class=3D"pros">=E2=9C=85 Ventajas Potenciales</h4>
+        <ul>
+          <li>
+            <strong>=C3=93ptimo Global:</strong> Soluci=C3=B3n verdaderamen=
+te =C3=B3ptima a trav=C3=A9s de todos los
+            tipos
+          </li>
+          <li>
+            <strong>Intercambio de Tipos:</strong> Podr=C3=ADa intercambiar=
+ tipos de familias si mejora
+            satisfacci=C3=B3n global
+          </li>
+          <li>
+            <strong>Mejor Fase 4:</strong> Distribuci=C3=B3n de segunda opo=
+rtunidad considerada desde el
+            inicio
+          </li>
+        </ul>
+
+        <h4 class=3D"cons">=E2=9D=8C Por Qu=C3=A9 Esto Probablemente Est=C3=
+=A1 Mal</h4>
+        <ul>
+          <li>
+            <strong>Violaci=C3=B3n de L=C3=B3gica de Negocio:</strong> Las =
+familias son asignadas a tipos por
+            una raz=C3=B3n (tama=C3=B1o de familia, necesidades especiales,=
+ etc.)
+          </li>
+          <li>
+            <strong>Complejidad:</strong> Problema de optimizaci=C3=B3n mas=
+ivo (20+ familias =C3=97 20+
+            unidades =3D 400+ variables)
+          </li>
+          <li><strong>Rendimiento:</strong> Mucho m=C3=A1s lento de resolve=
+r</li>
+          <li>
+            <strong>Inflexibilidad:</strong> Cambiar el algoritmo para un t=
+ipo afecta todos los
+            dem=C3=A1s
+          </li>
+          <li>
+            <strong>Depuraci=C3=B3n Pesadilla:</strong> Dif=C3=ADcil entend=
+er por qu=C3=A9 una familia espec=C3=ADfica
+            perdi=C3=B3
+          </li>
+        </ul>
+      </div>
+
+      <h3>Veredicto: Mantenerse con Enfoque Orquestador</h3>
+
+      <div class=3D"recommendation">
+        <h4>=E2=9C=85 Recomendaci=C3=B3n: El orquestador sigue siendo la ar=
+quitectura correcta</h4>
+        <p><strong>Razones:</strong></p>
+        <ol>
+          <li>
+            <strong>Respeta Reglas de Negocio:</strong> Los tipos de unidad=
+ est=C3=A1n asignados por
+            razones v=C3=A1lidas (tama=C3=B1o, accesibilidad, etc.)
+          </li>
+          <li>
+            <strong>Simplicidad Gana:</strong> Cada optimizaci=C3=B3n de gr=
+upo es comprensible y
+            depurable
+          </li>
+          <li>
+            <strong>Fase 4 Maneja Casos Extremos:</strong> La distribuci=C3=
+=B3n de segunda oportunidad
+            captura cualquier asignaci=C3=B3n cruzada entre tipos necesaria
+          </li>
+          <li><strong>Escalable:</strong> Grupos grandes pueden ejecutarse =
+en paralelo</li>
+          <li>
+            <strong>Flexible:</strong> Diferentes solvers (GLPK, aleatorio,=
+ API externa) pueden
+            usarse para diferentes grupos
+          </li>
+        </ol>
+
+        <p>
+          <strong>Contraargumento:</strong> "=C2=BFPero qu=C3=A9 pasa si el=
+ =C3=B3ptimo global requiere
+          intercambios entre tipos?"
+        </p>
+        <p>
+          <strong>Respuesta:</strong> Entonces deber=C3=ADas replantear tus=
+ asignaciones de tipo
+          iniciales. Si las familias est=C3=A1n frecuentemente mejor en dif=
+erentes tipos, el problema es
+          la l=C3=B3gica de asignaci=C3=B3n de tipos, no el algoritmo de so=
+rteo.
+        </p>
+      </div>
+
+      <h2 id=3D"recomendacion">=F0=9F=8E=AF Recomendaci=C3=B3n Final</h2>
+
+      <div class=3D"recommendation">
+        <h3>Estrategia de Implementaci=C3=B3n para LocalGlpkSolver</h3>
+
+        <p>
+          Implementar tres estrategias en la clase <span class=3D"code-inli=
+ne">LocalGlpkSolver</span>:
+        </p>
+
+        <ol>
+          <li>
+            <strong>M=C3=A9todo 1: Balanceado</strong> (cuando
+            <span class=3D"code-inline">|C| =3D |V|</span>)
+            <ul>
+              <li>Modelo GLPK est=C3=A1ndar de dos fases</li>
+              <li>Sin entidades simuladas necesarias</li>
+              <li>Soluci=C3=B3n =C3=B3ptima garantizada</li>
+            </ul>
+          </li>
+
+          <li>
+            <strong>M=C3=A9todo 2: M=C3=A1s Familias que Unidades</strong> =
+(cuando
+            <span class=3D"code-inline">|C| &gt; |V|</span>)
+            <ul>
+              <li>Agregar unidades simuladas con preferencia 999</li>
+              <li>Todas las familias son asignadas (algunas a simuladas)</l=
+i>
+              <li>Familias que obtienen simuladas =E2=86=92 hu=C3=A9rfanas =
+para Fase 4</li>
+              <li>Garantiza max-min equidad entre ganadores</li>
+            </ul>
+          </li>
+
+          <li>
+            <strong>M=C3=A9todo 3: M=C3=A1s Unidades que Familias</strong> =
+(cuando
+            <span class=3D"code-inline">|C| &lt; |V|</span>)
+            <ul>
+              <li>Agregar familias simuladas con preferencias invertidas</l=
+i>
+              <li>Objetivo ponderado: priorizar satisfacci=C3=B3n de famili=
+as reales 1,000,000:1</li>
+              <li>Familias reales obtienen asignaciones =C3=B3ptimas</li>
+              <li>Unidades asignadas a familias simuladas =E2=86=92 hu=C3=
+=A9rfanas para Fase 4</li>
+              <li>Preferencias invertidas identifican naturalmente unidades=
+ menos deseadas</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h4>Estructura de C=C3=B3digo Propuesta</h4>
+
+        <div class=3D"code-block">
+          <pre><code>class LocalGlpkSolver implements SolverInterface
+{
+    public function execute(LotterySpec $spec): ExecutionResult
+    {
+        $familyCount =3D count($spec-&gt;families);
+        $unitCount =3D count($spec-&gt;units);
+
+        if ($familyCount =3D=3D=3D $unitCount) {
+            return $this-&gt;executeBalanced($spec);
+        }
+
+        if ($familyCount &gt; $unitCount) {
+            return $this-&gt;executeMoreFamilies($spec);
+        }
+
+        return $this-&gt;executeMoreUnits($spec);
+    }
+
+    protected function executeBalanced(LotterySpec $spec): ExecutionResult
+    {
+        // Modelo GLPK est=C3=A1ndar de dos fases
+        // Sin simulaciones necesarias
+    }
+
+    protected function executeMoreFamilies(LotterySpec $spec): ExecutionRes=
+ult
+    {
+        // Rellenar con unidades simuladas (IDs negativos)
+        // Todas las preferencias simuladas =3D 999
+        // Filtrar asignaciones simuladas como hu=C3=A9rfanas
+    }
+
+    protected function executeMoreUnits(LotterySpec $spec): ExecutionResult
+    {
+        // Agregar familias simuladas con preferencias invertidas
+        // Objetivo ponderado: z_real * 1000000 + z_mock
+        // Filtrar unidades asignadas a simuladas como hu=C3=A9rfanas
+    }
+}</code></pre>
+        </div>
+
+        <h4>Preguntas Pendientes</h4>
+
+        <table>
+          <tbody><tr>
+            <th>Pregunta</th>
+            <th>Decisi=C3=B3n</th>
+            <th>Justificaci=C3=B3n</th>
+          </tr>
+          <tr>
+            <td>=C2=BFEl solver deber=C3=ADa ver el proyecto completo?</td>
+            <td><strong>No</strong></td>
+            <td>
+              Los tipos de unidad est=C3=A1n asignados por razones de negoc=
+io v=C3=A1lidas. Orquestador maneja
+              coordinaci=C3=B3n entre tipos.
+            </td>
+          </tr>
+          <tr>
+            <td>=C2=BFLas unidades simuladas necesitan preferencias distint=
+as?</td>
+            <td><strong>No</strong></td>
+            <td>
+              Todas pueden ser 999. GLPK las trata id=C3=A9nticamente. Eleg=
+ir cu=C3=A1l familia obtiene cu=C3=A1l
+              simulada es arbitrario.
+            </td>
+          </tr>
+          <tr>
+            <td>=C2=BFLas familias simuladas necesitan preferencias distint=
+as?</td>
+            <td><strong>S=C3=AD</strong></td>
+            <td>
+              Invertidas ayudan a identificar unidades menos deseadas como =
+hu=C3=A9rfanas. Previene que
+              todas las simuladas quieran la misma unidad.
+            </td>
+          </tr>
+          <tr>
+            <td>=C2=BFQu=C3=A9 factor de ponderaci=C3=B3n usar para familia=
+s reales vs simuladas?</td>
+            <td><strong>1,000,000:1</strong></td>
+            <td>
+              Lo suficientemente grande para asegurar que la satisfacci=C3=
+=B3n de familia real SIEMPRE
+              domina. Incluso si las simuladas obtienen satisfacci=C3=B3n 1=
+, todav=C3=ADa es menor que real=3D2
+              en el objetivo.
+            </td>
+          </tr>
+        </tbody></table>
+
+        <h4>Pr=C3=B3ximos Pasos</h4>
+
+        <ol>
+          <li>Implementar enfoque de tres estrategias en LocalGlpkSolver</l=
+i>
+          <li>Actualizar ModelGenerator para manejar entidades simuladas</l=
+i>
+          <li>
+            Actualizar DataGenerator para generar archivos .dat con familia=
+s/unidades simuladas
+          </li>
+          <li>Actualizar SolutionParser para filtrar asignaciones simuladas=
+</li>
+          <li>Escribir pruebas unitarias para cada estrategia</li>
+          <li>Escribir pruebas de integraci=C3=B3n para escenarios desbalan=
+ceados</li>
+          <li>Actualizar documentaci=C3=B3n con ejemplos de conjuntos desba=
+lanceados</li>
+        </ol>
+      </div>
+
+      <hr style=3D"margin-top: 40px">
+
+      <p style=3D"text-align: center; color: #7f8c8d; margin-top: 30px">
+        <small>Documento generado como parte del an=C3=A1lisis de dise=C3=
+=B1o del Sistema de Sorteo MTAV<br>
+          Todos los ejemplos de c=C3=B3digo son pseudoc=C3=B3digo con fines=
+ ilustrativos</small>
+      </p>
+    </div>
+ =20
+
+</body></html>
+------MultipartBoundary--zyGkFHWjQ37uue831rtHlmSwDDmft60JAg6LITaYQC----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-667d7d87-25c4-47ff-8c9e-4e379cbe90f6@mhtml.blink
+
+@charset "utf-8";
+
+body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; line-h=
+eight: 1.6; max-width: 1200px; margin: 0px auto; padding: 20px; background:=
+ rgb(245, 245, 245); }
+
+.container { background: white; padding: 30px; border-radius: 8px; box-shad=
+ow: rgba(0, 0, 0, 0.1) 0px 2px 4px; }
+
+h1 { color: rgb(44, 62, 80); border-bottom: 3px solid rgb(52, 152, 219); pa=
+dding-bottom: 10px; }
+
+h2 { color: rgb(52, 73, 94); margin-top: 30px; border-left: 4px solid rgb(5=
+2, 152, 219); padding-left: 15px; }
+
+h3 { color: rgb(85, 85, 85); margin-top: 20px; }
+
+.scenario { background: rgb(236, 240, 241); padding: 15px; margin: 15px 0px=
+; border-radius: 5px; border-left: 4px solid rgb(231, 76, 60); }
+
+.solution { background: rgb(213, 244, 230); padding: 15px; margin: 15px 0px=
+; border-radius: 5px; border-left: 4px solid rgb(39, 174, 96); }
+
+.warning { background: rgb(255, 243, 205); padding: 15px; margin: 15px 0px;=
+ border-radius: 5px; border-left: 4px solid rgb(255, 193, 7); }
+
+.code-block { background: rgb(44, 62, 80); color: rgb(236, 240, 241); paddi=
+ng: 20px; border-radius: 5px; overflow-x: auto; font-family: "Courier New",=
+ monospace; font-size: 13px; margin: 15px 0px; line-height: 1.5; }
+
+.code-block code { color: rgb(236, 240, 241); }
+
+.code-inline { background: rgb(244, 244, 244); color: rgb(199, 37, 78); pad=
+ding: 2px 6px; border-radius: 3px; font-family: "Courier New", monospace; f=
+ont-size: 0.9em; }
+
+.comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; mar=
+gin: 20px 0px; }
+
+.comparison-item { background: rgb(248, 249, 250); padding: 15px; border-ra=
+dius: 5px; border: 1px solid rgb(222, 226, 230); }
+
+.pros { color: rgb(39, 174, 96); }
+
+.cons { color: rgb(231, 76, 60); }
+
+table { width: 100%; border-collapse: collapse; margin: 20px 0px; }
+
+th, td { padding: 12px; text-align: left; border: 1px solid rgb(221, 221, 2=
+21); }
+
+th { background: rgb(52, 152, 219); color: white; }
+
+tr:nth-child(2n) { background: rgb(248, 249, 250); }
+
+.recommendation { background: rgb(227, 242, 253); padding: 20px; margin: 20=
+px 0px; border-radius: 5px; border: 2px solid rgb(33, 150, 243); }
+
+.math { font-style: italic; background: rgb(248, 249, 250); padding: 2px 6p=
+x; border-radius: 3px; font-family: "Times New Roman", serif; }
+
+@media print {
+  body { background: white; padding: 0px; }
+  .container { box-shadow: none; padding: 20px; }
+  h1, h2 { break-after: avoid; }
+  h3 { break-after: avoid; }
+  .scenario, .solution, .warning, .code-block, .comparison, table, .recomme=
+ndation { break-inside: avoid; }
+  .comparison-item { break-inside: avoid; }
+}
+------MultipartBoundary--zyGkFHWjQ37uue831rtHlmSwDDmft60JAg6LITaYQC------

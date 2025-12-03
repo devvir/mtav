@@ -19,7 +19,7 @@ Route::get('contact/{admin}', [ContactController::class, 'create'])->name('conta
 Route::resource('audios', AudioController::class)->only('index', 'create');
 Route::resource('documents', DocumentController::class)->only('index', 'create');
 Route::resource('events', EventController::class);
-Route::resource('media', MediaController::class)->parameter('media', 'media'); // NOT medium
+Route::resource('media', MediaController::class)->parameter('media', 'media'); // NOT 'medium'
 Route::resource('plans', PlanController::class)->only('show', 'edit', 'update');
 Route::resource('units', UnitController::class);
 Route::resource('unit_types', UnitTypeController::class);
@@ -27,4 +27,5 @@ Route::resource('unit_types', UnitTypeController::class);
 Route::get('lottery', [LotteryController::class, 'index'])->name('lottery');
 Route::post('lottery/preferences', [LotteryController::class, 'preferences'])->name('lottery.preferences');
 Route::patch('lottery/{lottery}', [LotteryController::class, 'update'])->name('lottery.update');
-Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])->name('lottery.execute');
+Route::post('lottery/{lottery}/execution', [LotteryController::class, 'execute'])->name('lottery.execute');
+Route::delete('lottery/{lottery}/execution', [LotteryController::class, 'invalidate'])->withTrashed()->name('lottery.invalidate');

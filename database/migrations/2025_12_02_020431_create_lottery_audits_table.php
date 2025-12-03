@@ -12,9 +12,10 @@ return new class () extends Migration {
             $table->uuid('execution_uuid');
             $table->foreignId('project_id')->constrained()->restrictOnDelete();
             $table->foreignId('lottery_id')->constrained('events')->restrictOnDelete();
-            $table->enum('execution_type', ['group', 'project']);
+            $table->enum('type', ['init', 'group_execution', 'project_execution', 'invalidate', 'failure']);
             $table->json('audit');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['created_at']);
         });

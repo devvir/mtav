@@ -30,11 +30,6 @@ return [
     'family_deleted'  => 'The Family and its Members have been removed from the system.',
     'family_restored' => 'Perfect! The Family and its Members are back.',
 
-    // Lottery operations
-    'lottery_updated'               => 'Great! The lottery details were updated.',
-    'lottery_preferences_updated'   => 'Perfect! Your unit preferences were saved.',
-    'lottery_executed_successfully' => 'The lottery was executed successfully. All units have been assigned.',
-
     // Media operations
     'media_uploaded'          => 'Perfect! Your file is here.',
     'media_multiple_uploaded' => 'Great! All :count files are ready.',

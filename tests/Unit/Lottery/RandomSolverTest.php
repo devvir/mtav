@@ -3,18 +3,18 @@
 // Copilot - Pending review
 
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Executors\RandomExecutor;
+use App\Services\Lottery\Solvers\RandomSolver;
 
 uses()->group('Unit.Lottery');
 
-describe('RandomExecutor', function () {
+describe('RandomSolver', function () {
     test('balanced lottery', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => []];
         $units = [10, 20, 30, 40, 50];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         // Should have 5 picks
         expect($result->picks)->toHaveCount(5);
@@ -42,9 +42,9 @@ describe('RandomExecutor', function () {
         $families = [1 => [], 2 => [], 3 => []];
         $units = [10, 20, 30, 40, 50, 60, 70];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         // Should have 3 picks (min of families and units)
         expect($result->picks)->toHaveCount(3);
@@ -73,9 +73,9 @@ describe('RandomExecutor', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => [], 6 => [], 7 => [], 8 => []];
         $units = [10, 20, 30, 40, 50];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         // Should have 5 picks (min of families and units)
         expect($result->picks)->toHaveCount(5);
@@ -104,13 +104,13 @@ describe('RandomExecutor', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => [], 6 => [], 7 => [], 8 => [], 9 => [], 10 => []];
         $units = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
 
         // Run multiple times to verify randomness and no duplicates
         $results = [];
         for ($i = 0; $i < 10; $i++) {
-            $result = $executor->execute($spec);
+            $result = $solver->execute($spec);
             $results[] = $result->picks;
 
             // Each family should appear at most once
@@ -141,9 +141,9 @@ describe('RandomExecutor', function () {
         $families = [];
         $units = [];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -154,9 +154,9 @@ describe('RandomExecutor', function () {
         $families = [42 => []];
         $units = [99];
 
-        $executor = new RandomExecutor();
+        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $executor->execute($spec);
+        $result = $solver->execute($spec);
 
         expect($result->picks)->toBe([42 => 99]);
         expect($result->orphans['families'])->toBe([]);

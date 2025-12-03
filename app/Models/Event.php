@@ -139,9 +139,9 @@ class Event extends Model
      *   1. ended in the past (explicit)
      *   2. or started too long ago with no end date set
      */
-    public function scopePast(Builder $query): void
+    public function scopePast(Builder $query, int $implicitDuration = self::IMPLICIT_DURATION): void
     {
-        $timecut = now()->subMinutes(self::IMPLICIT_DURATION);
+        $timecut = now()->subMinutes($implicitDuration);
 
         $query->where(  // Explicit end date in the past
             fn ($q) => $q->whereNotNull('end_date')->where('end_date', '<', now())

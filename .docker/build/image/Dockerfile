@@ -11,6 +11,8 @@ RUN apk add --no-cache \
         bash \
         ffmpeg \
         freetype-dev \
+        git \
+        glpk glpk-dev \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
