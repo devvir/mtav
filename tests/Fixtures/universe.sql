@@ -244,11 +244,11 @@ INSERT INTO unit_types (id, project_id, name, description, created_at, updated_a
 -- FAMILIES (15 total)
 -- ============================================================================
 -- Distribution by Project:
--- - Project #1: 12 families (#1-#12) - 4 per unit type
--- - Project #2: 3 families (#13-#15) - distributed across types
+-- - Project #1: 12 families (#1-#12, #24-#25) - 4 per unit type
+-- - Project #2: 4 families (#13-#15, #26) - 2 Type #4, 2 Type #5, 0 Type #6
 -- - Project #3: 0 families (no unit types = no families)
--- - Project #4: 5 families (#16-#18, #22, #27-#28) - 2 per type (balanced)
--- - Project #5: 3 families (#19-#21) - 1 per type
+-- - Project #4: 6 families (#16-#18, #22, #27-#28) - 2 per type (balanced)
+-- - Project #5: 4 families (#19-#21, #23) - 2 Type #10, 1 Type #11, 1 Type #12
 --
 -- Special states:
 -- - Family #1: Has NO members (edge case)
@@ -278,41 +278,31 @@ INSERT INTO families (id, project_id, unit_type_id, name, avatar, created_at, up
 (11, 1, 3, 'Family 11',                  NULL, NOW(), NOW(), NULL),
 (12, 1, 3, 'Family 12',                  NULL, NOW(), NOW(), NULL),
 
--- Project #2 families (2 for type #4, 1 for type #5, 0 for type #6)
+-- Project #2 families (2 for type #4, 2 for type #5, 0 for type #6)
 (13, 2, 4, 'Family 13',                  NULL, NOW(), NOW(), NULL),
 (14, 2, 4, 'Family 14',                  NULL, NOW(), NOW(), NULL),
 (15, 2, 5, 'Family 15',                  NULL, NOW(), NOW(), NULL),
+(26, 2, 5, 'Family 26',                  NULL, NOW(), NOW(), NULL),
 
 -- Project #3 has NO families (no unit types)
 
--- Project #4 families (1 per type)
+-- Project #4 families (2 per type for balanced lottery)
 (16, 4, 7, 'Family 16',                  NULL, NOW(), NOW(), NULL),
+(22, 4, 7, 'Family 22',                  NULL, NOW(), NOW(), NULL),
 (17, 4, 8, 'Family 17',                  NULL, NOW(), NOW(), NULL),
+(27, 4, 8, 'Family 27',                  NULL, NOW(), NOW(), NULL),
 (18, 4, 9, 'Family 18',                  NULL, NOW(), NOW(), NULL),
+(28, 4, 9, 'Family 28',                  NULL, NOW(), NOW(), NULL),
 
 -- Project #5 families (1 per type)
 (19, 5, 10, 'Family 19',                 NULL, NOW(), NOW(), NULL),
 (20, 5, 11, 'Family 20',                 NULL, NOW(), NOW(), NULL),
 (21, 5, 12, 'Family 21',                 NULL, NOW(), NOW(), NULL),
-
--- Project #4 test family (for inactive project test)
-(22, 4, 7, 'Family 22 (inactive project)', NULL, NOW(), NOW(), NULL),
-
--- Project #5 test family (for deleted project test)
 (23, 5, 10, 'Family 23 (deleted project)', NULL, NOW(), NOW(), NULL),
 
--- Project #1 test family (for unverified member test)
+-- Project #1 test families
 (24, 1, 1, 'Family 24 (unverified member)', NULL, NOW(), NOW(), NULL),
-
--- Project #1 test family (for invited member test)
-(25, 1, 1, 'Family 25 (invited member)', NULL, NOW(), NOW(), NULL),
-
--- Project #2 test family (for invited member test)
-(26, 2, 4, 'Family 26 (invited member)', NULL, NOW(), NOW(), NULL),
-
--- Project #4 additional families (for balanced lottery testing)
-(27, 4, 8, 'Family 27', NULL, NOW(), NOW(), NULL),
-(28, 4, 9, 'Family 28', NULL, NOW(), NOW(), NULL);
+(25, 1, 1, 'Family 25 (invited member)', NULL, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- UNITS (24 total)

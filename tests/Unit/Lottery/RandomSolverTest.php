@@ -12,9 +12,8 @@ describe('RandomSolver', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => []];
         $units = [10, 20, 30, 40, 50];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new RandomSolver())->execute($spec);
 
         // Should have 5 picks
         expect($result->picks)->toHaveCount(5);
@@ -42,9 +41,8 @@ describe('RandomSolver', function () {
         $families = [1 => [], 2 => [], 3 => []];
         $units = [10, 20, 30, 40, 50, 60, 70];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new RandomSolver())->execute($spec);
 
         // Should have 3 picks (min of families and units)
         expect($result->picks)->toHaveCount(3);
@@ -73,9 +71,8 @@ describe('RandomSolver', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => [], 6 => [], 7 => [], 8 => []];
         $units = [10, 20, 30, 40, 50];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new RandomSolver())->execute($spec);
 
         // Should have 5 picks (min of families and units)
         expect($result->picks)->toHaveCount(5);
@@ -104,13 +101,12 @@ describe('RandomSolver', function () {
         $families = [1 => [], 2 => [], 3 => [], 4 => [], 5 => [], 6 => [], 7 => [], 8 => [], 9 => [], 10 => []];
         $units = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
 
         // Run multiple times to verify randomness and no duplicates
         $results = [];
         for ($i = 0; $i < 10; $i++) {
-            $result = $solver->execute($spec);
+            $result = (new RandomSolver())->execute($spec);
             $results[] = $result->picks;
 
             // Each family should appear at most once
@@ -141,9 +137,8 @@ describe('RandomSolver', function () {
         $families = [];
         $units = [];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new RandomSolver())->execute($spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -154,9 +149,8 @@ describe('RandomSolver', function () {
         $families = [42 => []];
         $units = [99];
 
-        $solver = new RandomSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new RandomSolver())->execute($spec);
 
         expect($result->picks)->toBe([42 => 99]);
         expect($result->orphans['families'])->toBe([]);

@@ -11,7 +11,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  * Implementations solve the mathematical assignment problem using various approaches:
  * - RandomSolver: Random assignment for development/testing
  * - TestSolver: Predictable assignments for unit tests
- * - LocalGlpkSolver: Optimal assignments using GLPK mathematical optimization
+ * - GlpkSolver: Optimal assignments using GLPK mathematical optimization
  * - <ApiService>Solver: Calls external optimization service
  *
  * Solvers process ONE group at a time (one LotterySpec), usually linked to

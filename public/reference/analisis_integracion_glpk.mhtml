@@ -739,10 +739,10 @@ atus-icon warning">=E2=9A=A0=EF=B8=8F</span> Bajo</td>
 
         <h2 id=3D"implementacion">6. Plan de Implementaci=C3=B3n</h2>
 
-        <h3>Fase 1: Implementar LocalGlpkSolver (1 d=C3=ADa)</h3>
+        <h3>Fase 1: Implementar GlpkSolver (1 d=C3=ADa)</h3>
         <p><strong>Archivos a crear:</strong></p>
         <ol>
-            <li><code>app/Services/Lottery/Solvers/LocalGlpkSolver.php</cod=
+            <li><code>app/Services/Lottery/Solvers/GlpkSolver.php</cod=
 e></li>
             <li><code>app/Services/Lottery/Glpk/ModelGenerator.php</code></=
 li>
@@ -752,12 +752,12 @@ i>
 li>
         </ol>
 
-        <h4>Flujo Principal (LocalGlpkSolver.php):</h4>
+        <h4>Flujo Principal (GlpkSolver.php):</h4>
         <pre><code class=3D"language-php">&lt;?php
 
 namespace App\Services\Lottery\Solvers;
 
-class LocalGlpkSolver implements SolverInterface
+class GlpkSolver implements SolverInterface
 {
     public function execute(LotterySpec $spec): array
     {
@@ -816,7 +816,7 @@ File2, $solFile2]);
 ils &amp;&amp; rm -rf /var/lib/apt/lists/*</code></pre>
 
         <p><strong>Variable de entorno (.env):</strong></p>
-        <pre><code>LOTTERY_SOLVER=3Dlocal_glpk</code></pre>
+        <pre><code>LOTTERY_SOLVER=glpk</code></pre>
 
         <h3>Fase 3: Testing (medio d=C3=ADa)</h3>
         <p><strong>Verificar instalaci=C3=B3n:</strong></p>
@@ -836,9 +836,9 @@ ils &amp;&amp; rm -rf /var/lib/apt/lists/*</code></pre>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>Fase 1</strong>: LocalGlpkSolver</td>
+                    <td><strong>Fase 1</strong>: GlpkSolver</td>
                     <td>1 d=C3=ADa</td>
-                    <td>LocalGlpkSolver.php, ModelGenerator.php, DataGenera=
+                    <td>GlpkSolver.php, ModelGenerator.php, DataGenera=
 tor.php, SolutionParser.php</td>
                 </tr>
                 <tr>
@@ -1038,7 +1038,7 @@ tes</li>
             </ol>
 
             <p style=3D"margin-top: 30px; font-size: 1.1em;"><strong>Recome=
-ndaci=C3=B3n final:</strong> Proceder con implementaci=C3=B3n de LocalGlpkS=
+ndaci=C3=B3n final:</strong> Proceder con implementaci=C3=B3n de GlpkS=
 olver como solver principal de producci=C3=B3n.</p>
         </div>
     </a></div><a href=3D"https://en.wikipedia.org/wiki/Linear_programming" =

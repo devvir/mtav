@@ -4,7 +4,7 @@
 
 The lottery is the **primary purpose** of the entire MTAV application - a fair, transparent, ONE-TIME housing unit assignment system for cooperative projects. It's an atomic event that permanently assigns ALL units to ALL families simultaneously using mathematical optimization to maximize overall satisfaction.
 
-**Current Status**: Phase 1 & 2 complete (HTTP layer, orchestration, solvers, audit, persistence). Phase 3 in progress (LocalGlpkSolver for production). Only pending: notifications (low priority).
+**Current Status**: Phase 1 & 2 complete (HTTP layer, orchestration, solvers, audit, persistence). Phase 3 in progress (GlpkSolver for production). Only pending: notifications (low priority).
 
 ## Core Business Rules
 
@@ -641,7 +641,7 @@ Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])-
 
 ### 🚧 Phase 2: Orchestration & Execution (IN PROGRESS)
 
-**Current State**: Event-driven architecture implemented with clean layer separation. Core execution components created. GLPK integration is **pending** - needs LocalGlpkSolver implementation.
+**Current State**: Event-driven architecture implemented with clean layer separation. Core execution components created. GLPK integration is **pending** - needs GlpkSolver implementation.
 
 #### Completed Components
 
@@ -670,7 +670,7 @@ Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])-
 - ✅ Returns: `ExecutionResult` with `picks` and `orphans` arrays
 - ✅ `RandomSolver` - Fully implemented (shuffles families and units, pairs via array_combine)
 - ✅ `TestSolver` - Fully implemented (sorts both lists by ID, pairs via array_combine - deterministic)
-- ⏳ `LocalGlpkSolver` - **NOT YET IMPLEMENTED** - Will integrate with GLPK solver
+- ⏳ `GlpkSolver` - **NOT YET IMPLEMENTED** - Will integrate with GLPK solver
 
 **Configuration** (`config/lottery.php`):
 - ✅ Default solver via `LOTTERY_SOLVER` env variable
@@ -698,7 +698,7 @@ $manifest = new LotteryManifest($lottery->project);
 LotteryExecution::dispatch($manifest);
 
 // Listener → Orchestrator (just passes data)
-$solver = $this->resolveSolver();
+$solver = $this->makeSolver();
 $orchestrator = LotteryOrchestrator::make($solver, $event->manifest);
 $orchestrator->execute(); // No return value
 
@@ -722,8 +722,8 @@ foreach ($this->manifest->getData() as $unitTypeId => $typeData) {
         'solver' => TestSolver::class,
         'config' => [],
     ],
-    // 'local_glpk' => [  // ⏳ TO BE ADDED
-    //     'solver' => LocalGlpkSolver::class,
+    // 'glpk' => [  // ⏳ TO BE ADDED
+    //     'solver' => GlpkSolver::class,
     //     'config' => [
     //         'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
     //         'temp_dir' => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
@@ -733,7 +733,7 @@ foreach ($this->manifest->getData() as $unitTypeId => $typeData) {
 ],
 
 // Resolved via Laravel container
-$solver = app()->makeWith($solverClass, ['config' => $config]);
+$solver = app()->makeWith($solverClass);
 ```
 
 **Reporting System**:
@@ -757,7 +757,7 @@ $solver = app()->makeWith($solverClass, ['config' => $config]);
 - ✅ Bulk UPDATE `units.family_id` based on picks
 - ✅ Soft-deletes lottery event after successful application
 - ✅ Called by `ApplyLotteryResultsListener` after `ProjectLotteryExecuted` event
-- ✅ Works with ANY solver implementation (RandomSolver, TestSolver, future LocalGlpkSolver)
+- ✅ Works with ANY solver implementation (RandomSolver, TestSolver, future GlpkSolver)
 
 **Invalidation System** (`ExecutionService::invalidate()`):
 - ✅ Restores soft-deleted lottery event
@@ -779,7 +779,7 @@ $solver = app()->makeWith($solverClass, ['config' => $config]);
 
 #### Pending Components
 
-1. **LocalGlpkSolver Implementation** ⭐ **CRITICAL - See GLPK Integration section below**
+1. **GlpkSolver Implementation** ⭐ **CRITICAL - See GLPK Integration section below**
    - Generate GLPK model files (.mod) for Phase 1 and Phase 2
    - Generate data files (.dat) from LotterySpec
    - Execute glpsol command-line tool
@@ -858,7 +858,7 @@ The lottery uses **publish status** and **soft-deletion** to track execution sta
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **GLPK Installation** | ✅ Complete | GLPK 5.0 in Docker, verified working |
-| **LocalGlpkSolver** | ✅ Complete | Two-phase optimization implemented |
+| **GlpkSolver** | ✅ Complete | Two-phase optimization implemented |
 | **ModelGenerator** | ✅ Complete | Phase 1 & 2 GMPL models |
 | **DataGenerator** | ✅ Complete | LotterySpec → .dat conversion |
 | **SolutionParser** | ✅ Complete | .sol file parsing |
@@ -869,7 +869,7 @@ The lottery uses **publish status** and **soft-deletion** to track execution sta
 | **Failure Audit Records** | ✅ Complete | AuditService::exception() implemented |
 | **ExecutionType::FAILURE** | ✅ Complete | New enum case for failure audits |
 | **Failure Notifications** | ⏳ Pending | Event + listener needed |
-| **Unit Tests** | ⏳ Pending | LocalGlpkSolver tests |
+| **Unit Tests** | ⏳ Pending | GlpkSolver tests |
 | **Integration Tests** | ⏳ Pending | universe.sql fixture tests |
 | **Failure Scenario Tests** | ⏳ Pending | Test async failures in queue |
 
@@ -931,9 +931,9 @@ mtav shell php -c "glpsol --version"
 # Output: GLPSOL--GLPK LP/MIP Solver 5.0
 ```
 
-#### 2. LocalGlpkSolver Class ✅ COMPLETE
+#### 2. GlpkSolver Class ✅ COMPLETE
 
-**Location**: `app/Services/Lottery/Solvers/LocalGlpkSolver.php`
+**Location**: `app/Services/Lottery/Solvers/GlpkSolver.php`
 
 **Status**: ✅ **FULLY IMPLEMENTED** - Complete two-phase solver with all helper services
 
@@ -953,7 +953,7 @@ use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
-class LocalGlpkSolver implements SolverInterface
+class GlpkSolver implements SolverInterface
 {
     public function __construct(protected array $config = [])
     {
@@ -1126,8 +1126,8 @@ end;
     'random' => [...],
     'test' => [...],
 
-    'local_glpk' => [  // ← GLPK solver configured
-        'solver' => LocalGlpkSolver::class,
+    'glpk' => [  // ← GLPK solver configured
+        'solver' => GlpkSolver::class,
         'config'   => [
             'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
             'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
@@ -1139,7 +1139,7 @@ end;
 
 **To activate** in `.env`:
 ```bash
-LOTTERY_SOLVER=local_glpk
+LOTTERY_SOLVER=glpk
 ```
 
 #### 6. Exception Handling ✅ COMPLETE (Basic) ⚠️ NEEDS ASYNC ERROR HANDLING
@@ -1367,7 +1367,7 @@ protected function handleExecutionFailure(Throwable $exception, string $errorTyp
 
 #### Unit Tests
 
-**LocalGlpkSolverTest.php**:
+**GlpkSolverTest.php**:
 - Test Phase 1 execution and objective extraction
 - Test Phase 2 execution with given S
 - Test solution parsing for various scenarios
@@ -1410,9 +1410,9 @@ Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a on
 
 ### Rollout Strategy
 
-1. **Phase 1** ✅: ~~Implement LocalGlpkSolver with basic functionality~~ **COMPLETE**
+1. **Phase 1** ✅: ~~Implement GlpkSolver with basic functionality~~ **COMPLETE**
 2. **Phase 2** ⏳: Test extensively with universe.sql fixture **← NEXT STEP**
-3. **Phase 3**: Deploy to staging with LOTTERY_SOLVER=local_glpk
+3. **Phase 3**: Deploy to staging with LOTTERY_SOLVER=glpk
 4. **Phase 4**: Run parallel executions (random vs glpk) to compare results
 5. **Phase 5**: Enable in production once validated
 6. **Fallback**: Keep RandomSolver available via env variable if issues arise
@@ -1420,7 +1420,7 @@ Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a on
 ### Current Implementation Status
 
 **✅ Completed Components**:
-- LocalGlpkSolver with two-phase optimization
+- GlpkSolver with two-phase optimization
 - ModelGenerator (Phase 1 & 2 GMPL models)
 - DataGenerator (converts LotterySpec to .dat format)
 - SolutionParser (extracts results from .sol files)
@@ -1477,7 +1477,7 @@ Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a on
 
 **⏳ Next Steps**:
 5. ⏳ Create `LotteryExecutionFailed` event + notification listener
-6. ⏳ Create unit tests for LocalGlpkSolver
+6. ⏳ Create unit tests for GlpkSolver
 7. ⏳ Create integration tests with universe.sql fixture
 8. ⏳ Test with small known-optimal problems (3-5 families/units)
 9. ⏳ Verify max-min fairness is achieved
@@ -2130,4 +2130,32 @@ const { _ } = useTranslations();
 
 ---
 
-*Last updated: 2 December 2025*
+## Next Steps for Next Session
+
+### Investigation Items
+
+1. **Deferred Event Handling**:
+   - Investigate if deferred events triggered from already deferred code does not work
+   - Sync fixed it, need to debug why deferred version failed
+   - Test: Are nested deferred events being properly queued and executed?
+   - Check: Event listener execution order when dispatched from async context
+   - Verify: Queue worker handling of cascaded events
+
+2. **executeMoreUnits Balance Issue**:
+   - Investigate if the executeMoreUnits logic is correct
+   - Observation: Families seem to be sending all preferences even if we remove the worst units
+   - Example: 7 families with 8 preferences for 7 selected units (should be 7 preferences)
+   - Weird: This seems to work even though GLPK is supposed to work with balanced sets only
+   - Questions:
+     - Is the preference trimming logic working correctly?
+     - Why does GLPK accept unbalanced inputs without failing?
+     - Are we inadvertently creating valid models despite the imbalance?
+   - To check:
+     - Debug preference count per family in executeMoreUnits
+     - Verify .dat file generation for unbalanced scenarios
+     - Confirm GLPK constraint handling (is it silently handling extras?)
+     - Review LotteryOrchestrator's family/unit filtering logic
+
+---
+
+*Last updated: 4 December 2025*

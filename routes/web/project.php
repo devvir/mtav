@@ -28,4 +28,5 @@ Route::get('lottery', [LotteryController::class, 'index'])->name('lottery');
 Route::post('lottery/preferences', [LotteryController::class, 'preferences'])->name('lottery.preferences');
 Route::patch('lottery/{lottery}', [LotteryController::class, 'update'])->name('lottery.update');
 Route::post('lottery/{lottery}/execution', [LotteryController::class, 'execute'])->name('lottery.execute');
-Route::delete('lottery/{lottery}/execution', [LotteryController::class, 'invalidate'])->withTrashed()->name('lottery.invalidate');
+Route::delete('lottery/{lottery}/execution', [LotteryController::class, 'invalidate'])->name('lottery.invalidate')
+    ->withTrashed();

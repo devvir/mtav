@@ -56,8 +56,8 @@ return [
         |
         */
 
-        'local_glpk' => [
-            'solver' => \App\Services\Lottery\Solvers\LocalGlpkSolver::class,
+        'glpk' => [
+            'solver' => \App\Services\Lottery\Solvers\GlpkSolver::class,
             'config' => [
                 'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
                 'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),

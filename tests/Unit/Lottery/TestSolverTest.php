@@ -12,9 +12,8 @@ describe('TestSolver', function () {
         $families = [1 => [], 3 => [], 5 => []];
         $units = [2, 4, 6];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new TestSolver())->execute($spec);
 
         expect($result->picks)->toBe([1 => 2, 3 => 4, 5 => 6]);
         expect($result->orphans['families'])->toBe([]);
@@ -25,9 +24,8 @@ describe('TestSolver', function () {
         $families = [10 => [], 20 => []];
         $units = [5, 15, 25, 35];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new TestSolver())->execute($spec);
 
         expect($result->picks)->toBe([10 => 5, 20 => 15]);
         expect($result->orphans['families'])->toBe([]);
@@ -38,9 +36,8 @@ describe('TestSolver', function () {
         $families = [2 => [], 4 => [], 6 => [], 8 => []];
         $units = [1, 3];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new TestSolver())->execute($spec);
 
         expect($result->picks)->toBe([2 => 1, 4 => 3]);
         expect($result->orphans['families'])->toBe([6, 8]);
@@ -51,9 +48,8 @@ describe('TestSolver', function () {
         $families = [100 => []];
         $units = [200];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new TestSolver())->execute($spec);
 
         expect($result->picks)->toBe([100 => 200]);
         expect($result->orphans['families'])->toBe([]);
@@ -64,9 +60,8 @@ describe('TestSolver', function () {
         $families = [];
         $units = [];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
-        $result = $solver->execute($spec);
+        $result = (new TestSolver())->execute($spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -77,13 +72,12 @@ describe('TestSolver', function () {
         $families = [5 => [], 2 => [], 8 => [], 1 => []];
         $units = [30, 10, 20, 40];
 
-        $solver = new TestSolver();
         $spec = new LotterySpec($families, $units);
 
         // Execute multiple times
-        $result1 = $solver->execute($spec);
-        $result2 = $solver->execute($spec);
-        $result3 = $solver->execute($spec);
+        $result1 = (new TestSolver())->execute($spec);
+        $result2 = (new TestSolver())->execute($spec);
+        $result3 = (new TestSolver())->execute($spec);
 
         // Should produce identical picks and orphans (deterministic)
         expect($result1->picks)->toBe($result2->picks);

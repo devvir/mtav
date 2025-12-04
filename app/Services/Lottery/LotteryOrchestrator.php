@@ -50,6 +50,8 @@ class LotteryOrchestrator
      */
     public function execute(): ExecutionResult
     {
+        Log::info('LotteryOrchestrator executing Lottery.');
+
         try {
             return $this->executeProjectLottery();
         } catch (GlpkException $e) {

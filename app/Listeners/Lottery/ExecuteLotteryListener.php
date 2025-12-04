@@ -16,31 +16,26 @@ class ExecuteLotteryListener implements ShouldQueue
 {
     public function handle(LotteryExecutionTriggered $event): void
     {
-        Log::info('ExecuteLotteryListener handling LotteryExecutionTriggered event.', [
+        Log::info('ExecuteLotteryListener handling LotteryExecutionTriggered event.');
+
+        app()->makeWith(LotteryOrchestrator::class, [
+            'solver'   => $this->makeSolver(),
             'manifest' => $event->manifest,
-        ]);
-
-        $solver = $this->fetchSolver();
-
-        $orchestrator = LotteryOrchestrator::make($solver, $event->manifest);
-        $orchestrator->execute();
+        ])->execute();
     }
 
     /**
-     * Resolve the solver from the IoC container, based on lottery configuration.
+     * Resolve the solver from the IoC container, based on the lottery config file.
      */
-    protected function fetchSolver(): SolverInterface
+    protected function makeSolver(): SolverInterface
     {
-        $default = config('lottery.default');
-        $solverConfig = config("lottery.solvers.{$default}");
+        $selected = config('lottery.default');
+        $solverClass = config("lottery.solvers.{$selected}.solver");
 
-        if (! $solverConfig) {
-            throw new RuntimeException("Lottery solver [{$default}] not found in configuration.");
+        if (! $solverClass) {
+            throw new RuntimeException("Lottery solver [{$selected}] not found.");
         }
 
-        $solverClass = $solverConfig['solver'];
-        $config = $solverConfig['config'] ?? [];
-
-        return app()->makeWith($solverClass, ['config' => $config]);
+        return app()->makeWith($solverClass);
     }
 }

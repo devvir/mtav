@@ -810,11 +810,11 @@ rteo.
       <h2 id=3D"recomendacion">=F0=9F=8E=AF Recomendaci=C3=B3n Final</h2>
 
       <div class=3D"recommendation">
-        <h3>Estrategia de Implementaci=C3=B3n para LocalGlpkSolver</h3>
+        <h3>Estrategia de Implementaci=C3=B3n para GlpkSolver</h3>
 
         <p>
           Implementar tres estrategias en la clase <span class=3D"code-inli=
-ne">LocalGlpkSolver</span>:
+ne">GlpkSolver</span>:
         </p>
 
         <ol>
@@ -863,7 +863,7 @@ as reales 1,000,000:1</li>
         <h4>Estructura de C=C3=B3digo Propuesta</h4>
 
         <div class=3D"code-block">
-          <pre><code>class LocalGlpkSolver implements SolverInterface
+          <pre><code>class GlpkSolver implements SolverInterface
 {
     public function execute(LotterySpec $spec): ExecutionResult
     {
@@ -958,7 +958,7 @@ s reales vs simuladas?</td>
         <h4>Pr=C3=B3ximos Pasos</h4>
 
         <ol>
-          <li>Implementar enfoque de tres estrategias en LocalGlpkSolver</l=
+          <li>Implementar enfoque de tres estrategias en GlpkSolver</l=
 i>
           <li>Actualizar ModelGenerator para manejar entidades simuladas</l=
 i>

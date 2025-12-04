@@ -51,11 +51,11 @@ class ExecutionService
 
             $manifest = new LotteryManifest($uuid, $lottery);
 
-            $this->auditService->init($manifest);
-
             $this->validateDataIntegrity($lottery);
 
             $overrideCountMismatch || $this->validateCountsConsistency($lottery->project);
+
+            $this->auditService->init($manifest);
         } catch (Throwable $e) {
             $this->cancelExecutionReservation($lottery);
             throw $e;

@@ -12,7 +12,7 @@ import { _ } from '@/composables/useTranslations';
 
     <!-- Logo and Description -->
     <div class="mx-base flex max-w-lg items-center gap-3 sm:gap-4">
-      <div class="w-12 shrink-0 opacity-70 sm:w-16">
+      <div class="w-10 shrink-0 opacity-70">
         <img src="/images/main-icon.svg" alt="MTAV Logo" class="h-auto w-full" />
       </div>
 
