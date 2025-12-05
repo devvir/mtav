@@ -23,12 +23,14 @@ class EventResource extends JsonResource
             'title'       => $this->title,
             'description' => $this->description,
             'location'    => $this->location,
-            'start_date' => $this->start_date,
-            'end_date'   => $this->end_date,
+            'start_date'  => $this->start_date,
+            'end_date'    => $this->end_date,
 
             ...$this->booleanProps(),
 
             ...$this->relationsData(),
+
+            ...$this->lotteryData(),
         ];
     }
 
@@ -65,6 +67,18 @@ class EventResource extends JsonResource
             ),
 
             'audits' => $this->whenLoaded('audits'),
+        ];
+    }
+
+    protected function lotteryData(): array
+    {
+        if (! $this->isLottery()) {
+            return [];
+        }
+
+        return [
+            'is_completed' => !! $this->deleted_at,
+            'is_executing' => ! $this->is_published && ! $this->deleted_at,
         ];
     }
 

@@ -384,8 +384,8 @@ describe('EventController::create()', function () {
                 'label'    => 'Published',
                 'multiple' => false,
                 'options'  => [
-                    'false' => 'No Publicado',
-                    'true'  => 'Publicado',
+                    '0' => 'No Publicado',
+                    '1' => 'Publicado',
                 ],
                 'selected' => null,
             ],

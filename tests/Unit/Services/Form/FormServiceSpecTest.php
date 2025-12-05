@@ -187,8 +187,8 @@ describe('SpecSelect - Field Generation', function () {
             ->and($array['label'])->toBe('Active')
             ->and($array['required'])->toBeTrue()
             ->and($array['options'])->toBeArray()
-            ->and($array['options'])->toHaveKey('true')
-            ->and($array['options'])->toHaveKey('false');
+            ->and($array['options'])->toHaveKey('0')
+            ->and($array['options'])->toHaveKey('1');
     });
 
     it('generates in constraint select spec', function () {

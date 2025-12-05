@@ -1,6 +1,7 @@
 * Always use script setup with typescript in vue files
 * Always end lines with semi-colon in any Javascript file (including Vue)
 * Always run commands on the app with the mtav command (i.e. remember dev runs on docker)
+* **CRITICAL: Running Pest tests** - ALWAYS use `mtav pest` with filters like `--filter` or `--testsuite`. NEVER run `./vendor/bin/pest` directly (app runs on Docker). NEVER run `mtav test` for Pest tests (that runs ALL test types including Playwright and Vitest). Use `mtav pest --filter TestName` or `mtav pest --testsuite Feature` to run specific Pest tests
 * If you need general context, refer to documentation/ai/README.md
 * Never build npm, and assume I already have a dev server running
 * NEVER redirect command output to /dev/null (e.g., 2>/dev/null) - Copilot does NOT allow users to pre-approve such commands

@@ -238,10 +238,9 @@ class SpecSelect extends Spec
         // Convert to human-readable (e.g. 'published' -> 'Published')
         $label = str($labelBase)->replace('_', ' ')->title()->toString();
 
-        // Use string keys to maintain order in JSON (true first, false second)
         return [
-            'true'  => __($label),
-            'false' => __('general.not_status', ['status' => __($label)]),
+            '0' => __('general.not_status', ['status' => __($label)]),
+            '1' => __($label),
         ];
     }
 
@@ -295,11 +294,14 @@ class SpecSelect extends Spec
     {
         $attr = $this->fieldName;
 
-        return match (true) {
+        $selected = match (true) {
             $this->model?->hasAttribute($attr) => $this->model?->getAttribute($attr),
             $attr === 'project_id'             => currentProjectId(),
             default                            => null,
         };
+
+        // Convert boolean to string '1'/'0' to match option keys and Laravel validation
+        return is_bool($selected) ? (string) (int) $selected : $selected;
     }
 
     protected function userHasOnlyOneProject(): bool

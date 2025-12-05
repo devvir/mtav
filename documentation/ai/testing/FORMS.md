@@ -157,16 +157,120 @@ function submit() {
 ## Testing Strategy
 
 ### Existing Coverage
-- ✅ Form generation tests (`CreateFormTest.php`, `UpdateFormTest.php`)
-- ✅ Field specs validation
-- ✅ Project scoping
-- ✅ Hidden fields
-- ✅ Role-based forms
 
-### Pending (see `tests/TODO.md`)
-- Phase 1: Backend form submission (happy path)
-- Phase 2: Frontend component rendering (smoke tests)
-- Phase 3: E2E validation/edge cases (future)
+**Phase 1: Form Generation** ✅
+- Form generation tests (`CreateFormTest.php`, `UpdateFormTest.php`)
+- Field specs validation
+- Project scoping
+- Hidden fields
+- Role-based forms
+
+**Phase 2: Form Submission** ✅
+- CREATE form submission tests (`CreateFormSubmissionTest.php`)
+- UPDATE form submission tests (`UpdateFormSubmissionTest.php`)
+- Empty/default submissions
+- Valid data submissions
+- Validation error handling
+- Security/malicious data testing
+
+### Test Helpers
+
+**Form Submission Helpers** (`tests/Helpers/formService.php`):
+
+```php
+// Extract form specs from response
+extractFormSpecs(TestResponse $response): array
+
+// Extract complete form data (specs, action, etc)
+extractFormData(TestResponse $response): array
+
+// Generate "empty" form data (as-received values)
+generateEmptyFormData(array $specs): array
+
+// Generate valid form data from specs
+generateValidFormData(array $specs, array $overrides = []): array
+
+// Generate invalid form data for testing validation
+generateInvalidFormData(array $specs, string $invalidField, string $invalidationType): array
+```
+
+**Data Providers** (`tests/DataProviders/FormSubmissionProvider.php`):
+- `createEmptySubmissions()` - Empty form submissions for all entities
+- `updateDefaultSubmissions()` - Update without changes for all entities
+- `createValidSubmissions()` - Valid CREATE data for all entities
+- `updateValidSubmissions()` - Valid UPDATE data for all entities
+- `createInvalidSubmissions()` - Invalid field test cases
+- `createMaliciousSubmissions()` - Security test cases
+
+### Form Submission Test Coverage
+
+**CREATE Tests:**
+1. ✅ Empty submissions (rejects when required fields missing)
+2. ✅ Valid submissions with predefined data
+3. ✅ Valid submissions with spec-generated data
+4. ✅ Invalid field submissions (too short, too long, wrong format, etc.)
+5. ✅ Malicious submissions (unauthorized project access, etc.)
+
+**UPDATE Tests:**
+1. ✅ Default submissions (no changes - entity unchanged)
+2. ✅ Valid updates with specific changes
+3. ✅ Valid updates with spec-generated data
+4. ✅ Invalid field updates
+5. ✅ Malicious updates (unauthorized data)
+
+**Covered Entities:**
+- Admin (create/update)
+- Family (create/update)
+- Member (create/update)
+- Unit (create/update)
+- UnitType (create/update)
+- Event (create/update)
+
+### Pending: Form Submission Tests (Phase 2)
+
+**NEXT TASK**: Implement form submission tests based on generated specs as source of truth.
+
+**Overview:**
+These tests will NOT create UI components, but will assume UI correctly implements the specs. The UI itself will be tested in future phases (Phase 3).
+
+**Test Flow:**
+1. Visit create/update endpoint and extract specs from response
+2. Generate form data according to the shape of the specs
+3. Submit to the right endpoint (defined in specs)
+4. Validate results (HTTP response + side effects like created/updated models)
+
+**Required Tests for Every Entity:**
+
+1. **As-received submission**: For fields with value/selected, keep those values; for empty fields, submit empty
+2. **Valid data submission**: Sample valid data for each field (selects use IDs from options, inputs use proper type/range)
+3. **Invalid data submission**: Expectable wrong values (number out of range, date out of range, string too short/long, etc.)
+4. **Malicious submission**: Test possible malicious intent where it makes sense (e.g., user trying to set project they don't have access to)
+
+**Implementation Strategy:**
+
+Use helpers + data providers to avoid repetition:
+
+- **Helper**: Call endpoint, extract form specs, return just specs
+- **Test with provider**: Takes CREATE endpoint route, does "empty request" (form submitted "as it came"), uses helper to get specs and submit form, validates results
+- **Similar test for UPDATE**: "default request" (valid to submit as-is), provider also checks original model unchanged after submit
+- **Other tests**: Use data providers to unify where possible, avoid 200+ tests that mostly repeat with just parametric differences
+
+**Required Helpers:**
+- `extractFormSpecs($response)`: Get specs from Inertia response
+- `generateEmptyFormData($specs)`: Generate as-received data
+- `generateValidFormData($specs, $overrides)`: Generate valid test data from specs
+- `generateInvalidFormData($specs, $field, $violationType)`: Generate invalid data for specific field
+- Form submission helper: Submit data to route with auth context
+
+**Required Data Providers:**
+- Empty/default submissions per entity
+- Valid submissions per entity
+- Invalid field submissions per field/violation type
+- Malicious submissions per security concern
+
+### Pending: Future Phases
+- Phase 3: Frontend component rendering (smoke tests)
+- Phase 4: E2E validation/edge cases (future)
 
 ## Configuration
 
@@ -181,4 +285,31 @@ function submit() {
 
 ---
 
-*Last updated: 2 December 2025*
+## Form Submission Testing Philosophy
+
+Form submission tests follow a **specs-as-source-of-truth** approach:
+
+1. **Extract specs** from the form endpoint
+2. **Generate test data** based on specs (respecting types, constraints, options)
+3. **Submit to the action route** defined in specs
+4. **Validate results** (HTTP response + database side effects)
+
+This ensures:
+- Tests are resilient to validation rule changes
+- Form structure and submission logic stay in sync
+- No duplication of validation logic in tests
+- Comprehensive coverage through data providers
+
+**Key Testing Scenarios:**
+
+| Scenario | Purpose | Expected Result |
+|----------|---------|-----------------|
+| Empty submission | Test required field validation | Validation errors |
+| Valid submission | Test happy path | Success + DB record created/updated |
+| Invalid fields | Test constraint validation | Specific field errors |
+| Malicious data | Test security/authorization | Authorization errors |
+| Default update | Test idempotent updates | No changes to entity |
+
+---
+
+*Last updated: 5 December 2025*

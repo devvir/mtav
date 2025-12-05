@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Testing\TestResponse;
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));

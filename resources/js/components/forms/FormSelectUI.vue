@@ -19,6 +19,23 @@ const props = defineProps<{
   dropdownSlot: string;
 }>();
 
+const sortedOptions = computed(() => {
+  const keys = Object.keys(props.options);
+
+  // If options are only "0" and "1", sort as "1" then "0"
+  if (keys.length === 2 && keys.includes('0') && keys.includes('1')) {
+    return [['1', props.options['1']], ['0', props.options['0']]];
+  }
+
+  // If all keys are numeric, sort by label (value)
+  if (keys.every(key => !isNaN(Number(key)))) {
+    return Object.entries(props.options).sort(([, a], [, b]) => (a as string).localeCompare(b as string));
+  }
+
+  // Otherwise, return as is
+  return Object.entries(props.options);
+});
+
 const modelLabel = computed(() => {
   if (props.multiple) {
     return selected.value?.map((value: ValueType) => props.options[value]).join(', ') || '';
@@ -97,7 +114,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) =>
             :class="{ 'mb-18': create }"
           >
             <li
-              v-for="(label, value) in options"
+              v-for="[value, label] in sortedOptions"
               :key="value"
               tabindex="0"
               class="col-span-2 grid size-full grid-cols-subgrid items-center gap-base px-4 py-3 text-base transition-all"

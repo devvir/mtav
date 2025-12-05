@@ -36,7 +36,7 @@ const valueProvided = computed<boolean>(() =>
         v-if="label"
         :forId="id"
         v-bind="{ label, ...$props, ...$attrs }"
-        class="border-r-2 border-border bg-surface-sunken px-3 py-1 font-semibold text-surface-sunken-foreground @max-md:border-r-0 @max-md:border-b-2"
+        class="border-r-2 border-border bg-surface-sunken px-3 py-1.5 font-semibold text-surface-sunken-foreground @max-md:border-r-0 @max-md:border-b-2"
         :class="{
           'group-focus-within:bg-surface-elevated group-focus-within:text-text': !disabled,
           'opacity-50': disabled,
@@ -44,7 +44,7 @@ const valueProvided = computed<boolean>(() =>
       />
 
       <div
-        class="h-full bg-surface text-lg text-text transition-colors"
+        class="h-full bg-surface text-lg text-text transition-colors py-1.5"
         :class="{
           'group-focus-within:bg-surface': !disabled,
           'bg-surface-sunken opacity-50': disabled,
