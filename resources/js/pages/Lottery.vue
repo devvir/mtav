@@ -3,7 +3,7 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { iAmAdmin, iAmMember } from '@/composables/useAuth';
-import { LotteryHeader, LotteryManagement, PreferencesManager, ProjectPlan } from '@/components/lottery';
+import { Audit, LotteryHeader, LotteryManagement, PreferencesManager, ProjectPlan } from '@/components/lottery';
 import LotteryExecutedStatus from '@/components/lottery/shared/LotteryExecutedStatus.vue';
 
 const props = defineProps<{
@@ -13,8 +13,8 @@ const props = defineProps<{
   preferences: ApiResource<Unit>[];
 }>();
 
-// Lottery is executING when it's no longer published and executED when it's soft-deleted
-const isExecutedOrExecuting = computed(() => props.lottery.is_deleted || !props.lottery.is_published);
+// Lottery is executING or executED (completed)
+const isExecutedOrExecuting = computed(() => props.lottery.is_completed || props.lottery.is_executing);
 </script>
 
 <template>
@@ -26,6 +26,8 @@ const isExecutedOrExecuting = computed(() => props.lottery.is_deleted || !props.
 
   <div class="w-full max-w-none space-y-6">
     <LotteryHeader />
+
+    <Audit v-if="lottery.audits?.length" :lottery :families />
 
     <div class="flex flex-col @5xl:flex-row gap-wide">
       <!-- Left Column / Top: Branch based on execution state -->

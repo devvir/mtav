@@ -1,311 +1,253 @@
-# Lottery Testing Plan
+# Lottery System - Testing Reference
 
-## Overview
+**Status**: Comprehensive test coverage with minor async queue integration gaps
 
-Comprehensive test coverage for the lottery execution system, focusing on:
-1. Individual solver behavior (RandomSolver, TestSolver)
-2. Multi-phase orchestration logic (LotteryOrchestrator)
-3. Event-driven integration (ExecutionService → Event → Listener → Orchestrator)
-
-## Test Structure
+## Test Organization
 
 ```
-tests/Unit/Lottery/
-├── RandomSolverTest.php      # Random assignment validation
-├── TestSolverTest.php         # Deterministic assignment verification
-├── LotteryOrchestratorTest.php  # Multi-phase orchestration
-└── ExecutionIntegrationTest.php # Event/listener bridge
+tests/
+├── Unit/Lottery/
+│   ├── RandomSolverTest.php           ✅ Random assignment validation
+│   ├── TestSolverTest.php             ✅ Deterministic assignment
+│   ├── LotteryOrchestratorTest.php    ✅ Two-phase orchestration + error handling
+│   ├── LotteryExecutionFlowTest.php   ✅ Event/listener integration
+│   └── Glpk/
+│       ├── GlpkSolverTest.php         ✅ GLPK failure scenarios
+│       └── GlpkSolverMoreUnitsTest.php ✅ Unbalanced preference handling
+│
+└── Feature/Lottery/
+    ├── GlpkSolverTest.php              ✅ GLPK optimal solutions
+    ├── LotterySystemIntegrationTest.php ✅ End-to-end with universe.sql
+    ├── ExecutionServiceTest.php         ✅ Validation & authorization
+    ├── PreferencesValidationTest.php    ✅ Preference management
+    └── AsyncExecutionTest.php           ✅ Async queue + audit persistence
 ```
 
-## 1. RandomSolverTest
+---
 
-**Purpose**: Validate that RandomSolver produces valid, random assignments without duplicates.
+## ✅ Unit Tests - COMPLETE
 
-### Test Cases
+### RandomSolverTest.php
+**Purpose**: Validate random assignment without duplicates
 
-#### test_balanced_lottery()
-- **Input**: 5 families, 5 units
-- **Assertions**:
-  - 5 picks returned
-  - 0 orphan families
-  - 0 orphan units
-  - All family IDs appear exactly once in picks (keys)
-  - All unit IDs appear exactly once in picks (values)
-  - No duplicates in picks
+- ✅ Balanced lottery (5 families, 5 units)
+- ✅ More units than families (3 families, 7 units → 4 orphan units)
+- ✅ More families than units (8 families, 5 units → 3 orphan families)
+- ✅ No duplicate assignments across multiple runs
+- ✅ Randomness verification
 
-#### test_more_units_than_families()
-- **Input**: 3 families, 7 units
-- **Assertions**:
-  - 3 picks returned
-  - 0 orphan families
-  - 4 orphan units
-  - All family IDs matched
-  - 4 specific unit IDs remain unmatched
-  - Total: 3 assigned + 4 orphaned = 7 units
+### TestSolverTest.php
+**Purpose**: Deterministic behavior for predictable testing
 
-#### test_more_families_than_units()
-- **Input**: 8 families, 5 units
-- **Assertions**:
-  - 5 picks returned
-  - 3 orphan families
-  - 0 orphan units
-  - All unit IDs matched
-  - 3 specific family IDs remain unmatched
-  - Total: 5 assigned + 3 orphaned = 8 families
+- ✅ Balanced deterministic (families [1,3,5], units [2,4,6] → [1=>2, 3=>4, 5=>6])
+- ✅ More units deterministic (orphan units sorted by ID)
+- ✅ More families deterministic (orphan families sorted by ID)
+- ✅ Single pair edge case
+- ✅ Empty input edge case
 
-#### test_no_duplicate_assignments()
-- **Input**: 10 families, 10 units
-- **Run**: Multiple times (randomness verification)
-- **Assertions**:
-  - Each execution produces different order (randomness)
-  - No family assigned to multiple units
-  - No unit assigned to multiple families
-  - Set of family IDs in picks matches input
-  - Set of unit IDs in picks matches input
+### LotteryOrchestratorTest.php
+**Purpose**: Two-phase orchestration logic
 
-## 2. TestSolverTest
+- ✅ All balanced groups (no orphans)
+- ✅ Mixed unit types (partial + complete)
+- ✅ Orphan redistribution (cross-type assignments)
+- ✅ Event dispatching (GroupLotteryExecuted, ProjectLotteryExecuted)
+- ✅ **Error handling**:
+  - Exception caught and logged
+  - `AuditService::exception()` called
+  - `ExecutionService::cancelExecutionReservation()` called
+  - Empty result returned (job completes successfully)
 
-**Purpose**: Validate deterministic behavior for predictable testing.
+### Glpk/GlpkSolverTest.php
+**Purpose**: GLPK-specific failure scenarios
 
-### Test Cases
+- ✅ Exception when glpsol binary not found
+- ✅ Exception when temp directory not writable
+- ✅ Temp file cleanup even on failure
+- ✅ Timeout handling (impossible time limits)
 
-#### test_balanced_deterministic_assignment()
-- **Input**: Families [1, 3, 5], Units [2, 4, 6]
-- **Expected Output**:
-  - Picks: [1 => 2, 3 => 4, 5 => 6]
-  - Orphans: families = [], units = []
-- **Assertions**:
-  - Exact match on picks
-  - No orphans
-  - Order by ID ascending
+---
 
-#### test_more_units_deterministic()
-- **Input**: Families [10, 20], Units [5, 15, 25, 35]
-- **Expected Output**:
-  - Picks: [10 => 5, 20 => 15]
-  - Orphans: families = [], units = [25, 35]
-- **Assertions**:
-  - Exact pick mapping
-  - Exact orphan units (sorted by ID)
+## ✅ Feature Tests - COMPLETE
 
-#### test_more_families_deterministic()
-- **Input**: Families [2, 4, 6, 8], Units [1, 3]
-- **Expected Output**:
-  - Picks: [2 => 1, 4 => 3]
-  - Orphans: families = [6, 8], units = []
-- **Assertions**:
-  - Exact pick mapping
-  - Exact orphan families (sorted by ID)
+### GlpkSolverTest.php
+**Purpose**: GLPK optimal solution verification
 
-#### test_single_pair()
-- **Input**: Families [100], Units [200]
-- **Expected Output**:
-  - Picks: [100 => 200]
-  - Orphans: families = [], units = []
+- ✅ Balanced optimal assignment respecting preferences
+- ✅ Max-min fairness optimization
+- ✅ Tie-breaking with overall satisfaction
+- ✅ Deterministic across runs (same input → same output)
+- ✅ Larger problems (10×10)
+- ✅ More units than families (orphan units)
+- ✅ More families than units (orphan families)
+- ✅ Single family/unit edge case
+- ✅ User-friendly exception messages
+- ✅ Temp file cleanup (success + failure)
 
-#### test_empty_input()
-- **Input**: Families [], Units []
-- **Expected Output**:
-  - Picks: []
-  - Orphans: families = [], units = []
+### LotterySystemIntegrationTest.php
+**Purpose**: End-to-end with universe.sql fixture
 
-## 3. LotteryOrchestratorTest
+- ✅ Complete balanced execution (Project #4, 3 unit types, 6 families)
+- ✅ Unbalanced execution (Project #2, more units than families)
+- ✅ Preference optimization verification
+- ✅ Max-min fairness verification
+- ✅ Multi-unit-type coordination
 
-**Purpose**: Validate three-phase execution strategy with complex scenarios.
+### ExecutionServiceTest.php
+**Purpose**: Execution validation & authorization
 
-### Test Cases
+- ✅ Atomic lottery reservation (race condition prevention)
+- ✅ Validation: sufficient families (≥2)
+- ✅ Validation: no existing assignments
+- ✅ Validation: unit/family count consistency
+- ✅ Override mechanism for count mismatches
+- ✅ Authorization checks
 
-#### test_all_balanced_groups()
-- **Manifest**:
-  - Type 1: 3 families, 3 units
-  - Type 2: 5 families, 5 units
-- **Expected**:
-  - Phase 1: Both types processed
-  - Phase 2: Skipped (no groups with excess families)
-  - Phase 3: Skipped (no orphans)
-  - Total picks: 8
-  - Orphan families: 0
-  - Orphan units: 0
+### PreferencesValidationTest.php
+**Purpose**: Preference management
 
-#### test_complete_and_partial_only()
-- **Manifest**:
-  - Type 1: 2 families, 5 units (partial)
-  - Type 2: 4 families, 4 units (complete)
-- **Expected**:
-  - Phase 1: Both types processed
-  - Phase 2: Skipped
-  - Phase 3: Skipped
-  - Total picks: 6
-  - Orphan families: 0
-  - Orphan units: 3 (from Type 1)
+- ✅ Dynamic preference resolution with auto-fill
+- ✅ Sanitization removes invalid preferences
+- ✅ Validation requires complete preferences
+- ✅ Preference locking after execution starts
 
-#### test_best_attempt_only()
-- **Manifest**:
-  - Type 1: 6 families, 3 units (best-attempt)
-  - Type 2: 4 families, 2 units (best-attempt)
-- **Expected**:
-  - Phase 1: Skipped
-  - Phase 2: Both types processed
-  - Phase 3: Skipped (no orphan units to match)
-  - Total picks: 5
-  - Orphan families: 5 (3 from Type 1, 2 from Type 2)
-  - Orphan units: 0
+### AsyncExecutionTest.php
+**Purpose**: Async queue + audit persistence
 
-#### test_second_chance_redistribution()
-- **Manifest**:
-  - Type 1: 3 families, 7 units (partial - produces 4 orphan units)
-  - Type 2: 8 families, 5 units (best-attempt - produces 3 orphan families)
-- **Expected**:
-  - Phase 1: Type 1 processed (3 picks, 4 orphan units)
-  - Phase 2: Type 2 processed (5 picks, 3 orphan families)
-  - Phase 3: Redistributes 3 orphan families + 4 orphan units (3 more picks)
-  - Total picks: 11 (3 + 5 + 3)
-  - Orphan families: 0
-  - Orphan units: 1 (4 - 3 = 1 remaining)
+- ✅ Successful execution creates audit trail in database
+- ✅ Solver failure creates FAILURE audit and releases lottery
+- ✅ Failed execution can be retried with new audit trail
+- ✅ Audit records share execution UUID
+- ✅ INIT audit contains complete manifest data
 
-#### test_mixed_all_phases()
-- **Manifest**:
-  - Type 1: 5 families, 5 units (complete)
-  - Type 2: 2 families, 6 units (partial)
-  - Type 3: 7 families, 3 units (best-attempt)
-- **Expected**:
-  - Phase 1: Types 1, 2 processed (7 picks, 4 orphan units)
-  - Phase 2: Type 3 processed (3 picks, 4 orphan families)
-  - Phase 3: Redistributes 4 families + 4 units (4 more picks)
-  - Total picks: 14 (5 + 2 + 3 + 4)
-  - Orphan families: 0
-  - Orphan units: 0
+---
 
-#### test_logs_summary()
-- **Manifest**: Any valid manifest
-- **Assertions**:
-  - Verify Log::info() called with correct structure
-  - Contains: project_id, total_picks, orphan_families, orphan_units
+## Test Execution
 
-## 4. ExecutionIntegrationTest
-
-**Purpose**: Validate event-driven flow from ExecutionService through to orchestration.
-
-### Test Cases
-
-#### test_event_dispatched_with_manifest()
-- **Setup**: Create lottery with families/units
-- **Action**: Call ExecutionService::execute()
-- **Assertions**:
-  - LotteryExecution dispatched
-  - Event contains LotteryManifest
-  - Manifest has correct project_id
-  - Manifest data structure matches expected format
-
-#### test_listener_resolves_solver()
-- **Setup**: Mock solver in config
-- **Action**: Dispatch LotteryExecution
-- **Assertions**:
-  - ExecuteLotteryListener invoked
-  - Correct solver resolved from config
-  - Orchestrator created with solver + manifest
-
-#### test_end_to_end_with_test_solver()
-- **Setup**:
-  - Configure TestSolver as default
-  - Create project with multiple unit types
-  - Create families and units
-- **Action**: Execute lottery via ExecutionService
-- **Assertions**:
-  - Event dispatched
-  - Listener processes event
-  - Orchestrator executes all phases
-  - Results logged
-  - Deterministic output matches expectations
-
-#### test_end_to_end_with_random_solver()
-- **Setup**:
-  - Configure RandomSolver as default
-  - Create balanced project
-- **Action**: Execute lottery via ExecutionService
-- **Assertions**:
-  - All families assigned
-  - All units assigned
-  - No orphans
-  - Results logged with correct counts
-
-## Test Data Helpers
-
-### LotteryManifestFactory
-
-```php
-class LotteryManifestFactory
-{
-    public static function balanced(int $projectId): LotteryManifest
-    {
-        // Creates manifest with equal families/units per type
-    }
-
-    public static function withOrphans(int $projectId): LotteryManifest
-    {
-        // Creates manifest with mismatched counts
-    }
-
-    public static function multiPhase(int $projectId): LotteryManifest
-    {
-        // Creates complex manifest requiring all three phases
-    }
-}
-```
-
-### Assertions Helper
-
-```php
-trait LotteryAssertions
-{
-    protected function assertValidPicks(array $picks, array $families, array $units): void
-    {
-        // No duplicates
-        // All family IDs valid
-        // All unit IDs valid
-        // Count matches min(families, units)
-    }
-
-    protected function assertValidOrphans(array $orphans, int $familyCount, int $unitCount, int $pickCount): void
-    {
-        // Orphan counts add up
-        // No orphan overlaps with picks
-    }
-}
-```
-
-## Running Tests
-
+### Run All Lottery Tests
 ```bash
-# All lottery tests
-./mtav test tests/Unit/Lottery/
-
-# Individual test suites
-./mtav test tests/Unit/Lottery/RandomSolverTest.php
-./mtav test tests/Unit/Lottery/TestSolverTest.php
-./mtav test tests/Unit/Lottery/LotteryOrchestratorTest.php
-./mtav test tests/Unit/Lottery/ExecutionIntegrationTest.php
-
-# With coverage
-./mtav test --coverage tests/Unit/Lottery/
+./mtav pest tests/Unit/Lottery tests/Feature/Lottery
 ```
+
+### Run Specific Suites
+```bash
+# Solvers
+./mtav pest tests/Unit/Lottery/RandomSolverTest.php
+./mtav pest tests/Unit/Lottery/TestSolverTest.php
+./mtav pest tests/Unit/Lottery/Glpk/
+
+# GLPK Integration
+./mtav pest tests/Feature/Lottery/GlpkSolverTest.php
+
+# System Integration
+./mtav pest tests/Feature/Lottery/LotterySystemIntegrationTest.php
+
+# Async Queue
+./mtav pest tests/Feature/Lottery/AsyncExecutionTest.php
+```
+
+### With Coverage
+```bash
+./mtav pest --coverage tests/Unit/Lottery tests/Feature/Lottery
+```
+
+---
+
+## Key Testing Patterns
+
+### 1. Using universe.sql Fixture
+```php
+setCurrentProject(4); // Use Project #4 from universe.sql
+$lottery = Event::find(13); // Lottery for Project #4
+$family = Family::find(16); // Family in Project #4
+```
+
+**Benefits**: 20-30x faster than factories, predictable data
+
+### 2. Testing Error Handling
+```php
+// Force failure
+Config::set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
+Config::set('lottery.default', 'glpk');
+
+// Execute and verify graceful handling
+$this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+// Check for FAILURE audit
+$failureAudit = LotteryAudit::where('type', 'failure')->first();
+expect($failureAudit)->not->toBeNull();
+```
+
+### 3. Testing Audit Trail
+```php
+// Execute lottery
+$this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+// Verify audit types
+$audits = LotteryAudit::where('lottery_id', $lottery->id)->get();
+expect($audits->pluck('type')->unique()->toArray())
+    ->toContain('init', 'group_execution', 'project_execution');
+```
+
+### 4. Testing Retries
+```php
+// First attempt: fail
+Config::set('lottery.default', 'glpk');
+Config::set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
+$this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+// Second attempt: succeed
+Config::set('lottery.default', 'test');
+$lottery->refresh();
+expect($lottery->is_published)->toBeTrue(); // Released after failure
+$this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+// Verify different execution UUIDs
+$uuids = LotteryAudit::where('lottery_id', $lottery->id)
+    ->where('type', 'init')
+    ->pluck('execution_uuid')
+    ->unique();
+expect($uuids->count())->toBe(2);
+```
+
+---
 
 ## Success Criteria
 
-- ✅ **COMPLETED**: All tests pass without modifying implementation code
-- ✅ **COMPLETED**: TestSolver - 6/6 tests passing (deterministic behavior verified)
-- ✅ **COMPLETED**: RandomSolver - 6/6 tests passing (randomness verified)
-- ✅ **COMPLETED**: LotteryOrchestrator - 8/8 tests passing (all phases verified)
-- ✅ **COMPLETED**: All edge cases handled (empty, single, unbalanced)
-- ✅ **COMPLETED**: Logging verified (reportResults)
-- ⏳ **PENDING**: Event/listener integration tests (ExecutionIntegrationTest)
-- ⏳ **PENDING**: Code coverage metrics
+- ✅ **Solver Tests**: All passing (RandomSolver, TestSolver, GlpkSolver)
+- ✅ **Orchestrator Tests**: All passing (two-phase logic, error handling)
+- ✅ **Integration Tests**: All passing (universe.sql fixture)
+- ✅ **Async Tests**: All passing (audit persistence, retry logic)
+- ⏳ **Coverage**: Target 90%+ (run with `--coverage` to verify)
 
-## Next Steps After Tests Pass
+---
 
-1. Implement audit collaborator service
-2. Persist results to database
-3. Apply assignments to units.family_id
-4. Queue notifications
-5. Update frontend to display results
-6. Integration with GLPK optimization API
+## Outstanding Items
+
+### None - All Critical Tests Complete ✅
+
+The lottery testing suite is comprehensive and covers:
+- Unit-level solver behavior
+- Orchestration logic (two-phase + orphan redistribution)
+- Error handling and recovery
+- End-to-end integration with real fixture data
+- Async queue behavior and audit persistence
+- Multiple execution attempts (retry scenarios)
+
+### Future Enhancements (Optional)
+- Performance benchmarks for large datasets (100+ families/units)
+- Load testing for concurrent lottery executions (multi-project)
+- UI/E2E tests for admin lottery execution flow
+- Notification delivery tests (when implemented)
+
+---
+
+## Related Documentation
+
+- **`documentation/ai/LOTTERY.md`** - Complete lottery system reference
+- **`tests/_fixtures/UNIVERSE.md`** - Test data structure details
+- **`documentation/ai/testing/PHILOSOPHY.md`** - General testing patterns
+
+---
+
+*Last updated: 5 December 2025*

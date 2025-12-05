@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { _ } from '@/composables/useTranslations';
 import { Card, CardContent } from '@/components/card';
 import { Home } from 'lucide-vue-next';
 

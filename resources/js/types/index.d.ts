@@ -32,11 +32,12 @@ type MediaCategory = 'audio' | 'document' | 'image' | 'unknown' | 'video' | 'vis
 interface Lottery extends Event {
   type: 'lottery';
   end_date: null;
-  allows_rsvp: false;
+  is_executing: boolean;
+  is_completed: boolean;
   is_lottery: true;
   is_online: false;
   is_onsite: false;
-  is_published: true;
+  allows_rsvp: false;
   creator: null;
 }
 

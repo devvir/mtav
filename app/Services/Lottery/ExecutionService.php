@@ -61,7 +61,11 @@ class ExecutionService
             throw $e;
         }
 
-        LotteryExecutionTriggered::dispatch($manifest);
+        // TODO : investigate and fix issue with deferred Queue driver in local
+        //        deferred events aren´t being triggered from previously deferred code
+        app()->environment('local')
+            ? defer(fn () => LotteryExecutionTriggered::dispatch($manifest))
+            : LotteryExecutionTriggered::dispatch($manifest);
     }
 
     /**

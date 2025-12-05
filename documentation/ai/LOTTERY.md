@@ -369,117 +369,155 @@ public function updateLotteryEvent(Event $lottery, array $data): void
 
 **Exception Handling**: Throws `LockedLotteryException` if lottery execution has started.
 
-## Lottery Execution Phases
+## Lottery Execution Architecture
 
-### Overview
+### Two-Phase Orchestration
 
-When the lottery executes (after all validation passes), it processes families and units in **four distinct distribution phases**. This multi-phase approach handles the reality that unit/family counts may not match perfectly per unit type, even when an admin overrides the consistency check.
+The lottery orchestration operates in **two distinct phases** at the architectural level:
 
-The phases are ordered **optimistically** - handling the most common scenarios first, leaving edge cases for later phases.
+#### Phase 1: By Unit Type
 
-### Phase 1: Complete Distribution
+**What Happens**:
+- Orchestrator iterates through each unit type in the project
+- For each unit type: creates `LotterySpec` with families and units of that type
+- Delegates to solver (RandomSolver, TestSolver, GlpkSolver, etc.)
+- Solver returns `ExecutionResult` with picks and orphans
+- Orchestrator collects and aggregates results
 
-**Condition**: `units == families` for this unit type
+**Key Point**: The orchestrator does NOT care about balanced vs unbalanced scenarios. It simply:
+1. Sends families and units to the solver
+2. Receives picks (assignments) and orphans (leftovers)
+3. Tracks orphan families and orphan units for potential Phase 2
 
-**Process**:
-- Standard lottery algorithm execution
-- Perfect N:N match, no padding needed
-- All families get units, all units get families
+**Solver Responsibility**: The solver implementation decides how to handle any scenario:
+- Balanced sets (families = units) → typically no orphans
+- Unbalanced sets (families ≠ units) → typically produces orphans
+- Edge cases → solver's problem, not orchestrator's
 
-**Pre-fill**: None required
-
-**Result**: All families assigned, all units assigned
-
-**Fairness**: Pure algorithm fairness - everyone gets their ranked preferences considered equally
-
----
-
-### Phase 2: Partial Distribution
-
-**Condition**: `units > families` for this unit type
-
-**Process**:
-1. Run lottery for original families of this unit type
-2. Algorithm decides which units each family gets
-3. Least-preferred units remain unassigned (spare units)
-
-**Pre-fill**: Mock families needed to pad to unit count (pending consultation)
-
-**Result**:
-- All families assigned to their preferred unit type
-- Some units remain unlinked (overflow to Phase 4)
-
-**Fairness**: Original families get same fairness as Phase 1. Unlinked units are those that were collectively least-preferred by this group.
+**Important**: The orchestrator has NO concept of "complete distribution", "partial distribution", or "best-attempt distribution". It just knows: "I gave the solver some families and units, it gave me back some picks and some orphans."
 
 ---
 
-### Phase 3: Best-Attempt Distribution
+#### Phase 2: Orphan Redistribution (Cross-Type)
 
-**Condition**: `units < families` for this unit type
+**Trigger Condition**: Phase 1 produced orphans (either families OR units OR both)
 
-**Process**: *(Pending consultation with tutor and cooperative representatives)*
-- Need to determine how to handle mock units
-- Need to decide fairness criteria for who doesn't get a unit
+**What Happens**:
+1. Collect all orphan families from Phase 1 (families that didn't get units in their preferred type)
+2. Collect all orphan units from Phase 1 (units that weren't assigned in their type)
+3. Create single `LotterySpec` with mixed unit types
+4. Generate preferences for cross-type assignments (families now considering units outside their original type)
+5. Delegate to solver
+6. Solver returns final picks and any remaining orphans
 
-**Pre-fill**: Mock units needed to pad to family count
+**Key Point**: The orchestrator still doesn't care WHY there are orphans. It just knows:
+- "Phase 1 left some families/units unassigned"
+- "Let me try to match them across types"
+- "Whatever's left after this is truly unassignable"
 
-**Result**:
-- Some families assigned to their preferred unit type
-- Some families remain unlinked (overflow to Phase 4)
-
-**Fairness**: Algorithm decides who gets real units vs mock units. Families who "lost" in their preferred type lottery get a second chance in Phase 4.
-
----
-
-### Phase 4: Second-Chance Distribution
-
-**Condition**: Has unlinked families from Phase 3 AND/OR unlinked units from Phase 2
-
-**Process**: *(Pending consultation with tutor and cooperative representatives)*
-1. Collect all unlinked families (from Phase 3, across all unit types)
-2. Collect all unlinked units (from Phase 2, across all unit types)
-3. Run single lottery with mixed unit types
-4. Need to determine preference generation for cross-type assignments
-
-**Pre-fill**:
-- Mock families if `unlinked_units > unlinked_families`
-- Mock units if `unlinked_families > unlinked_units`
-- None if counts match
-
-**Result**:
-- Maximum possible assignments given global constraints
-- May have remaining unlinked families (if `total_units < total_families` globally)
-- May have remaining unlinked units (if `total_units > total_families` globally)
-
-**Fairness**: These families already "lost" their preferred type lottery, so getting any unit (even non-preferred type) is better than no home. It's fair because they compete for units that were collectively least-preferred by others.
+**Result Categories**:
+- No orphans after Phase 1 → Phase 2 skipped, done
+- Orphans after Phase 1, none after Phase 2 → Perfect global assignment
+- Orphans after Phase 2 → Global imbalance (more families than units, or vice versa)
 
 ---
 
-### Execution Order Rationale
+### Solver Black Box
 
-**Why this order?**
-1. **Complete first**: Most likely scenario in well-planned projects, gets them out of the way
-2. **Partial second**: Creates spare units that can be used in Phase 4 if needed
-3. **Best-attempt third**: Identifies families who need second chance
-4. **Second-chance last**: Redistributes resources to maximize assignments
+From the orchestrator's perspective, the solver is a **black box**:
 
-**Critical guarantee**: If `total_units >= total_families` globally, then all families will be assigned (no homeless families). The algorithm ensures we never have both unassigned families AND unassigned units simultaneously (that would mean the redistribution failed).
-
----
-
-### Data Flow Between Phases
-
-```
-Phase 1 (Complete)     → Assignments only
-Phase 2 (Partial)      → Assignments + Spare Units
-Phase 3 (Best-Attempt) → Assignments + Unlinked Families
-Phase 4 (Second-Chance) → Final Assignments + Final Unlinked (families/units)
+```php
+interface SolverInterface
+{
+    public function execute(LotterySpec $spec): ExecutionResult;
+}
 ```
 
-**Final State**:
-- `unlinked_families`: Only if global deficit (`total_units < total_families`)
-- `unlinked_units`: Only if global surplus (`total_units > total_families`)
-- **Never both**: Phase 4 guarantees maximum utilization
+**Input**: `LotterySpec` (families + units + preferences)
+**Output**: `ExecutionResult` (picks + orphans)
+
+**The orchestrator does NOT assume**:
+- 1 family = 1 unit (solver could assign 1 family to 3 units, if it wanted)
+- 1 unit = 1 family (solver could assign 1 unit to 5 families, if it wanted)
+- Balanced sets produce no orphans (solver could leave orphans on purpose)
+- All families/units will be assigned (solver decides what's optimal)
+
+**Why this matters**: Different solver implementations have different strategies:
+- `RandomSolver`: Random pairing, expects balanced input
+- `TestSolver`: Deterministic ID-based pairing, expects balanced input
+- `GlpkSolver`: Optimization-based, handles unbalanced, produces orphans when needed
+- Future `ManualSolver`: Human admin picks assignments, could do anything
+
+The orchestrator **trusts the solver's decisions** and simply:
+1. Receives the result
+2. Tracks orphans
+3. Decides whether Phase 2 is needed
+4. Reports final outcome
+
+---
+
+### Conceptual Phases (Business Logic Layer)
+
+While the **orchestrator** only knows about Phase 1 (by type) and Phase 2 (orphan redistribution), at a **business/solver level**, there are conceptual scenarios:
+
+**Balanced Scenario** (families = units):
+- Solver typically assigns all families to all units
+- No orphans produced
+- Phase 2 not needed
+
+**Unbalanced: More Units** (units > families):
+- Solver assigns all families
+- Some units remain as orphans (least-preferred)
+- Phase 2 may redistribute these orphan units to orphan families from other types
+
+**Unbalanced: More Families** (families > units):
+- Solver assigns all units
+- Some families remain as orphans (least-satisfied)
+- Phase 2 gives these families a second chance at units from other types
+
+**But again**: The orchestrator doesn't think in these terms. It just sees:
+- "Solver gave me picks and orphans"
+- "Are there orphans? Yes → Phase 2. No → Done."
+
+---
+
+### Critical Guarantees
+
+**Orchestrator Level**:
+- Phase 1 always runs (at least one unit type must exist)
+- Phase 2 runs if and only if orphans exist after Phase 1
+- No assumptions about solver behavior beyond the interface contract
+
+**Global Level** (across both phases):
+- If `total_units >= total_families`, all families can potentially be assigned
+- If `total_families > total_units`, some families will remain orphans
+- Phase 2 maximizes assignments given available resources
+
+---
+
+### Data Flow Summary
+
+```
+Orchestrator receives: LotteryManifest (all project data)
+  ↓
+Phase 1: For each unit type
+  → Create LotterySpec (families of type X, units of type X)
+  → solver.execute(spec)
+  → Receive ExecutionResult (picks, orphans)
+  → Aggregate picks and orphans
+  ↓
+Check: Are there orphans?
+  NO  → Done, report final results
+  YES → Continue to Phase 2
+  ↓
+Phase 2: Orphan redistribution
+  → Create LotterySpec (all orphan families, all orphan units, cross-type preferences)
+  → solver.execute(spec)
+  → Receive ExecutionResult (final picks, final orphans)
+  → Aggregate with Phase 1 results
+  ↓
+Done: Report final results (all picks, remaining orphans if any)
+```
 
 ---
 
@@ -494,38 +532,52 @@ The lottery system is built in distinct layers with clear boundaries:
    - User interface components
    - Exception handling
 
-2. **Orchestration Layer (Phase 2)** - 🚧 In Progress
+2. **Orchestration Layer** - ✅ Complete
    - Event-driven execution trigger
-   - Multi-phase lottery orchestration
+   - Two-phase lottery orchestration (by unit type, then orphan redistribution)
    - Data transformation and execution delegation
+   - Orphan tracking and cross-type redistribution logic
 
-3. **Execution Layer (Phase 2)** - 🚧 In Progress
+3. **Execution Layer (Solver Strategy)** - ✅ Complete
    - Strategy pattern for different solvers
-   - Single-lottery execution (per unit type)
-   - Result generation
+   - Black-box solver interface (LotterySpec → ExecutionResult)
+   - RandomSolver, TestSolver, GlpkSolver implementations
+   - Result generation (picks + orphans)
 
-4. **Persistence Layer (Phase 3)** - ⏳ Pending
-   - Audit trail creation
-   - Assignment application to database
-   - Notification queueing
+4. **Persistence Layer** - ✅ Complete
+   - Audit trail creation (INIT, GROUP_EXECUTION, PROJECT_EXECUTION, INVALIDATE, FAILURE)
+   - Assignment application to database (bulk updates)
+   - UUID-based execution grouping
+   - Multiple execution run support
 
 ### Data Flow
 
 ```
 ExecutionService (validates & transforms)
-  → LotteryManifest (complete project data)
-    → LotteryExecution (queued)
-      → ExecuteLotteryListener (resolves solver)
-        → LotteryOrchestrator (multi-phase coordination)
-          ├─ Reports progress → LotteryService::executionReport()
-          │                      ├─ ReportType (PHASE_1_START, etc.)
-          │                      └─ ExecutionResult (picks + orphans)
-          └─ Per phase:
-              → LotterySpec (single unit type)
-                → SolverInterface (RandomSolver, TestSolver, ApiSolver...)
-                  → Results (picks + orphans)
-                    → [Audit Collaborator - TODO in executionReport()]
-                      → Database & Notifications
+  → LotteryManifest (complete project data with UUID)
+    → LotteryExecution (queued event)
+      → ExecuteLotteryListener (resolves solver from config)
+        → LotteryOrchestrator (two-phase coordination)
+          │
+          ├─ Phase 1: By Unit Type
+          │   └─ For each unit type:
+          │       → LotterySpec (families + units of that type)
+          │       → solver.execute(spec)  ← Black box
+          │       → ExecutionResult (picks + orphans)
+          │       → Track orphans for Phase 2
+          │       → Dispatch GroupLotteryExecuted event
+          │
+          ├─ Phase 2: Orphan Redistribution (if orphans exist)
+          │   → LotterySpec (all orphan families + all orphan units, cross-type)
+          │   → solver.execute(spec)  ← Black box
+          │   → ExecutionResult (final picks + remaining orphans)
+          │   → Dispatch GroupLotteryExecuted event
+          │
+          └─ Completion:
+              → Dispatch ProjectLotteryExecuted event
+              → AuditService creates audit records
+              → ExecutionService applies results to database
+              → Notifications queued (future)
 ```
 
 ## Implementation Status
@@ -540,7 +592,7 @@ ExecutionService (validates & transforms)
 - ✅ `updatePreferences()` - Replace family preferences atomically (with lock check)
 - ✅ `updateLotteryEvent()` - Update lottery config (with lock check)
 - ✅ `execute()` - Delegates to ExecutionService
-- ✅ `executionReport()` - Receives execution reports from orchestrator (TODO: implement persistence)
+- ✅ `executionReport()` - Receives execution reports from orchestrator
 
 **ConsistencyService** (`app/Services/Lottery/ConsistencyService.php`):
 - ✅ `sanitizeBeforeFetch()` - Remove invalid preferences before fetch
@@ -589,19 +641,56 @@ ExecutionService (validates & transforms)
 ```
 lottery/
 ├── admin/
-│   └── LotteryManagement.vue         # Admin config & execution (Phase 1.B pending)
+│   └── LotteryManagement.vue         # Admin config & execution ✅
 ├── member/
 │   └── PreferencesManager.vue        # Drag-and-drop preference ordering ✅
 ├── shared/
+│   ├── Audit.vue                    # Real-time execution feedback ✅
+│   ├── LotteryExecutedStatus.vue    # Post-execution status display ✅
+│   ├── LotteryInProgress.vue        # Cute loading placeholder ✅
 │   ├── LotteryHeader.vue            # Page header with description ✅
 │   ├── LotteryContent.vue           # Role-based component router ✅
 │   ├── LotteryFooter.vue            # Project plan integration ✅
-│   └── ProjectPlan.vue              # Placeholder for Phase 3 ✅
 ├── composables/
+│   └── useLotteryAudits.ts          # Audit data composable ✅
 │   └── useLottery.ts                # Shared lottery state/logic ✅
 ├── types.d.ts                       # TypeScript definitions ✅
 └── index.ts                         # Public exports ✅
 ```
+
+**Audit.vue Component** (`resources/js/components/lottery/shared/Audit.vue`):
+- ✅ Real-time polling every 1 second during execution
+- ✅ 5-minute timeout with smart reset (resets when new audits arrive)
+- ✅ Estimated progress bar using 40s/group assumption
+- ✅ Progress calculation: `currentCompleted% + (elapsedSeconds/40 * segmentSize%)`
+- ✅ Jumps to actual progress when new group_execution audit arrives
+- ✅ Phase indicators: Initialization → Processing Groups (X/Y) → Finalization
+- ✅ Groups count includes orphans/second-chance group (detected from manifest imbalances)
+- ✅ Displays failure details with user message, error type, and exception
+- ✅ Only shows when lottery is executing or completed (not invalidated)
+- ✅ Full Spanish translations for all UI text
+
+**useLotteryAudits Composable** (`resources/js/components/lottery/composables/useLotteryAudits.ts`):
+- ✅ Extracts audit data from lottery audits array
+- ✅ `totalUnitTypes` - Count from manifest.data keys in INIT audit
+- ✅ `hasOrphansGroup` - Detects imbalances (families ≠ units per type) in manifest
+- ✅ `groupsCount` - Total groups to process (unit types + orphans group if needed)
+- ✅ `processedGroups` - Count of group_execution audits
+- ✅ `progress` - Percentage based on groupsCount
+- ✅ `isExecuting` - Uses new `is_executing` flag from lottery resource
+- ✅ `initAuditTimestamp` - Timestamp from INIT audit for elapsed time calculation
+- ✅ `hasFailure` / `failureAudit` - Failure detection and details
+
+**LotteryInProgress.vue Component** (`resources/js/components/lottery/shared/LotteryInProgress.vue`):
+- ✅ Simple placeholder shown when lottery is executing (no audits yet)
+- ✅ Sparkles icon with animated spinner border
+- ✅ Friendly message: "The housing units are being assigned to families. This won't take long!"
+- ✅ Spanish translation included
+
+**Resource Fields** (`app/Http/Resources/EventResource.php`):
+- ✅ Added `is_executing` field - Clearer than `!is_published && !is_deleted`
+- ✅ Added `is_completed` field - Clearer than `is_deleted`
+- ✅ Frontend updated to use new fields throughout
 
 **PreferencesManager.vue Features**:
 - ✅ Drag-and-drop unit reordering
@@ -680,14 +769,14 @@ Route::post('lottery/{lottery}/execute', [LotteryController::class, 'execute'])-
 **LotteryOrchestrator** (`app/Services/Lottery/LotteryOrchestrator.php`):
 - ✅ Receives `LotteryManifest` and `SolverInterface`
 - ✅ Unpacks manifest into `LotterySpec` objects (one per unit type)
-- ✅ Three-phase execution strategy implemented:
-  - Phase 1: Complete & Partial Distribution (units >= families)
-  - Phase 2: Best-Attempt Distribution (units < families)
-  - Phase 3: Second-Chance Distribution (remaining orphans)
-- ✅ Tracks picks and orphans across all phases
-- ✅ Reports progress to `LotteryService::executionReport()` at each phase
+- ✅ Two-phase execution strategy:
+  - **Phase 1: By Unit Type** - Iterates each unit type, delegates to solver, collects picks and orphans
+  - **Phase 2: Orphan Redistribution** - If orphans exist, creates cross-type spec and runs second lottery
+- ✅ Tracks picks and orphans across both phases
+- ✅ Treats solver as black box (no assumptions about balanced/unbalanced handling)
+- ✅ Reports progress by dispatching events (GroupLotteryExecuted, ProjectLotteryExecuted)
 - ✅ Logs summary results via `reportResults()`
-- ⏳ TODO: Audit collaborator for persistence (pending in `LotteryService::executionReport()`)
+- ✅ Error handling with graceful failure recovery (log, audit, invalidate)
 
 #### Architecture Details
 
@@ -741,7 +830,7 @@ $solver = app()->makeWith($solverClass);
 - ✅ `LotteryService::executionReport()` - Receives execution progress reports
 - ✅ `ExecutionResult` data object - Encapsulates picks and orphans for reporting
 - ✅ Phase-by-phase reporting integrated into orchestrator
-- ⏳ TODO: Implement persistence and audit trail in `executionReport()`
+- ✅ Persistence and audit trail implemented in AuditService
 
 #### Completed Components (Continued)
 
@@ -792,17 +881,25 @@ $solver = app()->makeWith($solverClass);
    - Email with assignment details
    - **Note**: Members are expected to be aware of lottery date and watch results in real-time
 
-3. **Frontend Updates**
-   - Loading states during execution
-   - Display assignment results
-   - Success/error messaging
+3. **Frontend Updates** ✅ **COMPLETE**
+   - ✅ Real-time audit feedback with polling (Audit.vue component)
+   - ✅ Estimated progress bar with 40s/group assumption
+   - ✅ Phase indicators (Initialization, Processing Groups, Finalization)
+   - ✅ Smart timeout reset (5 minutes, resets on new audits)
+   - ✅ Execution state display (is_executing, is_completed flags)
+   - ✅ Failure handling with detailed error messages
+   - ✅ Groups count calculation (includes orphans/second-chance group)
+   - ✅ Spanish translations for all UI text
+   - ✅ Loading placeholder component (LotteryInProgress.vue)
+   - ✅ Display assignment results
+   - ✅ Success/error messaging
 
 #### Testing Strategy
 
 **Unit Tests**:
 - ✅ `RandomSolverTest` - Validate pick/orphan counts, no duplicate IDs in picks
 - ✅ `TestSolverTest` - Validate exact deterministic output for balanced/unbalanced data
-- ✅ `LotteryOrchestratorTest` - Three-phase logic with various manifest scenarios
+- ✅ `LotteryOrchestratorTest` - Two-phase logic (by unit type + orphan redistribution) with various scenarios
 - ⏳ Event/Listener integration - End-to-end event dispatch through orchestrator
 
 **Feature Tests**:
@@ -1308,52 +1405,37 @@ protected function handleExecutionFailure(Throwable $exception, string $errorTyp
    }
    ```
 
-4. **⏳ Failure notifications** (PENDING)
+4. **✅ Failure handling complete**
 
-   **`LotteryExecutionFailed` event**:
-   ```php
-   class LotteryExecutionFailed
-   {
-       public function __construct(
-           public Event $lottery,
-           public Throwable $exception,
-           public string $errorType,
-       ) {}
-   }
-   ```
+   Orchestrator handles failures synchronously:
+   - Catches all exceptions (GlpkException, LotteryExecutionException, Throwable)
+   - Logs error details
+   - Creates FAILURE audit record
+   - Releases lottery (cancelExecutionReservation)
+   - Returns empty result (job completes successfully)
 
-   **Notification listener** - Send detailed error info to admins
-   ```php
-   class NotifyAdminsOfLotteryFailure
-   {
-       public function handle(LotteryExecutionFailed $event): void
-       {
-           $admins = $event->lottery->project->admins;
-
-           Notification::send($admins, new LotteryExecutionFailedNotification(
-               $event->lottery,
-               $event->exception,
-               $event->errorType
-           ));
-       }
-   }
-   ```
+   **No notification events needed**:
+   - Admins monitor execution in real-time via UI
+   - Lottery execution is critical, once-per-project event
+   - Admin stays on page during execution
+   - Real-time audit feedback provides immediate visibility
+   - Can revisit if notification needs arise
 
 **Why No Retries?**
 
 - GLPK is **local and deterministic**: same input → same result
 - If it fails once, it will fail again with same data
 - Retries waste queue resources and delay user feedback
-- Better: fail fast, audit, notify, allow manual retry after fix
+- Better: fail fast, audit, release lottery, show error in UI
 
 **User Experience**:
 
 | Scenario | Before | After |
 |----------|--------|-------|
-| **GLPK fails** | 30s timeout → generic warning | Immediate invalidation + specific error notification |
-| **Admin action** | Manual invalidate via superadmin | Retry button in UI (once fixed) |
-| **Debugging** | Check logs + failed_jobs table | Query audit records + detailed error |
-| **Monitoring** | Silent failure | Proper alerts via LotteryExecutionFailed event |
+| **GLPK fails** | 2min timeout → generic warning | Immediate FAILURE audit + error shown in UI |
+| **Admin action** | Manual invalidate via superadmin | Retry button (lottery auto-released) |
+| **Debugging** | Check logs + failed_jobs table | Query FAILURE audit + detailed error |
+| **Monitoring** | Silent failure | Real-time audit trail + UI feedback |
 
 **Testing Requirements**:
 - ✅ Test with sync queue (dev environment)
@@ -1365,27 +1447,25 @@ protected function handleExecutionFailure(Throwable $exception, string $errorTyp
 
 ### Testing Strategy
 
-#### Unit Tests
+**✅ COMPLETE** - See `documentation/ai/testing/LOTTERY_TESTS.md` for details
 
-**GlpkSolverTest.php**:
-- Test Phase 1 execution and objective extraction
-- Test Phase 2 execution with given S
-- Test solution parsing for various scenarios
-- Test error handling (GLPK not installed, invalid models, etc.)
-- Test temp file cleanup
+**Summary**:
+- ✅ Unit tests (RandomSolver, TestSolver, GlpkSolver, Orchestrator)
+- ✅ GLPK solver tests (optimal solutions, max-min fairness, failures)
+- ✅ Integration tests with universe.sql fixture
+- ✅ Async execution tests (audit persistence, retry logic)
+- ✅ Error handling tests (GLPK failures, temp file cleanup)
 
-**Integration Tests**:
-- Test with universe.sql fixture data
-- Verify assignments respect all constraints
-- Verify max-min fairness is achieved
-- Compare with known optimal solutions for small problems
+**Key Test Files**:
+- `tests/Unit/Lottery/` - Solver and orchestrator unit tests
+- `tests/Feature/Lottery/GlpkSolverTest.php` - GLPK optimal solution verification
+- `tests/Feature/Lottery/LotterySystemIntegrationTest.php` - End-to-end with universe.sql
+- `tests/Feature/Lottery/AsyncExecutionTest.php` - Queue + audit persistence
 
-#### Manual Verification
-
-Create test cases with 3-5 families/units where optimal solution is known:
-- Verify GLPK finds the correct assignment
-- Verify satisfaction scores match expectations
-- Test with balanced and unbalanced scenarios
+**Run Tests**:
+```bash
+./mtav pest tests/Unit/Lottery tests/Feature/Lottery
+```
 
 ### Performance Expectations
 
@@ -1410,16 +1490,17 @@ Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a on
 
 ### Rollout Strategy
 
-1. **Phase 1** ✅: ~~Implement GlpkSolver with basic functionality~~ **COMPLETE**
-2. **Phase 2** ⏳: Test extensively with universe.sql fixture **← NEXT STEP**
-3. **Phase 3**: Deploy to staging with LOTTERY_SOLVER=glpk
-4. **Phase 4**: Run parallel executions (random vs glpk) to compare results
-5. **Phase 5**: Enable in production once validated
-6. **Fallback**: Keep RandomSolver available via env variable if issues arise
+1. ✅ **Phase 1**: Implement GlpkSolver with basic functionality
+2. ✅ **Phase 2**: Test extensively with universe.sql fixture
+3. ⏳ **Phase 3**: Real-time audit feedback UI (`Audit.vue` component) **← NEXT STEP**
+4. ⏳ **Phase 4**: Deploy to staging with LOTTERY_SOLVER=glpk
+5. ⏳ **Phase 5**: Run parallel executions (random vs glpk) to compare results
+6. ⏳ **Phase 6**: Enable in production once validated
+7. **Fallback**: Keep RandomSolver available via env variable if issues arise
 
 ### Current Implementation Status
 
-**✅ Completed Components**:
+**✅ Algorithm & Testing Complete**:
 - GlpkSolver with two-phase optimization
 - ModelGenerator (Phase 1 & 2 GMPL models)
 - DataGenerator (converts LotterySpec to .dat format)
@@ -1428,42 +1509,16 @@ Our typical use case: 20-100 entities → **2-5 seconds** is acceptable for a on
 - Configuration in lottery.php
 - Translation keys (English + Spanish)
 - GLPK 5.0 installed and verified in Docker container
-- UI 30-second timeout safety net
+- Comprehensive test suite (see LOTTERY_TESTS.md)
+- Orchestrator error handling (log, audit, release)
+- Async execution tests with audit persistence
 
-**⚠️ REQUIRED: Orchestrator-Level Error Handling**
-
-**Why Orchestrator Handles Errors (Not Listener)**:
-- GLPK is **local and deterministic** → retries are pointless (same input = same failure)
-- Better to **fail fast** with proper audit than retry and delay feedback
-- Orchestrator knows execution context better than listener
-
-**Implementation Checklist**:
-
-1. ✅ **Wrap `LotteryOrchestrator::execute()` in try/catch**
-   - Catch `GlpkException`, `LotteryExecutionException`, `Throwable`
-   - Call `handleExecutionFailure()` instead of re-throwing
-   - Log + audit + invalidate
-
-2. ✅ **Create `AuditService::exception()` method**
-   - Add `ExecutionType::FAILURE` to enum
-   - Store exception details, manifest data
-   - Allow admins to query failure audits
-
-3. ⏳ **Create `LotteryExecutionFailed` event**
-   - Carries: lottery, exception, errorType
-   - Replaces generic "taking too long" with specific error
-   - Enables targeted notifications to admins
-
-4. ⚠️ **Create failure notification listener**
-   - Send detailed error to project admins
-   - Include: error type, message, link to retry
-   - Better than current 30s timeout generic message
-
-5. ⏳ **Add admin UI for failure management**
-   - View failure audit records
-   - See error details and stack trace
-   - Retry button (after fixing issue)
-   - Filter by error type
+**⏳ Next: Real-Time UI Feedback**:
+- Create `Audit.vue` component to display execution progress
+- Improve `useLotteryAudits.ts` composable
+- Show phase transitions (init → group → project → complete)
+- Display failure details with user-friendly messages
+- Timeout reset on new audit arrivals
 
 **Environment-Specific Behavior**:
 - **Development** (`QUEUE_CONNECTION=sync`): Failures return immediately to controller
@@ -2093,6 +2148,19 @@ $lottery->update(['start_date' => now()->addDay()]);
   "Execute Lottery": "Ejecutar Sorteo",
   "Lottery Results": "Resultados del Sorteo",
   "Your Assignment": "Tu Asignación",
+  // Audit Component Translations (added Dec 2025)
+  "Lottery in Progress": "Sorteo en Progreso",
+  "Lottery Complete": "Sorteo Completo",
+  "Lottery Execution Failed": "La Ejecución del Sorteo Falló",
+  "Taking Longer Than Expected...": "Tomando Más Tiempo del Esperado...",
+  "Initialization": "Inicialización",
+  "Processing Groups": "Procesando Grupos",
+  "Finalization": "Finalización",
+  "Groups Processed": "Grupos Procesados",
+  "All families have been assigned to their units.": "Todas las familias han sido asignadas a sus unidades.",
+  "An error occurred during execution": "Ocurrió un error durante la ejecución",
+  "Error Type": "Tipo de Error",
+  "The housing units are being assigned to families. This won't take long!": "Las unidades habitacionales están siendo asignadas a las familias. ¡No tomará mucho tiempo!",
   "Unit {number}": "Unidad {number}",
   "Priority {number}": "Prioridad {number}"
 }
@@ -2119,10 +2187,25 @@ const { _ } = useTranslations();
 </template>
 ```
 
+**Audit Component Translations** (all added to `lang/es_UY.json`):
+- "Lottery in Progress" → "Sorteo en Progreso"
+- "Lottery Complete" → "Sorteo Completo"
+- "Lottery Execution Failed" → "La Ejecución del Sorteo Falló"
+- "Taking Longer Than Expected..." → "Tomando Más Tiempo del Esperado..."
+- "Initialization" → "Inicialización"
+- "Processing Groups" → "Procesando Grupos"
+- "Finalization" → "Finalización"
+- "Groups Processed" → "Grupos Procesados"
+- "All families have been assigned to their units." → "Todas las familias han sido asignadas a sus unidades."
+- "An error occurred during execution" → "Ocurrió un error durante la ejecución"
+- "Error Type" → "Tipo de Error"
+- "The housing units are being assigned to families. This won't take long!" → "Las unidades habitacionales están siendo asignadas a las familias. ¡No tomará mucho tiempo!"
+
 ## Related Documentation
 
 - **`documentation/ai/KNOWLEDGE_BASE.md`** - Business domain overview
-- **`documentation/ai/testing/PHILOSOPHY.md`** - Testing patterns
+- **`documentation/ai/testing/LOTTERY_TESTS.md`** - Complete testing reference
+- **`documentation/ai/testing/PHILOSOPHY.md`** - General testing patterns
 - **`tests/_fixtures/UNIVERSE.md`** - Test data structure
 - **`documentation/ai/ProjectPlans.md`** - Phase 3 spatial visualization
 - **`resources/js/components/lottery/README.md`** - Frontend technical details
@@ -2132,16 +2215,35 @@ const { _ } = useTranslations();
 
 ## Next Steps for Next Session
 
+### Completed Since Last Update
+
+1. ✅ **Real-Time Audit UI** - Implemented comprehensive audit feedback system
+   - Audit.vue component with real-time polling and estimated progress
+   - useLotteryAudits composable for audit data extraction
+   - Smart timeout (5 min) that resets on new audit arrivals
+   - Groups count calculation including orphans/second-chance detection
+   - Phase indicators and progress bar with 40s/group estimation
+   - Failure handling with detailed error messages
+
+2. ✅ **Spanish Translations** - All lottery UI text translated
+   - Added 12 new translation keys to lang/es_UY.json
+   - Full Spanish support for audit component
+
+3. ✅ **Resource Field Improvements** - Clearer lottery state fields
+   - Added is_executing and is_completed to EventResource
+   - Updated all frontend checks to use new fields
+   - Removed confusing is_published/is_deleted logic from UI
+
 ### Investigation Items
 
-1. **Deferred Event Handling**:
+1. **Deferred Event Handling** (High Priority):
    - Investigate if deferred events triggered from already deferred code does not work
    - Sync fixed it, need to debug why deferred version failed
    - Test: Are nested deferred events being properly queued and executed?
    - Check: Event listener execution order when dispatched from async context
    - Verify: Queue worker handling of cascaded events
 
-2. **executeMoreUnits Balance Issue**:
+2. **executeMoreUnits Balance Issue** (High Priority):
    - Investigate if the executeMoreUnits logic is correct
    - Observation: Families seem to be sending all preferences even if we remove the worst units
    - Example: 7 families with 8 preferences for 7 selected units (should be 7 preferences)
@@ -2156,6 +2258,27 @@ const { _ } = useTranslations();
      - Confirm GLPK constraint handling (is it silently handling extras?)
      - Review LotteryOrchestrator's family/unit filtering logic
 
+3. **Default Preference Bias** (Mid Priority):
+   - **Problem**: Current auto-fill logic sorts non-explicit preferences by unit ID
+   - **Issue**: All families without explicit preferences get the same default order
+   - **Bias**: Creates implicit bias towards low-ID units for no good reason
+   - **Solution needed**: Randomize auto-selection in a user-friendly way
+   - **Challenges**:
+     - Cannot dynamically randomize on every page visit (would confuse users)
+     - Need persistent randomization per family (seed-based or stored?)
+     - Must identify which preferences are "default" vs "explicit"
+     - Need to communicate to users why their default preferences are ordered as they are
+   - **Current location**: `LotteryService::preferences()` - auto-fills remaining units with `->sortBy('id')`
+   - **UI considerations**:
+     - Show visual indicator for auto-filled preferences?
+     - Display explanation text: "These preferences were randomly assigned. Drag to reorder."
+     - Badge or styling to differentiate explicit vs default?
+   - **Ideas to explore**:
+     - Seed random generator with family ID for consistency
+     - Store "has_explicit_preferences" flag on families
+     - Add "preference_source" column to unit_preferences pivot (explicit/default)
+     - Generate and store defaults on family creation or first preference page visit
+
 ---
 
-*Last updated: 4 December 2025*
+*Last updated: 5 December 2025*

@@ -10,8 +10,8 @@ const props = defineProps<{
   families: ApiResource<Family>[];
 }>();
 
-const isCompleted = computed(() => props.lottery.is_deleted);
-const isInProgress = computed(() => !props.lottery.is_published && !props.lottery.is_deleted);
+const isCompleted = computed(() => props.lottery.is_completed);
+const isInProgress = computed(() => props.lottery.is_executing);
 </script>
 
 <template>
