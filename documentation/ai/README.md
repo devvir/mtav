@@ -130,7 +130,6 @@ documentation/ai/
 **Authentication patterns** → `core/USER_SYSTEM.md`
 **Scoping patterns** → `core/SCOPING.md`
 **Testing approach** → `testing/PHILOSOPHY.md`
-**Browser test examples** → `testing/BROWSER_TESTING.md`
 **Form test patterns** → `testing/FORMS.md`
 **Lottery test details** → `testing/LOTTERY_TESTS.md`
 **Policy patterns** → `policies-reference.md`
@@ -200,10 +199,6 @@ documentation/ai/
 - Transaction rollback strategy
 - 2-line test ideal
 - Test patterns (scope, auth, controller)
-
-**`testing/BROWSER_TESTING.md`** - Cypress patterns
-- Browser test guidelines
-- Common patterns and helpers
 
 **`testing/FORMS.md`** - Form interaction patterns
 - Form testing approaches

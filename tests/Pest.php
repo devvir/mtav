@@ -13,6 +13,14 @@ pest()
     ->afterEach(fn () => DB::rollback());
 
 /**
+ * Disable Vite in backend tests to avoid asset dependency
+ * @see [Laracasts] Learn Laravel and Vite @ Lesson 7
+ */
+pest()
+    ->beforeEach(fn () => $this->withoutVite())
+    ->in('Unit', 'Feature');
+
+/**
  * Browser testing
  */
 ExternalPlaywrightServer::use('playwright', 5000);

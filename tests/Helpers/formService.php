@@ -219,13 +219,13 @@ function generateValidInputValue(array $spec): mixed
     }
 
     return match ($type) {
-        'email' => 'test@example.com',
-        'number' => generateValidNumber($spec),
-        'date' => generateValidDate($spec),
+        'email'          => 'test@example.com',
+        'number'         => generateValidNumber($spec),
+        'date'           => generateValidDate($spec),
         'datetime-local' => generateValidDateTime($spec),
         'text', 'password' => generateValidString($spec),
         'checkbox' => true,
-        default => generateValidString($spec),
+        default    => generateValidString($spec),
     };
 }
 
@@ -343,14 +343,14 @@ function generateInvalidFormData(
 function generateInvalidFieldValue(array $spec, string $invalidationType): mixed
 {
     return match ($invalidationType) {
-        'required' => null,
-        'too_short' => generateTooShortValue($spec),
-        'too_long' => generateTooLongValue($spec),
-        'below_min' => generateBelowMinValue($spec),
-        'above_max' => generateAboveMaxValue($spec),
-        'invalid_type' => generateInvalidTypeValue($spec),
+        'required'       => null,
+        'too_short'      => generateTooShortValue($spec),
+        'too_long'       => generateTooLongValue($spec),
+        'below_min'      => generateBelowMinValue($spec),
+        'above_max'      => generateAboveMaxValue($spec),
+        'invalid_type'   => generateInvalidTypeValue($spec),
         'invalid_format' => generateInvalidFormatValue($spec),
-        default => null,
+        default          => null,
     };
 }
 
@@ -398,11 +398,11 @@ function generateInvalidTypeValue(array $spec): mixed
     $type = $spec['type'] ?? 'text';
 
     return match ($type) {
-        'email' => 'not-an-email',
-        'number' => 'not-a-number',
-        'date' => 'not-a-date',
+        'email'          => 'not-an-email',
+        'number'         => 'not-a-number',
+        'date'           => 'not-a-date',
         'datetime-local' => 'not-a-datetime',
-        default => 12345, // Submit number instead of string
+        default          => 12345, // Submit number instead of string
     };
 }
 
@@ -414,9 +414,9 @@ function generateInvalidFormatValue(array $spec): mixed
     $type = $spec['type'] ?? 'text';
 
     return match ($type) {
-        'email' => 'invalid-email-format',
-        'date' => '2024-13-45', // Invalid date
+        'email'          => 'invalid-email-format',
+        'date'           => '2024-13-45', // Invalid date
         'datetime-local' => '2024-13-45T25:99',
-        default => 'invalid',
+        default          => 'invalid',
     };
 }

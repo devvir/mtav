@@ -226,49 +226,13 @@ generateInvalidFormData(array $specs, string $invalidField, string $invalidation
 - UnitType (create/update)
 - Event (create/update)
 
-### Pending: Form Submission Tests (Phase 2)
+### Completed: Form Submission Tests (Phase 2)
 
-**NEXT TASK**: Implement form submission tests based on generated specs as source of truth.
-
-**Overview:**
-These tests will NOT create UI components, but will assume UI correctly implements the specs. The UI itself will be tested in future phases (Phase 3).
-
-**Test Flow:**
-1. Visit create/update endpoint and extract specs from response
-2. Generate form data according to the shape of the specs
-3. Submit to the right endpoint (defined in specs)
-4. Validate results (HTTP response + side effects like created/updated models)
-
-**Required Tests for Every Entity:**
-
-1. **As-received submission**: For fields with value/selected, keep those values; for empty fields, submit empty
-2. **Valid data submission**: Sample valid data for each field (selects use IDs from options, inputs use proper type/range)
-3. **Invalid data submission**: Expectable wrong values (number out of range, date out of range, string too short/long, etc.)
-4. **Malicious submission**: Test possible malicious intent where it makes sense (e.g., user trying to set project they don't have access to)
-
-**Implementation Strategy:**
-
-Use helpers + data providers to avoid repetition:
-
-- **Helper**: Call endpoint, extract form specs, return just specs
-- **Test with provider**: Takes CREATE endpoint route, does "empty request" (form submitted "as it came"), uses helper to get specs and submit form, validates results
-- **Similar test for UPDATE**: "default request" (valid to submit as-is), provider also checks original model unchanged after submit
-- **Other tests**: Use data providers to unify where possible, avoid 200+ tests that mostly repeat with just parametric differences
-
-**Required Helpers:**
-- `extractFormSpecs($response)`: Get specs from Inertia response
-- `generateEmptyFormData($specs)`: Generate as-received data
-- `generateValidFormData($specs, $overrides)`: Generate valid test data from specs
-- `generateInvalidFormData($specs, $field, $violationType)`: Generate invalid data for specific field
-- Form submission helper: Submit data to route with auth context
-
-**Required Data Providers:**
-- Empty/default submissions per entity
-- Valid submissions per entity
-- Invalid field submissions per field/violation type
-- Malicious submissions per security concern
+Form submission tests have been implemented using the specs-as-source-of-truth approach. All required test scenarios are covered with helpers and data providers for comprehensive validation of form submission logic.
 
 ### Pending: Future Phases
+- Phase 3: Frontend component rendering (smoke tests)
+- Phase 4: E2E validation/edge cases (future)
 - Phase 3: Frontend component rendering (smoke tests)
 - Phase 4: E2E validation/edge cases (future)
 
@@ -312,4 +276,4 @@ This ensures:
 
 ---
 
-*Last updated: 5 December 2025*
+*Last updated: 6 December 2025*

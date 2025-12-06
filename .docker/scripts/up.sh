@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start Docker containers with the appropriate profile
-# Usage: up.sh [dev|testing|browser] [additional docker compose args]
+# Usage: up.sh [dev|testing] [additional docker compose args]
 
 DOCKER_DIR="$(dirname "$0")/.."
 source "$(dirname "$0")/compose.sh"
@@ -17,14 +17,13 @@ NC='\033[0m' # No Color
 PROFILE="${1:-dev}"
 
 # Validate profile
-if [[ ! "$PROFILE" =~ ^(dev|testing|browser)$ ]]; then
+if [[ ! "$PROFILE" =~ ^(dev|testing)$ ]]; then
     echo -e "${RED}❌ Invalid profile: $PROFILE${NC}"
-    echo "Usage: up.sh [dev|testing|browser] [additional docker compose args]"
+    echo "Usage: up.sh [dev|testing] [additional docker compose args]"
     echo ""
     echo "Profiles:"
-    echo "  dev      - Development environment (default)"
-    echo "  testing  - Testing environment for Pest/Vitest"
-    echo "  browser  - Browser testing environment for Playwright"
+    echo "  dev     - Development environment (default)"
+    echo "  testing - Testing environment for Pest/Vitest/Playwright"
     exit 1
 fi
 
@@ -54,16 +53,6 @@ case $PROFILE in
         export DOCKER_MYSQL_TEST_PORT=3308
         echo -e "${BLUE}🧪 Starting testing environment...${NC}"
         ;;
-
-    browser)
-        export COMPOSE_PROJECT_NAME=browser
-        export APP_ENV=testing
-        export DB_HOST=mysql_test
-        export DOCKER_NGINX_PORT=8002
-        export DOCKER_VITE_PORT=5175
-        export DOCKER_MYSQL_TEST_PORT=3309
-        echo -e "${BLUE}🌐 Starting browser testing environment...${NC}"
-        ;;
 esac
 
 # Start containers with the specified profile
@@ -72,7 +61,7 @@ docker_compose --profile "$PROFILE" up "$@"
 # Wait for database to be healthy (only for dev and testing profiles)
 if [[ "$PROFILE" == "dev" ]] || [[ "$PROFILE" == "testing" ]]; then
     DB_CONTAINER="${COMPOSE_PROJECT_NAME}-mysql-1"
-    if [[ "$PROFILE" == "testing" ]] || [[ "$PROFILE" == "browser" ]]; then
+    if [[ "$PROFILE" == "testing" ]]; then
         DB_CONTAINER="${COMPOSE_PROJECT_NAME}-mysql_test-1"
     fi
 

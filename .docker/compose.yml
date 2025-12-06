@@ -1,7 +1,6 @@
 # Profiles:
 #   dev (dev environment): php, nginx, mysql, assets, mailhog   ~ .docker/scripts/up.sh
-#   testing (unit/feature): php, nginx, mysql_test, assets      ~ .docker/scripts/up.sh testing
-#   browser (e2e testing): php-e2e, mysql_test, playwright      ~ .docker/scripts/up.sh browser
+#   testing (tests): php, nginx, mysql_test, assets, playwright ~ .docker/scripts/up.sh testing
 services:
   # PHP-FPM for Laravel
   php:
@@ -97,7 +96,6 @@ services:
       retries: 15
     profiles:
       - testing
-      - browser
 
   # Mail testing server
   mailhog:
@@ -109,33 +107,13 @@ services:
     profiles:
       - dev
 
-  # PHP with asset building for E2E testing
-  php-e2e:
-    build:
-      context: ..
-      dockerfile: .docker/php-e2e/Dockerfile
-      args:
-        PUID: ${PUID:-1000}
-        PGID: ${PGID:-1000}
-    restart: unless-stopped
-    volumes:
-      - ..:/var/www/html
-      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-    tmpfs:
-      - /var/www/html/public/build:uid=${PUID:-1000},gid=${PGID:-1000}  # No leaking to host
-    environment:
-      - DB_HOST=${DB_HOST:-mysql}
-      - APP_ENV=${APP_ENV:-local}
-    profiles:
-      - browser
-
   # Playwright server for browser testing
   playwright:
     image: mcr.microsoft.com/playwright:v1.57.0-noble
     command: npx playwright run-server --host 0.0.0.0 --port 5000
     restart: unless-stopped
     profiles:
-      - browser
+      - testing
 
 volumes:
   mysql_data:

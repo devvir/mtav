@@ -33,7 +33,7 @@ print_help() {
     echo -e "  ${YELLOW}mtav test [args]${NC}       # Run all tests (Pest + Vitest + Playwright)"
     echo -e "  ${YELLOW}mtav pest [args]${NC}       # Run PHP tests (Pest)"
     echo -e "  ${YELLOW}mtav vitest [args]${NC}     # Run Vue tests (Vitest)"
-    echo -e "  ${YELLOW}mtav playwright [args]${NC} # Run E2E browser tests (Playwright)"
+    echo -e "  ${YELLOW}mtav e2e [args]${NC}        # Run E2E tests (Playwright)"
     echo ""
     echo -e "${GREEN}Development Shortcuts:${NC}"
     echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
@@ -165,7 +165,7 @@ case $COMMAND in
         "$SCRIPTS_DIR/test.sh" vue "$@"
         ;;
 
-    playwright)
+    e2e)
         "$SCRIPTS_DIR/test.sh" e2e "$@"
         ;;
 

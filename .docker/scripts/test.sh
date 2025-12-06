@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Run tests: PHP (Pest), Vue (Vitest), or E2E (Pest Browser testing w/ Playwright)
+# Run tests: PHP (Pest), Vue (Vitest), or E2E (Playwright)
+export COMPOSE_PROJECT_NAME=testing
 
 DOCKER_DIR="$(dirname "$0")/.."
 source "$(dirname "$0")/compose.sh"
@@ -24,7 +25,7 @@ if [[ ! "$TEST_TYPE" =~ ^(all|php|vue|e2e)$ ]]; then
     echo "  all  - Run all tests (PHP + Vue + E2E)"
     echo "  php  - Run PHP tests only (Pest)"
     echo "  vue  - Run Vue tests only (Vitest)"
-    echo "  e2e  - Run E2E browser tests (Pest + Playwright)"
+    echo "  e2e  - Run E2E tests only (Playwright)"
     exit 1
 fi
 
@@ -61,45 +62,30 @@ PHP_SUCCESS=true
 VUE_SUCCESS=true
 E2E_SUCCESS=true
 
-# Wait for php-e2e container to be healthy (browser tests only)
-wait_for_php_e2e() {
-    local project_name=$1
-    echo -e "${BLUE}Waiting for php-e2e container...${NC}"
-    timeout 60 bash -c "until docker inspect ${project_name}-php-e2e-1 --format='{{.State.Health.Status}}' 2>/dev/null | grep -q 'healthy'; do sleep 0.5; done" || {
-        echo -e "${RED}❌ php-e2e container failed to become healthy${NC}"
-        return 1
-    }
-    return 0
-}
-
 # Run PHP-based tests (Pest)
 run_php_tests() {
-    local project_name=$1
-    local container=$2
-    shift 2
     local test_args=("$@")
 
     echo -e "${BLUE}Running tests...${NC}"
     echo ""
 
-    export COMPOSE_PROJECT_NAME=$project_name
-    if docker_compose exec $DOCKER_TTY_FLAG -e DB_HOST=mysql_test -e DB_USERNAME=root -e DB_PASSWORD=root $container php artisan test "${test_args[@]}"; then
+    if docker_compose exec $DOCKER_TTY_FLAG -e DB_HOST=mysql_test -e DB_USERNAME=root -e DB_PASSWORD=root php php artisan test "${test_args[@]}"; then
         return 0
     else
         return 1
     fi
 }
 
-# Cleanup test environment
 cleanup_environment() {
-    local project_name=$1
-    local profile=$2
+    echo ""
+    # Remove the built assets so the host and containers are not polluted
+    echo -e "${BLUE}Removing built assets (public/build) from php container...${NC}"
+    docker_exec php bash -lc 'rm -rf /var/www/html/public/build || true'
 
-    # echo ""
-    # echo -e "${BLUE}Stopping ${profile} environment...${NC}"
-    # export COMPOSE_PROJECT_NAME=$project_name
-    # docker_compose --profile $profile down 2>/dev/null
-    # echo ""
+    echo ""
+    # echo -e "${BLUE}Stopping testing environment...${NC}"
+    # docker_compose --profile testing down || true
+    echo ""
 }
 
 echo -e "${BLUE}🧪 Test Suite${NC}"
@@ -113,43 +99,35 @@ fi
 if [ "$RUN_E2E" = true ]; then
     echo -e "  • E2E (Playwright)"
 fi
+
+# Step 2: Start testing environment
+echo ""
+echo -e "${BLUE}Starting testing environment...${NC}"
+"$(dirname "$0")/up.sh" testing --detach --quiet-pull
 echo ""
 
-# Step 2: Run PHP tests (if requested)
+# Step 3: Run PHP tests (if requested)
 if [ "$RUN_PHP" = true ]; then
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}📦 PHP Tests (Pest)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
 
-    echo -e "${BLUE}Starting testing environment...${NC}"
-    "$(dirname "$0")/up.sh" testing --detach --quiet-pull
-
-      if run_php_tests testing php "${TEST_ARGS[@]}"; then
-          echo ""
-          echo -e "${GREEN}✅ PHP tests passed${NC}"
-          PHP_SUCCESS=true
-      else
-          echo ""
-          echo -e "${RED}❌ PHP tests failed${NC}"
-          PHP_SUCCESS=false
-      fi
-
-    cleanup_environment testing testing
+    if run_php_tests "${TEST_ARGS[@]}"; then
+        echo ""
+        echo -e "${GREEN}✅ PHP tests passed${NC}"
+        PHP_SUCCESS=true
+    else
+        echo ""
+        echo -e "${RED}❌ PHP tests failed${NC}"
+        PHP_SUCCESS=false
+    fi
 fi
 
-# Step 3: Run Vue tests (if requested)
+# Step 4: Run Vue tests (if requested)
 if [ "$RUN_VUE" = true ]; then
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}🎨 Vue Tests (Vitest)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-
-    echo -e "${BLUE}Starting testing environment...${NC}"
-    "$(dirname "$0")/up.sh" testing --detach --quiet-pull
-
-    echo -e "${BLUE}Running tests...${NC}"
-    echo ""
 
     if docker_exec assets npm run test -- --run "${TEST_ARGS[@]}"; then
         echo ""
@@ -160,79 +138,55 @@ if [ "$RUN_VUE" = true ]; then
         echo -e "${RED}❌ Vue tests failed${NC}"
         VUE_SUCCESS=false
     fi
-
-    echo ""
-    echo -e "${BLUE}Stopping testing environment...${NC}"
-    export COMPOSE_PROJECT_NAME=testing
-    docker_compose --profile testing down 2>/dev/null
-    echo ""
 fi
 
-# Step 4: Run E2E tests (if requested)
+# Step 5: Run Pest-E2E tests (if requested)
 if [ "$RUN_E2E" = true ]; then
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
     echo ""
+    echo -e "${BLUE}Installing node dependencies inside PHP container...${NC}"
+    if ! docker_exec assets npm install --no-save; then
+        echo ""
+        echo -e "${RED}❌ npm install failed${NC}";
+        cleanup_environment
+        exit 1
+    fi
 
-    echo -e "${BLUE}Starting browser environment...${NC}"
-    "$(dirname "$0")/up.sh" browser --detach --quiet-pull
+    if ! docker_exec assets npm run build; then
+        echo ""
+        echo -e "${RED}❌ npm run build failed${NC}";
+        cleanup_environment
+        exit 1b
+    fi
 
-    if ! wait_for_php_e2e browser; then
+    # Remove Vite hot file so Blade does not emit the dev client script (localhost:5173)
+    echo ""
+    echo -e "${BLUE}Removing public/hot to prevent Vite dev client injection...${NC}"
+    docker_exec assets sh -lc 'rm -f /var/www/html/public/hot || true'
+
+    if run_php_tests --filter ./tests/Browser "${TEST_ARGS[@]}"; then
+        echo ""
+        echo -e "${GREEN}✅ E2E tests passed${NC}"
+        E2E_SUCCESS=true
+    else
+        echo ""
+        echo -e "${RED}❌ E2E tests failed${NC}"
         E2E_SUCCESS=false
     fi
-
-    if [ "$E2E_SUCCESS" = true ]; then
-        if run_php_tests browser php-e2e --testsuite=Browser "${TEST_ARGS[@]}"; then
-            echo ""
-            echo -e "${GREEN}✅ E2E tests passed${NC}"
-            E2E_SUCCESS=true
-        else
-            echo ""
-            echo -e "${RED}❌ E2E tests failed${NC}"
-            E2E_SUCCESS=false
-        fi
-    fi
-
-    cleanup_environment browser browser
 fi
 
-# Final Summary
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}📊 Test Summary${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+cleanup_environment
 
-if [ "$RUN_PHP" = true ]; then
-    if [ "$PHP_SUCCESS" = true ]; then
-        echo -e "  ${GREEN}✅ PHP (Pest): PASSED${NC}"
-    else
-        echo -e "  ${RED}❌ PHP (Pest): FAILED${NC}"
-    fi
-fi
-
-if [ "$RUN_VUE" = true ]; then
-    if [ "$VUE_SUCCESS" = true ]; then
-        echo -e "  ${GREEN}✅ Vue (Vitest): PASSED${NC}"
-    else
-        echo -e "  ${RED}❌ Vue (Vitest): FAILED${NC}"
-    fi
-fi
-
-if [ "$RUN_E2E" = true ]; then
-    if [ "$E2E_SUCCESS" = true ]; then
-        echo -e "  ${GREEN}✅ E2E (Playwright): PASSED${NC}"
-    else
-        echo -e "  ${RED}❌ E2E (Playwright): FAILED${NC}"
-    fi
-fi
-
-echo ""
-
-# Exit with appropriate code
+# Step 6: Summary of results
 if [ "$PHP_SUCCESS" = true ] && [ "$VUE_SUCCESS" = true ] && [ "$E2E_SUCCESS" = true ]; then
+    echo ""
     echo -e "${GREEN}🎉 All tests passed!${NC}"
     exit 0
 else
+    echo ""
     echo -e "${RED}💥 Some tests failed${NC}"
     exit 1
 fi

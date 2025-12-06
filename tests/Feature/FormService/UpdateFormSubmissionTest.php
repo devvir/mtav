@@ -15,12 +15,12 @@ describe('Update Form Submissions', function () {
     it('accepts update with no changes for :entity', function (string $entity, int $entityId, string $editRoute, string $updateRoute) {
         // Get entity model
         $modelClass = match ($entity) {
-            'admin' => Admin::class,
-            'family' => Family::class,
-            'member' => Member::class,
-            'unit' => Unit::class,
+            'admin'     => Admin::class,
+            'family'    => Family::class,
+            'member'    => Member::class,
+            'unit'      => Unit::class,
             'unit_type' => UnitType::class,
-            'event' => Event::class,
+            'event'     => Event::class,
         };
 
         // Fetch form specs
@@ -51,11 +51,11 @@ describe('Update Form Submissions', function () {
             }
         }
     })->with([
-        'admin' => ['admin', 11, 'admins.edit', 'admins.update'],
-        'family' => ['family', 1, 'families.edit', 'families.update'],
-        'unit' => ['unit', 1, 'units.edit', 'units.update'],
+        'admin'     => ['admin', 11, 'admins.edit', 'admins.update'],
+        'family'    => ['family', 1, 'families.edit', 'families.update'],
+        'unit'      => ['unit', 1, 'units.edit', 'units.update'],
         'unit_type' => ['unit_type', 1, 'unit_types.edit', 'unit_types.update'],
-        'event' => ['event', 1, 'events.edit', 'events.update'],
+        'event'     => ['event', 1, 'events.edit', 'events.update'],
     ]);
 
     // Additional specific validation tests (not consolidated since they test specific edge cases)
@@ -65,9 +65,9 @@ describe('Update Form Submissions', function () {
             $specs = extractFormSpecs($response);
 
             $updateData = [
-                'email' => 'updated-admin11@example.com',
+                'email'     => 'updated-admin11@example.com',
                 'firstname' => 'Updated',
-                'lastname' => 'Name',
+                'lastname'  => 'Name',
             ];
 
             $this->patch(route('admins.update', 11), $updateData)

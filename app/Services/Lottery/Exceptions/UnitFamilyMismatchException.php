@@ -19,8 +19,8 @@ class UnitFamilyMismatchException extends Exception
     public function __construct(
         private readonly Collection $mismatches
     ) {
-        $details = $mismatches->map(fn ($m) =>
-            "Unit type '{$m['unit_type_name']}' has {$m['units_count']} units for {$m['families_count']} families"
+        $details = $mismatches->map(
+            fn ($m) => "Unit type '{$m['unit_type_name']}' has {$m['units_count']} units for {$m['families_count']} families"
         )->join('; ');
 
         parent::__construct("Unit/family mismatch detected: {$details}");
@@ -44,18 +44,18 @@ class UnitFamilyMismatchException extends Exception
             if ($unitsCount > $familiesCount) {
                 return __('lottery.mismatch_excess_units', [
                     'unit_type' => "\"{$unitTypeName}\"",
-                    'units' => $unitsCount,
-                    'families' => $familiesCount,
+                    'units'     => $unitsCount,
+                    'families'  => $familiesCount,
                 ]);
             }
 
             return __('lottery.mismatch_insufficient_units', [
                 'unit_type' => "\"{$unitTypeName}\"",
-                'units' => $unitsCount,
-                'families' => $familiesCount,
+                'units'     => $unitsCount,
+                'families'  => $familiesCount,
             ]);
         })->join(", ");
 
-        return __('lottery.unit_family_mismatch_intro')." ".$details;
+        return __('lottery.unit_family_mismatch_intro') . " " . $details;
     }
 }

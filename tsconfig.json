@@ -41,7 +41,6 @@
       "vite/client",
       "vitest/globals",
       "./resources/js/types",
-      "cypress"
     ] /* Specify type package names to be included without being referenced in a source file. */,
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
@@ -119,8 +118,7 @@
     "resources/js/**/*.tsx",
     "resources/js/**/*.vue",
     "resources/js/**/*.json",
-    "auto-imports.d.ts",
-    "tests/e2e/**/*.ts"
+    "auto-imports.d.ts"
   ],
   "exclude": [
     "node_modules"

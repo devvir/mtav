@@ -6,7 +6,6 @@ use App\Http\Requests\CreateProjectRequest;
 use App\Http\Requests\IndexProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
-use App\Models\User;
 use App\Services\Form\FormService;
 use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;

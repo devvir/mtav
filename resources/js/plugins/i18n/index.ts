@@ -19,10 +19,10 @@ const replacedSfc = (code: string): string => {
 
   codeBits.push(`const locale = document.documentElement.lang?.replace('-', '_') ?? 'en'`);
   codeBits.push(`const _ = dicts[locale]`);
-  console.log('BITS', codeBits);
+  // console.log('BITS', codeBits);
   codeBits.push(code.replace(/"\s*{([^}]+?)}\s*"/g, `_("$1") ?? "$1"`));
 
-  console.log('CODE', code);
+  // console.log('CODE', code);
   return codeBits.join(';\n');
 };
 

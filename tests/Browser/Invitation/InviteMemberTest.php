@@ -1,7 +1,8 @@
 <?php
 
-test('homepage displays expected content', function () {
+test('Login page displays expected content', function () {
     visit('/login')
         ->screenshot(filename: 'homepage')
+        ->assertSee('email')
         ->assertNoSmoke();
 });

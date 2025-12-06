@@ -2,6 +2,7 @@ FROM ghcr.io/devvir/mtav-php-base
 
 # Install Xdebug for development (coverage, debugging)
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers \
+    && apk add --no-cache nodejs npm \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && apk del .build-deps

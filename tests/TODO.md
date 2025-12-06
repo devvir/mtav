@@ -46,41 +46,13 @@
 - Required fields marked
 - Values pre-filled for update forms
 
----
-
-## Authentication E2E Testing (FUTURE - LOW PRIORITY)
-
-**Goal**: Full user workflow testing with real browser interaction.
-
-**Technology**: Pest Browser Testing (already decided over Cypress)
-
-**Deferred Scenarios** (from Phase 1):
-- [ ] Validation error messages in UI
-- [ ] Validation edge cases (missing fields, invalid formats)
-- [ ] Authorization failures (unauthorized access attempts)
-- [ ] Multi-step workflows
-
-**Additional Auth Workflows**:
-- All checkboxes in `tests/AUTH_TESTING.md` are ✅, but need E2E verification:
-  - Login/logout flows
-  - Password reset complete flow
-  - Email verification flow
-  - Registration/invitation flow
-  - Rate limiting & throttling
-  - Security & edge cases
-  - UI/UX validation
-
----
-
 ## Test Infrastructure
 
 **Completed**:
-- ✅ Pest Browser Testing setup documented (`documentation/ai/testing/BROWSER_TESTING.md`)
 - ✅ Universe fixture loaded and working
 - ✅ FormService test helpers (`tests/Helpers/formService.php`)
 
 **Pending**:
-- [ ] Add `tests/Browser/Screenshots` to `.gitignore` (when starting E2E tests)
 - [ ] Create form submission helper: `buildFormData(array $specs, ?Model $model = null)`
 - [ ] Create submission helper: `submitForm(string $route, array $data, ?int $entityId = null)`
 
