@@ -13,43 +13,64 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Ensure Docker CLI available
+        run: docker --version
+
+      - name: Make scripts executable
+        run: chmod +x ./.docker/scripts/*.sh || true
+
+      - name: Make `mtav` executable
+        run: chmod +x ./mtav || true
+
+      - name: Log in to GHCR (use `GHCR_PAT` secret if present, else `GITHUB_TOKEN`)
+        run: |
+          if [ -n "${{ secrets.GHCR_PAT }}" ]; then
+            echo 'Using GHCR_PAT secret to login to ghcr.io';
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin;
+          else
+            echo 'Using GITHUB_TOKEN to login to ghcr.io';
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin;
+          fi
+
+      - name: Run full test suite via `mtav`
+        # Use the repo's `mtav` wrapper so CI mirrors local Docker usage
+        run: |
+          echo '--- Running PHP (Pest) tests ---'
+          ./mtav pest -- --colors || { echo 'Pest tests failed'; exit 1; }
+
+          echo '--- Running E2E (Playwright) tests ---'
+          ./mtav e2e -- --colors || { echo 'E2E tests failed'; exit 1; }
+
+      - name: Collect compose logs (upload as artifact)
+        if: always()
+        run: |
+          echo 'Collecting compose logs for php, assets, and playwright';
+          ./.docker/scripts/compose.sh logs --no-color --tail 100 php > ci-php-logs.txt || true;
+          ./.docker/scripts/compose.sh logs --no-color --tail 200 assets > ci-assets-logs.txt || true;
+          ./.docker/scripts/compose.sh logs --no-color --tail 200 playwright > ci-playwright-logs.txt || true;
+          echo 'Saving docker ps output'; docker ps -a > ci-docker-ps.txt || true
+
+      - name: Upload CI logs
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          php-version: 8.4
-          tools: composer:v2
-          coverage: xdebug
+          name: ci-container-logs
+          path: |
+            ci-php-logs.txt
+            ci-assets-logs.txt
+            ci-playwright-logs.txt
+            ci-docker-ps.txt
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install Node Dependencies
-        run: npm ci
-
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: Copy Environment File
-        run: cp .env.template .env
-
-      - name: Generate Application Key
-        run: php artisan key:generate
-
-      - name: Publish Ziggy Configuration
-        run: php artisan ziggy:generate
-
-      - name: Build Assets
-        run: npm run build
-
-      - name: Tests
-        run: ./vendor/bin/pest
+      - name: Tear down compose environment
+        if: always()
+        # `mtav` should leave the environment running in testing profile; ensure cleanup
+        run: ./.docker/scripts/compose.sh down --profile testing --volumes --remove-orphans || true

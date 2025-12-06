@@ -104,10 +104,28 @@ fi
 echo ""
 echo -e "${BLUE}Starting testing environment...${NC}"
 "$(dirname "$0")/up.sh" testing --detach --quiet-pull
+
 echo ""
+echo -e "${BLUE}Installing PHP dependencies...${NC}"
+if ! docker_exec php composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
+    echo ""
+    echo -e "${RED}❌ composer install failed${NC}";
+    cleanup_environment
+    exit 1
+fi
+
+echo ""
+echo -e "${BLUE}Installing Node dependencies...${NC}"
+if ! docker_exec assets npm install --no-save; then
+    echo ""
+    echo -e "${RED}❌ npm install failed${NC}";
+    cleanup_environment
+    exit 1
+fi
 
 # Step 3: Run PHP tests (if requested)
 if [ "$RUN_PHP" = true ]; then
+    echo ""
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}📦 PHP Tests (Pest)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -125,6 +143,7 @@ fi
 
 # Step 4: Run Vue tests (if requested)
 if [ "$RUN_VUE" = true ]; then
+    echo ""
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}🎨 Vue Tests (Vitest)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -142,18 +161,10 @@ fi
 
 # Step 5: Run Pest-E2E tests (if requested)
 if [ "$RUN_E2E" = true ]; then
+    echo ""
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-    echo ""
-    echo -e "${BLUE}Installing node dependencies inside PHP container...${NC}"
-    if ! docker_exec assets npm install --no-save; then
-        echo ""
-        echo -e "${RED}❌ npm install failed${NC}";
-        cleanup_environment
-        exit 1
-    fi
 
     if ! docker_exec assets npm run build; then
         echo ""
