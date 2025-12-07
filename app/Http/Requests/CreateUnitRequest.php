@@ -14,6 +14,7 @@ class CreateUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'project_id'   => 'required|exists:projects,id',
             'unit_type_id' => [
                 'required',
                 new BelongsToProject(

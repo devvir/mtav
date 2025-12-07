@@ -12,7 +12,7 @@ class CreateUnitTypeRequest extends FormRequest
     {
         return [
             'name'        => 'required|string|between:2,255',
-            'description' => 'required|string|between:3,200',
+            'description' => 'required|string|between:2,255',
         ];
     }
 }

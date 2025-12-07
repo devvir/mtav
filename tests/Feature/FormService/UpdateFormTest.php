@@ -253,8 +253,8 @@ describe('UnitTypeController::edit()', function () {
             'description' => [
                 'element'  => 'input',
                 'label'    => 'Description',
-                'max'      => 200,
-                'min'      => 3,
+                'max'      => 255,
+                'min'      => 2,
                 'required' => true,
                 'type'     => 'text',
                 'value'    => 'Description 1',

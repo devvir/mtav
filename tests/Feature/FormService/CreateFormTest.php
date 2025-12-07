@@ -333,14 +333,16 @@ describe('UnitController::create()', function () {
         $response = $this->visitRoute('units.create', asAdmin: 11);
 
         assertFormGeneration($response, FormType::CREATE, 'unit', specs: [
-            'identifier' => [
-                'element'  => 'input',
-                'label'    => 'Identifier',
-                'max'      => 255,
-                'min'      => 2,
+            'project_id' => [
+                'element'  => 'select',
+                'hidden'   => true,
+                'label'    => 'Project',
+                'multiple' => false,
+                'options'  => [
+                    1 => 'Project 1',
+                ],
                 'required' => true,
-                'type'     => 'text',
-                'value'    => null,
+                'selected' => 1,
             ],
             'unit_type_id' => [
                 'element'    => 'select',
@@ -357,6 +359,15 @@ describe('UnitController::create()', function () {
                 'required' => true,
                 'selected' => null,
             ],
+            'identifier' => [
+                'element'  => 'input',
+                'label'    => 'Identifier',
+                'max'      => 255,
+                'min'      => 2,
+                'required' => true,
+                'type'     => 'text',
+                'value'    => null,
+            ],
         ]);
     });
 });
@@ -370,8 +381,8 @@ describe('UnitTypeController::create()', function () {
             'description' => [
                 'element'  => 'input',
                 'label'    => 'Description',
-                'max'      => 200,
-                'min'      => 3,
+                'max'      => 255,
+                'min'      => 2,
                 'required' => true,
                 'type'     => 'text',
                 'value'    => null,
