@@ -24,9 +24,9 @@ class CreateEventRequest extends FormRequest
         return [
             'project_id'   => 'required|exists:projects,id',
             'type'         => ['required', Rule::enum(EventType::class)->except(EventType::LOTTERY)],
-            'title'        => 'required|string|max:255',
-            'description'  => 'required|string|between:5,500',
-            'location'     => ['nullable', 'max:500', $isOnlineEvent ? 'url' : 'string'],
+            'title'        => 'required|string|between:2,255',
+            'description'  => 'required|string|between:2,255',
+            'location'     => ['nullable', 'between:2,255', $isOnlineEvent ? 'url' : 'string'],
             'start_date'   => 'nullable|date',
             'end_date'     => 'nullable|date|after:start_date',
             'is_published' => 'boolean',

@@ -17,7 +17,7 @@ class CreateMixedTestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'        => 'required|string|max:255',
+            'title'        => 'required|string|between:2,255',
             'description'  => 'nullable|string',
             'price'        => 'required|numeric|min:0|max:999999.99',
             'quantity'     => 'required|integer|between:1,1000',

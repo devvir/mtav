@@ -25,7 +25,7 @@ expect()->extend('toBeNotFound', fn () => $this->fail('toBeNotFound is not defin
 
 // Polymorphic Eloquent expectations
 expect()->extend('toExist', fn () => $this->fail('toExist is not defined for the given input'));
-expect()->extend('toNotExist', fn () => $this->fail('toNotExist is not defined for the given input'));
+expect()->extend('notToExist', fn () => $this->fail('notToExist is not defined for the given input'));
 expect()->extend('toBeAdmin', fn () => $this->fail('toBeAdmin is not defined for the given input'));
 expect()->extend('toBeMember', fn () => $this->fail('toBeMember is not defined for the given input'));
 
@@ -69,7 +69,7 @@ expect()->intercept(
     fn () => $this->exists()->toBeTrue(message: 'The entity or entities do not exist')
 );
 expect()->intercept(
-    'toNotExist',
+    'notToExist',
     Builder::class,
     fn () => $this->exists()->toBeFalse(message: 'The entity or entities do exist')
 );

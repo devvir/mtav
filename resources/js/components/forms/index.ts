@@ -1,4 +1,5 @@
 export { default as Form } from './Form.vue';
+export { default as FormAside } from './FormAside.vue';
 export { default as FormElement } from './FormElement.vue';
 export { default as FormError } from './FormError.vue';
 export { default as FormInput } from './FormInput.vue';

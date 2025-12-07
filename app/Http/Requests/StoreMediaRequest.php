@@ -13,7 +13,7 @@ class StoreMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'description' => 'required|string|max:500',
+            'description' => 'required|string|between:2,255',
             'files'       => 'required|array|min:1',
             'files.*'     => [
                 'file',
@@ -26,12 +26,10 @@ class StoreMediaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'description.required' => __('validation.media_description_required'),
-            'description.max'      => __('validation.media_description_too_long'),
-            'files.required'       => __('validation.media_file_required'),
-            'files.min'            => __('validation.media_file_required'),
-            'files.*.max'          => __('validation.media_file_too_large'),
-            'files.*.mimes'        => __('validation.media_invalid_file_type'),
+            'files.required' => __('validation.media_file_required'),
+            'files.min'      => __('validation.media_file_required'),
+            'files.*.max'    => __('validation.media_file_too_large'),
+            'files.*.mimes'  => __('validation.media_invalid_file_type'),
         ];
     }
 }

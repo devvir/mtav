@@ -13,8 +13,8 @@ return new class () extends Migration {
             $table->id();
             $table->string('name')->unique();
             $table->string('description');
-            $table->string('organization');
-            $table->boolean('active')->default(false);
+            $table->string('organization')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });

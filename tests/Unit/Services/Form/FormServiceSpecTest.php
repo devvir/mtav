@@ -19,7 +19,7 @@ beforeEach(function () {
 
 describe('SpecFactory - Determines Spec Type', function () {
     it('creates SpecInput for string fields', function () {
-        $rule = Rule::make('name', 'required|string|max:255');
+        $rule = Rule::make('name', 'required|string|between:2,255');
         $spec = SpecFactory::make($rule);
 
         expect($spec)->toBeInstanceOf(SpecInput::class);
@@ -91,7 +91,7 @@ describe('SpecFactory - Determines Spec Type', function () {
 
 describe('SpecInput - Field Generation', function () {
     it('generates text input spec', function () {
-        $rule = Rule::make('name', 'required|string|max:255');
+        $rule = Rule::make('name', 'required|string|between:2,255');
         $spec = SpecFactory::make($rule);
         $array = $spec->toArray();
 

@@ -16,7 +16,25 @@ abstract class Spec implements JsonSerializable
     ) {
         $this->buildSpec();
 
-        $this->spec['label'] = $this->generateLabel();
+        $this->spec['label'] = static::labelFromField($this->rule->getFieldName());
+    }
+
+    /**
+     * Infer a human-readable, localizable label from the field name.
+     */
+    public static function labelFromField(string $field): string
+    {
+        $label = preg_replace('/^is_/', '', $field);    // Remove is_ prefix (bool field)
+        $label = preg_replace('/_ids?$/', '', $label);  // Remove id/ids suffix
+        $label = str_replace('_', ' ', $label);         // Separate words
+        $label = ucwords($label);                       // Capitalize words
+
+        // Pluralize *_ids field's label
+        if (str_ends_with($field, '_ids')) {
+            $label = str($label)->plural()->toString();
+        }
+
+        return $label;
     }
 
     abstract protected function buildSpec(): void;
@@ -29,25 +47,5 @@ abstract class Spec implements JsonSerializable
     public function jsonSerialize(): array
     {
         return $this->toArray();
-    }
-
-    /**
-     * Infer a human-readable, localizable label from the field name.
-     */
-    protected function generateLabel(): string
-    {
-        $field = $this->rule->getFieldName();
-
-        $label = preg_replace('/^is_/', '', $field);    // Remove is_ prefix (bool field)
-        $label = preg_replace('/_ids?$/', '', $label);  // Remove id/ids suffix
-        $label = str_replace('_', ' ', $label);         // Separate words
-        $label = ucwords($label);                       // Capitalize words
-
-        // Pluralize *_ids field's label
-        if (str_ends_with($field, '_ids')) {
-            $label = str($label)->plural()->toString();
-        }
-
-        return $label;
     }
 }

@@ -12,16 +12,18 @@
 
 use App\Events\UserRegistration;
 use App\Models\Admin;
-use App\Models\Family;
 use App\Models\Member;
-use App\Models\Project;
 use App\Notifications\AdminInvitationNotification;
 use App\Notifications\MemberInvitationNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 uses()->group('Feature.Invitation');
 
 beforeEach(function () {
+    /** Avoid running inside a transaction (SendUserInvitation implements ShouldQueueAfterCommit) */
+    DB::rollback();
+
     Notification::fake();
 });
 

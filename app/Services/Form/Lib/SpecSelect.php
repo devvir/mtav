@@ -51,8 +51,6 @@ class SpecSelect extends Spec
         // Determine if multiple select based on array type or relation type
         $this->spec['multiple'] = $this->isMultipleSelect();
 
-        $this->spec['label'] = $this->generateLabel();
-
         // Add required flag
         if ($this->rule->required) {
             $this->spec['required'] = true;

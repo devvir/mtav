@@ -70,9 +70,3 @@ if [[ "$PROFILE" == "dev" ]] || [[ "$PROFILE" == "testing" ]]; then
         echo -e "${GREEN}✅ Database is ready!${NC}" || \
         echo -e "${YELLOW}⚠️  Database health check timed out (containers may still be starting)${NC}"
 fi
-
-            # Ensure PHP container has correct git safe.directory and writable vendor directory
-            echo -e "${BLUE}🔧 Fixing repository permissions inside php container (as root)...${NC}"
-            # Run as root to avoid permission errors when creating/chowning mounted dirs
-            docker_compose exec -T --user root php bash -lc "git config --global --add safe.directory /var/www/html || true"
-            docker_compose exec -T --user root php bash -lc "mkdir -p /var/www/html/vendor && chmod -R a+rwx /var/www/html/vendor || true"

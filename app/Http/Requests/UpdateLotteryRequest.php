@@ -20,7 +20,7 @@ class UpdateLotteryRequest extends FormRequest
     {
         return [
             'start_date'  => 'nullable|date',
-            'description' => 'required|string|between:5,500',
+            'description' => 'required|string|between:2,255',
         ];
     }
 }

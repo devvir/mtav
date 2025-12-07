@@ -118,11 +118,17 @@ class Project extends Model
 
     public function addAdmin(Admin|int $adminOrId): self
     {
-        $this->admins()->syncWithPivotValues(
-            $adminOrId,
-            ['active' => true],
-            detaching: false
-        );
+        return $this->addAdmins($adminOrId);
+    }
+
+    /**
+     * @param  Collection|Model|array|int  $ids
+    */
+    public function addAdmins(Collection|Model|array|int $ids): self
+    {
+        $this->admins()->syncWithPivotValues($ids, [
+            'active' => true,
+        ], detaching: false);
 
         return $this;
     }

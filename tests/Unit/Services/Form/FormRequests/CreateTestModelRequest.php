@@ -14,7 +14,7 @@ class CreateTestModelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => 'required|string|max:255',
+            'name'  => 'required|string|between:2,255',
             'email' => 'required|email',
             'age'   => 'nullable|integer|min:1|max:120',
         ];

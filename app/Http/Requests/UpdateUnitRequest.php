@@ -24,7 +24,7 @@ class UpdateUnitRequest extends FormRequest
                     'validation.unit_type_belongs_to_project'
                 ),
             ],
-            'identifier' => 'required|string|max:255',
+            'identifier' => 'required|string|between:2,255',
         ];
     }
 }

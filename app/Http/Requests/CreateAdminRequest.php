@@ -18,7 +18,7 @@ class CreateAdminRequest extends FormRequest
         return [
             'project_ids'   => 'required|array',
             'project_ids.*' => 'exists:projects,id',
-            'email'         => 'required|email|max:255|unique:users,email',
+            'email'         => 'required|email|between:2,255|unique:users,email',
             'firstname'     => 'required|string|between:2,80',
             'lastname'      => 'nullable|string|between:2,80',
         ];

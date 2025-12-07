@@ -186,6 +186,8 @@ describe('Upon a successful Member invitation', function () {
     });
 
     it('sends an invitation email', function () {
+        /** Avoid running inside a transaction (SendUserInvitation implements ShouldQueueAfterCommit) */
+        DB::rollback();
         Notification::fake();
 
         $this->submitFormToRoute('members.store', asAdmin: 11, data: [

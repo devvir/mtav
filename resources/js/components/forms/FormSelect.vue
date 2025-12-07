@@ -41,8 +41,9 @@ watch(
           :id
           :name="`${name}[]`"
           v-bind="$attrs"
-          class="invisible absolute"
+          class="absolute -bottom-96 text-transparent bg-transparent"
           tabindex="-1"
+          @click.stop
         >
           <option
             v-for="(label, value) in options"

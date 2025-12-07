@@ -1,5 +1,7 @@
 <?php
 
+// Copilot - Pending review
+
 namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\CreateProjectRequest;
@@ -8,6 +10,7 @@ use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Services\Form\FormService;
 use App\Services\Form\FormType;
+use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -54,12 +57,24 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function store(CreateProjectRequest $request): RedirectResponse
+    public function store(CreateProjectRequest $request, InvitationService $invitationService): RedirectResponse
     {
-        $project = DB::transaction(fn () => tap(
-            Project::create($request->only('name', 'description', 'organization')),
-            fn ($project) => $project->admins()->attach($request->admins)
-        ));
+        $project = DB::transaction(function () use ($request, $invitationService) {
+            $project = Project::create($request->only('name', 'description', 'organization'));
+            $admins = $request->admins ?? [];
+
+            if ($request->new_admin_email && $request->new_admin_firstname) {
+                $admins[] = $invitationService->inviteAdmin([
+                    'email'     => $request->new_admin_email,
+                    'firstname' => $request->new_admin_firstname,
+                    'lastname'  => $request->new_admin_lastname,
+                ], [ $project->id ]);
+            }
+
+            count($admins) && $project->addAdmins($admins);
+
+            return $project;
+        });
 
         return to_route('projects.show', $project)
             ->with('success', __('flash.project_created'));

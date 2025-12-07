@@ -12,7 +12,7 @@ class FilteredIndexRequest extends ProjectScopedRequest
     {
         return [
             'project_id' => 'nullable|exists:projects,id',
-            'q'          => 'nullable|string|max:255',
+            'q'          => 'nullable|string|between:2,255',
         ];
     }
 }

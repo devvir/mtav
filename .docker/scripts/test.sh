@@ -78,14 +78,15 @@ run_php_tests() {
 
 cleanup_environment() {
     echo ""
+    echo -e "${BLUE}Stopping testing environment...${NC}"
+    docker_compose --profile testing down || true
+}
+
+cleanup_built_assets() {
+    echo ""
     # Remove the built assets so the host and containers are not polluted
     echo -e "${BLUE}Removing built assets (public/build) from php container...${NC}"
     docker_exec php bash -lc 'rm -rf /var/www/html/public/build || true'
-
-    echo ""
-    # echo -e "${BLUE}Stopping testing environment...${NC}"
-    # docker_compose --profile testing down || true
-    echo ""
 }
 
 echo -e "${BLUE}🧪 Test Suite${NC}"
@@ -110,15 +111,6 @@ echo -e "${BLUE}Installing PHP dependencies...${NC}"
 if ! docker_exec php composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
     echo ""
     echo -e "${RED}❌ composer install failed${NC}";
-    cleanup_environment
-    exit 1
-fi
-
-echo ""
-echo -e "${BLUE}Installing Node dependencies...${NC}"
-if ! docker_exec assets npm install --no-save; then
-    echo ""
-    echo -e "${RED}❌ npm install failed${NC}";
     cleanup_environment
     exit 1
 fi
@@ -166,19 +158,31 @@ if [ "$RUN_E2E" = true ]; then
     echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
+    echo ""
+    echo -e "${BLUE}Installing Node dependencies...${NC}"
+    if ! docker_exec assets npm install --no-save; then
+        echo ""
+        echo -e "${RED}❌ npm install failed${NC}";
+        cleanup_built_assets
+        cleanup_environment
+        exit 1
+    fi
+
+    echo ""
+    echo -e "${BLUE}Building assets...${NC}"
     if ! docker_exec assets npm run build; then
         echo ""
         echo -e "${RED}❌ npm run build failed${NC}";
+        cleanup_built_assets
         cleanup_environment
-        exit 1b
+        exit 1
     fi
 
-    # Remove Vite hot file so Blade does not emit the dev client script (localhost:5173)
     echo ""
     echo -e "${BLUE}Removing public/hot to prevent Vite dev client injection...${NC}"
     docker_exec assets sh -lc 'rm -f /var/www/html/public/hot || true'
 
-    if run_php_tests --filter ./tests/Browser "${TEST_ARGS[@]}"; then
+    if run_php_tests --testsuite Browser "${TEST_ARGS[@]}"; then
         echo ""
         echo -e "${GREEN}✅ E2E tests passed${NC}"
         E2E_SUCCESS=true
@@ -187,6 +191,8 @@ if [ "$RUN_E2E" = true ]; then
         echo -e "${RED}❌ E2E tests failed${NC}"
         E2E_SUCCESS=false
     fi
+
+    cleanup_built_assets
 fi
 
 cleanup_environment

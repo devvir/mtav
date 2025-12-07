@@ -7,9 +7,9 @@ use App\Models\Admin;
 use App\Models\Member;
 use App\Notifications\AdminInvitationNotification;
 use App\Notifications\MemberInvitationNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 
-class SendUserInvitation implements ShouldQueue
+class SendUserInvitation implements ShouldQueueAfterCommit
 {
     public function handle(UserRegistration $event): void
     {

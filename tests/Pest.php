@@ -3,26 +3,25 @@
 use Illuminate\Support\Facades\DB;
 use Pest\Browser\Playwright\Servers\ExternalPlaywrightServer;
 use Tests\TestCase;
+use Tests\TestCaseBrowser;
 
 /**
- * Set global TestCase class and hooks.
+ * Unit/Feature testing
  */
 pest()
     ->extend(TestCase::class)
-    ->beforeEach(fn () => DB::beginTransaction())
-    ->afterEach(fn () => DB::rollback());
-
-/**
- * Disable Vite in backend tests to avoid asset dependency
- * @see [Laracasts] Learn Laravel and Vite @ Lesson 7
- */
-pest()
     ->beforeEach(fn () => $this->withoutVite())
+    ->beforeEach(fn () => DB::beginTransaction())
+    ->afterEach(fn () => DB::rollback())
     ->in('Unit', 'Feature');
 
 /**
  * Browser testing
  */
+pest()
+    ->extend(TestCaseBrowser::class)
+    ->in('Browser');
+
 ExternalPlaywrightServer::use('playwright', 5000);
 
 /**

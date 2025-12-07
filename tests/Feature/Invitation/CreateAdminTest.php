@@ -213,6 +213,8 @@ describe('Upon a successful Admin invitation', function () {
     });
 
     it('sends an invitation email', function () {
+        /** Avoid running inside a transaction (SendUserInvitation implements ShouldQueueAfterCommit) */
+        DB::rollback();
         Notification::fake();
 
         $this->submitFormToRoute('admins.store', asAdmin: 11, data: [

@@ -18,11 +18,11 @@ class UpdateProjectRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                'max:255',
+                'between:2,255',
                 Rule::unique(Project::class)->ignore($this->route('project')),
             ],
-            'description'  => ['required', 'string', 'max:65535'],
-            'organization' => ['required', 'string', 'max:255'],
+            'description'  => 'required|string|between:2,500',
+            'organization' => 'required|string|between:2,255',
         ];
     }
 }
