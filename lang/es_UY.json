@@ -218,6 +218,8 @@
   "How it works": "Cómo funciona",
   "I understand the risks and want to proceed anyway": "Entiendo los riesgos y quiero continuar de todas formas",
   "Icon": "Icono",
+  "Firstname": "Nombre",
+  "Lastname": "Apellido",
   "If you prefer to invite a new Admin, email and firstname are required": "Si prefieres invitar a un nuevo Admin, el email y nombre son obligatorios",
   "If you were invited to a Project, please follow the link you received in your email.": "Si fuiste invitado a un Proyecto, por favor sigue el enlace que recibiste en tu email.",
   "Image": "Imagen",
