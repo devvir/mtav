@@ -1,5 +1,14 @@
 type Replacements = Record<string, string>;
 
+// Import supported locales explicitly
+import esUY from '@lang/es_UY.json';
+import en from '@lang/en.json';
+
+const locales = {
+  es_UY: esUY,
+  en: en,
+};
+
 export const useTranslation = () => {
   const locale = ref<string>(document.documentElement.lang || 'en');
   const translations = ref<Record<string, string>>({});
@@ -7,12 +16,10 @@ export const useTranslation = () => {
   const setLocale = async (newLocale: string): Promise<void> => {
     newLocale = newLocale.replace('-', '_');
 
-    const newTranslations: Record<string, string> = (
-      await import(`../../../lang/${newLocale}.json`)
-    )?.default;
+    const newTranslations = locales[newLocale as keyof typeof locales] || locales.en;
 
     if (!newTranslations) {
-      return console.warn(`Locale '${newLocale}' not found.`);
+      return console.warn(`Locale '${newLocale}' not found, falling back to English.`);
     }
 
     locale.value = newLocale;

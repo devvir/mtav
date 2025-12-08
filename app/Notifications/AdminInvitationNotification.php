@@ -11,8 +11,10 @@ class AdminInvitationNotification extends Notification implements LocalizedEmail
 {
     use LocalizableEmail;
 
-    public function __construct(public string $token)
-    {
+    public function __construct(
+        public string $token,
+        public string $appUrl
+    ) {
         // ...
     }
 
@@ -38,10 +40,10 @@ class AdminInvitationNotification extends Notification implements LocalizedEmail
         return [
             'admin'           => $notifiable,
             'projects'        => $notifiable->projects,
-            'confirmationUrl' => route('invitation.edit', [
+            'confirmationUrl' => $this->appUrl . route('invitation.edit', [
                 'email' => $notifiable->email,
                 'token' => $this->token,
-            ]),
+            ], false),
         ];
     }
 }

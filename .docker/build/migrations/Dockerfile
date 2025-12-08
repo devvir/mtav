@@ -5,9 +5,6 @@ COPY composer.json composer.lock ./
 COPY packages/ packages/
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copy pre-generated production .env
-COPY .docker/build/.env.prod .env
-
 COPY artisan ./
 
 COPY app/ app/

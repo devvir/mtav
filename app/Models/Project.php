@@ -6,10 +6,12 @@ use App\Models\Concerns\HasMedia;
 use App\Observers\ProjectObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -121,10 +123,7 @@ class Project extends Model
         return $this->addAdmins($adminOrId);
     }
 
-    /**
-     * @param  Collection|Model|array|int  $ids
-    */
-    public function addAdmins(Collection|Model|array|int $ids): self
+    public function addAdmins(Collection|EloquentModel|array|int $ids): self
     {
         $this->admins()->syncWithPivotValues($ids, [
             'active' => true,

@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+COPY lang/ lang/
 COPY resources/ resources/
 COPY vite.config.ts tsconfig.json ./
 RUN npm run build

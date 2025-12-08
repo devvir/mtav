@@ -74,28 +74,28 @@ This file documents:
 
 ## Test Suite Strategy (2025-10-27)
 
-### Nov 3rd Priority Tracking
+### Priority-Based Test Execution
 
 **Decision**: Use Pest's `->group()` feature for priority-based test execution.
 
 **Pattern**: P0 (critical) → P1 (high) → P2 (medium) → P3 (low)
 
 **Rationale**:
-- Enable systematic TDD workflow focusing on Nov 3rd MVP requirements
+- Enable systematic TDD workflow focusing on critical requirements
 - Allow running specific priority levels via `--group` flag
 - Clear mapping of features to business priorities
 
 **Implementation**:
 
 - Created `tests/README.md` covering test philosophy, patterns, and organization
-- Created `tests/PRIORITIES.md` mapping Nov 3rd features to test files
+- Created `tests/PRIORITIES.md` mapping features to test files
 
 **Usage**:
 
 ```bash
 ./mtav test --pest --group=p0          # Run only critical tests
 ./mtav test --pest --group=p1          # Run only high priority
-./mtav test --pest --group=member-mvp  # Run all member-facing MVP tests
+./mtav test --pest --group=member-mvp  # Run all member-facing tests
 ```
 
 **Implications**:

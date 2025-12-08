@@ -90,10 +90,6 @@ This document contains the essential architectural principles, patterns, and con
 - **No heavy animations** (old device support)
 - **Simple, clear interfaces**: Generous spacing, obvious affordances
 
-**Dark Theme Colors** (non-negotiable):
-- Background: `hsl(210, 20%, 2%)`
-- Sidebar: `hsl(30, 30%, 6%)`
-
 **Reference**: See `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` for complete guidelines.
 
 ---
@@ -131,6 +127,26 @@ This document contains the essential architectural principles, patterns, and con
 - ⏳ Interactive project plan integration (Phase 3 - pending)
 
 **Reference**: See `resources/js/components/lottery/README.md` for complete technical documentation
+
+---
+
+## Queue Workers (Background Jobs)
+
+**Development**: Uses `sync` driver - jobs execute immediately in the request (no background processing)
+
+**Production**: Uses `database` driver with supervisord-managed queue workers:
+- **3-5 queue worker processes** managed by supervisord
+- Each worker polls `jobs` table, processes one job at a time
+- Auto-restart on failure, graceful shutdown, centralized logging
+- Config: `.docker/supervisord/supervisord.conf` in mtav-deploy submodule
+- Container: `queue` service in production compose
+
+**Queue Configuration**:
+- Default connection: `database` (set in `config/queue.php`)
+- Table: `jobs` (created during migrations)
+- Retry logic: 3 attempts, 90-second timeout between retries
+
+**Reference**: See `.docker/supervisord/supervisord.conf` for worker process configuration
 
 ---
 

@@ -1,12 +1,11 @@
 <?php
 
-// Copilot - pending review
-
 namespace App\Events;
 
 use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Request;
 
 class UserRegistration
 {
@@ -18,8 +17,10 @@ class UserRegistration
      */
     public function __construct(
         public User $user,
-        public string $token
+        public string $token,
+        public ?string $appUrl = null
     ) {
-        // ...
+        // Capture the current request URL if not provided
+        $this->appUrl ??= Request::getSchemeAndHttpHost();
     }
 }

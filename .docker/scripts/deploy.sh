@@ -80,12 +80,14 @@ ASSETS_TAG=$(grep "^assets:" "$VERSION_FILE" | sed "s/assets: *['\"]//g" | sed "
 NGINX_TAG=$(grep "^nginx:" "$VERSION_FILE" | sed "s/nginx: *['\"]//g" | sed "s/['\"] *$//g")
 MYSQL_TAG=$(grep "^mysql:" "$VERSION_FILE" | sed "s/mysql: *['\"]//g" | sed "s/['\"] *$//g")
 MIGRATIONS_TAG=$(grep "^migrations:" "$VERSION_FILE" | sed "s/migrations: *['\"]//g" | sed "s/['\"] *$//g")
+QUEUE_TAG=$(grep "^queue:" "$VERSION_FILE" | sed "s/queue: *['\"]//g" | sed "s/['\"] *$//g")
 
 echo "  PHP: $PHP_TAG"
 echo "  Assets: $ASSETS_TAG"
 echo "  Nginx: $NGINX_TAG"
 echo "  MySQL: $MYSQL_TAG"
 echo "  Migrations: $MIGRATIONS_TAG"
+echo "  Queue: $QUEUE_TAG"
 echo ""
 
 # Generate temporary APP_KEY for testing
@@ -105,6 +107,7 @@ ASSETS_TAG="$ASSETS_TAG" \
 NGINX_TAG="$NGINX_TAG" \
 MYSQL_TAG="$MYSQL_TAG" \
 MIGRATIONS_TAG="$MIGRATIONS_TAG" \
+QUEUE_TAG="$QUEUE_TAG" \
 APP_KEY="$APP_KEY" \
 docker compose --project-name test -f ".docker/deploy/compose.yml" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up "${DOCKER_ARGS[@]}"
 

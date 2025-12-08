@@ -87,8 +87,14 @@ if [ "$BUILD_ALL" = true ]; then
         exit 1
     fi
 
+    # Build app image first (local base image for php and queue)
+    print_info "Building app base image (required by php and queue)..."
+    docker build -f ".docker/build/app/Dockerfile" -t "mtav-app" .
+    print_success "Successfully built: mtav-app"
+    echo ""
+
     # Define all production services
-    ALL_SERVICES=("php" "assets" "nginx" "mysql" "migrations")
+    ALL_SERVICES=("php" "assets" "nginx" "mysql" "migrations" "queue")
 
     print_info "Building all production services with tag: ${TAG}"
     print_warning "This will build: ${ALL_SERVICES[*]}"
@@ -131,8 +137,8 @@ if [ "$BUILD_ALL" = true ]; then
 fi
 
 # Validate service for single-service build
-if [[ ! "$SERVICE" =~ ^(nginx|mysql|php|assets|migrations)$ ]]; then
-    print_error "Invalid service. Use: nginx, mysql, php, assets, or migrations"
+if [[ ! "$SERVICE" =~ ^(nginx|mysql|php|assets|migrations|queue)$ ]]; then
+    print_error "Invalid service. Use: nginx, mysql, php, assets, migrations, or queue"
     echo "Usage: $0 <service> <tag> [--push|--no-push]"
     echo "   or: $0 --all <tag> [--push|--no-push]"
     echo ""
@@ -160,6 +166,14 @@ fi
 REGISTRY="ghcr.io/devvir"
 IMAGE_NAME="mtav-${SERVICE}"
 VERSION_IMAGE="${REGISTRY}/${IMAGE_NAME}:${TAG}"
+
+# Build app base image first if building php or queue (they depend on it)
+if [[ "$SERVICE" =~ ^(php|queue)$ ]]; then
+    print_info "Building app base image (required by ${SERVICE})..."
+    docker build -f ".docker/build/app/Dockerfile" -t "mtav-app" .
+    print_success "Successfully built: mtav-app"
+    echo ""
+fi
 
 # Build the production image for the given service
 print_info "Building ${SERVICE} image: ${VERSION_IMAGE}..."

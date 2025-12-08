@@ -15,12 +15,13 @@ class SendUserInvitation implements ShouldQueueAfterCommit
     {
         $user = $event->user;
         $token = $event->token;
+        $appUrl = $event->appUrl;
 
         // Send notification based on user type
         if ($user instanceof Admin) {
-            $user->notify(new AdminInvitationNotification($token));
+            $user->notify(new AdminInvitationNotification($token, $appUrl));
         } elseif ($user instanceof Member) {
-            $user->notify(new MemberInvitationNotification($token));
+            $user->notify(new MemberInvitationNotification($token, $appUrl));
         }
     }
 }

@@ -66,8 +66,8 @@ E2E_SUCCESS=true
 run_php_tests() {
     local test_args=("$@")
 
-    echo -e "${BLUE}Running tests...${NC}"
     echo ""
+    echo -e "${BLUE}Running tests...${NC}"
 
     if docker_compose exec $DOCKER_TTY_FLAG -e DB_HOST=mysql_test -e DB_USERNAME=root -e DB_PASSWORD=root php php artisan test "${test_args[@]}"; then
         return 0

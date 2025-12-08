@@ -24,16 +24,7 @@ defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-const isDev = computed(() => import.meta.env.DEV || import.meta.env.MODE === 'development');
-
 const allFooterItems: FooterItem[] = [
-  {
-    title: _('Dev Dashboard'),
-    href: route('dev.dashboard'),
-    icon: Code,
-    if: isDev.value,
-    external: false,
-  },
   {
     title: _('Documentation'),
     href: route('documentation.faq', { role: iAmAdmin.value ? 'admin' : 'member' }),
@@ -48,6 +39,17 @@ const allFooterItems: FooterItem[] = [
     external: true,
   },
 ];
+
+const isDev = computed(() => import.meta.env.DEV || import.meta.env.MODE === 'development');
+
+if (isDev.value) {
+  allFooterItems.unshift({
+    title: _('Dev Dashboard'),
+    href: route('dev.dashboard'),
+    icon: Code,
+    external: false,
+  });
+}
 
 const footerItems = computed(() => allFooterItems.filter((item) => item.if !== false));
 </script>

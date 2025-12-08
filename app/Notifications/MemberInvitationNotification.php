@@ -12,8 +12,10 @@ class MemberInvitationNotification extends Notification implements LocalizedEmai
 {
     use LocalizableEmail;
 
-    public function __construct(public string $token)
-    {
+    public function __construct(
+        public string $token,
+        public string $appUrl
+    ) {
         // ...
     }
 
@@ -44,10 +46,10 @@ class MemberInvitationNotification extends Notification implements LocalizedEmai
             'member'          => $notifiable,
             'family'          => $notifiable->family,
             'project'         => $notifiable->project,
-            'confirmationUrl' => route('invitation.edit', [
+            'confirmationUrl' => $this->appUrl . route('invitation.edit', [
                 'email' => $notifiable->email,
                 'token' => $this->token,
-            ]),
+            ], false),
         ];
     }
 }

@@ -5,6 +5,8 @@
 namespace App\Services\Form\Lib;
 
 use App\Models\Project;
+use App\Models\Unit;
+use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -257,9 +259,18 @@ class SpecSelect extends Spec
         return $this->convertModelsToOptions($modelClass, $query->get());
     }
 
+    protected function getOptionLabel(string $modelClass): string|Closure
+    {
+        return match ($modelClass) {
+            User::class => fn (User $user) => "{$user->firstname} {$user->lastname}",
+            Unit::class => 'identifier',
+            default     => 'name',
+        };
+    }
+
     protected function convertModelsToOptions(string $modelClass, Collection $models): array
     {
-        $optionLabel = config('forms.optionLabel')[$modelClass] ?? 'name';
+        $optionLabel = $this->getOptionLabel($modelClass);
 
         // If optionLabel is a Closure, we need to map manually
         if ($optionLabel instanceof Closure) {
@@ -309,7 +320,7 @@ class SpecSelect extends Spec
 
     protected function getOptionsForModels($models, string $modelClass): array
     {
-        $optionLabel = config('forms.optionLabel')[$modelClass] ?? 'name';
+        $optionLabel = $this->getOptionLabel($modelClass);
 
         // If optionLabel is a Closure, map manually
         if ($optionLabel instanceof Closure) {
