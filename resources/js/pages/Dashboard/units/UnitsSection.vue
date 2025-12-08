@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// Copilot - pending review
+// Copilot - Pending review
 import { _ } from '@/composables/useTranslations';
 import { Building2 } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import UnitTypeCard from './UnitTypeCard.vue';
+import { can } from '@/composables/useAuth';
 
 defineProps<{
   unitTypes: UnitType[];
@@ -12,7 +13,13 @@ defineProps<{
 
 <template>
   <section>
-    <SectionHeader :title="_('Project Units')" view-all-href="units.index" />
+    <SectionHeader
+      :title="_('Project Units')"
+      view-all-href="units.index"
+      create-href="unit_types.create"
+      :create-if="can.create('unit_types')"
+      :create-label="_('Create Unit Type')"
+    />
     <div v-if="unitTypes.length > 0" class="grid gap-4 @2xl:grid-cols-2">
       <UnitTypeCard v-for="unitType in unitTypes" :key="unitType.id" :unitType="unitType" />
     </div>

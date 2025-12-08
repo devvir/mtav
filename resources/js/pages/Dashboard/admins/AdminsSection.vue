@@ -1,8 +1,10 @@
 <script setup lang="ts">
+// Copilot - Pending review
 import { _ } from '@/composables/useTranslations';
 import { Shield } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import AdminCard from './AdminCard.vue';
+import { can } from '@/composables/useAuth';
 
 defineProps<{
   admins: Admin[];
@@ -16,6 +18,9 @@ defineProps<{
       :title="_('Admins')"
       view-all-href="admins.index"
       :view-all-text="totalCount > admins.length ? `${_('View all')} (${totalCount})` : undefined"
+      create-href="admins.create"
+      :create-if="can.create('admins')"
+      :create-label="_('Create Admin')"
     />
     <div v-if="admins.length > 0" class="grid gap-4 @md:grid-cols-2">
       <AdminCard v-for="admin in admins" :key="admin.id" :admin="admin" />

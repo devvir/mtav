@@ -1,9 +1,11 @@
 <script setup lang="ts">
+// Copilot - Pending review
 import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
 import { Calendar } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import EventCard from './EventCard.vue';
+import { can } from '@/composables/useAuth';
 
 defineProps<{
   events: Event[];
@@ -13,7 +15,13 @@ defineProps<{
 
 <template>
   <section>
-    <SectionHeader :title="_('Upcoming Events')" view-all-href="events.index" />
+    <SectionHeader
+      :title="_('Upcoming Events')"
+      view-all-href="events.index"
+      create-href="events.create"
+      :create-if="can.create('events')"
+      :create-label="_('Create Event')"
+    />
 
     <template v-if="events.length > 0">
       <div class="space-y-3">

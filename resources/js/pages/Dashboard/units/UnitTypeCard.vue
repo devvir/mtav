@@ -1,7 +1,10 @@
 <script setup lang="ts">
+// Copilot - Pending review
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
+import { Plus } from 'lucide-vue-next';
 import UnitCard from './UnitCard.vue';
+import { can } from '@/composables/useAuth';
 
 defineProps<{
   unitType: UnitType;
@@ -22,8 +25,21 @@ defineProps<{
             {{ unitType.description }}
           </div>
         </div>
-        <div class="text-sm text-text-subtle">
-          {{ unitType.units_count }} {{ unitType.units_count === 1 ? _('Unit') : _('Units') }}
+        <div class="flex items-center gap-3">
+          <div class="text-sm text-text-subtle">
+            {{ unitType.units_count }} {{ unitType.units_count === 1 ? _('Unit') : _('Units') }}
+          </div>
+
+          <ModalLink
+            v-if="toValue(can.create('units')) !== false"
+            :href="route('units.create')"
+            slideover
+            class="rounded-md p-1 text-text-subtle hover:text-text focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
+            :aria-label="_('Create Unit')"
+            @click.stop
+          >
+            <Plus class="h-5 w-5" />
+          </ModalLink>
         </div>
       </div>
     </ModalLink>

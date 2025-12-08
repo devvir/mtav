@@ -1,8 +1,10 @@
 <script setup lang="ts">
+// Copilot - Pending review
 import { _ } from '@/composables/useTranslations';
 import { User } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import MemberCard from './MemberCard.vue';
+import { can } from '@/composables/useAuth';
 
 defineProps<{
   members: Member[];
@@ -16,6 +18,9 @@ defineProps<{
       :title="_('Recent Members')"
       view-all-href="members.index"
       :view-all-text="totalCount > members.length ? `${_('View all')} (${totalCount})` : undefined"
+      create-href="members.create"
+      :create-if="can.create('members')"
+      :create-label="_('Create Member')"
     />
     <div v-if="members.length > 0" class="grid gap-4 @md:grid-cols-2">
       <MemberCard v-for="member in members" :key="member.id" :member="member" />
