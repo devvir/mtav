@@ -9,6 +9,8 @@ use App\Models\Unit;
 use App\Services\Form\FormService;
 use App\Services\Form\FormType;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,12 +46,21 @@ class UnitController extends Controller
 
     public function store(CreateUnitRequest $request): RedirectResponse
     {
-        $unit = currentProject()->units()->save(
-            Unit::make($request->validated())
-        );
+        $unit = DB::transaction(function () use ($request) {
+            if ($request->new_type_name && $request->new_type_description) {
+                $unitType = currentProject()->unitTypes()->create([
+                    'name'        => $request->new_type_name,
+                    'description' => $request->new_type_description,
+                ]);
+            }
 
-        return to_route('units.show', $unit)
-            ->with('success', __('flash.unit_created'));
+            return currentProject()->units()->create([
+                ...Arr::only($request->validated(), ['project_id', 'identifier']),
+                'unit_type_id' => $unitType->id ?? $request->unit_type_id,
+            ]);
+        });
+
+        return to_route('units.show', $unit)->with('success', __('flash.unit_created'));
     }
 
     public function edit(Unit $unit): Response
