@@ -221,4 +221,7 @@ return [
 
     // Mensajes de validación del sorteo
     'unit_must_match_family_type' => 'La unidad debe pertenecer al tipo de unidad de tu familia.',
+
+    // Mensajes de validación de email
+    'email_verification_invalid' => 'El enlace de verificación es inválido o ha expirado.',
 ];

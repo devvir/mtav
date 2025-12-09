@@ -41,7 +41,7 @@
                                 </tr>
                             </table>
 
-                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Si no creaste una cuenta, no necesitas hacer nada.</p>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">Si no solicitaste este cambio, puedes ignorar este email.</p>
 
                             <!-- Link fallback -->
                             <p style="margin: 25px 0 0 0; font-size: 12px; line-height: 18px; color: #6b7280;">Si tienes problemas al hacer clic en el botón "Verificar Correo Electrónico", copia y pega la siguiente URL en tu navegador:</p>

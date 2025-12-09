@@ -154,6 +154,7 @@ interface PlanItem extends Resource {
 
 interface User extends Resource, Subject, HasEvents, HasMedia {
   email: string;
+  new_email: string;
   phone: string;
   firstname: string;
   lastname: string;

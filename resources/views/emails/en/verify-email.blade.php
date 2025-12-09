@@ -40,7 +40,7 @@
                                 </tr>
                             </table>
 
-                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">If you did not create an account, no further action is required.</p>
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #333333;">If you didn't request this change, you can safely ignore this email.</p>
 
                             <!-- Link fallback -->
                             <p style="margin: 25px 0 0 0; font-size: 12px; line-height: 18px; color: #6b7280;">If you're having trouble clicking the "Verify Email Address" button, copy and paste the URL below into your web browser:</p>

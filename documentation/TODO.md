@@ -6,14 +6,6 @@
 
 ## P1 (High Priority - Should Complete Soon)
 
-### Profile Settings Issues
-- [ ] **Implement email change verification flow**
-  - Currently, changing email does NOT ask for verification
-  - User does not receive a verification email to the new address
-  - Need to implement proper email verification flow (similar to signup verification)
-  - Should send verification link to new email, only confirm change after verification
-  - Priority: HIGH - security and data integrity issue
-
 - [ ] **Fix avatar upload functionality**
   - Avatar upload from profile settings page is failing
   - Need to debug why upload request is not succeeding

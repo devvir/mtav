@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\User;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Response;
 
 class ProfileController
@@ -13,12 +14,9 @@ class ProfileController
     /**
      * Show the user's profile settings page.
      */
-    public function edit(Request $request): Response
+    public function edit(): Response
     {
-        return inertia('Settings/Profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status'          => $request->session()->get('status'),
-        ]);
+        return inertia('Settings/Profile');
     }
 
     /**
@@ -27,15 +25,20 @@ class ProfileController
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $data = $request->validated();
+
+        $user->update(Arr::except($request->validated(), ['email']));
 
         if (strtolower($request->email) !== strtolower($user->email)) {
-            $data['email_verified_at'] = null;
+            $user->update(['new_email' => $request->email]);
+
+            User::make([ /** Notify user on the NEW email, not the old one */
+                'id'    => $user->id,
+                'email' => $request->email,
+            ])->notify(new VerifyEmailNotification());
+
+            return to_route('profile.edit')->with('updateStatus', 'email-verification-sent');
         }
 
-        $request->user()->update($data);
-
-        return to_route('profile.edit')
-            ->with('success', __('flash.profile_updated'));
+        return to_route('profile.edit')->with('success', __('flash.profile_updated'));
     }
 }

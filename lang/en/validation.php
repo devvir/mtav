@@ -225,4 +225,7 @@ return [
     'media_file_required'     => 'Please select a file to upload.',
     'media_file_too_large'    => 'The file must not be larger than 10MB.',
     'media_invalid_file_type' => 'The file must be a valid image or document type.',
+
+    // Email validation messages
+    'email_verification_invalid' => 'The email verification link is invalid or has expired.',
 ];

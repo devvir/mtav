@@ -48,7 +48,7 @@ return [
     'plan_updated' => '¡Perfecto! Tu Plan fue actualizado.',
 
     // Profile operations
-    'profile_updated'  => '¡Tu perfil se ve genial!',
+    'profile_updated'  => '¡Tu perfil se ve muy bien!',
     'password_updated' => '¡Listo! Tu contraseña fue actualizada.',
 
     // Project operations

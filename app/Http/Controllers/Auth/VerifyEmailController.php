@@ -2,27 +2,19 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Requests\Auth\VerifyPendingEmailRequest;
 use Illuminate\Http\RedirectResponse;
 
 class VerifyEmailController
 {
-    /**
-     * Mark the authenticated user's email address as verified.
-     */
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(VerifyPendingEmailRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false) . '?verified=1');
-        }
+        $request->user->update([
+            'email'             => $request->user->new_email,
+            'new_email'         => null,
+            'email_verified_at' => now(),
+        ]);
 
-        if ($request->user()->markEmailAsVerified()) {
-            /** @var \Illuminate\Contracts\Auth\MustVerifyEmail $user */
-            $user = $request->user();
-            event(new Verified($user));
-        }
-
-        return redirect()->intended(route('dashboard', absolute: false) . '?verified=1');
+        return to_route('profile.edit')->with('updateStatus', 'email-verified');
     }
 }

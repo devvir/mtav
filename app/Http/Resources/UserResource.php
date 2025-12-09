@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             ...$this->commonResourceData(),
 
             'email'     => $this->email,
+            'new_email' => $this->new_email,
             'phone'     => $this->phone ?? '',
             'firstname' => $this->firstname ?? '',
             'lastname'  => $this->lastname ?? '',

@@ -12,6 +12,7 @@ return new class () extends Migration {
             $table->foreignIdFor(Family::class)->nullable()->after('id')->constrained()->cascadeOnDelete();
             $table->boolean('is_admin')->default(false)->after('family_id');
             $table->string('phone')->nullable()->after('email');
+            $table->string('new_email')->nullable()->after('email')->comment('New email awaiting verification');
             $table->string('firstname')->nullable()->after('phone');
             $table->string('lastname')->nullable()->after('firstname');
             $table->string('avatar')->nullable()->after('lastname');
@@ -33,6 +34,7 @@ return new class () extends Migration {
             $table->dropConstrainedForeignIdFor(Family::class);
             $table->dropColumn('is_admin');
             $table->dropColumn('phone');
+            $table->dropColumn('new_email');
             $table->dropColumn('firstname');
             $table->dropColumn('lastname');
             $table->dropColumn('avatar');
