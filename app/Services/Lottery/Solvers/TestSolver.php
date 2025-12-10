@@ -4,6 +4,7 @@ namespace App\Services\Lottery\Solvers;
 
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
@@ -17,7 +18,7 @@ class TestSolver implements SolverInterface
     /**
      * Execute test lottery assignment.
      */
-    public function execute(LotterySpec $spec): ExecutionResult
+    public function execute(LotteryManifest $_, LotterySpec $spec): ExecutionResult
     {
         $families = array_keys($spec->families);
         $units = $spec->units;

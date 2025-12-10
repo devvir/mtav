@@ -93,6 +93,13 @@ GMPL;
     /**
      * Build preference matrix in GMPL format.
      *
+     * Adds tie-breaker randomization to prevent degenerate preferences:
+     * Instead of [1, 2, 3], each family gets [1.XXX, 2.YYY, 3.ZZZ] where
+     * XXX, YYY, ZZZ are unique random decimals per family (0-999).
+     *
+     * This ensures no two families have identical preference values,
+     * breaking degeneracy and allowing GLPK to solve quickly without hangs.
+     *
      * @param  array  $families  Family ID => preferences array
      * @param  array  $units  Array of unit IDs
      * @return string GMPL param p matrix
@@ -105,16 +112,20 @@ GMPL;
         foreach ($families as $familyId => $preferences) {
             $matrix .= "c{$familyId}";
 
-            // Create map of unit_id => preference_rank
+            // Create map of unit_id => preference_rank with random tie-breaker
+            // Random tie-breaker: 0-999 thousandths to prevent degeneracy
+            $tieBreaker = mt_rand(0, 999) / 1000.0;
             $preferenceMap = [];
             foreach ($preferences as $rank => $unitId) {
-                $preferenceMap[$unitId] = $rank + 1; // 1-indexed ranks
+                // Base rank (1-indexed) + unique tie-breaker for this family
+                // E.g., rank 0 becomes 1.347, rank 1 becomes 2.347, etc.
+                $preferenceMap[$unitId] = ($rank + 1) + $tieBreaker;
             }
 
             // Output preference for each unit in order
             foreach ($units as $unitId) {
                 $rank = $preferenceMap[$unitId] ?? 999; // Default to very low preference if missing
-                $matrix .= ' ' . str_pad((string)$rank, 7);
+                $matrix .= ' ' . str_pad(sprintf('%.3f', $rank), 7);
             }
 
             $matrix .= "\n";

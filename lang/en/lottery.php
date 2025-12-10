@@ -17,6 +17,7 @@ return [
     'cannot_execute_generic'        => 'The lottery cannot be executed. Verify that it meets the necessary conditions.',
     'execution_failed'              => 'An error occurred during lottery execution. Please contact the system administrator.',
     'glpk_execution_failed'         => 'The optimization algorithm failed to execute. Please contact support.',
+    'glpk_timeout'                  => 'The optimization algorithm took too long to complete and was stopped. Please try executing the lottery again. If the problem persists, contact support',
 
     'insufficient_families'       => 'Not enough families to execute the lottery. At least 2 families are required.',
     'unit_family_mismatch_intro'  => 'There are inconsistencies between units and families:',

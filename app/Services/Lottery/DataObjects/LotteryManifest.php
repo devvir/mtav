@@ -33,8 +33,14 @@ class LotteryManifest
     public readonly int $projectId;
     public readonly int $lotteryId;
 
-    public function __construct(public readonly string $uuid, Event $lottery)
-    {
+    /**
+     * @param array<string> $options  User-confirmed options
+     */
+    public function __construct(
+        public readonly string $uuid,
+        Event $lottery,
+        public readonly array $options = []
+    ) {
         $this->lotteryId = $lottery->id;
         $this->projectId = $lottery->project->id;
 

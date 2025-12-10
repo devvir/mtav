@@ -7,7 +7,7 @@ use App\Models\Event;
 use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
-use App\Services\Lottery\ConsistencyService;
+use App\Services\Lottery\PreferencesService;
 use App\Services\Lottery\Exceptions\LockedLotteryException;
 use App\Services\Lottery\ExecutionService;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,7 +16,7 @@ use Illuminate\Support\Arr;
 class LotteryService
 {
     public function __construct(
-        private ConsistencyService $consistencyService,
+        private PreferencesService $preferencesService,
         private ExecutionService $executionService
     ) {
         // ...
@@ -60,16 +60,7 @@ class LotteryService
      */
     public function preferences(Family $family): Collection
     {
-        $this->consistencyService->sanitizeBeforeFetch($family);
-
-        $family->loadMissing(['preferences', 'unitType.units']);
-
-        // Get remaining units (not yet preferred) in ID order
-        $remainingUnits = $family->unitType->units
-            ->whereNotIn('id', $family->preferences->pluck('id'))
-            ->sortBy('id');
-
-        return $family->preferences->concat($remainingUnits);
+        return $this->preferencesService->preferences($family);
     }
 
     /**
@@ -81,27 +72,21 @@ class LotteryService
      */
     public function updatePreferences(Family $family, array $preferences): void
     {
-        $this->consistencyService->validateBeforeUpdate($family, $preferences);
-
-        $family->preferences()->sync(
-            collect($preferences)->map(fn ($preference, $idx) => [
-                'unit_id' => $preference['id'],
-                'order'   => $idx + 1,
-            ])->keyBy('unit_id')
-        );
+        $this->preferencesService->updatePreferences($family, $preferences);
     }
 
     /**
      * Execute Lottery and assign all Units to Families.
      *
-     * @param  bool  $force  Bypass Unit/Family mismatch validation
+     * @param array<string> $options  User-confirmed options
      *
      * @throws Lottery\Exceptions\CannotExecuteLotteryException
      * @throws Lottery\Exceptions\LotteryExecutionException
+     * @throws Lottery\Exceptions\LotteryRequiresConfirmationException
      */
-    public function execute(Event $lottery, bool $force = false): void
+    public function execute(Event $lottery, array $options = []): void
     {
-        $this->executionService->execute($lottery, $force);
+        $this->executionService->execute($lottery, $options);
     }
 
     /**

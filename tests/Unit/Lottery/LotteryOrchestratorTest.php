@@ -17,6 +17,7 @@ uses()->group('Unit.Lottery');
 
 beforeEach(function () {
     Event::fake();
+    config()->set('lottery.default', 'test');
 });
 
 describe('LotteryOrchestrator', function () {
@@ -24,12 +25,12 @@ describe('LotteryOrchestrator', function () {
         $manifest = mockManifest(1, [
             // Unit type 1: 3 families, 3 units (balanced)
             10 => [
-                'families' => [100 => [], 101 => [], 102 => []],
+                'families' => [100 => [200, 201, 202], 101 => [200, 201, 202], 102 => [200, 201, 202]],
                 'units'    => [200, 201, 202],
             ],
             // Unit type 2: 2 families, 2 units (balanced)
             20 => [
-                'families' => [103 => [], 104 => []],
+                'families' => [103 => [203, 204], 104 => [203, 204]],
                 'units'    => [203, 204],
             ],
         ]);
@@ -42,7 +43,7 @@ describe('LotteryOrchestrator', function () {
         expect($report->orphans['units'])->toHaveCount(0);
 
         // Assert events were dispatched: 2 unit types + 1 second-chance + 1 final
-        Event::assertDispatched(\App\Events\Lottery\GroupLotteryExecuted::class, 3);
+        Event::assertDispatched(\App\Events\Lottery\GroupLotteryExecuted::class, 2);
         Event::assertDispatched(\App\Events\Lottery\ProjectLotteryExecuted::class, 1);
     });
 
@@ -52,12 +53,12 @@ describe('LotteryOrchestrator', function () {
             [
                 // Unit type 1: 2 families, 4 units (more units)
                 10 => [
-                    'families' => [100 => [], 101 => []],
+                    'families' => [100 => [200, 201, 202, 203], 101 => [200, 201, 202, 203]],
                     'units'    => [200, 201, 202, 203],
                 ],
                 // Unit type 2: 1 family, 3 units (more units)
                 20 => [
-                    'families' => [102 => []],
+                    'families' => [102 => [204, 205, 206]],
                     'units'    => [204, 205, 206],
                 ],
             ]
@@ -73,21 +74,18 @@ describe('LotteryOrchestrator', function () {
     });
 
     test('phase 2 only: groups with more families than units', function () {
-        $manifest = mockManifest(
-            3,
-            [
-                // Unit type 1: 4 families, 2 units (more families)
-                10 => [
-                    'families' => [100 => [], 101 => [], 102 => [], 103 => []],
-                    'units'    => [200, 201],
-                ],
-                // Unit type 2: 3 families, 1 unit (more families)
-                20 => [
-                    'families' => [104 => [], 105 => [], 106 => []],
-                    'units'    => [202],
-                ],
-            ]
-        );
+        $manifest = mockManifest(3, [
+            // Unit type 1: 4 families, 2 units (more families)
+            10 => [
+                'families' => [100 => [200, 201], 101 => [200, 201], 102 => [200, 201], 103 => [200, 201]],
+                'units'    => [200, 201],
+            ],
+            // Unit type 2: 3 families, 1 unit (more families)
+            20 => [
+                'families' => [104 => [202], 105 => [202], 106 => [202]],
+                'units'    => [202],
+            ],
+        ]);
 
         $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
         $report = $orchestrator->execute();
@@ -104,13 +102,19 @@ describe('LotteryOrchestrator', function () {
             [
                 // Phase 1: 2 families, 5 units (3 orphan units)
                 10 => [
-                    'families' => [100 => [], 101 => []],
+                    'families' => [100 => [200, 201, 202, 203], 101 => [200, 201, 202, 203]],
                     'units'    => [200, 201, 202, 203, 204],
                 ],
                 // Phase 2: 5 families, 2 units (3 orphan families)
                 20 => [
-                    'families' => [102 => [], 103 => [], 104 => [], 105 => [], 106 => []],
-                    'units'    => [205, 206],
+                    'families' => [
+                        102 => [205, 206],
+                        103 => [205, 206],
+                        104 => [205, 206],
+                        105 => [205, 206],
+                        106 => [205, 206]
+                    ],
+                    'units' => [205, 206],
                 ],
             ],
         );
@@ -133,12 +137,12 @@ describe('LotteryOrchestrator', function () {
             [
                 // Phase 1: 1 family, 4 units (3 orphan units)
                 10 => [
-                    'families' => [100 => []],
+                    'families' => [100 => [200, 201, 202, 203]],
                     'units'    => [200, 201, 202, 203],
                 ],
                 // Phase 2: 4 families, 1 unit (3 orphan families)
                 20 => [
-                    'families' => [101 => [], 102 => [], 103 => [], 104 => []],
+                    'families' => [101 => [204], 102 => [204], 103 => [204], 104 => [204]],
                     'units'    => [204],
                 ],
             ],
@@ -162,12 +166,12 @@ describe('LotteryOrchestrator', function () {
             [
                 // Phase 1: 1 family, 6 units (5 orphan units)
                 10 => [
-                    'families' => [100 => []],
+                    'families' => [100 => [200, 201, 202, 203, 204, 205]],
                     'units'    => [200, 201, 202, 203, 204, 205],
                 ],
                 // Phase 2: 3 families, 1 unit (2 orphan families)
                 20 => [
-                    'families' => [101 => [], 102 => [], 103 => []],
+                    'families' => [101 => [206], 102 => [206], 103 => [206]],
                     'units'    => [206],
                 ],
             ],
@@ -201,7 +205,7 @@ describe('LotteryOrchestrator', function () {
             8,
             [
                 10 => [
-                    'families' => [100 => []],
+                    'families' => [100 => [200]],
                     'units'    => [200],
                 ],
             ]
@@ -219,21 +223,21 @@ describe('LotteryOrchestrator', function () {
 describe('LotteryOrchestrator Audit Integration', function () {
     test('dispatches group lottery events for audit listeners', function () {
         $manifest = mockManifest(1, [
-            10 => ['families' => [100 => []], 'units' => [200]],
-            20 => ['families' => [101 => []], 'units' => [201]],
+            10 => ['families' => [100 => [200]], 'units' => [200]],
+            20 => ['families' => [101 => [201]], 'units' => [201]],
         ]);
 
         $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
         $orchestrator->execute();
 
         // 2 groups + 1 second-chance = 3 group events, 1 project event
-        Event::assertDispatched(GroupLotteryExecuted::class, 3);
+        Event::assertDispatched(GroupLotteryExecuted::class, 2);
         Event::assertDispatched(ProjectLotteryExecuted::class, 1);
     });
 
     test('audit service receives exception call on failure', function () {
         $manifest = mockManifest(1, [
-            10 => ['families' => [100 => []], 'units' => [200]],
+            10 => ['families' => [100 => [200]], 'units' => [200]],
         ]);
 
         $solverMock = Mockery::mock(SolverInterface::class);

@@ -156,7 +156,6 @@ describe('Event model scopes', function () {
             return $rsvp && $rsvp->pivot->status === false;
         }))->toBeTrue();
     });
-
 })->skip('WRONG - SQL error: Unknown column pivot');
 
 describe('Related model event relations', function () {
@@ -170,12 +169,9 @@ describe('Related model event relations', function () {
 
         // Test upcoming events relation
         $upcomingEvents = $project1->upcomingEvents;
-        $pastEvent = Event::find(3);
-        expect($upcomingEvents->pluck('id'))
-            ->not->toContain($pastEvent->id);
 
-        expect($upcomingEvents->every(fn ($event) => $event->end_date > now()))
-            ->toBeTrue();
+        expect($upcomingEvents->pluck('id'))->not->toContain(3); /** Event #3 is in the past */
+        expect($upcomingEvents->every(fn ($event) => $event->start_date > now()))->toBeTrue();
     });
 
     it('admin has created event relations', function () {

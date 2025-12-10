@@ -13,7 +13,7 @@ return new class () extends Migration {
             $table->id();
             $table->foreignIdFor(Family::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Unit::class)->constrained()->cascadeOnDelete();
-            $table->unsignedTinyInteger('order'); // 1-based ordering
+            $table->unsignedInteger('order'); // 1-based ordering
             $table->timestamps();
 
             $table->unique(['family_id', 'unit_id']);

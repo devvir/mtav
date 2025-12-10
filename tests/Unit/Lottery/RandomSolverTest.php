@@ -13,7 +13,8 @@ describe('RandomSolver', function () {
         $units = [10, 20, 30, 40, 50];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new RandomSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new RandomSolver())->execute($manifest, $spec);
 
         // Should have 5 picks
         expect($result->picks)->toHaveCount(5);
@@ -42,7 +43,8 @@ describe('RandomSolver', function () {
         $units = [10, 20, 30, 40, 50, 60, 70];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new RandomSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new RandomSolver())->execute($manifest, $spec);
 
         // Should have 3 picks (min of families and units)
         expect($result->picks)->toHaveCount(3);
@@ -72,7 +74,8 @@ describe('RandomSolver', function () {
         $units = [10, 20, 30, 40, 50];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new RandomSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new RandomSolver())->execute($manifest, $spec);
 
         // Should have 5 picks (min of families and units)
         expect($result->picks)->toHaveCount(5);
@@ -102,11 +105,12 @@ describe('RandomSolver', function () {
         $units = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
         // Run multiple times to verify randomness and no duplicates
         $results = [];
         for ($i = 0; $i < 10; $i++) {
-            $result = (new RandomSolver())->execute($spec);
+            $result = (new RandomSolver())->execute($manifest, $spec);
             $results[] = $result->picks;
 
             // Each family should appear at most once
@@ -138,7 +142,8 @@ describe('RandomSolver', function () {
         $units = [];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new RandomSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new RandomSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -150,7 +155,8 @@ describe('RandomSolver', function () {
         $units = [99];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new RandomSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new RandomSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([42 => 99]);
         expect($result->orphans['families'])->toBe([]);

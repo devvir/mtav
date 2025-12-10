@@ -98,7 +98,7 @@ class LotteryOrchestrator
     {
         $spec = new LotterySpec($data['families'], $data['units']);
 
-        $result = $this->solver->execute($spec);
+        $result = $this->solver->execute($this->manifest, $spec);
 
         GroupLotteryExecuted::dispatch($this->manifest, $this->solver, $result);
 
@@ -110,13 +110,20 @@ class LotteryOrchestrator
      */
     protected function distributeOrphans(Collection $firstPassResults): ExecutionResult
     {
-        $orphansGroup = [
+        $orphans = [
             'units'    => $firstPassResults->flatMap(fn ($result) => $result->orphans['units'])->all(),
             'families' => $firstPassResults->flatMap(fn ($result) => $result->orphans['families'])
                 ->mapWithKeys(fn ($familyId) => [$familyId => []])->all(),
         ];
 
-        return $this->executeLottery($orphansGroup);
+        if (! $orphans['units'] || ! $orphans['families']) {
+            return new ExecutionResult([], [
+                'families' => array_keys($orphans['families']),
+                'units'    => $orphans['units'],
+            ]);
+        }
+
+        return $this->executeLottery($orphans);
     }
 
     /**

@@ -13,7 +13,8 @@ describe('TestSolver', function () {
         $units = [2, 4, 6];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new TestSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new TestSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([1 => 2, 3 => 4, 5 => 6]);
         expect($result->orphans['families'])->toBe([]);
@@ -25,7 +26,8 @@ describe('TestSolver', function () {
         $units = [5, 15, 25, 35];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new TestSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new TestSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([10 => 5, 20 => 15]);
         expect($result->orphans['families'])->toBe([]);
@@ -37,7 +39,8 @@ describe('TestSolver', function () {
         $units = [1, 3];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new TestSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new TestSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([2 => 1, 4 => 3]);
         expect($result->orphans['families'])->toBe([6, 8]);
@@ -49,7 +52,8 @@ describe('TestSolver', function () {
         $units = [200];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new TestSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new TestSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([100 => 200]);
         expect($result->orphans['families'])->toBe([]);
@@ -61,7 +65,8 @@ describe('TestSolver', function () {
         $units = [];
 
         $spec = new LotterySpec($families, $units);
-        $result = (new TestSolver())->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = (new TestSolver())->execute($manifest, $spec);
 
         expect($result->picks)->toBe([]);
         expect($result->orphans['families'])->toBe([]);
@@ -73,11 +78,12 @@ describe('TestSolver', function () {
         $units = [30, 10, 20, 40];
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
         // Execute multiple times
-        $result1 = (new TestSolver())->execute($spec);
-        $result2 = (new TestSolver())->execute($spec);
-        $result3 = (new TestSolver())->execute($spec);
+        $result1 = (new TestSolver())->execute($manifest, $spec);
+        $result2 = (new TestSolver())->execute($manifest, $spec);
+        $result3 = (new TestSolver())->execute($manifest, $spec);
 
         // Should produce identical picks and orphans (deterministic)
         expect($result1->picks)->toBe($result2->picks);

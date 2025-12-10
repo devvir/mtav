@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Services\Lottery\DataObjects\LotteryManifest;
+use App\Services\Lottery\Exceptions\LotteryRequiresConfirmationException;
 use App\Services\Lottery\Exceptions\CannotExecuteLotteryException;
 use App\Services\Lottery\Exceptions\InsufficientFamiliesException;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
@@ -37,23 +38,21 @@ class ExecutionService
     /**
      * Validate lottery execution data and dispatch execution event on success.
      *
-     * @param bool  $overrideCountMismatch  Bypass unit/family count mismatch validation
+     * @param array<string> $options  User-confirmed options
      *
      * @throws CannotExecuteLotteryException if lottery cannot be executed
      * @throws InsufficientFamiliesException if fewer than 2 families exist
-     * @throws UnitFamilyMismatchException if units/families don't match (unless overridden)
+     * @throws LotteryRequiresConfirmationException if admin confirmation is needed
      * @throws LotteryExecutionException if execution fails
      */
-    public function execute(Event $lottery, bool $overrideCountMismatch = false): void
+    public function execute(Event $lottery, array $options = []): void
     {
         try {
             $uuid = $this->reserveLotteryForExecution($lottery);
-
-            $manifest = new LotteryManifest($uuid, $lottery);
+            $manifest = new LotteryManifest($uuid, $lottery, $options);
 
             $this->validateDataIntegrity($lottery);
-
-            $overrideCountMismatch || $this->validateCountsConsistency($lottery->project);
+            $this->validateCountsConsistency($lottery->project, $options);
 
             $this->auditService->init($manifest);
         } catch (Throwable $e) {
@@ -174,10 +173,16 @@ class ExecutionService
     /**
      * Units and families counts (per unit type) should ideally match (may be overridden).
      *
-     * @throws UnitFamilyMismatchException if units/families don't match
+     * @param array<string> $options  User-confirmed options
+     *
+     * @throws LotteryRequiresConfirmationException if units/families don't match (unless allowed)
      */
-    protected function validateCountsConsistency(Project $project)
+    protected function validateCountsConsistency(Project $project, array $options = [])
     {
+        if (in_array('mismatch-allowed', $options)) {
+            return;
+        }
+
         $mismatches = $project
             ->unitTypes()->withCount('units', 'families')->get()
             ->filter(fn (UnitType $ut) => $ut->units_count !== $ut->families_count)

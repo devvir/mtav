@@ -8,11 +8,11 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
 
-uses()->group('Feature.Lottery.System');
+uses()->group('Stress.Lottery.System');
 
 beforeEach(function () {
     // Use TestSolver for system integration tests - no need for expensive GLPK binary
-    Config::set('lottery.default', 'test');
+    config()->set('lottery.default', 'test');
 });
 
 describe('Lottery System End-to-End Integration Tests', function () {
@@ -50,7 +50,7 @@ describe('Lottery System End-to-End Integration Tests', function () {
         }
 
         // Execute lottery
-        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13, redirects: false);
 
         // Verify all units are assigned
         $units->fresh()->each(function ($unit) {
@@ -81,13 +81,7 @@ describe('Lottery System End-to-End Integration Tests', function () {
         // Total: 4 families, 6 units = 2 orphan units expected
         setCurrentProject(2);
         $lottery = Event::find(6); // Future lottery for Project #2
-
-        // Make it executable (past date, published)
-        $lottery->update([
-            'start_date'   => now()->subDay(),
-            'end_date'     => now()->subDay(),
-            'is_published' => true,
-        ]);
+        $lottery->update(['start_date' => now()->subDay()]);
 
         $families = Family::whereIn('id', [13, 14, 15, 26])->get();
         $units = Unit::whereIn('id', [4, 5, 6, 7, 8, 9])->get();
@@ -109,8 +103,8 @@ describe('Lottery System End-to-End Integration Tests', function () {
             $family->preferences()->sync($syncData);
         }
 
-        // Execute with override (4 families, 6 units = mismatch)
-        $this->submitFormToRoute(['lottery.execute', $lottery->id], data: ['override_mismatch' => true], asAdmin: 12);
+        // Execute with mismatch-allowed option (4 families, 6 units = mismatch)
+        $this->submitFormToRoute(['lottery.execute', $lottery->id], data: ['options' => ['mismatch-allowed']], asAdmin: 12, redirects: false);
 
         // All families should be assigned
         $families->fresh()->each(function ($family) {

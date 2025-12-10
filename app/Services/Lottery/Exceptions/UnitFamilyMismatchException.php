@@ -2,41 +2,34 @@
 
 namespace App\Services\Lottery\Exceptions;
 
-use Exception;
 use Illuminate\Support\Collection;
 
 /**
  * Exception thrown when units and families don't match per unit type.
  *
- * Can be bypassed with force parameter to allow execution with mismatches.
- * Generates detailed message about which unit types have mismatches.
+ * Extends LotteryRequiresConfirmationException to signal that the mismatch
+ * can be bypassed with explicit admin confirmation (via 'mismatch-allowed' option).
+ * Generates detailed user-facing message about which unit types have mismatches.
  */
-class UnitFamilyMismatchException extends Exception
+class UnitFamilyMismatchException extends LotteryRequiresConfirmationException
 {
     /**
      * @param  Collection<array{unit_type_id: int, unit_type_name: string, units_count: int, families_count: int}>  $mismatches
      */
-    public function __construct(
-        private readonly Collection $mismatches
-    ) {
-        $details = $mismatches->map(
-            fn ($m) => "Unit type '{$m['unit_type_name']}' has {$m['units_count']} units for {$m['families_count']} families"
-        )->join('; ');
-
-        parent::__construct("Unit/family mismatch detected: {$details}");
-    }
-
-    public function getMismatches(): Collection
+    public function __construct(Collection $mismatches)
     {
-        return $this->mismatches;
+        parent::__construct(
+            option: 'mismatch-allowed',
+            message: $this->buildUserMessage($mismatches)
+        );
     }
 
     /**
-     * Generate user-facing message with mismatch details.
+     * Build the detailed user-facing message about mismatches.
      */
-    public function getUserMessage(): string
+    protected function buildUserMessage(Collection $mismatches): string
     {
-        $details = $this->mismatches->map(function ($mismatch) {
+        $details = $mismatches->map(function ($mismatch) {
             $unitTypeName = $mismatch['unit_type_name'];
             $unitsCount = $mismatch['units_count'];
             $familiesCount = $mismatch['families_count'];

@@ -61,7 +61,7 @@ return [
             'config' => [
                 'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
                 'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
-                'timeout'     => env('GLPK_TIMEOUT', 30),
+                'timeout'     => env('GLPK_TIMEOUT', 120),
             ],
         ],
 

@@ -109,7 +109,7 @@ describe('UnitFamilyMismatchException scenarios', function () {
         $lottery = Event::find(1);
         $lottery->update(['start_date' => now()->subDay(), 'end_date' => now()->subDay()]);
 
-        expect(fn () => $this->service->execute($lottery, false))
+        expect(fn () => $this->service->execute($lottery, []))
             ->toThrow(UnitFamilyMismatchException::class);
     });
 
@@ -125,7 +125,7 @@ describe('UnitFamilyMismatchException scenarios', function () {
         ]);
 
         // Should NOT throw with override flag
-        $this->service->execute($lottery, true);
+        $this->service->execute($lottery, ['mismatch-allowed']);
 
         // Verify lottery was reserved (is_published set to false)
         expect($lottery->fresh()->is_published)->toBeFalse();

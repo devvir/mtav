@@ -17,6 +17,7 @@ return [
     'cannot_execute_generic'        => 'El sorteo no puede ser ejecutado. Verifica que cumpla las condiciones necesarias.',
     'execution_failed'              => 'Ocurrió un error durante la ejecución del sorteo. Por favor, contacta al administrador del sistema.',
     'glpk_execution_failed'         => 'El algoritmo de optimización falló al ejecutarse. Por favor contacta a soporte.',
+    'glpk_timeout'                  => 'El algoritmo de optimización tardó demasiado en completarse y fue detenido. Por favor intenta ejecutar el sorteo nuevamente. Si el problema persiste, contacta a soporte.',
 
     'insufficient_families'       => 'No hay suficientes familias para ejecutar el sorteo. Se requieren al menos 2 familias.',
     'unit_family_mismatch_intro'  => 'Hay inconsistencias entre unidades y familias:',

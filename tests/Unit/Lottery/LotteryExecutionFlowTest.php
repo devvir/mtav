@@ -19,7 +19,7 @@ afterEach(function () {
  */
 describe('Lottery Execution Flow', function () {
     test('orchestrator is initialized with manifest and RandomSolver when dispatched', function () {
-        Config::set('lottery.default', 'random');
+        config()->set('lottery.default', 'random');
 
         // Create a partial mock that doesn't actually execute
         $orchestratorMock = Mockery::mock(LotteryOrchestrator::class)
@@ -33,7 +33,7 @@ describe('Lottery Execution Flow', function () {
     });
 
     test('orchestrator is initialized with manifest and TestSolver when dispatched', function () {
-        Config::set('lottery.default', 'test');
+        config()->set('lottery.default', 'test');
 
         $orchestratorMock = Mockery::mock(LotteryOrchestrator::class)
             ->shouldReceive('execute')
@@ -46,7 +46,7 @@ describe('Lottery Execution Flow', function () {
     });
 
     test('orchestrator is initialized with manifest and GlpkSolver when dispatched', function () {
-        Config::set('lottery.default', 'glpk');
+        config()->set('lottery.default', 'glpk');
 
         $orchestratorMock = Mockery::mock(LotteryOrchestrator::class)
             ->shouldReceive('execute')

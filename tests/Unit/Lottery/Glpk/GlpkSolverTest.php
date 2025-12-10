@@ -20,8 +20,9 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
             families: [1 => [10, 20], 2 => [20, 10]],
             units: [10, 20]
         );
+        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
 
-        expect(fn () => app(GlpkSolver::class)->execute($spec))->toThrow(GlpkException::class);
+        expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
 
     test('throws exception when temp directory is not writable', function () {
@@ -35,8 +36,9 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
             families: [1 => [10, 20], 2 => [20, 10]],
             units: [10, 20]
         );
+        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
 
-        expect(fn () => app(GlpkSolver::class)->execute($spec))->toThrow(GlpkException::class);
+        expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
 
     test('cleans up temp files even when execution fails', function () {
@@ -53,9 +55,10 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
             families: [1 => [10, 20], 2 => [20, 10]],
             units: [10, 20]
         );
+        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
 
         try {
-            app(GlpkSolver::class)->execute($spec);
+            app(GlpkSolver::class)->execute($manifest, $spec);
         } catch (GlpkException $e) {
             // Expected failure
         }
@@ -85,8 +88,9 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
         }
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
-        expect(fn () => app(GlpkSolver::class)->execute($spec))
+        expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))
             ->toThrow(GlpkException::class, 'timed out');
     });
 });

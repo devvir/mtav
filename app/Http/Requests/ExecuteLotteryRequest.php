@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 /**
- * @property-read bool|null $force
+ * @property-read array<string>|null $options
  */
 class ExecuteLotteryRequest extends FormRequest
 {
@@ -15,7 +15,8 @@ class ExecuteLotteryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'override_mismatch' => ['sometimes', 'boolean'],
+            'options'   => 'sometimes|array',
+            'options.*' => 'string',
         ];
     }
 }

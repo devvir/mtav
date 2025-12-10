@@ -4,25 +4,57 @@ namespace App\Services\Lottery;
 
 use App\Events\InvalidPreferences;
 use App\Models\Family;
+use App\Models\Unit;
 use App\Services\Lottery\Exceptions\LockedLotteryPreferencesException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * Service for validating and sanitizing family unit preferences.
+ * Service for handling family unit preferences.
  *
- * Ensures data integrity by checking that all preferences belong to units
- * of the correct type for the family, removing invalid entries, and
- * reordering remaining preferences.
+ * Ensures data integrity, non-biased default assignments, complete
+ * ordering, non-repetition, consistency (all preferences belong to
+ * units of the correct type for the family), removes invalid entries.
  */
-class ConsistencyService
+class PreferencesService
 {
+    public function preferences(Family $family): Collection
+    {
+        $this->sanitizeBeforeFetch($family);
+
+        $this->addMissingPreferences($family);
+
+        $family->refresh();
+
+        return $family->preferences;
+    }
+
+    /**
+     * Update family unit preferences (replaces existing preferences).
+     *
+     * Note: $preferences must include all Units of the Family's UnitType.
+     *
+     * @param array<array{id: int}> $preferences
+     */
+    public function updatePreferences(Family $family, array $preferences): void
+    {
+        $this->validateBeforeUpdate($family, $preferences);
+
+        $family->preferences()->sync(
+            collect($preferences)->map(fn ($preference, $idx) => [
+                'unit_id' => $preference['id'],
+                'order'   => $idx + 1,
+            ])->keyBy('unit_id')
+        );
+    }
+
     /**
      * Sanitize family preferences by removing invalid entries.
      *
      * Dispatches InvalidPreferences if invalid preferences are found.
      */
-    public function sanitizeBeforeFetch(Family $family): void
+    protected function sanitizeBeforeFetch(Family $family): void
     {
         // Bypass any and all scopes (e.g. Units from other Projects or soft-deleted)
         $scopelessUnits = DB::select(
@@ -46,6 +78,31 @@ class ConsistencyService
         }
     }
 
+    protected function addMissingPreferences(Family $family): void
+    {
+        $units = $this->missingPreferences($family);
+        $startAt = max(1000, $family->preferences->max('pivot.order') ?? 0);
+
+        $newPreferences = $units->mapWithKeys(fn (Unit $unit, int $spot) => [
+            $unit->id => ['order' => $startAt + $spot + 1],
+        ]);
+
+        $family->preferences()->syncWithoutDetaching($newPreferences);
+    }
+
+    /**
+     * Get remaining units (not yet preferred) in random order
+     */
+    protected function missingPreferences(Family $family): Collection
+    {
+        $family->load('preferences', 'unitType.units');
+
+        return $family->unitType->units
+            ->whereNotIn('id', $family->preferences->pluck('id'))
+            ->shuffle()
+            ->values();
+    }
+
     /**
      * Validate that new preferences for a Family are complete and valid.
      *
@@ -54,7 +111,7 @@ class ConsistencyService
      * @throws InvalidArgumentException if validation fails.
      * @throws LockedLotteryPreferencesException if lottery execution has started.
      */
-    public function validateBeforeUpdate(Family $family, array $preferences): void
+    protected function validateBeforeUpdate(Family $family, array $preferences): void
     {
         if (! $family->project->lottery->isPublished()) {
             throw new LockedLotteryPreferencesException();

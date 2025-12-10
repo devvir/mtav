@@ -122,7 +122,8 @@ describe('executeMoreUnits integration', function () {
         $units = [10, 20];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Should have assignments for both families
         expect($result->picks)->toHaveCount(2);
@@ -144,7 +145,8 @@ describe('executeMoreUnits integration', function () {
         $units = [10, 20, 30, 40];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Should assign 3 units, orphan 1 unit
         expect($result->picks)->toHaveCount(3);

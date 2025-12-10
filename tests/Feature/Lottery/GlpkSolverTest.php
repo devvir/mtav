@@ -1,10 +1,18 @@
 <?php
 
+use App\Models\Event;
+use App\Models\Family;
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Solvers\GlpkSolver;
+use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\GlpkSolver;
 
 uses()->group('Feature.Lottery.Integration');
+
+beforeEach(function () {
+    config()->set('lottery.default', 'glpk');
+    config()->set('queue.default', 'sync');
+});
 
 describe('GlpkSolver', function () {
     test('balanced optimal assignment respects preferences', function () {
@@ -18,7 +26,8 @@ describe('GlpkSolver', function () {
         $units = [10, 20, 30];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         expect($result->picks)->toBe([1 => 10, 2 => 20, 3 => 30]);
         expect($result->orphans['families'])->toBe([]);
@@ -37,7 +46,8 @@ describe('GlpkSolver', function () {
         $units = [10, 20];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Verify both families get their first choice (max-min fairness)
         expect($result->picks)->toBe([1 => 10, 2 => 20]);
@@ -55,7 +65,8 @@ describe('GlpkSolver', function () {
         $units = [10, 20, 30, 40];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // All families should be matched
         expect($result->picks)->toHaveCount(4);
@@ -87,10 +98,11 @@ describe('GlpkSolver', function () {
 
         $solver = app(GlpkSolver::class);
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
-        $result1 = $solver->execute($spec);
-        $result2 = $solver->execute($spec);
-        $result3 = $solver->execute($spec);
+        $result1 = $solver->execute($manifest, $spec);
+        $result2 = $solver->execute($manifest, $spec);
+        $result3 = $solver->execute($manifest, $spec);
 
         // GLPK optimal solution should be stable for identical input
         expect($result1->picks)->toBe($result2->picks);
@@ -117,7 +129,8 @@ describe('GlpkSolver', function () {
         }
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Should assign all families to units
         expect($result->picks)->toHaveCount(10);
@@ -143,7 +156,8 @@ describe('GlpkSolver', function () {
         $units = [10, 20, 30];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Should assign 2 families
         expect($result->picks)->toHaveCount(2);
@@ -166,7 +180,8 @@ describe('GlpkSolver', function () {
         $units = [10, 20];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         // Should assign 2 families
         expect($result->picks)->toHaveCount(2);
@@ -185,7 +200,8 @@ describe('GlpkSolver', function () {
         $units = [200];
 
         $spec = new LotterySpec($families, $units);
-        $result = app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         expect($result->picks)->toBe([100 => 200]);
         expect($result->orphans['families'])->toBe([]);
@@ -204,8 +220,9 @@ describe('GlpkSolver', function () {
         ]);
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
-        expect(fn () => app(GlpkSolver::class)->execute($spec))->toThrow(GlpkException::class);
+        expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
 
     test('throws GlpkException with user-friendly message', function () {
@@ -218,9 +235,10 @@ describe('GlpkSolver', function () {
         ]);
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
         try {
-            app(GlpkSolver::class)->execute($spec);
+            app(GlpkSolver::class)->execute($manifest, $spec);
             $this->fail('Expected GlpkException to be thrown');
         } catch (GlpkException $e) {
             expect($e->getUserMessage())->toBeString();
@@ -240,7 +258,8 @@ describe('GlpkSolver', function () {
 
         config()->set('lottery.solvers.glpk.temp_dir', $tempDir);
         $spec = new LotterySpec($families, $units);
-        app(GlpkSolver::class)->execute($spec);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        app(GlpkSolver::class)->execute($manifest, $spec);
 
         $afterFiles = glob($tempDir . '/mtav_*');
 
@@ -261,9 +280,10 @@ describe('GlpkSolver', function () {
         ]);
 
         $spec = new LotterySpec($families, $units);
+        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
         try {
-            app(GlpkSolver::class)->execute($spec);
+            app(GlpkSolver::class)->execute($manifest, $spec);
         } catch (GlpkException $e) {
             // Expected
         }
@@ -272,5 +292,105 @@ describe('GlpkSolver', function () {
 
         // Should not leak temp files even on failure
         expect(count($afterFiles))->toBe(count($beforeFiles));
+    });
+    test('solver failure creates FAILURE audit and releases lottery', function () {
+        // Force GlpkException by pointing to non-existent glpsol
+        config()->set('lottery.solvers.glpk.glpsol_path', '/nonexistent/glpsol');
+
+        setCurrentProject(4);
+        $lottery = Event::find(13);
+        $lottery->update(['is_published' => true, 'deleted_at' => null]);
+
+        // Set minimal preferences
+        $family = Family::find(16);
+        $family->preferences()->sync([
+            13 => ['order' => 1],
+            14 => ['order' => 2],
+        ]);
+
+        // Execute lottery (should fail gracefully)
+        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+        // Verify FAILURE audit exists
+        $failureAudit = $lottery->audits()->where('type', 'failure')->first();
+
+        expect($failureAudit)->not->toBeNull();
+        expect($failureAudit->audit)->toHaveKey('exception');
+        expect($failureAudit->audit['exception'])->toContain('GlpkException');
+        expect($failureAudit->audit)->toHaveKey('user_message');
+        expect($failureAudit->audit['user_message'])->toBeString();
+
+        // Verify lottery is released (can retry)
+        $lottery->refresh();
+        expect($lottery->is_published)->toBeTrue();
+        expect($lottery->deleted_at)->toBeNull();
+    });
+
+    test('failed execution can be retried and creates new audit trail', function () {
+        config()->set('queue.default', 'sync');
+
+        setCurrentProject(4);
+        $lottery = Event::find(13);
+        $lottery->update(['is_published' => true, 'deleted_at' => null]);
+
+        // Set preferences
+        $family = Family::find(16);
+        $family->preferences()->sync([
+            13 => ['order' => 1],
+            14 => ['order' => 2],
+        ]);
+
+        // First attempt: Force failure
+        config()->set('lottery.default', 'glpk');
+        config()->set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
+
+        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+        $firstUuid = $lottery->audits()
+            ->where('type', 'init')
+            ->orderBy('created_at', 'desc')
+            ->first()
+            ->execution_uuid;
+
+        // Verify first attempt failed
+        $firstFailure = $lottery->audits()->where('execution_uuid', $firstUuid)->where('type', 'failure');
+        expect($firstFailure)->toExist();
+
+        // Second attempt: Fix config and retry
+        config()->set('lottery.solvers.glpk.glpsol_path', '/usr/bin/glpsol');
+        $lottery->refresh();
+        expect($lottery->is_published)->toBeTrue(); // Should be released after failure
+
+        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
+
+        // Get second execution UUID
+        $allInits = $lottery->audits()
+            ->where('type', LotteryAuditType::INIT->value)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Should have at least one INIT (possibly two if both completed)
+        expect($allInits->count())->toBeGreaterThanOrEqual(1);
+
+        // Get the most recent INIT audit
+        $secondInit = $allInits->first();
+        $secondUuid = $secondInit->execution_uuid;
+
+        // If there are two INITs, verify different UUIDs
+        if ($allInits->count() >= 2) {
+            expect($firstUuid)->not->toBe($secondUuid);
+
+            // Verify first attempt audits are soft-deleted
+            $firstAttemptAudits = $lottery->audits()
+                ->withTrashed()
+                ->where('execution_uuid', $firstUuid)
+                ->get();
+
+            expect($firstAttemptAudits->count())->toBeGreaterThan(0);
+            expect($firstAttemptAudits->every(fn ($a) => $a->trashed()))->toBeTrue();
+        }
+
+        // Verify second attempt succeeded (lottery completed)
+        expect($lottery->fresh()->trashed())->toBeTrue();
     });
 });

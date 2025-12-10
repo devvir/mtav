@@ -4,6 +4,7 @@ namespace App\Services\Lottery\Glpk;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Exceptions\GlpkException;
+use App\Services\Lottery\Exceptions\GlpkTimeoutException;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,6 +15,7 @@ class Glpk
     protected string $glpsolPath;
     protected string $tempDir;
     protected int $timeout;
+    protected ProcessExecutor $executor;
 
     public function __construct(
         protected ModelGenerator $modelGenerator,
@@ -24,7 +26,9 @@ class Glpk
 
         $this->glpsolPath = $config['glpsol_path'] ?? '/usr/bin/glpsol';
         $this->tempDir = $config['temp_dir'] ?? sys_get_temp_dir();
-        $this->timeout = $config['timeout'] ?? 30;
+        $this->timeout = $config['timeout'] ?? 300;
+
+        $this->executor = new ProcessExecutor($this->timeout, $this->tempDir);
 
         Log::info('Glpk instantiated.', compact('config'));
     }
@@ -129,46 +133,37 @@ class Glpk
      * @return string Path to generated .sol file
      *
      * @throws GlpkException if GLPK execution fails
+     * @throws GlpkTimeoutException if execution exceeds timeout
      */
     public function runGlpk(string $modFile, string $datFile): string
     {
-        // Create temp file for solution, fixing tempnam() leak
+        // Create temp file for solution
         $tempFile = tempnam($this->tempDir, 'mtav_sol_');
-
         if ($tempFile === false) {
             throw new GlpkException("Failed to create temporary solution file in {$this->tempDir}");
         }
-
         unlink($tempFile);
         $solFile = $tempFile . '.sol';
 
-        // Use GLPK's built-in --tmlim parameter (time limit in milliseconds)
-        $tmlimMs = (int) ($this->timeout * 1000);
-
         $command = sprintf(
-            '%s --model %s --data %s --tmlim %d --output %s 2>&1',
+            '%s --scale --model %s --data %s --tmlim %d --output %s 2>&1',
             escapeshellarg($this->glpsolPath),
             escapeshellarg($modFile),
             escapeshellarg($datFile),
-            $tmlimMs,
+            (int) $this->timeout,
             escapeshellarg($solFile)
         );
 
-        exec($command, $output, $returnCode);
-
-        $outputStr = implode("\n", $output);
-
-        // GLPK returns 0 even on timeout, so check output for timeout messages
-        if (str_contains($outputStr, 'TIME LIMIT EXCEEDED')) {
-            throw new GlpkException("GLPK execution timed out after {$this->timeout} seconds.");
-        }        // Any other non-zero return code means failure
-        if ($returnCode !== 0) {
-            throw new GlpkException(
-                "GLPK execution failed with return code {$returnCode}.\nCommand: {$command}\nOutput: " . $outputStr
-            );
+        try {
+            $output = $this->executor->execute($command);
+            // GLPK returns 0 even on timeout, so check output for timeout messages
+            if (str_contains($output, 'TIME LIMIT EXCEEDED')) {
+                throw new GlpkException("GLPK execution timed out after {$this->timeout} seconds.");
+            }
+        } catch (GlpkTimeoutException $e) {
+            throw $e;
         }
 
-        // Only use solution file if GLPK completed successfully (return code 0)
         if (! file_exists($solFile) || filesize($solFile) === 0) {
             throw new GlpkException('GLPK did not generate a solution file.');
         }

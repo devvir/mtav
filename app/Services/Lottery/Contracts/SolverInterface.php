@@ -3,6 +3,7 @@
 namespace App\Services\Lottery\Contracts;
 
 use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
@@ -21,6 +22,9 @@ interface SolverInterface
 {
     /**
      * Solve the lottery assignment problem for a single group of families and units.
+     *
+     * @param LotteryManifest $manifest Full lottery manifest with project-wide configuration
+     * @param LotterySpec $spec Group-specific families and units to solve
      */
-    public function execute(LotterySpec $spec): ExecutionResult;
+    public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult;
 }

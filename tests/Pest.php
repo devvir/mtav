@@ -13,7 +13,7 @@ pest()
     ->beforeEach(fn () => $this->withoutVite())
     ->beforeEach(fn () => DB::beginTransaction())
     ->afterEach(fn () => DB::rollback())
-    ->in('Unit', 'Feature');
+    ->in('Unit', 'Feature', 'Stress');
 
 /**
  * Browser testing

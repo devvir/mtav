@@ -15,12 +15,14 @@ class MockManifest extends LotteryManifest
         string $uuid,
         int $projectId,
         int $lotteryId,
-        array $data = []
+        array $data = [],
+        array $options = []
     ) {
         $this->uuid = $uuid;
         $this->projectId = $projectId;
         $this->lotteryId = $lotteryId;
         $this->data = $data;
+        $this->options = $options;
     }
 }
 
@@ -31,9 +33,10 @@ function mockManifest(
     int $projectId = 1,
     array $data = [],
     int $lotteryId = 1,
-    ?string $uuid = null
+    ?string $uuid = null,
+    array $options = []
 ): MockManifest {
     $uuid ??= Str::uuid()->toString();
 
-    return new MockManifest($uuid, $projectId, $lotteryId, $data);
+    return new MockManifest($uuid, $projectId, $lotteryId, $data, $options);
 }

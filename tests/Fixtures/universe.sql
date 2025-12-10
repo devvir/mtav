@@ -574,28 +574,28 @@ TRUNCATE TABLE events;
 
 INSERT INTO events (id, type, creator_id, project_id, title, description, location, start_date, end_date, is_published, rsvp, created_at, updated_at, deleted_at) VALUES
 -- Project #1 events (5 total)
-(1, 'lottery', 11, 1, 'Lottery', 'Unit assignment lottery for Project 1', NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(1, 'lottery', 11, 1, 'Lottery', 'Unit assignment lottery for Project 1', NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL, TRUE, FALSE, NOW(), NOW(), NULL),
 (2, 'online', 11, 1, 'Online Community Meeting', 'Monthly community meeting via video call', 'https://meet.example.com/proj1', DATE_ADD(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
 (3, 'online', 11, 1, 'Past Online Workshop', 'Completed workshop on building rules', 'https://meet.example.com/workshop1', DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
 (4, 'onsite', 11, 1, 'Site Visit', 'Construction progress tour', '123 Building Street, Project 1', DATE_ADD(NOW(), INTERVAL 14 DAY), DATE_ADD(NOW(), INTERVAL 14 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
 (5, 'onsite', 11, 1, 'Unpublished Onsite Event', 'Draft event not yet published', '123 Building Street, Project 1', DATE_ADD(NOW(), INTERVAL 21 DAY), DATE_ADD(NOW(), INTERVAL 21 DAY), FALSE, FALSE, NOW(), NOW(), NULL),
 
 -- Project #2 events (4 total)
-(6, 'lottery', 12, 2, 'Lottery', 'Unit assignment lottery for Project 2', NULL, DATE_ADD(NOW(), INTERVAL 45 DAY), DATE_ADD(NOW(), INTERVAL 45 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(6, 'lottery', 12, 2, 'Lottery', 'Unit assignment lottery for Project 2', NULL, DATE_ADD(NOW(), INTERVAL 45 DAY), NULL, TRUE, FALSE, NOW(), NOW(), NULL),
 (7, 'online', 12, 2, 'Virtual Info Session', 'Q&A session with architects', 'https://meet.example.com/proj2', DATE_ADD(NOW(), INTERVAL 10 DAY), DATE_ADD(NOW(), INTERVAL 10 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
 (8, 'onsite', 12, 2, 'Groundbreaking Ceremony', 'Official project launch event', '456 Development Ave, Project 2', DATE_ADD(NOW(), INTERVAL 3 DAY), DATE_ADD(NOW(), INTERVAL 3 DAY), TRUE, TRUE, NOW(), NOW(), NULL),
 (9, 'onsite', 12, 2, 'Past Onsite Meeting', 'Completed planning meeting', '456 Development Ave, Project 2', DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
 
 -- Project #3 events (2 total)
-(10, 'lottery', 13, 3, 'Lottery', 'Unit assignment lottery for Project 3', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(10, 'lottery', 13, 3, 'Lottery', 'Unit assignment lottery for Project 3', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, TRUE, FALSE, NOW(), NOW(), NULL),
 (11, 'online', 13, 3, 'Project Introduction', 'Introduction to Project 3 for new members', 'https://meet.example.com/proj3', DATE_ADD(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 5 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
 
 -- Project #4 events (2 total)
 (12, 'onsite', 13, 4, 'Unpublished Planning Meeting', 'Internal planning session', '789 Planning St, Project 4', DATE_ADD(NOW(), INTERVAL 12 DAY), DATE_ADD(NOW(), INTERVAL 12 DAY), FALSE, TRUE, NOW(), NOW(), NULL),
-(13, 'lottery', 13, 4, 'Lottery', 'Unit assignment lottery for Project 4', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), TRUE, FALSE, NOW(), NOW(), NULL),
+(13, 'lottery', 13, 4, 'Lottery', 'Unit assignment lottery for Project 4', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, TRUE, FALSE, NOW(), NOW(), NULL),
 
 -- Project #5 events (1 total - deleted project)
-(14, 'lottery', 14, 5, 'Lottery', 'Unit assignment lottery for Project 5 (deleted project)', NULL, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), TRUE, FALSE, NOW(), NOW(), NULL);
+(14, 'lottery', 14, 5, 'Lottery', 'Unit assignment lottery for Project 5 (deleted project)', NULL, DATE_SUB(NOW(), INTERVAL 7 DAY), NULL, TRUE, FALSE, NOW(), NOW(), NULL);
 
 -- ============================================================================
 -- EVENT_RSVP (Pivot table for member event responses)

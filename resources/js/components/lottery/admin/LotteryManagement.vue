@@ -13,19 +13,21 @@ import { Label } from '@/components/ui/label';
 const props = defineProps<{
   lottery: Lottery;
   families: ApiResource<Family>[];
+  options: string[];
+  warning: string | null;
 }>();
 
-const page = usePage();
-const mismatchError = computed(() => page.props.errors.mismatch as string | undefined);
-watch(mismatchError, (error: string | undefined) => executionForm.override_mismatch = !! error);
-
 const confirmationModalOpen = ref(false);
-const executionForm = useForm({ override_mismatch: false });
 
-const execute = () => executionForm.post(route('lottery.execute', props.lottery.id), {
-  onFinish: () => (confirmationModalOpen.value = false),
-  preserveScroll: true,
-});
+const execute = () => {
+  // Create form with the complete options data
+  const form = useForm({ options: props.options });
+
+  form.post(route('lottery.execute', props.lottery.id), {
+    onFinish: () => confirmationModalOpen.value = false,
+    preserveScroll: true,
+  });
+};
 
 const canExecute = computed(
   () => props.lottery.start_date && new Date(props.lottery.start_date) < new Date()
@@ -50,10 +52,10 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
       </CardHeader>
 
       <CardContent>
-        <!-- Mismatch Error Alert -->
-        <Alert v-if="mismatchError" variant="warning" class="mb-4">
+        <!-- Option Confirmation Alert -->
+        <Alert v-if="warning" variant="warning" class="mb-4">
           <AlertTriangle class="h-4 w-4" />
-          <AlertDescription>{{ mismatchError }}</AlertDescription>
+          <AlertDescription>{{ warning }}</AlertDescription>
         </Alert>
 
         <div v-if="!canExecute" class="text-sm text-text-muted text-center py-4">
@@ -62,7 +64,7 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
 
         <Button v-else @click="confirmationModalOpen = true" variant="default" size="lg" class="w-full gap-2">
           <PlayIcon class="h-5 w-5" />
-          {{ mismatchError ? _('Execute Lottery anyway') : _('Execute Lottery') }}
+          {{ warning ? _('Confirm and Execute') : _('Execute Lottery') }}
         </Button>
       </CardContent>
     </Card>
@@ -110,9 +112,9 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
   <ConfirmationModal
     v-model:open="confirmationModalOpen"
     :title="_('Confirm Lottery Execution')"
-    :description="_('This action is irreversible. All units will be permanently assigned to families.')"
-    :expected-text="_('EXECUTE')"
-    :confirm-button-text="_('Execute Lottery')"
+    :description="warning || _('This action is irreversible. All units will be permanently assigned to families.')"
+    :expected-text="warning ? _('CONFIRM') : _('EXECUTE')"
+    :confirm-button-text="warning ? _('Confirm') : _('Execute Lottery')"
     variant="default"
     @confirm="execute"
   />

@@ -11,6 +11,8 @@ const props = defineProps<{
   lottery: Lottery;
   families: ApiResource<Family>[];
   preferences: ApiResource<Unit>[];
+  options: string[];
+  warning: string | null;
 }>();
 
 // Lottery is executING or executED (completed)
@@ -37,7 +39,7 @@ const isExecutedOrExecuting = computed(() => props.lottery.is_completed || props
 
         <!-- Show role-specific components if lottery is not executed -->
         <template v-else>
-          <LotteryManagement v-if="iAmAdmin" :lottery :families />
+          <LotteryManagement v-if="iAmAdmin" :lottery :families :options :warning />
           <PreferencesManager v-if="iAmMember" :preferences />
         </template>
       </div>

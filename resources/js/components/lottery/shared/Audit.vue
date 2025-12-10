@@ -13,6 +13,7 @@ const props = defineProps<{
 const POLL_INTERVAL = 1000; // 1 second
 const TIMEOUT_MS = 300000; // 5 minutes
 const ESTIMATED_SECONDS_PER_UNIT_TYPE = 40; // Estimated time per unit type group
+const SUCCESS_MESSAGE_VISIBILITY = 600;  // In seconds
 
 const {
   hasAudits,
@@ -55,6 +56,16 @@ onUnmounted(() => {
   clearTimeoutTimer();
   stopEstimatedProgress();
 });
+
+// Watch for isExecuting becoming true after mount (e.g., after form submission)
+watch(isExecuting, (executing: boolean) => {
+  if (executing && !intervalId.value) {
+    // Execution started, begin polling
+    startPolling();
+    resetTimeout();
+    startEstimatedProgress();
+  }
+}, { immediate: false });
 
 function startPolling() {
   if (intervalId.value) return;
@@ -150,7 +161,7 @@ watch([isExecuting, hasFailure], ([executing, failed]: [boolean, boolean]) => {
 
 // Phase information based on audit types
 const phaseInfo = computed(() => {
-  if (!hasAudits.value) return null;
+  if (!hasAudits.value || hasFailure.value) return null;
 
   const audits = props.lottery.audits || [];
   const phases: { name: string; completed: boolean; current: boolean }[] = [];
@@ -179,9 +190,23 @@ const phaseInfo = computed(() => {
   return phases;
 });
 
-// Only show audit UI when lottery is executing or completed (not invalidated)
+// Only show audit UI when lottery is executing, completed, or failed (not invalidated)
 const shouldShowAudit = computed(() => {
-  return hasAudits.value && (props.lottery.is_completed || props.lottery.is_executing);
+  return hasAudits.value && (
+    (props.lottery.is_completed && showCompletedFeedback.value)
+    || props.lottery.is_executing
+    || hasFailure.value
+  ) ;
+});
+
+// Completed execution feedback is shown only for a certain period
+const showCompletedFeedback = computed(() => {
+  if (! props.lottery.audits!.length) return false;
+
+  const lastAudit = props.lottery.audits[props.lottery.audits.length - 1];
+  const ageMs = Date.now() - new Date(lastAudit.created_at).getTime();
+
+  return ageMs <= SUCCESS_MESSAGE_VISIBILITY * 1000;
 });
 </script>
 
@@ -189,24 +214,24 @@ const shouldShowAudit = computed(() => {
   <div v-if="shouldShowAudit" class="w-full bg-surface border border-border rounded-lg p-6 space-y-4">
     <!-- Header -->
     <div class="flex items-center gap-3">
-      <div v-if="hasFailure" class="flex items-center justify-center size-10 rounded-full bg-destructive/10">
-        <XCircle class="size-5 text-destructive" />
+      <div v-if="hasFailure" class="flex items-center justify-center size-10 rounded-full bg-error-subtle">
+        <XCircle class="size-5 text-error" />
       </div>
-      <div v-else-if="isExecuting" class="flex items-center justify-center size-10 rounded-full bg-primary/10">
-        <Loader2 class="size-5 text-primary animate-spin" />
+      <div v-else-if="isExecuting" class="flex items-center justify-center size-10 rounded-full bg-interactive/10">
+        <Loader2 class="size-5 text-interactive animate-spin" />
       </div>
-      <div v-else-if="timedOut" class="flex items-center justify-center size-10 rounded-full bg-warning/10">
+      <div v-else-if="timedOut" class="flex items-center justify-center size-10 rounded-full bg-warning-subtle">
         <AlertCircle class="size-5 text-warning" />
       </div>
-      <div v-else class="flex items-center justify-center size-10 rounded-full bg-success/10">
+      <div v-else class="flex items-center justify-center size-10 rounded-full bg-success-subtle">
         <CheckCircle class="size-5 text-success" />
       </div>
 
       <div class="flex-1">
-        <h3 v-if="hasFailure" class="text-lg font-semibold text-destructive">
+        <h3 v-if="hasFailure" class="text-lg font-semibold text-error">
           {{ _('Lottery Execution Failed') }}
         </h3>
-        <h3 v-else-if="isExecuting" class="text-lg font-semibold text-primary">
+        <h3 v-else-if="isExecuting" class="text-lg font-semibold text-interactive">
           {{ _('Lottery in Progress') }}
         </h3>
         <h3 v-else-if="timedOut" class="text-lg font-semibold text-warning">
@@ -219,21 +244,21 @@ const shouldShowAudit = computed(() => {
     </div>
 
     <!-- Failure Details -->
-    <div v-if="hasFailure && failureAudit" class="bg-destructive/5 border border-destructive/20 rounded-md p-4">
-      <p class="text-sm font-medium text-destructive mb-2">
+    <div v-if="hasFailure && failureAudit" class="bg-error-subtle border border-error rounded-md p-4">
+      <p class="text-sm font-medium text-error mb-2">
         {{ failureAudit.audit.user_message || _('An error occurred during execution') }}
       </p>
-      <p class="text-xs text-text-muted">
+      <p class="text-xs text-error-subtle-foreground">
         {{ _('Error Type') }}: {{ failureAudit.audit.error_type || _('Unknown') }}
       </p>
-      <p class="text-xs text-text-muted">
-        {{ failureAudit.audit.exception || '' }}
+      <p class="text-xs text-error-subtle-foreground">
+        {{ failureAudit.audit.exception?.split('\\').pop() || '' }}
       </p>
     </div>
 
     <!-- Timeout Warning -->
-    <div v-if="timedOut && !hasFailure" class="bg-warning/5 border border-warning/20 rounded-md p-4">
-      <p class="text-sm text-text-muted">
+    <div v-if="timedOut && !hasFailure" class="bg-warning-subtle border border-warning rounded-md p-4">
+      <p class="text-sm text-warning-subtle-foreground">
         {{ _('This is taking longer than expected. Please refresh the page or contact an Administrator if the Lottery results do not show after a few minutes.') }}
       </p>
     </div>
@@ -241,13 +266,13 @@ const shouldShowAudit = computed(() => {
     <!-- Phase Progress -->
     <div v-if="phaseInfo && phaseInfo.length > 0" class="space-y-2">
       <div v-for="(phase, idx) in phaseInfo" :key="idx" class="flex items-center gap-3">
-        <div v-if="phase.completed" class="flex items-center justify-center size-6 rounded-full bg-success/10">
+        <div v-if="phase.completed" class="flex items-center justify-center size-6 rounded-full bg-success-subtle">
           <CheckCircle class="size-4 text-success" />
         </div>
-        <div v-else-if="phase.current" class="flex items-center justify-center size-6 rounded-full bg-primary/10">
-          <Loader2 class="size-4 text-primary animate-spin" />
+        <div v-else-if="phase.current" class="flex items-center justify-center size-6 rounded-full bg-interactive/10">
+          <Loader2 class="size-4 text-interactive animate-spin" />
         </div>
-        <div v-else class="flex items-center justify-center size-6 rounded-full bg-border">
+        <div v-else class="flex items-center justify-center size-6 rounded-full bg-surface-interactive">
           <Clock class="size-4 text-text-muted" />
         </div>
 
@@ -255,7 +280,7 @@ const shouldShowAudit = computed(() => {
           class="text-sm"
           :class="[
             phase.completed ? 'text-success font-medium' : '',
-            phase.current ? 'text-primary font-medium' : '',
+            phase.current ? 'text-interactive font-medium' : '',
             !phase.completed && !phase.current ? 'text-text-muted' : ''
           ]"
         >
@@ -268,11 +293,11 @@ const shouldShowAudit = computed(() => {
     <div v-if="isExecuting && groupsCount > 0" class="space-y-2">
       <div class="flex justify-between text-sm">
         <span class="text-text-muted">{{ _('Groups Processed') }}</span>
-        <span class="font-medium">{{ processedGroups }} / {{ groupsCount }} ({{ Math.round(progress) }}%)</span>
+        <span class="font-medium text-text">{{ processedGroups }} / {{ groupsCount }} ({{ Math.round(progress) }}%)</span>
       </div>
       <div class="h-2 bg-border rounded-full overflow-hidden">
         <div
-          class="h-full bg-primary transition-all duration-100 ease-linear"
+          class="h-full bg-interactive transition-all duration-100 ease-linear"
           :style="{ width: `${Math.max(progress, estimatedProgress)}%` }"
         />
       </div>

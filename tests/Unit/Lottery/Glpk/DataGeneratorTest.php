@@ -81,15 +81,15 @@ describe('DataGenerator', function () {
 
             $data = $this->generator->generateData($spec);
 
-            // Family 1 should have ranks: 10→1, 20→2, 30→3
+            // Tie-breaker decimals (0.000-0.999) are added to prevent GLPK degeneracy
+            // but DO NOT change outcomes - integer ranks still determine optimization
+            // Family 1 should have ranks: 10→1.xxx, 20→2.xxx, 30→3.xxx
             expect($data)->toContain('c1');
 
-            // Check that we have numeric ranks (not 0-indexed)
-            // Format: c1 followed by space-padded numbers
-            preg_match('/c1\s+(\d+)\s+(\d+)\s+(\d+)/', $data, $matches);
+            preg_match('/c1\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/', $data, $matches);
             expect($matches)->toHaveCount(4); // Full match + 3 groups
 
-            // First preference should be rank 1, second rank 2, third rank 3
+            // Verify integer parts of ranks (outcome-determining part)
             $ranks = [(int)$matches[1], (int)$matches[2], (int)$matches[3]];
             expect($ranks)->toContain(1);
             expect($ranks)->toContain(2);
@@ -141,11 +141,12 @@ describe('DataGenerator', function () {
             // Matrix header should list units in spec order: v10 v20 v30
             expect($data)->toMatch('/param p\s*:\s*v10\s+v20\s+v30/');
 
-            // Family 1's preferences should be: 10→2, 20→3, 30→1
-            preg_match('/c1\s+(\d+)\s+(\d+)\s+(\d+)/', $data, $matches);
-            expect((int)$matches[1])->toBe(2); // v10 is 2nd choice
-            expect((int)$matches[2])->toBe(3); // v20 is 3rd choice
-            expect((int)$matches[3])->toBe(1); // v30 is 1st choice
+            // Tie-breaker decimals preserve outcome: integer ranks still determine preferences
+            // Family 1's preference order: 10→2.xxx, 20→3.xxx, 30→1.xxx
+            preg_match('/c1\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/', $data, $matches);
+            expect((int)$matches[1])->toBe(2); // v10 is 2nd choice (integer rank preserved)
+            expect((int)$matches[2])->toBe(3); // v20 is 3rd choice (integer rank preserved)
+            expect((int)$matches[3])->toBe(1); // v30 is 1st choice (integer rank preserved)
         });
 
         test('missing preferences default to low priority', function () {

@@ -4,6 +4,7 @@ namespace App\Services\Lottery\Solvers;
 
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Exceptions\GlpkException;
 use App\Services\Lottery\Glpk\Glpk;
@@ -28,7 +29,7 @@ class GlpkSolver implements SolverInterface
      *
      * @throws GlpkException if GLPK execution fails
      */
-    public function execute(LotterySpec $spec): ExecutionResult
+    public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
         Log::info('GlpkSolver@execute', compact('spec'));
 
