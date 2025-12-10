@@ -30,8 +30,9 @@ use Throwable;
  */
 class ExecutionService
 {
-    public function __construct(private AuditService $auditService)
-    {
+    public function __construct(
+        private AuditService $auditService,
+    ) {
         // ...
     }
 

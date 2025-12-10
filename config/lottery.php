@@ -59,9 +59,15 @@ return [
         'glpk' => [
             'solver' => \App\Services\Lottery\Solvers\GlpkSolver::class,
             'config' => [
-                'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
-                'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
-                'timeout'     => env('GLPK_TIMEOUT', 120),
+                'glpsol_path'          => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
+                'temp_dir'             => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
+                'timeout'              => env('GLPK_TIMEOUT', 300),
+                'degeneracy_detection' => [
+                    'enabled'              => env('LOTTERY_DEGENERACY_DETECTION', false),
+                    'size_threshold'       => env('LOTTERY_SIZE_THRESHOLD', 11),
+                    'similarity_threshold' => env('LOTTERY_SIMILARITY_THRESHOLD', 0.80),
+                    'opposition_threshold' => env('LOTTERY_OPPOSITION_THRESHOLD', 0.80),
+                ],
             ],
         ],
 

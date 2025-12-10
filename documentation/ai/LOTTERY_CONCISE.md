@@ -277,3 +277,420 @@ $family->project->lotteryEvent?->is_published === true
 - **testing/LOTTERY_TESTS.md** - Test reference & testing fixtures
 - **KNOWLEDGE_BASE.md** - Business domain concepts
 - **.github/copilot-instructions.md** - Code style & conventions
+
+---
+
+# Missing Piece: Group-Level Algorithm Switching (Per-Type Degeneracy Handling)
+
+## The Problem
+
+When executing the lottery at project level, we run the solver **independently for each unit type** (Phase 1 of orchestration). Empirical testing reveals that:
+
+- **Unit types ≤30 families**: GLPK performs reliably (<2 seconds)
+- **Unit types ≥40 families**: GLPK can timeout (301+ seconds observed)
+- **Decision point**: At execution time, not design time
+
+**Current approach**: Use one algorithm (GLPK or Greedy) for entire project.
+
+**Required approach**: Use GLPK for well-behaved types, switch to Greedy for problematic types—**within a single lottery execution**.
+
+This is **fundamentally a per-group decision**, not per-project. The complexity comes from maintaining **transactional consistency**: either the entire lottery succeeds (all types executed) or the entire lottery is reverted (no partial state).
+
+## Architecture Requirements
+
+### 1. Detection Exception: `DegeneracyDetectedException`
+
+**When to throw**:
+- After calculating group manifest (families + units for a specific type)
+- BEFORE invoking solver
+- Based on empirical thresholds from `config('lottery.solvers.glpk.config.degeneracy_detection')`
+
+**What to include**:
+```php
+class DegeneracyDetectedException extends Exception
+{
+    public function __construct(
+        public readonly int $size,                    // max(num_families, num_units)
+        public readonly float $dominanceRatio,        // % of families with same preferences
+        public readonly string $reason,               // 'size_exceeds_critical' | 'degeneracy_pattern'
+        public readonly int $groupNumber,             // Which type in orchestration
+    ) {}
+
+    // Accessor for recovery logic
+    public function shouldUseGreedy(): bool
+    {
+        return $this->reason === 'size_exceeds_critical' || $this->dominanceRatio >= 0.80;
+    }
+}
+```
+
+**Where to throw** (in solver flow):
+```php
+// app/Services/Lottery/ExecutionService.php or SolverFactory
+if ($this->detectDegeneracy($spec)) {
+    throw new DegeneracyDetectedException(
+        size: max($spec->families->count(), $spec->units->count()),
+        dominanceRatio: $this->calculateDominanceRatio($spec->families),
+        reason: $this->determinateReason(...),
+        groupNumber: $spec->groupNumber, // Track which type in orchestration
+    );
+}
+```
+
+### 2. Orchestrator Pattern: Group-Level Recovery
+
+**Current `LotteryOrchestrator::execute()`** is atomic per type:
+```php
+foreach ($unitTypes as $unitType) {
+    $result = $this->solver->execute($spec);  // Single algo for all types
+    // No recovery option
+}
+```
+
+**Required pattern** (pseudo-code):
+```php
+public function execute(Event $lottery, LotterySpec $spec): ExecutionResult
+{
+    $executionUuid = Str::uuid();
+    $results = [];
+    $groupNumber = 0;
+
+    foreach ($unitTypes as $unitType) {
+        $groupNumber++;
+        $groupSpec = $this->buildGroupSpec($unitType, $lottery, $spec);
+
+        try {
+            // Phase 1: Attempt with primary solver (GLPK)
+            $result = $this->primarySolver->execute($groupSpec);
+            $results[$unitType->id] = $result;
+
+            // Audit: GROUP_EXECUTION with solver=glpk, time=X
+            $this->auditService->audit(
+                executionUuid: $executionUuid,
+                type: AuditType::GROUP_EXECUTION,
+                groupNumber: $groupNumber,
+                manifest: $groupSpec,
+                result: $result,
+                solverUsed: 'glpk',
+                executionTime: $elapsed,
+            );
+
+        } catch (DegeneracyDetectedException $e) {
+            // Phase 1 FAILED: Degeneracy detected
+            // Decision: Switch to alternate algorithm for THIS GROUP ONLY
+
+            // Audit: Record detection (not failure yet)
+            $this->auditService->audit(
+                executionUuid: $executionUuid,
+                type: AuditType::DEGENERACY_DETECTED,
+                groupNumber: $groupNumber,
+                manifest: $groupSpec,
+                error: $e->getMessage(),
+                solverUsed: 'glpk',
+                degeneracyReason: $e->reason,
+            );
+
+            // Phase 1.5: Request confirmation or auto-switch?
+            // Option A: Auto-switch (if configured: greedy_on_degeneracy=true)
+            if (config('lottery.solvers.glpk.config.auto_fallback_on_degeneracy')) {
+                $result = $this->fallbackSolver->execute($groupSpec);
+
+                $this->auditService->audit(
+                    executionUuid: $executionUuid,
+                    type: AuditType::GROUP_EXECUTION,
+                    groupNumber: $groupNumber,
+                    manifest: $groupSpec,
+                    result: $result,
+                    solverUsed: 'greedy_fallback',
+                    executionTime: $elapsed,
+                    note: 'Fallback after degeneracy detection',
+                );
+
+                $results[$unitType->id] = $result;
+
+            } else {
+                // Option B: Manual confirmation (UI workflow)
+                // Store state in cache/DB, return partial result with "needs_confirmation"
+                throw new DegeneracyConfirmationRequired(
+                    executionUuid: $executionUuid,
+                    groupNumber: $groupNumber,
+                    unitType: $unitType,
+                    exception: $e,
+                    // UI will show: "Unit Type X has complex preferences. Use faster
+                    // algorithm (Greedy) with same fairness guarantees?"
+                );
+            }
+        }
+
+        // Both paths: continue to next type
+    }
+
+    // Phase 2: Orphan redistribution (unchanged)
+    $orphans = collect($results)->pluck('orphans')->flatten();
+    // ...
+
+    // Final: Consistency check
+    $this->validateExecutionConsistency($results, $orphans);
+
+    // Return combined result
+    return new ExecutionResult(
+        picks: $this->mergePicks($results),
+        orphans: $orphans,
+        executionUuid: $executionUuid,
+        groupResults: $results,  // NEW: Track per-group solver used
+    );
+}
+```
+
+### 3. Transactional Safety: All-or-Nothing Semantics
+
+**Critical requirement**: If any phase fails, entire lottery is reverted.
+
+**Current state**: Results applied atomically via `ExecutionService::applyResults()`.
+
+**Required enhancement**:
+
+```php
+// app/Services/Lottery/ExecutionService.php
+
+public function execute(Event $lottery): void
+{
+    $executionUuid = Str::uuid();
+
+    try {
+        // Step 1: Validate data integrity (existing)
+        $this->validatePrerequisites($lottery);
+
+        // Step 2: Reserve lottery (existing)
+        // Mark is_published=false atomically
+        DB::transaction(function () use ($lottery) {
+            $lottery->update(['is_published' => false]);
+        });
+
+        // Step 3: Execute orchestration with recovery
+        try {
+            $result = DB::transaction(function () use ($lottery, $executionUuid) {
+                return $this->orchestrator->execute(
+                    lottery: $lottery,
+                    spec: $this->buildSpec($lottery),
+                    executionUuid: $executionUuid,
+                    // NEW: Callback for confirmation handling
+                    onDegeneracyDetected: function (DegeneracyDetectedException $e) {
+                        return $this->handleDegeneracyConfirmation($e);
+                    },
+                );
+            });
+
+            // Step 4: Apply results (existing, but within transaction)
+            // units.family_id = X for all assigned families
+            DB::transaction(function () use ($result, $lottery, $executionUuid) {
+                $this->applyResults($result, $lottery, $executionUuid);
+                // Soft-delete lottery: is_published=false, deleted_at=now()
+                $lottery->delete();
+            });
+
+            // Step 5: Audit final success (existing)
+            $this->auditService->audit(
+                type: AuditType::PROJECT_EXECUTION,
+                result: "Success",
+                executionUuid: $executionUuid,
+            );
+
+        } catch (DegeneracyConfirmationRequired $e) {
+            // User hasn't confirmed yet: SUSPEND state
+            // Lottery remains is_published=false, deleted_at=NULL
+            // Units have NO family_id assignments yet
+
+            $this->auditService->audit(
+                type: AuditType::DEGENERACY_PENDING_CONFIRMATION,
+                error: $e->getMessage(),
+                executionUuid: $executionUuid,
+                suspensionData: [
+                    'groupNumber' => $e->groupNumber,
+                    'unitType' => $e->unitType->name,
+                    'size' => $e->exception->size,
+                ],
+            );
+
+            // Return to user for confirmation
+            // Frontend shows: "Confirm using Greedy for Type X?"
+            // Cache/store the suspended execution state
+            Cache::put(
+                key: "lottery_suspended:{$executionUuid}",
+                value: $e,
+                minutes: 15,
+            );
+
+            // Signal to frontend that confirmation needed
+            throw $e;  // Will be caught by controller, displayed to admin
+
+        } catch (Exception $e) {
+            // ANY OTHER FAILURE: Full rollback
+            DB::transaction(function () use ($lottery, $executionUuid) {
+                // Revert lottery to "ready" state
+                $lottery->update([
+                    'is_published' => true,
+                    'deleted_at' => null,
+                ]);
+
+                // Clear any partial assignments (should be none if transaction worked)
+                // (Handled by DB rollback)
+            });
+
+            $this->auditService->exception(
+                type: AuditType::FAILURE,
+                error: $e->getMessage(),
+                executionUuid: $executionUuid,
+            );
+
+            throw LotteryExecutionException::fromOriginal($e, $executionUuid);
+        }
+    } catch (DegeneracyConfirmationRequired $e) {
+        // Let this bubble to controller for UI handling
+        throw $e;
+    } catch (LotteryExecutionException $e) {
+        // Controlled failure, already audited
+        throw $e;
+    } catch (Exception $e) {
+        // Unexpected error, log and fail safely
+        Log::critical("Lottery execution critical error: {$e->getMessage()}");
+        throw new LotteryExecutionException("Unexpected error during lottery execution", 500, $e);
+    }
+}
+```
+
+### 4. Confirmation Workflow
+
+When `DegeneracyConfirmationRequired` is thrown:
+
+**Backend state**:
+- Lottery: `is_published=false` (locked), `deleted_at=NULL` (not executed yet)
+- Units: No `family_id` assignments
+- Audit: DEGENERACY_PENDING_CONFIRMATION record with suspension data
+- Cache: Suspended execution state stored for 15 minutes
+
+**Frontend UI**:
+```
+┌─────────────────────────────────────────────────────┐
+│ ⚠️ Complex Preferences Detected                      │
+│                                                     │
+│ Unit Type: Apartments                               │
+│ Number of families: 42                              │
+│                                                     │
+│ The standard optimization algorithm (GLPK) would   │
+│ take too long (>5 minutes) to solve for this       │
+│ group.                                              │
+│                                                     │
+│ We can use a faster, equally fair algorithm        │
+│ (Greedy with randomized rotation) instead.         │
+│                                                     │
+│ ┌──────────────────────────────────────────────┐   │
+│ │ ✓ Continue with Greedy algorithm              │   │
+│ │ ✗ Cancel lottery execution                    │   │
+│ └──────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+**User action: "Continue with Greedy"**:
+```php
+// POST /api/lottery/{executionUuid}/confirm-degeneracy
+public function confirmDegeneracy(Request $request, string $executionUuid)
+{
+    // 1. Retrieve suspended state from cache
+    $suspended = Cache::get("lottery_suspended:{$executionUuid}");
+    if (!$suspended) {
+        return response()->json(['error' => 'Confirmation expired'], 410);
+    }
+
+    // 2. Validate authorization (admin only)
+    $this->authorize('admin');
+
+    // 3. Resume execution with fallback solver
+    try {
+        DB::transaction(function () use ($suspended, $executionUuid) {
+            // Continue from same point, but use greedy for that group
+            $result = $this->orchestrator->executeGroupWithFallback(
+                suspended: $suspended,
+                executionUuid: $executionUuid,
+                fallbackSolver: $this->fallbackSolver,
+            );
+
+            // Apply all results (for this group + all previous groups)
+            $this->executionService->applyResults($result, $suspended->lottery, $executionUuid);
+
+            // Mark lottery as completed
+            $suspended->lottery->delete();
+        });
+
+        // Audit: Confirmation accepted, execution resumed
+        $this->auditService->audit(
+            type: AuditType::DEGENERACY_CONFIRMED,
+            executionUuid: $executionUuid,
+            fallbackAlgorithm: 'greedy',
+        );
+
+        return response()->json(['status' => 'completed']);
+
+    } catch (Exception $e) {
+        // If resume fails, revert entirely
+        $suspended->lottery->update(['is_published' => true, 'deleted_at' => null]);
+        throw new LotteryExecutionException("Failed to resume execution: {$e->getMessage()}");
+    }
+}
+```
+
+**User action: "Cancel"**:
+```php
+// POST /api/lottery/{executionUuid}/cancel
+public function cancelLottery(Request $request, string $executionUuid)
+{
+    $suspended = Cache::get("lottery_suspended:{$executionUuid}");
+    if (!$suspended) {
+        return response()->json(['error' => 'Confirmation expired'], 410);
+    }
+
+    // Full rollback
+    DB::transaction(function () use ($suspended) {
+        $suspended->lottery->update(['is_published' => true, 'deleted_at' => null]);
+        // All partial assignments auto-rollback with DB transaction
+    });
+
+    $this->auditService->audit(
+        type: AuditType::DEGENERACY_REJECTED,
+        executionUuid: $executionUuid,
+    );
+
+    Cache::forget("lottery_suspended:{$executionUuid}");
+    return response()->json(['status' => 'cancelled']);
+}
+```
+
+## Implementation Checklist
+
+- [ ] Create `DegeneracyDetectedException` class
+- [ ] Create `DegeneracyConfirmationRequired` exception
+- [ ] Add `DEGENERACY_DETECTED`, `DEGENERACY_PENDING_CONFIRMATION`, `DEGENERACY_CONFIRMED`, `DEGENERACY_REJECTED` audit types
+- [ ] Implement `detectDegeneracy()` in solver validation layer (uses empirical thresholds from config)
+- [ ] Modify `LotteryOrchestrator::execute()` to catch `DegeneracyDetectedException` per group
+- [ ] Enhance `ExecutionService::execute()` with transactional safety and fallback handling
+- [ ] Implement `confirmDegeneracy()` and `cancelLottery()` endpoints
+- [ ] Update `LotteryAudit` model to support new audit types
+- [ ] Add cache-based state management for suspended executions
+- [ ] Create UI component for degeneracy confirmation dialog
+- [ ] Add tests for:
+  - Degeneracy detection triggering correctly
+  - Transactional rollback on failure
+  - Confirmation workflow (confirm, cancel, timeout)
+  - Per-group algorithm switching (GLPK + Greedy in same execution)
+  - Audit trail consistency across confirmation workflow
+
+## Key Invariants
+
+1. **No Partial Execution**: Entire lottery succeeds or entire lottery reverts. Never partial state.
+2. **Per-Group Decisions**: Algorithm chosen independently per unit type, not globally.
+3. **Fairness Preserved**: Greedy fallback maintains same fairness guarantees as GLPK.
+4. **Audit Trail**: Every decision recorded with execution UUID for traceability.
+5. **Timeout Handling**: Confirmation request timesout after 15 minutes, triggering full rollback.
+6. **Consistency After Cancel**: Lottery reverts to "ready" state (is_published=true), can be re-executed.
+
+

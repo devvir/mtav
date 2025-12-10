@@ -24,6 +24,8 @@ return [
     'mismatch_excess_units'       => ':unit_type has :units units for :families families',
     'mismatch_insufficient_units' => ':unit_type has :units units for :families families',
 
+    'degenerate_case_requires_greedy_confirmation' => 'The problem configuration may cause the optimization algorithm to timeout. The system will use a fair greedy algorithm instead. This maintains fairness but uses a different approach. Do you confirm this?',
+
     'preferences_locked' => 'Cannot update preferences: lottery execution is in progress or already completed.',
     'lottery_locked'     => 'Cannot update lottery: execution is in progress or already completed.',
 

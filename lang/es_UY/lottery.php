@@ -24,6 +24,8 @@ return [
     'mismatch_excess_units'       => ':unit_type tiene :units unidades para :families familias',
     'mismatch_insufficient_units' => ':unit_type tiene :units unidades para :families familias',
 
+    'degenerate_case_requires_greedy_confirmation' => 'La configuración del problema puede causar que el algoritmo de optimización expire su tiempo límite. El sistema utilizará un algoritmo greedy justo en su lugar. Esto mantiene la equidad pero utiliza un enfoque diferente. ¿Confirma esto?',
+
     'preferences_locked' => 'No se pueden actualizar las preferencias: la ejecución del sorteo está en progreso o ya finalizó.',
     'lottery_locked'     => 'No se puede actualizar el sorteo: la ejecución está en progreso o ya finalizó.',
 

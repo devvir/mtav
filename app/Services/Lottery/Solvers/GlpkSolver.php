@@ -8,6 +8,8 @@ use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Exceptions\GlpkException;
 use App\Services\Lottery\Glpk\Glpk;
+use App\Services\Lottery\Solvers\Glpk\DegeneracyDetector;
+use App\Services\Lottery\Solvers\Glpk\GreedyFallback;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -16,16 +18,26 @@ use Illuminate\Support\Facades\Log;
  * Implements max-min fairness optimization in two phases:
  * - Phase 1: Find minimum satisfaction level S (maximize worst-case satisfaction)
  * - Phase 2: Maximize overall satisfaction given constraint that no family gets worse than S
+ *
+ * When degeneracy is detected (large problems or pathological preference patterns),
+ * automatically falls back to a greedy approximation algorithm that completes in milliseconds.
  */
 class GlpkSolver implements SolverInterface
 {
-    public function __construct(protected Glpk $glpk)
-    {
+    public function __construct(
+        protected Glpk $glpk,
+        protected DegeneracyDetector $degeneracyDetector = new DegeneracyDetector(),
+    ) {
         // ...
     }
 
     /**
-     * Execute lottery using GLPK optimization.
+     * Execute lottery using GLPK optimization, with automatic fallback to greedy.
+     *
+     * Strategy:
+     * 1. Check if degeneracy detection is enabled
+     * 2. If enabled and degeneracy detected, use greedy approximation (fast, good enough)
+     * 3. Otherwise, use GLPK optimization (optimal, may timeout on pathological cases)
      *
      * @throws GlpkException if GLPK execution fails
      */
@@ -33,6 +45,35 @@ class GlpkSolver implements SolverInterface
     {
         Log::info('GlpkSolver@execute', compact('spec'));
 
+        // If degeneracy detection is enabled and degeneracy detected, use greedy
+        if ($this->shouldUseGreedyFallback($spec)) {
+            Log::info('GlpkSolver detected degeneracy, using greedy fallback algorithm');
+
+            return new GreedyFallback()->execute($manifest, $spec);
+        }
+
+        // Otherwise use GLPK optimization
+        return $this->executeGlpk($spec);
+    }
+
+    /**
+     * Determine if we should use the greedy fallback instead of GLPK.
+     */
+    protected function shouldUseGreedyFallback(LotterySpec $spec): bool
+    {
+        // Only use greedy if degeneracy detection is explicitly enabled
+        if (! config('lottery.solvers.glpk.config.degeneracy_detection.enabled', false)) {
+            return false;
+        }
+
+        return $this->degeneracyDetector->isDegenerate($spec);
+    }
+
+    /**
+     * Execute using GLPK optimization (assumes no degeneracy).
+     */
+    protected function executeGlpk(LotterySpec $spec): ExecutionResult
+    {
         $familyCount = count($spec->families);
         $unitCount = count($spec->units);
 
