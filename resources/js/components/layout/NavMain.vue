@@ -1,32 +1,21 @@
 <script setup lang="ts">
-import {
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/layout/sidebar';
+import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/layout/sidebar';
 import { can } from '@/composables/useAuth';
-import { projectIsSelected } from '@/composables/useProjects';
+import { projectIsSelected } from '@/state/useCurrentProject';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
-import {
-  Building2Icon,
-  CalendarIcon,
-  FilesIcon,
-  HomeIcon,
-  LayoutGrid,
-  LucideIcon,
-  TrophyIcon,
-  UsersIcon,
-} from 'lucide-vue-next';
+import { useMemberGrouping } from '@/state/useMemberGrouping';
+import { Building2Icon, CalendarIcon, FilesIcon, HomeIcon, LayoutGrid, LucideIcon, TrophyIcon, UsersIcon } from 'lucide-vue-next';
 
 interface NavItem {
-  label: string;
+  label: MaybeRef<string>;
   route: MaybeRef<string>;
   icon: LucideIcon;
   onlyIf?: MaybeRef<boolean>;
   routes?: string[];
 }
+
+const { groupMembers } = useMemberGrouping();
 
 const allNavItems: NavItem[] = [
   {
@@ -44,10 +33,8 @@ const allNavItems: NavItem[] = [
     routes: ['lottery.*'],
   },
   {
-    label: 'Families',
-    route: computed(() =>
-      usePage().props.state.groupMembers ? 'families.index' : 'members.index',
-    ),
+    label: computed(() => groupMembers.value ? 'Families' : 'Members'),
+    route: computed(() => groupMembers.value ? 'families.index' : 'members.index'),
     icon: UsersIcon,
     onlyIf: can.viewAny('members'),
     routes: ['families.*', 'members.*'],
@@ -90,8 +77,6 @@ const activeNavItem = computed(() =>
       !!routes.map((r) => new RegExp(`^${r}$`)).find((re) => re.test(currentRoute.value)),
   ),
 );
-
-const unpack = (maybeRef: MaybeRef<string>) => toValue(maybeRef);
 </script>
 
 <template>
@@ -101,15 +86,15 @@ const unpack = (maybeRef: MaybeRef<string>) => toValue(maybeRef);
         <SidebarMenuButton
           as-child
           :is-active="item.label == activeNavItem?.label"
-          :tooltip="item.label"
+          :tooltip="_(toValue(item.label))"
         >
           <Link
-            :href="route(unpack(item.route))"
+            :href="route(toValue(item.route))"
             :class="{ 'pointer-events-none': item.route === currentRoute }"
             prefetch
           >
             <component :is="item.icon" />
-            <span>{{ _(item.label) }}</span>
+            <span>{{ _(toValue(item.label)) }}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

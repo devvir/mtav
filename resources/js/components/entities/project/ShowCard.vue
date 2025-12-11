@@ -1,35 +1,17 @@
 <script setup lang="ts">
 import { BinaryBadge } from '@/components/badge';
-import {
-  EntityCard,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  ContentGrid,
-  ContentHighlight,
-  ContentLine,
-  CreatedMeta,
-  FooterButton,
-  StatBox,
-} from '@/components/card';
-import { currentProject } from '@/composables/useProjects';
+import { EntityCard, CardContent, CardHeader, ContentGrid, ContentHighlight, ContentLine, StatBox } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { Calendar, Camera, Home, Shield, User, UsersRound } from 'lucide-vue-next';
+import ProjectFooter from './shared/ProjectFooter.vue';
 
-const props = defineProps<{
+defineProps<{
   project: ApiResource<Project>;
 }>();
-
-const isCurrentProject = computed(() => currentProject.value?.id === props.project.id);
-const actionRoute = computed(() =>
-  isCurrentProject.value
-    ? route('resetCurrentProject')
-    : route('setCurrentProject', props.project.id),
-);
 </script>
 
 <template>
-  <EntityCard :resource="project" entity="project" type="show">
+  <EntityCard :resource="project" entity="project" type="show" class="group">
     <CardHeader :title="project.name" :kicker="_('Project')">
       <BinaryBadge
         :when="project.active"
@@ -104,12 +86,6 @@ const actionRoute = computed(() =>
       </ContentHighlight>
     </CardContent>
 
-    <CardFooter class="flex items-center justify-between">
-      <CreatedMeta />
-
-      <FooterButton :href="actionRoute" :method="isCurrentProject ? 'DELETE' : 'POST'">
-        {{ isCurrentProject ? _('Selected') : _('Select') }}
-      </FooterButton>
-    </CardFooter>
+    <ProjectFooter :project />
   </EntityCard>
 </template>

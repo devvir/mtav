@@ -18,8 +18,6 @@ class MemberController extends Controller
 {
     public function index(FilteredIndexRequest $request): Response
     {
-        defineState('groupMembers', false);
-
         $members = Member::alphabetically()
             ->with('family')
             ->when($request->project_id, fn ($q, int $id) => $q->inProject($id))

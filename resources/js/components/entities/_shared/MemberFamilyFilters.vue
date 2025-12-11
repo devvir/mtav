@@ -3,6 +3,10 @@ import { Filters, Switch, SEARCH } from '@/components/filtering';
 
 type BINARY = '0' | '1';
 
+const emit = defineEmits<{
+  input: [value: boolean];
+}>();
+
 const props = defineProps<{
   grouped: boolean;
 }>();
@@ -16,6 +20,6 @@ watch(model, (value: BINARY) => router.visit(route(routes[value])));
 
 <template>
   <Filters :config="{ q: { type: SEARCH } }" auto-filter>
-    <Switch :options v-model='model' />
+    <Switch :options v-model='model' @input="emit('input', $event === '1')" />
   </Filters>
 </template>

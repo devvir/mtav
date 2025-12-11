@@ -6,7 +6,6 @@ use App\Models\Event;
 use App\Models\Family;
 use App\Models\Unit;
 use App\Models\User;
-use Illuminate\Support\Facades\Config;
 
 uses()->group('Stress.Lottery.System');
 

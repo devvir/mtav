@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAppearance } from '@/composables/useAppearance';
+import { useTheme } from '@/state/useTheme';
 import { _ } from '@/composables/useTranslations';
 import {
   Circle,
@@ -13,7 +13,7 @@ import {
   Trees,
 } from 'lucide-vue-next';
 
-const { mode, colorTheme, updateMode, updateColorTheme } = useAppearance();
+const { mode, theme, setMode, setTheme } = useTheme();
 
 // Debug: Show current HTML classes
 const htmlClasses = ref('');
@@ -97,7 +97,7 @@ const themes = [
         <button
           v-for="{ value, Icon, label } in modes"
           :key="value"
-          @click="updateMode(value)"
+          @click="setMode(value)"
           :class="[
             'flex min-h-10 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-0',
             mode === value
@@ -116,45 +116,45 @@ const themes = [
       <h3 class="mb-2 text-sm font-semibold text-text">{{ _('Color Theme') }}</h3>
       <div class="grid gap-2 @md:grid-cols-2 @xl:grid-cols-3">
         <button
-          v-for="theme in themes"
-          :key="theme.value"
-          @click="updateColorTheme(theme.value)"
+          v-for="option in themes"
+          :key="option.value"
+          @click="setTheme(option.value)"
           :class="[
             'group relative flex min-h-10 items-center gap-2.5 rounded-lg border-2 p-2 text-left transition-all focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-0',
-            colorTheme === theme.value
+            theme === option.value
               ? 'border-interactive shadow-md'
               : 'border-border bg-surface hover:border-border-strong hover:shadow-sm',
           ]"
           :style="
-            colorTheme === theme.value ? { backgroundColor: theme.colors.primary + '08' } : {}
+            theme === option.value ? { backgroundColor: option.colors.primary + '08' } : {}
           "
         >
           <!-- Theme Icon/Preview -->
           <div
             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
             :style="{
-              backgroundColor: theme.colors.primary + '15',
-              color: theme.colors.primary,
+              backgroundColor: option.colors.primary + '15',
+              color: option.colors.primary,
             }"
-            :title="_(theme.name) + ' - ' + _(theme.desc)"
+            :title="_(option.name) + ' - ' + _(option.desc)"
           >
-            <component v-if="theme.Icon" :is="theme.Icon" class="h-4 w-4" />
-            <div v-else class="text-xs font-bold">{{ theme.name[0] }}</div>
+            <component v-if="option.Icon" :is="option.Icon" class="h-4 w-4" />
+            <div v-else class="text-xs font-bold">{{ option.name[0] }}</div>
           </div>
 
           <!-- Theme Info -->
           <div class="min-w-0 flex-1">
-            <div class="truncate text-sm font-semibold text-text" :title="_(theme.name)">
-              {{ _(theme.name) }}
+            <div class="truncate text-sm font-semibold text-text" :title="_(option.name)">
+              {{ _(option.name) }}
             </div>
-            <div class="truncate text-xs text-text-subtle" :title="_(theme.desc)">
-              {{ _(theme.desc) }}
+            <div class="truncate text-xs text-text-subtle" :title="_(option.desc)">
+              {{ _(option.desc) }}
             </div>
           </div>
           <!-- Selected Indicator -->
           <div
-            v-if="colorTheme === theme.value"
-            class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-interactive"
+            v-if="theme === option.value"
+            class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-interactive"
           >
             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
               <path

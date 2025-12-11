@@ -57,7 +57,7 @@ const toggleOption = (value: string | number, closeModal: () => void) => {
 
 const isDisabled = computed(() => props.disabled || Object.values(props.options).length < 2);
 
-const pauseModalClosing = inject(keys.pauseModalClosing) as (pause?: boolean) => void;
+const pauseModalClosing = inject(keys.pauseModalClosing, () => null) as (pause?: boolean) => void;
 </script>
 
 <template>

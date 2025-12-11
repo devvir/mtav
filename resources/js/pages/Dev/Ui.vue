@@ -9,10 +9,9 @@ import { Badge, BadgeGroup } from '@/components/badge';
 import EventBadge from '@/components/entities/event/badges/EventBadge.vue';
 import { AlertTriangle, Check, Info, Moon, Sun, X } from 'lucide-vue-next';
 
-const theme = ref<'light' | 'dark'>('dark');
-const colorTheme = ref<string>('default');
+const mode = ref<'light' | 'dark'>('dark');
+const theme = ref<string>('default');
 
-// Form demo data
 const formData = ref({
   name: '',
   email: 'user@example.com',
@@ -44,12 +43,12 @@ const themes = [
   { value: 'mono', name: 'Monochrome', desc: 'High contrast B&W' },
 ];
 
-const toggleTheme = () => {
-  theme.value = theme.value === 'light' ? 'dark' : 'light';
+const toggleMode = () => {
+  mode.value = mode.value === 'light' ? 'dark' : 'light';
   document.documentElement.classList.toggle('dark');
 };
 
-const setColorTheme = (newTheme: string) => {
+const setTheme = (newTheme: string) => {
   // Remove all theme classes
   document.documentElement.classList.remove(
     'theme-ocean',
@@ -63,7 +62,7 @@ const setColorTheme = (newTheme: string) => {
     document.documentElement.classList.add(`theme-${newTheme}`);
   }
 
-  colorTheme.value = newTheme;
+  theme.value = newTheme;
 };
 const surfaceColors = [
   { name: 'Surface', var: 'surface', text: 'surface-foreground', desc: 'Base surface' },
@@ -180,7 +179,7 @@ const eventBadgesByType = {
             <p class="mt-2 text-text-muted">Testing the color palette for accessibility</p>
           </div>
           <div class="flex-shrink-0">
-            <button @click="toggleTheme"
+            <button @click="toggleMode"
               class="flex min-h-[44px] items-center gap-2 rounded-lg bg-interactive px-4 py-2 text-interactive-foreground transition-all hover:bg-interactive-hover focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset @md:min-h-[36px]">
               <Sun v-if="theme === 'dark'" class="h-5 w-5" />
               <Moon v-else class="h-5 w-5" />
@@ -193,10 +192,10 @@ const eventBadgesByType = {
         <div class="rounded-lg border border-border bg-surface-elevated p-4">
           <h3 class="mb-3 text-sm font-semibold text-text">Color Theme</h3>
           <div class="grid grid-cols-1 gap-2 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-5">
-            <button v-for="themeOption in themes" :key="themeOption.value" @click="setColorTheme(themeOption.value)"
+            <button v-for="themeOption in themes" :key="themeOption.value" @click="setTheme(themeOption.value)"
               class="group relative min-h-[44px] rounded-md border-2 p-3 text-left transition-all focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-0 @md:min-h-[36px]"
               :class="
-              colorTheme === themeOption.value
+              theme === themeOption.value
                 ? 'border-interactive bg-interactive/10'
                 : 'border-border bg-surface hover:border-border-strong hover:bg-surface-interactive-hover'
             ">
@@ -205,7 +204,7 @@ const eventBadgesByType = {
                   <div class="text-sm font-semibold text-text">{{ themeOption.name }}</div>
                   <div class="text-xs text-text-subtle">{{ themeOption.desc }}</div>
                 </div>
-                <div v-if="colorTheme === themeOption.value"
+                <div v-if="theme === themeOption.value"
                   class="flex h-5 w-5 items-center justify-center rounded-full bg-interactive text-interactive-foreground">
                   <Check class="h-3 w-3" />
                 </div>

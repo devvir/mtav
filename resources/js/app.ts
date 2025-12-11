@@ -9,8 +9,8 @@ import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import VueKonva from 'vue-konva';
 import { ZiggyVue } from 'ziggy-js';
-import { autoRefreshCsrfToken } from './composables/useCsrfToken';
-import { initializeTheme } from './composables/useAppearance';
+import { autoRefreshCsrfToken } from '@/composables/useCsrfToken';
+import { initializeTheme } from '@/state/useTheme';
 import AppSidebarLayout from './layouts/app/AppSidebarLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MTAV';

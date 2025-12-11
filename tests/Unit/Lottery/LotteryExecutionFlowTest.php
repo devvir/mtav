@@ -2,7 +2,6 @@
 
 use App\Events\Lottery\LotteryExecutionTriggered;
 use App\Services\Lottery\LotteryOrchestrator;
-use Illuminate\Support\Facades\Config;
 
 uses()->group('Unit.Lottery');
 

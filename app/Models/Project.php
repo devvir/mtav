@@ -23,7 +23,7 @@ class Project extends Model
 
     public static function current(): ?Project
     {
-        return state('project');
+        return currentProject();
     }
 
     public function families(): HasMany

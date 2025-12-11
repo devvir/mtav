@@ -1,26 +1,12 @@
 <script setup lang="ts">
-import {
-  EntityCard,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CreatedMeta,
-  FooterButton,
-} from '@/components/card';
-import { currentProject } from '@/composables/useProjects';
+import { EntityCard, CardContent, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { User, UsersRound } from 'lucide-vue-next';
+import ProjectFooter from './shared/ProjectFooter.vue';
 
-const props = defineProps<{
+defineProps<{
   project: ApiResource<Project>;
 }>();
-
-const isCurrentProject = computed(() => currentProject.value?.id === props.project.id);
-const actionRoute = computed(() =>
-  isCurrentProject.value
-    ? route('resetCurrentProject')
-    : route('setCurrentProject', props.project.id),
-);
 </script>
 
 <template>
@@ -28,6 +14,7 @@ const actionRoute = computed(() =>
     :resource="project"
     entity="project"
     type="index"
+    class="group"
     :dimmed="!project.active"
   >
     <CardHeader :title="project.name" :kicker="_('Project')" />
@@ -55,12 +42,6 @@ const actionRoute = computed(() =>
       </div>
     </CardContent>
 
-    <CardFooter class="flex items-center justify-between text-xs">
-      <CreatedMeta />
-
-      <FooterButton :href="actionRoute" :method="isCurrentProject ? 'DELETE' : 'POST'">
-        {{ isCurrentProject ? _('Selected') : _('Select') }}
-      </FooterButton>
-    </CardFooter>
+    <ProjectFooter :project />
   </EntityCard>
 </template>

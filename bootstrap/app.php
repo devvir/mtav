@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HandleInvitedUsers;
 use App\Http\Middleware\HandleSelectedProject;
@@ -19,12 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'project']);
+        $middleware->encryptCookies(except: ['project']);
 
         $middleware->web(append: [
             HandleInvitedUsers::class,
             HandleSelectedProject::class,
-            HandleAppearance::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,
         ]);

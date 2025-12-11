@@ -16,7 +16,7 @@ function inertiaProp(TestResponse $response, string $key)
 
 function inertiaRoute(TestResponse $response): ?string
 {
-    return inertiaProp($response, 'state.route');
+    return inertiaProp($response, 'route');
 }
 
 function inertiaErrors(TestResponse $response): array

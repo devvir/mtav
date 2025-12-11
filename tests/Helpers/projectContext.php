@@ -16,7 +16,7 @@ function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): v
 
     $project = $modelOrId instanceof Project ? $modelOrId : $builder->findOrFail($modelOrId);
 
-    defineState('project', $project);
+    selectProject($project);
 }
 
 /**
@@ -24,5 +24,5 @@ function setCurrentProject(int|Project $modelOrId, bool $withTrashed = false): v
  */
 function resetCurrentProject(): void
 {
-    defineState('project', null);
+    unsetCurrentProject();
 }

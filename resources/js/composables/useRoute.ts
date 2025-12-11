@@ -1,3 +1,3 @@
 const page = usePage();
 
-export const currentRoute = computed(() => page.props.state.route);
+export const currentRoute = computed(() => page.props.route);

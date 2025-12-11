@@ -9,17 +9,15 @@ class CurrentProjectController
 {
     public function set(Project $project): RedirectResponse
     {
-        defineState('project', $project);
+        selectProject($project);
 
-        return to_route('dashboard')
-            ->with('success', __('flash.project_set'));
+        return to_route('dashboard')->with('success', __('flash.project_set'));
     }
 
     public function unset(): RedirectResponse
     {
-        defineState('project', null);
+        unsetCurrentProject();
 
-        return to_route('projects.index')
-            ->with('success', __('flash.project_unset'));
+        return to_route('projects.index')->with('success', __('flash.project_unset'));
     }
 }

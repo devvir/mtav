@@ -77,11 +77,8 @@ class HandleInertiaRequests extends Middleware
     protected function transient(Request $request): array
     {
         return [
-            'state' => [
-                'route'        => $request->route()?->getName(),
-                'project'      => Project::current(),
-                'groupMembers' => state('groupMembers'),
-            ],
+            'route'   => $request->route()?->getName(),
+            'project' => Project::current(),
 
             'flash' => [
                 'success' => $request->session()->get('success'),
@@ -89,8 +86,6 @@ class HandleInertiaRequests extends Middleware
                 'warning' => $request->session()->get('warning'),
                 'error'   => $request->session()->get('error'),
             ],
-
-            'sidebarOpen' => $request->cookie('sidebar_state', 'true') === 'true',
         ];
     }
 

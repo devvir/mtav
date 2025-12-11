@@ -12,12 +12,6 @@ export interface Auth {
   verified: boolean;
 }
 
-export interface StateProps {
-  route: string;
-  project: ApiResource<Project> | null;
-  groupMembers: boolean;
-}
-
 export interface FlashProps {
   success: string | null;
   info: string | null;
@@ -35,8 +29,8 @@ declare module '@inertiajs/core' {
   };
 
   interface TransientPageProps {
-    state: StateProps;
+    route: string | null;
+    project: ApiResource<Project> | null;
     flash: FlashProps;
-    sidebarOpen: boolean;
   }
 }

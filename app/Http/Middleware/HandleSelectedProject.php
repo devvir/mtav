@@ -42,11 +42,9 @@ class HandleSelectedProject
     protected function sanitizeCurrentProject(?User $user): void
     {
         if ($this->shouldForceCurrentProject($user)) {
-            defineState('project', $user->projects->last());
+            selectProject($user->projects->last());
         } elseif ($this->shouldResetCurrentProject($user)) {
-            defineState('project', null);
-        } else {
-            Project::current()?->refresh();
+            unsetCurrentProject();
         }
     }
 
@@ -68,7 +66,7 @@ class HandleSelectedProject
 
     protected function userHasOneProject(User $user): bool
     {
-        return $user->isMember() || $user->projects->count() === 1;
+        return $user->projects->count() === 1;
     }
 
     protected function userHasNoProjects(User $user): bool

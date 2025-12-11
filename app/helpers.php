@@ -4,6 +4,8 @@ use App\Models\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\Cookie;
 
 /**
  * For a model or model id, return the model.
@@ -50,14 +52,13 @@ function enumFromValue(string $enumClass, string $value): UnitEnum
     throw new ValueError("Invalid name/value '{$value}' for enum '{$enumClass}'");
 }
 
-function state(string $key, mixed $default = null): mixed
+/**
+ * Set the current project.
+ */
+function selectProject(Project $project): void
 {
-    return session()->get("state.{$key}", $default);
-}
-
-function defineState(string $key, mixed $value): void
-{
-    session()->put("state.{$key}", $value);
+    Context::addHidden('project', $project);
+    Cookie::queue('projectId', $project->id, 365 * 24 * 60);
 }
 
 /**
@@ -65,7 +66,15 @@ function defineState(string $key, mixed $value): void
  */
 function currentProject(): ?Project
 {
-    return state('project');
+    $projectId = request()->cookie('projectId');
+
+    if (Context::missingHidden('project')) {
+        $project = $projectId ? Project::find($projectId) : null;
+
+        Context::addHidden('project', $project);
+    }
+
+    return Context::getHidden('project');
 }
 
 /**
@@ -74,4 +83,14 @@ function currentProject(): ?Project
 function currentProjectId(): ?int
 {
     return currentProject()?->id;
+}
+
+/**
+ * Unset current project (switch to multi-project context).
+ */
+function unsetCurrentProject(): void
+{
+    Context::forgetHidden('project');
+
+    Cookie::queue('projectId', null, -1);
 }
