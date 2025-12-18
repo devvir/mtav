@@ -1,9 +1,8 @@
 <?php
 
-// Copilot - Pending review
-
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkTimeoutException;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
 uses()->group('Unit.Lottery.Glpk');
@@ -14,7 +13,7 @@ beforeEach(function () {
 
 describe('GlpkSolver GLPK-specific failure scenarios', function () {
     test('throws exception when glpsol binary not found', function () {
-        config()->set('lottery.solvers.glpk', [
+        config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',
             'temp_dir'    => sys_get_temp_dir(),
             'timeout'     => 5,
@@ -30,7 +29,7 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
     });
 
     test('throws exception when temp directory is not writable', function () {
-        config()->set('lottery.solvers.glpk', [
+        config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => 'glpsol',
             'temp_dir'    => '/root/unwritable', // Assuming tests don't run as root
             'timeout'     => 5,
@@ -49,7 +48,7 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
         $tempDir = sys_get_temp_dir();
         $beforeFiles = glob($tempDir . '/mtav_*');
 
-        config()->set('lottery.solvers.glpk', [
+        config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',
             'temp_dir'    => $tempDir,
             'timeout'     => 5,
@@ -75,10 +74,10 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
 
     test('throws exception when execution times out', function () {
         // Set GLPK's time limit to 1ms - impossibly short
-        config()->set('lottery.solvers.glpk', [
+        config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => 'glpsol',
             'temp_dir'    => sys_get_temp_dir(),
-            'timeout'     => 0.001, // 1 millisecond (converted to --tmlim 1)
+            'timeout'     => 0.01, // 1 millisecond (converted to --tmlim 1)
         ]);
 
         // Create a large problem that requires significant solving time
@@ -95,6 +94,6 @@ describe('GlpkSolver GLPK-specific failure scenarios', function () {
         $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))
-            ->toThrow(GlpkException::class, 'timed out');
+            ->toThrow(GlpkTimeoutException::class);
     });
 });

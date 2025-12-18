@@ -2,7 +2,7 @@
 
 // Copilot - Pending review
 
-namespace App\Services\Lottery\Glpk;
+namespace App\Services\Lottery\Solvers\Glpk;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 
@@ -113,12 +113,12 @@ GMPL;
             $matrix .= "c{$familyId}";
 
             // Create map of unit_id => preference_rank with random tie-breaker
-            // Random tie-breaker: 0-999 thousandths to prevent degeneracy
-            $tieBreaker = mt_rand(0, 999) / 1000.0;
+            // Random tie-breaker: 0.0001 scale to prevent degeneracy without altering semantic rank
+            $tieBreaker = mt_rand(0, 10000) / 100000000.0; // 0.0000 - 0.0001
             $preferenceMap = [];
             foreach ($preferences as $rank => $unitId) {
-                // Base rank (1-indexed) + unique tie-breaker for this family
-                // E.g., rank 0 becomes 1.347, rank 1 becomes 2.347, etc.
+                // Base rank (1-indexed) + tiny tie-breaker for this family
+                // E.g., rank 0 becomes 1.00004751, rank 1 becomes 2.00004751, etc.
                 $preferenceMap[$unitId] = ($rank + 1) + $tieBreaker;
             }
 

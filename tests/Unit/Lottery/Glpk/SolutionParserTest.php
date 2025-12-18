@@ -2,7 +2,8 @@
 
 // Copilot - Pending review
 
-use App\Services\Lottery\Glpk\SolutionParser;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 
 uses()->group('Unit.Lottery.Glpk');
 
@@ -209,7 +210,11 @@ SOL;
             }
         });
 
-        test('throws exception when no assignments found', function () {
+        test('throws GlpkException when GLPK returns OPTIMAL with all zeros (split constraint bug)', function () {
+            // This scenario happens when GLPK relaxes >= 1 constraints but honors <= 1 constraints,
+            // resulting in "OPTIMAL" status with all decision variables set to 0.
+            // With proper = 1 constraints, this should never happen (GLPK should return INFEASIBLE).
+            // However, we test for it to ensure proper error handling if it ever occurs.
             $solContent = <<<'SOL'
 Problem:    test
 Status:     OPTIMAL
@@ -225,7 +230,7 @@ SOL;
 
             try {
                 expect(fn () => $this->parser->extractAssignments($solFile))
-                    ->toThrow(RuntimeException::class, 'No assignments found');
+                    ->toThrow(GlpkException::class, 'No assignments found');
             } finally {
                 unlink($solFile);
             }

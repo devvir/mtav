@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Services\Lottery\Exceptions;
+namespace App\Services\Lottery\Solvers\Glpk\Exceptions;
+
+use App\Services\Lottery\Exceptions\LotteryExecutionException;
 
 /**
  * Exception thrown when GLPK execution fails.

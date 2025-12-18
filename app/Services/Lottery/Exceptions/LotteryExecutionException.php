@@ -2,7 +2,7 @@
 
 namespace App\Services\Lottery\Exceptions;
 
-use Exception;
+use RuntimeException;
 
 /**
  * Base exception for lottery execution errors.
@@ -11,7 +11,7 @@ use Exception;
  * to users via flash messages. The technical message is logged for admins
  * while users see a translated user-friendly message.
  */
-class LotteryExecutionException extends Exception
+class LotteryExecutionException extends RuntimeException
 {
     /**
      * Get user-facing error message for display.

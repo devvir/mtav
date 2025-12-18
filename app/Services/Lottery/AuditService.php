@@ -100,4 +100,21 @@ class AuditService
             ],
         ]);
     }
+
+    /**
+     * Create a custom audit record with arbitrary data.
+     */
+    public function custom(LotteryManifest $manifest, array $data): LotteryAudit
+    {
+        return LotteryAudit::create([
+            'execution_uuid' => $manifest->uuid,
+            'project_id'     => $manifest->projectId,
+            'lottery_id'     => $manifest->lotteryId,
+            'type'           => LotteryAuditType::CUSTOM,
+            'audit'          => [
+                'admin' => Auth::user()?->only(['id', 'email']),
+                ...$data,
+            ],
+        ]);
+    }
 }

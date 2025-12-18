@@ -18,6 +18,7 @@ return [
     'execution_failed'              => 'An error occurred during lottery execution. Please contact the system administrator.',
     'glpk_execution_failed'         => 'The optimization algorithm failed to execute. Please contact support.',
     'glpk_timeout'                  => 'The optimization algorithm took too long to complete and was stopped. Please try executing the lottery again. If the problem persists, contact support',
+    'glpk_infeasible'               => 'The optimization algorithm determined that no valid assignment exists for the current preferences. This is extremely rare and may indicate a configuration error. Please contact support.',
 
     'insufficient_families'       => 'Not enough families to execute the lottery. At least 2 families are required.',
     'unit_family_mismatch_intro'  => 'There are inconsistencies between units and families:',

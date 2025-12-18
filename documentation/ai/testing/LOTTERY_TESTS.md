@@ -167,7 +167,7 @@ $family = Family::find(16); // Family in Project #4
 ### 2. Testing Error Handling
 ```php
 // Force failure
-Config::set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
+Config::set('lottery.solvers.glpk.config.glpsol_path', '/nonexistent');
 Config::set('lottery.default', 'glpk');
 
 // Execute and verify graceful handling
@@ -193,7 +193,7 @@ expect($audits->pluck('type')->unique()->toArray())
 ```php
 // First attempt: fail
 Config::set('lottery.default', 'glpk');
-Config::set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
+Config::set('lottery.solvers.glpk.config.glpsol_path', '/nonexistent');
 $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
 
 // Second attempt: succeed

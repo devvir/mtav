@@ -59,15 +59,18 @@ return [
         'glpk' => [
             'solver' => \App\Services\Lottery\Solvers\GlpkSolver::class,
             'config' => [
-                'glpsol_path'          => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
-                'temp_dir'             => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
-                'timeout'              => env('GLPK_TIMEOUT', 300),
-                'degeneracy_detection' => [
-                    'enabled'              => env('LOTTERY_DEGENERACY_DETECTION', false),
-                    'size_threshold'       => env('LOTTERY_SIZE_THRESHOLD', 11),
-                    'similarity_threshold' => env('LOTTERY_SIMILARITY_THRESHOLD', 0.80),
-                    'opposition_threshold' => env('LOTTERY_OPPOSITION_THRESHOLD', 0.80),
-                ],
+                'glpsol_path' => env('GLPK_SOLVER_PATH', '/usr/bin/glpsol'),
+                'temp_dir'    => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
+                'timeout'     => env('GLPK_TIMEOUT', 30),
+
+                /**
+                 * Controls GLPK Phase 1 maximum timeout and maximum problem size.
+                 * Problems larger than this size always use binary search fallback,
+                 * and GLPK Phase 1 will only be allowed to take up to the set timeout,
+                 * before switching to binary search fallback (<2s even for large specs).
+                 */
+                'glpk_phase1_timeout'  => env('GLPK_PHASE1_TIMEOUT', 0.5),  /** float, seconds */
+                'glpk_phase1_max_size' => env('GLPK_PHASE1_MAX_SIZE', 0),   /** int, spec size (#families) */
             ],
         ],
 

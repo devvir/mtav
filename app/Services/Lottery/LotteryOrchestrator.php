@@ -8,7 +8,7 @@ use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -50,7 +50,12 @@ class LotteryOrchestrator
      */
     public function execute(): ExecutionResult
     {
-        Log::info('LotteryOrchestrator executing Lottery.');
+        Log::info('LotteryOrchestrator executing Lottery.', [
+            'solver'     => get_class($this->solver),
+            'lottery_id' => $this->manifest->lotteryId,
+            'project_id' => $this->manifest->projectId,
+            'manifest'   => $this->manifest,
+        ]);
 
         try {
             return $this->executeProjectLottery();
@@ -97,6 +102,10 @@ class LotteryOrchestrator
     protected function executeLottery(array $data): ExecutionResult
     {
         $spec = new LotterySpec($data['families'], $data['units']);
+
+        Log::info('Executing group lottery', [
+            'spec' => $spec,
+        ]);
 
         $result = $this->solver->execute($this->manifest, $spec);
 

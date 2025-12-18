@@ -2,7 +2,7 @@
 
 // Copilot - Pending review
 
-use App\Services\Lottery\Glpk\ModelGenerator;
+use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
 
 uses()->group('Unit.Lottery.Glpk');
 
@@ -59,19 +59,15 @@ describe('ModelGenerator', function () {
         test('contains family uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('unicaAsignacionCoperativista_mayorIgual');
-            expect($model)->toContain('unicaAsignacionCoperativista_menorIgual');
-            expect($model)->toContain('sum{v in V} x[c,v] >= 1');
-            expect($model)->toContain('sum{v in V} x[c,v] <= 1');
+            expect($model)->toContain('unicaAsignacionCoperativista{c in C}');
+            expect($model)->toContain('sum{v in V} x[c,v] = 1');
         });
 
         test('contains unit uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('unicaAsignacionCasa_mayorIgual');
-            expect($model)->toContain('unicaAsignacionCasa_menorIgual');
-            expect($model)->toContain('sum{c in C} x[c,v] >= 1');
-            expect($model)->toContain('sum{c in C} x[c,v] <= 1');
+            expect($model)->toContain('unicaAsignacionCasa{v in V}');
+            expect($model)->toContain('sum{c in C} x[c,v] = 1');
         });
 
         test('ends with end statement', function () {
@@ -126,15 +122,15 @@ describe('ModelGenerator', function () {
         test('contains family uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('unicaAsignacionCoperativista_mayorIgual');
-            expect($model)->toContain('unicaAsignacionCoperativista_menorIgual');
+            expect($model)->toContain('unicaAsignacionCoperativista{c in C}');
+            expect($model)->toContain('sum{v in V} x[c,v] = 1');
         });
 
         test('contains unit uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('unicaAsignacionCasa_mayorIgual');
-            expect($model)->toContain('unicaAsignacionCasa_menorIgual');
+            expect($model)->toContain('unicaAsignacionCasa{v in V}');
+            expect($model)->toContain('sum{c in C} x[c,v] = 1');
         });
 
         test('ends with end statement', function () {

@@ -2,9 +2,11 @@
 
 // Copilot - Pending review
 
-namespace App\Services\Lottery\Glpk;
+namespace App\Services\Lottery\Solvers\Glpk;
 
-use RuntimeException;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
+use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Parses GLPK solution files (.sol).
@@ -26,7 +28,7 @@ class SolutionParser
             return (int) round((float) $matches[1]);
         }
 
-        throw new RuntimeException('Could not extract objective value from GLPK solution file.');
+        throw new GlpkException('Could not extract objective value from GLPK solution file.');
     }
 
     /**
@@ -60,7 +62,19 @@ class SolutionParser
         }
 
         if (empty($picks)) {
-            throw new RuntimeException('No assignments found in GLPK solution file.');
+            // Check if GLPK explicitly reported the problem as infeasible
+            if (str_contains($content, 'SOLUTION IS INFEASIBLE') || str_contains($content, 'INTEGER EMPTY')) {
+                throw new GlpkInfeasibleException('GLPK determined the problem has no feasible solution.');
+            }
+
+            // Otherwise, this is unexpected - log for debugging
+            Log::warning('No assignments found in GLPK solution file', [
+                'file'          => $solFile,
+                'file_size'     => filesize($solFile),
+                'content'       => $content,
+                'matches_found' => count($matches),
+            ]);
+            throw new GlpkException('No assignments found in GLPK solution file.');
         }
 
         return $picks;

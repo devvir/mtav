@@ -2,7 +2,7 @@
 
 // Copilot - Pending review
 
-namespace App\Services\Lottery\Glpk;
+namespace App\Services\Lottery\Solvers\Glpk;
 
 /**
  * Generates GLPK model files (.mod) for lottery optimization.
@@ -36,16 +36,12 @@ s.t. z_menorIgual{c in C}:
     z >= sum{v in V} p[c,v] * x[c,v];
 
 # Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista_mayorIgual{c in C}:
-    sum{v in V} x[c,v] >= 1;
-s.t. unicaAsignacionCoperativista_menorIgual{c in C}:
-    sum{v in V} x[c,v] <= 1;
+s.t. unicaAsignacionCoperativista{c in C}:
+    sum{v in V} x[c,v] = 1;
 
 # Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa_mayorIgual{v in V}:
-    sum{c in C} x[c,v] >= 1;
-s.t. unicaAsignacionCasa_menorIgual{v in V}:
-    sum{c in C} x[c,v] <= 1;
+s.t. unicaAsignacionCasa{v in V}:
+    sum{c in C} x[c,v] = 1;
 
 end;
 GMPL;
@@ -82,16 +78,12 @@ s.t. satisfaccionMinima{c in C}:
     sum{v in V} p[c,v] * x[c,v] <= S;
 
 # Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista_mayorIgual{c in C}:
-    sum{v in V} x[c,v] >= 1;
-s.t. unicaAsignacionCoperativista_menorIgual{c in C}:
-    sum{v in V} x[c,v] <= 1;
+s.t. unicaAsignacionCoperativista{c in C}:
+    sum{v in V} x[c,v] = 1;
 
 # Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa_mayorIgual{v in V}:
-    sum{c in C} x[c,v] >= 1;
-s.t. unicaAsignacionCasa_menorIgual{v in V}:
-    sum{c in C} x[c,v] <= 1;
+s.t. unicaAsignacionCasa{v in V}:
+    sum{c in C} x[c,v] = 1;
 
 end;
 GMPL;
@@ -125,7 +117,7 @@ param M;                  # Number of units to select (= number of families)
 
 var x{c in C, v in V}, binary;  # Assignment decision: 1 if family c gets unit v
 var u{v in V}, binary;          # Unit selection: 1 if unit v is used
-var z, integer;                  # Worst satisfaction level (to minimize)
+var z, integer;                 # Worst satisfaction level (to minimize)
 
 minimize resultado: z;
 

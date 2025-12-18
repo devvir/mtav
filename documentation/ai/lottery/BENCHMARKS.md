@@ -1077,5 +1077,4 @@ When analyzing this system:
 
 7. **Use the analysis tools**: Don't manually calculate statistics - use `scripts/benchmark_analysis/` toolkit for consistent, validated analysis.
 
-
-7. **Production vs Benchmark**: Random preferences in benchmarks may not match real-world distributions. Eventually, collect production metrics.
+8. **Production vs Benchmark**: Random preferences in benchmarks may not match real-world distributions. Eventually, collect production metrics.

@@ -2,11 +2,12 @@
 
 // Copilot - Pending review
 
-use App\Services\Lottery\Glpk\Glpk;
-use App\Services\Lottery\Solvers\GlpkSolver;
 use App\Services\Lottery\DataObjects\LotterySpec;
+use App\Services\Lottery\Solvers\Glpk\Glpk;
+use App\Services\Lottery\Solvers\GlpkSolver;
+use App\Services\Lottery\Solvers\SpecBalancer;
 
-uses()->group('unit');
+uses()->group('Unit.Lottery.Glpk');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');
@@ -17,9 +18,11 @@ beforeEach(function () {
     $this->balancer = new class ($this->glpk) extends SpecBalancer {
         public function testCollectTopPreferredUnits(LotterySpec $spec): array
         {
-            return $this->findMinimalPreferenceSet($spec);
+            return $this->collectTopPreferredUnits($spec);
         }
     };
+
+    $this->solver = new GlpkSolver($this->glpk, $this->balancer);
 });
 
 describe('findMinimalPreferenceSet', function () {
@@ -34,7 +37,7 @@ describe('findMinimalPreferenceSet', function () {
 
         $spec = new LotterySpec($families, $units);
 
-        $result = $this->solver->testFindMinimalPreferenceSet($spec);
+        $result = $this->balancer->testCollectTopPreferredUnits($spec);
 
         // At depth 1: {10, 20, 30} = 3 units = 3 families → exact match
         expect($result)->toBe([10, 20, 30]);
@@ -51,7 +54,7 @@ describe('findMinimalPreferenceSet', function () {
 
         $spec = new LotterySpec($families, $units);
 
-        $result = $this->solver->testFindMinimalPreferenceSet($spec);
+        $result = $this->balancer->testCollectTopPreferredUnits($spec);
 
         // At depth 1: {10} = 1 unit < 3 families
         // At depth 2: {10, 20, 30} = 3 units = 3 families → exact match
@@ -69,7 +72,7 @@ describe('findMinimalPreferenceSet', function () {
 
         $spec = new LotterySpec($families, $units);
 
-        $result = $this->solver->testFindMinimalPreferenceSet($spec);
+        $result = $this->balancer->testCollectTopPreferredUnits($spec);
 
         // At depth 1: {10, 20, 30} = 3 units = 3 families → exact match
         // (This example doesn't actually reach worst case, but validates the algorithm)
@@ -88,7 +91,7 @@ describe('findMinimalPreferenceSet', function () {
 
         $spec = new LotterySpec($families, $units);
 
-        $result = $this->solver->testFindMinimalPreferenceSet($spec);
+        $result = $this->balancer->testCollectTopPreferredUnits($spec);
 
         // At depth 1: {10, 30} = 2 units = 2 families → exact match
         expect($result)->toBe([10, 30]);
@@ -108,7 +111,7 @@ describe('findMinimalPreferenceSet', function () {
 
         $spec = new LotterySpec($families, $units);
 
-        $result = $this->solver->testFindMinimalPreferenceSet($spec);
+        $result = $this->balancer->testCollectTopPreferredUnits($spec);
 
         // At depth 1: {30, 20} = 2 units = 2 families → exact match
         // Should be sorted: [20, 30]

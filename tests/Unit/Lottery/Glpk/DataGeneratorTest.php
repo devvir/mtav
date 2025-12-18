@@ -1,7 +1,7 @@
 <?php
 
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Glpk\DataGenerator;
+use App\Services\Lottery\Solvers\Glpk\DataGenerator;
 
 uses()->group('Unit.Lottery.Glpk');
 
