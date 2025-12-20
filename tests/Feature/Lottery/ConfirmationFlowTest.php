@@ -23,11 +23,8 @@ describe('Lottery Confirmation Flow', function () {
             setCurrentProject(2);
 
             $lottery = Event::find(6); // Future lottery for Project #2
-            $lottery->update([
-                'start_date'   => now()->subDay(),
-                'end_date'     => now()->subDay(),
-                'is_published' => true,
-            ]);
+            // Make lottery executable (set to past date)
+            $lottery->update(['start_date' => now()->subDay()]);
 
             // Without options, should fail with mismatch error
             $response = $this->submitFormToRoute(
@@ -92,8 +89,7 @@ describe('Lottery Confirmation Flow', function () {
         test('sends options array in POST request', function () {
             setCurrentProject(4); // Use balanced project
 
-            $lottery = Event::find(13); // Project #4 lottery
-            $lottery->update(['is_published' => true]);
+            $lottery = Event::find(13); // Already published, past date from fixture
 
             $response = $this->submitFormToRoute(
                 ['lottery.execute', $lottery->id],
@@ -108,8 +104,7 @@ describe('Lottery Confirmation Flow', function () {
         test('handles empty options object', function () {
             setCurrentProject(4); // Use balanced project
 
-            $lottery = Event::find(13);
-            $lottery->update(['is_published' => true]);
+            $lottery = Event::find(13); // Already published, past date from fixture
 
             $response = $this->submitFormToRoute(
                 ['lottery.execute', $lottery->id],
@@ -124,8 +119,7 @@ describe('Lottery Confirmation Flow', function () {
         test('handles multiple option keys in array', function () {
             setCurrentProject(4); // Use balanced project
 
-            $lottery = Event::find(13);
-            $lottery->update(['is_published' => true]);
+            $lottery = Event::find(13); // Already published, past date from fixture
 
             $response = $this->submitFormToRoute(
                 ['lottery.execute', $lottery->id],

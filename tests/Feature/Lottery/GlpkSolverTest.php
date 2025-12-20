@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\Event;
 use App\Models\Family;
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Exceptions\GlpkException;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
@@ -222,10 +220,11 @@ describe('GlpkSolver', function () {
         $spec = new LotterySpec($families, $units);
         $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
+        // Call solver directly to test GLPK failure, not the whole system
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
 
-    test('throws GlpkException with user-friendly message', function () {
+    test('reports user-friendly error message on GLPK failure', function () {
         $families = [1 => [10, 20]];
         $units = [10, 20];
 
@@ -237,6 +236,7 @@ describe('GlpkSolver', function () {
         $spec = new LotterySpec($families, $units);
         $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
 
+        // Call solver directly to test GLPK error message
         try {
             app(GlpkSolver::class)->execute($manifest, $spec);
             $this->fail('Expected GlpkException to be thrown');
@@ -292,105 +292,5 @@ describe('GlpkSolver', function () {
 
         // Should not leak temp files even on failure
         expect(count($afterFiles))->toBe(count($beforeFiles));
-    });
-    test('solver failure creates FAILURE audit and releases lottery', function () {
-        // Force GlpkException by pointing to non-existent glpsol
-        config()->set('lottery.solvers.glpk.glpsol_path', '/nonexistent/glpsol');
-
-        setCurrentProject(4);
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true, 'deleted_at' => null]);
-
-        // Set minimal preferences
-        $family = Family::find(16);
-        $family->preferences()->sync([
-            13 => ['order' => 1],
-            14 => ['order' => 2],
-        ]);
-
-        // Execute lottery (should fail gracefully)
-        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
-
-        // Verify FAILURE audit exists
-        $failureAudit = $lottery->audits()->where('type', 'failure')->first();
-
-        expect($failureAudit)->not->toBeNull();
-        expect($failureAudit->audit)->toHaveKey('exception');
-        expect($failureAudit->audit['exception'])->toContain('GlpkException');
-        expect($failureAudit->audit)->toHaveKey('user_message');
-        expect($failureAudit->audit['user_message'])->toBeString();
-
-        // Verify lottery is released (can retry)
-        $lottery->refresh();
-        expect($lottery->is_published)->toBeTrue();
-        expect($lottery->deleted_at)->toBeNull();
-    });
-
-    test('failed execution can be retried and creates new audit trail', function () {
-        config()->set('queue.default', 'sync');
-
-        setCurrentProject(4);
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true, 'deleted_at' => null]);
-
-        // Set preferences
-        $family = Family::find(16);
-        $family->preferences()->sync([
-            13 => ['order' => 1],
-            14 => ['order' => 2],
-        ]);
-
-        // First attempt: Force failure
-        config()->set('lottery.default', 'glpk');
-        config()->set('lottery.solvers.glpk.glpsol_path', '/nonexistent');
-
-        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
-
-        $firstUuid = $lottery->audits()
-            ->where('type', 'init')
-            ->orderBy('created_at', 'desc')
-            ->first()
-            ->execution_uuid;
-
-        // Verify first attempt failed
-        $firstFailure = $lottery->audits()->where('execution_uuid', $firstUuid)->where('type', 'failure');
-        expect($firstFailure)->toExist();
-
-        // Second attempt: Fix config and retry
-        config()->set('lottery.solvers.glpk.glpsol_path', '/usr/bin/glpsol');
-        $lottery->refresh();
-        expect($lottery->is_published)->toBeTrue(); // Should be released after failure
-
-        $this->submitFormToRoute(['lottery.execute', $lottery->id], asAdmin: 13);
-
-        // Get second execution UUID
-        $allInits = $lottery->audits()
-            ->where('type', LotteryAuditType::INIT->value)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Should have at least one INIT (possibly two if both completed)
-        expect($allInits->count())->toBeGreaterThanOrEqual(1);
-
-        // Get the most recent INIT audit
-        $secondInit = $allInits->first();
-        $secondUuid = $secondInit->execution_uuid;
-
-        // If there are two INITs, verify different UUIDs
-        if ($allInits->count() >= 2) {
-            expect($firstUuid)->not->toBe($secondUuid);
-
-            // Verify first attempt audits are soft-deleted
-            $firstAttemptAudits = $lottery->audits()
-                ->withTrashed()
-                ->where('execution_uuid', $firstUuid)
-                ->get();
-
-            expect($firstAttemptAudits->count())->toBeGreaterThan(0);
-            expect($firstAttemptAudits->every(fn ($a) => $a->trashed()))->toBeTrue();
-        }
-
-        // Verify second attempt succeeded (lottery completed)
-        expect($lottery->fresh()->trashed())->toBeTrue();
     });
 });

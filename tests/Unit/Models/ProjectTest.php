@@ -1,40 +1,43 @@
 <?php
 
 use App\Models\Admin;
+use App\Models\Event;
 use App\Models\Member;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 
 describe('Project Model', function () {
     it('has many units', function () {
         $project = Project::find(1); // Project #1 from universe
 
-        expect($project->units)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class);
+        expect($project->units)->toBeInstanceOf(Collection::class);
     });
 
     it('has many Families', function () {
         $project = Project::find(1); // Project #1 from universe
         $families = $project->families;
 
-        expect($families)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
+        expect($families)->toBeInstanceOf(Collection::class)
             ->and($families->count())->toBeGreaterThan(0);
     });
 
     it('has many Members through pivot table', function () {
         $project = Project::find(1); // Project #1 from universe
 
-        expect($project->members)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
+        expect($project->members)->toBeInstanceOf(Collection::class)
             ->and($project->members->count())->toBeGreaterThan(0);
     });
 
     it('has many Admins through pivot table', function () {
         $project = Project::find(1); // Project #1 from universe
 
-        expect($project->admins)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
+        expect($project->admins)->toBeInstanceOf(Collection::class)
             ->and($project->admins->count())->toBeGreaterThan(0);
     });
 
     it('can add a Member to the Project', function () {
         $project = Project::find(1);
+        // Factory: Fresh member without family assignment for isolated addMember() test
         $member = Member::factory()->create();
 
         $project->addMember($member);
@@ -53,6 +56,7 @@ describe('Project Model', function () {
 
     it('can add an Admin to the Project', function () {
         $project = Project::find(1);
+        // Factory: Fresh admin with no project assignments for isolated addAdmin() test
         $admin = Admin::factory()->create();
 
         $project->addAdmin($admin);
@@ -79,6 +83,7 @@ describe('Project Model', function () {
     });
 
     it('has alphabetically scope', function () {
+        // Factory: Need specific project names for sort testing (not in fixture)
         Project::factory()->create(['name' => 'Zebra']);
         Project::factory()->create(['name' => 'Alpha']);
         Project::factory()->create(['name' => 'Beta']);
@@ -87,5 +92,25 @@ describe('Project Model', function () {
 
         expect($projects->first()->name)->toBe('Alpha')
             ->and($projects->last()->name)->toBe('Zebra');
+    });
+
+    it('has many events', function () {
+        $project = Project::find(1);
+        $events = $project->events;
+
+        expect($events)->toHaveCount(5); // 5 events in Project 1
+
+        expect($events->every(function ($event) {
+            return $event instanceof Event && $event->project_id === 1;
+        }))->toBeTrue();
+    });
+
+    it('has upcoming events via relation', function () {
+        $project = Project::find(1);
+
+        $upcomingEvents = $project->upcomingEvents;
+        expect($upcomingEvents->every(function ($event) {
+            return is_null($event->start_date) || $event->start_date > now();
+        }))->toBeTrue();
     });
 });

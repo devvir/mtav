@@ -10,7 +10,6 @@ use App\Models\User;
 uses()->group('Stress.Lottery.System');
 
 beforeEach(function () {
-    // Use TestSolver for system integration tests - no need for expensive GLPK binary
     config()->set('lottery.default', 'test');
 });
 
@@ -23,7 +22,6 @@ describe('Lottery System End-to-End Integration Tests', function () {
         setCurrentProject(4);
         $admin = User::find(13); // Admin #13 manages Project #4
         $lottery = Event::find(13); // Past lottery for Project #4
-        $lottery->update(['is_published' => true]); // Ensure published
 
         // Get all families and units for Project #4
         $families = Family::whereIn('id', [16, 17, 18, 22, 27, 28])->get();
@@ -125,8 +123,7 @@ describe('Lottery System End-to-End Integration Tests', function () {
         // Optimal: both get their first choice
         setCurrentProject(4);
         $admin = User::find(13);
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]);
+        $lottery = Event::find(13); // Already published and past from fixture
 
         $family16 = Family::find(16);
         $family22 = Family::find(22);
@@ -158,8 +155,7 @@ describe('Lottery System End-to-End Integration Tests', function () {
         // Both families want Unit #15 first (conflict scenario)
         setCurrentProject(4);
         $admin = User::find(13);
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]);
+        $lottery = Event::find(13); // Already published and past from fixture
 
         $family17 = Family::find(17);
         $family27 = Family::find(27);
@@ -195,8 +191,7 @@ describe('Lottery System End-to-End Integration Tests', function () {
         // Type #9: 2 families (#18, #28), 2 units (#17, #18)
         setCurrentProject(4);
         $admin = User::find(13);
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]);
+        $lottery = Event::find(13); // Already published and past from fixture
 
         // Get families by type
         $type7Families = Family::whereIn('id', [16, 22])->get();

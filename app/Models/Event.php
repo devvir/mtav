@@ -161,7 +161,7 @@ class Event extends Model
             'rsvps',
             fn (Builder $q) => $q
                 ->where('user_id', $memberId)
-                ->wherePivot('status', $status),
+                ->where('event_rsvp.status', $status),
         );
     }
 

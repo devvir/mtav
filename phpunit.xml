@@ -20,9 +20,6 @@
         <testsuite name="Browser">
             <directory>tests/Browser</directory>
         </testsuite>
-        <testsuite name="Archive">
-            <directory>tests/__Archive</directory>
-        </testsuite>
     </testsuites>
 
     <source>

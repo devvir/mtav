@@ -3,6 +3,7 @@
 use App\Models\Family;
 use App\Models\Member;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 
 describe('Family Model', function () {
     it('belongs to a Project', function () {
@@ -17,12 +18,13 @@ describe('Family Model', function () {
     it('has many Members', function () {
         $family = Family::find(4); // Family #4 with 3 members (#102, #103, #104)
 
-        expect($family->members)->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
+        expect($family->members)->toBeInstanceOf(Collection::class)
             ->and($family->members->count())->toBeGreaterThan(0);
     });
 
     it('can add a Member to the Family', function () {
         $family = Family::find(1); // Family #1 (no members)
+        // Factory: Fresh member for isolated addMember() test
         $member = Member::factory()->create();
 
         $family->addMember($member);

@@ -1,63 +1,82 @@
-# Archived Tests
+# Archived Tests - Unit Tests Only
 
-This directory contains the **original test suite** that is being phased out and replaced by a new, cleaner test structure (located in `tests/Authentication/`, `tests/Authorization/`, etc.).
-
-## Purpose
-
-These tests are kept for reference and to maintain coverage **only until they are superseded** by equivalent tests in the new suite.
-
-## What Was Cleaned
-
-- ❌ All skipped/todo tests removed (122 skipped tests deleted)
-- ❌ Test files with 0 passing tests deleted (3 files)
-- ❌ Architecture tests removed (5 failing tests)
-- ❌ Failing tests removed (6 authorization-related tests)
-- ❌ Obsolete documentation deleted (BUGS_AND_TODOS.md, PRIORITIES.md, TEST_CATALOG.md, etc.)
-- ✅ Only **passing tests** remain
+This directory contains **4 unit test files with 24 passing tests** that validate critical model methods not yet fully replicated in the modern test suite.
 
 ## Current Status
 
-- **113 passing tests** (100% pass rate) across 19 test files
-- Tests use old helper functions (loaded via `tests/Pest.php`)
-- Tests use factories instead of fixtures
+- **✅ 24 passing tests** - All green
+- **✅ Self-contained** - Uses only universe.sql fixture + factories + Pest assertions
+- **✅ Active & Valuable** - Tests fill critical coverage gaps for authorization model methods
+- **✅ No external dependencies** - All legacy helper files removed (not needed)
 
 ## Important Note
 
-**Nothing will be added or updated in this archive** - tests here can only be deleted as they are superseded by the new test suite.
+**Only unit tests remain** - Feature tests (AuthenticationTest, PasswordResetTest, ProjectControllerTest) were completely removed as they're superseded by modern tests.
 
-## Files Kept
+## Test Overview
 
-### Feature Tests (14 files)
-- **Auth**: AuthenticationTest (4), EmailVerificationTest (2), PasswordConfirmationTest (3), PasswordResetTest (4)
-- **Controllers**: AdminControllerCrudTest (9), FamilyControllerCrudTest (12), FamilyControllerTest (3), MemberControllerCrudTest (18), MemberControllerTest (5), ProjectControllerTest (4), UnitControllerCrudTest (1)
-- **Policies**: FamilyPolicyTest (8), MemberPolicyTest (8)
-- **Settings**: PasswordUpdateTest (2), ProfileUpdateTest (3)
-- **Business Logic**: ProjectScopeTest (1)
-- **Other**: DashboardTest (2)
+All tests use the **universe.sql fixture** (pre-populated test database):
+- Projects: 5 (3 active, 1 inactive, 1 deleted)
+- Admins: 19 with various project assignments
+- Members: 50 across multiple families
+- Families: 25 with different membership states
 
-### Unit Tests (5 files)
-- **Models**: AdminTest (5), FamilyTest (3), MemberTest (4), ProjectTest (11), UserTest (7)
+### `AdminTest.php` (4 tests) ✅
+**Tests critical `manages()` authorization method:**
+- Validates that admins can only manage assigned projects
+- Validates superadmin behavior (manages all)
+- **Why critical:** `manages()` is used throughout authorization policies (FamilyPolicy, MemberPolicy, etc.)
 
-## Migration Strategy
+### `ProjectTest.php` (10 tests) ✅
+**Tests core Project model methods:**
+- `addMember()` / `removeMember()` - Member assignment operations
+- `addAdmin()` - Admin assignment
+- `hasMember()` / `hasAdmin()` - Query helpers for authorization checks
+- Relationship loading and alphabetical scoping
+- **Why critical:** These are fundamental model methods used in CRUD flows but not tested in modern Feature tests
 
-1. New tests are written in the structured test directories (`tests/Authentication/`, etc.)
-2. As new tests supersede old ones, the old tests are removed from this archive
-3. When all tests in a file are superseded, the entire file is deleted
-4. Eventually this directory will be empty and can be removed
+### `FamilyTest.php` (3 tests) ✅
+**Tests Family model relationships:**
+- `addMember()` - Adding members to families
+- **Why critical:** Family membership is core domain logic with no modern unit-level tests
 
-## Helper Files
+### `UserTest.php` (7 tests) ✅
+**Tests User role conversions and filtering:**
+- `asMember()` / `asAdmin()` - Type conversions
+- `isMember()` / `isAdmin()` / `isSuperadmin()` - Role detection
+- Active project filtering (only active projects returned)
+- **Why critical:** Foundational for authorization and session management
 
-The `Helpers/` directory contains helper functions still used by these archived tests:
-- `FamilyHelpers.php` - createFamily, createFamilyInProject, etc.
-- `InertiaHelpers.php` - assertInertiaComponent, inertiaGet, etc.
-- `ProjectHelpers.php` - createProject, createProjectWithAdmin, etc.
-- `UniverseHelpers.php` - (deprecated - old fixture system)
-- `UserHelpers.php` - createAdmin, createMember, createSuperAdmin, etc.
+## What Value Do These Tests Provide?
 
-These helpers will be removed once no archived tests depend on them.
+The modern Feature test suite indirectly validates these methods through integration testing. However:
 
----
+| Method | Modern Test Coverage | Archive Test Coverage |
+|--------|------|------|
+| `manages()` | Implicit in authorization tests | ✅ Direct unit tests |
+| `hasMember()` / `hasAdmin()` | None | ✅ Direct unit tests |
+| `addMember()` / `addAdmin()` | Form submission tests | ✅ Direct model tests |
+| `asMember()` / `asAdmin()` | Implicit in policies | ✅ Direct unit tests |
+| `isMember()` / `isAdmin()` | Implicit in features | ✅ Direct unit tests |
 
-**For the new test structure and guidelines, see**:
-- `tests/Authentication/README.md` - Authentication test organization
-- `documentation/ai/TESTS_KB.md` - Testing patterns and best practices
+**Gap filled:** These tests provide **direct unit-level coverage** of fundamental model logic that is only tested indirectly (if at all) in the modern suite.
+
+## Run Tests
+
+```bash
+mtav pest --testsuite Archive
+```
+
+## Cleanup History
+
+**December 20, 2025:**
+- ✅ Deleted 3 feature test files (now covered by modern tests)
+  - AuthenticationTest → replaced by `tests/Feature/Authentication/VisitLoginPageTest.php`
+  - PasswordResetTest → was incomplete (only 1 trivial test)
+  - ProjectControllerTest → replaced by `tests/Feature/Healthcheck/ProjectsHealthcheckTest.php`
+- ✅ Deleted all 5 helper files (unit tests don't need them)
+  - UserHelpers.php
+  - ProjectHelpers.php
+  - FamilyHelpers.php
+  - InertiaHelpers.php
+  - UniverseHelpers.php

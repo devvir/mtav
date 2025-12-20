@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin;
+use App\Models\Event;
 use App\Models\Project;
 
 describe('Admin Model', function () {
@@ -33,6 +34,26 @@ describe('Admin Model', function () {
         $admin = Admin::find(12); // Admin #12 manages Projects #2, #3
 
         expect($admin->projects)->toHaveCount(2);
+    });
+
+    it('has many created events', function () {
+        $admin = Admin::find(11);
+        $events = $admin->events;
+
+        expect($events)->toHaveCount(5); // Admin 11 created all 5 events in Project 1
+
+        expect($events->every(function ($event) {
+            return $event instanceof Event && $event->creator_id === 11;
+        }))->toBeTrue();
+    });
+
+    it('has upcoming created events via relation', function () {
+        $admin = Admin::find(11);
+
+        $upcomingEvents = $admin->upcomingEvents;
+        expect($upcomingEvents->every(function ($event) {
+            return is_null($event->start_date) || $event->start_date > now();
+        }))->toBeTrue();
     });
 });
 

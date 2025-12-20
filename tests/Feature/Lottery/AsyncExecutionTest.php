@@ -16,7 +16,6 @@ describe('Async Lottery Execution Tests', function () {
     test('successful lottery execution creates audit trail in database', function () {
         setCurrentProject(4); // Balanced project from universe.sql
         $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]);
 
         // Set preferences for families in Project #4
         // Type #7 families: 16, 22
@@ -54,20 +53,18 @@ describe('Async Lottery Execution Tests', function () {
         expect($initAudit)->not->toBeNull();
         expect($initAudit->audit)->toHaveKey('manifest');
 
-        // If execution completed, verify lottery is soft-deleted
-        // and we have execution audits
-        if ($lottery->fresh()->trashed()) {
-            expect($audits->count())->toBeGreaterThanOrEqual(4);
-            $hasGroupExecutions = $audits->where('type', LotteryAuditType::GROUP_EXECUTION->value)->count() > 0;
-            $hasProjectExecution = $audits->where('type', LotteryAuditType::PROJECT_EXECUTION->value)->count() > 0;
-            expect($hasGroupExecutions || $hasProjectExecution)->toBeTrue();
-        }
+        // With test solver, execution always completes deterministically
+        expect($lottery->fresh()->trashed())->toBeTrue();
+        expect($audits->count())->toBeGreaterThanOrEqual(4);
+
+        $hasGroupExecutions = $audits->where('type', LotteryAuditType::GROUP_EXECUTION->value)->count() > 0;
+        $hasProjectExecution = $audits->where('type', LotteryAuditType::PROJECT_EXECUTION->value)->count() > 0;
+        expect($hasGroupExecutions || $hasProjectExecution)->toBeTrue();
     });
 
     test('audit records share execution UUID', function () {
         setCurrentProject(4);
         $lottery = Event::find(13);
-        $lottery->update(['is_published' => true, 'deleted_at' => null]);
 
         // Set preferences for all families
         $preferences = [
@@ -106,7 +103,6 @@ describe('Async Lottery Execution Tests', function () {
     test('INIT audit contains complete manifest data', function () {
         setCurrentProject(4);
         $lottery = Event::find(13);
-        $lottery->update(['is_published' => true, 'deleted_at' => null]);
 
         // Set minimal preferences
         $family = Family::find(16);

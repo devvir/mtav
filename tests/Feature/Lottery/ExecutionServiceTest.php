@@ -54,13 +54,11 @@ describe('CannotExecuteLotteryException scenarios', function () {
 });
 
 describe('InsufficientFamiliesException scenarios', function () {
-
     test('throws exception when project has less than 2 families', function () {
         // Project #4 has families #16, #17, #18, #22, #27, #28 - keep only #16
         Family::whereIn('id', [17, 18, 22, 27, 28])->delete();
 
         $lottery = Event::find(13); // Past lottery for Project #4
-        $lottery->update(['is_published' => true]); // Reset if modified by previous tests
 
         expect(fn () => $this->service->execute($lottery))
             ->toThrow(InsufficientFamiliesException::class);
@@ -86,7 +84,6 @@ describe('LotteryExecutionException scenarios', function () {
         $unit->update(['family_id' => $family->id]);
 
         $lottery = Event::find(13); // Past lottery for Project #4
-        $lottery->update(['is_published' => true]); // Reset if modified
 
         expect(fn () => $this->service->execute($lottery))
             ->toThrow(LotteryExecutionException::class);
@@ -118,11 +115,7 @@ describe('UnitFamilyMismatchException scenarios', function () {
 
         // Same unbalanced Project #1 data, but with override flag
         $lottery = Event::find(1);
-        $lottery->update([
-            'start_date'   => now()->subDay(),
-            'end_date'     => now()->subDay(),
-            'is_published' => true,
-        ]);
+        $lottery->update(['start_date' => now()->subDay(), 'end_date' => now()->subDay()]);
 
         // Should NOT throw with override flag
         $this->service->execute($lottery, ['mismatch-allowed']);
@@ -140,12 +133,11 @@ describe('successful execution scenarios', function () {
     test('successfully executes lottery with balanced data', function () {
         EventFacade::fake();
 
-        // Event #13 is for Project #4 which is now balanced:
+        // Event #13 is for Project #4 which is balanced:
         // - Type #7: 2 units (#13, #14), 2 families (#16, #22)
         // - Type #8: 2 units (#15, #16), 2 families (#17, #27)
         // - Type #9: 2 units (#17, #18), 2 families (#18, #28)
-        $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]); // Reset if modified
+        $lottery = Event::find(13); // Already published and past from fixture
 
         // Execute lottery
         $this->service->execute($lottery);
@@ -160,9 +152,8 @@ describe('successful execution scenarios', function () {
     test('reserves lottery atomically preventing double execution', function () {
         EventFacade::fake();
 
-        // Use Event #13 for Project #4
+        // Use Event #13 for Project #4 - Past event
         $lottery = Event::find(13);
-        $lottery->update(['is_published' => true]); // Reset if modified
 
         // First execution should succeed
         $this->service->execute($lottery);
