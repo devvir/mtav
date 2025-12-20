@@ -1,0 +1,55 @@
+Benchmark Scenario Comparison - Size 100x100
+Generated: 2025-12-20 21:06:10
+======================================================================
+
+Scenarios analyzed: 4
+Scenario names: identical, opposite, random, realistic
+
+
+IDENTICAL
+  File: glpk_identical_100.csv
+  Total runs: 1000
+  Mean time: 2082.22 ms
+  Median time: 2033.95 ms
+  Std dev: 348.26 ms
+  P95: 2682.54 ms
+  P99: 2905.08 ms
+  Max: 3343.27 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+OPPOSITE
+  File: glpk_opposite_100.csv
+  Total runs: 1000
+  Mean time: 1739.05 ms
+  Median time: 1719.71 ms
+  Std dev: 147.91 ms
+  P95: 2044.99 ms
+  P99: 2152.86 ms
+  Max: 2349.43 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+RANDOM
+  File: glpk_random_100.csv
+  Total runs: 1000
+  Mean time: 1403.00 ms
+  Median time: 1432.79 ms
+  Std dev: 144.99 ms
+  P95: 1573.98 ms
+  P99: 1669.18 ms
+  Max: 1711.22 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+REALISTIC
+  File: glpk_realistic_100.csv
+  Total runs: 1000
+  Mean time: 1982.86 ms
+  Median time: 1822.28 ms
+  Std dev: 488.71 ms
+  P95: 2810.34 ms
+  P99: 3703.64 ms
+  Max: 4636.75 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%

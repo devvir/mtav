@@ -1,0 +1,127 @@
+Benchmark Size Comparison - Opposite Scenario
+Generated: 2025-12-20 21:05:17
+======================================================================
+
+Files analyzed: 11
+
+
+Size: 5x5
+  Total runs: 1000
+  Mean time: 308.94 ms
+  Median time: 308.03 ms
+  Std dev: 5.74 ms
+  P95: 315.31 ms
+  P99: 321.58 ms
+  Max: 326.84 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 10x10
+  Total runs: 1000
+  Mean time: 412.99 ms
+  Median time: 411.90 ms
+  Std dev: 4.65 ms
+  P95: 420.50 ms
+  P99: 427.12 ms
+  Max: 434.34 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 20x20
+  Total runs: 1000
+  Mean time: 521.40 ms
+  Median time: 519.80 ms
+  Std dev: 5.22 ms
+  P95: 532.42 ms
+  P99: 539.59 ms
+  Max: 544.93 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 30x30
+  Total runs: 1000
+  Mean time: 530.41 ms
+  Median time: 528.15 ms
+  Std dev: 8.72 ms
+  P95: 546.14 ms
+  P99: 556.90 ms
+  Max: 652.04 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 50x50
+  Total runs: 1000
+  Mean time: 679.86 ms
+  Median time: 679.68 ms
+  Std dev: 22.20 ms
+  P95: 707.34 ms
+  P99: 762.37 ms
+  Max: 1002.63 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 75x75
+  Total runs: 1000
+  Mean time: 1156.80 ms
+  Median time: 1141.35 ms
+  Std dev: 209.74 ms
+  P95: 1562.71 ms
+  P99: 1621.31 ms
+  Max: 1718.38 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 100x100
+  Total runs: 1000
+  Mean time: 1739.05 ms
+  Median time: 1719.71 ms
+  Std dev: 147.91 ms
+  P95: 2044.99 ms
+  P99: 2152.86 ms
+  Max: 2349.43 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 150x150
+  Total runs: 100
+  Mean time: 4635.04 ms
+  Median time: 4647.46 ms
+  Std dev: 568.45 ms
+  P95: 4807.36 ms
+  P99: 7046.73 ms
+  Max: 8936.96 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 200x200
+  Total runs: 100
+  Mean time: 7566.67 ms
+  Median time: 7471.65 ms
+  Std dev: 744.28 ms
+  P95: 8470.05 ms
+  P99: 8838.06 ms
+  Max: 12220.48 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 300x300
+  Total runs: 100
+  Mean time: 18530.44 ms
+  Median time: 18363.76 ms
+  Std dev: 5649.90 ms
+  P95: 20352.39 ms
+  P99: 50795.30 ms
+  Max: 59754.61 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%
+
+Size: 500x500
+  Total runs: 100
+  Mean time: 85267.30 ms
+  Median time: 86181.84 ms
+  Std dev: 20190.75 ms
+  P95: 112434.21 ms
+  P99: 116450.46 ms
+  Max: 117385.35 ms
+  Success rate: 100.00%
+  Timeout rate: 0.00%

@@ -1,0 +1,28 @@
+Benchmark Statistics: glpk_opposite_10.csv
+Generated: 2025-12-20 21:02:51
+======================================================================
+
+time_mean: 412.9866921901704
+time_median: 411.903977394105
+time_std: 4.651410018586916
+time_min: 319.05102729797
+time_max: 434.33904647827
+time_p25: 410.77059507369745
+time_p50: 411.903977394105
+time_p75: 413.93166780471995
+time_p90: 417.669677734372
+time_p95: 420.49682140350603
+time_p99: 427.12131023407284
+success_rate: 1.0
+timeout_rate: 0.0
+failed_rate: 0.0
+infeasible_rate: 0.0
+total_runs: 1000
+success_count: 1000
+timeout_count: 0
+failed_count: 0
+infeasible_count: 0
+time_cv: 0.011262856906888066
+time_iqr: 3.1610727310225
+time_skewness: -7.15764716088216
+time_kurtosis: 167.08979083727436

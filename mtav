@@ -41,6 +41,7 @@ print_help() {
     echo -e "  ${YELLOW}mtav npm <cmd>${NC}         # NPM package manager"
     echo -e "  ${YELLOW}mtav shell [container]${NC} # Shell into container (default: php)"
     echo -e "  ${YELLOW}mtav tinker${NC}            # Laravel Tinker REPL (alias for 'mtav artisan tinker')"
+    echo -e "  ${YELLOW}mtav stats${NC}             # Analyze ALL benchmark CSV files at once"
     echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
     echo -e "  1. ${YELLOW}git clone https://github.com/devvir/mtav${NC}"
@@ -182,6 +183,12 @@ case $COMMAND in
     # Convenient aliases
     tinker)
         "$SCRIPTS_DIR/artisan.sh" tinker "$@"
+        ;;
+
+    stats)
+        echo -e "${BLUE}📊 Analyzing all benchmark files...${NC}"
+        cd "$(dirname "$0")/scripts/benchmark_analysis"
+        python3 generate_all.py
         ;;
 
     help|--help|-h|"")

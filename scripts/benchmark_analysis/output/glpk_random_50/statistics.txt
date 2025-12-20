@@ -1,0 +1,28 @@
+Benchmark Statistics: glpk_random_50.csv
+Generated: 2025-12-20 21:04:21
+======================================================================
+
+time_mean: 597.5455703735352
+time_median: 637.97652721405
+time_std: 54.82072408836836
+time_min: 527.00901031494
+time_max: 792.79494285583
+time_p25: 535.55178642273
+time_p50: 637.97652721405
+time_p75: 643.3148384094225
+time_p90: 649.620461463925
+time_p95: 659.3690395355255
+time_p99: 671.3999819755506
+success_rate: 1.0
+timeout_rate: 0.0
+failed_rate: 0.0
+infeasible_rate: 0.0
+total_runs: 1000
+success_count: 1000
+timeout_count: 0
+failed_count: 0
+infeasible_count: 0
+time_cv: 0.09174316873288686
+time_iqr: 107.76305198669252
+time_skewness: -0.18446014797388957
+time_kurtosis: -1.7254426565471712

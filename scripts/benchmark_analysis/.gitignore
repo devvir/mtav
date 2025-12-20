@@ -1,0 +1,42 @@
+# Copilot - Pending review
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Temporary output
+/tmp/
+/temp/
+
+# Keep analysis output
+# output/ is committed to track results over time
+
+# Generated temp files (not results)
+benchmark_stats.json.tmp
+timeouts.csv.tmp
+outliers.csv.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+benchmark_stats.json
+timeouts.csv
+outliers.csv
