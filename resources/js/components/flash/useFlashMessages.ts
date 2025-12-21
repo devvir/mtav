@@ -99,11 +99,6 @@ export function useFlashMessages(options: { skipInertiaWatcher?: boolean } = {})
     );
   }
 
-  // Cleanup on unmount
-  onUnmounted(() => {
-    clearAll();
-  });
-
   return {
     messageStack,
     hasVisibleMessages,

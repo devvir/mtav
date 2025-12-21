@@ -32,13 +32,14 @@
 - `ProjectPlans.md` → Spatial visualization, canvas architecture, component hierarchy
 
 **UI/Frontend Work**:
+- `UI.md` → **START HERE** for frontend development and UI testing (architecture, FormService system, components, composables, state management)
 - `ACCESSIBILITY_AND_TARGET_AUDIENCE.md` → WCAG requirements, elderly users, design constraints
 - `resources-reference.md` → Resource transformation patterns
 - `refactoring-preferences-manager.md` → Component refactoring patterns
 
 **Testing Work**:
+- `testing/E2E.md` → End-to-end testing setup (Playwright + Pest Browser)
 - `testing/PHILOSOPHY.md` → Universe fixture, test patterns, helpers
-- `testing/BROWSER_TESTING.md` → Cypress/browser test guidelines
 - `testing/FORMS.md` → Form interaction test patterns
 - `testing/LOTTERY_TESTS.md` → Lottery-specific testing
 
@@ -53,14 +54,15 @@
 documentation/ai/
 ├── KNOWLEDGE_BASE.md           # 🔴 PRIMARY - All critical facts
 ├── README.md                   # 🔴 THIS FILE - Learning guide
+├── UI.md                       # 🔴 Frontend architecture & components (READ FOR UI WORK)
 ├── LOTTERY.md                  # 🔴 Complete lottery system reference
 ├── ProjectPlans.md             # 🔴 Project plan visualization system
 ├── core/                       # 🟡 Detailed patterns
 │   ├── USER_SYSTEM.md         #     User/Member/Admin details & database schema
 │   └── SCOPING.md             #     Authorization matrix details
 ├── testing/                    # 🟡 Testing-specific
+│   ├── E2E.md                 #     Playwright + Pest Browser setup
 │   ├── PHILOSOPHY.md          #     Universe fixture, patterns
-│   ├── BROWSER_TESTING.md     #     Cypress patterns
 │   ├── FORMS.md               #     Form test patterns
 │   └── LOTTERY_TESTS.md       #     Lottery tests
 ├── ACCESSIBILITY_AND_TARGET_AUDIENCE.md # 🟡 UI constraints

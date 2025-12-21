@@ -76,6 +76,39 @@ run_php_tests() {
     fi
 }
 
+validate_and_process_pest_testsuite_args() {
+    local args=("$@")
+    local has_testsuite=false
+    local testsuite_value=""
+
+    # Check if --testsuite is in the arguments
+    for ((i=0; i<${#args[@]}; i++)); do
+        if [[ "${args[$i]}" == "--testsuite" ]]; then
+            has_testsuite=true
+            if [[ $((i+1)) -lt ${#args[@]} ]]; then
+                testsuite_value="${args[$((i+1))]}"
+            else
+                echo -e "${RED}❌ --testsuite flag provided but no value specified${NC}"
+                return 1
+            fi
+            break
+        fi
+    done
+
+    # If --testsuite was provided, validate it
+    if [ "$has_testsuite" = true ]; then
+        if ! [[ "$testsuite_value" =~ ^(Arch|Unit|Feature|Stress)(,(Arch|Unit|Feature|Stress))*$ ]]; then
+            echo -e "${RED}❌ Invalid testsuite: $testsuite_value${NC}"
+            echo "Valid values (comma-separated): Arch, Unit, Feature, Stress"
+            return 1
+        fi
+        echo "${args[@]}"
+    else
+        # No --testsuite provided, use default
+        echo "--testsuite" "Arch,Unit,Feature" "${args[@]}"
+    fi
+}
+
 cleanup_environment() {
     echo ""
     echo -e "${BLUE}Stopping testing environment...${NC}"
@@ -122,7 +155,14 @@ if [ "$RUN_PHP" = true ]; then
     echo -e "${YELLOW}📦 PHP Tests (Pest)${NC}"
     echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-    if run_php_tests "${TEST_ARGS[@]}"; then
+    # Process and validate testsuite arguments
+    processed_args=($(validate_and_process_pest_testsuite_args "${TEST_ARGS[@]}"))
+    if [ $? -ne 0 ]; then
+        cleanup_environment
+        exit 1
+    fi
+
+    if run_php_tests "${processed_args[@]}"; then
         echo ""
         echo -e "${GREEN}✅ PHP tests passed${NC}"
         PHP_SUCCESS=true

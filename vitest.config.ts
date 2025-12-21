@@ -7,20 +7,21 @@ export default mergeConfig(
     test: {
       globals: true,
       clearMocks: true,
+      setupFiles: ['resources/js/tests/setup.ts'],
       projects: [
         {
           extends: true,
           test: {
             name: 'unit',
             include: ['resources/js/tests/unit/**'],
-            environment: 'node',
+            environment: 'jsdom',
           },
         },
         {
           extends: true,
           test: {
-            name: 'dom',
-            include: ['resources/js/tests/dom/**'],
+            name: 'feature',
+            include: ['resources/js/tests/feature/**'],
             environment: 'jsdom',
           },
         },

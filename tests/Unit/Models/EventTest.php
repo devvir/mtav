@@ -98,7 +98,9 @@ describe('Event Model Scopes - Temporal Filters', function () {
         // Ongoing = not upcoming and not past
         expect($ongoing->every(function ($event) {
             $isUpcoming = is_null($event->start_date) || $event->start_date > now();
-            if ($isUpcoming) return false;
+            if ($isUpcoming) {
+                return false;
+            }
 
             $implicitEnd = $event->start_date?->copy()->addMinutes(Event::IMPLICIT_DURATION);
             $hasExplicitEnd = isset($event->end_date) && $event->end_date < now();

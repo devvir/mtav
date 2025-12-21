@@ -2,7 +2,12 @@
 import FlashMessages from './FlashMessages.vue';
 import { useFlashMessages } from './useFlashMessages';
 
-const { hasVisibleMessages } = useFlashMessages();
+const { hasVisibleMessages, clearAll } = useFlashMessages();
+
+// Cleanup message timeouts on component unmount
+onUnmounted(() => {
+  clearAll();
+});
 </script>
 
 <template>

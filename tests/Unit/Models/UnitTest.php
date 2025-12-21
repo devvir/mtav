@@ -7,7 +7,6 @@ use App\Models\PlanItem;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UnitType;
-use Illuminate\Database\Eloquent\Collection;
 
 describe('Unit Model Relations', function () {
     it('belongs to a project', function () {

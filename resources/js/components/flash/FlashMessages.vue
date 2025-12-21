@@ -10,8 +10,13 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
-const { messageStack, hasVisibleMessages, flash, removeMessage } = useFlashMessages({
+const { messageStack, hasVisibleMessages, flash, removeMessage, clearAll } = useFlashMessages({
   skipInertiaWatcher: true, // We handle it manually to respect noAutoDismiss prop
+});
+
+// Cleanup message timeouts on component unmount
+onUnmounted(() => {
+  clearAll();
 });
 
 // Watch for flash messages from Inertia page props

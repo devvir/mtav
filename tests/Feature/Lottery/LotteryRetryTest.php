@@ -147,4 +147,3 @@ describe('Lottery Execution Audit Trail', function () {
         expect($lottery->fresh()->trashed())->toBeTrue();
     });
 });
-
