@@ -204,7 +204,7 @@ describe('Event Status Attribute', function () {
         expect($event->status)->toBe('upcoming');
     });
 
-    it('returns past for events with past end date', function () {
+    it('returns completed for events with past end date', function () {
         $event = Event::factory()->create(['end_date' => now()->subDay()]);
 
         expect($event->status)->toBe('completed');

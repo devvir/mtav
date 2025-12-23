@@ -24,6 +24,7 @@ A Laravel + Vue.js + Inertia.js app with a streamlined Docker development setup.
    - Installs JS dependencies (NPM)
    - Generates Laravel app key
    - Runs database migrations + seeding
+   - Initializes git submodules (local packages)
    - Starts all services
 
 3. **Open the application**

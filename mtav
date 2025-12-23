@@ -28,6 +28,7 @@ print_help() {
     echo -e "  ${YELLOW}mtav status${NC}            # Show container status and URLs"
     echo -e "  ${YELLOW}mtav logs${NC}              # Show all logs"
     echo -e "  ${YELLOW}mtav fresh${NC}             # Complete fresh rebuild (down + build)"
+    echo -e "  ${YELLOW}mtav staging${NC}           # Setup staging environment (built assets, no HMR)"
     echo ""
     echo -e "${GREEN}Testing Commands:${NC}"
     echo -e "  ${YELLOW}mtav test [args]${NC}       # Run all tests (Pest + Vitest + Playwright)"
@@ -71,6 +72,13 @@ shift 2>/dev/null || true
 
 case $COMMAND in
     up)
+        # Initialize submodules if needed (packages/laravel-instant-api, etc.)
+        if [ -f .gitmodules ] && [ -z "$(ls -A packages/laravel-instant-api 2>/dev/null)" ]; then
+            echo -e "${BLUE}📦 Initializing git submodules...${NC}"
+            git submodule update --init --recursive
+            echo -e "${GREEN}✅ Submodules initialized${NC}"
+        fi
+
         # Smart up: build on first run, regular up afterwards
         if [ ! -f .docker/first-run-executed ]; then
             echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
@@ -111,14 +119,25 @@ case $COMMAND in
 
     fresh)
         echo -e "${BLUE}🆕 Fresh start: cleaning and rebuilding everything...${NC}"
+        # Stop all running containers first
+        echo -e "${YELLOW}🛑 Stopping all running containers...${NC}"
+        export COMPOSE_PROJECT_NAME=dev
+        "$SCRIPTS_DIR/compose.sh" stop || true
         # Remove first-run witness file to trigger full setup
         rm -f .docker/first-run-executed
-        # Set proper project name and remove everything including volumes
-        export COMPOSE_PROJECT_NAME=dev
+        # Remove everything including volumes
+        echo -e "${YELLOW}🗑️  Removing containers and volumes...${NC}"
         "$SCRIPTS_DIR/compose.sh" down --volumes --remove-orphans
         docker network rm mtav_default 2>/dev/null || true
+        # Wait a moment for cleanup
+        sleep 2
         # Now run normal up command which will detect first-run and do full setup
+        echo -e "${GREEN}🚀 Starting fresh environment...${NC}"
         exec "$0" up
+        ;;
+
+    staging)
+        "$SCRIPTS_DIR/staging.sh"
         ;;
 
     status)

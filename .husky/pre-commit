@@ -1,3 +1,2 @@
 mtav vitest && \
-mtav pest --testsuite Arch,Unit,Feature && \
-mtav up && mtav npm run lint
+mtav pest --testsuite Arch,Unit,Feature

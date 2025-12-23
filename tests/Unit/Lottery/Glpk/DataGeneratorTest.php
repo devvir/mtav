@@ -5,6 +5,10 @@ use App\Services\Lottery\Glpk\DataGenerator;
 
 uses()->group('Unit.Lottery.Glpk');
 
+beforeEach(function () {
+    config()->set('logging.default', 'null');
+});
+
 describe('DataGenerator', function () {
     beforeEach(function () {
         $this->generator = new DataGenerator();

@@ -9,9 +9,13 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 uses()->group('unit');
 
 beforeEach(function () {
-    // Expose protected method for testing - glpk not needed since findMinimalPreferenceSet doesn't use it
-    $this->solver = new class (app(Glpk::class)) extends GlpkSolver {
-        public function testFindMinimalPreferenceSet(LotterySpec $spec): array
+    config()->set('logging.default', 'null');
+
+    $this->glpk = app(Glpk::class);
+
+    // Expose protected method for testing
+    $this->balancer = new class ($this->glpk) extends SpecBalancer {
+        public function testCollectTopPreferredUnits(LotterySpec $spec): array
         {
             return $this->findMinimalPreferenceSet($spec);
         }

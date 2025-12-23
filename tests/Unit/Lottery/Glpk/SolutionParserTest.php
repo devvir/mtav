@@ -6,6 +6,10 @@ use App\Services\Lottery\Glpk\SolutionParser;
 
 uses()->group('Unit.Lottery.Glpk');
 
+beforeEach(function () {
+    config()->set('logging.default', 'null');
+});
+
 describe('SolutionParser', function () {
     beforeEach(function () {
         $this->parser = new SolutionParser();

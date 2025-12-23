@@ -6,6 +6,10 @@ use App\Services\Lottery\Glpk\ModelGenerator;
 
 uses()->group('Unit.Lottery.Glpk');
 
+beforeEach(function () {
+    config()->set('logging.default', 'null');
+});
+
 describe('ModelGenerator', function () {
     beforeEach(function () {
         $this->generator = new ModelGenerator();

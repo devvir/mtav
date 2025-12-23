@@ -1,9 +1,9 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
-export default mergeConfig(
-  viteConfig,
-  defineConfig({
+export default defineConfig((configEnv) => mergeConfig(
+  viteConfig(configEnv),
+  {
     test: {
       globals: true,
       clearMocks: true,
@@ -27,5 +27,5 @@ export default mergeConfig(
         },
       ],
     },
-  }),
-);
+  },
+));

@@ -8,8 +8,10 @@ use App\Services\Lottery\Solvers\GlpkSolver;
 uses()->group('Feature.Lottery.Integration');
 
 beforeEach(function () {
-    config()->set('lottery.default', 'glpk');
+    config()->set('logging.default', 'null');
     config()->set('queue.default', 'sync');
+
+    config()->set('lottery.default', 'glpk');
 });
 
 describe('GlpkSolver', function () {

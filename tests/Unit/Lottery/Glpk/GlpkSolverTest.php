@@ -8,6 +8,10 @@ use App\Services\Lottery\Solvers\GlpkSolver;
 
 uses()->group('Unit.Lottery.Glpk');
 
+beforeEach(function () {
+    config()->set('logging.default', 'null');
+});
+
 describe('GlpkSolver GLPK-specific failure scenarios', function () {
     test('throws exception when glpsol binary not found', function () {
         config()->set('lottery.solvers.glpk', [
