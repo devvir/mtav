@@ -11,7 +11,7 @@ beforeEach(function () {
     config()->set('logging.default', 'null');
 });
 
-describe('GlpkSolver GLPK-specific failure scenarios', function () {
+describe('Failure Handling', function () {
     test('throws exception when glpsol binary not found', function () {
         config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',

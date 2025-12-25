@@ -162,9 +162,9 @@ class ExecutionService
         }
 
         // Check: No families should have units assigned yet
-        $assignedUnitsCount = $lottery->project->units()->whereNotNull('family_id')->exists();
+        $projectHasAssignedUnits = $lottery->project->units()->whereNotNull('family_id')->exists();
 
-        if ($assignedUnitsCount > 0) {
+        if ($projectHasAssignedUnits) {
             throw new LotteryExecutionException(
                 'Cannot execute lottery: some families already have units assigned. This indicates data corruption or a bug.'
             );

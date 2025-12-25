@@ -19,6 +19,11 @@ use InvalidArgumentException;
  */
 class PreferencesService
 {
+    /**
+     * Auto-added preferences' order starts at this number.
+     */
+    public const MIN_AUTO_ORDER_INDEX = 1000;
+
     public function preferences(Family $family): Collection
     {
         $this->sanitizeBeforeFetch($family);
@@ -81,7 +86,7 @@ class PreferencesService
     protected function addMissingPreferences(Family $family): void
     {
         $units = $this->missingPreferences($family);
-        $startAt = max(1000, $family->preferences->max('pivot.order') ?? 0);
+        $startAt = max(self::MIN_AUTO_ORDER_INDEX, $family->preferences->max('pivot.order') ?? 0);
 
         $newPreferences = $units->mapWithKeys(fn (Unit $unit, int $spot) => [
             $unit->id => ['order' => $startAt + $spot + 1],

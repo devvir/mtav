@@ -4,12 +4,12 @@
 
 namespace App\Services\Lottery\Solvers\Glpk\DataObjects;
 
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 
 class TaskResult
 {
     public function __construct(
-        public readonly Tasks $task,
+        public readonly Task $task,
         public readonly array $data,
         public readonly array $metadata,
     ) {

@@ -6,15 +6,9 @@ use App\Services\Lottery\AuditService;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
-use App\Services\Lottery\Solvers\Glpk\Enums\FeasibilityResult;
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
-use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkTimeoutException;
-use App\Services\Lottery\Solvers\Glpk\TaskRunners\MinSatisfaction;
 use App\Services\Lottery\Solvers\Glpk\TaskRunners\TaskRunnerFactory;
-use App\Services\Lottery\Solvers\Glpk\TaskRunners\UnitDistribution;
-use Exception;
-use Generator;
 
 /**
  * GLPK Orchestrator - coordinates task execution and auditing.
@@ -22,6 +16,7 @@ use Generator;
 class Glpk
 {
     protected int $timeout;
+
     protected int $phase1MaxSize;
     protected float $phase1Timeout;
 
@@ -29,106 +24,31 @@ class Glpk
         protected TaskRunnerFactory $taskRunnerFactory,
         protected AuditService $auditService,
     ) {
-        $this->timeout = config('lottery.solvers.glpk.config.timeout', 30);
-        $this->phase1MaxSize = config('lottery.solvers.glpk.config.glpk_phase1_max_size', 25);
-        $this->phase1Timeout = config('lottery.solvers.glpk.config.glpk_phase1_timeout', 0.5);
+        $config = config('lottery.solvers.glpk.config');
+
+        $this->timeout = $config['timeout'] ?? 30;
+
+        $this->phase1MaxSize = $config['glpk_phase1_max_size'] ?? 25;
+        $this->phase1Timeout = $config['glpk_phase1_timeout'] ?? 0.5;
     }
 
     /**
-     * Distribute units using two-phase GLPK optimization.
+     * Distribute units using two-phase optimization.
+     * Chooses between GlpkDistribution and HybridDistribution strategies.
      */
     public function distributeUnits(LotteryManifest $manifest, LotterySpec $spec): array
     {
+        // Large spec: use Hybrid strategy directly (binary search is faster)
         if ($spec->familyCount() >= $this->phase1MaxSize) {
-            /** Glpk Phase1 is always slower for large specs */
-            return $this->binarySearchAssistedDistribution($manifest, $spec);
+            return $this->hybridDistribution($manifest, $spec);
         }
 
+        // Small spec: try GLPK phase1 first, fallback to Hybrid on timeout
         try {
-            return $this->directGlpkDistribution($manifest, $spec);
+            return $this->glpkDistribution($manifest, $spec);
         } catch (GlpkTimeoutException) {
-            return $this->binarySearchAssistedDistribution($manifest, $spec);
+            return $this->hybridDistribution($manifest, $spec);
         }
-    }
-
-    /**
-     * Direct two-phase GLPK optimization (Phase 1 → Phase 2).
-     */
-    protected function directGlpkDistribution(LotteryManifest $manifest, LotterySpec $spec): array
-    {
-        /** Phase 1: find minimum satisfaction constraint */
-        $glpkPhase1Timeout = min($this->timeout, $this->phase1Timeout);
-        $minSatisfactionRunner = $this->taskRunnerFactory->make(Tasks::MIN_SATISFACTION);
-        $phase1Result = $minSatisfactionRunner->execute($spec, $glpkPhase1Timeout);
-        $this->auditTask($manifest, $phase1Result, 'success');
-
-        /** Phase 2: distribute units based on minimum satisfaction */
-        $distributionRunner = $this->taskRunnerFactory->make(Tasks::UNIT_DISTRIBUTION);
-        $phase2Result = $distributionRunner->execute($spec, $this->timeout, [
-            'min_satisfaction' => $phase1Result->get('min_satisfaction'),
-        ]);
-        $this->auditTask($manifest, $phase2Result, 'success');
-
-        return $phase2Result->get('distribution');
-    }
-
-    /**
-     * Binary search fallback when Phase 1 times out.
-     * Uses Phase 2 feasibility checks to guide the search.
-     */
-    protected function binarySearchAssistedDistribution(LotteryManifest $manifest, LotterySpec $spec): array
-    {
-        /** @var MinSatisfaction $minSatisfactionRunner */
-        $minSatisfactionRunner = $this->taskRunnerFactory->make(Tasks::MIN_SATISFACTION);
-        $generator = $minSatisfactionRunner->binarySearchGenerator($spec);
-
-        $stepTimeout = $this->binarySearchStepTimeout($spec);
-        $phase2Result = $this->searchBestDistribution($generator, $spec, $stepTimeout);
-
-        if (empty($phase2Result)) {
-            throw new Exception('Binary search completed without finding any feasible solution');
-        }
-
-        $phase1Result = $generator->getReturn();
-
-        $this->auditTask($manifest, $phase1Result, 'success');
-        $this->auditTask($manifest, $phase2Result, 'success');
-
-        return $phase2Result->get('distribution');
-    }
-
-    /**
-     * Search for best distribution using binary search generator.
-     */
-    protected function searchBestDistribution(Generator $generator, LotterySpec $spec, float $timeout): ?TaskResult
-    {
-        /** @var UnitDistribution $distributionRunner */
-        $distributionRunner = $this->taskRunnerFactory->make(Tasks::UNIT_DISTRIBUTION);
-
-        while ($generator->valid()) {
-            try {
-                $phase2Result = $distributionRunner->execute($spec, $timeout, [
-                    'min_satisfaction' => $generator->current(),
-                ]);
-                $generator->send(FeasibilityResult::FEASIBLE);
-            } catch (GlpkInfeasibleException) {
-                $generator->send(FeasibilityResult::INFEASIBLE);
-            }
-        }
-
-        return $phase2Result ?? null;
-    }
-
-    /**
-     * Set timeout for each binary search step, for a total timeout no larger than twice
-     * the timeout for the whole search (hard upper bound, impossible, allows execution for
-     * up to 2*$this->timeout, where each step takes exactly the allowed time without timeout).
-     */
-    protected function binarySearchStepTimeout(LotterySpec $spec): float
-    {
-        $steps = (int) ceil(log($spec->familyCount(), 2)) + 1;
-
-        return 2 * $this->timeout / $steps;
     }
 
     /**
@@ -136,12 +56,40 @@ class Glpk
      */
     public function identifyWorstUnits(LotteryManifest $manifest, LotterySpec $spec): array
     {
-        $pruningRunner = $this->taskRunnerFactory->make(Tasks::WORST_UNITS_PRUNING);
+        $pruningRunner = $this->taskRunnerFactory->make(Task::WORST_UNITS_PRUNING);
         $taskResult = $pruningRunner->execute($spec, $this->timeout);
 
         $this->auditTask($manifest, $taskResult, 'success');
 
         return $taskResult->get('worst_units');
+    }
+
+    /**
+     * Execute GLPK distribution strategy (GLPK phase1 + GLPK phase2).
+     */
+    protected function glpkDistribution(LotteryManifest $manifest, LotterySpec $spec): array
+    {
+        $runner = $this->taskRunnerFactory->make(Task::GLPK_DISTRIBUTION);
+        $result = $runner->execute($spec, $this->timeout, [
+            'phase1_timeout' => $this->phase1Timeout,
+        ]);
+
+        $this->auditTask($manifest, $result, 'success');
+
+        return $result->get('distribution');
+    }
+
+    /**
+     * Execute Hybrid distribution strategy (binary search + GLPK phase2).
+     */
+    protected function hybridDistribution(LotteryManifest $manifest, LotterySpec $spec): array
+    {
+        $runner = $this->taskRunnerFactory->make(Task::HYBRID_DISTRIBUTION);
+        $result = $runner->execute($spec, $this->timeout);
+
+        $this->auditTask($manifest, $result, 'success');
+
+        return $result->get('distribution');
     }
 
     /**

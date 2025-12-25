@@ -1,15 +1,15 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 
 class WorstUnitsPruning extends TaskRunner
 {
+    protected Task $task = Task::WORST_UNITS_PRUNING;
+
     /**
      * Execute worst units pruning task.
      *
@@ -38,10 +38,9 @@ class WorstUnitsPruning extends TaskRunner
             $this->solutionParser->extractUnusedUnits(...)
         );
 
-        return new TaskResult(
-            task: Tasks::WORST_UNITS_PRUNING,
-            data: [ 'worst_units' => $worstUnits ],
-            metadata: $this->buildMetadata($startTime),
+        return $this->taskResult(
+            startTime: $startTime,
+            data: ['worst_units' => $worstUnits],
         );
     }
 }

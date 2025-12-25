@@ -3,7 +3,7 @@
 namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 
 use App\Services\Lottery\Solvers\Glpk\DataGenerator;
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
 use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 
@@ -20,12 +20,21 @@ class TaskRunnerFactory
     /**
      * Create a task runner for the specified task.
      */
-    public function make(Tasks $task): TaskRunner
+    public function make(Task $task): TaskRunner
     {
         return match ($task) {
-            Tasks::MIN_SATISFACTION    => app(MinSatisfaction::class),
-            Tasks::UNIT_DISTRIBUTION   => app(UnitDistribution::class),
-            Tasks::WORST_UNITS_PRUNING => app(WorstUnitsPruning::class),
+            /**
+             * Atomic runners
+             */
+            Task::MIN_SATISFACTION    => app(MinSatisfaction::class),
+            Task::UNIT_DISTRIBUTION   => app(UnitDistribution::class),
+            Task::WORST_UNITS_PRUNING => app(WorstUnitsPruning::class),
+
+            /**
+             * Composite runners
+             */
+            Task::GLPK_DISTRIBUTION   => app(GlpkDistribution::class),
+            Task::HYBRID_DISTRIBUTION => app(HybridDistribution::class),
         };
     }
 }

@@ -1,16 +1,16 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use InvalidArgumentException;
 
 class UnitDistribution extends TaskRunner
 {
+    protected Task $task = Task::UNIT_DISTRIBUTION;
+
     /**
      * Execute unit distribution task (Phase 2).
      *
@@ -38,12 +38,10 @@ class UnitDistribution extends TaskRunner
             $this->solutionParser->extractAssignments(...)
         );
 
-        return new TaskResult(
-            task: Tasks::UNIT_DISTRIBUTION,
-            data: [ 'distribution' => $distribution ],
-            metadata: $this->buildMetadata($startTime, [
-                'min_satisfaction' => $minSatisfaction,
-            ]),
+        return $this->taskResult(
+            startTime: $startTime,
+            data: ['distribution' => $distribution],
+            customMetadata: ['min_satisfaction' => $minSatisfaction]
         );
     }
 }

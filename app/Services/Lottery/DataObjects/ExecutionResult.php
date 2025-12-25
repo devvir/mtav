@@ -51,8 +51,8 @@ class ExecutionResult
      */
     protected function validateOrphans(array $orphans): array
     {
-        $orphans['families'] ??= $orphans['families'];
-        $orphans['units'] ??= $orphans['units'];
+        $orphans['families'] ??= [];
+        $orphans['units'] ??= [];
 
         if (! is_array($orphans['families']) || ! is_array($orphans['units'])) {
             throw new InvalidArgumentException("ExecutionResult: orphans.families and orphans.units must be arrays.");

@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Lottery\DataObjects\LotterySpec;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\TaskRunners\MinSatisfaction;
 
 uses()->group('lottery', 'stress');
@@ -23,6 +24,7 @@ describe('binary search equivalence', function () {
         // Method 1: Direct GLPK Phase 1 (bypass orchestrator, high timeout)
         $minSatisfactionRunner = app(MinSatisfaction::class);
         $directResult = $minSatisfactionRunner->execute($spec, 60);
+        expect($directResult->task)->toBe(Task::MIN_SATISFACTION);
         $directS = $directResult->get('min_satisfaction');
 
         // Method 2: Binary search Phase 1 (force via config)

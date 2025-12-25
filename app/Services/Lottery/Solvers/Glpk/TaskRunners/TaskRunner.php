@@ -7,6 +7,7 @@ namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataGenerator;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
 use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 use App\Services\Lottery\Solvers\Glpk\lib\Files;
@@ -15,6 +16,8 @@ use Closure;
 
 abstract class TaskRunner
 {
+    abstract protected Task $task { get; }
+
     protected string $glpsolPath;
     protected Files $files;
 
@@ -34,25 +37,6 @@ abstract class TaskRunner
      * @param  array  $context  Additional context data required by specific task runners
      */
     abstract public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult;
-
-    /**
-     * Helper to build metadata with automatic timing and artifacts.
-     *
-     * @param  float  $startTime       Start time from microtime(true)
-     * @param  array  $customMetadata  Additional metadata specific to the task
-     *
-     * @return array  Complete metadata array with time_ms and artifacts
-     */
-    protected function buildMetadata(float $startTime, array $customMetadata = []): array
-    {
-        $timeMs = (microtime(true) - $startTime) * 1000;
-
-        return [
-            ...$customMetadata,
-            'time_ms'   => round($timeMs, 2),
-            'artifacts' => $this->files->getArtifacts(),
-        ];
-    }
 
     /**
      * Run GLPK solver on model and data files.
@@ -85,5 +69,23 @@ abstract class TaskRunner
         } finally {
             $this->files->cleanup([$modFile, $datFile, $solFile]);
         }
+    }
+
+    /**
+     * Helper to build TaskResult with automatic timing and artifacts collection.
+     */
+    protected function taskResult(float $startTime, array $data, array $customMetadata = []): TaskResult
+    {
+        $timeMs = (microtime(true) - $startTime) * 1000;
+
+        return new TaskResult(
+            task: $this->task,
+            data: $data,
+            metadata: [
+                'time_ms'   => round($timeMs, 2),
+                'artifacts' => $this->files->getArtifacts(),
+                ...$customMetadata,
+            ],
+        );
     }
 }

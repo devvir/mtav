@@ -5,12 +5,14 @@ namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Enums\FeasibilityResult;
-use App\Services\Lottery\Solvers\Glpk\Enums\Tasks;
+use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use Generator;
 use InvalidArgumentException;
 
 class MinSatisfaction extends TaskRunner
 {
+    protected Task $task = Task::MIN_SATISFACTION;
+
     /**
      * Find minimum satisfaction using GLPK optimization.
      *
@@ -21,14 +23,14 @@ class MinSatisfaction extends TaskRunner
     {
         $startTime = microtime(true);
         $minSatisfaction = $this->findMinSatisfactionWithGlpk($spec, $timeout);
-        $elapsedMs = (microtime(true) - $startTime) * 1000;
 
-        return $this->buildResult($startTime, [
-            'strategy'         => 'glpk',
-            'min_satisfaction' => $minSatisfaction,
-            'glpk_time_ms'     => $elapsedMs,
-            'glpk_timeout_ms'  => $timeout,
-        ]);
+        return $this->taskResult(
+            startTime: $startTime,
+            data: ['min_satisfaction' => $minSatisfaction],
+            customMetadata: [
+                'timeout_ms' => $timeout,
+            ]
+        );
     }
 
     /**
@@ -62,12 +64,13 @@ class MinSatisfaction extends TaskRunner
             };
         }
 
-        return $this->buildResult($startTime, [
-            'strategy'             => 'binsearch',
-            'min_satisfaction'     => $lo,
-            'binsearch_iterations' => $iterations,
-            'binsearch_time_ms'    => (microtime(true) - $startTime) * 1000,
-        ]);
+        return $this->taskResult(
+            startTime: $startTime,
+            data: ['min_satisfaction' => $lo],
+            customMetadata: [
+                'iterations' => $iterations,
+            ],
+        );
     }
 
     /**
@@ -83,18 +86,6 @@ class MinSatisfaction extends TaskRunner
             $modFile,
             $datFile,
             $this->solutionParser->extractObjective(...)
-        );
-    }
-
-    /**
-     * Build TaskResult from result data.
-     */
-    protected function buildResult(float $startTime, array $result): TaskResult
-    {
-        return new TaskResult(
-            task: Tasks::MIN_SATISFACTION,
-            data: ['min_satisfaction' => $result['min_satisfaction']],
-            metadata: $this->buildMetadata($startTime, $result),
         );
     }
 }
