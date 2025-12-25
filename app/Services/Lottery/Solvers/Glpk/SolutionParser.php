@@ -28,7 +28,13 @@ class SolutionParser
             return (int) round((float) $matches[1]);
         }
 
-        throw new GlpkException('Could not extract objective value from GLPK solution file.');
+        throw (new GlpkException(
+            'Could not extract objective value from GLPK solution file.'
+        ))->with([
+            'sol_file'  => $solFile,
+            'file_size' => file_exists($solFile) ? filesize($solFile) : null,
+            'content'   => $content,
+        ]);
     }
 
     /**
@@ -64,7 +70,13 @@ class SolutionParser
         if (empty($picks)) {
             // Check if GLPK explicitly reported the problem as infeasible
             if (str_contains($content, 'SOLUTION IS INFEASIBLE') || str_contains($content, 'INTEGER EMPTY')) {
-                throw new GlpkInfeasibleException('GLPK determined the problem has no feasible solution.');
+                throw (new GlpkInfeasibleException(
+                    'GLPK determined the problem has no feasible solution.'
+                ))->with([
+                    'sol_file'  => $solFile,
+                    'file_size' => filesize($solFile),
+                    'content'   => $content,
+                ]);
             }
 
             // Otherwise, this is unexpected - log for debugging
@@ -74,7 +86,14 @@ class SolutionParser
                 'content'       => $content,
                 'matches_found' => count($matches),
             ]);
-            throw new GlpkException('No assignments found in GLPK solution file.');
+            throw (new GlpkException(
+                'No assignments found in GLPK solution file.'
+            ))->with([
+                'sol_file'      => $solFile,
+                'file_size'     => filesize($solFile),
+                'content'       => $content,
+                'matches_found' => count($matches),
+            ]);
         }
 
         return $picks;

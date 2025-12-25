@@ -46,7 +46,12 @@ class Process
         $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 
         if ($process === false) {
-            throw new GlpkException("Failed to start process: {$command}");
+            throw (new GlpkException(
+                "Failed to start process: {$command}"
+            ))->with([
+                'command' => $command,
+                'timeout' => $this->timeout,
+            ]);
         }
 
         $startTime = time();
@@ -78,7 +83,15 @@ class Process
         // Check for process failure
         if ($exitCode !== 0) {
             $errorMsg = trim($stderr ?: $output) ?: "Process exited with code {$exitCode}";
-            throw new GlpkException("GLPK execution failed: {$errorMsg}");
+            throw (new GlpkException(
+                "GLPK execution failed: {$errorMsg}"
+            ))->with([
+                'exit_code' => $exitCode,
+                'command'   => $command,
+                'stdout'    => $output,
+                'stderr'    => $stderr,
+                'timeout'   => $this->timeout,
+            ]);
         }
 
         return $output;
@@ -114,9 +127,15 @@ class Process
             // Check for PHP-level timeout (failsafe only - should trigger after GLPK's --tmlim)
             $elapsedSeconds = time() - $startTime;
             if ($elapsedSeconds > $failsafeTimeout) {
-                throw new GlpkTimeoutException(
+                throw (new GlpkTimeoutException(
                     "Process execution exceeded PHP failsafe timeout after {$failsafeTimeout} seconds. GLPK's internal timeout may have failed."
-                );
+                ))->with([
+                    'elapsed_seconds'    => $elapsedSeconds,
+                    'failsafe_timeout'   => $failsafeTimeout,
+                    'configured_timeout' => $this->timeout,
+                    'output'             => $output,
+                    'stderr'             => $stderr,
+                ]);
             }
 
             // Non-blocking read from pipes
@@ -151,9 +170,13 @@ class Process
         // Check if GLPK's internal timeout was triggered
         // GLPK exits successfully (code 0) but writes "TIME LIMIT EXCEEDED" to output
         if (str_contains($output, 'TIME LIMIT EXCEEDED')) {
-            throw new GlpkTimeoutException(
+            throw (new GlpkTimeoutException(
                 "GLPK internal timeout triggered after {$this->timeout} seconds (--tmlim)."
-            );
+            ))->with([
+                'timeout' => $this->timeout,
+                'output'  => $output,
+                'stderr'  => $stderr,
+            ]);
         }
 
         return [$output, $stderr];

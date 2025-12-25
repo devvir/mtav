@@ -119,20 +119,18 @@ class LotteryOrchestrator
      */
     protected function distributeOrphans(Collection $firstPassResults): ExecutionResult
     {
-        $orphans = [
-            'units'    => $firstPassResults->flatMap(fn ($result) => $result->orphans['units'])->all(),
-            'families' => $firstPassResults->flatMap(fn ($result) => $result->orphans['families'])
-                ->mapWithKeys(fn ($familyId) => [$familyId => []])->all(),
-        ];
+        $units = $firstPassResults->flatMap(fn ($result) => $result->orphans['units'])->all();
+        $families = $firstPassResults->flatMap(fn ($result) => $result->orphans['families'])
+            ->mapWithKeys(fn ($familyId) => [$familyId => $units])->all();
 
-        if (! $orphans['units'] || ! $orphans['families']) {
+        if (! $units || ! $families) {
             return new ExecutionResult([], [
-                'families' => array_keys($orphans['families']),
-                'units'    => $orphans['units'],
+                'families' => array_keys($families),
+                'units'    => $units,
             ]);
         }
 
-        return $this->executeLottery($orphans);
+        return $this->executeLottery(['families' => $families, 'units' => $units]);
     }
 
     /**

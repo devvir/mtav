@@ -8,6 +8,7 @@ use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
 use App\Services\Lottery\Solvers\Glpk\Glpk;
+use App\Services\Lottery\Solvers\Glpk\SpecBalancer;
 
 /**
  * Solver that uses local GLPK (GNU Linear Programming Kit) for optimal lottery assignments.

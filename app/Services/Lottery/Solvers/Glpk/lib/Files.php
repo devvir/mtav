@@ -42,7 +42,13 @@ class Files
             $tempFile = tempnam($this->tempDir, $prefix);
 
             if ($tempFile === false) {
-                throw new GlpkException("Failed to create temporary file in {$this->tempDir}");
+                throw (new GlpkException(
+                    "Failed to create temporary file in {$this->tempDir}"
+                ))->with([
+                    'temp_dir' => $this->tempDir,
+                    'prefix'   => $prefix,
+                    'suffix'   => $suffix,
+                ]);
             }
 
             // Delete the tempnam file and create new one with suffix
@@ -52,7 +58,13 @@ class Files
             $result = file_put_contents($file, $content);
 
             if ($result === false) {
-                throw new GlpkException("Failed to write content to file {$file}");
+                throw (new GlpkException(
+                    "Failed to write content to file {$file}"
+                ))->with([
+                    'file'         => $file,
+                    'temp_dir'     => $this->tempDir,
+                    'content_size' => strlen($content),
+                ]);
             }
 
             // Store content for audit trail
@@ -62,7 +74,16 @@ class Files
         } catch (GlpkException $e) {
             throw $e;
         } catch (Throwable $e) {
-            throw new GlpkException("Error creating temporary file: {$e->getMessage()}", 0, $e);
+            throw (new GlpkException(
+                "Error creating temporary file: {$e->getMessage()}",
+                0,
+                $e
+            ))->with([
+                'temp_dir'       => $this->tempDir,
+                'prefix'         => $prefix,
+                'suffix'         => $suffix,
+                'original_error' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -78,7 +99,11 @@ class Files
         $tempFile = tempnam($this->tempDir, 'mtav_sol_');
 
         if ($tempFile === false) {
-            throw new GlpkException("Failed to create temporary solution file in {$this->tempDir}");
+            throw (new GlpkException(
+                "Failed to create temporary solution file in {$this->tempDir}"
+            ))->with([
+                'temp_dir' => $this->tempDir,
+            ]);
         }
 
         unlink($tempFile);
@@ -99,7 +124,14 @@ class Files
     public function ensureReadable(string $filepath): void
     {
         if (! file_exists($filepath) || filesize($filepath) === 0) {
-            throw new GlpkException('GLPK did not generate a solution file.');
+            throw (new GlpkException(
+                'GLPK did not generate a solution file.'
+            ))->with([
+                'filepath'    => $filepath,
+                'file_exists' => file_exists($filepath),
+                'file_size'   => file_exists($filepath) ? filesize($filepath) : null,
+                'artifacts'   => array_keys($this->artifacts),
+            ]);
         }
 
         // Ensure all kernel buffers are flushed to disk

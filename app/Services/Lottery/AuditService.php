@@ -85,6 +85,8 @@ class AuditService
      */
     public function exception(LotteryManifest $manifest, string $errorType, Throwable $exception): LotteryAudit
     {
+        $debugData = method_exists($exception, 'debug') ? call_user_func([$exception, 'debug']) : [];
+
         return LotteryAudit::create([
             'execution_uuid' => $manifest->uuid,
             'project_id'     => $manifest->projectId,
@@ -94,6 +96,7 @@ class AuditService
                 'error_type'   => $errorType,
                 'exception'    => get_class($exception),
                 'message'      => $exception->getMessage(),
+                'debug'        => $debugData,
                 'user_message' => $exception instanceof LotteryExecutionException
                     ? $exception->getUserMessage()
                     : __('lottery.execution_failed'),

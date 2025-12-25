@@ -12,18 +12,18 @@ beforeEach(function () {
 
 describe('Glpk Orchestrator', function () {
     test('distributeUnits with large spec calls HybridDistribution', function () {
-        config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 25);
+        config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 10);
         config()->set('lottery.solvers.glpk.config.timeout', 10);
 
         // Mock Glpk to capture auditTask calls
         $glpkMock = mockGlpkWithAuditCapture();
 
-        // Large spec (26 families >= 25 threshold)
-        $families = [];
-        $units = [];
-        for ($i = 1; $i <= 26; $i++) {
-            $families[$i] = range($i, $i + 25);
-            $units[] = $i;
+        // Large spec (11 families >= 10 threshold)
+        $units = range(1, 11);
+
+        for ($i = 1; $i <= count($units); $i++) {
+            $families[$i] = [...$units];
+            shuffle($families[$i]);
         }
 
         $spec = new LotterySpec(families: $families, units: $units);
@@ -40,7 +40,7 @@ describe('Glpk Orchestrator', function () {
         // Should have distribution
         expect($result)->toBeArray();
         expect($result)->not->toBeEmpty();
-        expect($result)->toHaveCount(26);
+        expect($result)->toHaveCount(count($units));
     });
 
     test('distributeUnits with small spec calls GlpkDistribution', function () {

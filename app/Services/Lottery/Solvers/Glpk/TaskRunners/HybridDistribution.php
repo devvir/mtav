@@ -29,7 +29,12 @@ class HybridDistribution extends TaskRunner
         $startTime = microtime(true);
 
         if (empty($taskResults)) {
-            throw new GlpkInfeasibleException('Binary search completed without finding any feasible solution');
+            throw (new GlpkInfeasibleException(
+                'Binary search completed without finding any feasible solution'
+            ))->with([
+                'spec'       => $spec,
+                'iterations' => $iterations,
+            ]);
         }
 
         return $this->mergeTaskResults($startTime, $stepTimeout, $iterations, $taskResults);

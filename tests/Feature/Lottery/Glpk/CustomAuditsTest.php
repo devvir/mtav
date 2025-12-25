@@ -3,7 +3,6 @@
 // Copilot - Pending review
 
 use App\Models\LotteryAudit;
-use App\Services\Lottery\AuditService;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Solvers\Glpk\Glpk;
@@ -14,7 +13,7 @@ beforeEach(function () {
     config()->set('logging.default', 'null');
     config()->set('lottery.default', 'glpk');
     config()->set('lottery.solvers.glpk.config.glpk_phase1_timeout', 5);
-    config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 25);
+    config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 10);
     config()->set('lottery.solvers.glpk.config.timeout', 10);
 });
 
@@ -55,13 +54,14 @@ describe('GLPK Custom Audits', function () {
     test('distributeUnits with large spec creates audit with hybrid_distribution task', function () {
         $manifest = mockManifest();
 
-        // Large spec forces hybrid strategy
-        $families = [];
-        $units = [];
-        for ($i = 1; $i <= 26; $i++) {
-            $families[$i] = range($i, $i + 25);
-            $units[] = $i;
+        // Large spec (11 families >= 10 threshold)
+        $units = range(1, 11);
+
+        for ($i = 1; $i <= count($units); $i++) {
+            $families[$i] = [...$units];
+            shuffle($families[$i]);
         }
+
         $spec = new LotterySpec(families: $families, units: $units);
 
         $glpk = app(Glpk::class);

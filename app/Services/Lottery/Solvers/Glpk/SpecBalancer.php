@@ -1,12 +1,9 @@
 <?php
 
-// Copilot - Pending review
-
-namespace App\Services\Lottery\Solvers;
+namespace App\Services\Lottery\Solvers\Glpk;
 
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Solvers\Glpk\Glpk;
 
 /**
  * Balances lottery specifications to handle unequal family/unit counts.
@@ -17,9 +14,8 @@ use App\Services\Lottery\Solvers\Glpk\Glpk;
  */
 class SpecBalancer
 {
-    public function __construct(
-        protected Glpk $glpk,
-    ) {
+    public function __construct(protected Glpk $glpk)
+    {
         // ...
     }
 
@@ -36,17 +32,17 @@ class SpecBalancer
     public function pruneWorstUnits(LotteryManifest $manifest, LotterySpec $spec): LotterySpec
     {
         // Step 1: Heuristic pruning - find minimal set of candidate units
-        $preferredUnits = $this->collectTopPreferredUnits($spec);
+        $unitIds = $this->collectTopPreferredUnits($spec);
 
-        // Step 2: If there are still more units than families, use GLPK to prune further
-        if (count($preferredUnits) > count($spec->families)) {
-            $candidateSpec = new LotterySpec($spec->families, $preferredUnits);
+        // Step 2: If there are still more units than preferences, use GLPK to prune further
+        if (count($unitIds) > count($spec->families)) {
+            $candidateSpec = $spec->filter(unitIds: $unitIds);
             $worstRemainingUnits = $this->glpk->identifyWorstUnits($manifest, $candidateSpec);
 
-            $preferredUnits = array_diff($preferredUnits, $worstRemainingUnits);
+            $unitIds = array_diff($unitIds, $worstRemainingUnits);
         }
 
-        return new LotterySpec($spec->families, $preferredUnits);
+        return $spec->filter(unitIds: $unitIds);
     }
 
     /**
