@@ -13,6 +13,7 @@ const props = defineProps<{
   type?: CardType;
   dimmed?: boolean;
   cardLink?: string;
+  noLink?: boolean;
   class?: HTMLAttributes['class'];
   panelClasses?: HTMLAttributes['class'];
 }>();
@@ -27,13 +28,15 @@ provide(exposed.routes, routes);
 </script>
 
 <template>
-  <Card :dimmed
-  :cardLink="cardLink ?? (type === 'index' ? detailsRoute : undefined)"
-  :panel-classes
-  :class="cn(
-    { 'border-red-200 bg-surface opacity-60 shadow-sm': resource.deleted_at },
-    $props.class,
-  )">
+  <Card
+    :dimmed
+    :cardLink="cardLink ?? ((type === 'index' && ! noLink) ? detailsRoute : undefined)"
+    :panel-classes
+    :class="cn(
+      { 'border-red-200 bg-surface opacity-60 shadow-sm': resource.deleted_at },
+      $props.class,
+    )"
+  >
     <slot :card-type="type" :entity-routes="routes" />
   </Card>
 </template>

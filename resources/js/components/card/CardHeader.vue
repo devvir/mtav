@@ -64,7 +64,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
         <Badge
           v-if="resource?.deleted_at"
           variant="destructive"
-          class="flex-shrink-0 px-2 py-0.5 text-xs"
+          class="shrink-0 px-2 py-0.5 text-xs"
         >
           {{ _('Soft-Deleted') }}
         </Badge>

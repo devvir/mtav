@@ -13,6 +13,7 @@ RUN apk add --no-cache \
         freetype-dev \
         git \
         glpk glpk-dev \
+        icu-dev \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
@@ -31,6 +32,7 @@ RUN apk add --no-cache --virtual .build-deps linux-headers \
         pcntl \
         bcmath \
         gd \
+        intl \
         zip \
         sockets \
     && apk del .build-deps

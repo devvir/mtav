@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Number;
 
 /**
  * @property-read Media $resource
@@ -19,10 +20,7 @@ class MediaResource extends JsonResource
             ...$this->commonResourceData(),
 
             'path'           => $this->path,
-            'url'            => $this->path2url($this->path),
-            'thumbnail'      => $this->path2url($this->thumbnail),
             'description'    => $this->description,
-            'alt_text'       => $this->alt_text,
             'width'          => $this->width,
             'height'         => $this->height,
             'category'       => $this->category->value,
@@ -32,6 +30,7 @@ class MediaResource extends JsonResource
             'is_image'       => $this->isImage(),
 
             ...$this->relationsData(),
+            ...$this->computedAttributes(),
         ];
     }
 
@@ -44,40 +43,37 @@ class MediaResource extends JsonResource
     }
 
     /**
-     * Get the URL for this media file, using mock images for dev files.
+     * Derived or computed attributes.
+     */
+    protected function computedAttributes()
+    {
+        $filetype = $this->getFileTypeName();
+
+        return [
+            'filetype'            => $filetype,
+            'url'                 => $this->path2url($this->path),
+            'thumbnail'           => $this->path2url($this->thumbnail),
+            'extension'           => pathinfo($this->path, PATHINFO_EXTENSION),
+            'alt_text'            => $this->alt_text ?? $filetype,
+            'file_size_formatted' => Number::fileSize($this->file_size),
+        ];
+    }
+
+    /**
+     * Get the URL for this media file.
      */
     protected function path2url(string $path): string
     {
-        // Seeded Dev files ('dev-' prefix) get a mock image/thumbnail
-        if (str_starts_with(basename($path), 'dev-')) {
-            return $this->getMockImageUrl();
-        }
-
         return str_starts_with($path, '/') ? $path : Storage::url($path);
     }
 
     /**
-     * Generate a mock image URL using Picsum Photos.
+     * Get a human-readable file type name based on MIME type.
      */
-    protected function getMockImageUrl(): string
+    protected function getFileTypeName(): string
     {
-        if ($this->isVisual()) {
-            return "https://picsum.photos/{$this->width}/{$this->height}?random={$this->created_at->timestamp}";
-        }
+        $key = 'files.' . $this->mime_type;
 
-        // Extract UUID from path for consistent color per media record
-        preg_match('/dev-([a-f0-9-]+)\./', basename($this->path), $matches);
-        $seed = $matches[1] ?? 'default';
-
-        // Generate a consistent color based on the seed
-        $hue = abs(crc32($seed)) % 360;
-        $color = sprintf(
-            '%02x%02x%02x',
-            (int) (127 + 127 * cos(deg2rad($hue))),
-            (int) (127 + 127 * cos(deg2rad($hue + 120))),
-            (int) (127 + 127 * cos(deg2rad($hue + 240)))
-        );
-
-        return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='100%25' height='100%25' fill='%23{$color}'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='24' fill='%23ffffff' text-anchor='middle' dominant-baseline='central'%3E{$this->category->name}%3C/text%3E%3C/svg%3E";
+        return (__($key) !== $key) ? __($key) : __('files.document');
     }
 }

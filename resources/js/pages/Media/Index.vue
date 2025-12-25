@@ -4,9 +4,15 @@ import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   media: ApiResources<Media>;
+  category: string;
 }>();
 </script>
 
 <template>
-  <IndexPage :pageTitle="_('Gallery')" entity="media" :resources="media" cardSize="xl" />
+  <IndexPage
+    :pageTitle="category === 'visual' ? _('Gallery') : _('Documents')"
+    entity="media"
+    :resources="media"
+    :cardSize="category === 'document' ? 'lg' : 'xl'"
+  />
 </template>

@@ -2,7 +2,7 @@
 
 # GLPK Solver: Comprehensive Technical Reference
 
-**Last Updated**: December 18, 2025
+**Last Updated**: December 25, 2025
 **Status**: Production-ready, fully tested
 **Maintainer**: MTAV Development Team
 
@@ -149,10 +149,11 @@ Phase 2 selects Option 1 (total = 4 is minimum)
 
 ```
 app/Services/Lottery/Solvers/Glpk/
-├── Glpk.php                        # Main orchestrator
+├── Glpk.php                        # Strategy orchestrator
 ├── ModelGenerator.php              # Generates .mod files (GMPL models)
 ├── DataGenerator.php               # Generates .dat files (problem data)
 ├── SolutionParser.php              # Parses .sol files (GLPK output)
+├── Logger.php                      # Failure logging with artifacts
 ├── lib/
 │   ├── Files.php                   # Temp file management
 │   └── Process.php                 # glpsol subprocess execution
@@ -161,23 +162,26 @@ app/Services/Lottery/Solvers/Glpk/
 │   ├── GlpkTimeoutException.php    # Timeout (60s+)
 │   └── GlpkInfeasibleException.php # No solution exists
 └── TaskRunners/
-    ├── TaskRunner.php              # Abstract base
+    ├── TaskRunner.php              # Abstract base with GLPK execution
     ├── TaskRunnerFactory.php       # DI factory
-    ├── Tasks.php                   # Task enum
-    ├── TaskResult.php              # Result DTO
-    ├── MinSatisfaction.php         # Phase 1 + binary search
-    ├── UnitDistribution.php        # Phase 2
-    └── WorstUnitsPruning.php       # Unit selection
+    ├── Task.php                    # Task enum
+    ├── TaskResult.php              # Result DTO with artifacts
+    ├── MinSatisfaction.php         # Phase 1 (single task)
+    ├── UnitDistribution.php        # Phase 2 (single task)
+    ├── WorstUnitsPruning.php       # Unit selection (single task)
+    ├── GlpkDistribution.php        # Composite: Phase1 + Phase2
+    └── HybridDistribution.php      # Composite: BinarySearch + Phase2
 ```
 
 ### Class Responsibilities
 
-**`Glpk`** (Orchestrator):
+**`Glpk`** (Strategy Orchestrator):
 - Entry point from `GlpkSolver`
-- Coordinates TaskRunner execution
-- Manages audit trail
-- Handles exceptions and failures
-- **Does NOT**: Execute GLPK directly
+- Selects execution strategy (GLPK vs Hybrid) based on spec size
+- Delegates to composite TaskRunners (GlpkDistribution or HybridDistribution)
+- Manages audit trail via `auditTask()`
+- Handles timeout fallback (GLPK → Hybrid on timeout)
+- **Does NOT**: Execute GLPK directly or orchestrate phases manually
 
 **`ModelGenerator`**:
 - Generates GMPL (GNU MathProg Language) models
@@ -202,9 +206,15 @@ app/Services/Lottery/Solvers/Glpk/
 - Config reading internalized
 
 **TaskRunner Implementations**:
-- `MinSatisfaction`: Phase 1 with binary search fallback
-- `UnitDistribution`: Phase 2 execution
-- `WorstUnitsPruning`: Unit selection for orphan redistribution
+
+*Atomic Tasks*:
+- `MinSatisfaction`: Phase 1 only (find min satisfaction S)
+- `UnitDistribution`: Phase 2 only (distribute with S constraint)
+- `WorstUnitsPruning`: Unit selection for surplus units
+
+*Composite Tasks* (orchestrate multiple atomic tasks):
+- `GlpkDistribution`: Phase1 (direct GLPK) + Phase2
+- `HybridDistribution`: Phase1 (binary search) + Phase2
 
 ---
 
@@ -219,55 +229,80 @@ GlpkSolver::execute(manifest, spec)
     ↓
 Glpk::distributeUnits(manifest, spec)
     ↓
-┌─────────────────────┐
-│  Try Direct GLPK    │
-│  Phase 1 → Phase 2  │
-└──────┬──────────────┘
-       │
-    timeout?
-       │
-       ↓
-┌─────────────────────┐
-│ Binary Search       │
-│ Fallback            │
-└──────┬──────────────┘
-       │
-       ↓
-   Distribution
+  Strategy Selection
+  (based on familyCount)
+    ↓
+┌────────────────────────────────┐
+│ familyCount < 25?              │
+│   → GlpkDistribution           │
+│      (Phase1 direct + Phase2)  │
+│                                │
+│ familyCount ≥ 25?              │
+│   → HybridDistribution         │
+│      (BinarySearch + Phase2)   │
+└────────┬───────────────────────┘
+         │
+    Timeout in Phase1?
+         │
+         ↓
+┌────────────────────────────────┐
+│ Fallback to HybridDistribution │
+│    (automatic retry)           │
+└────────┬───────────────────────┘
+         │
+         ↓
+    Distribution + Audit
 ```
 
 ### Detailed Sequence
 
 1. **`Glpk::distributeUnits()`** receives `LotteryManifest` and `LotterySpec`
 
-2. **Direct GLPK Attempt** (`directGlpkDistribution()`):
+2. **Strategy Selection**:
    ```php
-   a. Create MinSatisfaction TaskRunner
-   b. Execute Phase 1 (5s timeout max)
-   c. Extract minimum S
-   d. Audit Phase 1 result
-   e. Create UnitDistribution TaskRunner
-   f. Execute Phase 2 with S constraint
-   g. Extract assignments
-   h. Audit Phase 2 result
-   i. Return distribution
+   if (familyCount >= glpk_phase1_max_size) {
+       return hybridDistribution();  // Skip to binary search
+   } else {
+       try {
+           return glpkDistribution();  // Try direct GLPK
+       } catch (GlpkTimeoutException) {
+           return hybridDistribution();  // Timeout fallback
+       }
+   }
    ```
 
-3. **Binary Search Fallback** (on Phase 1 timeout):
+3. **GLPK Strategy** (`glpkDistribution()`):
    ```php
-   a. Catch GlpkTimeoutException
-   b. Log timeout occurrence
-   c. Create MinSatisfaction TaskRunner
-   d. Execute binary search strategy
-   e. Extract proven minimum S
-   f. Audit binary search result
-   g. Use S for Phase 2 (same as direct)
-   h. Return distribution
+   a. Create GlpkDistribution composite runner
+   b. Execute with phase1_timeout context (0.5s default)
+   c. Runner internally:
+      - Executes MinSatisfaction (direct GLPK Phase1)
+      - Extracts S from result
+      - Executes UnitDistribution (Phase2) with S
+      - Returns combined TaskResult with both phases' metadata
+   d. Audit single composite result
+   e. Extract distribution from result
+   f. Return distribution
    ```
 
-4. **Error Scenarios**:
-   - **Phase 1 timeout**: Fallback to binary search (automatic)
-   - **Phase 2 timeout**: Throw exception, orchestrator handles
+4. **Hybrid Strategy** (`hybridDistribution()`):
+   ```php
+   a. Create HybridDistribution composite runner
+   b. Execute (no special context needed)
+   c. Runner internally:
+      - Executes MinSatisfaction with binary search
+      - Extracts S from result
+      - Executes UnitDistribution (Phase2) with S
+      - Returns combined TaskResult with iterations/feasible_steps
+   d. Audit single composite result
+   e. Extract distribution from result
+   f. Return distribution
+   ```
+
+5. **Error Scenarios**:
+   - **Small spec timeout**: Automatic fallback to Hybrid (transparent)
+   - **Large spec**: Uses Hybrid from start (no timeout risk)
+   - **Phase 2 timeout**: Propagates exception (computational failure)
    - **Infeasible**: Throw `GlpkInfeasibleException`
    - **Other errors**: Throw `GlpkException`
 
@@ -589,7 +624,7 @@ while ($lo <= $hi) {
 return $provenMinS;
 ```
 
-**Consumption** (`Glpk::binarySearchAssistedDistribution()`):
+**Consumption** (`HybridDistribution` composite runner):
 ```php
 while ($generator->valid()) {
     $candidateS = $generator->current();
@@ -658,23 +693,29 @@ if (str_contains($solContent, 'SOLUTION IS INFEASIBLE')) {
 **Location**: `Glpk::distributeUnits()`
 
 ```php
+// Strategy selection based on size
+if ($spec->familyCount() >= $this->phase1MaxSize) {
+    return $this->hybridDistribution($manifest, $spec);
+}
+
+// Try GLPK, fallback to Hybrid on timeout
 try {
-    return $this->directGlpkDistribution($manifest, $spec);
-} catch (GlpkTimeoutException $e) {
-    // Phase 1 timeout → binary search
-    return $this->binarySearchAssistedDistribution($manifest, $spec);
-} catch (Throwable $e) {
-    // All other errors → audit and propagate
-    $this->auditFailure($manifest, $e);
-    throw $e;
+    return $this->glpkDistribution($manifest, $spec);
+} catch (GlpkTimeoutException) {
+    return $this->hybridDistribution($manifest, $spec);
 }
 ```
 
-**Audit on Failure**: Every failure creates `FAILURE` audit with:
-- Exception type and message
-- Full stack trace
-- Manifest data
-- Timestamp
+**Composite Runners Handle**:
+- Phase execution (atomic task coordination)
+- Timeout management within tasks
+- Audit creation with combined metadata
+- Artifact preservation from all phases
+
+**Orchestrator Only**:
+- Strategy selection (GLPK vs Hybrid)
+- Timeout fallback (GLPK → Hybrid)
+- Final audit recording
 
 **No Retries**: GLPK is deterministic - retrying won't help.
 
@@ -750,36 +791,10 @@ protected function auditTask(
 
 ### What Gets Audited
 
-**Phase 1 Success**:
+**GLPK Distribution (Direct Strategy)**:
 ```json
 {
-  "task": "min_satisfaction",
-  "result": {"S": 3},
-  "metadata": {
-    "strategy": "phase1",
-    "time_ms": 234.56
-  }
-}
-```
-
-**Binary Search Success**:
-```json
-{
-  "task": "min_satisfaction",
-  "result": {"S": 5},
-  "metadata": {
-    "strategy": "binary_search",
-    "iterations": 7,
-    "candidates_tested": [1, 5, 10, 7, 6, 5],
-    "time_ms": 12345.67
-  }
-}
-```
-
-**Phase 2 Success**:
-```json
-{
-  "task": "unit_distribution",
+  "task": "glpk_distribution",
   "result": {
     "distribution": {
       "1": 10,
@@ -788,8 +803,62 @@ protected function auditTask(
     }
   },
   "metadata": {
-    "min_satisfaction": 3,
-    "time_ms": 456.78
+    "timeout_ms": 30000,
+    "phase1": {
+      "min_satisfaction": 3,
+      "timeout_ms": 500,
+      "time_ms": 234.56
+    },
+    "phase2": {
+      "min_satisfaction": 3,
+      "timeout_ms": 29500,
+      "time_ms": 456.78
+    },
+    "artifacts": {
+      "phase1_model.mod": "...",
+      "phase1_data.dat": "...",
+      "phase1_solution.sol": "...",
+      "phase2_model.mod": "...",
+      "phase2_data.dat": "...",
+      "phase2_solution.sol": "..."
+    }
+  }
+}
+```
+
+**Hybrid Distribution (Binary Search Strategy)**:
+```json
+{
+  "task": "hybrid_distribution",
+  "result": {
+    "distribution": {
+      "1": 10,
+      "2": 20,
+      "3": 15
+    }
+  },
+  "metadata": {
+    "timeout_ms": 30000,
+    "iterations": 7,
+    "feasible_steps": 5,
+    "phase1": {
+      "min_satisfaction": 5,
+      "timeout_ms": 15000,
+      "time_ms": 12345.67,
+      "candidates_tested": [1, 5, 10, 7, 6, 5]
+    },
+    "phase2": {
+      "min_satisfaction": 5,
+      "timeout_ms": 15000,
+      "time_ms": 678.90
+    },
+    "artifacts": {
+      "phase1_candidate_1.sol": "...",
+      "phase1_candidate_5.sol": "...",
+      "phase2_model.mod": "...",
+      "phase2_data.dat": "...",
+      "phase2_solution.sol": "..."
+    }
   }
 }
 ```
@@ -855,14 +924,16 @@ All audits from single execution share `manifest->uuid`:
 ### Timeout Strategy
 
 **Current Settings**:
-- Phase 1 timeout: 5 seconds (fast fallback)
-- Binary search timeout: 60 seconds total
-- Phase 2 timeout: 60 seconds (no fallback)
+- Overall timeout: 30 seconds per task
+- Phase 1 (direct GLPK): 0.5 seconds (aggressive early fallback)
+- Strategy threshold: 25 families (≥25 → Hybrid from start)
+- Hybrid distribution: Full 30s timeout (binary search + Phase2)
 
 **Rationale**:
-- 5s catches most Phase 1 timeouts early
-- 60s allows binary search to complete
-- Phase 2 rarely times out (simpler problem)
+- 0.5s Phase1 timeout catches degeneracy very early
+- 25 family threshold prevents Phase1 timeouts on large specs
+- Hybrid strategy gets full budget for binary search
+- Phase2 rarely times out (has proven feasible S)
 
 ### Production Sizing
 
@@ -896,7 +967,9 @@ All audits from single execution share `manifest->uuid`:
         'config' => [
             'glpsol_path' => env('GLPSOL_PATH', '/usr/bin/glpsol'),
             'temp_dir' => env('GLPK_TEMP_DIR', sys_get_temp_dir()),
-            'timeout' => env('GLPK_TIMEOUT', 60),
+            'timeout' => env('GLPK_TIMEOUT', 30),
+            'glpk_phase1_timeout' => env('GLPK_PHASE1_TIMEOUT', 0.5),
+            'glpk_phase1_max_size' => env('GLPK_PHASE1_MAX_SIZE', 25),
         ],
     ],
 ],
@@ -1184,9 +1257,11 @@ if ($activity >= 0.99) {
 ### Code Locations
 
 **Primary Classes**:
-- `app/Services/Lottery/Solvers/Glpk/Glpk.php`
-- `app/Services/Lottery/Solvers/Glpk/TaskRunners/MinSatisfaction.php`
-- `app/Services/Lottery/Solvers/Glpk/TaskRunners/UnitDistribution.php`
+- `app/Services/Lottery/Solvers/Glpk/Glpk.php` (strategy orchestrator)
+- `app/Services/Lottery/Solvers/Glpk/TaskRunners/GlpkDistribution.php` (composite)
+- `app/Services/Lottery/Solvers/Glpk/TaskRunners/HybridDistribution.php` (composite)
+- `app/Services/Lottery/Solvers/Glpk/TaskRunners/MinSatisfaction.php` (atomic)
+- `app/Services/Lottery/Solvers/Glpk/TaskRunners/UnitDistribution.php` (atomic)
 
 **Tests**:
 - `tests/Unit/Lottery/Glpk/`
@@ -1233,6 +1308,6 @@ if ($activity >= 0.99) {
 
 ---
 
-**Document Version**: 1.0
-**Last Review**: 2025-12-18
+**Document Version**: 2.0 (Composite TaskRunner Architecture)
+**Last Review**: 2025-12-25
 **Next Review**: 2026-03-01 (or on major changes)

@@ -242,6 +242,7 @@ interface Media extends Resource {
   category_label: string;
   mime_type: string;
   file_size: number;
+  file_size_formatted: string;
   is_image: boolean;
 
   owner: { id: number } | ApiResource<User>;

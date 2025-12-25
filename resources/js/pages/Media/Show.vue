@@ -14,7 +14,7 @@ defineProps<{
     :resource="media"
     modal-width="4xl"
     class="max-w-full max-h-[98vh]"
-    :class="{ 'p-0 [&>*]:p-0': media.category === 'image' }"
+    :class="{ 'p-0 *:p-0': media.category === 'image' }"
      />
 </template>
 
