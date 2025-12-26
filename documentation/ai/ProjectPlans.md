@@ -2,329 +2,405 @@
 
 ## Overview
 
-The Project Plans system provides spatial visualization for housing cooperative projects using a clean, layered architecture that separates business logic from rendering logic. The system enables viewing interactive floor plans that show spatial relationships between units, common areas, and project boundaries.
+The Project Plans system provides responsive SVG-based spatial visualization for housing cooperative projects. It displays interactive floor plans showing relationships between units, common areas, and project boundaries using a clean layered architecture that separates business logic from rendering.
 
-## Problem Statement
+## Current Status (Dec 26, 2025)
 
-Housing cooperatives need to visualize the spatial layout of their projects, showing:
-- Unit locations and assignments to families
-- Common areas (parks, courtyards, amenities)
-- Project boundaries and circulation paths
+**✅ Production Ready** - Core visualization complete and actively used:
+- SVG-based rendering (replaced Konva canvas library Dec 26)
+- Three object-fit-compatible scaling modes (contain, cover, fill)
+- Responsive viewBox-based scaling
+- Used in `/lottery/{id}` project plan views
+- Dev testing at `/dev/plans`
+
+## Problem It Solves
+
+Housing cooperatives need to visualize spatial layouts:
+- Unit locations and family assignments
+- Common areas (parks, courtyards, amenities, corridors)
+- Project boundaries and scale
 - Multi-floor building layouts
-- Interactive highlighting and navigation
+- Interactive unit highlighting and navigation
 
-The system must handle varying polygon shapes (not just rectangles) and provide a foundation for future editing capabilities.
+The system handles arbitrary polygon shapes and provides responsive scaling that adapts to different container sizes.
 
 ## Architecture
 
-### Three-Layer Component System
-
-```
-┌─────────────────────┐
-│   Business Layer    │ ← Plans/Show.vue, PlanViewer.vue
-│   (Domain Logic)    │   (Assignment logic, coloring rules)
-├─────────────────────┤
-│   Adapter Layer     │ ← usePlanCanvasAdapter.ts
-│   (Data Transform)  │   (Plan → CanvasItem conversion)
-├─────────────────────┤
-│   Rendering Layer   │ ← PlanCanvas.vue, usePlanCanvas.ts
-│   (Pure Graphics)   │   (Konva.js polygon rendering)
-└─────────────────────┘
-```
-
-**Key Principle**: The rendering layer has no business logic knowledge. It only knows how to draw colored polygons.
-
-### Data Flow
-
-1. **Plan data** (from Laravel API) contains business entities
-2. **Adapter** transforms Plan data into abstract CanvasItems with colors/labels
-3. **Canvas** renders CanvasItems as interactive Konva.js shapes
-
-## Database Structure
-
-### Plans Table
-```sql
-plans
-- id, project_id (FK)
-- polygon (json) -- Project boundary coordinates
-- width, height -- Canvas dimensions in chosen units
-- unit_system (enum) -- 'meters', 'feet'
-- created_at, updated_at
-```
-
-### Plan Items Table
-```sql
-plan_items
-- id, plan_id (FK)
-- type (string) -- 'unit', 'park', 'street', 'building', etc.
-- polygon (json) -- Polygon coordinates [x1,y1,x2,y2,...]
-- floor (integer) -- 0=ground, 1=first floor, etc.
-- name (varchar, nullable) -- Display names for non-units
-- metadata (json, nullable) -- Additional properties
-- created_at, updated_at
-```
-
-### Units Table (Relationship)
-```sql
-units
-- plan_item_id (FK) -- Links unit to its spatial representation
-- identifier (string) -- User-facing identifier (e.g., "A-101")
-- family_id (FK, nullable) -- Assignment status
-```
-
-## Model Relationships
-
-### Core Relationships
-```php
-// Project has exactly one Plan
-Project::class → Plan::class (HasOne)
-
-// Plan contains multiple spatial elements
-Plan::class → PlanItem::class (HasMany)
-
-// Units reference their spatial representation
-Unit::class → PlanItem::class (BelongsTo)
-```
-
-### Data Access Patterns
-```php
-// Load plan with all spatial data
-$plan = Plan::with(['items.unit.type', 'project'])->find($id);
-
-// Unit assignment logic (business rule)
-$isAssigned = !is_null($unit->family_id);
-```
-
-## Frontend Architecture
-
 ### Component Hierarchy
 
-#### 1. PlanCanvas.vue (Pure Rendering)
-```vue
-<script setup lang="ts">
-interface Props {
-  plan: Plan;
-  highlightUnitId?: number; // Unit database ID for highlighting
+```
+Plans/Show.vue (Page Layer)
+    ↓
+ProjectPlan.vue (Card Container)
+    ↓
+Plan.vue (Business Logic)
+    ↓
+Canvas.vue (Scaling & Rendering)
+    ↓
+Polygon.vue + Boundary.vue (SVG Primitives)
+```
+
+**Key Principle:** Each layer has a single responsibility. Rendering components contain zero business logic.
+
+## Component Details
+
+### Plan.vue (Business Logic)
+
+Accepts Plan resource and passes items directly to Canvas. Handles business logic like boundary creation and event delegation.
+
+**Location:** `/resources/js/components/projectplan/Plan.vue`
+
+**Props:**
+- `plan` (required) - ApiResource<Plan>
+- `backgroundColor?` - SVG background color (default: 'transparent')
+- `autoScale?` - Scaling mode: 'contain' | 'cover' | 'fill' (default: 'scale')
+- `highlightedItemId?` - ID of unit to highlight
+
+**Emits:**
+- `itemClick(id)` - Item clicked
+- `itemHover(id, hovering)` - Item hover state
+
+**Responsibility:**
+- Accepts raw Plan resource (no intermediate objects for consumers)
+- Passes plan.items[] directly to Canvas
+- Creates boundary from plan.polygon
+- Applies color scheme based on item.type
+- Handles item clicks (can check item type to decide behavior)
+
+**Example - Item click handling:**
+```typescript
+function handleItemClick(id: number) {
+  const item = props.plan?.items?.find((i: any) => i.id === id);
+  if (item?.type === 'unit') {
+    // Open modal, navigate, etc.
+  }
 }
-</script>
 ```
 
-**Responsibilities:**
-- Accepts Plan data and optional highlight ID
-- Uses adapter to convert Plan → CanvasItems
-- Delegates rendering to usePlanCanvas composable
-- Contains only template (4 lines) and setup (15 lines)
+### Canvas.vue (SVG Rendering & Scaling)
 
-#### 2. usePlanCanvasAdapter.ts (Data Transform)
+Pure rendering engine. Accepts PlanItem[] directly and transforms them internally to ShapeConfig for the scaling composable.
+
+**Location:** `/resources/js/components/projectplan/core/Canvas.vue`
+
+**Props:**
+- `items` - PlanItem[]
+- `boundary?` - PolygonConfig
+- `backgroundColor?` - SVG background color (default: '#f8fafc')
+- `autoScale?` - Scaling mode: 'contain' | 'cover' | 'fill' (default: 'scale')
+- `highlightedItemId?` - Item ID to highlight
+
+**Responsibilities:**
+- Accepts PlanItem[] directly from Plan
+- Applies useScaling transformations to item coordinates
+- Renders SVG with dynamic viewBox based on content
+- SVG adapts to container width via CSS (w-full)
+- Coordinate scaling and centering
+- Emits itemClick and itemHover events
+
+**No business logic:** Just rendering and coordinate math.
+
+### Item.vue (Individual Shape Renderer)
+
+Renders a single PlanItem as an SVG group with polygon and label.
+
+**Props:**
+- `item` - PlanItem resource
+- `config` - PolygonConfig (fill, stroke, opacity, strokeWidth)
+- `highlighted?` - Boolean
+
+**Responsibilities:**
+- Extract label from `item.unit?.identifier || item.name`
+- Calculate optimal label font size via useTextFitting
+- Render polygon with hover/click detection
+- Detect text color contrast from background fill
+- Emit click and hover events with item.id
+
+## Scaling System
+
+### useScaling Composable
+
+Provides responsive coordinate transformations with three CSS object-fit-compatible modes.
+
+**Location:** `/resources/js/components/projectplan/composables/useScaling.ts`
+
+**Input:**
+- `shapes`, `boundary` - Collections of coordinates
+- `config` - Canvas dimensions (width, height)
+- `mode` - Scaling mode ('contain' | 'cover' | 'fill')
+- `viewBoxPadding` - SVG stroke overflow padding (default: 1.5px)
+
+**Output:**
 ```typescript
-interface CanvasItem {
-  polygon: number[];
-  floor?: number;
-  label?: string;
-  color: string;
-  stroke: string;
-  isHighlighted?: boolean;
+{
+  shapes: PlanItem[],         // Transformed coordinates in item.polygon
+  boundary?: PolygonConfig,   // Transformed boundary
+  viewBox: string             // SVG viewBox attribute
+}
+```
+
+**Modes:**
+
+| Mode | Formula | Behavior |
+|------|---------|----------|
+| **contain** | `scale = min(scaleX, scaleY)` | Uniform scaling, maintains aspect ratio, letterboxes if needed |
+| **cover** | `scale = max(scaleX, scaleY)` | Uniform scaling, maintains aspect ratio, may crop |
+| **fill** | Independent X/Y scaling | Fills completely, may distort aspect ratio |
+
+**How It Works:**
+1. Calculates bounding box of all coordinates
+2. Determines scale factors: `scaleX = canvasWidth / bboxWidth`, etc.
+3. Selects appropriate scale per mode
+4. Computes offsets to center: `offset = (canvasDim - scaledDim) / 2`
+5. Transforms coordinates: `new = old * scale + offset`
+6. Returns SVG viewBox with stroke padding
+
+## TypeScript Types
+
+### Core Types
+**File:** `/resources/js/components/projectplan/types.ts`
+
+```typescript
+interface PolygonConfig {
+  points: Point[];           // [[x,y], [x,y], ...]
+  fill?: string;             // CSS color
+  stroke?: string;           // CSS color
+  strokeWidth?: number;
+  opacity?: number;
 }
 
-function usePlanCanvasAdapter(plan: Plan, options: {
-  highlightUnitId?: number;
-  colorAssignedUnits?: string;
-  colorAvailableUnits?: string;
-}): { items: CanvasItem[], boundary?: number[] }
-```
+type AutoScale = 'contain' | 'cover' | 'fill';
 
-**Responsibilities:**
-- Contains all business logic (unit assignment rules, color schemes)
-- Transforms PlanItems into abstract CanvasItems
-- Applies highlighting based on unit ID comparison
-- Determines colors based on unit.family_id presence
-- Maps unit.identifier to CanvasItem.label for display
+interface Transform {
+  scaleX: number;
+  scaleY: number;
+  offsetX: number;
+  offsetY: number;
+}
 
-#### 3. usePlanCanvas.ts (Konva Rendering)
-```typescript
-function usePlanCanvas({
-  items: Ref<CanvasItem[]>;
-  boundary?: Ref<number[]>;
-}): { containerRef: Ref<HTMLDivElement> }
-```
-
-**Responsibilities:**
-- Pure Konva.js rendering logic
-- Draws polygons using provided colors/labels
-- Handles floor offsets for multi-story visualization
-- Manages hover effects and basic interactivity
-- No business domain knowledge
-
-#### 4. PlanViewer.vue (Future Extension Point)
-```vue
-<!-- Currently just wraps PlanCanvas -->
-<!-- Future: Add toolbar, controls, legends, etc. -->
-```
-
-### TypeScript Types
-
-#### Global Types (types/index.d.ts)
-```typescript
-interface Plan extends Resource {
-  polygon: number[]; // Project boundary coordinates
+interface BoundingBox {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
   width: number;
   height: number;
+}
+```
+
+### Global Types
+**File:** `/resources/js/types/index.d.ts`
+
+```typescript
+interface Plan extends Resource {
+  polygon: Point[];               // [[x,y], [x,y], ...] project boundary
+  width: string;                  // Canvas width
+  height: string;                 // Canvas height
   unit_system: 'meters' | 'feet';
 
-  project: ApiResource<Project> | { id: number };
-  items: PlanItem[];
+  project: ApiResource<Project>;
+  items: PlanItem[];              // All spatial elements
 }
 
 interface PlanItem extends Resource {
-  type: string; // 'unit', 'park', 'street', etc.
-  polygon: number[]; // Shape coordinates
+  type: string;                   // 'unit' | 'park' | 'street' | 'building' | etc.
+  polygon: Point[];               // [[x,y], [x,y], ...] shape coordinates
   floor: number;
-  name: string | null;
-  metadata: Record<string, any> | null;
+  name?: string;
+  metadata?: Record<string, any>;
 
-  plan: ApiResource<Plan> | { id: number };
-  unit?: ApiResource<Unit> | null; // Only present for type='unit'
+  plan_id: number;
+  unit?: Unit;                    // Only for type='unit'
+  plan: ApiResource<Plan>;
 }
 
 interface Unit extends Resource {
-  identifier: string | null; // User-facing identifier (display only)
+  identifier: string;             // Display label (e.g., 'A-101')
+  family?: Family;                // Lottery assignment (nullable)
+  project_id: number;
+  type_id: number;
 
-  project: ApiResource<Project> | { id: number };
-  type: ApiResource<UnitType> | { id: number };
-  family: ApiResource<Family> | { id: number } | null; // Assignment
+  plan_item?: PlanItem;
+}
+
+type Point = [number, number];
+```
+
+## Usage Example
+
+### Basic Plan Display
+
+```vue
+<script setup lang="ts">
+import { Plan } from '@/components/projectplan';
+
+defineProps<{
+  plan: Plan;
+}>();
+</script>
+
+<template>
+  <div class="h-96 w-full">
+    <Plan
+      :plan
+      autoScale="contain"
+    />
+  </div>
+</template>
+```
+
+### With Custom Styling
+
+```vue
+<Plan
+  :plan
+  :config="{
+    backgroundColor: '#ffffff',
+    width: 1000,
+    height: 800
+  }"
+  autoScale="cover"
+/>
+```
+
+### With Highlighting
+
+```vue
+<Plan
+  :plan
+  :highlightedItemId="selectedUnitId"
+  @itemClick="navigateToUnit"
+/>
+```
+
+## Backend - Polygon Storage (PlanService)
+
+Stores polygons in Point[] format: `[[x,y], [x,y], ...]`
+
+**File:** `/app/Services/PlanService.php`
+
+```php
+public function addProject(Project $project): Plan
+{
+    return Plan::create([
+        'polygon' => [[0, 0], [800, 0], [800, 600], [0, 600]],
+        'width' => 800,
+        'height' => 600,
+    ]);
+}
+
+private function getNextAvailablePosition(Plan $plan): array
+{
+    // Calculate from boundary
+    $xs = array_column($plan->polygon, 0);
+    $ys = array_column($plan->polygon, 1);
+
+    // Return as Point[] with corners
+    return [
+        [$x, $y],                              // Top-left
+        [$x + $unitWidth, $y],                 // Top-right
+        [$x + $unitWidth, $y + $unitHeight],   // Bottom-right
+        [$x, $y + $unitHeight],                // Bottom-left
+    ];
 }
 ```
 
-**Key Type Decisions:**
-- **Unit.id** (number): Programming identifier for relationships/highlighting
-- **Unit.identifier** (string): User-facing display label, may contain spaces/special chars
-- **Polygon coordinates**: Flat array format [x1,y1,x2,y2,...] for direct Konva compatibility
+**Key:** Polygons are stored as Point[] arrays, not flat number[] arrays.
 
-## Resource Layer (API)
+## Common Customizations
 
-### UnitResource (Source of Truth)
-```php
-class UnitResource extends JsonResource {
-    public function toArray(Request $_): array {
-        return [
-            ...$this->commonResourceData(), // id, timestamps
-            'identifier' => $this->identifier,
-            ...$this->relationsData(), // type, project, family
-        ];
-    }
-}
-```
+### Change Colors by Type
 
-**Critical Business Rule**: Unit assignment determined by presence of `family` relationship, not a separate `assigned` boolean field.
-
-### PlanResource & PlanItemResource
-```php
-// Follow standard JsonResource patterns
-// Automatic relationship loading with whenLoaded()
-// Consistent ID-only fallbacks for unloaded relations
-```
-
-## Current Features
-
-### Visualization Capabilities
-- ✅ **Multi-floor support**: Visual stacking with opacity and offset
-- ✅ **Unit assignment colors**: Green (assigned) vs Blue (available)
-- ✅ **Interactive highlighting**: Hover effects and unit ID-based highlighting
-- ✅ **Project boundaries**: Dashed outline showing project perimeter
-- ✅ **Responsive canvas**: Auto-sizing to container dimensions
-- ✅ **Polygon rendering**: Arbitrary shapes, not limited to rectangles
-
-### Pages & Routes
-- ✅ **Plans/Show.vue**: Full plan display with project context and statistics
-- ✅ **Dev/Plans.vue**: Development testing interface
-- ✅ **Resource routes**: RESTful PlanController with standard operations
-
-### Color Scheme
+Edit Plan.vue `getColorForItemType()`:
 ```typescript
-const colors = {
-  assignedUnits: '#dcfce7',    // Light green
-  availableUnits: '#e0f2fe',   // Light blue
-  highlighted: '#fbbf24',      // Amber border
-  commonAreas: {
-    park: '#f0fdf4',
-    street: '#f1f5f9',
-    common: '#fefce8',
-    amenity: '#fef3f2'
-  }
-};
+function getColorForItemType(itemType: string, _unitType?: any): string {
+  const colorMap: Record<string, string> = {
+    unit: '#e0f2fe',      // Light blue
+    park: '#f0fdf4',      // Light green
+    street: '#f1f5f9',    // Light slate
+    common: '#fefce8',    // Light yellow
+    amenity: '#fef3f2',   // Light red
+  };
+  return colorMap[itemType] || '#e0f2fe';
+}
 ```
 
-## Development Environment
+### Custom Styling
 
-### Testing Route
-- **URL**: `/dev/plans`
-- **Purpose**: Live testing with real project data
-- **Features**: Project selection, plan statistics, interactive canvas
+## Styling
 
-### Sample Data Generation
-```php
-// ProjectObserver: Auto-creates Plan on project creation
-// UnitObserver: Auto-creates PlanItem on unit creation
-// Grid layout positioning for initial unit placement
+Item styling comes from two sources, with metadata overriding defaults:
+
+**Default styling** is based on `item.type`:
+- `unit`: Light blue (#e0f2fe)
+- `park`: Light green (#f0fdf4)
+- `street`: Light slate (#f1f5f9)
+- `common`: Light yellow (#fefce8)
+- `amenity`: Light red (#fef3f2)
+
+**Override styling** via `item.metadata`:
+```typescript
+item.metadata = {
+  fill: '#custom-color',
+  stroke: '#custom-stroke',
+  strokeWidth: 3,
+}
 ```
 
-## Architecture Benefits
+## Performance
 
-### Clean Separation of Concerns
-1. **Business logic** isolated in adapter layer
-2. **Rendering logic** pure and reusable across contexts
-3. **Component props** minimal and focused
+- **Rendering:** Native SVG, no canvas overhead
+- **Responsiveness:** viewBox scaling, no DOM resizing
+- **Scalability:** Works with 100+ shapes efficiently
+- **Interactions:** Direct SVG event propagation
 
-### Maintainability
-- Canvas can render any polygonal data, not just plans
-- Business rules centralized in adapter
-- TypeScript ensures type safety across layers
-- Standard Laravel resource patterns
+## Development & Testing
 
-### Extensibility
-- New canvas use cases: Add different adapters
-- New business rules: Modify adapter logic
-- New rendering features: Extend canvas composable
-- Additional UI: Compose around PlanCanvas
+### Dev Test Page
+
+**URL:** `/dev/plans`
+
+Shows:
+- ScalingModesGrid.vue - Tests all 3 modes across container ratios
+- SvgCanvasTest.vue - Example with test units
+- SingleUnit.vue - Individual unit rendering
+
+### File Structure
+
+```
+resources/js/components/projectplan/
+├── Canvas.vue              # SVG rendering & viewBox
+├── Plan.vue                # Business logic transformation
+├── Polygon.vue             # Individual polygon shape
+├── Boundary.vue            # Project boundary
+├── types.ts                # TypeScript definitions
+├── index.ts                # Public API exports
+├── composables/
+│   └── useScaling.ts       # Scaling calculations
+└── README.md               # Library documentation
+```
 
 ## Future Development
 
-### Immediate Opportunities
-- **Unit click handling**: Navigate to unit details
-- **Legend display**: Color coding explanation
-- **Export functionality**: Image/PDF generation
-- **Performance optimization**: Large plan rendering
+### Planned Features
+- **Drag-drop Designer:** Move shapes, edit properties
+- **Multi-layer:** Toggle floors, filter by type
+- **Legend:** Color coding explanation UI
+- **Export:** SVG/PNG image generation
+- **Pan/Zoom:** Mouse wheel or pinch controls
+- **Touch:** Mobile gesture support
 
-### Advanced Features
-- **Plan editing**: Drag/drop interface for spatial modification
-- **Zoom/pan controls**: Navigation for large plans
-- **Layer management**: Toggle floors, filter by type
-- **CAD integration**: Import/export architectural drawings
-- **Real-time updates**: Multi-user collaborative editing
+### Architecture Ready For
+- Adding pan/zoom (usePositioning composable stub ready)
+- Drag-drop shape editing (event handlers in place)
+- Real-time collaborative editing
+- Large plan virtualization
 
-### Technical Debt
-- ❌ **No error handling**: Canvas rendering failures not gracefully handled
-- ❌ **No loading states**: Plan data fetching shows no progress
-- ❌ **No accessibility**: Screen reader support for spatial data
-- ❌ **Limited mobile**: Touch interactions not optimized
+## Key Design Principles
 
-## Implementation Guidelines
-
-### Adding New Canvas Use Cases
-1. Create adapter composable for your domain data
-2. Transform domain objects → CanvasItems
-3. Reuse existing usePlanCanvas for rendering
-4. No modifications to canvas layer needed
-
-### Modifying Business Logic
-1. Update usePlanCanvasAdapter with new rules
-2. Canvas automatically reflects changes
-3. Keep rendering layer unchanged
-
-### Extension Points
-- **PlanViewer.vue**: Add controls, legends, toolbars
-- **Plans/Show.vue**: Add plan-specific UI elements
-- **Adapter options**: New color schemes, highlighting rules
-- **Canvas events**: Click handlers, selection logic
-
-This architecture demonstrates clean abstraction: the canvas draws colored shapes without knowing what a "unit" or "assignment" means, while business components focus on domain logic without graphics concerns.
+1. **Resources are first-class** - Components accept ApiResource objects directly, not destructured properties
+2. **No intermediate structures** - Canvas accepts PlanItem[], Plan accepts Plan resource
+3. **One responsibility per component** - Plan handles business logic, Canvas handles rendering, Item handles a single shape
+4. **Polygon format consistency** - Point[] format [[x,y], [x,y], ...] everywhere (stored, transmitted, used)
+5. **Canvas is dumb** - No business logic, just rendering and coordinate math
+6. **Events bubble up** - Canvas emits itemClick/itemHover, Plan decides what to do based on item type

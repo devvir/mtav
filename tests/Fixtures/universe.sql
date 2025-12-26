@@ -57,11 +57,11 @@ INSERT INTO projects (id, name, description, organization, active, created_at, u
 TRUNCATE TABLE plans;
 
 INSERT INTO plans (id, project_id, polygon, width, height, unit_system, created_at, updated_at) VALUES
-(1, 1, '[0,0,800,0,800,600,0,600]',         800,  600, 'meters', NOW(), NOW()),
-(2, 2, '[0,0,600,0,700,200,500,400,0,300]', 700,  400, 'meters', NOW(), NOW()),
-(3, 3, '[0,0,400,0,400,400,0,400]',         400,  400, 'feet',   NOW(), NOW()),
-(4, 4, '[0,0,1000,0,1000,800,0,800]',       1000, 800, 'meters', NOW(), NOW()),
-(5, 5, '[0,0,300,0,150,300]',               300,  300, 'feet',   NOW(), NOW());
+(1, 1, '[[0,0],[800,0],[800,600],[0,600]]',         800,  600, 'meters', NOW(), NOW()),
+(2, 2, '[[0,0],[600,0],[700,200],[500,400],[0,300]]', 700,  400, 'meters', NOW(), NOW()),
+(3, 3, '[[0,0],[400,0],[400,400],[0,400]]',         400,  400, 'feet',   NOW(), NOW()),
+(4, 4, '[[0,0],[1000,0],[1000,800],[0,800]]',       1000, 800, 'meters', NOW(), NOW()),
+(5, 5, '[[0,0],[300,0],[150,300]]',               300,  300, 'feet',   NOW(), NOW());
 
 -- ============================================================================
 -- PLAN ITEMS (21 total: 21 units for simple Unit X → PlanItem X mapping)

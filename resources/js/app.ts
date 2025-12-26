@@ -7,7 +7,6 @@ import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
-import VueKonva from 'vue-konva';
 import { ZiggyVue } from 'ziggy-js';
 import { autoRefreshCsrfToken } from '@/composables/useCsrfToken';
 import { initializeTheme } from '@/state/useTheme';
@@ -37,7 +36,6 @@ createInertiaApp({
       .use(plugin)
       .use(pinia)
       .use(ZiggyVue)
-      .use(VueKonva)
       .use(autoAnimatePlugin)
       .component('Link', Link)
       .mount(el);

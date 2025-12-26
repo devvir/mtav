@@ -21,9 +21,8 @@ use Throwable;
 
 class LotteryController
 {
-    public function __construct(
-        private LotteryService $lotteryService
-    ) {
+    public function __construct(private LotteryService $lotteryService)
+    {
         // ...
     }
 

@@ -62,7 +62,7 @@ type MemberWithMedia = Member & Required<HasMedia>;
 type FamilyWithMedia = Family & Required<HasMedia>;
 
 // Plan-specific types
-type PlanPolygon = number[];
+type Point = [number, number];
 type PlanUnitSystem = 'meters' | 'feet';
 type PlanItemMetadata = Record<string, any>;
 
@@ -130,7 +130,7 @@ interface Project extends Resource, HasEvents, HasMedia {
 }
 
 interface Plan extends Resource {
-  polygon: PlanPolygon;
+  polygon: Point[];
   width: number;
   height: number;
   unit_system: PlanUnitSystem;
@@ -143,7 +143,7 @@ interface Plan extends Resource {
 
 interface PlanItem extends Resource {
   type: string;
-  polygon: PlanPolygon;
+  polygon: Point[];
   floor: number;
   name: string | null;
   metadata: PlanItemMetadata | null;
@@ -227,8 +227,8 @@ interface Unit extends Resource {
   type: ApiResource<UnitType> | { id: number };
   project: ApiResource<Project> | { id: number };
   family: ApiResource<Family> | { id: number | null } | null;
-  plan?: ApiResource<Plan>;
-  plan_item?: ApiResource<PlanItem>;
+  plan?: ApiResource<Plan> | { id: number };
+  plan_item?: ApiResource<PlanItem> | { id: number };
 }
 
 interface Media extends Resource {

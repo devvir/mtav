@@ -36,10 +36,7 @@ class MediaSeeder extends Seeder
             );
 
             // Pick random subset without repetition
-            $selectedSamples = collect($allSamples)
-                ->shuffle()
-                ->take($count)
-                ->all();
+            $selectedSamples = collect($allSamples)->shuffle()->take($count)->all();
 
             // Create Media records for each selected sample
             foreach ($selectedSamples as $file) {
@@ -57,9 +54,9 @@ class MediaSeeder extends Seeder
                     'file_size'   => $file['file_size'],
                 ]);
 
-                // Generate thumbnail for the media
-                $thumbnailPath = $this->thumbnailService->generateThumbnail($media);
-                $media->update(['thumbnail' => $thumbnailPath]);
+                $media->update([
+                    'thumbnail' => $this->thumbnailService->generateThumbnail($media),
+                ]);
             }
         });
     }

@@ -23,7 +23,7 @@ An agent reading this document should understand the frontend structure well eno
 - **Inertia useForm()** - Form state management (built-in to Inertia.js)
 
 **Notable Libraries:**
-- **Vue Konva** - Canvas rendering (spatial/lottery visualization)
+- **SVG Rendering** - Custom SVG library for spatial/floor plan visualization
 - **Inertia UI Modal** - Modal/slideover support
 - **Ziggy** - Type-safe route generation
 - **Laravel Echo** - Real-time WebSocket updates

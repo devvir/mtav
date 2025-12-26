@@ -29,6 +29,12 @@ class UnitResource extends JsonResource
             'type'    => $this->whenLoaded('type', default: ['id' => $this->unit_type_id]),
             'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
             'family'  => $this->whenLoaded('family', default: ['id' => $this->family_id]),
+
+            'plan_item' => $this->whenLoaded('planItem', default: ['id' => $this->plan_item_id]),
+            'plan'      => $this->whenLoaded(
+                'plan',
+                default: $this->whenLoaded('planItem', ['id' => $this->planItem->plan_id])
+            ),
         ];
     }
 }

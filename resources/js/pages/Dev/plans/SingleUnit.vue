@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Unit } from '@/components/plans';
-
 // Example Unit data with plan_item
 const exampleUnit: Unit & { plan_item: PlanItem } = {
   id: 1,

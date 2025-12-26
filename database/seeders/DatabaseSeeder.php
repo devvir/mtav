@@ -21,7 +21,6 @@ class DatabaseSeeder extends Seeder
             MediaSeeder::class,
             EventSeeder::class,
             LogSeeder::class,
-            PlanSeeder::class,
         ]);
     }
 }

@@ -2,8 +2,8 @@
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import SimpleShape from './plans/SimpleShape.vue';
-import SingleUnit from './plans/SingleUnit.vue';
+import SvgCanvasTest from './plans/SvgCanvasTest.vue';
+import ScalingModesGrid from './plans/ScalingModesGrid.vue';
 
 defineProps<{
   project?: Project;
@@ -23,14 +23,14 @@ defineProps<{
     <div class="space-y-2">
       <h1 class="text-3xl font-bold">Plans Development</h1>
       <p class="text-muted-foreground text-base">
-        Development environment for the plans visualization system.
+        Development environment for the SVG-based floor plan visualization.
       </p>
     </div>
 
-    <!-- Test Components -->
-    <div class="grid gap-6">
-      <SimpleShape />
-      <SingleUnit />
-    </div>
+    <!-- SVG Canvas Testing -->
+    <SvgCanvasTest />
+
+    <!-- Scaling Modes Testing -->
+    <ScalingModesGrid />
   </div>
 </template>

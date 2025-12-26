@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import { Card, CardContent, CardHeader } from '@/components/card';
-import { Plan } from '@/components/plans';
+import { Plan } from '@/components/projectplan';
 
 defineProps<{
   plan: Plan;

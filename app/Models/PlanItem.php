@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PlanItem extends Model
 {
+    protected $with = [
+        'unit',
+    ];
+
     protected $casts = [
         'polygon'  => 'array',
         'metadata' => 'array',
