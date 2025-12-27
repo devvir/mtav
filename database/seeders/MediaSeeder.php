@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Media;
 use App\Models\Project;
 use App\Services\MediaThumbnailService;
+use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -40,11 +41,11 @@ class MediaSeeder extends Seeder
 
             // Create Media records for each selected sample
             foreach ($selectedSamples as $file) {
-                $media = Media::create([
+                Media::create([
                     'project_id'  => $project->id,
                     'owner_id'    => $users[array_rand($users)],
                     'path'        => $file['path'],
-                    'thumbnail'   => $file['path'], // Temporary, will be updated
+                    'thumbnail'   => $file['thumbnail'],
                     'description' => $this->getRandomDescription($file['category']),
                     'alt_text'    => rand(0, 1) ? $this->getRandomAltText($file['category']) : null,
                     'width'       => $file['width'],
@@ -52,10 +53,6 @@ class MediaSeeder extends Seeder
                     'category'    => $file['category'],
                     'mime_type'   => $file['mime_type'],
                     'file_size'   => $file['file_size'],
-                ]);
-
-                $media->update([
-                    'thumbnail' => $this->thumbnailService->generateThumbnail($media),
                 ]);
             }
         });
@@ -66,19 +63,17 @@ class MediaSeeder extends Seeder
         $sourceDir = storage_path('seeders/media');
         $publicDisk = Storage::disk('public');
 
-        // Copy all categories
-        foreach (['images', 'videos', 'documents', 'audio'] as $category) {
-            $sourcePath = "$sourceDir/$category";
-            if (!File::isDirectory($sourcePath)) {
-                continue;
-            }
+        $categories = [ 'images', 'videos', 'documents', 'audio', 'thumbnails' ];
+
+        foreach ($categories as $folder) {
+            $sourcePath = "$sourceDir/$folder";
 
             foreach (File::files($sourcePath) as $file) {
                 $filename = $file->getFilename();
-                $destination = "media/$filename";
+                $destination = $folder === 'thumbnails' ? "thumbnails/$filename" : "media/$filename";
 
                 // Copy file if it doesn't exist
-                if (!$publicDisk->exists($destination)) {
+                if (! $publicDisk->exists($destination)) {
                     $publicDisk->put($destination, File::get($file->getPathname()));
                 }
             }
@@ -100,15 +95,13 @@ class MediaSeeder extends Seeder
             $filename = $file->getFilename();
             $extension = strtolower($file->getExtension());
             $relativePath = "media/$filename";
+            $thumbnailPath = 'thumbnails/thumb-' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
 
             $category = $this->getCategory($extension);
-            if (!$category) {
-                continue;
-            }
 
             $fileInfo = [
                 'path'      => $relativePath,
-                'thumbnail' => $relativePath, // Will be generated properly later
+                'thumbnail' => in_array($category, ['image', 'video']) ? $thumbnailPath : null,
                 'mime_type' => $this->getMimeType($extension),
                 'file_size' => $file->getSize(),
                 'width'     => null,
@@ -122,7 +115,7 @@ class MediaSeeder extends Seeder
                     [$width, $height] = getimagesize($file->getPathname());
                     $fileInfo['width'] = $width;
                     $fileInfo['height'] = $height;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Skip if can't get dimensions
                 }
             }
@@ -131,14 +124,13 @@ class MediaSeeder extends Seeder
         }
     }
 
-    private function getCategory(string $extension): ?string
+    private function getCategory(string $extension): string
     {
         return match ($extension) {
             'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg' => 'image',
             'mp4', 'webm', 'avi', 'mov' => 'video',
             'mp3', 'wav', 'ogg', 'aac', 'flac' => 'audio',
-            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'md' => 'document',
-            default => null,
+            default => 'document',
         };
     }
 
