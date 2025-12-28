@@ -3,9 +3,12 @@ import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import EditorCanvas from '@/components/projectplan/editor/EditorCanvas.vue';
+import EditorSidebar from '@/components/projectplan/editor/EditorSidebar.vue';
+import { Button } from '@/components/ui/button';
 import { _ } from '@/composables/useTranslations';
+import { useHistory } from '@/components/projectplan/composables/useHistory';
 
-defineProps<{
+const props = defineProps<{
   plan: ApiResource<Plan>;
   project: ApiResource<Project>;
 }>();
@@ -16,6 +19,50 @@ defineProps<{
 const width = window.innerWidth >= 1024;
 const hasMouse = window.matchMedia('(pointer:fine)').matches;
 const isDesktop = width && hasMouse;
+
+// History management
+const { currentState, canUndo, canRedo, saveState, undo, redo, reset } = useHistory({
+  items: props.plan.items,
+});
+
+const hasChanges = computed(() => {
+  return JSON.stringify(currentState.value.items) !== JSON.stringify(props.plan.items);
+});
+
+const processing = ref(false);
+
+// Handle item moved from canvas
+const handleItemMoved = (itemId: number, newPolygon: Point[]) => {
+  const newItems = currentState.value.items.map((item: PlanItem) =>
+    item.id === itemId ? { ...item, polygon: newPolygon } : item
+  );
+  saveState({ items: newItems });
+};
+
+// Handle save
+const saveChanges = () => {
+  const payload = {
+    polygon: props.plan.polygon,
+    items: currentState.value.items.map((item: PlanItem) => ({
+      id: item.id,
+      polygon: item.polygon,
+    })),
+  };
+
+  processing.value = true;
+
+  router.patch(route('plans.update', props.plan.id), payload, {
+    onSuccess: () => {
+      // Reset history to current state
+      reset();
+      saveState({ items: currentState.value.items });
+      processing.value = false;
+    },
+    onError: () => {
+      processing.value = false;
+    },
+  });
+};
 </script>
 
 <template>
@@ -26,8 +73,51 @@ const isDesktop = width && hasMouse;
   </Breadcrumbs>
 
   <!-- Desktop: Editor -->
-  <div v-if="isDesktop" class="flex flex-col">
-    <EditorCanvas :plan />
+  <div v-if="isDesktop" class="flex h-full">
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden max-w-5xl mx-auto">
+      <!-- Header -->
+      <div class="border-b border-border bg-card px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-bold text-foreground">
+              {{ `${_('Project Plan')} "${plan.project.name}"` }}
+            </h1>
+          </div>
+
+          <div class="flex gap-2">
+            <Button
+              @click="saveChanges"
+              :disabled="!hasChanges || processing"
+              class="overflow-hidden grid"
+            >
+              <div class="row-start-1 col-start-1 transition-opacity" :class="{ 'invisible': !processing }">{{ _('Saving...') }}</div>
+              <div class="row-start-1 col-start-1 transition-opacity" :class="{ 'invisible': processing || !hasChanges }">{{ _('Save Changes') }}</div>
+              <div class="row-start-1 col-start-1 transition-opacity" :class="{ 'invisible': processing || hasChanges }">{{ _('No Changes') }}</div>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <EditorCanvas
+        :plan="plan"
+        :items="currentState.items"
+        class="mt-4"
+        @item-moved="handleItemMoved"
+      />
+    </div>
+
+    <!-- Sidebar on the right -->
+    <EditorSidebar
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      :has-changes="hasChanges"
+      :processing="processing"
+      @undo="undo"
+      @redo="redo"
+      @reset="reset"
+    />
   </div>
 
   <!-- Mobile/Tablet: Notice -->

@@ -13,7 +13,7 @@ defineProps<{
   <Card>
     <CardHeader :title="_('Project Plan View')">
       <div class="flex justify-between">
-        {{ _('Interactive Project Layout Plan') }}
+        {{ _('Project Layout Plan') }}
 
         <Button as-child size="sm">
           <Link :href="route('plans.edit', plan.id)">
