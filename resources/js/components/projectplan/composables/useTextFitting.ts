@@ -17,31 +17,41 @@ function getPolygonWidth(points: Point[]): number {
  * Calculate optimal font size for text within polygon width
  * Aims to fit text on 1-2 lines with reasonable padding
  */
-export function useTextFitting(points: Point[], label: string = '') {
-  const minFontSize = 10;
-  const maxFontSize = 14;
-  const polygonWidth = getPolygonWidth(points);
+export const useTextFitting = (
+  polygonGetter: () => Point[],
+  label: ComputedRef<string>
+) => {
+  const minFontSize = 8;
+  const maxFontSize = 12;
   const padding = 8; // pixels on each side
-  const availableWidth = polygonWidth - (2 * padding);
 
-  // If label fits on one line comfortably, use larger font
-  // If it needs two lines, use smaller font
-  let fontSize = maxFontSize;
-  let isTruncated = false;
+  const fontSize = computed(() => {
+    const polygonWidth = getPolygonWidth(polygonGetter());
+    const availableWidth = polygonWidth - (2 * padding);
 
-  // Rough approximation: at 12px, average character is ~7px wide
-  // Adjust based on label length and available width
-  const charactersPerLine = Math.floor(availableWidth / 7);
+    // Rough approximation: at 12px, average character is ~7px wide
+    // Adjust based on label length and available width
+    const charactersPerLine = Math.floor(availableWidth / 7);
 
-  if (label.length > charactersPerLine) {
-    // Text will overflow to 2 lines
-    isTruncated = true;
-    // Scale down to fit 2 lines
-    fontSize = Math.max(minFontSize, maxFontSize - 2);
-  }
+    let size = maxFontSize;
+
+    if (label.value.length > charactersPerLine) {
+      // Text will overflow to 2 lines, scale down to fit
+      size = Math.max(minFontSize, maxFontSize - 2);
+    }
+
+    return Math.round(size);
+  });
+
+  const isTruncated = computed(() => {
+    const polygonWidth = getPolygonWidth(polygonGetter());
+    const availableWidth = polygonWidth - (2 * padding);
+    const charactersPerLine = Math.floor(availableWidth / 7);
+    return label.value.length > charactersPerLine;
+  });
 
   return {
-    fontSize: Math.round(fontSize),
+    fontSize,
     isTruncated,
   };
 }

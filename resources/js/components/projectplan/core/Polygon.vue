@@ -4,10 +4,11 @@ import type { PolygonConfig } from '../types';
 const emit = defineEmits<{
   click: [];
   hover: [hovering: boolean];
+  mousedown: [event: MouseEvent];
 }>();
 
 const {
-  points,
+  polygon,
   fill = 'currentColor',
   stroke = 'currentColor',
   strokeWidth = 1,
@@ -23,14 +24,12 @@ const formatPoints = (points: Point[]) => points.map(([x, y]) => `${x},${y}`).jo
 
 <template>
   <polygon
-    :points="formatPoints(points)"
-    :fill="fill"
-    :stroke="stroke"
-    :stroke-width="strokeWidth"
-    :opacity="opacity"
+    :points="formatPoints(polygon)"
+    :fill :stroke :stroke-width :opacity
     v-bind="$attrs"
     @click="emit('click')"
     @mouseenter="emit('hover', true)"
     @mouseleave="emit('hover', false)"
+    @mousedown="e => emit('mousedown', e)"
   />
 </template>

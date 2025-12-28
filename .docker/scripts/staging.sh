@@ -47,6 +47,10 @@ else
     echo -e "${YELLOW}⚠️  Warning: Asset build may have failed${NC}"
 fi
 
+# 6.1. Remove hot file (forces use of built assets instead of HMR)
+echo -e "${BLUE}🧹 Removing Vite hot file...${NC}"
+rm -f "$PROJECT_ROOT/public/hot"
+
 # 7. Install PHP dependencies
 echo -e "${BLUE}📦 Installing PHP dependencies...${NC}"
 "$SCRIPTS_DIR/composer.sh" install --no-interaction --optimize-autoloader

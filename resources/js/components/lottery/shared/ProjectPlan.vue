@@ -2,6 +2,7 @@
 import { _ } from '@/composables/useTranslations';
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { Plan } from '@/components/projectplan';
+import { Button } from '@/components/ui/button';
 
 defineProps<{
   plan: Plan;
@@ -11,9 +12,15 @@ defineProps<{
 <template>
   <Card>
     <CardHeader :title="_('Project Plan View')">
-      <p class="text-sm">
+      <div class="flex justify-between">
         {{ _('Interactive Project Layout Plan') }}
-      </p>
+
+        <Button as-child size="sm">
+          <Link :href="route('plans.edit', plan.id)">
+            {{ _('Update') }}
+          </Link>
+        </Button>
+      </div>
     </CardHeader>
 
     <CardContent>

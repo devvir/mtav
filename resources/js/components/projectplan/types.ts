@@ -4,26 +4,18 @@
  *  - 'contain': Scale to fit, maintaining aspect ratio (letterbox/pillarbox if needed)
  *  - 'cover': Scale to fill, maintaining aspect ratio (may clip)
  *  - 'fill': Scale to fill, may distort aspect ratio
+ *  - 'none': No scaling applied
  */
-export type AutoScale = 'contain' | 'cover' | 'fill';
+export type ScaleMode = 'contain' | 'cover' | 'fill' | 'none';
 
 /**
  * Polygon styling configuration
  * Represents SVG rendering properties for any polygon shape
  */
 export interface PolygonConfig {
-  points: Point[];
+  polygon: Point[];
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
   opacity?: number;
-}
-
-/**
- * Canvas/viewport configuration
- */
-export interface CanvasConfig {
-  width?: number;
-  height?: number;
-  bgColor?: string;
 }

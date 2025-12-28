@@ -212,6 +212,7 @@ return [
     'belongs_to_project'               => 'The selected :attribute does not belong to the selected Project.',
     'family_belongs_to_project'        => 'The selected Family does not belong to the selected Project.',
     'invalid_invitation_credentials'   => 'Invitation expired or invalid. If you received an invitation, please check your email and follow the link.',
+    'plan_items_mismatch'              => 'One or more items do not belong to this Project.',
     'project_context_mismatch'         => 'Cannot specify a Project when a Project context is already active.',
     'project_has_active_members'       => 'Cannot delete a Project with active Members. Please remove them first.',
     'project_requires_admin'           => 'Cannot delete the only Admin in Project ":project".',

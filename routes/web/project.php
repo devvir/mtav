@@ -20,7 +20,7 @@ Route::resource('audios', AudioController::class)->only('index', 'create');
 Route::resource('documents', DocumentController::class)->only('index', 'create');
 Route::resource('events', EventController::class);
 Route::resource('media', MediaController::class)->parameter('media', 'media'); // NOT 'medium'
-Route::resource('plans', PlanController::class)->only('show', 'edit', 'update');
+Route::resource('plans', PlanController::class)->only('edit', 'update');
 Route::resource('units', UnitController::class);
 Route::resource('unit_types', UnitTypeController::class);
 

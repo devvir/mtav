@@ -1,13 +1,22 @@
-import type { AutoScale, CanvasConfig, PolygonConfig } from '../types';
+import type { ScaleMode, PolygonConfig } from '../types';
 
 /**
  * Public API of the module
  */
 export interface UseScaling {
-  boundary?: PolygonConfig;
+  scale: (items: PlanItem[], boundary?: PolygonConfig, forceRatio?: number) => ScaleResult;
+}
+
+/**
+ * Result of scaling operation
+ */
+export interface ScaleResult {
   items: PlanItem[];
-  viewBox: string; // SVG viewBox attribute
-  preserveAspectRatio: 'xMidYMid meet' | 'xMidYMid slice' | 'none';
+  boundary?: PolygonConfig;
+  scaleX: number;
+  scaleY: number;
+  viewBox: string;
+  bbox: BoundingBox;
 }
 
 /**
@@ -32,28 +41,20 @@ interface BoundingBox {
   height: number;
 }
 
+interface PolygonItem {
+  polygon: Point[];
+}
+
 /**
- * Apply transform to item coordinates
+ * Apply transform to polygon coordinates
  */
-function transformItem(item: PlanItem, transform: Transform): PlanItem {
+function transformPolygonItem<T extends PolygonItem>(item: T, transform: Transform): T {
   const polygon: Point[] = item.polygon.map(([x, y]) => [
     x * transform.scaleX + transform.offsetX,
     y * transform.scaleY + transform.offsetY,
   ]);
 
   return { ...item, polygon };
-}
-
-/**
- * Apply transform to boundary coordinates
- */
-function transformBoundary(boundary: PolygonConfig, transform: Transform): PolygonConfig {
-  const points = boundary.points.map(([x, y]: Point) => [
-    x * transform.scaleX + transform.offsetX,
-    y * transform.scaleY + transform.offsetY,
-  ] as Point);
-
-  return { ...boundary, points };
 }
 
 /**
@@ -66,9 +67,7 @@ function calculateBoundingBox(items: PlanItem[], boundary?: PolygonConfig): Boun
   items.forEach((item) => allPoints.push(...item.polygon));
 
   // Collect boundary points
-  if (boundary?.points) {
-    allPoints.push(...boundary.points);
-  }
+  if (boundary?.polygon) allPoints.push(...boundary.polygon);
 
   if (allPoints.length === 0) {
     return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
@@ -89,23 +88,11 @@ function calculateBoundingBox(items: PlanItem[], boundary?: PolygonConfig): Boun
   };
 }
 
-/**
- * Calculate scale factors and offsets for 'contain' mode
- * Maintains aspect ratio, fits content within canvas bounds with uniform scaling
- */
-function containScale(bbox: BoundingBox, canvasWidth: number, canvasHeight: number): Transform {
-  const scaleFactorX = canvasWidth / bbox.width;
-  const scaleFactorY = canvasHeight / bbox.height;
+function getScaleTransform(bbox: BoundingBox, forceRtio: number, scaleFn: (w: number, h: number) => number): Transform {
+  const scale = scaleFn(forceRtio, 1);
 
-  // Use smaller scale to maintain aspect ratio
-  const scale = Math.min(scaleFactorX, scaleFactorY);
-
-  // Calculate centered position
-  const scaledWidth = bbox.width * scale;
-  const scaledHeight = bbox.height * scale;
-
-  const centerOffsetX = (canvasWidth - scaledWidth) / 2;
-  const centerOffsetY = (canvasHeight - scaledHeight) / 2;
+  const centerOffsetX = bbox.width * (forceRtio - scale) / 2;
+  const centerOffsetY = bbox.height * (1 - scale) / 2;
 
   return {
     scaleX: scale,
@@ -115,84 +102,47 @@ function containScale(bbox: BoundingBox, canvasWidth: number, canvasHeight: numb
   };
 }
 
-/**
- * Calculate scale factors and offsets for 'cover' mode
- * Fills viewport completely while maintaining aspect ratio, may crop content
- */
-function coverScale(bbox: BoundingBox, canvasWidth: number, canvasHeight: number): Transform {
-  const scaleFactorX = canvasWidth / bbox.width;
-  const scaleFactorY = canvasHeight / bbox.height;
+function scalingSpec(mode: ScaleMode, items: PlanItem[], boundary: PolygonConfig | undefined, forceRatio?: number) {
+  const bbox = calculateBoundingBox(items, boundary);
+  const padding = boundary ? (boundary.strokeWidth || 1) / 2 : 0;
+  const stretch = (mode === 'none' || ! forceRatio) ? 1 : forceRatio * bbox.width / bbox.height;
 
-  // Use larger scale to maintain aspect ratio while filling
-  const scale = Math.max(scaleFactorX, scaleFactorY);
+  let transform: Transform = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
 
-  // Calculate centered position
-  const scaledWidth = bbox.width * scale;
-  const scaledHeight = bbox.height * scale;
+  switch (mode) {
+    case 'contain':
+      transform = getScaleTransform(bbox, forceRatio || 1, Math.min);
+      break;
+    case 'cover':
+      transform = getScaleTransform(bbox, forceRatio || 1, Math.max);
+      break;
+    case 'fill':
+      transform = { scaleX: stretch, scaleY: 1, offsetX: -bbox.minX * stretch, offsetY: -bbox.minY };
+      break;
+  }
 
-  const centerOffsetX = (canvasWidth - scaledWidth) / 2;
-  const centerOffsetY = (canvasHeight - scaledHeight) / 2;
-
-  return {
-    scaleX: scale,
-    scaleY: scale,
-    offsetX: centerOffsetX - bbox.minX * scale,
-    offsetY: centerOffsetY - bbox.minY * scale,
-  };
-}
-
-/**
- * Calculate scale factors and offsets for 'fill' mode
- * Fills viewport completely, may distort aspect ratio
- */
-function fillScale(bbox: BoundingBox, canvasWidth: number, canvasHeight: number): Transform {
-  const scaleX = canvasWidth / bbox.width;
-  const scaleY = canvasHeight / bbox.height;
-
-  return {
-    scaleX,
-    scaleY,
-    offsetX: -bbox.minX * scaleX,
-    offsetY: -bbox.minY * scaleY,
-  };
+  return { bbox, stretch, padding, ...transform };
 }
 
 /**
  * Scaling composable for responsive floor plan visualization
  * Handles multiple scaling modes and coordinate transformations
  */
-export const useScaling = (
-  items: PlanItem[],
-  boundary: PolygonConfig | undefined,
-  config: CanvasConfig,
-  mode: AutoScale,
-  padding: number = 1.5,
-): UseScaling => {
-  const canvasWidth = config.width || 800;
-  const canvasHeight = config.height || 600;
-  const bbox = calculateBoundingBox(items, boundary);
+export const useScaling = (mode: ScaleMode): UseScaling => {
+  function scale(items: PlanItem[], boundary: PolygonConfig | undefined, forceRatio?: number): ScaleResult {
+    const { bbox, stretch, padding, ...transform } = scalingSpec(mode, items, boundary, forceRatio);
 
-  // Determine transform based on mode
-  let transform: Transform;
-
-  switch (mode) {
-    case 'contain':
-      transform = containScale(bbox, canvasWidth, canvasHeight);
-      break;
-    case 'cover':
-      transform = coverScale(bbox, canvasWidth, canvasHeight);
-      break;
-    case 'fill':
-      transform = fillScale(bbox, canvasWidth, canvasHeight);
-      break;
-    default:
-      transform = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
+    return {
+      items: items.map((item: PlanItem) => transformPolygonItem(item, transform)),
+      boundary: boundary ? transformPolygonItem(boundary, transform) : undefined,
+      viewBox: `${-padding} ${-padding} ${stretch * bbox.width + padding * 2} ${bbox.height + padding * 2}`,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      bbox,
+    };
   }
 
   return {
-    items: items.map((item: PlanItem) => transformItem(item, transform)),
-    boundary: boundary ? transformBoundary(boundary, transform) : undefined,
-    viewBox: `${-padding} ${-padding} ${canvasWidth + padding * 2} ${canvasHeight + padding * 2}`,
-    preserveAspectRatio: 'xMidYMid meet',
+    scale,
   };
 }

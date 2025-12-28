@@ -9,8 +9,11 @@ interface ItemProps {
 }
 
 const emit = defineEmits<{
-  click: [id: number];
   hover: [id: number, hovering: boolean];
+  click: [id: number, event: MouseEvent];
+  mousemove: [id: number, event: MouseEvent];
+  mousedown: [id: number, event: MouseEvent];
+  mouseup: [id: number, event: MouseEvent];
 }>();
 
 const {
@@ -20,10 +23,9 @@ const {
 
 const label = computed(() => item.name || item.unit?.identifier || '');
 
-const { style, centroid, textColor, isHovering } = useItem(item);
-const { fontSize } = useTextFitting(item.polygon, label.value);
+const { style, centroid, textColor, isHovering } = useItem(() => item);
+const { fontSize } = useTextFitting(() => item.polygon, label);
 
-const handlePolygonClick = () => emit('click', item.id);
 const handlePolygonHover = (hovering: boolean) => {
   isHovering.value = hovering;
   emit('hover', item.id, hovering);
@@ -31,17 +33,23 @@ const handlePolygonHover = (hovering: boolean) => {
 </script>
 
 <template>
-  <g class="cursor-pointer">
+  <g
+    class="cursor-pointer"
+    :class="{ 'animate-drop': highlighted }"
+    @hover="handlePolygonHover"
+    @click="(e: MouseEvent) => emit('click', item.id, e)"
+    @mousemove="(e: MouseEvent) => emit('mousemove', item.id, e)"
+    @mousedown="(e: MouseEvent) => emit('mousedown', item.id, e)"
+    @mouseup="(e: MouseEvent) => emit('mouseup', item.id, e)"
+  >
     <!-- Polygon base with hover effect -->
     <Polygon
-      :points="item.polygon"
+      :polygon="item.polygon"
       :fill="style.fill"
       :stroke="isHovering || highlighted ? '#fbbf24' : style.stroke"
       :stroke-width="highlighted ? style.strokeWidth + 2 : style.strokeWidth"
       :opacity="style.opacity"
-      class="transition-all duration-150"
-      @click="handlePolygonClick"
-      @hover="handlePolygonHover"
+      class="transition-all duration-300"
     />
 
     <!-- Label text, centered on polygon -->
@@ -54,9 +62,24 @@ const handlePolygonHover = (hovering: boolean) => {
       :title="label"
       text-anchor="middle"
       dominant-baseline="central"
-      class="pointer-events-none select-none font-semibold line-clamp-2"
-    >
-      {{ label }}
-    </text>
+      class="pointer-events-none select-none font-semibold line-clamp-2 transition-all duration-300"
+    >{{ label }}</text>
   </g>
 </template>
+
+<style scoped>
+@keyframes drop-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.025);
+    opacity: 0.975;
+  }
+}
+
+.animate-drop {
+  animation: drop-pulse 300ms ease-out;
+}
+</style>

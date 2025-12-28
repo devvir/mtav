@@ -3,7 +3,7 @@ import type { PolygonConfig } from '../types';
 import Polygon from '../core/Polygon.vue';
 
 const {
-  points,
+  polygon,
   fill = 'none',
   stroke = '#94a3b8',
   strokeWidth = 2,
@@ -12,5 +12,9 @@ const {
 </script>
 
 <template>
-  <Polygon :points :fill :stroke :strokeWidth :opacity class="pointer-events-none -z-1" />
+  <Polygon
+    :polygon
+    :fill :stroke :stroke-width :opacity
+    class="pointer-events-none -z-1"
+  />
 </template>

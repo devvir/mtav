@@ -82,24 +82,21 @@ function getContrastColor(bgColor: string): string {
  * Compose item with styling from PlanItem data
  * Handles default styling by type and metadata overrides
  */
-export const useItem = (item: PlanItem) => {
-  const defaultStyle = getDefaultStyle(item.type);
+export const useItem = (itemGetter: () => PlanItem) => {
+  const item = computed(itemGetter);
+  const defaultStyle = getDefaultStyle(item.value.type);
 
   const style = {
-    opacity: item.metadata?.opacity ?? 1,
-    fill: item.metadata?.fill ?? defaultStyle.fill,
-    stroke: item.metadata?.stroke ?? defaultStyle.stroke,
-    strokeWidth: item.metadata?.strokeWidth ?? defaultStyle.strokeWidth,
+    opacity: item.value.metadata?.opacity ?? 1,
+    fill: item.value.metadata?.fill ?? defaultStyle.fill,
+    stroke: item.value.metadata?.stroke ?? defaultStyle.stroke,
+    strokeWidth: item.value.metadata?.strokeWidth ?? defaultStyle.strokeWidth,
   };
-
-  const centroid: ComputedRef<Point> = computed(() => calculateCentroid(item.polygon));
-  const textColor: ComputedRef<string> = computed(() => getContrastColor(style.fill));
-  const isHovering: Ref<boolean> = ref(false);
 
   return {
     style: readonly(style) as Readonly<Required<ItemStyle>>,
-    centroid,
-    textColor,
-    isHovering,
+    centroid: computed<Point>(() => calculateCentroid(item.value.polygon)),
+    textColor: computed<string>(() => getContrastColor(style.fill)),
+    isHovering: ref(false),
   };
 }

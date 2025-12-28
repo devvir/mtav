@@ -45,7 +45,7 @@ return [
     'member_restored'        => '¡Perfecto! El Miembro está de vuelta.',
 
     // Plan operations
-    'plan_updated' => '¡Perfecto! Tu Plan fue actualizado.',
+    'plan_updated' => '¡Perfecto! El Plano del Proyecto fue actualizado.',
 
     // Profile operations
     'profile_updated'  => '¡Tu perfil se ve muy bien!',

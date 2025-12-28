@@ -205,6 +205,7 @@ return [
     'belongs_to_project'               => 'El/La :attribute seleccionado/a no pertenece al Proyecto seleccionado.',
     'family_belongs_to_project'        => 'La Familia seleccionada no pertenece al Proyecto seleccionado.',
     'invalid_invitation_credentials'   => 'Invitación expirada o inválida. Por favor revisa tu email y sigue el enlace.',
+    'plan_items_mismatch'              => 'Uno o más elementos no pertenecen a este Projecto.',
     'project_context_mismatch'         => 'No se puede especificar un Proyecto cuando ya hay un contexto de Proyecto activo.',
     'project_has_active_members'       => 'No se puede eliminar un Proyecto con Miembros activos. Por favor remuévelos primero.',
     'project_requires_admin'           => 'No se puede eliminar el único Admin del Proyecto ":project".',

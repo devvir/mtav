@@ -4,18 +4,12 @@ namespace App\Http\Controllers\Resources;
 
 use App\Http\Requests\UpdatePlanRequest;
 use App\Models\Plan;
+use App\Services\PlanService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 
 class PlanController extends Controller
 {
-    public function show(Plan $plan): Response
-    {
-        return inertia('Plans/Show', [
-            'plan' => $plan->load('project.unitTypes', 'items.unit'),
-        ]);
-    }
-
     public function edit(Plan $plan): Response
     {
         return inertia('Plans/Edit', [
@@ -23,11 +17,10 @@ class PlanController extends Controller
         ]);
     }
 
-    public function update(UpdatePlanRequest $request, Plan $plan): RedirectResponse
+    public function update(UpdatePlanRequest $request, PlanService $planService, Plan $plan): RedirectResponse
     {
-        $plan->update($request->validated());
+        $planService->updatePlan($plan, $request->validated());
 
-        return to_route('plans.show', $plan)
-            ->with('success', __('flash.plan_updated'));
+        return to_route('plans.edit', $plan)->with('success', __('flash.plan_updated'));
     }
 }
