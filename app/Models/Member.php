@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Relations\BelongsToOneOrMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -91,6 +92,18 @@ class Member extends User
     public function upcomingRsvps(): BelongsToMany
     {
         return $this->rsvps()->upcoming();
+    }
+
+    public function scopeSearch(Builder $query, string $q, bool $searchFamily = false): void
+    {
+        $query->where(
+            fn (Builder $query) => $query
+                ->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%")
+                ->when($searchFamily, fn (Builder $query) => $query->orWhereHas(
+                    'family',
+                    fn (Builder $query) => $query->whereLike('name', "%{$q}%")
+                ))
+        );
     }
 
     public function rsvp(Event|int $event, bool $status = true): self

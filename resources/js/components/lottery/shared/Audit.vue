@@ -10,10 +10,10 @@ const props = defineProps<{
   families: ApiResource<Family>[];
 }>();
 
-const POLL_INTERVAL = 1000; // 1 second
-const TIMEOUT_MS = 300000; // 5 minutes
-const ESTIMATED_SECONDS_PER_UNIT_TYPE = 40; // Estimated time per unit type group
-const SUCCESS_MESSAGE_VISIBILITY = 600;  // In seconds
+const POLL_INTERVAL = 500;                  // 0.5 second
+const TIMEOUT_MS = 60000;                   // 30 seconds
+const ESTIMATED_SECONDS_PER_UNIT_TYPE = 2;  // Estimated time per unit type group
+const SUCCESS_MESSAGE_VISIBILITY = 600;     // In seconds
 
 const {
   hasAudits,
@@ -71,7 +71,7 @@ function startPolling() {
   if (intervalId.value) return;
 
   intervalId.value = window.setInterval(() => {
-    router.reload({ only: ['lottery'] });
+    router.reload({ only: ['lottery', 'families'] });
   }, POLL_INTERVAL);
 }
 
@@ -238,7 +238,7 @@ const showCompletedFeedback = computed(() => {
           {{ _('Taking Longer Than Expected...') }}
         </h3>
         <h3 v-else class="text-lg font-semibold text-success">
-          {{ _('Lottery Complete') }}
+          {{ _('Lottery Completed!') }}
         </h3>
       </div>
     </div>

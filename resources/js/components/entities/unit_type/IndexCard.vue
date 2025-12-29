@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <EntityCard :resource="unit_type" entity="unit_type" type="index">
-    <CardHeader :title="unit_type.description" :kicker="unit_type.name" />
+    <CardHeader :title="unit_type.name" :kicker="unit_type.description" />
 
     <CardContent>
       <!-- Stats Grid -->

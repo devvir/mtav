@@ -1,6 +1,7 @@
 * Always use script setup with typescript in vue files
 * Always end lines with semi-colon in any Javascript file (including Vue)
 * Always run commands on the app with the mtav command (i.e. remember dev runs on docker)
+* **CRITICAL: Stop and ask before making essential changes** - If you think you cannot implement something the way it was requested, or if implementing it requires fundamental changes not mentioned by the user (like adding database columns, changing data structures, or modifying core behavior), STOP and ASK first. Do not make assumptions or add features that weren't explicitly requested.
 * **CRITICAL: Running Pest tests** - ALWAYS use `mtav pest` with filters like `--filter` or `--testsuite`. NEVER run `./vendor/bin/pest` directly (app runs on Docker). NEVER run `mtav test` for Pest tests (that runs ALL test types including Playwright and Vitest). Use `mtav pest --filter TestName` or `mtav pest --testsuite Feature` to run specific Pest tests
 * If you need general context, refer to documentation/ai/README.md
 * Never build npm, and assume I already have a dev server running

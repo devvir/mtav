@@ -57,8 +57,8 @@ class UserResource extends JsonResource
             'is_superadmin'          => $this->isSuperadmin(),
             'legal_id'               => $this->legal_id ?? '',
             'is_verified'            => (bool) $this->email_verified_at,
-            'email_verified_at'      => $this->email_verified_at?->translatedFormat('M j, Y g:i A'),
-            'invitation_accepted_at' => $this->invitation_accepted_at?->translatedFormat('M j, Y g:i A'),
+            'email_verified_at'      => $this->email_verified_at,
+            'invitation_accepted_at' => $this->invitation_accepted_at,
         ];
     }
 }

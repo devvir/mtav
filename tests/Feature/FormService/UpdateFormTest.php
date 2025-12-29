@@ -299,8 +299,8 @@ describe('EventController::edit()', function () {
                 'label'    => 'Published',
                 'multiple' => false,
                 'options'  => [
-                    '0' => 'No Publicado',
-                    '1' => 'Publicado',
+                    '0' => 'Not Published',
+                    '1' => 'Published',
                 ],
                 'selected' => '1',
             ],
@@ -345,8 +345,8 @@ describe('EventController::edit()', function () {
                 'label'    => 'Type',
                 'multiple' => false,
                 'options'  => [
-                    'online' => 'En línea',
-                    'onsite' => 'Presencial',
+                    'online' => 'Online',
+                    'onsite' => 'On-site',
                 ],
                 'required' => true,
                 'selected' => 'online',

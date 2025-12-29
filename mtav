@@ -131,9 +131,13 @@ case $COMMAND in
         docker network rm mtav_default 2>/dev/null || true
         # Wait a moment for cleanup
         sleep 2
-        # Now run normal up command which will detect first-run and do full setup
+        # Start containers
         echo -e "${GREEN}🚀 Starting fresh environment...${NC}"
-        exec "$0" up
+        "$0" up -d
+        # Run migrations and seed
+        echo -e "${BLUE}🗄️  Running migrations and seeding database...${NC}"
+        "$SCRIPTS_DIR/artisan.sh" migrate:fresh --seed
+        echo -e "${GREEN}✅ Fresh environment ready!${NC}"
         ;;
 
     staging)

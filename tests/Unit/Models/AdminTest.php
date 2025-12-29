@@ -36,6 +36,23 @@ describe('Admin Model', function () {
         expect($admin->projects)->toHaveCount(2);
     });
 
+    it('manages only active projects', function () {
+        $admin = Admin::find(13); // Admin with inactive assignment in Project 2
+
+        // Should only return projects where pivot.active = true
+        expect($admin->projects->pluck('id'))->toContain(3) // Active in Project 3
+            ->and($admin->projects->pluck('id'))->toContain(4) // Active in Project 4
+            ->and($admin->projects->pluck('id'))->not->toContain(2); // Inactive in Project 2
+    });
+
+    it('identifies multi-project admins correctly', function () {
+        $singleProjectAdmin = Admin::find(11); // Manages only Project 1
+        $multiProjectAdmin = Admin::find(12); // Manages Projects 2 and 3
+
+        expect($singleProjectAdmin->projects->count())->toBe(1)
+            ->and($multiProjectAdmin->projects->count())->toBeGreaterThan(1);
+    });
+
     it('has many created events', function () {
         $admin = Admin::find(11);
         $events = $admin->events;
@@ -55,9 +72,12 @@ describe('Admin Model', function () {
             return is_null($event->start_date) || $event->start_date > now();
         }))->toBeTrue();
     });
-});
 
-describe('Admin Business Logic - TODO', function () {
+    it('has search scope that searches by name', function () {
+        $admin = Admin::find(11);
 
+        $results = Admin::search($admin->firstname)->get();
 
+        expect($results->pluck('id'))->toContain(11);
+    });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Admin extends User
@@ -27,6 +28,11 @@ class Admin extends User
     public function upcomingEvents(): HasMany
     {
         return $this->events()->upcoming();
+    }
+
+    public function scopeSearch(Builder $query, string $q): void
+    {
+        $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%");
     }
 
     /**

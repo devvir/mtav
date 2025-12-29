@@ -4,14 +4,113 @@
 
 ## Overview
 
-Interactive drag-and-drop editor for floor plan layout design. Allows admins to modify unit positions with real-time collision detection. **Stage 1 focuses on drag-and-drop with validation; no backend persistence until stage 2.**
+Interactive drag-and-drop editor for floor plan layout design. Allows admins to modify unit positions and add new items to project plans.
 
 **Key Principles:**
 - Desktop-only (no touch support)
-- Non-destructive frontend: Changes held in state until explicit save (stage 2)
-- Real-time collision detection per floor
+- Real-time undo/redo (50 state limit)
+- Backend persistence with validation
+- Grid-based snapping (5px)
 - Intuitive drag-drop UX similar to modern design tools
-- Thin controllers, logic in PlanService and composables
+- Clean component architecture with event-based communication
+
+## Current Status
+
+### ✅ Stage 1: Complete - Drag & Drop Foundation
+- Drag existing items with mouse
+- Visual feedback (ghost item, drop animation)
+- Grid snapping (5px)
+- Undo/redo history (50 states)
+- Desktop-only UI with mobile notice
+- EditorSidebar with action buttons (right side, 120px width)
+- Event-based architecture (Edit.vue orchestrates, EditorCanvas handles visuals)
+
+### ✅ Stage 2: Complete - Backend Persistence
+- PlanController with update endpoint
+- UpdatePlanRequest with validation
+- PlanService with transaction handling
+- Tested and working (Pest tests)
+- Plan + all PlanItem polygons saved atomically
+
+### 🚧 Stage 3: Planned - Reshaping & Boundaries
+**Focus:** Advanced polygon manipulation
+
+**Features:**
+1. **Resize Items**
+   - Corner/edge handles for scaling
+   - Maintain aspect ratio option
+   - Min size validation (30×30px)
+
+2. **Rotate Items**
+   - Rotation handle or keyboard shortcuts
+   - Snap to 15° increments (configurable)
+
+3. **Vertex Editing**
+   - Add vertex: Click on edge
+   - Move vertex: Drag existing point
+   - Delete vertex: Right-click (min 3 vertices)
+   - Max 10 vertices per item (UI restriction)
+   - Self-intersection prevention
+
+4. **Out-of-Boundary Drag Fix** ⚠️ IMPORTANT
+   - Currently: Can drag items outside canvas (only centroid checked)
+   - Fix: Check entire item bounding box, not just centroid
+   - Behavior: Ignore mousemove when dragged item leaves canvas
+   - Prevent dropping items partially/fully outside canvas
+
+**Technical Considerations:**
+- Bounding box calculation for each item
+- Real-time boundary checking during drag
+- Visual feedback when approaching boundary
+- Grid snapping still applies within boundaries
+
+### 🚧 Stage 4: Planned - Adding New Items
+**Focus:** Create new items from templates
+
+**Features:**
+1. **Unit Items**
+   - Drag from unit type palette
+   - Auto-assign to next available unit
+   - Default size based on unit type
+
+2. **Non-Unit Items**
+   - Parks
+   - Streets
+   - Gates
+   - Communal spaces (pools, gyms, etc.)
+   - Each with appropriate default size/shape
+
+3. **Palette UI**
+   - New sidebar section "New Items"
+   - Icon + text for each item type
+   - Drag-from-palette interaction
+   - Drop to create on canvas
+
+**Technical Considerations:**
+- Template definitions (default polygons per type)
+- Item creation logic (assign IDs, link to units if applicable)
+- Validation (ensure item fits within boundaries)
+- Update history on item creation
+
+### 🚧 Stage 5: Planned - Collision Detection (Low Priority)
+**Focus:** Visual helper to prevent overlaps (nice-to-have, not critical)
+
+**Features:**
+- Real-time collision detection during drag
+- Visual feedback (red outlines on conflicts)
+- Optional: Disable save when conflicts exist
+- Frontend and backend validation
+
+**Why Low Priority:**
+- Humans editing can handle non-overlapping themselves
+- Invalid plans are the editor's problem, not a system blocker
+- Main value: Visual helper, not enforced constraint
+
+**Technical Considerations:**
+- Polygon overlap algorithm (SAT or library like turf.js)
+- Performance: <100 items, brute force is fine
+- Per-floor collision checking
+- Backend re-validation on save
 
 ## Architecture
 
@@ -58,37 +157,282 @@ resources/js/components/projectplan/editor/
 
 ### Frontend State Management
 
-**Edit Mode State** (in useEditMode composable):
+**Current Implementation** (Stages 1-2):
 ```typescript
-const planState = ref({
-  items: PlanItem[],         // All plan items (with current positions/states)
-  selectedItemId: number | null,
-  draggedItemId: number | null,
+// In Edit.vue (orchestrator)
+const { currentState, canUndo, canRedo, saveState, undo, redo, reset } = useHistory({
+  items: props.plan.items,
 });
 
-const originalPlan = ref(Plan); // Snapshot for reset
-const validationErrors = ref<ValidationError[]>([]);
+// currentState.value.items = PlanItem[] with current positions
+// History automatically managed (50 state limit)
 ```
 
-**Note on Stage 1:**
-- No persistence to backend (stage 2)
-- No undo/redo (keep it simple, use browser back button if needed)
-- State is lost on page reload (expected for stage 1)
-- Focus on making drag/validation UX solid
+**Component Architecture:**
+- `pages/Plans/Edit.vue` - Orchestrator (history, save, layout)
+- `components/projectplan/editor/EditorCanvas.vue` - Visual canvas with drag handlers
+- `components/projectplan/editor/EditorSidebar.vue` - Action buttons (undo/redo/reset)
+- `composables/useHistory.ts` - Undo/redo state management
+- `composables/usePlanEditor.ts` - Coord transform, grid snap, drag logic
 
-**Undo/Redo** (future, stage 2+):
+## Implementation Details (Current - Stages 1-2)
+
+### Desktop-Only UI
+
+**Check:**
 ```typescript
-const history = ref<PlanState[]>([]);
-const historyIndex = ref(0);
-
-function undo() { historyIndex.value--; }
-function redo() { historyIndex.value++; }
-function saveToHistory() { history.splice(historyIndex.value + 1); history.push(deepClone(planState)); }
+const isDesktop = window.innerWidth >= 1024 && window.matchMedia('(pointer:fine)').matches;
 ```
 
-## Stage 1: Move Items with Non-Overlapping Validation
+**Behavior:**
+- Desktop: Show full editor interface
+- Mobile/Tablet: Show notice "Desktop required"
+- Reason: Mouse-only interaction model, no touch complexity
 
-### Scope - Stage 1 Focus
+### Drag & Drop System
+
+**Flow:**
+1. `mouseDown` - Start drag, store offset from centroid to cursor
+2. `mouseMove` - Update ghost position, follow cursor
+3. `mouseUp` - Snap to grid (5px), emit `item-moved` event, save to history
+
+**Coordinate Transform:**
+```typescript
+// usePlanEditor.ts
+function screenToCanvasCoords(screenX: number, screenY: number): [number, number] {
+  const svgRect = containerRef.value!.getBoundingClientRect();
+  const pt = canvasElement.value!.createSVGPoint();
+  pt.x = screenX - svgRect.left;
+  pt.y = screenY - svgRect.top;
+  const screenCTM = canvasElement.value!.getScreenCTM();
+  const canvasPt = pt.matrixTransform(screenCTM?.inverse());
+  return [canvasPt!.x, canvasPt!.y];
+}
+```
+
+**Grid Snapping:**
+```typescript
+const GRID_SIZE = 5; // pixels
+function snapToGrid([x, y]: Point): Point {
+  return [
+    Math.round(x / GRID_SIZE) * GRID_SIZE,
+    Math.round(y / GRID_SIZE) * GRID_SIZE,
+  ];
+}
+```
+
+### Undo/Redo System
+
+**Implementation (useHistory.ts):**
+```typescript
+const history = ref<HistoryState[]>([initialState]);
+const currentIndex = ref(0);
+const MAX_HISTORY = 50;
+
+function saveState(state: HistoryState) {
+  // Remove future history on new change
+  history.value = history.value.slice(0, currentIndex.value + 1);
+  history.value.push(deepClone(state));
+
+  // Limit history size
+  if (history.value.length > MAX_HISTORY) {
+    history.value.shift();
+  } else {
+    currentIndex.value++;
+  }
+}
+
+function undo() {
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+  }
+}
+
+function redo() {
+  if (currentIndex.value < history.value.length - 1) {
+    currentIndex.value++;
+  }
+}
+```
+
+### Backend Persistence
+
+**Endpoint:**
+```
+PATCH /plans/{plan}
+```
+
+**Request Structure:**
+```json
+{
+  "polygon": [[0, 0], [800, 0], [800, 600], [0, 600]],
+  "items": [
+    {
+      "id": 123,
+      "polygon": [[50, 50], [150, 50], [150, 150], [50, 150]]
+    }
+  ]
+}
+```
+
+**Validation (UpdatePlanRequest):**
+- Plan polygon: min 3 vertices, numeric coordinates
+- Items: must belong to this plan (withValidator check)
+- Item polygons: min 3 vertices, numeric coordinates
+
+**Service (PlanService):**
+- Transaction: Update plan + all items atomically
+- Rollback on failure
+
+**Tests:**
+- Feature tests: Update success, validation errors, authorization
+- Unit tests: PlanService, Polygons service
+
+## File Structure (Current Implementation)
+
+```
+# Backend
+app/Http/Controllers/Resources/
+└── PlanController.php              # ✅ edit(), update()
+
+app/Http/Requests/
+└── UpdatePlanRequest.php           # ✅ Validation rules
+
+app/Services/
+├── PlanService.php                 # ✅ updatePlan()
+└── Plan/
+    └── Polygons.php                # ✅ Transaction handling
+
+app/Policies/
+└── PlanPolicy.php                  # ✅ Authorization
+
+tests/Feature/Plan/
+├── UpdatePlanTest.php              # ✅ HTTP tests
+└── PlanServiceTest.php             # ✅ Service tests
+
+tests/Unit/Plan/
+└── PolygonsServiceTest.php         # ✅ Unit tests
+
+# Frontend
+resources/js/pages/Plans/
+└── Edit.vue                        # ✅ Orchestrator
+
+resources/js/components/projectplan/editor/
+├── EditorCanvas.vue                # ✅ Drag & drop canvas
+├── EditorSidebar.vue               # ✅ Action buttons
+└── composables/
+    ├── useHistory.ts               # ✅ Undo/redo (50 states)
+    └── usePlanEditor.ts            # ✅ Coord transform, grid snap
+
+# Routes & Translations
+routes/web.php                      # ✅ GET /plans/{id}/edit, PATCH /plans/{id}
+lang/es_UY.json                     # ✅ Spanish translations
+```
+
+## Next Steps
+
+### Stage 3: Reshaping & Boundaries (Next)
+
+**Priority Features:**
+1. **Out-of-Boundary Drag Fix** 🔥 HIGH PRIORITY
+   - Problem: Currently can drag items outside canvas (only centroid checked)
+   - Solution: Check entire item bounding box during drag
+   - Behavior: Stop drag movement when item would leave canvas
+   - Implementation: Calculate bbox on each mousemove, constrain position
+
+2. **Resize Items**
+   - Corner/edge handles for scaling
+   - Maintain aspect ratio (optional toggle)
+   - Min size: 30×30px
+
+3. **Rotate Items**
+   - Rotation handle or keyboard shortcuts
+   - Snap to 15° increments
+
+4. **Vertex Editing**
+   - Add: Click edge to insert new vertex
+   - Move: Drag existing vertex
+   - Delete: Right-click vertex (min 3 vertices)
+   - Max: 10 vertices per item
+   - Validate: Prevent self-intersecting edges
+
+### Stage 4: Adding New Items
+
+**Item Types:**
+- Units (from unit type palette)
+- Parks
+- Streets
+- Gates
+- Communal spaces
+
+**Palette UI:**
+- New EditorSidebar section "New Items"
+- Drag-from-palette interaction
+- Default templates for each type
+
+### Stage 5: Collision Detection (Low Priority)
+
+**Why Low Priority:**
+- Humans can handle non-overlapping themselves
+- Invalid plans are editor's problem, not system blocker
+- Main value: Visual helper for convenience
+
+**When Implemented:**
+- Real-time detection during drag
+- Visual feedback (red outlines)
+- Optional: Block save on conflicts
+- Backend re-validation
+
+---
+
+## Missing from Updated Plan?
+
+You mentioned:
+- ✅ Reshaping (Stage 3)
+- ✅ Out-of-boundary drag fix (Stage 3)
+- ✅ Adding items - units and other types (Stage 4)
+- ✅ Collision detection (Stage 5)
+- ❓ **Vertical space handling (floors)** - Not explicitly in any stage
+
+### Floor/Vertical Space Handling
+
+**Should add to Stage 3 or 4:**
+
+**Option A: Stage 3 (with reshaping)**
+- Simpler: Just change floor assignment for existing items
+- UI: Dropdown in item properties panel
+- No collision between different floors
+
+**Option B: Stage 4 (with adding items)**
+- When creating new items, specify floor
+- More complex: Multi-floor view/toggle
+
+**Recommendation: Stage 3**
+- Floor is a property like position/size
+- Simple dropdown: "Floor: 0, 1, 2, etc."
+- Collision detection (Stage 5) would check floor matching
+- Fits naturally with other item property editing
+
+### Updated Stage Plan
+
+**Stage 3: Reshaping, Boundaries & Floors**
+1. Out-of-boundary drag fix 🔥
+2. Resize items
+3. Rotate items
+4. Vertex editing (add/move/delete)
+5. Floor assignment dropdown
+
+**Stage 4: Adding New Items**
+1. Unit items from palette
+2. Non-unit items (park, street, gate, communal)
+3. Palette UI in sidebar
+4. Drag-to-create interaction
+
+**Stage 5: Collision Detection**
+1. Polygon overlap algorithm
+2. Real-time visual feedback
+3. Optional save blocking
+4. Backend validation
 
 **In Scope:**
 - ✅ Drag existing items around canvas
@@ -99,6 +443,8 @@ function saveToHistory() { history.splice(historyIndex.value + 1); history.push(
 - ✅ Desktop-only UI (hide on mobile, show notice)
 - ✅ Grid-based snapping (configurable, ~5px)
 - ✅ Selection/highlight on click
+- ✅ Undo/redo history (50 state limit)
+- ✅ EditorSidebar with action buttons (right side)
 
 **Out of Scope (Stage 1):**
 - ❌ Save to backend (stage 2)
@@ -108,7 +454,6 @@ function saveToHistory() { history.splice(historyIndex.value + 1); history.push(
 - ❌ Adding new items (stage 4)
 - ❌ Deleting items (users delete from unit ShowCard)
 - ❌ Touch support
-- ❌ Undo/redo stack (browser back suffices for now)
 
 ### Desktop-Only UI
 
@@ -514,73 +859,81 @@ function resetPlanToOriginal() {
 ## Stage 1 Checklist
 
 **Backend (Thin Layer):**
-- [ ] Create `PlanController` resource controller (standard pattern)
-- [ ] `edit(Plan $plan)` - Pass plan to Edit.vue view
-- [ ] Create `PlanPolicy` with authorization rules
-  - [ ] `viewAny()` → true
-  - [ ] `view()` → true
-  - [ ] `update()` → admin-only
-  - [ ] `create/delete/restore()` → false
-- [ ] Route: `GET /plans/{id}/edit` → PlanController@edit
-- [ ] No backend persistence logic (stage 2)
+- [x] Create `PlanController` resource controller (standard pattern)
+- [x] `edit(Plan $plan)` - Pass plan to Edit.vue view
+- [x] Create `PlanPolicy` with authorization rules
+  - [x] `viewAny()` → true
+  - [x] `view()` → true
+  - [x] `update()` → admin-only
+  - [x] `create/delete/restore()` → false
+- [x] Route: `GET /plans/{id}/edit` → PlanController@edit
+- [x] No backend persistence logic (stage 2)
 
 **Frontend - Core Editor Logic:**
-- [ ] Create `useCollisionDetection` composable (polygon overlap)
-  - [ ] Research & use library if suitable (geometry is hard)
-  - [ ] Fallback: Implement SAT if needed
-  - [ ] Function: `getConflictingItems(item, floor)`
-- [ ] Create `useDragDetection` composable
-  - [ ] mouseDown → store item, offset
-  - [ ] mouseMove → update position, validate collisions
-  - [ ] mouseUp → snap to grid, check validity, revert if invalid
-- [ ] Create `useCoordinateTransform` utility
-  - [ ] Convert viewport → canvas coordinates
-  - [ ] Handle SVG transform matrix
+- [x] Create `useHistory` composable (undo/redo with 50 state limit)
+- [ ] Create `useCollisionDetection` composable (polygon overlap) - DEFERRED
+  - Collision detection deferred to later stage
+  - Currently items can overlap (visual only, no validation)
+- [x] Create drag detection logic in EditorCanvas
+  - [x] mouseDown → store item, offset
+  - [x] mouseMove → update position
+  - [x] mouseUp → snap to grid, emit change
+- [x] Create `usePlanEditor` composable
+  - [x] Convert viewport → canvas coordinates
+  - [x] Handle SVG transform matrix
+  - [x] Grid snapping (5px)
 
 **Frontend - Components:**
-- [ ] Create `resources/js/pages/Plans/Edit.vue` (thin wrapper)
-  - [ ] Check isDesktop, show notice if not
-  - [ ] Pass plan to EditorCanvas component
-- [ ] Create `resources/js/components/projectplan/editor/EditorCanvas.vue`
-  - [ ] Render Canvas with drag handlers
-  - [ ] Show/hide red outlines on conflicts
-  - [ ] Show ghost item during drag
-  - [ ] Show selected item highlight
-- [ ] Create `resources/js/components/projectplan/editor/DraggableItem.vue`
-  - [ ] Extend Item component with drag capabilities
-  - [ ] Show different styling for dragging/selected/conflicted
-- [ ] Implement keyboard shortcuts
-  - [ ] Delete (unsaved items only)
+- [x] Create `resources/js/pages/Plans/Edit.vue` (orchestrator)
+  - [x] Check isDesktop, show notice if not
+  - [x] Manage history state with useHistory
+  - [x] Coordinate EditorCanvas and EditorSidebar
+  - [x] Handle save to backend (calls update endpoint)
+- [x] Create `resources/js/components/projectplan/editor/EditorCanvas.vue`
+  - [x] Render Canvas with drag handlers
+  - [x] Show ghost item during drag
+  - [x] Show drop animation
+  - [x] Emit item-moved events to parent
+- [x] Create `resources/js/components/projectplan/editor/EditorSidebar.vue`
+  - [x] Action buttons: Undo, Redo, Reset
+  - [x] Icon + text layout (120px width)
+  - [x] Positioned on right side
+  - [x] Extensible for future sections (New Items, Legend)
+- [ ] Implement keyboard shortcuts - DEFERRED
+  - [ ] Ctrl+Z / Ctrl+Y for undo/redo
   - [ ] Escape (deselect & cancel drag)
 
 **Frontend - UI Polish:**
-- [ ] Grid snapping (~5px)
-- [ ] Visual feedback: Ghost item, red/green outlines
-- [ ] Selected item highlight
-- [ ] Conflict preview (red overlay on conflicting items)
-- [ ] Status bar showing selected item info
-- [ ] "Reset" button to revert all changes
-- [ ] Desktop-only responsive check
+- [x] Grid snapping (5px)
+- [x] Visual feedback: Ghost item during drag
+- [x] Drop animation (highlight)
+- [ ] Selected item highlight - DEFERRED
+- [ ] Conflict preview (red overlay on conflicting items) - DEFERRED
+- [ ] Status bar showing selected item info - DEFERRED
+- [x] Undo/Redo/Reset buttons in sidebar
+- [x] Desktop-only responsive check
+- [x] Spanish translations (Actions, Undo, Redo, Reset)
 
 **File Structure:**
 ```
 app/Http/Controllers/
-└── PlanController.php          # Thin resource controller
+└── PlanController.php          # ✅ Thin resource controller
 
 app/Policies/
-└── PlanPolicy.php              # Authorization
+└── PlanPolicy.php              # ✅ Authorization
 
 resources/js/pages/Plans/
-└── Edit.vue                    # Thin page wrapper
+└── Edit.vue                    # ✅ Orchestrator (history, save, layout)
 
 resources/js/components/projectplan/editor/
-├── EditorCanvas.vue            # Main editor UI
-├── DraggableItem.vue           # Draggable item wrapper
-├── useCollisionDetection.ts    # Polygon overlap
-├── useDragDetection.ts         # Drag state & handlers
-└── useCoordinateTransform.ts   # Viewport ↔ canvas
+├── EditorCanvas.vue            # ✅ Main canvas with drag handlers
+├── EditorSidebar.vue           # ✅ Action buttons (undo/redo/reset)
+└── composables/
+    ├── useHistory.ts           # ✅ Undo/redo state management
+    └── usePlanEditor.ts        # ✅ Coord transform, grid snap, drag logic
 
-routes/web.php                 # Add /plans/{id}/edit route
+routes/web.php                 # ✅ /plans/{id}/edit route
+lang/es_UY.json                # ✅ Spanish translations
 ```
 
 **Tests (Minimal for Stage 1):**
@@ -593,37 +946,60 @@ routes/web.php                 # Add /plans/{id}/edit route
 
 **NOT in Stage 1:**
 - [ ] Backend persistence (stage 2)
-- [ ] Undo/redo history (stage 2+)
-- [ ] Delete button for persistent items (ShowCard only)
+- [ ] Collision detection validation (deferred)
+- [ ] Selected item info panel (deferred)
+- [ ] Keyboard shortcuts (deferred)
 - [ ] Item resizing, reshaping, floor changes (stage 3)
 - [ ] Add new items template (stage 4)
 
 ---
 
-## Stage 2: Persist Changes to Backend
+## Stage 2: Persist Changes to Backend + Collision Detection
+
+**Status:** Ready to start (undo/redo already completed in Stage 1)
 
 **Scope:**
-- Backend validation (collision check before save)
-- Transaction handling for atomic save
-- Undo/redo history in frontend
-- Confirmation dialog before save
-- API endpoint to save plan items
+1. **Backend Persistence:**
+   - `PlanController@update()` - Save item positions
+   - Form Request validation
+   - Transaction handling for atomic save
+   - Return updated plan state
+
+2. **Collision Detection:**
+   - Frontend: `useCollisionDetection` composable
+   - Real-time validation during drag
+   - Visual feedback (red outlines on conflicts)
+   - Backend: Re-validate on save (never trust client)
+
+3. **UI Enhancements:**
+   - Save button with loading state (already in Edit.vue)
+   - Show validation errors from backend
+   - Prevent saving if conflicts exist
+   - Toast notifications on success/error
+
+**Implementation Order:**
+1. ✅ Save functionality (already implemented in Edit.vue)
+2. Backend endpoint (`PlanController@update`, Form Request, Service)
+3. Collision detection composable (polygon overlap algorithm)
+4. Integrate collision detection into drag flow
+5. Backend validation (re-check collisions before save)
+6. Error handling and user feedback
 
 **Considerations:**
-- Concurrent edits: Implement optimistic locking (prevent stale writes)
-- Large plans: Batch update or full replace (decide based on testing)
-- Validations: Backend re-checks collisions (never trust frontend)
-- Error handling: Show validation errors, allow user to fix and retry
+- **Collision Algorithm:** Use existing library if available (turf.js, SAT.js), or implement SAT
+- **Performance:** <100 items = brute force is fine, no spatial partitioning needed
+- **Validation:** Backend must re-check collisions (security: never trust frontend)
+- **Transactions:** Wrap in DB transaction, rollback on validation failure
+- **Optimistic Locking:** Add `version` field to Plan table (optional, for concurrent edit detection)
 
 **Deliverables:**
-- `PlanController@update(Request $request, Plan $plan)`
-  - Delegates to `PlanService@updateItems()`
-  - Validates non-overlapping per floor
-  - Saves atomically or rolls back
-- `POST /plans/{id}` endpoint with item list
-- Frontend undo/redo stack (50 state limit)
-- Save confirmation dialog with summary of changes
-- Optimistic locking check (version field)
+- [ ] `app/Http/Controllers/PlanController@update`
+- [ ] `app/Http/Requests/UpdatePlanRequest` (validation rules)
+- [ ] `app/Services/PlanService@updateItems()` (business logic)
+- [ ] `resources/js/components/projectplan/composables/useCollisionDetection.ts`
+- [ ] Integrate collision detection in EditorCanvas
+- [ ] Backend validation tests (Pest)
+- [ ] Frontend collision detection tests (Vitest)
 
 ---
 

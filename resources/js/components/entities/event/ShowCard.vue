@@ -65,7 +65,7 @@ const userRsvpContentClass = computed(() => {
         <ContentDetail
           :icon="CalendarIcon"
           :title="_('Start Date')"
-          :content="fromUTC(event.start_date)"
+          :content="event.start_date ? fromUTC(event.start_date) : undefined"
           :fallback="_('Not set')"
         />
 

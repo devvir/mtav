@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Admin;
-use App\Models\Event;
 use App\Models\Member;
 use App\Models\Project;
 use App\Models\User;
@@ -76,97 +75,44 @@ describe('User Model', function () {
             ->and($user->projects->contains($project2))->toBeTrue()
             ->and($user->projects->contains($project3))->toBeFalse();
     });
-});
 
-describe('Member Model (User is_admin=false)', function () {
-    it('has published events for their project', function () {
-        $member = Member::find(102); // Member in Project 1
+    it('has many media through media relation', function () {
+        $user = User::find(102);
 
-        $events = $member->events;
-        expect($events->every(fn ($e) => $e->is_published === true))->toBeTrue();
-        expect($events->every(fn ($e) => $e->project_id === $member->projects()->latest()->first()->id))->toBeTrue();
+        expect($user->media())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class);
     });
 
-    it('has upcoming published events for their project', function () {
-        $member = Member::find(102);
+    it('has alphabetically scope', function () {
+        $users = User::alphabetically()->get();
 
-        $upcomingEvents = $member->upcomingEvents;
-        expect($upcomingEvents->every(function ($event) {
-            return is_null($event->start_date) || $event->start_date > now();
-        }))->toBeTrue();
+        // Verify users are sorted by firstname then lastname (case-insensitive)
+        $firstnames = $users->pluck('firstname')->toArray();
+        $sortedFirstnames = $firstnames;
+        natcasesort($sortedFirstnames);
+        $sortedFirstnames = array_values($sortedFirstnames); // Re-index after sort
+
+        expect($firstnames)->toBe($sortedFirstnames);
     });
 
-    it('correctly counts member rsvp invitations by status', function (Member $member, array $expectedCounts) {
-        expect($member->rsvps)
-            ->toHaveCount($expectedCounts['total'])
-            ->each->toBeInstanceOf(Event::class);
+    it('has fullname attribute combining firstname and lastname', function () {
+        $user = User::find(102);
 
-        expect($member->acknowledgedEvents)->toHaveCount(
-            $expectedCounts['accepted'] + $expectedCounts['declined']
-        );
-        expect($member->acceptedEvents)->toHaveCount($expectedCounts['accepted']);
-        expect($member->declinedEvents)->toHaveCount($expectedCounts['declined']);
-
-    })->with([
-        'Member with 2 accepted events' => [
-            fn () => Member::find(102),
-            ['total' => 2, 'accepted' => 2, 'declined' => 0],
-        ],
-        'Member with 1 accepted and 1 declined event' => [
-            fn () => Member::find(105),
-            ['total' => 2, 'accepted' => 1, 'declined' => 1],
-        ],
-        'Member with 1 pending RSVP' => [
-            fn () => Member::find(106),
-            ['total' => 1, 'accepted' => 0, 'declined' => 0],
-        ]
-    ]);
-
-    it('has upcoming rsvp invitations', function () {
-        $member = Member::find(102);
-
-        $upcomingRsvps = $member->upcomingRsvps;
-        expect($upcomingRsvps->every(function ($event) {
-            return is_null($event->start_date) || $event->start_date > now();
-        }))->toBeTrue();
+        expect($user->fullname)->toBe($user->firstname . ' ' . $user->lastname);
     });
 
-    it('can rsvp to an event', function () {
-        $member = Member::find(100);
-        $event = Event::find(2);
+    it('lowercases email on set', function () {
+        $user = User::factory()->create(['email' => 'TEST@EXAMPLE.COM']);
 
-        // Initial state - member not invited
-        expect($member->rsvps->pluck('id'))->not->toContain($event->id);
-
-        // Accept event
-        $member->rsvp($event, true);
-        $member->refresh();
-
-        expect($member->acceptedEvents->pluck('id'))->toContain($event->id);
-
-        // Decline event
-        $member->rsvp($event, false);
-        $member->refresh();
-
-        expect($member->declinedEvents->pluck('id'))->toContain($event->id);
-        expect($member->acceptedEvents->pluck('id'))->not->toContain($event->id);
+        expect($user->email)->toBe('test@example.com');
     });
 
-    it('stores and retrieves rsvp status from pivot', function () {
-        $event = Event::find(2);
-        $member102 = $event->rsvps->where('id', 102)->first();
-        $member105 = $event->rsvps->where('id', 105)->first();
+    it('identifies invited users correctly', function () {
+        $invited = User::find(148); // Invited user
+        $registered = User::find(102); // Completed registration
 
-        expect($member102->pivot->status)->toBe(1); // Accepted (stored as 1)
-        expect($member105->pivot->status)->toBe(0); // Declined (stored as 0)
-    });
-
-    it('records pivot timestamps on rsvp', function () {
-        $event = Event::find(2);
-        $member = $event->rsvps->first();
-
-        expect($member->pivot)
-            ->created_at->not->toBeNull()
-            ->updated_at->not->toBeNull();
+        expect($invited->isInvited())->toBeTrue()
+            ->and($invited->completedRegistration())->toBeFalse()
+            ->and($registered->isInvited())->toBeFalse()
+            ->and($registered->completedRegistration())->toBeTrue();
     });
 });

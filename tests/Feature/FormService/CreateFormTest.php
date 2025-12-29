@@ -444,8 +444,8 @@ describe('EventController::create()', function () {
                 'label'    => 'Published',
                 'multiple' => false,
                 'options'  => [
-                    '0' => 'No Publicado',
-                    '1' => 'Publicado',
+                    '0' => 'Not Published',
+                    '1' => 'Published',
                 ],
                 'selected' => null,
             ],
@@ -490,8 +490,8 @@ describe('EventController::create()', function () {
                 'label'    => 'Type',
                 'multiple' => false,
                 'options'  => [
-                    'online' => 'En línea',
-                    'onsite' => 'Presencial',
+                    'online' => 'Online',
+                    'onsite' => 'On-site',
                 ],
                 'required' => true,
                 'selected' => null,

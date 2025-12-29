@@ -40,7 +40,7 @@ const allFooterItems: FooterItem[] = [
   },
 ];
 
-const isDev = computed(() => import.meta.env.DEV || import.meta.env.MODE === 'development');
+const isDev = computed(() => usePage().props.env === 'local');
 
 if (isDev.value) {
   allFooterItems.unshift({

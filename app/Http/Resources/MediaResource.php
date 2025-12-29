@@ -52,7 +52,7 @@ class MediaResource extends JsonResource
         return [
             'filetype'            => $filetype,
             'url'                 => $this->path2url($this->path),
-            'thumbnail'           => $this->path2url($this->thumbnail),
+            'thumbnail'           => $this->thumbnail ? $this->path2url($this->thumbnail) : null,
             'extension'           => pathinfo($this->path, PATHINFO_EXTENSION),
             'alt_text'            => $this->alt_text ?? $filetype,
             'file_size_formatted' => Number::fileSize($this->file_size),

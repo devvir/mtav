@@ -95,7 +95,7 @@ class MediaSeeder extends Seeder
             $filename = $file->getFilename();
             $extension = strtolower($file->getExtension());
             $relativePath = "media/$filename";
-            $thumbnailPath = 'thumbnails/thumb-' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
+            $thumbnailPath = 'thumbnails/thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
 
             $category = $this->getCategory($extension);
 

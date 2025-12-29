@@ -11,7 +11,6 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -50,13 +49,6 @@ class LotteryOrchestrator
      */
     public function execute(): ExecutionResult
     {
-        Log::info('LotteryOrchestrator executing Lottery.', [
-            'solver'     => get_class($this->solver),
-            'lottery_id' => $this->manifest->lotteryId,
-            'project_id' => $this->manifest->projectId,
-            'manifest'   => $this->manifest,
-        ]);
-
         try {
             return $this->executeProjectLottery();
         } catch (GlpkException $e) {
@@ -103,10 +95,6 @@ class LotteryOrchestrator
     {
         $spec = new LotterySpec($data['families'], $data['units']);
 
-        Log::info('Executing group lottery', [
-            'spec' => $spec,
-        ]);
-
         $result = $this->solver->execute($this->manifest, $spec);
 
         GroupLotteryExecuted::dispatch($this->manifest, $this->solver, $result);
@@ -139,13 +127,6 @@ class LotteryOrchestrator
     protected function reportGlobalResult(ExecutionResult $result): void
     {
         ProjectLotteryExecuted::dispatch($this->manifest, $this->solver, $result);
-
-        Log::info('Lottery execution completed', [
-            'project_id'      => $this->manifest->projectId,
-            'total_picks'     => count($result->picks),
-            'orphan_families' => count($result->orphans['families']),
-            'orphan_units'    => count($result->orphans['units']),
-        ]);
     }
 
     /**
@@ -169,18 +150,9 @@ class LotteryOrchestrator
      */
     protected function reportException(Throwable $exception, string $errorType): void
     {
-        $userFacingMessage = $exception instanceof LotteryExecutionException
+        $exception instanceof LotteryExecutionException
             ? $exception->getUserMessage()
             : __('lottery.execution_failed');
-
-        Log::error('Lottery execution failed', [
-            'lottery_id'   => $this->manifest->lotteryId,
-            'project_id'   => $this->manifest->projectId,
-            'error_type'   => $errorType,
-            'user_message' => $userFacingMessage,
-            'exception'    => get_class($exception),
-            'message'      => $exception->getMessage(),
-        ]);
 
         report($exception);
     }

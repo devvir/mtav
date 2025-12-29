@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
             ...$this->transient($request),
 
             'name' => config('app.name'),
+            'env' => config('app.env'),
 
             'auth' => $this->auth($request),
 

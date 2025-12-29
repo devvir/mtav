@@ -10,7 +10,7 @@ defineProps<{
   <div class="space-y-3">
     <div class="flex items-center gap-3 p-3 border rounded-lg border-border">
       <!-- Thumbnail -->
-      <div class="flex-shrink-0">
+      <div class="shrink-0">
         <img
           :src="media.thumbnail"
           :alt="media.alt_text || media.description"

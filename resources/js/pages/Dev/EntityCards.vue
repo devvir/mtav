@@ -15,6 +15,7 @@ const props = defineProps<PageProps & {
   members: ApiResource<Member>[];
   families: ApiResource<Family>[];
   units: ApiResource<Unit>[];
+  unitTypes: ApiResource<UnitType>[];
   media: ApiResource<Media>[];
   events: ApiResource<Event>[];
   logs: ApiResource<Log>[];
@@ -34,6 +35,7 @@ const {
   members: props.members,
   families: props.families,
   units: props.units,
+  unitTypes: props.unitTypes,
   media: props.media,
   events: props.events,
   logs: props.logs,

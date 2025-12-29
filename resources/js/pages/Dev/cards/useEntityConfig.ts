@@ -5,6 +5,7 @@ import {
   FileText,
   Home,
   Image,
+  Layers,
   UserCheck,
   Users,
 } from 'lucide-vue-next';
@@ -26,6 +27,8 @@ import ProjectIndexCard from '@/components/entities/project/IndexCard.vue';
 import ProjectShowCard from '@/components/entities/project/ShowCard.vue';
 import UnitIndexCard from '@/components/entities/unit/IndexCard.vue';
 import UnitShowCard from '@/components/entities/unit/ShowCard.vue';
+import UnitTypeIndexCard from '@/components/entities/unit_type/IndexCard.vue';
+import UnitTypeShowCard from '@/components/entities/unit_type/ShowCard.vue';
 
 export interface EntityConfig {
   icon: any;
@@ -63,6 +66,13 @@ const entityConfig: Partial<Record<AppEntity, EntityConfig>> = {
     color: 'text-green-500',
     indexCard: UnitIndexCard,
     showCard: UnitShowCard,
+  },
+  unit_type: {
+    icon: Layers,
+    description: 'Unit type categories and specifications',
+    color: 'text-teal-500',
+    indexCard: UnitTypeIndexCard,
+    showCard: UnitTypeShowCard,
   },
   admin: {
     icon: UserCheck,
@@ -109,6 +119,13 @@ const entityConfig: Partial<Record<AppEntity, EntityConfig>> = {
 };
 
 /**
+ * Convert snake_case to camelCase
+ */
+const toCamelCase = (str: string): string => {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+};
+
+/**
  * Composable for entity configuration and data transformation
  */
 export const useEntityConfig = () => {
@@ -117,7 +134,11 @@ export const useEntityConfig = () => {
    */
   const getAvailableEntities = (entityData: Record<string, ApiResource[]>): EntityDisplay[] => {
     return Object.keys(entityConfig)
-      .filter(entity => entityData[entityPlural(entity as AppEntity)]?.length > 0)
+      .filter(entity => {
+        const pluralKey = entityPlural(entity as AppEntity);
+        const camelKey = toCamelCase(pluralKey);
+        return entityData[camelKey]?.length > 0;
+      })
       .map(entity => createEntityDisplay(entity as AppEntity));
   };
 
@@ -126,12 +147,13 @@ export const useEntityConfig = () => {
    */
   const createEntityDisplay = (entity: AppEntity): EntityDisplay => {
     const config = entityConfig[entity]!;
+    const pluralKey = entityPlural(entity);
 
     return {
       entity,
-      key: entityPlural(entity),
-      name: entityLabel(entity, 'plural'),
-      propName: entityPlural(entity),
+      key: pluralKey,
+      name: entityLabel(entity, 'plural').replace(/_/g, ' '),
+      propName: toCamelCase(pluralKey),
       singularPropName: entity,
       ...config,
     };

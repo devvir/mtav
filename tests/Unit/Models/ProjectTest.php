@@ -113,4 +113,54 @@ describe('Project Model', function () {
             return is_null($event->start_date) || $event->start_date > now();
         }))->toBeTrue();
     });
+
+    it('has many unit types', function () {
+        $project = Project::find(1);
+
+        expect($project->unitTypes)->toBeInstanceOf(Collection::class)
+            ->and($project->unitTypes->count())->toBe(3); // Project 1 has 3 unit types
+    });
+
+    it('has one plan', function () {
+        $project = Project::find(1);
+
+        expect($project->plan)->toBeInstanceOf(\App\Models\Plan::class)
+            ->and($project->plan->project_id)->toBe(1);
+    });
+
+    it('has one lottery event', function () {
+        $project = Project::find(1);
+
+        expect($project->lottery)->toBeInstanceOf(\App\Models\Event::class)
+            ->and($project->lottery->type->value)->toBe('lottery');
+    });
+
+    it('has many logs', function () {
+        $project = Project::find(1);
+
+        expect($project->logs)->toBeInstanceOf(Collection::class)
+            ->and($project->logs->count())->toBe(2); // Project 1 has 2 logs
+    });
+
+    it('has many audits', function () {
+        $project = Project::find(1);
+
+        expect($project->audits)->toBeInstanceOf(Collection::class);
+    });
+
+    it('has active scope that filters active projects', function () {
+        $activeProjects = Project::active()->get();
+        $inactiveCount = Project::where('active', false)->count();
+
+        // Verify we get results and none are inactive
+        expect($activeProjects->count())->toBeGreaterThan(0)
+            ->and($inactiveCount)->toBeGreaterThan(0) // Ensure fixture has inactive projects
+            ->and($activeProjects->contains(fn ($p) => $p->active === false))->toBeFalse();
+    });
+
+    it('has search scope', function () {
+        $results = Project::search('Project 1')->get();
+
+        expect($results->pluck('id'))->toContain(1);
+    });
 });
