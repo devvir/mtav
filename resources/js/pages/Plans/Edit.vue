@@ -30,6 +30,7 @@ const hasChanges = computed(() => {
 });
 
 const processing = ref(false);
+const saveError = ref(false);
 
 // Handle item moved from canvas
 const handleItemMoved = (itemId: number, newPolygon: Point[]) => {
@@ -37,6 +38,7 @@ const handleItemMoved = (itemId: number, newPolygon: Point[]) => {
     item.id === itemId ? { ...item, polygon: newPolygon } : item
   );
   saveState({ items: newItems });
+  saveError.value = false; // Clear error on any change
 };
 
 // Handle save
@@ -52,15 +54,12 @@ const saveChanges = () => {
   processing.value = true;
 
   router.patch(route('plans.update', props.plan.id), payload, {
-    onSuccess: () => {
-      // Reset history to current state
-      reset();
-      saveState({ items: currentState.value.items });
-      processing.value = false;
-    },
-    onError: () => {
-      processing.value = false;
-    },
+    onFinish: () => processing.value = false,
+    onSuccess: () => saveError.value = false, // Clear error on success
+    onError: () => saveError.value = true,    // Show error on failure
+
+    // Force full remount (history/state reset) on success
+    preserveState: (page) => Object.keys(page.props.errors || {}).length > 0,
   });
 };
 </script>
@@ -96,6 +95,11 @@ const saveChanges = () => {
               <div class="row-start-1 col-start-1 transition-opacity" :class="{ 'invisible': processing || hasChanges }">{{ _('No Changes') }}</div>
             </Button>
           </div>
+        </div>
+
+        <!-- Error message -->
+        <div v-if="saveError" class="w-full mt-4 text-right text-sm text-destructive-foreground">
+          <span class="py-2 px-3 rounded-lg bg-destructive">{{ _('An error occurred while saving. Please try again.') }}</span>
         </div>
       </div>
 

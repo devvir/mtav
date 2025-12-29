@@ -21,7 +21,7 @@ const isInProgress = computed(() => props.lottery.is_executing);
       <LotteryInProgress v-if="isInProgress" class="flex-1" />
 
       <!-- Completed with Results -->
-      <LotteryResults v-else-if="isCompleted" :families="families" />
+      <LotteryResults v-else-if="isCompleted" :families />
     </Card>
 
     <!-- Invalidate Button (Superadmin only) -->

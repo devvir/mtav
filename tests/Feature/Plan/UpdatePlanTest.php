@@ -10,7 +10,7 @@ beforeEach(function () {
     setCurrentProject(1);
 });
 
-describe('PATCH /plans/{plan} - Update Plan Polygons', function () {
+describe('Update Plan Polygons', function () {
     test('successfully updates plan and item polygons', function () {
         $plan = Plan::find(1);
         $items = $plan->items;
@@ -23,7 +23,8 @@ describe('PATCH /plans/{plan} - Update Plan Polygons', function () {
             ],
         ];
 
-        $response = $this->sendPatchRequest(['plans.update', $plan->id], $payload, asAdmin: 11);
+        $this->sendPatchRequest(['plans.update', $plan->id], $payload, asAdmin: 11, redirects: false)
+            ->assertRedirect(route('plans.edit', $plan));
 
         $plan->refresh();
         expect($plan->polygon)->toBe($payload['polygon']);
@@ -213,10 +214,10 @@ describe('PATCH /plans/{plan} - Update Plan Polygons', function () {
 
         $newPolygon = [[0, 0], [1000, 0], [1000, 800], [0, 800]];
 
-        $response = $this->sendPatchRequest(['plans.update', $plan->id], [
+        $this->sendPatchRequest(['plans.update', $plan->id], [
             'polygon' => $newPolygon,
             'items'   => [],
-        ], asAdmin: 11);
+        ], asAdmin: 11, redirects: false)->assertRedirect(route('plans.edit', $plan));
 
         $plan->refresh();
         expect($plan->polygon)->toBe($newPolygon);
@@ -241,7 +242,8 @@ describe('PATCH /plans/{plan} - Update Plan Polygons', function () {
             ],
         ];
 
-        $response = $this->sendPatchRequest(['plans.update', $plan->id], $payload, asAdmin: 11);
+        $this->sendPatchRequest(['plans.update', $plan->id], $payload, asAdmin: 11, redirects: false)
+            ->assertRedirect(route('plans.edit', $plan));
 
         $items[0]->refresh();
         expect($items[0]->polygon)->toBe($payload['items'][0]['polygon']);

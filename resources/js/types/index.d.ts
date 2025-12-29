@@ -234,6 +234,7 @@ interface Unit extends Resource {
 interface Media extends Resource {
   path: string;
   url: string;
+  thumbnail: string;
   description: string;
   alt_text: string | null;
   width: number | null;
