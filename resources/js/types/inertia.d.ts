@@ -9,7 +9,10 @@ export interface AuthUser extends User {
 
 export interface Auth {
   user: AuthUser | null;
-  verified: boolean;
+  notifications: {
+    recent: Notification[];
+    unread: number;
+  }
 }
 
 export interface FlashProps {

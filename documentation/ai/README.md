@@ -28,6 +28,9 @@
 **Lottery System**:
 - `LOTTERY.md` → Complete lottery system reference, business rules, GLPK integration
 
+**Notifications System**:
+- `NOTIFICATIONS.md` → Notification channels (private/project/global), resource lifecycle events, read tracking
+
 **Project Plans**:
 - `ProjectPlans.md` → Spatial visualization, canvas architecture, component hierarchy
 
@@ -56,6 +59,7 @@ documentation/ai/
 ├── README.md                   # 🔴 THIS FILE - Learning guide
 ├── UI.md                       # 🔴 Frontend architecture & components (READ FOR UI WORK)
 ├── LOTTERY.md                  # 🔴 Complete lottery system reference
+├── NOTIFICATIONS.md            # 🔴 Notifications backend system reference
 ├── ProjectPlans.md             # 🔴 Project plan visualization system
 ├── core/                       # 🟡 Detailed patterns
 │   ├── USER_SYSTEM.md         #     User/Member/Admin details & database schema

@@ -12,6 +12,7 @@ const type2ns: Record<AppEntity, AppEntityNS> = {
   member: 'members',
   event: 'events',
   media: 'media',
+  notification: 'notifications',
   log: 'logs',
 };
 

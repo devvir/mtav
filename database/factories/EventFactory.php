@@ -37,11 +37,11 @@ class EventFactory extends Factory
 
     public function configure()
     {
-        return $this->state(function (array $attributes) {
+        $this->state(function (array $attributes) {
             $start = $attributes['start_date'] ? Carbon::parse($attributes['start_date']) : null;
 
             return [
-                'end_date' => $start ? fake()->optional(0.5)->dateTimeBetween($start->addMinutes(5), $start->addHours(2)) : null,
+                'end_date' => $start ? fake()->optional(0.5)->dateTimeBetween($start->copy()->addMinutes(5), $start->copy()->addHours(2)) : null,
                 'location' => match ($attributes['type']) {
                     EventType::ONLINE => fake()->optional(0.6)->url(),
                     EventType::ONSITE => fake()->optional(0.6)->address(),
@@ -49,6 +49,15 @@ class EventFactory extends Factory
                 },
             ];
         });
+
+        $this->afterMaking(function ($event) {
+            // Ensure end_date is never before start_date
+            if ($event->end_date && $event->start_date && $event->end_date < $event->start_date) {
+                $event->end_date = null;
+            }
+        });
+
+        return $this;
     }
 
     /**

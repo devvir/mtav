@@ -2,12 +2,12 @@
 import IndexPage from '@/components/entities/IndexPage.vue';
 
 defineProps<{
-  logs?: ApiResources<Log>;
+  notifications?: ApiResources<Notification>;
 }>();
 </script>
 
 <template>
   <div class="mx-auto max-w-3xl">
-    <IndexPage entity="log" :resources="logs" card-size="full" />
+    <IndexPage entity="notification" :resources="notifications" card-size="full" />
   </div>
 </template>

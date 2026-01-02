@@ -44,6 +44,9 @@ return [
     'member_deleted'         => 'El Miembro fue removido del sistema.',
     'member_restored'        => '¡Perfecto! El Miembro está de vuelta.',
 
+    // Notification operations
+    'notifications_marked_read' => 'Todas las notificaciones fueron leídas.',
+
     // Plan operations
     'plan_updated' => '¡Perfecto! El Plano del Proyecto fue actualizado.',
 

@@ -8,13 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Admin extends User
 {
     /**
-     * The table associated with the model.
-     *
-     * @var string|null
-     */
-    protected $table = 'users';
-
-    /**
      * Get events created by this admin.
      */
     public function events(): HasMany

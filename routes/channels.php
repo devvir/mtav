@@ -12,8 +12,8 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
 });
 
 /**
- * Users may subscribe to their currently selected project's channel.
+ * Users may subscribe to the channel of any Project they have access to.
  */
-Broadcast::channel('App.Models.Project.{id}', function (User $user, int $id) {
-    return $user->isSuperadmin || Project::current()?->is($id);
+Broadcast::channel('App.Models.Project.{id}', function (User $_, int $id) {
+    return Project::whereId($id)->exists(); /** Uses Project Global Scope 'available' */
 });

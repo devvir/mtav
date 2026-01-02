@@ -9,6 +9,7 @@ type AppEntity =
   | 'member'
   | 'event'
   | 'media'
+  | 'notification'
   | 'log';
 
 type AppEntityNS =
@@ -20,6 +21,7 @@ type AppEntityNS =
   | 'members'
   | 'events'
   | 'media'
+  | 'notifications'
   | 'logs';
 
 type AppEntityPluralForm = Exclude<AppEntityNS, 'media'> | 'items';
@@ -287,6 +289,14 @@ interface Log extends Resource {
 
   user: { id: number | null } | null | ApiResource<User>;
   project: { id: number | null } | null | ApiResource<Project>;
+}
+
+interface Notification extends Resource {
+  id: number;
+  data: Record<string, any>;
+  target: 'private' | 'project' | 'global';
+  target_id: number | null;
+  is_read?: boolean;
 }
 
 interface ApiResource<R extends Resource = Resource> extends R {

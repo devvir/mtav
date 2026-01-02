@@ -199,14 +199,38 @@ describe('Event Model Type Helpers', function () {
 
 describe('Event Status Attribute', function () {
     it('returns upcoming for events with future start date', function () {
-        $event = Event::factory()->create(['start_date' => now()->addDay()]);
+        // Event #2: Online meeting +7 days from now
+        $event = Event::find(2);
 
         expect($event->status)->toBe('upcoming');
     });
 
     it('returns completed for events with past end date', function () {
-        $event = Event::factory()->create(['end_date' => now()->subDay()]);
+        // Event #3: Past online workshop -5 days
+        $event = Event::find(3);
 
         expect($event->status)->toBe('completed');
+    });
+
+    it('returns ongoing for events that started but not ended', function () {
+        // Use event #4 but adjust dates to make it ongoing
+        $event = Event::find(4);
+        $event->update([
+            'start_date' => now()->subHour(),
+            'end_date'   => now()->addHour(),
+        ]);
+
+        expect($event->fresh()->status)->toBe('ongoing');
+    });
+
+    it('returns completed for events with implicit duration that passed', function () {
+        // Event #1: Lottery with no end_date, adjust to be past
+        $event = Event::find(1);
+        $event->update([
+            'start_date' => now()->subHours(2),
+            'end_date'   => null, // Uses IMPLICIT_DURATION (60 minutes)
+        ]);
+
+        expect($event->fresh()->status)->toBe('completed');
     });
 });

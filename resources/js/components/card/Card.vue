@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
+import { Link } from '@inertiajs/vue3';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { HTMLAttributes } from 'vue';
 
 const props = defineProps<{
   dimmed?: boolean;
   cardLink?: string;
+  noModal?: boolean;
   class?: HTMLAttributes['class'];
   panelClasses?: HTMLAttributes['class'];
 }>();
@@ -14,7 +16,7 @@ const props = defineProps<{
 
 <template>
   <component
-    :is="cardLink ? ModalLink : 'article'"
+    :is="cardLink ? (noModal ? Link : ModalLink) : 'article'"
     :href="cardLink"
     :prefetch="cardLink ? ($attrs.prefetch ?? 'hover') : undefined"
     :title="cardLink ? ($attrs.title ?? _('Click for more information')) : undefined"

@@ -11,13 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Member extends User
 {
     /**
-     * The table associated with the model.
-     *
-     * @var string|null
-     */
-    protected $table = 'users';
-
-    /**
      * Get the project that the member is currently member of (one or none).
      */
     public function project(): BelongsToOneOrMany

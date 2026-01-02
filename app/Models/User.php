@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\DerivedRelations;
 use App\Models\Concerns\ExtendedRelations;
 use App\Models\Concerns\HasMedia;
+use App\Models\Concerns\HasNotifications;
 use App\Models\Concerns\HasPolicy;
 use App\Models\Concerns\ProjectScope;
 use App\Notifications\ResetPasswordNotification;
@@ -25,10 +26,22 @@ class User extends Authenticatable
     use ExtendedRelations;
     use HasFactory;
     use HasMedia;
+    use HasNotifications {
+        HasNotifications::notifications insteadof Notifiable;
+        HasNotifications::readNotifications insteadof Notifiable;
+        HasNotifications::unreadNotifications insteadof Notifiable;
+    }
     use HasPolicy;
     use Notifiable;
     use ProjectScope;
     use SoftDeletes;
+
+    /**
+     * The table associated with the model and its children (Member/Admin).
+     *
+     * @var string|null
+     */
+    protected $table = 'users';
 
     /** @var array<string> */
     protected $guarded = [];

@@ -71,11 +71,13 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       </div>
     </section>
 
-    <CardActions
-      v-if="actionsType"
-      :type="actionsType"
-      :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-2! basis-full' : '-mt-2']"
-      @execute="$emit('execute', $event)"
-    />
+    <slot name="actions">
+      <CardActions
+        v-if="actionsType"
+        :type="actionsType"
+        :class="['text-sm', actionsType == 'full' ? 'mt-4 -mb-2! basis-full' : '-mt-2']"
+        @execute="$emit('execute', $event)"
+      />
+    </slot>
   </header>
 </template>

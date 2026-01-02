@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
             ...$this->transient($request),
 
             'name' => config('app.name'),
-            'env' => config('app.env'),
+            'env'  => config('app.env'),
 
             'auth' => $this->auth($request),
 
@@ -58,7 +58,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
 
         if (! $user) {
-            return compact('user');
+            return ['user' => null, 'notifications' => []];
         }
 
         // Convert to the concrete logged-in type of User: Member or Admin
@@ -67,7 +67,13 @@ class HandleInertiaRequests extends Middleware
         return [
             'user' => [
                 ...$user->toResource()->withoutAbilities()->resolve(),
-                'can' => $this->policies(),
+                'can'      => $this->policies(),
+                'projects' => Project::pluck('id'),
+            ],
+
+            'notifications' => [
+                'recent' => $user->recentNotifications(),
+                'unread' => $user->unreadNotifications()->count(),
             ],
         ];
     }

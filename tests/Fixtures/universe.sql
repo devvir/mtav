@@ -641,7 +641,49 @@ INSERT INTO event_rsvp (id, event_id, user_id, status, created_at, updated_at) V
 -- Event #12 (Project 4 unpublished) - 1 RSVP
 (17, 12, 145, TRUE, NOW(), NOW()); -- Member 145 accepted
 
+-- ============================================================================
+-- NOTIFICATIONS (20 total)
+-- ============================================================================
+-- Distribution:
+-- - Private notifications (8 total): For users #102, #103, #136, #137 in projects 1 & 2
+-- - Project notifications (10 total): 5 for Project #1, 5 for Project #2
+-- - Global notifications (2 total): Visible to multi-project admins
+--
+-- Data structure: {"title": "...", "message": "...", "action": "..."}
+-- ============================================================================
 
+TRUNCATE TABLE notifications;
+
+INSERT INTO notifications (id, target, target_id, type, data, triggered_by, created_at, updated_at) VALUES
+-- Private notifications for Project #1 users
+(1, 'private', 102, 'registration_confirmed', '{"resource": "user", "resource_id": 102, "title": "Welcome to Project 1", "message": "Your registration is complete", "action": null}', 11, DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(2, 'private', 102, 'unit_assigned', '{"resource": "unit", "resource_id": 1, "title": "Unit Assigned", "message": "Unit 1 has been assigned to your family", "action": "/units/1"}', 11, DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY)),
+(3, 'private', 103, 'event_reminder', '{"resource": "event", "resource_id": 4, "title": "Event Reminder", "message": "Site Visit starts tomorrow", "action": "/events/4"}', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 'private', 103, 'resource_created', '{"resource": "event", "resource_id": 4, "title": "Admin 11 published a new Event", "message": "Event: Site Visit", "action": "/events/4"}', 11, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+-- Private notifications for Project #2 users
+(5, 'private', 136, 'registration_confirmed', '{"resource": "user", "resource_id": 136, "title": "Welcome to Project 2", "message": "Your registration is complete", "action": null}', 12, DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 12 DAY)),
+(6, 'private', 136, 'resource_created', '{"resource": "media", "resource_id": 5, "title": "Admin 12 uploaded a new file", "message": "File Building Permits was uploaded", "action": "/media/5"}', 12, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)),
+(7, 'private', 137, 'rsvp_confirmed', '{"resource": "event", "resource_id": 8, "title": "RSVP Confirmed", "message": "Member 136 confirmed attendance to Groundbreaking Ceremony", "action": "/events/8"}', 136, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(8, 'private', 137, 'resource_updated', '{"resource": "event", "resource_id": 8, "title": "Admin 12 updated an Event", "message": "Event Groundbreaking Ceremony was modified", "action": "/events/8"}', 12, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+
+-- Project #1 notifications
+(9, 'project', 1, 'construction_update', '{"title": "Construction Progress Update", "message": "Monthly construction report is now available", "action": "/projects/1/reports"}', 11, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY)),
+(10, 'project', 1, 'resource_created', '{"resource": "event", "resource_id": 4, "title": "Admin 11 published a new Event", "message": "Event: Site Visit", "action": "/events/4"}', 11, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)),
+(11, 'project', 1, 'lottery_completed', '{"resource": "event", "resource_id": 1, "title": "Lottery Completed", "message": "Unit assignments have been finalized", "action": "/events/1"}', 11, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(12, 'project', 1, 'resource_created', '{"resource": "media", "resource_id": 3, "title": "Admin 11 uploaded a new file", "message": "File Building Permits was uploaded", "action": "/media/3"}', 11, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(13, 'project', 1, 'resource_deleted', '{"resource": "event", "resource_id": 5, "title": "Admin 11 cancelled an Event", "message": "Event Old Workshop was cancelled", "action": "/events/5"}', 11, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+
+-- Project #2 notifications
+(14, 'project', 2, 'milestone_reached', '{"title": "Construction Milestone", "message": "50% construction completed", "action": "/projects/2"}', 12, DATE_SUB(NOW(), INTERVAL 9 DAY), DATE_SUB(NOW(), INTERVAL 9 DAY)),
+(15, 'project', 2, 'resource_created', '{"resource": "family", "resource_id": 13, "title": "Admin 12 added a new Family", "message": "Family 13 joined the project", "action": "/families/13"}', 12, DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY)),
+(16, 'project', 2, 'resource_created', '{"resource": "media", "resource_id": 7, "title": "Admin 12 uploaded a new file", "message": "Meeting Minutes - November uploaded", "action": "/media/7"}', 12, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)),
+(17, 'project', 2, 'construction_update', '{"title": "Construction Update", "message": "Foundation work completed, starting vertical construction", "action": "/projects/2/reports"}', 12, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(18, 'project', 2, 'event_reminder', '{"resource": "event", "resource_id": 8, "title": "Event Reminder", "message": "Groundbreaking Ceremony starts this weekend", "action": "/events/8"}', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+
+-- Global notifications (for multi-project admins)
+(19, 'global', NULL, 'system_announcement', '{"title": "Platform Update", "message": "New features released: Notification system", "action": "/changelog"}', 1, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(20, 'global', NULL, 'system_maintenance', '{"title": "System Maintenance", "message": "Scheduled maintenance on Jan 15th", "action": null}', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 
 

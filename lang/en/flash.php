@@ -43,6 +43,9 @@ return [
     'member_deleted'         => 'The Member has been removed from the system.',
     'member_restored'        => 'Perfect! The Member is back.',
 
+    // Notification operations
+    'notifications_marked_read' => 'All notifications are now read.',
+
     // Plan operations
     'plan_updated' => 'Perfect! Your Plan was updated.',
 

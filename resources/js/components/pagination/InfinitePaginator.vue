@@ -25,7 +25,7 @@ const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') 
 </script>
 
 <template>
-  <section v-if="resourcesList.length">
+  <section v-if="resourcesList.length" class="w-full">
     <TransitionGroup name="fade" tag="ul" :appear="!! resources"
       class="grid list-none place-items-stretch sm:auto-rows-auto"
       :class="cardSize === 'full'

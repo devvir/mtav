@@ -4,6 +4,8 @@ use App\Models\Admin;
 use App\Models\Member;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 describe('User Model', function () {
     it('can be converted to a Member when is_admin is false', function () {
@@ -79,7 +81,42 @@ describe('User Model', function () {
     it('has many media through media relation', function () {
         $user = User::find(102);
 
-        expect($user->media())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+        expect($user->media())->toBeInstanceOf(HasMany::class);
+    });
+
+    it('has notifications through HasNotifications trait', function () {
+        $user = User::find(102);
+
+        $notifications = $user->notifications()->get();
+
+        expect($notifications)->toBeInstanceOf(Collection::class)
+            ->and($notifications->count())->toBe(7); // User 102 has 2 private + 5 from project #1
+    });
+
+    it('has privateNotifications through HasNotifications trait', function () {
+        $user = User::find(102);
+
+        $privateNotifications = $user->privateNotifications()->get();
+
+        expect($privateNotifications)->toBeInstanceOf(Collection::class)
+            ->and($privateNotifications->count())->toBe(2); // User 102 has 2 private notifications
+    });
+
+    it('has read notifications for authenticated user', function () {
+        $user = User::find(102);
+        $notification = $user->notifications()->first();
+
+        // Mark one notification as read
+        $notification->markAsReadBy($user);
+
+        expect($user->readNotifications()->count())->toBe(1);
+    });
+
+    it('has unread notifications for authenticated user', function () {
+        $user = User::find(102);
+
+        // All notifications should be unread initially
+        expect($user->unreadNotifications()->count())->toBe(7); // 2 private + 5 project
     });
 
     it('has alphabetically scope', function () {
