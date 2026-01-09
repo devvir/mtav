@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\NotificationReadController;
 use App\Http\Controllers\Resources\AdminController;
 use App\Http\Controllers\Resources\FamilyController;
 use App\Http\Controllers\Resources\LogController;
 use App\Http\Controllers\Resources\MemberController;
 use App\Http\Controllers\Resources\NotificationController;
-use App\Http\Controllers\NotificationReadController;
 use App\Http\Controllers\Resources\ProjectController;
 use App\Http\Middleware\Auth\MustBeSuperAdmin;
 use Illuminate\Support\Facades\Route;

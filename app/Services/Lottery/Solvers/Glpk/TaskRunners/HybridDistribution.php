@@ -49,6 +49,8 @@ class HybridDistribution extends TaskRunner
     {
         $distributionRunner = app(TaskRunnerFactory::class)->make(Task::UNIT_DISTRIBUTION);
 
+        $taskResults = [];
+
         while ($generator->valid()) {
             try {
                 $taskResults[] = $distributionRunner->execute($spec, $timeout, [

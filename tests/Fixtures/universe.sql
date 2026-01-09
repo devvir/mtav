@@ -656,10 +656,10 @@ TRUNCATE TABLE notifications;
 
 INSERT INTO notifications (id, target, target_id, type, data, triggered_by, created_at, updated_at) VALUES
 -- Private notifications for Project #1 users
-(1, 'private', 102, 'registration_confirmed', '{"resource": "user", "resource_id": 102, "title": "Welcome to Project 1", "message": "Your registration is complete", "action": null}', 11, DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY)),
-(2, 'private', 102, 'unit_assigned', '{"resource": "unit", "resource_id": 1, "title": "Unit Assigned", "message": "Unit 1 has been assigned to your family", "action": "/units/1"}', 11, DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY)),
-(3, 'private', 103, 'event_reminder', '{"resource": "event", "resource_id": 4, "title": "Event Reminder", "message": "Site Visit starts tomorrow", "action": "/events/4"}', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
-(4, 'private', 103, 'resource_created', '{"resource": "event", "resource_id": 4, "title": "Admin 11 published a new Event", "message": "Event: Site Visit", "action": "/events/4"}', 11, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(1, 'private', 102, 'registration_confirmed', '{"resource": "user", "resource_id": 102, "title": "Welcome to Project 1", "message": "Your registration is complete", "action": null}', 11, DATE_ADD(NOW(), INTERVAL 1 SECOND), DATE_ADD(NOW(), INTERVAL 1 SECOND)),
+(2, 'private', 102, 'unit_assigned', '{"resource": "unit", "resource_id": 1, "title": "Unit Assigned", "message": "Unit 1 has been assigned to your family", "action": "/units/1"}', 11, DATE_ADD(NOW(), INTERVAL 2 SECOND), DATE_ADD(NOW(), INTERVAL 2 SECOND)),
+(3, 'private', 103, 'event_reminder', '{"resource": "event", "resource_id": 4, "title": "Event Reminder", "message": "Site Visit starts tomorrow", "action": "/events/4"}', NULL, DATE_ADD(NOW(), INTERVAL 3 SECOND), DATE_ADD(NOW(), INTERVAL 3 SECOND)),
+(4, 'private', 103, 'resource_created', '{"resource": "event", "resource_id": 4, "title": "Admin 11 published a new Event", "message": "Event: Site Visit", "action": "/events/4"}', 11, DATE_ADD(NOW(), INTERVAL 4 SECOND), DATE_ADD(NOW(), INTERVAL 4 SECOND)),
 
 -- Private notifications for Project #2 users
 (5, 'private', 136, 'registration_confirmed', '{"resource": "user", "resource_id": 136, "title": "Welcome to Project 2", "message": "Your registration is complete", "action": null}', 12, DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 12 DAY)),

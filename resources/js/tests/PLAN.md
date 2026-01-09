@@ -19,6 +19,50 @@
 
 ---
 
+## Frontend Architecture Summary
+
+### Components & Composables Overview
+
+**Total Components**: 225 (excluding third-party `components/ui/`)
+**Total Composables**: 10 (standalone in `composables/`)
+**Total Modules**: 17 modules (coherent groupings with shared parent folders)
+
+### Components by Module
+
+- **card** module: 20 components / 0 composables
+- **layout** module: 29 components / 0 composables
+- **entities** module: 44 components / 2 composables (`useEventBadges.ts`, `useMedia.ts`)
+- **lottery** module: 16 components / 1 composable (`useLotteryAudits.ts`)
+- **forms** module: 10 components / 0 composables
+- **dropdown** module: 5 components / 0 composables
+- **filtering** module: 4 components / 0 composables
+- **alert** module: 3 components / 0 composables
+- **badge** module: 3 components / 0 composables
+- **flash** module: 3 components / 1 composable (`useFlashMessages.ts`)
+- **plans** module: 7 components / 0 composables
+- **pagination** module: 2 components / 0 composables
+- **avatar** module: 2 components / 0 composables
+- **dashboard** module: 2 components / 0 composables
+- **shared** module: 2 components / 0 composables
+- **switches** module: 2 components / 0 composables
+- **spatial** module: 1 component / 0 composables
+- **Root level**: 16 components / 0 composables
+
+### Standalone Composables
+
+1. `useAuth.ts` - Authentication state and context
+2. `useCsrfToken.ts` - CSRF token management
+3. `useDates.ts` - Date formatting and manipulation
+4. `useDragAndDrop.ts` - Drag and drop functionality
+5. `useInertiaUIModal.ts` - Inertia-based modal handling
+6. `useInitials.ts` - Initials generation from names
+7. `useLocalState.ts` - Session-only state management
+8. `useResources.ts` - Resource management and API calls
+9. `useRoute.ts` - Route/navigation helpers
+10. `useTranslations.ts` - i18n translation handling
+
+---
+
 ## Test Organization Structure
 
 ### Hierarchy

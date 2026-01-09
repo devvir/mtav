@@ -34,7 +34,6 @@ class Defaults
         $minX = min($xs);
         $minY = min($ys);
         $maxX = max($xs);
-        $maxY = max($ys);
 
         $boundaryWidth = $maxX - $minX;
 

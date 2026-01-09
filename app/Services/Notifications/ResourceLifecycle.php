@@ -24,7 +24,6 @@ use Illuminate\Support\Str;
  */
 class ResourceLifecycle
 {
-    /** @var array<class-string<Model>>  */
     protected const HANDLED_RESOURCES = [
         Event::class,
         Family::class,

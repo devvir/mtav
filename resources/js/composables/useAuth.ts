@@ -6,6 +6,7 @@ export const auth = computed<Auth>(() => page.props.auth);
 export const currentUser = computed<Admin | Member>(() =>
   iAmAdmin ? (auth.value.user as AuthUser & Admin) : (auth.value.user as AuthUser & Member),
 );
+export const projects = computed<Project[]>(() => currentUser.value?.projects || []);
 export const notifications = computed<Notification[]>(() => auth.value.notifications);
 
 export const iAmMember = computed<boolean>(() => auth.value.user?.is_admin === false);

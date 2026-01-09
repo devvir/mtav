@@ -4,6 +4,30 @@ import BreadcrumbsContainer from '@/components/layout/header/BreadcrumbsContaine
 import { SidebarTrigger } from '@/components/layout/sidebar';
 import Notifications from '@/components/Notifications.vue';
 import QuickActions from '@/components/QuickActions.vue';
+import { useBroadcasting } from '@/composables/useBroadcasting';
+
+// TEMPORARY: Test broadcasting system
+const { onMessage, onPrivateMessage, onProjectMessage, onAnyMessage } = useBroadcasting();
+
+// Listen for navigation messages
+onMessage('user.navigation', (message) => {
+  console.log('[AppSidebarHeader] Navigation message received:', message);
+});
+
+// Listen for any private channel message
+onPrivateMessage((message) => {
+  console.log('[AppSidebarHeader] Private channel message:', message);
+});
+
+// Listen for project messages
+onProjectMessage((message, projectId) => {
+  console.log('[AppSidebarHeader] Project message:', message, 'Project ID:', projectId);
+});
+
+// Listen to everything
+onAnyMessage((message) => {
+  console.log('[AppSidebarHeader] ANY message received:', message);
+});
 </script>
 
 <template>

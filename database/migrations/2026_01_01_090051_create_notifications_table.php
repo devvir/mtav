@@ -16,6 +16,8 @@ return new class () extends Migration {
             $table->json('data');
             $table->foreignIdFor(User::class, 'triggered_by')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
+
+            $table->index(['created_at']);
         });
 
         Schema::create('notification_read', function (Blueprint $table) {

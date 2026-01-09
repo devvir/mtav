@@ -7,6 +7,7 @@ use App\Enums\NotificationType;
 use App\Services\Notifications\NotificationCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Auth;
 
 class Notification extends Model
 {
@@ -143,13 +144,26 @@ class Notification extends Model
     }
 
     /**
-     * Set default query order as most recent first.
+     * Set default sorting and filtering.
      */
     protected static function booted(): void
     {
+        /**
+         * Load Notifications in reverse order by default.
+         */
         static::addGlobalScope(
             'recentFirst',
             fn (Builder $query) => $query->orderBy('id', 'desc')
         );
+
+        /**
+         * Only include Notifications created after the User was invited to MTAV.
+         */
+        if (Auth::check()) {
+            static::addGlobalScope(
+                'sinceRegistration',
+                fn (Builder $query) => $query->where('created_at', '>', Auth::user()->created_at)
+            );
+        }
     }
 }

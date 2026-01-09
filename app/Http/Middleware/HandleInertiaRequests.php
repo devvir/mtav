@@ -67,8 +67,8 @@ class HandleInertiaRequests extends Middleware
         return [
             'user' => [
                 ...$user->toResource()->withoutAbilities()->resolve(),
+                'projects' => Project::all(),
                 'can'      => $this->policies(),
-                'projects' => Project::pluck('id'),
             ],
 
             'notifications' => [

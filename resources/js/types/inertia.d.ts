@@ -1,6 +1,7 @@
 import '@inertiajs/core';
 
 export interface AuthUser extends User {
+  projects: ApiResource<Project>[];
   can: {
     viewAny: Record<AppEntityNS, boolean>;
     create: Record<AppEntityNS, boolean>;
@@ -9,6 +10,7 @@ export interface AuthUser extends User {
 
 export interface Auth {
   user: AuthUser | null;
+  projects?: ApiResource<Project>[];
   notifications: {
     recent: Notification[];
     unread: number;

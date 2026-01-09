@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BroadcastNavigationTest;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HandleInvitedUsers;
 use App\Http\Middleware\HandleSelectedProject;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleSelectedProject::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,
+            BroadcastNavigationTest::class, // TEMPORARY TEST - Remove after testing
         ]);
 
         $middleware->api(append: [ 'web' ]);

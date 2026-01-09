@@ -5,15 +5,26 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 /**
- * Users may subscribe to their own private channel.
+ * Users with more than one Project may subscribe to the global channel.
  */
-Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
-    return $user->id === $id;
+Broadcast::channel('global', function (User $user) {
+    return $user->asAdmin()?->projects()->count() > 1;
 });
 
 /**
  * Users may subscribe to the channel of any Project they have access to.
+ * This is a presence channel, so it returns user data.
  */
-Broadcast::channel('App.Models.Project.{id}', function (User $_, int $id) {
-    return Project::whereId($id)->exists(); /** Uses Project Global Scope 'available' */
+Broadcast::channel('projects.{project}', function (User $user, Project $_) {
+    return [
+        'id' => $user->id,
+        'name' => $user->fullname,
+    ];
+});
+
+/**
+ * Users may subscribe to their own private channel.
+ */
+Broadcast::channel('private.{user}', function (User $authUser, User $user) {
+    return $user->is($authUser);
 });

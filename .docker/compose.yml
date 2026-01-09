@@ -107,6 +107,34 @@ services:
     profiles:
       - dev
 
+  # Reverb WebSocket server
+  reverb:
+    build:
+      context: ..
+      dockerfile: .docker/php/Dockerfile
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "${DOCKER_REVERB_PORT:-8080}:8080"
+    volumes:
+      - ..:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - DB_HOST=${DB_HOST:-mysql}
+      - APP_ENV=${APP_ENV:-local}
+      - REVERB_APP_ID=${REVERB_APP_ID}
+      - REVERB_APP_KEY=${REVERB_APP_KEY}
+      - REVERB_APP_SECRET=${REVERB_APP_SECRET}
+      - REVERB_HOST=${REVERB_HOST}
+      - REVERB_PORT=${REVERB_PORT}
+      - REVERB_SCHEME=${REVERB_SCHEME}
+    profiles:
+      - dev
+      - testing
+
   # Playwright server for browser testing
   playwright:
     image: mcr.microsoft.com/playwright:v1.57.0-noble

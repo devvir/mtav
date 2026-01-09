@@ -19,7 +19,7 @@ class NotificationPolicy
      */
     public function view(User $user, Notification $notification): bool
     {
-        return match($notification->target) {
+        return match ($notification->target) {
             /** Private User channel: only available to the receipient */
             NotificationTarget::PRIVATE => $notification->target_id === $user->id,
 
@@ -42,7 +42,7 @@ class NotificationPolicy
     /**
      * Notifications cannot be updated.
      */
-    public function update(User $user, Notification $notification): bool
+    public function update(User $user): bool
     {
         return false;
     }
@@ -50,7 +50,7 @@ class NotificationPolicy
     /**
      * Notifications cannot be deleted manually.
      */
-    public function delete(User $user, Notification $notification): bool
+    public function delete(User $user): bool
     {
         return false;
     }
@@ -58,7 +58,7 @@ class NotificationPolicy
     /**
      * Notifications cannot be restored.
      */
-    public function restore(User $user, Notification $notification): bool
+    public function restore(User $user): bool
     {
         return false;
     }
