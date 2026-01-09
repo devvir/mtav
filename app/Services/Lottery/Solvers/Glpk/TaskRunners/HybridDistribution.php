@@ -17,7 +17,7 @@ class HybridDistribution extends TaskRunner
     /**
      * Execute hybrid distribution task (phase1 binary search + phase2 glpk).
      */
-    public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult
+    public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         // Sum of step timeouts tends to $timeout * 2 (worst case, highly unlikely).
         $iterations = (int) ceil(log($spec->familyCount(), 2)) + 1;
@@ -53,16 +53,17 @@ class HybridDistribution extends TaskRunner
 
         while ($generator->valid()) {
             try {
-                $taskResults[] = $distributionRunner->execute($spec, $timeout, [
-                    'min_satisfaction' => $generator->current(),
-                ]);
+                $taskResults[] = $distributionRunner
+                    ->withContext([ 'min_satisfaction' => $generator->current() ])
+                    ->execute($spec, $timeout);
+
                 $generator->send(FeasibilityResult::FEASIBLE);
             } catch (GlpkInfeasibleException) {
                 $generator->send(FeasibilityResult::INFEASIBLE);
             }
         }
 
-        return $taskResults ?? [];
+        return $taskResults;
     }
 
     /**

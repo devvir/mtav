@@ -6,7 +6,6 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\TaskRunners\UnitDistribution;
 
-
 uses()->group('Unit.Lottery.Glpk');
 
 beforeEach(function () {
@@ -26,7 +25,9 @@ describe('UnitDistribution', function () {
         $timeout = 10;
 
         $runner = app(UnitDistribution::class);
-        $result = $runner->execute($spec, $timeout, ['min_satisfaction' => 2]);
+        $result = $runner
+            ->withContext(['min_satisfaction' => 2])
+            ->execute($spec, $timeout);
 
         // Check TaskResult structure
         expect($result->task)->toBe(Task::UNIT_DISTRIBUTION);
@@ -55,7 +56,7 @@ describe('UnitDistribution', function () {
 
         $runner = app(UnitDistribution::class);
 
-        expect(fn () => $runner->execute($spec, $timeout, []))
+        expect(fn () => $runner->execute($spec, $timeout))
             ->toThrow(InvalidArgumentException::class, 'UnitDistribution requires min_satisfaction in context');
     });
 
@@ -68,7 +69,7 @@ describe('UnitDistribution', function () {
 
         $runner = app(UnitDistribution::class);
 
-        expect(fn () => $runner->execute($spec, $timeout, ['min_satisfaction' => null]))
+        expect(fn () => $runner->execute($spec, $timeout))
             ->toThrow(InvalidArgumentException::class, 'UnitDistribution requires min_satisfaction in context');
     });
 
@@ -85,7 +86,9 @@ describe('UnitDistribution', function () {
         $timeout = 10;
 
         $runner = app(UnitDistribution::class);
-        $result = $runner->execute($spec, $timeout, ['min_satisfaction' => 2]);
+        $result = $runner
+            ->withContext(['min_satisfaction' => 2])
+            ->execute($spec, $timeout);
 
         $distribution = $result->get('distribution');
 
@@ -108,7 +111,9 @@ describe('UnitDistribution', function () {
         $timeout = 5;
 
         $runner = app(UnitDistribution::class);
-        $result = $runner->execute($spec, $timeout, ['min_satisfaction' => 1]);
+        $result = $runner
+            ->withContext(['min_satisfaction' => 1])
+            ->execute($spec, $timeout);
 
         $metadata = $result->metadata;
 
@@ -140,15 +145,21 @@ describe('UnitDistribution', function () {
         $runner = app(UnitDistribution::class);
 
         // Test with S=1 (strict)
-        $result1 = $runner->execute($spec, $timeout, ['min_satisfaction' => 1]);
+        $result1 = $runner
+            ->withContext(['min_satisfaction' => 1])
+            ->execute($spec, $timeout);
         expect($result1->get('distribution'))->toHaveCount(3);
 
         // Test with S=2 (relaxed)
-        $result2 = $runner->execute($spec, $timeout, ['min_satisfaction' => 2]);
+        $result2 = $runner
+            ->withContext(['min_satisfaction' => 2])
+            ->execute($spec, $timeout);
         expect($result2->get('distribution'))->toHaveCount(3);
 
         // Test with S=3 (very relaxed)
-        $result3 = $runner->execute($spec, $timeout, ['min_satisfaction' => 3]);
+        $result3 = $runner
+            ->withContext(['min_satisfaction' => 3])
+            ->execute($spec, $timeout);
         expect($result3->get('distribution'))->toHaveCount(3);
     });
 });

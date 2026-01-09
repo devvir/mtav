@@ -18,9 +18,9 @@ class UnitDistribution extends TaskRunner
      *
      * @param  array  $context  Must contain 'min_satisfaction' key
      */
-    public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult
+    public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
-        $minSatisfaction = $context['min_satisfaction'] ?? null;
+        $minSatisfaction = $this->context['min_satisfaction'] ?? null;
 
         if ($minSatisfaction === null) {
             throw new InvalidArgumentException('UnitDistribution requires min_satisfaction in context');

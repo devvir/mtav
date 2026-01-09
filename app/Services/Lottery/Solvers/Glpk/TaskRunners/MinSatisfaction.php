@@ -19,7 +19,7 @@ class MinSatisfaction extends TaskRunner
      * Returns optimal S or throws GlpkTimeoutException.
      * On timeout, caller should use binarySearchGenerator() for fallback.
      */
-    public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult
+    public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         $startTime = microtime(true);
         $minSatisfaction = $this->findMinSatisfactionWithGlpk($spec, $timeout);

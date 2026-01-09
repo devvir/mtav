@@ -15,7 +15,7 @@ class WorstUnitsPruning extends TaskRunner
      *
      * Identifies which units should be discarded to balance the lottery.
      */
-    public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult
+    public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         $startTime = microtime(true);
 

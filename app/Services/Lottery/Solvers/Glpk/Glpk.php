@@ -69,10 +69,11 @@ class Glpk
      */
     protected function glpkDistribution(LotteryManifest $manifest, LotterySpec $spec): array
     {
-        $runner = $this->taskRunnerFactory->make(Task::GLPK_DISTRIBUTION);
-        $result = $runner->execute($spec, $this->timeout, [
-            'phase1_timeout' => $this->phase1Timeout,
-        ]);
+        $runner = $this->taskRunnerFactory
+            ->make(Task::GLPK_DISTRIBUTION)
+            ->withContext([ 'phase1_timeout' => $this->phase1Timeout ]);
+
+        $result = $runner->execute($spec, $this->timeout);
 
         $this->auditTask($manifest, $result, 'success');
 

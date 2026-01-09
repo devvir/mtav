@@ -8,10 +8,10 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataGenerator;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
-use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
-use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 use App\Services\Lottery\Solvers\Glpk\lib\Files;
 use App\Services\Lottery\Solvers\Glpk\lib\Process;
+use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
+use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 use Closure;
 
 abstract class TaskRunner
@@ -20,6 +20,7 @@ abstract class TaskRunner
 
     protected string $glpsolPath;
     protected Files $files;
+    protected $context = [];
 
     public function __construct(
         protected ModelGenerator $modelGenerator,
@@ -27,8 +28,21 @@ abstract class TaskRunner
         protected SolutionParser $solutionParser,
     ) {
         $config = config('lottery.solvers.glpk.config');
+
         $this->glpsolPath = $config['glpsol_path'] ?? '/usr/bin/glpsol';
         $this->files = new Files($config['temp_dir'] ?? sys_get_temp_dir());
+    }
+
+    /**
+     * Set additional context for the task runner.
+     *
+     * @param array<string, mixed>  $context
+     */
+    public function withContext(array $context): self
+    {
+        $this->context = $context;
+
+        return $this;
     }
 
     /**
@@ -36,7 +50,7 @@ abstract class TaskRunner
      *
      * @param  array  $context  Additional context data required by specific task runners
      */
-    abstract public function execute(LotterySpec $spec, float $timeout, array $context = []): TaskResult;
+    abstract public function execute(LotterySpec $spec, float $timeout): TaskResult;
 
     /**
      * Run GLPK solver on model and data files.
