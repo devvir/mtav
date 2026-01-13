@@ -20,6 +20,7 @@ const quickActions: QuickAction[] = [
     route: 'members.create',
     text: iAmAdmin.value ? 'New Member' : 'New Family Member',
   },
+  { if: can.create('units'), route: 'units.create', text: 'New Unit' },
   { if: can.create('events'), route: 'events.create', text: 'New Event' },
   { if: can.create('media'), route: 'media.create', text: 'Upload Multimedia' },
   { if: can.create('media'), route: 'documents.create', text: 'Upload Documents' },
