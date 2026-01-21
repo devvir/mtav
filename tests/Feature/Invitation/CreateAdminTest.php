@@ -12,11 +12,11 @@
  * - Malicious data rejection
  */
 
-use App\Notifications\AdminInvitationNotification;
-use Illuminate\Support\Facades\Notification;
 use App\Models\Admin;
 use App\Models\User;
+use App\Notifications\AdminInvitationNotification;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 uses()->group('Feature.Invitation');
 
@@ -225,8 +225,11 @@ describe('Upon a successful Admin invitation', function () {
         ]);
 
         Notification::assertSentTo(
-            Admin::where('email', 'adminemail@example.com')->first(),
+            Admin::firstWhere('email', 'adminemail@example.com'),
             AdminInvitationNotification::class
         );
+
+        /** Clean up */
+        User::whereEmail('adminemail@example.com')->forceDelete();
     });
 });

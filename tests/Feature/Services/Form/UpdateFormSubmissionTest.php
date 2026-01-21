@@ -9,7 +9,7 @@ use App\Models\Member;
 use App\Models\Unit;
 use App\Models\UnitType;
 
-uses()->group('Feature.FormService.Submission');
+uses()->group('Feature.Services.Form.Submission');
 
 describe('Update Form Submissions', function () {
     it('accepts update with no changes for :entity', function (string $entity, int $entityId, string $editRoute, string $updateRoute) {

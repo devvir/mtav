@@ -4,7 +4,7 @@
 
 use App\Services\Form\FormType;
 
-uses()->group('Feature.FormService');
+uses()->group('Feature.Services.Form');
 
 describe('AdminController::create()', function () {
     it('returns correct Inertia form response', function () {

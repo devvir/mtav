@@ -10,11 +10,11 @@
  * - Malicious data rejection
  */
 
-use App\Notifications\MemberInvitationNotification;
-use Illuminate\Support\Facades\Notification;
 use App\Models\Member;
 use App\Models\User;
+use App\Notifications\MemberInvitationNotification;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 uses()->group('Feature.Invitation');
 
@@ -198,8 +198,11 @@ describe('Upon a successful Member invitation', function () {
         ]);
 
         Notification::assertSentTo(
-            Member::where('email', 'newmember@example.com')->first(),
+            Member::firstWhere('email', 'newmember@example.com'),
             MemberInvitationNotification::class
         );
+
+        /** Clean up */
+        User::whereEmail('newmember@example.com')->forceDelete();
     });
 });

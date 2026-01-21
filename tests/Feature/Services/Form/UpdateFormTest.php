@@ -2,9 +2,10 @@
 
 // Copilot - Pending review
 
+use App\Models\Event;
 use App\Services\Form\FormType;
 
-uses()->group('Feature.FormService');
+uses()->group('Feature.Services.Form');
 
 describe('AdminController::edit()', function () {
     it('returns correct Inertia form response structure', function () {
@@ -274,7 +275,7 @@ describe('UnitTypeController::edit()', function () {
 
 describe('EventController::edit()', function () {
     it('returns correct Inertia form response for regular event', function () {
-        $event = \App\Models\Event::find(2);
+        $event = Event::find(2);
         $response = $this->visitRoute(['events.edit', 2], asAdmin: 11);
 
         assertFormGeneration($response, FormType::UPDATE, 'event', entityId: 2, specs: [
@@ -355,7 +356,7 @@ describe('EventController::edit()', function () {
     });
 
     it('returns correct Inertia form response for lottery event', function () {
-        $event = \App\Models\Event::find(1);
+        $event = Event::find(1);
         $response = $this->visitRoute(['events.edit', 1], asAdmin: 11);
 
         assertFormGeneration($response, FormType::UPDATE, 'event', entityId: 1, specs: [

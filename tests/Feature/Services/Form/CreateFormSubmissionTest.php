@@ -9,7 +9,7 @@ use App\Models\Member;
 use App\Models\Unit;
 use App\Models\UnitType;
 
-uses()->group('Feature.FormService.Submission');
+uses()->group('Feature.Services.Form.Submission');
 
 describe('Create Form Submissions', function () {
     it('rejects empty submission for :entity', function (string $entity, string $createRoute) {

@@ -7,9 +7,6 @@ namespace App\Services\Form\Lib;
 use InvalidArgumentException;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
-use Illuminate\Validation\Rules\Exists;
-use Illuminate\Validation\Rules\In;
-use Illuminate\Validation\Rules\Unique;
 use JsonSerializable;
 use ReflectionClass;
 use Stringable;
@@ -86,11 +83,8 @@ class Rule implements JsonSerializable
     {
         match (true) {
             is_string($rule)                => $this->parseStringRule($rule),
-            $rule instanceof Stringable     => $this->parseStringRule((string) $rule),
-            $rule instanceof Exists         => $this->parseExistsRule($rule),
-            $rule instanceof Unique         => $this->parseUniqueRule($rule),
-            $rule instanceof In             => $this->parseInRule($rule),
             $rule instanceof Enum           => $this->parseEnumRule($rule),
+            $rule instanceof Stringable     => $this->parseStringRule((string) $rule),
             $rule instanceof ValidationRule => $this->parseCustomRule($rule),
             default                         => throw new InvalidArgumentException("Unsupported rule: " . get_debug_type($rule)),
         };
@@ -124,71 +118,30 @@ class Rule implements JsonSerializable
                 $this->parseNumeric($parameters[1]),
             ],
             'size'   => $this->parsed['size'] = $this->parseNumeric($parameters[0]),
-            'in'     => $this->parsed['in'] = array_combine($parameters, $parameters),
-            'exists' => $this->parsed['exists'] = $this->parseExistsParameters($parameters),
-            'unique' => $this->parsed['unique'] = $this->parseUniqueParameters($parameters),
+            'exists' => $this->parsed['exists'] = $this->tableToModelClass($parameters[0]),
+            'unique' => $this->parsed['unique'] = $this->tableToModelClass($parameters[0]),
+            'in'     => $this->parsed['in'] = $this->parseInParameters($parameters),
             default  => null, // Ignore other string rules
         };
     }
 
-    protected function parseExistsRule(Exists $rule): void
-    {
-        $reflection = new ReflectionClass($rule);
-        $property = $reflection->getProperty('table');
-        $table = $property->getValue($rule);
-
-        $this->parsed['exists'] = $this->tableToModelClass($table);
-    }
-
-    protected function parseUniqueRule(Unique $rule): void
-    {
-        $reflection = new ReflectionClass($rule);
-        $property = $reflection->getProperty('table');
-        $table = $property->getValue($rule);
-
-        $this->parsed['unique'] = $this->tableToModelClass($table);
-    }
-
-    protected function parseInRule(In $rule): void
-    {
-        $reflection = new ReflectionClass($rule);
-        $property = $reflection->getProperty('values');
-        $values = $property->getValue($rule);
-
-        $values = is_array($values) ? $values : [$values];
-        $this->parsed['in'] = array_combine($values, $values);
-    }
-
+    /**
+     * Treat Enum rules as 'in' rules (with custom labels, if the Enum implements @label()).
+     */
     protected function parseEnumRule(Enum $rule): void
     {
+        $this->parseStringRule((string) $rule);
+
         $reflection = new ReflectionClass($rule);
-        $property = $reflection->getProperty('type');
-        $enumClass = $property->getValue($rule);
+        $enumClass = $reflection->getProperty('type')->getValue($rule);
 
-        // Extract only and except constraints
-        $onlyProperty = $reflection->getProperty('only');
-        $only = $onlyProperty->getValue($rule);
+        foreach ($this->parsed['in'] as $value) {
+            $case = $enumClass::tryFrom($value);
 
-        $exceptProperty = $reflection->getProperty('except');
-        $except = $exceptProperty->getValue($rule);
-
-        // Determine valid cases
-        $validCases = !empty($only) ? $only : $enumClass::cases();
-
-        if (!empty($except)) {
-            $exceptValues = array_map(fn ($case) => $case->value ?? $case->name, $except);
-            $validCases = array_filter($validCases, fn ($case) => !in_array($case->value ?? $case->name, $exceptValues, true));
+            if ($case && method_exists($case, 'label')) {
+                $this->parsed['in'][$value] = $case->label();
+            }
         }
-
-        // Map to [value => label] format (same as 'in' rule)
-        $options = [];
-        foreach ($validCases as $case) {
-            $value = $case->value ?? $case->name;
-            $label = method_exists($case, 'label') ? $case->label() : $case->name;
-            $options[$value] = $label;
-        }
-
-        $this->parsed['in'] = $options;
     }
 
     /**
@@ -232,30 +185,11 @@ class Rule implements JsonSerializable
         return (string) $value;
     }
 
-    protected function parseExistsParameters(array $parameters): string
+    protected function parseInParameters(array $parameters): array
     {
-        $modelClass = $this->tableToModelClass($parameters[0]);
+        $values = array_map(fn ($param) => trim($param, '"'), $parameters);
 
-        if ($modelClass === null) {
-            throw new InvalidArgumentException(
-                "Cannot infer model from exists rule. Consider using Rule::exists(Model::class) instead of the literal model table."
-            );
-        }
-
-        return $modelClass;
-    }
-
-    protected function parseUniqueParameters(array $parameters): string
-    {
-        $modelClass = $this->tableToModelClass($parameters[0]);
-
-        if ($modelClass === null) {
-            throw new InvalidArgumentException(
-                "Cannot infer model from unique rule. Consider using Rule::unique(Model::class) instead of the literal model table."
-            );
-        }
-
-        return $modelClass;
+        return array_combine($values, $values);
     }
 
     /**
