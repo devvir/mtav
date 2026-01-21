@@ -30,7 +30,7 @@ class ProjectController extends Controller
             ->unless($request->all, fn ($q) => $q->where('projects.active', true));
 
         return inertia('Projects/Index', [
-            'projects' => Inertia::deepMerge(fn () => $projects->paginate(30)),
+            'projects' => Inertia::defer(fn () => $projects->paginate(30))->deepMerge(),
             'all'      => $request->boolean('all') ?? false,
             'q'        => $request->q ?? '',
         ]);

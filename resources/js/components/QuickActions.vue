@@ -13,6 +13,7 @@ type QuickAction = {
 
 const quickActions: QuickAction[] = [
   { if: can.create('projects'), route: 'projects.create', text: 'New Project' },
+  { if: can.create('units'), route: 'units.create', text: 'New Unit' },
   { if: can.create('admins'), route: 'admins.create', text: 'New Admin' },
   { if: can.create('families'), route: 'families.create', text: 'New Family' },
   {
@@ -20,7 +21,6 @@ const quickActions: QuickAction[] = [
     route: 'members.create',
     text: iAmAdmin.value ? 'New Member' : 'New Family Member',
   },
-  { if: can.create('units'), route: 'units.create', text: 'New Unit' },
   { if: can.create('events'), route: 'events.create', text: 'New Event' },
   { if: can.create('media'), route: 'media.create', text: 'Upload Multimedia' },
   { if: can.create('media'), route: 'documents.create', text: 'Upload Documents' },

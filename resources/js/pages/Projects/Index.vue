@@ -3,7 +3,7 @@ import IndexPage from '@/components/entities/IndexPage.vue';
 import { SEARCH, SWITCH } from '@/components/filtering';
 
 const props = defineProps<{
-  projects: ApiResources<Project>;
+  projects?: ApiResources<Project>;
   all?: boolean;
   q?: string;
 }>();

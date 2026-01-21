@@ -15,9 +15,9 @@ Broadcast::channel('global', function (User $user) {
  * Users may subscribe to the channel of any Project they have access to.
  * This is a presence channel, so it returns user data.
  */
-Broadcast::channel('projects.{project}', function (User $user, Project $_) {
+Broadcast::channel('projects.{project}', function (User $user, Project $project) {
     return [
-        'id' => $user->id,
+        'id'   => $user->id,
         'name' => $user->fullname,
     ];
 });
