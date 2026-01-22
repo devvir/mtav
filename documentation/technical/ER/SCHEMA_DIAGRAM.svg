@@ -1,0 +1,343 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="2050" viewBox="0 0 1300 2050">
+  <defs>
+    <style>
+      .table-title { font-weight: bold; font-size: 12px; fill: #fff; }
+      .column-name { font-size: 10px; fill: #333; font-family: monospace; }
+      .relation-line { stroke: #666; stroke-width: 1.5; fill: none; stroke-dasharray: 5,5; }
+      .relation-label { font-size: 9px; fill: #666; font-weight: bold; }
+      .title { font-size: 18px; font-weight: bold; fill: #000; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1300" height="2050" fill="#f9f9f9"/>
+
+  <!-- Title -->
+  <text x="20" y="35" class="title">MTAV Database Schema</text>
+
+  <!-- Relationships layer (drawn first so they appear behind tables) -->
+  <path d="M 1190 835 L 650 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 350 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="1212" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 650 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="1212" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 350 835" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="832" class="relation-label" style="fill: #1976d2;">1</text>
+  <path d="M 1190 835 L 350 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 350 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 950 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="935" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 835 L 50 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 590 1215 L 650 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="595" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 590 1215 L 650 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="595" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="1212" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 890 75 L 650 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="895" y="72" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="1212" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 890 75 L 50 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="895" y="72" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="1212" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 890 1215 L 50 835" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="895" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="832" class="relation-label" style="fill: #1976d2;">1</text>
+  <path d="M 590 835 L 50 835" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="595" y="832" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="832" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 1215 L 350 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 1215 L 350 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="335" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 1215 L 950 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="935" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 1215 L 50 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 1190 1215 L 650 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="1212" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 590 75 L 50 75" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="595" y="72" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="72" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 590 75 L 50 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="595" y="72" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="35" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+  <path d="M 290 1215 L 650 1215" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="295" y="1212" class="relation-label" style="fill: #d32f2f;">n</text>
+  <text x="635" y="1212" class="relation-label" style="fill: #1976d2;">1</text>
+  <path d="M 1190 455 L 650 455" class="relation-line" stroke-dasharray="0" stroke="#999"/>
+  <text x="1195" y="452" class="relation-label" style="fill: #d32f2f;">1</text>
+  <text x="635" y="452" class="relation-label" style="fill: #1976d2;">n</text>
+
+  <!-- Tables layer -->
+  <rect x="50" y="60" width="240" height="126" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="50" y="60" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="58" y="79" class="table-title">event_rsvp</text>
+  <line x1="50" y1="90" x2="290" y2="90" stroke="#0277BD" stroke-width="1"/>
+  <rect x="51" y="92" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="55" y="103" class="column-name">🔑 id</text>
+  <rect x="51" y="108" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="119" class="column-name">🔗 event_id</text>
+  <rect x="51" y="124" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="135" class="column-name">🔗 user_id</text>
+  <text x="55" y="151" class="column-name">status</text>
+  <text x="55" y="167" class="column-name">created_at</text>
+  <text x="55" y="183" class="column-name">updated_at</text>
+  <rect x="350" y="60" width="240" height="254" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="350" y="60" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="358" y="79" class="table-title">events</text>
+  <line x1="350" y1="90" x2="590" y2="90" stroke="#0277BD" stroke-width="1"/>
+  <rect x="351" y="92" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="355" y="103" class="column-name">🔑 id</text>
+  <text x="355" y="119" class="column-name">type</text>
+  <rect x="351" y="124" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="135" class="column-name">🔗 creator_id</text>
+  <rect x="351" y="140" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="151" class="column-name">🔗 project_id</text>
+  <text x="355" y="167" class="column-name">title</text>
+  <text x="355" y="183" class="column-name">description</text>
+  <text x="355" y="199" class="column-name">location</text>
+  <text x="355" y="215" class="column-name">start_date</text>
+  <text x="355" y="231" class="column-name">end_date</text>
+  <text x="355" y="247" class="column-name">is_published</text>
+  <text x="355" y="263" class="column-name">rsvp</text>
+  <text x="355" y="279" class="column-name">created_at</text>
+  <text x="355" y="295" class="column-name">updated_at</text>
+  <text x="355" y="311" class="column-name">deleted_at</text>
+  <rect x="650" y="60" width="240" height="158" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="650" y="60" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="658" y="79" class="table-title">families</text>
+  <line x1="650" y1="90" x2="890" y2="90" stroke="#0277BD" stroke-width="1"/>
+  <rect x="651" y="92" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="655" y="103" class="column-name">🔑 id</text>
+  <rect x="651" y="108" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="119" class="column-name">🔗 project_id</text>
+  <rect x="651" y="124" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="135" class="column-name">🔗 unit_type_id</text>
+  <text x="655" y="151" class="column-name">name</text>
+  <text x="655" y="167" class="column-name">avatar</text>
+  <text x="655" y="183" class="column-name">created_at</text>
+  <text x="655" y="199" class="column-name">updated_at</text>
+  <text x="655" y="215" class="column-name">deleted_at</text>
+  <rect x="950" y="60" width="240" height="142" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="950" y="60" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="958" y="79" class="table-title">logs</text>
+  <line x1="950" y1="90" x2="1190" y2="90" stroke="#0277BD" stroke-width="1"/>
+  <rect x="951" y="92" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="955" y="103" class="column-name">🔑 id</text>
+  <rect x="951" y="108" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="955" y="119" class="column-name">🔗 creator_id</text>
+  <rect x="951" y="124" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="955" y="135" class="column-name">🔗 project_id</text>
+  <text x="955" y="151" class="column-name">event</text>
+  <text x="955" y="167" class="column-name">data</text>
+  <text x="955" y="183" class="column-name">created_at</text>
+  <text x="955" y="199" class="column-name">updated_at</text>
+  <rect x="50" y="440" width="240" height="158" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="50" y="440" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="58" y="459" class="table-title">lottery_audits</text>
+  <line x1="50" y1="470" x2="290" y2="470" stroke="#0277BD" stroke-width="1"/>
+  <rect x="51" y="472" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="55" y="483" class="column-name">🔑 id</text>
+  <rect x="51" y="488" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="499" class="column-name">🔗 project_id</text>
+  <rect x="51" y="504" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="515" class="column-name">🔗 lottery_id</text>
+  <text x="55" y="531" class="column-name">type</text>
+  <text x="55" y="547" class="column-name">audit</text>
+  <text x="55" y="563" class="column-name">created_at</text>
+  <text x="55" y="579" class="column-name">updated_at</text>
+  <text x="55" y="595" class="column-name">deleted_at</text>
+  <rect x="350" y="440" width="240" height="270" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="350" y="440" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="358" y="459" class="table-title">media</text>
+  <line x1="350" y1="470" x2="590" y2="470" stroke="#0277BD" stroke-width="1"/>
+  <rect x="351" y="472" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="355" y="483" class="column-name">🔑 id</text>
+  <rect x="351" y="488" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="499" class="column-name">🔗 owner_id</text>
+  <rect x="351" y="504" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="515" class="column-name">🔗 project_id</text>
+  <text x="355" y="531" class="column-name">path</text>
+  <text x="355" y="547" class="column-name">thumbnail</text>
+  <text x="355" y="563" class="column-name">description</text>
+  <text x="355" y="579" class="column-name">alt_text</text>
+  <text x="355" y="595" class="column-name">width</text>
+  <text x="355" y="611" class="column-name">height</text>
+  <text x="355" y="627" class="column-name">category</text>
+  <text x="355" y="643" class="column-name">mime_type</text>
+  <text x="355" y="659" class="column-name">file_size</text>
+  <text x="355" y="675" class="column-name">created_at</text>
+  <text x="355" y="691" class="column-name">updated_at</text>
+  <text x="355" y="707" class="column-name">deleted_at</text>
+  <rect x="650" y="440" width="240" height="126" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="650" y="440" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="658" y="459" class="table-title">notification_read</text>
+  <line x1="650" y1="470" x2="890" y2="470" stroke="#0277BD" stroke-width="1"/>
+  <rect x="651" y="472" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="655" y="483" class="column-name">🔑 id</text>
+  <rect x="651" y="488" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="499" class="column-name">🔗 user_id</text>
+  <rect x="651" y="504" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="515" class="column-name">🔗 notification_id</text>
+  <text x="655" y="531" class="column-name">read_at</text>
+  <text x="655" y="547" class="column-name">created_at</text>
+  <text x="655" y="563" class="column-name">updated_at</text>
+  <rect x="950" y="440" width="240" height="174" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="950" y="440" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="958" y="459" class="table-title">notifications</text>
+  <line x1="950" y1="470" x2="1190" y2="470" stroke="#0277BD" stroke-width="1"/>
+  <rect x="951" y="472" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="955" y="483" class="column-name">🔑 id</text>
+  <text x="955" y="499" class="column-name">title</text>
+  <text x="955" y="515" class="column-name">message</text>
+  <text x="955" y="531" class="column-name">type</text>
+  <text x="955" y="547" class="column-name">target</text>
+  <text x="955" y="563" class="column-name">target_id</text>
+  <text x="955" y="579" class="column-name">data</text>
+  <text x="955" y="595" class="column-name">created_at</text>
+  <text x="955" y="611" class="column-name">updated_at</text>
+  <rect x="50" y="820" width="240" height="158" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="50" y="820" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="58" y="839" class="table-title">plan_items</text>
+  <line x1="50" y1="850" x2="290" y2="850" stroke="#0277BD" stroke-width="1"/>
+  <rect x="51" y="852" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="55" y="863" class="column-name">🔑 id</text>
+  <rect x="51" y="868" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="879" class="column-name">🔗 plan_id</text>
+  <rect x="51" y="884" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="895" class="column-name">🔗 unit_id</text>
+  <text x="55" y="911" class="column-name">polygon</text>
+  <text x="55" y="927" class="column-name">metadata</text>
+  <text x="55" y="943" class="column-name">floor</text>
+  <text x="55" y="959" class="column-name">created_at</text>
+  <text x="55" y="975" class="column-name">updated_at</text>
+  <rect x="350" y="820" width="240" height="158" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="350" y="820" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="358" y="839" class="table-title">plans</text>
+  <line x1="350" y1="850" x2="590" y2="850" stroke="#0277BD" stroke-width="1"/>
+  <rect x="351" y="852" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="355" y="863" class="column-name">🔑 id</text>
+  <rect x="351" y="868" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="879" class="column-name">🔗 project_id</text>
+  <text x="355" y="895" class="column-name">polygon</text>
+  <text x="355" y="911" class="column-name">width</text>
+  <text x="355" y="927" class="column-name">height</text>
+  <text x="355" y="943" class="column-name">unit_system</text>
+  <text x="355" y="959" class="column-name">created_at</text>
+  <text x="355" y="975" class="column-name">updated_at</text>
+  <rect x="650" y="820" width="240" height="126" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="650" y="820" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="658" y="839" class="table-title">project_user</text>
+  <line x1="650" y1="850" x2="890" y2="850" stroke="#0277BD" stroke-width="1"/>
+  <rect x="651" y="852" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="655" y="863" class="column-name">🔑 id</text>
+  <rect x="651" y="868" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="879" class="column-name">🔗 user_id</text>
+  <rect x="651" y="884" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="895" class="column-name">🔗 project_id</text>
+  <text x="655" y="911" class="column-name">active</text>
+  <text x="655" y="927" class="column-name">created_at</text>
+  <text x="655" y="943" class="column-name">updated_at</text>
+  <rect x="950" y="820" width="240" height="158" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="950" y="820" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="958" y="839" class="table-title">projects</text>
+  <line x1="950" y1="850" x2="1190" y2="850" stroke="#0277BD" stroke-width="1"/>
+  <rect x="951" y="852" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="955" y="863" class="column-name">🔑 id</text>
+  <text x="955" y="879" class="column-name">name</text>
+  <text x="955" y="895" class="column-name">description</text>
+  <text x="955" y="911" class="column-name">organization</text>
+  <text x="955" y="927" class="column-name">active</text>
+  <text x="955" y="943" class="column-name">created_at</text>
+  <text x="955" y="959" class="column-name">updated_at</text>
+  <text x="955" y="975" class="column-name">deleted_at</text>
+  <rect x="50" y="1200" width="240" height="126" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="50" y="1200" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="58" y="1219" class="table-title">unit_preferences</text>
+  <line x1="50" y1="1230" x2="290" y2="1230" stroke="#0277BD" stroke-width="1"/>
+  <rect x="51" y="1232" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="55" y="1243" class="column-name">🔑 id</text>
+  <rect x="51" y="1248" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="1259" class="column-name">🔗 family_id</text>
+  <rect x="51" y="1264" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="55" y="1275" class="column-name">🔗 unit_id</text>
+  <text x="55" y="1291" class="column-name">order</text>
+  <text x="55" y="1307" class="column-name">created_at</text>
+  <text x="55" y="1323" class="column-name">updated_at</text>
+  <rect x="350" y="1200" width="240" height="142" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="350" y="1200" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="358" y="1219" class="table-title">unit_types</text>
+  <line x1="350" y1="1230" x2="590" y2="1230" stroke="#0277BD" stroke-width="1"/>
+  <rect x="351" y="1232" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="355" y="1243" class="column-name">🔑 id</text>
+  <rect x="351" y="1248" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="355" y="1259" class="column-name">🔗 project_id</text>
+  <text x="355" y="1275" class="column-name">name</text>
+  <text x="355" y="1291" class="column-name">description</text>
+  <text x="355" y="1307" class="column-name">created_at</text>
+  <text x="355" y="1323" class="column-name">updated_at</text>
+  <text x="355" y="1339" class="column-name">deleted_at</text>
+  <rect x="650" y="1200" width="240" height="174" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="650" y="1200" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="658" y="1219" class="table-title">units</text>
+  <line x1="650" y1="1230" x2="890" y2="1230" stroke="#0277BD" stroke-width="1"/>
+  <rect x="651" y="1232" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="655" y="1243" class="column-name">🔑 id</text>
+  <rect x="651" y="1248" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="1259" class="column-name">🔗 project_id</text>
+  <rect x="651" y="1264" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="1275" class="column-name">🔗 unit_type_id</text>
+  <rect x="651" y="1280" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="1291" class="column-name">🔗 family_id</text>
+  <rect x="651" y="1296" width="238" height="15" fill="#B3E5FC" opacity="0.5"/>
+  <text x="655" y="1307" class="column-name">🔗 plan_item_id</text>
+  <text x="655" y="1323" class="column-name">identifier</text>
+  <text x="655" y="1339" class="column-name">created_at</text>
+  <text x="655" y="1355" class="column-name">updated_at</text>
+  <text x="655" y="1371" class="column-name">deleted_at</text>
+  <rect x="950" y="1200" width="240" height="222" fill="#E3F2FD" stroke="#0277BD" stroke-width="2" rx="3"/>
+  <rect x="950" y="1200" width="240" height="30" fill="#0277BD" rx="3"/>
+  <text x="958" y="1219" class="table-title">users</text>
+  <line x1="950" y1="1230" x2="1190" y2="1230" stroke="#0277BD" stroke-width="1"/>
+  <rect x="951" y="1232" width="238" height="15" fill="#FFF9C4" opacity="0.6"/>
+  <text x="955" y="1243" class="column-name">🔑 id</text>
+  <text x="955" y="1259" class="column-name">name</text>
+  <text x="955" y="1275" class="column-name">email</text>
+  <text x="955" y="1291" class="column-name">email_verified_at</text>
+  <text x="955" y="1307" class="column-name">password</text>
+  <text x="955" y="1323" class="column-name">remember_token</text>
+  <text x="955" y="1339" class="column-name">is_admin</text>
+  <text x="955" y="1355" class="column-name">firstname</text>
+  <text x="955" y="1371" class="column-name">lastname</text>
+  <text x="955" y="1387" class="column-name">created_at</text>
+  <text x="955" y="1403" class="column-name">updated_at</text>
+  <text x="955" y="1419" class="column-name">deleted_at</text>
+
+  <!-- Legend -->
+  <g transform="translate(20, 1990)">
+    <text style="font-size: 11px; font-weight: bold; fill: #000;">Legend:</text>
+    <text x="0" y="16" style="font-size: 10px; fill: #333;">🔑 Primary Key</text>
+    <text x="100" y="16" style="font-size: 10px; fill: #333;">🔗 Foreign Key</text>
+    <text x="200" y="16" style="font-size: 10px; fill: #d32f2f;">Red (1) / Blue (n) Cardinality</text>
+    <line x1="0" y1="28" x2="30" y2="28" stroke="#999" stroke-width="1.5"/>
+    <text x="35" y="31" style="font-size: 10px; fill: #333;">Relationship</text>
+  </g>
+</svg>

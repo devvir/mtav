@@ -42,8 +42,8 @@ class Message
     public function toArray(): array
     {
         return [
-            'type' => $this->type->value,
-            'data' => $this->data,
+            'type'     => $this->type->value,
+            'data'     => $this->data,
             'metadata' => array_merge([
                 'timestamp' => now()->toIso8601String(),
             ], $this->metadata),

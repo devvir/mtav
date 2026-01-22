@@ -41,7 +41,7 @@ enum BroadcastChannel: string
         return match ($this) {
             self::PRIVATE => "private.{$identifier}",
             self::PROJECT => "projects.{$identifier}",
-            self::GLOBAL => 'global',
+            self::GLOBAL  => 'global',
         };
     }
 

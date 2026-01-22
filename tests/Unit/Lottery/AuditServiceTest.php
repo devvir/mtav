@@ -7,7 +7,6 @@ use App\Models\LotteryAudit;
 use App\Models\Member;
 use App\Services\Lottery\AuditService;
 use App\Services\Lottery\DataObjects\ExecutionResult;
-use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use Illuminate\Support\Facades\Auth;
@@ -24,11 +23,11 @@ describe('AuditService', function () {
         // Create existing audits
         for ($i = 0; $i < 3; $i++) {
             LotteryAudit::create([
-                'execution_uuid' => 'old-uuid-'.$i,
-                'lottery_id' => $this->manifest->lotteryId,
-                'project_id' => $this->manifest->projectId,
-                'type' => LotteryAuditType::CUSTOM,
-                'audit' => [],
+                'execution_uuid' => 'old-uuid-' . $i,
+                'lottery_id'     => $this->manifest->lotteryId,
+                'project_id'     => $this->manifest->projectId,
+                'type'           => LotteryAuditType::CUSTOM,
+                'audit'          => [],
             ]);
         }
 
@@ -88,7 +87,7 @@ describe('AuditService', function () {
         );
 
         expect($audit->audit['admin'])->toBe([
-            'id' => $admin->id,
+            'id'    => $admin->id,
             'email' => $admin->email,
         ]);
     });
@@ -99,10 +98,10 @@ describe('AuditService', function () {
         // Create previous audit
         LotteryAudit::create([
             'execution_uuid' => 'previous-uuid',
-            'lottery_id' => $lottery->id,
-            'project_id' => $lottery->project_id,
-            'type' => LotteryAuditType::CUSTOM,
-            'audit' => [],
+            'lottery_id'     => $lottery->id,
+            'project_id'     => $lottery->project_id,
+            'type'           => LotteryAuditType::CUSTOM,
+            'audit'          => [],
         ]);
 
         $admin = Member::factory()->create();
@@ -152,9 +151,9 @@ describe('AuditService', function () {
         Auth::login($admin);
 
         $customData = [
-            'task' => 'glpk_distribution',
-            'status' => 'success',
-            'result' => ['distribution' => [1 => 1]],
+            'task'     => 'glpk_distribution',
+            'status'   => 'success',
+            'result'   => ['distribution' => [1 => 1]],
             'metadata' => ['timeout_ms' => 1000],
         ];
 

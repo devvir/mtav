@@ -1,0 +1,59 @@
+erDiagram
+    PROJECT ||--o{ FAMILY : contains
+    PROJECT ||--o{ UNIT_TYPE : defines
+    PROJECT ||--o{ UNIT : contains
+    PROJECT ||--o{ PLAN : has
+    PROJECT ||--o{ EVENT : hosts
+    PROJECT ||--o{ MEDIA : owns
+    PROJECT ||--o{ LOG : records
+    PROJECT ||--o{ LOTTERY_AUDIT : audits
+    PROJECT }o--|| USER : "admin/member"
+
+    FAMILY ||--o{ MEMBER : contains
+    FAMILY ||--o{ UNIT : "has one"
+    FAMILY }o--|| UNIT_TYPE : "type of"
+    FAMILY }o--o{ UNIT : preferences
+
+    UNIT ||--|| PLAN_ITEM : located_in
+    UNIT }o--|| FAMILY : belongs_to
+    UNIT }o--|| UNIT_TYPE : type_of
+    UNIT }o--|| PROJECT : part_of
+
+    UNIT_TYPE }o--|| PROJECT : part_of
+    UNIT_TYPE ||--o{ UNIT : has_many
+    UNIT_TYPE ||--o{ FAMILY : has_many
+
+    USER ||--o{ MEDIA : creates
+    USER ||--o{ LOG : creates
+    USER ||--o{ EVENT : "creates (Admin)"
+
+    MEMBER }o--|| FAMILY : "belongs to"
+    MEMBER ||--o{ NOTIFICATION_READ : reads
+    MEMBER }o--o{ EVENT : "attends (RSVP)"
+
+    ADMIN ||--o{ EVENT : creates
+
+    EVENT }o--|| PROJECT : part_of
+    EVENT }o--|| ADMIN : created_by
+    EVENT }o--o{ MEMBER : rsvps
+    EVENT ||--o{ LOTTERY_AUDIT : audits
+
+    PLAN }o--|| PROJECT : part_of
+    PLAN ||--o{ PLAN_ITEM : contains
+
+    PLAN_ITEM ||--|| UNIT : references
+    PLAN_ITEM }o--|| PLAN : part_of
+
+    MEDIA }o--|| PROJECT : part_of
+    MEDIA }o--|| USER : owner
+
+    LOG }o--|| PROJECT : part_of
+    LOG }o--|| USER : creator
+
+    LOTTERY_AUDIT }o--|| PROJECT : part_of
+    LOTTERY_AUDIT }o--|| EVENT : "for lottery"
+
+    NOTIFICATION ||--o{ NOTIFICATION_READ : has_many
+
+    NOTIFICATION_READ }o--|| USER : read_by
+    NOTIFICATION_READ }o--|| NOTIFICATION : reads

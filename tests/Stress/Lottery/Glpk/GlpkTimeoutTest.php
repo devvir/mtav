@@ -3,7 +3,6 @@
 // Copilot - Pending review
 
 use App\Services\Lottery\DataObjects\LotterySpec;
-use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
 use App\Services\Lottery\Solvers\Glpk\TaskRunners\UnitDistribution;
 use App\Services\Lottery\Solvers\GlpkSolver;

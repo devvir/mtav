@@ -261,8 +261,8 @@ describe('GLPK Artifact Tracking', function () {
         // Force timeout by setting extremely short phase1_timeout
         $glpkMock = mockGlpkWithAuditCapture([
             'glpk_phase1_max_size' => 100, // Don't force hybrid via config
-            'glpk_phase1_timeout' => 0.001, // Force timeout
-            'timeout' => 10,
+            'glpk_phase1_timeout'  => 0.001, // Force timeout
+            'timeout'              => 10,
         ]);
 
         $glpkMock->distributeUnits(mockManifest(), $spec);

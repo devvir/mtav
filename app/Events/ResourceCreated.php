@@ -62,8 +62,8 @@ class ResourceCreated extends RealTimeNotification
     {
         return [
             'base_class' => class_basename($this->model),
-            'id' => $this->model->getKey(),
-            'message' => $this->message(),
+            'id'         => $this->model->getKey(),
+            'message'    => $this->message(),
             // Note: Full model data removed for security.
             // Frontend should fetch the resource via API if needed.
         ];

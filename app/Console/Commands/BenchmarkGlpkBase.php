@@ -38,7 +38,7 @@ abstract class BenchmarkGlpkBase extends Command
 
         $this->solver = app(GlpkSolver::class);
 
-        $this->manifest = new class() extends LotteryManifest {
+        $this->manifest = new class () extends LotteryManifest {
             public function __construct()
             {
             }
