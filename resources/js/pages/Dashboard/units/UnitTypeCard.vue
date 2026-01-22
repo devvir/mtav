@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Copilot - Pending review
+import { can } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Plus } from 'lucide-vue-next';
 import UnitCard from './UnitCard.vue';
-import { can } from '@/composables/useAuth';
 
 defineProps<{
   unitType: UnitType;

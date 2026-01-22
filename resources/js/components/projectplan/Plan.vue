@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PolygonConfig, ScaleMode } from './types';
 import Canvas from './core/Canvas.vue';
+import type { PolygonConfig, ScaleMode } from './types';
 
 interface Props {
   plan: ApiResource<Plan>;
@@ -13,20 +13,18 @@ const emit = defineEmits<{
   itemHover: [id: number, hovering: boolean];
 }>();
 
-const {
-  plan,
-  scaleMode,
-  highlightedItemId,
-} = defineProps<Props>();
+const { plan, scaleMode, highlightedItemId } = defineProps<Props>();
 
 /**
  * Create boundary from plan polygon
  */
-const boundary = computed((): PolygonConfig => ({
-  polygon: plan.polygon,
-  stroke: '#94a3b8',
-  strokeWidth: 2,
-}));
+const boundary = computed(
+  (): PolygonConfig => ({
+    polygon: plan.polygon,
+    stroke: '#94a3b8',
+    strokeWidth: 2,
+  }),
+);
 
 /**
  * Canvas configuration from plan
@@ -42,8 +40,12 @@ const handleItemHover = (id: number, hovering: boolean) => emit('itemHover', id,
 </script>
 
 <template>
-  <Canvas :config :scaleMode :highlightedItemId
-    :boundary :items="plan.items || []"
+  <Canvas
+    :config
+    :scaleMode
+    :highlightedItemId
+    :boundary
+    :items="plan.items || []"
     @item-click="handleItemClick"
     @item-hover="handleItemHover"
   />

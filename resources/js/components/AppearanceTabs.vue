@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useTheme } from '@/state/useTheme';
 import { _ } from '@/composables/useTranslations';
+import { useTheme } from '@/state/useTheme';
 import {
   Circle,
   Contrast,
@@ -89,7 +89,7 @@ const themes = [
 </script>
 
 <template>
-  <div class="space-y-8 mt-8">
+  <div class="mt-8 space-y-8">
     <!-- Mode Selection (Light/Dark/System) -->
     <div class="py-1 max-xs:text-center">
       <h3 class="mb-2 text-sm font-semibold text-text max-xs:hidden">{{ _('Mode') }}</h3>
@@ -125,9 +125,7 @@ const themes = [
               ? 'border-interactive shadow-md'
               : 'border-border bg-surface hover:border-border-strong hover:shadow-sm',
           ]"
-          :style="
-            theme === option.value ? { backgroundColor: option.colors.primary + '08' } : {}
-          "
+          :style="theme === option.value ? { backgroundColor: option.colors.primary + '08' } : {}"
         >
           <!-- Theme Icon/Preview -->
           <div

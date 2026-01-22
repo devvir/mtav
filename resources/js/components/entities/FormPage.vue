@@ -22,7 +22,7 @@ const indexTitle = entityLabel(props.form.entity, 'plural');
     <Breadcrumb :route="form.action.route" :params="form.action.params" :text="form.title" />
   </Breadcrumbs>
 
-  <div class="h-auto max-w-5xl mx-auto">
+  <div class="mx-auto h-auto max-w-5xl">
     <Form
       :type="form.type"
       :action="form.action.route"
@@ -38,5 +38,4 @@ const indexTitle = entityLabel(props.form.entity, 'plural');
       <template v-slot:footer><slot name="footer" /></template>
     </Form>
   </div>
-
 </template>

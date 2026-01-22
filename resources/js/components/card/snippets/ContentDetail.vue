@@ -14,16 +14,16 @@ defineProps<{
 
 <template>
   <div class="grid grid-cols-[auto_1fr] gap-3">
-    <component :is="icon" class="h-5 w-5 mt-0.5 text-text-muted" />
+    <component :is="icon" class="mt-0.5 h-5 w-5 text-text-muted" />
     <div class="min-w-0">
-      <div class="font-medium text-sm">{{ title }}</div>
-      <div class="text-text-muted text-sm truncate" :class="contentClass">
+      <div class="text-sm font-medium">{{ title }}</div>
+      <div class="truncate text-sm text-text-muted" :class="contentClass">
         <a
           v-if="href && (content || fallback)"
           :href="href"
           target="_blank"
           rel="noopener noreferrer"
-          :class="linkClass || 'text-interactive hover:text-interactive-hover underline'"
+          :class="linkClass || 'text-interactive underline hover:text-interactive-hover'"
           class="truncate"
         >
           {{ content || fallback }}

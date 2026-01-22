@@ -18,7 +18,7 @@
 export function useLocalState() {
   const get = <T extends string | boolean | number | null | undefined>(
     key: string,
-    defaultValue?: T
+    defaultValue?: T,
   ): T | undefined => {
     try {
       const stored = localStorage.getItem(key);
@@ -60,7 +60,7 @@ export function useLocalState() {
 
   const set = <T extends string | boolean | number | null | undefined>(
     key: string,
-    value: T
+    value: T,
   ): void => {
     try {
       let encoded: string;

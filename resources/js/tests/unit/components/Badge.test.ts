@@ -1,8 +1,8 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mount } from '@/tests/helpers/mount';
 import Badge from '@/components/badge/Badge.vue';
 import { createMockBadgeProps } from '@/tests/helpers/fixtures';
+import { mount } from '@/tests/helpers/mount';
+import { describe, expect, it } from 'vitest';
 
 describe('Badge', () => {
   let wrapper;

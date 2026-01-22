@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { Bell } from 'lucide-vue-next';
-import { _ } from '@/composables/useTranslations';
+import { Dropdown, DropdownContent, DropdownTrigger } from '@/components/dropdown';
 import { notifications } from '@/composables/useAuth';
+import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
-import { route as routeUri } from 'ziggy-js';
 import axios from 'axios';
-import { Dropdown, DropdownTrigger, DropdownContent } from '@/components/dropdown';
+import { Bell } from 'lucide-vue-next';
+import { route as routeUri } from 'ziggy-js';
 
 const markAsRead = (notification: Notification, close: () => void) => {
-  if (! notification.is_read) axios.post(routeUri('notifications.read', notification.id));
+  if (!notification.is_read) axios.post(routeUri('notifications.read', notification.id));
 
   notification.is_read = true;
   setTimeout(() => close(), 100);
 };
 
 const markAllAsRead = () => {
-  axios.post(routeUri('notifications.readAll'))
+  axios.post(routeUri('notifications.readAll'));
 
   // Optimistically mark all as read
-  notifications.value.recent.forEach((n: Notification) => n.is_read = true);
+  notifications.value.recent.forEach((n: Notification) => (n.is_read = true));
 };
 </script>
 
 <template>
   <Dropdown v-slot="{ close }">
     <DropdownTrigger
-      class="group relative -mr-2 flex min-h-11 cursor-pointer items-center rounded-xs px-2 text-text-subtle outline-offset-8 transition-colors hocus:text-text @md:min-h-9"
+      class="group relative -mr-2 flex min-h-11 cursor-pointer items-center rounded-xs px-2 text-text-subtle outline-offset-8 transition-colors @md:min-h-9 hocus:text-text"
       :aria-label="_('Notifications')"
     >
       <Bell class="size-7" />
@@ -39,7 +39,9 @@ const markAllAsRead = () => {
       </span>
     </DropdownTrigger>
 
-    <DropdownContent class="top-10 right-0 mr-3 w-80 origin-top overflow-hidden rounded-xl border border-border bg-surface-elevated shadow shadow-accent/70 backdrop-blur-2xl">
+    <DropdownContent
+      class="top-10 right-0 mr-3 w-80 origin-top overflow-hidden rounded-xl border border-border bg-surface-elevated shadow shadow-accent/70 backdrop-blur-2xl"
+    >
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-border/30 px-4 py-3">
         <h3 class="text-sm font-semibold text-text">{{ _('Notifications') }}</h3>
@@ -61,19 +63,21 @@ const markAllAsRead = () => {
           :href="notification.data?.action"
           class="flex items-start gap-3 px-4 py-3 transition-colors"
           :class="[
-            notification.is_read ? 'bg-transparent opacity-70' : 'bg-accent-foreground/10 font-medium',
-            notification.data?.action ? 'cursor-pointer hocus:bg-accent-foreground/5' : ''
+            notification.is_read
+              ? 'bg-transparent opacity-70'
+              : 'bg-accent-foreground/10 font-medium',
+            notification.data?.action ? 'cursor-pointer hocus:bg-accent-foreground/5' : '',
           ]"
           @click.capture="markAsRead(notification, close)"
         >
-          <div class="flex-1 flex flex-col">
-            <p class="text-xs text-text-subtle/70 mb-0.5">
+          <div class="flex flex-1 flex-col">
+            <p class="mb-0.5 text-xs text-text-subtle/70">
               {{ notification.data?.title }}
             </p>
             <p class="text-sm text-text" :class="notification.is_read ? '' : 'font-medium'">
               {{ notification.data?.message }}
             </p>
-            <p class="mt-1 text-xs text-text-subtle/60 text-right" :title="notification.created_at">
+            <p class="mt-1 text-right text-xs text-text-subtle/60" :title="notification.created_at">
               {{ notification.created_ago }}
             </p>
           </div>
@@ -95,7 +99,8 @@ const markAllAsRead = () => {
           :href="routeUri('notifications.index')"
           class="block text-center text-sm text-text-subtle hocus:text-text"
           @click="close()"
-        >{{ _('See all') }}</Link>
+          >{{ _('See all') }}</Link
+        >
       </div>
     </DropdownContent>
   </Dropdown>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { usePlanEditor } from '../composables/usePlanEditor';
 import Canvas from '../core/Canvas.vue';
 import type { PolygonConfig } from '../types';
-import { usePlanEditor } from '../composables/usePlanEditor';
 
 interface Props {
   plan: ApiResource<Plan>;
@@ -28,18 +28,16 @@ const ghostPosition = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 const justDroppedItemId = ref<number | null>(null);
 
-const draggedItem = computed(() =>
-  items.find((item: PlanItem) => item.id === draggedItemId.value)
-);
+const draggedItem = computed(() => items.find((item: PlanItem) => item.id === draggedItemId.value));
 
 const containerRef = useTemplateRef<HTMLDivElement>('canvasContainer');
 
 // Coordinate conversion and polygon translation
-const {
-  ghostDimensions,
-  screenToCanvasCoords,
-  translateItemTo,
-} = usePlanEditor(containerRef, draggedItem, boundary);
+const { ghostDimensions, screenToCanvasCoords, translateItemTo } = usePlanEditor(
+  containerRef,
+  draggedItem,
+  boundary,
+);
 
 const handleMouseMove = (event: MouseEvent) => {
   if (isDragging.value && draggedItemId.value !== null) {
@@ -85,16 +83,18 @@ const handleMouseUp = () => {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col relative">
+  <div class="relative flex flex-1 flex-col">
     <!-- Canvas Container -->
     <div
       ref="canvasContainer"
-      class="flex-1 overflow-auto relative"
+      class="relative flex-1 overflow-auto"
       tabindex="0"
       @mouseup="handleMouseUp"
       @mousemove="handleMouseMove"
     >
-      <Canvas :items :boundary
+      <Canvas
+        :items
+        :boundary
         :highlighted-item-id="justDroppedItemId"
         class="size-full"
         @item-mousedown="handleItemMouseDown"
@@ -102,13 +102,14 @@ const handleMouseUp = () => {
     </div>
 
     <!-- Ghost Item - outside overflow container so it's not clipped -->
-    <div v-if="isDragging && draggedItem"
-      class="fixed pointer-events-none z-50 -translate-1/2 opacity-70"
+    <div
+      v-if="isDragging && draggedItem"
+      class="pointer-events-none fixed z-50 -translate-1/2 opacity-70"
       :style="{
         left: `${ghostPosition.x}px`,
         top: `${ghostPosition.y}px`,
         width: `${ghostDimensions.width}px`,
-        height: `${ghostDimensions.height}px`
+        height: `${ghostDimensions.height}px`,
       }"
     >
       <Canvas :items="[draggedItem]" auto-scale="contain" />

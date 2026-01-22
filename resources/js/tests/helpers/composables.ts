@@ -1,5 +1,4 @@
 // Copilot - Pending review
-import { vi } from 'vitest';
 
 /**
  * Mock common composables - called from setup.ts at module level

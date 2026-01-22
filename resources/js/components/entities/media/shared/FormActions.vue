@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import { _ } from '@/composables/useTranslations';
 import { InertiaForm } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
 import type { MediaUploadForm } from '../types';
 
 defineEmits<{
@@ -26,20 +26,11 @@ const canUpload = computed(() => {
 
 <template>
   <div class="flex items-center justify-between border-t pt-6">
-    <Button
-      type="button"
-      variant="ghost"
-      :disabled="form.processing"
-      @click="$emit('cancel')"
-    >
+    <Button type="button" variant="ghost" :disabled="form.processing" @click="$emit('cancel')">
       {{ _('Cancel') }}
     </Button>
 
-    <Button
-      type="button"
-      :disabled="!canUpload"
-      @click="$emit('submit')"
-    >
+    <Button type="button" :disabled="!canUpload" @click="$emit('submit')">
       <span v-if="form.processing">{{ _('Processing...') }}</span>
       <span v-else>{{ submitText || _('Upload Files') }}</span>
     </Button>

@@ -21,7 +21,8 @@ export function mockUIComponents() {
       props: ['disabled', 'variant', 'size'],
     },
     Input: {
-      template: '<input v-model="modelValue" :class="$attrs.class" :type="type" :placeholder="placeholder" />',
+      template:
+        '<input v-model="modelValue" :class="$attrs.class" :type="type" :placeholder="placeholder" />',
       props: ['modelValue', 'type', 'placeholder'],
       emits: ['update:modelValue'],
     },

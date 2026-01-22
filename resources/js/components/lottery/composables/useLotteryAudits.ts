@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import type { Ref, ComputedRef } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
 
 export interface LotteryAuditsComposable {
   hasAudits: ComputedRef<boolean>;
@@ -14,7 +14,7 @@ export interface LotteryAuditsComposable {
 }
 
 export function useLotteryAudits(
-  lottery: ComputedRef<Lottery> | Ref<Lottery>
+  lottery: ComputedRef<Lottery> | Ref<Lottery>,
 ): LotteryAuditsComposable {
   const lotteryValue = isRef(lottery) ? lottery : computed(() => lottery.value);
 
@@ -25,17 +25,17 @@ export function useLotteryAudits(
 
   // Check if there's a failure audit
   const hasFailure = computed(() => {
-    return !!lotteryValue.value?.audits?.some(audit => audit.type === 'failure');
+    return !!lotteryValue.value?.audits?.some((audit) => audit.type === 'failure');
   });
 
   // Get the failure audit (most recent one if multiple)
   const failureAudit = computed(() => {
-    return lotteryValue.value?.audits?.find(audit => audit.type === 'failure');
+    return lotteryValue.value?.audits?.find((audit) => audit.type === 'failure');
   });
 
   // Get init audit for timestamp
   const initAudit = computed(() => {
-    return lotteryValue.value?.audits?.find(audit => audit.type === 'init');
+    return lotteryValue.value?.audits?.find((audit) => audit.type === 'init');
   });
 
   // Get timestamp from init audit (in milliseconds)
@@ -79,7 +79,7 @@ export function useLotteryAudits(
     if (!lotteryValue.value?.audits) return 0;
 
     const groupExecutions = lotteryValue.value.audits.filter(
-      audit => audit.type === 'group_execution'
+      (audit) => audit.type === 'group_execution',
     );
 
     return groupExecutions.length;
@@ -93,8 +93,7 @@ export function useLotteryAudits(
 
   // Check if execution is in progress (not failed, not completed)
   const isExecuting = computed(() => {
-    return lotteryValue.value?.is_executing
-      && !hasFailure.value;
+    return lotteryValue.value?.is_executing && !hasFailure.value;
   });
 
   return {

@@ -19,7 +19,7 @@ export function capitalize(str: string): string {
  */
 export function setCookie(name: string, value: string, maxAge = 365 * 24 * 60 * 60) {
   document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
-};
+}
 
 /**
  * Read a cookie value from document.
@@ -27,4 +27,4 @@ export function setCookie(name: string, value: string, maxAge = 365 * 24 * 60 * 
 export function getCookie(name: string): string | null {
   const match = document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`);
   return match ? match[2] : null;
-};
+}

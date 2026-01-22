@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
+import { EditForm } from '@/components/entities/media';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
-import { EditForm } from '@/components/entities/media';
+import { _ } from '@/composables/useTranslations';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 
@@ -24,12 +24,6 @@ defineProps<{
   </Breadcrumbs>
 
   <MaybeModal v-slot="{ close }">
-    <EditForm
-      :media
-      :category
-      :categories
-      @cancel="close"
-      @submit="close"
-    />
+    <EditForm :media :category :categories @cancel="close" @submit="close" />
   </MaybeModal>
 </template>

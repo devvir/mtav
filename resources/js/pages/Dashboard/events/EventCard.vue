@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
 import { ModalLink } from '@inertiaui/modal-vue';
 import { Calendar, Clock, Globe, MapPin, Users } from 'lucide-vue-next';
 
@@ -61,13 +61,13 @@ const getTypeLabel = (type: string) => {
 
           <span
             :class="getTypeBadgeClass(event.type)"
-            class="@max-xs:hidden inline-flex items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap"
+            class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium whitespace-nowrap @max-xs:hidden"
           >
             {{ getTypeLabel(event.type) }}
           </span>
         </div>
 
-        <div class="@max-2xl:hidden mt-2 flex items-center gap-4 text-xs text-text-subtle">
+        <div class="mt-2 flex items-center gap-4 text-xs text-text-subtle @max-2xl:hidden">
           <div class="flex items-center gap-1">
             <Clock class="h-3 w-3" />
             <span>{{ event.start_date ? fromUTC(event.start_date) : _('No Date Set') }}</span>

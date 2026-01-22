@@ -4,7 +4,16 @@ import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Code, CreditCard, FileText, Filter, Map, MessageSquare, Palette, Sparkles } from 'lucide-vue-next';
+import {
+  Code,
+  CreditCard,
+  FileText,
+  Filter,
+  Map,
+  MessageSquare,
+  Palette,
+  Sparkles,
+} from 'lucide-vue-next';
 
 const devPages = [
   {
@@ -24,7 +33,8 @@ const devPages = [
   },
   {
     title: 'Filtering Components',
-    description: 'Interactive filtering components with sticky header behavior and teleport functionality',
+    description:
+      'Interactive filtering components with sticky header behavior and teleport functionality',
     icon: Filter,
     route: 'dev.filters',
     color: 'text-emerald-500',
@@ -53,7 +63,8 @@ const devPages = [
   },
   {
     title: 'Plans - Spatial Layout',
-    description: 'Development playground for spatial visualization of housing projects with unit positioning',
+    description:
+      'Development playground for spatial visualization of housing projects with unit positioning',
     icon: Map,
     route: 'dev.plans',
     color: 'text-orange-500',

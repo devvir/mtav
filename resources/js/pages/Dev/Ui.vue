@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { Badge, BadgeGroup } from '@/components/badge';
+import EventBadge from '@/components/entities/event/badges/EventBadge.vue';
 import FormInput from '@/components/forms/FormInput.vue';
 import FormSelect from '@/components/forms/FormSelect.vue';
 import FormSubmit from '@/components/forms/FormSubmit.vue';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { Badge, BadgeGroup } from '@/components/badge';
-import EventBadge from '@/components/entities/event/badges/EventBadge.vue';
 import { AlertTriangle, Check, Info, Moon, Sun, X } from 'lucide-vue-next';
 
 const mode = ref<'light' | 'dark'>('dark');
@@ -142,21 +142,57 @@ const commonBadges = [
 // Event badge configurations organized by type
 const eventBadgesByType = {
   'Event Types': [
-    { variant: 'lottery', text: 'Sorteo', type: 'event-type', priority: 1, desc: 'Lottery events (elegant, non-tiring)' },
-    { variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1, desc: 'Onsite events (eye-catching, important)' },
+    {
+      variant: 'lottery',
+      text: 'Sorteo',
+      type: 'event-type',
+      priority: 1,
+      desc: 'Lottery events (elegant, non-tiring)',
+    },
+    {
+      variant: 'onsite',
+      text: 'Presencial',
+      type: 'event-type',
+      priority: 1,
+      desc: 'Onsite events (eye-catching, important)',
+    },
     { variant: 'online', text: 'En línea', type: 'event-type', priority: 1, desc: 'Online events' },
   ],
-  'Status': [
+  Status: [
     { variant: 'upcoming', text: 'Upcoming', type: 'status', priority: 3, desc: 'Future event' },
-    { variant: 'completed', text: 'Past Event', type: 'status', priority: 3, desc: 'Completed (subtle)' },
+    {
+      variant: 'completed',
+      text: 'Past Event',
+      type: 'status',
+      priority: 3,
+      desc: 'Completed (subtle)',
+    },
     { variant: 'ongoing', text: 'Ongoing', type: 'status', priority: 3, desc: 'Currently active' },
-    { variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2, desc: 'Very subtle - no info' },
+    {
+      variant: 'no-date',
+      text: 'No Date Set',
+      type: 'status',
+      priority: 2,
+      desc: 'Very subtle - no info',
+    },
   ],
-  'RSVP': [
-    { variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 4, desc: 'Requires confirmation' },
+  RSVP: [
+    {
+      variant: 'rsvp',
+      text: 'RSVP Required',
+      type: 'rsvp',
+      priority: 4,
+      desc: 'Requires confirmation',
+    },
   ],
   'Draft Status': [
-    { variant: 'draft', text: 'Draft', type: 'draft', priority: 2, desc: 'Event not yet published' },
+    {
+      variant: 'draft',
+      text: 'Draft',
+      type: 'draft',
+      priority: 2,
+      desc: 'Event not yet published',
+    },
   ],
 };
 </script>
@@ -179,8 +215,10 @@ const eventBadgesByType = {
             <p class="mt-2 text-text-muted">Testing the color palette for accessibility</p>
           </div>
           <div class="flex-shrink-0">
-            <button @click="toggleMode"
-              class="flex min-h-[44px] items-center gap-2 rounded-lg bg-interactive px-4 py-2 text-interactive-foreground transition-all hover:bg-interactive-hover focus:outline-0 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset @md:min-h-[36px]">
+            <button
+              @click="toggleMode"
+              class="flex min-h-[44px] items-center gap-2 rounded-lg bg-interactive px-4 py-2 text-interactive-foreground transition-all hover:bg-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-0 @md:min-h-[36px]"
+            >
               <Sun v-if="theme === 'dark'" class="h-5 w-5" />
               <Moon v-else class="h-5 w-5" />
               <span>{{ theme === 'light' ? 'Light' : 'Dark' }} Theme</span>
@@ -192,20 +230,26 @@ const eventBadgesByType = {
         <div class="rounded-lg border border-border bg-surface-elevated p-4">
           <h3 class="mb-3 text-sm font-semibold text-text">Color Theme</h3>
           <div class="grid grid-cols-1 gap-2 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-5">
-            <button v-for="themeOption in themes" :key="themeOption.value" @click="setTheme(themeOption.value)"
+            <button
+              v-for="themeOption in themes"
+              :key="themeOption.value"
+              @click="setTheme(themeOption.value)"
               class="group relative min-h-[44px] rounded-md border-2 p-3 text-left transition-all focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:outline-0 @md:min-h-[36px]"
               :class="
-              theme === themeOption.value
-                ? 'border-interactive bg-interactive/10'
-                : 'border-border bg-surface hover:border-border-strong hover:bg-surface-interactive-hover'
-            ">
+                theme === themeOption.value
+                  ? 'border-interactive bg-interactive/10'
+                  : 'border-border bg-surface hover:border-border-strong hover:bg-surface-interactive-hover'
+              "
+            >
               <div class="flex items-center justify-between">
                 <div>
                   <div class="text-sm font-semibold text-text">{{ themeOption.name }}</div>
                   <div class="text-xs text-text-subtle">{{ themeOption.desc }}</div>
                 </div>
-                <div v-if="theme === themeOption.value"
-                  class="flex h-5 w-5 items-center justify-center rounded-full bg-interactive text-interactive-foreground">
+                <div
+                  v-if="theme === themeOption.value"
+                  class="flex h-5 w-5 items-center justify-center rounded-full bg-interactive text-interactive-foreground"
+                >
                   <Check class="h-3 w-3" />
                 </div>
               </div>
@@ -218,10 +262,15 @@ const eventBadgesByType = {
           <section>
             <h2 class="mb-6 text-2xl font-bold text-text">Surface Colors ()</h2>
             <div class="grid gap-4 @md:grid-cols-2 @xl:grid-cols-4">
-              <div v-for="color in surfaceColors" :key="color.var" :style="{
-              backgroundColor: `var(--${color.var})`,
-              color: `var(--${color.text})`,
-            }" class="rounded-lg p-6 shadow-sm ring-1 ring-border">
+              <div
+                v-for="color in surfaceColors"
+                :key="color.var"
+                :style="{
+                  backgroundColor: `var(--${color.var})`,
+                  color: `var(--${color.text})`,
+                }"
+                class="rounded-lg p-6 shadow-sm ring-1 ring-border"
+              >
                 <div class="mb-2 text-sm font-medium opacity-70">{{ color.name }}</div>
                 <div class="text-lg font-semibold">Aa</div>
                 <div class="mt-3 space-y-1 text-xs opacity-60">
@@ -246,9 +295,10 @@ const eventBadgesByType = {
                 </p>
                 <div class="flex items-center gap-3 text-xs text-text-muted">
                   <span class="font-mono">--{{ textColor.var }}</span>
-                  <span class="rounded bg-success-subtle px-2 py-0.5 text-success-subtle-foreground">{{
-                    textColor.contrast
-                    }}</span>
+                  <span
+                    class="rounded bg-success-subtle px-2 py-0.5 text-success-subtle-foreground"
+                    >{{ textColor.contrast }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -259,10 +309,15 @@ const eventBadgesByType = {
             <h2 class="mb-6 text-2xl font-bold text-text">Interactive Colors ()</h2>
             <div class="space-y-4">
               <div class="grid gap-4 @md:grid-cols-3">
-                <div v-for="color in interactiveColors" :key="color.var" :style="{
-                backgroundColor: `var(--${color.var})`,
-                color: `var(--${color.text})`,
-              }" class="rounded-lg p-6 shadow-sm">
+                <div
+                  v-for="color in interactiveColors"
+                  :key="color.var"
+                  :style="{
+                    backgroundColor: `var(--${color.var})`,
+                    color: `var(--${color.text})`,
+                  }"
+                  class="rounded-lg p-6 shadow-sm"
+                >
                   <div class="text-lg font-semibold">{{ color.name }}</div>
                   <p class="mt-2 text-sm opacity-90">{{ color.desc }}</p>
                   <div class="mt-3 font-mono text-xs opacity-70">--{{ color.var }}</div>
@@ -275,15 +330,18 @@ const eventBadgesByType = {
                 </p>
                 <div class="flex flex-wrap gap-3">
                   <button
-                    class="rounded-lg bg-interactive px-4 py-3 font-medium text-interactive-foreground transition-all hover:bg-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset active:bg-interactive-active">
+                    class="rounded-lg bg-interactive px-4 py-3 font-medium text-interactive-foreground transition-all hover:bg-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset active:bg-interactive-active"
+                  >
                     Primary Action
                   </button>
                   <button
-                    class="rounded-lg bg-interactive-secondary px-4 py-3 font-medium text-interactive-secondary-foreground transition-all hover:bg-interactive-secondary-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset">
+                    class="rounded-lg bg-interactive-secondary px-4 py-3 font-medium text-interactive-secondary-foreground transition-all hover:bg-interactive-secondary-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+                  >
                     Secondary Action
                   </button>
                   <button
-                    class="rounded-lg border-2 border-border bg-surface-interactive px-4 py-3 font-medium text-text transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset">
+                    class="rounded-lg border-2 border-border bg-surface-interactive px-4 py-3 font-medium text-text transition-all hover:bg-surface-interactive-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset"
+                  >
                     Outline Button
                   </button>
                 </div>
@@ -297,10 +355,13 @@ const eventBadgesByType = {
             <div class="grid gap-4 @md:grid-cols-2">
               <div v-for="semantic in semanticColors" :key="semantic.var" class="space-y-3">
                 <!-- Bold version -->
-                <div :style="{
-                backgroundColor: `var(--${semantic.var})`,
-                color: `var(--${semantic.text})`,
-              }" class="flex items-start gap-3 rounded-lg p-4">
+                <div
+                  :style="{
+                    backgroundColor: `var(--${semantic.var})`,
+                    color: `var(--${semantic.text})`,
+                  }"
+                  class="flex items-start gap-3 rounded-lg p-4"
+                >
                   <component :is="semantic.icon" class="h-5 w-5 flex-shrink-0" />
                   <div>
                     <div class="font-semibold">{{ semantic.name }}</div>
@@ -311,13 +372,19 @@ const eventBadgesByType = {
                 </div>
 
                 <!-- Subtle version -->
-                <div :style="{
-                backgroundColor: `var(--${semantic.var}-subtle)`,
-                color: `var(--${semantic.var}-subtle-foreground)`,
-                borderColor: `var(--${semantic.var})`,
-              }" class="flex items-start gap-3 rounded-lg border p-4">
-                  <component :is="semantic.icon" :style="{ color: `var(--${semantic.var})` }"
-                    class="h-5 w-5 flex-shrink-0" />
+                <div
+                  :style="{
+                    backgroundColor: `var(--${semantic.var}-subtle)`,
+                    color: `var(--${semantic.var}-subtle-foreground)`,
+                    borderColor: `var(--${semantic.var})`,
+                  }"
+                  class="flex items-start gap-3 rounded-lg border p-4"
+                >
+                  <component
+                    :is="semantic.icon"
+                    :style="{ color: `var(--${semantic.var})` }"
+                    class="h-5 w-5 flex-shrink-0"
+                  />
                   <div>
                     <div class="font-semibold">{{ semantic.name }} (Subtle)</div>
                     <div class="text-sm">Lower contrast variant for less critical information.</div>
@@ -331,8 +398,12 @@ const eventBadgesByType = {
           <section>
             <h2 class="mb-6 text-2xl font-bold text-text">Border Colors ()</h2>
             <div class="grid gap-4 @md:grid-cols-2 @xl:grid-cols-4">
-              <div v-for="border in borderColors" :key="border.var" :style="{ borderColor: `var(--${border.var})` }"
-                class="rounded-lg border-2 bg-surface-elevated p-6">
+              <div
+                v-for="border in borderColors"
+                :key="border.var"
+                :style="{ borderColor: `var(--${border.var})` }"
+                class="rounded-lg border-2 bg-surface-elevated p-6"
+              >
                 <div class="font-semibold text-text">{{ border.name }}</div>
                 <p class="mt-2 text-sm text-text-muted">{{ border.desc }}</p>
                 <div class="mt-3 font-mono text-xs text-text-subtle">--{{ border.var }}</div>
@@ -349,7 +420,12 @@ const eventBadgesByType = {
               <h3 class="mb-4 text-lg font-semibold text-text">Common Badge Variants</h3>
               <div class="rounded-lg bg-surface-elevated p-6">
                 <div class="flex flex-wrap gap-3">
-                  <Badge v-for="badge in commonBadges" :key="badge.variant" :variant="badge.variant" size="sm">
+                  <Badge
+                    v-for="badge in commonBadges"
+                    :key="badge.variant"
+                    :variant="badge.variant"
+                    size="sm"
+                  >
                     {{ badge.text }}
                   </Badge>
                 </div>
@@ -368,7 +444,11 @@ const eventBadgesByType = {
               </p>
 
               <div class="grid gap-6 @md:grid-cols-2 @xl:grid-cols-4">
-                <div v-for="(badges, category) in eventBadgesByType" :key="category" class="space-y-3">
+                <div
+                  v-for="(badges, category) in eventBadgesByType"
+                  :key="category"
+                  class="space-y-3"
+                >
                   <h4 class="text-sm font-medium text-text-muted">{{ category }}</h4>
                   <div class="space-y-2">
                     <div v-for="badge in badges" :key="badge.variant" class="flex flex-col gap-2">
@@ -383,45 +463,108 @@ const eventBadgesByType = {
               <div class="mt-8 space-y-4">
                 <h4 class="text-sm font-semibold text-text">Example Badge Combinations</h4>
                 <div class="space-y-3 rounded-lg bg-surface-elevated p-6">
-                  <div class="text-xs text-text-muted mb-3">Common badge combinations as they appear on event cards (up to 4 badges for admins)
+                  <div class="mb-3 text-xs text-text-muted">
+                    Common badge combinations as they appear on event cards (up to 4 badges for
+                    admins)
                   </div>
 
                   <!-- Lottery + No Date -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'lottery', text: 'Lottery', type: 'event-type', priority: 1 }" />
+                      :config="{
+                        variant: 'lottery',
+                        text: 'Lottery',
+                        type: 'event-type',
+                        priority: 1,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2 }" />
+                      :config="{
+                        variant: 'no-date',
+                        text: 'No Date Set',
+                        type: 'status',
+                        priority: 2,
+                      }"
+                    />
                   </BadgeGroup>
 
                   <!-- Onsite + Past -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1 }" />
+                      :config="{
+                        variant: 'onsite',
+                        text: 'Presencial',
+                        type: 'event-type',
+                        priority: 1,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'completed', text: 'Past Event', type: 'status', priority: 3 }" />
+                      :config="{
+                        variant: 'completed',
+                        text: 'Past Event',
+                        type: 'status',
+                        priority: 3,
+                      }"
+                    />
                   </BadgeGroup>
 
                   <!-- Online + No Date + RSVP + Draft -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'online', text: 'En línea', type: 'event-type', priority: 1 }" />
+                      :config="{
+                        variant: 'online',
+                        text: 'En línea',
+                        type: 'event-type',
+                        priority: 1,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'no-date', text: 'No Date Set', type: 'status', priority: 2 }" />
+                      :config="{
+                        variant: 'no-date',
+                        text: 'No Date Set',
+                        type: 'status',
+                        priority: 2,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 2 }" />
+                      :config="{
+                        variant: 'rsvp',
+                        text: 'RSVP Required',
+                        type: 'rsvp',
+                        priority: 2,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'draft', text: 'Draft', type: 'draft', priority: 4 }" />
+                      :config="{ variant: 'draft', text: 'Draft', type: 'draft', priority: 4 }"
+                    />
                   </BadgeGroup>
 
                   <!-- Onsite + Upcoming + RSVP -->
                   <BadgeGroup>
                     <EventBadge
-                      :config="{ variant: 'onsite', text: 'Presencial', type: 'event-type', priority: 1 }" />
+                      :config="{
+                        variant: 'onsite',
+                        text: 'Presencial',
+                        type: 'event-type',
+                        priority: 1,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'upcoming', text: 'Próximo evento', type: 'status', priority: 2 }" />
+                      :config="{
+                        variant: 'upcoming',
+                        text: 'Próximo evento',
+                        type: 'status',
+                        priority: 2,
+                      }"
+                    />
                     <EventBadge
-                      :config="{ variant: 'rsvp', text: 'RSVP Required', type: 'rsvp', priority: 2 }" />
+                      :config="{
+                        variant: 'rsvp',
+                        text: 'RSVP Required',
+                        type: 'rsvp',
+                        priority: 2,
+                      }"
+                    />
                   </BadgeGroup>
                 </div>
               </div>
@@ -437,8 +580,8 @@ const eventBadgesByType = {
                   Try selecting this text to see the selection color:
                 </p>
                 <p class="text-lg text-text">
-                  The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
-                  Sphinx of black quartz, judge my vow.
+                  The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor
+                  jugs. Sphinx of black quartz, judge my vow.
                 </p>
               </div>
 
@@ -447,10 +590,16 @@ const eventBadgesByType = {
                   Focus ring demonstration (Tab through these inputs):
                 </p>
                 <div class="grid gap-3 @md:grid-cols-2">
-                  <input type="text" placeholder="Focus me to see ring"
-                    class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none" />
-                  <input type="text" placeholder="Tab here next"
-                    class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none" />
+                  <input
+                    type="text"
+                    placeholder="Focus me to see ring"
+                    class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tab here next"
+                    class="rounded-lg border-2 border-border bg-surface px-4 py-3 text-text focus:border-border-interactive focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
+                  />
                 </div>
               </div>
             </div>
@@ -466,18 +615,24 @@ const eventBadgesByType = {
                   <p class="font-semibold">All colors meet WCAG accessibility standards:</p>
                   <ul class="list-disc space-y-1 pl-5">
                     <li><strong>Primary text (text)</strong>: 7:1+ contrast ratio (AAA)</li>
-                    <li><strong>Secondary text (text-muted)</strong>: 4.5:1+ contrast ratio (AA)</li>
-                    <li><strong>Interactive elements</strong>: High contrast, visible focus states</li>
+                    <li>
+                      <strong>Secondary text (text-muted)</strong>: 4.5:1+ contrast ratio (AA)
+                    </li>
+                    <li>
+                      <strong>Interactive elements</strong>: High contrast, visible focus states
+                    </li>
                     <li>
                       <strong>Touch targets</strong>: Minimum 44px on mobile for all buttons/inputs
                     </li>
-                    <li><strong>Semantic colors</strong>: Never rely on color alone (icons + text)</li>
+                    <li>
+                      <strong>Semantic colors</strong>: Never rely on color alone (icons + text)
+                    </li>
                     <li><strong>Focus rings</strong>: 2px+ width, high contrast</li>
                   </ul>
                   <p class="mt-4 rounded-lg bg-surface-elevated p-4 text-sm">
                     <strong>Target audience:</strong> Designed for elderly users, people with visual
-                    impairments, and users on old devices. Large font sizes maintained, high contrast
-                    throughout, and generous spacing for easy interaction.
+                    impairments, and users on old devices. Large font sizes maintained, high
+                    contrast throughout, and generous spacing for easy interaction.
                   </p>
                 </div>
               </div>
@@ -490,22 +645,39 @@ const eventBadgesByType = {
             <div class="space-y-6 rounded-lg bg-surface-elevated p-6">
               <p class="mb-4 text-sm text-text-muted">
                 Form fields with different states: empty (blue border on focus), filled valid (green
-                border), invalid (red border with error message). Labels stand out with semibold weight.
-                Focus ring only appears on the active field.
+                border), invalid (red border with error message). Labels stand out with semibold
+                weight. Focus ring only appears on the active field.
               </p>
 
               <div class="grid grid-cols-2 gap-4">
                 <!-- Empty field (will show blue focus ring) -->
-                <FormInput v-model="formData.name" name="name" label="Full Name" placeholder="Enter your name"
-                  required />
+                <FormInput
+                  v-model="formData.name"
+                  name="name"
+                  label="Full Name"
+                  placeholder="Enter your name"
+                  required
+                />
 
                 <!-- Filled valid field (green border) -->
-                <FormInput v-model="formData.email" name="email" label="Email" type="email" placeholder="your@email.com"
-                  :error="formErrors.email" required />
+                <FormInput
+                  v-model="formData.email"
+                  name="email"
+                  label="Email"
+                  type="email"
+                  placeholder="your@email.com"
+                  :error="formErrors.email"
+                  required
+                />
 
                 <!-- Select dropdown -->
-                <FormSelect v-model="formData.country" name="country" label="Country" :options="countryOptions"
-                  placeholder="Select a country" />
+                <FormSelect
+                  v-model="formData.country"
+                  name="country"
+                  label="Country"
+                  :options="countryOptions"
+                  placeholder="Select a country"
+                />
 
                 <!-- Disabled field -->
                 <FormInput model-value="Disabled Field" name="disabled" label="Disabled" disabled />

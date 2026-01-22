@@ -61,7 +61,9 @@ const submit = () => form.post(route('profile.update'), { preserveScroll: true }
         <div class="space-y-2 self-end">
           <Label for="email">
             {{ _('Email address') }}
-            <span class="text-text-subtle">{{ profile.new_email ? `(${_('pending verification')})` : '' }}</span>
+            <span class="text-text-subtle">{{
+              profile.new_email ? `(${_('pending verification')})` : ''
+            }}</span>
           </Label>
           <Input id="email" type="email" v-model="form.email" required autocomplete="username" />
           <InputError :message="form.errors.email" />
@@ -100,18 +102,30 @@ const submit = () => form.post(route('profile.update'), { preserveScroll: true }
       </div>
 
       <!-- Email change verification notice -->
-      <div v-if="updateStatus === 'email-verification-sent'"
-        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20">
-        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">{{ _('Verification email sent') }}</p>
+      <div
+        v-if="updateStatus === 'email-verification-sent'"
+        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20"
+      >
+        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">
+          {{ _('Verification email sent') }}
+        </p>
         <p class="mt-2 text-sm text-blue-800 dark:text-blue-300">
-          {{ _('A verification link has been sent to your new email address. Please click it to confirm the email change.') }}
+          {{
+            _(
+              'A verification link has been sent to your new email address. Please click it to confirm the email change.',
+            )
+          }}
         </p>
       </div>
 
       <!-- Email change completed notice -->
-      <div v-if="updateStatus === 'email-verified'"
-        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20">
-        <p class="text-sm font-medium text-green-900 dark:text-green-200">{{ _('Email address verified') }}</p>
+      <div
+        v-if="updateStatus === 'email-verified'"
+        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20"
+      >
+        <p class="text-sm font-medium text-green-900 dark:text-green-200">
+          {{ _('Email address verified') }}
+        </p>
         <p class="mt-2 text-sm text-green-800 dark:text-green-300">
           {{ _('Your email address has been successfully updated.') }}
         </p>

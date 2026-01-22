@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { MapPinIcon } from 'lucide-vue-next';
 import { _ } from '@/composables/useTranslations';
+import { MapPinIcon } from 'lucide-vue-next';
 
 defineProps<{
   message?: string;

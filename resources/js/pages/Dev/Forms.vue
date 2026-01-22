@@ -1,14 +1,14 @@
 <script setup lang="ts">
 // Copilot - Pending review
 
-import type { PageProps } from '@inertiajs/core';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import { Button } from '@/components/ui/button';
+import type { PageProps } from '@inertiajs/core';
 import { FileText } from 'lucide-vue-next';
-import FormSection from './Forms/FormSection.vue';
 import FormPreview from './Forms/FormPreview.vue';
+import FormSection from './Forms/FormSection.vue';
 
 const props = defineProps<
   PageProps & {
@@ -39,7 +39,7 @@ const collapseAll = () => {
   <div>
     <Head title="Forms" />
 
-    <main class="max-w-7xl mx-auto space-y-6 py-8">
+    <main class="mx-auto max-w-7xl space-y-6 py-8">
       <header>
         <Breadcrumbs>
           <Breadcrumb route="dev.dashboard" text="Dev" />
@@ -49,23 +49,19 @@ const collapseAll = () => {
 
       <div class="px-4">
         <!-- Page Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="mb-6 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <FileText class="h-8 w-8 text-blue-500" />
             <h1 class="text-3xl font-bold text-foreground">Forms Preview</h1>
           </div>
 
           <div class="flex items-center gap-2">
-            <Button @click="expandAll" variant="outline" size="sm">
-              Expand All
-            </Button>
-            <Button @click="collapseAll" variant="outline" size="sm">
-              Collapse All
-            </Button>
+            <Button @click="expandAll" variant="outline" size="sm"> Expand All </Button>
+            <Button @click="collapseAll" variant="outline" size="sm"> Collapse All </Button>
           </div>
         </div>
 
-        <p class="text-gray-600 mb-8">
+        <p class="mb-8 text-gray-600">
           Interactive preview and testing interface for all entity forms (Create and Edit).
         </p>
 

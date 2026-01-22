@@ -4,12 +4,12 @@ import DropdownContent from '@/components/dropdown/DropdownContent.vue';
 import DropdownTrigger from '@/components/dropdown/DropdownTrigger.vue';
 import { Button } from '@/components/ui/button';
 import { can } from '@/composables/useAuth';
+import { MAYBEMODAL } from '@/composables/useInertiaUIModal';
 import { actions, entityNS } from '@/composables/useResources';
 import { ChevronDown } from 'lucide-vue-next';
 import { ActionsType, CardType } from '.';
 import * as buttons from './actions';
 import * as exposed from './exposed';
-import { MAYBEMODAL } from '@/composables/useInertiaUIModal';
 
 defineEmits<{
   (e: 'execute', action: ResourceAction): void;
@@ -27,20 +27,22 @@ const resource = inject(exposed.resource, {}) as ApiResource;
 const cardType = inject(exposed.type, {}) as CardType;
 
 const enabledActions = computed(() =>
-  actions.filter((action) => {
-    switch (action) {
-      case 'index':
-        return cardType != 'index' && can.viewAny(entityNS(entity));
-      case 'show':
-        return cardType != 'show' && resource.allows.view;
-      case 'edit':
-        return resource.allows.update;
-      case 'destroy':
-        return resource.allows.delete && !resource.deleted_at;
-      case 'restore':
-        return resource.allows.restore && resource.deleted_at;
-    }
-  }).filter(action => route().has(`${entityNS(entity)}.${action}`)),
+  actions
+    .filter((action) => {
+      switch (action) {
+        case 'index':
+          return cardType != 'index' && can.viewAny(entityNS(entity));
+        case 'show':
+          return cardType != 'show' && resource.allows.view;
+        case 'edit':
+          return resource.allows.update;
+        case 'destroy':
+          return resource.allows.delete && !resource.deleted_at;
+        case 'restore':
+          return resource.allows.restore && resource.deleted_at;
+      }
+    })
+    .filter((action) => route().has(`${entityNS(entity)}.${action}`)),
 );
 
 type CardAction = Exclude<ResourceAction, 'create'>;
@@ -79,7 +81,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
           v-for="action in enabledActions"
           :key="action"
           class="w-full justify-start py-5 hocus:bg-surface-interactive-hover"
-          @click="action === 'destroy' ? ($emit('execute', action) & closeModal()) : null"
+          @click="action === 'destroy' ? $emit('execute', action) & closeModal() : null"
         />
       </DropdownContent>
     </Dropdown>
@@ -92,7 +94,7 @@ const actionComponent: Component = (action: CardAction) => action2component[acti
       v-for="action in enabledActions"
       :key="action"
       class="border border-border/30 text-xs first:rounded-l-md last:rounded-r-md"
-      @click.stop.prevent="action === 'destroy' ? ($emit('execute', action) & closeModal()) : null"
+      @click.stop.prevent="action === 'destroy' ? $emit('execute', action) & closeModal() : null"
     />
   </div>
 </template>

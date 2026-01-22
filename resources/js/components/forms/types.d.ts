@@ -76,7 +76,8 @@ export interface FilteredOptionsSpecs {
   filteredBy: string;
 }
 
-export type SelectSpecs = (SingleSelectSpecs | MultipleSelectSpecs) & (FilteredOptionsSpecs | UnfiteredOptionsSpecs);
+export type SelectSpecs = (SingleSelectSpecs | MultipleSelectSpecs) &
+  (FilteredOptionsSpecs | UnfiteredOptionsSpecs);
 
 export type ElementSpecs = InputSpecs | HiddenInputSpecs | SelectSpecs;
 

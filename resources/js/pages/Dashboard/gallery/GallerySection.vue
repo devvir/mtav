@@ -49,7 +49,11 @@ const images = computed(() => {
               class="gallery-image absolute inset-0 cursor-pointer overflow-hidden rounded-lg border-2 border-white shadow-lg transition-all duration-300 hover:z-50 hover:scale-105 hover:rotate-0 hover:opacity-100"
               :style="{ transform: image.rotation, zIndex: image.zIndex }"
             >
-              <img :src="image.url" :alt="`Gallery preview ${(index as number) + 1}`" class="size-full object-cover" />
+              <img
+                :src="image.url"
+                :alt="`Gallery preview ${(index as number) + 1}`"
+                class="size-full object-cover"
+              />
             </div>
           </div>
         </div>

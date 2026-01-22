@@ -54,9 +54,7 @@ export function useEcho() {
     const channel: Channel = echo().private(channelName);
 
     // If eventName doesn't include namespace, assume it's in App\Events
-    const fullEventName = eventName.includes('\\')
-      ? eventName
-      : `App\\Events\\${eventName}`;
+    const fullEventName = eventName.includes('\\') ? eventName : `App\\Events\\${eventName}`;
 
     channel.listen(fullEventName, callback);
 
@@ -82,9 +80,7 @@ export function useEcho() {
     const channel: Channel = echo().join(channelName);
 
     // If eventName doesn't include namespace, assume it's in App\Events
-    const fullEventName = eventName.includes('\\')
-      ? eventName
-      : `App\\Events\\${eventName}`;
+    const fullEventName = eventName.includes('\\') ? eventName : `App\\Events\\${eventName}`;
 
     channel.listen(fullEventName, callback);
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
-import { EntityCard, CardHeader, CardFooter, CreatedMeta } from '@/components/card';
+import { CardFooter, CardHeader, CreatedMeta, EntityCard } from '@/components/card';
 import { Button } from '@/components/ui/button';
+import { _ } from '@/composables/useTranslations';
 import { Download, Eye } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const handleDownload = () => {
   link.href = props.document.url;
   link.download = props.document.description || 'document';
   link.click();
-}
+};
 
 const canPreview = computed(() => {
   const mimeType = props.document.mime_type;
@@ -52,7 +52,7 @@ const canPreview = computed(() => {
       {{ document.alt_text }}
     </CardHeader>
 
-    <CardFooter class="flex justify-between items-center">
+    <CardFooter class="flex items-center justify-between">
       <div class="flex gap-2">
         <Button
           v-if="canPreview"

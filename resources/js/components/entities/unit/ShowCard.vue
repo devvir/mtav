@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardContent } from '@/components/card';
-import { _ } from '@/composables/useTranslations';
+import { CardContent, EntityCard } from '@/components/card';
 import UnitFooter from './shared/UnitFooter.vue';
 import UnitHeader from './shared/UnitHeader.vue';
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Deferred } from '@inertiajs/vue3';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
+import { Deferred } from '@inertiajs/vue3';
 import {
   AdminsSection,
   EventsSection,

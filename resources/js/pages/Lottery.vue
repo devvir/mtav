@@ -2,9 +2,15 @@
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { iAmAdmin, iAmMember } from '@/composables/useAuth';
-import { Audit, LotteryHeader, LotteryManagement, PreferencesManager, ProjectPlan } from '@/components/lottery';
+import {
+  Audit,
+  LotteryHeader,
+  LotteryManagement,
+  PreferencesManager,
+  ProjectPlan,
+} from '@/components/lottery';
 import LotteryExecutedStatus from '@/components/lottery/shared/LotteryExecutedStatus.vue';
+import { iAmAdmin, iAmMember } from '@/composables/useAuth';
 
 const props = defineProps<{
   plan: Plan;
@@ -16,7 +22,9 @@ const props = defineProps<{
 }>();
 
 // Lottery is executING or executED (completed)
-const isExecutedOrExecuting = computed(() => props.lottery.is_completed || props.lottery.is_executing);
+const isExecutedOrExecuting = computed(
+  () => props.lottery.is_completed || props.lottery.is_executing,
+);
 </script>
 
 <template>
@@ -31,7 +39,7 @@ const isExecutedOrExecuting = computed(() => props.lottery.is_completed || props
 
     <Audit v-if="lottery.audits?.length" :lottery :families />
 
-    <div class="flex flex-col @5xl:flex-row gap-wide">
+    <div class="flex flex-col gap-wide @5xl:flex-row">
       <!-- Left Column / Top: Branch based on execution state -->
       <div class="flex-1">
         <!-- Show execution status (any role) if lottery is executed/executing -->
@@ -45,7 +53,7 @@ const isExecutedOrExecuting = computed(() => props.lottery.is_completed || props
       </div>
 
       <!-- Right Column / Bottom: Project Plan -->
-      <div class="w-full @5xl:w-full @5xl:min-w-[600px] @5xl:max-w-2/5 overflow-hidden">
+      <div class="w-full overflow-hidden @5xl:w-full @5xl:max-w-2/5 @5xl:min-w-[600px]">
         <ProjectPlan :plan />
       </div>
     </div>

@@ -1,10 +1,10 @@
 export { default as AdminsSection } from './admins/AdminsSection.vue';
+export { default } from './Dashboard.vue';
 export { default as EventsSection } from './events/EventsSection.vue';
 export { default as FamiliesSection } from './families/FamiliesSection.vue';
 export { default as GallerySection } from './gallery/GallerySection.vue';
 export { default as MembersSection } from './members/MembersSection.vue';
 export { default as OverviewSection } from './overview/OverviewSection.vue';
-export { default as UnitsSection } from './units/UnitsSection.vue';
 export { default as SkeletonCard } from './shared/SkeletonCard.vue';
 export { default as WhileLoading } from './shared/WhileLoading.vue';
-export { default } from './Dashboard.vue';
+export { default as UnitsSection } from './units/UnitsSection.vue';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getMediaConfig, FormHeader } from '..';
+import { FormHeader, getMediaConfig } from '..';
 
 const props = defineProps<{
   category: MediaCategory;

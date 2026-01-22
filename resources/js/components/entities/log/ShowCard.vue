@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardContent, CardFooter } from '@/components/card';
+import { CardContent, CardFooter, EntityCard } from '@/components/card';
 import CreatedMeta from '@/components/card/snippets/CreatedMeta.vue';
 import { User } from 'lucide-vue-next';
 

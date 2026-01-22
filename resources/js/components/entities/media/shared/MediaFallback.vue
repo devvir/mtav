@@ -5,7 +5,9 @@ defineProps<{
 </script>
 
 <template>
-  <div class="aspect-video flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+  <div
+    class="flex aspect-video items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+  >
     <div class="text-center opacity-60">
       <svg
         class="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500"

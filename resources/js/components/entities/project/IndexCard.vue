@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardContent, CardHeader } from '@/components/card';
+import { CardContent, CardHeader, EntityCard } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { User, UsersRound } from 'lucide-vue-next';
 import ProjectFooter from './shared/ProjectFooter.vue';
@@ -20,7 +20,7 @@ defineProps<{
     <CardHeader :title="project.name" :kicker="_('Project')" />
 
     <CardContent>
-      <div v-if="project.organization" class="text-sm text-text-muted mb-3">
+      <div v-if="project.organization" class="mb-3 text-sm text-text-muted">
         {{ project.organization }}
       </div>
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { BadgeGroup } from '@/components/badge';
-import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
-import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
+import { CardContent, CardFooter, CardHeader, EntityCard } from '@/components/card';
+import { ContentDetail, ContentGrid, ContentHighlight } from '@/components/card/snippets';
+import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
+import { CalendarIcon, ClockIcon, MapPinIcon, UserIcon } from 'lucide-vue-next';
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
-import { _ } from '@/composables/useTranslations';
-import { CalendarIcon, MapPinIcon, ClockIcon, UserIcon } from 'lucide-vue-next';
-import { fromUTC } from '@/composables/useDates';
 
 const props = defineProps<{
   event: ApiResource<Event>;
@@ -42,11 +42,7 @@ const userRsvpContentClass = computed(() => {
   <EntityCard :resource="event" entity="event" type="show">
     <CardHeader :title="event.title">
       <BadgeGroup class="mt-3">
-        <EventBadge
-          v-for="badge in badges"
-          :key="badge.text"
-          :config="badge"
-        />
+        <EventBadge v-for="badge in badges" :key="badge.text" :config="badge" />
       </BadgeGroup>
     </CardHeader>
 
@@ -91,11 +87,13 @@ const userRsvpContentClass = computed(() => {
           v-if="event.allows_rsvp"
           :icon="ClockIcon"
           :title="_('RSVPs')"
-          :content="_('{accepted} confirmed ({declined} declined)', {
-            accepted: event.accepted_count || 0,
-            declined: event.declined_count || 0,
-            total: event.rsvps_count || 0
-          })"
+          :content="
+            _('{accepted} confirmed ({declined} declined)', {
+              accepted: event.accepted_count || 0,
+              declined: event.declined_count || 0,
+              total: event.rsvps_count || 0,
+            })
+          "
         />
       </ContentGrid>
 

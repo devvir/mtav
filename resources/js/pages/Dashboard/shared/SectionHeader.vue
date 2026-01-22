@@ -23,11 +23,16 @@ defineProps<{
       :href="route(viewAllHref)"
       :class="['flex-1', align === 'right' ? 'text-right' : '']"
     >
-      <h2 class="text-lg font-semibold text-text hover:text-text-link focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none">
+      <h2
+        class="text-lg font-semibold text-text hover:text-text-link focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-focus-ring-offset focus:outline-none"
+      >
         {{ title }}
       </h2>
     </Link>
-    <h2 v-else :class="['flex-1 text-lg font-semibold text-text', align === 'right' ? 'text-right' : '']">
+    <h2
+      v-else
+      :class="['flex-1 text-lg font-semibold text-text', align === 'right' ? 'text-right' : '']"
+    >
       {{ title }}
     </h2>
     <div class="flex items-center gap-3">

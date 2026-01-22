@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.unmock('@/composables/useDates');
 
@@ -70,7 +70,9 @@ describe('useDates composable', () => {
       expect(consoleWarnMock).toHaveBeenCalledWith('fromUTC: Invalid date string: invalid-date');
 
       expect(fromUTC('2025-13-02T04:42:13.000000Z')).toBe('');
-      expect(consoleWarnMock).toHaveBeenCalledWith('fromUTC: Invalid date string: 2025-13-02T04:42:13.000000Z');
+      expect(consoleWarnMock).toHaveBeenCalledWith(
+        'fromUTC: Invalid date string: 2025-13-02T04:42:13.000000Z',
+      );
     });
 
     it('respects locale parameter in default format', () => {

@@ -1,8 +1,8 @@
 // Copilot - Pending review
-import { describe, it, expect } from 'vitest';
-import { mount } from '@/tests/helpers/mount';
 import FlashMessage from '@/components/flash/FlashMessage.vue';
 import { createMockFlashMessageProps } from '@/tests/helpers/fixtures';
+import { mount } from '@/tests/helpers/mount';
+import { describe, expect, it } from 'vitest';
 
 describe('FlashMessage', () => {
   describe('message types and rendering', () => {
@@ -109,7 +109,8 @@ describe('FlashMessage', () => {
     });
 
     it('sets title attribute for hover tooltip (full message on hover)', () => {
-      const longMessage = 'This is a very long message that should be truncated but shown in full on hover';
+      const longMessage =
+        'This is a very long message that should be truncated but shown in full on hover';
       const wrapper = mount(FlashMessage, {
         props: createMockFlashMessageProps({ message: longMessage, multiline: false }),
       });

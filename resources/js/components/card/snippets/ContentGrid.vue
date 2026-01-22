@@ -11,10 +11,12 @@ defineProps<{
 <template>
   <div
     :style="{ '--grid-content-min': minWidth }"
-    :class="cn(
-      'grid gap-4 @sm:grid-cols-[repeat(auto-fit,minmax(var(--grid-content-min,20cqw),1fr))] w-full',
-      $props.class
-    )"
+    :class="
+      cn(
+        'grid w-full gap-4 @sm:grid-cols-[repeat(auto-fit,minmax(var(--grid-content-min,20cqw),1fr))]',
+        $props.class,
+      )
+    "
   >
     <slot />
   </div>

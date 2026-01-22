@@ -14,7 +14,7 @@ const filters = {
     type: SWITCH,
     options: { '0': 'Active', '1': 'All' },
     value: props.all === false ? '0' : '1',
-  }
+  },
 };
 </script>
 

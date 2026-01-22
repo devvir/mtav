@@ -134,12 +134,12 @@ export const useEntityConfig = () => {
    */
   const getAvailableEntities = (entityData: Record<string, ApiResource[]>): EntityDisplay[] => {
     return Object.keys(entityConfig)
-      .filter(entity => {
+      .filter((entity) => {
         const pluralKey = entityPlural(entity as AppEntity);
         const camelKey = toCamelCase(pluralKey);
         return entityData[camelKey]?.length > 0;
       })
-      .map(entity => createEntityDisplay(entity as AppEntity));
+      .map((entity) => createEntityDisplay(entity as AppEntity));
   };
 
   /**

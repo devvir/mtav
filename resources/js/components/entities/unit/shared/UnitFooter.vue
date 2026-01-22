@@ -9,12 +9,12 @@ defineProps<{
 </script>
 
 <template>
-  <CardFooter class="flex justify-between items-center gap-2" v-slot="{ cardType }">
-    <div v-if="unit.family" class="flex items-center gap-2 min-w-0 flex-1">
+  <CardFooter class="flex items-center justify-between gap-2" v-slot="{ cardType }">
+    <div v-if="unit.family" class="flex min-w-0 flex-1 items-center gap-2">
       {{ _('Family') }}
       <ModalLink :href="route('families.show', unit.family.id)" class="min-w-0">
         <span
-          class="text-text-link hover:text-text-link-hover truncate block"
+          class="block truncate text-text-link hover:text-text-link-hover"
           :title="unit.family.name"
         >
           {{ unit.family.name }}

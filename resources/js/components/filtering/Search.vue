@@ -15,11 +15,7 @@ defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
-watchDebounced(
-  search,
-  (value: string) => emit('input', value),
-  { debounce: 300, maxWait: 1000 }
-);
+watchDebounced(search, (value: string) => emit('input', value), { debounce: 300, maxWait: 1000 });
 </script>
 
 <template>

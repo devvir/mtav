@@ -20,28 +20,28 @@ interface ItemStyle {
 function getDefaultStyle(type: string): ItemStyle {
   const styles: Record<string, ItemStyle> = {
     unit: {
-      fill: '#e0f2fe',      // Light blue
-      stroke: '#cbd5e1',    // Gray
+      fill: '#e0f2fe', // Light blue
+      stroke: '#cbd5e1', // Gray
       strokeWidth: 1,
     },
     park: {
-      fill: '#f0fdf4',      // Light green
-      stroke: '#16a34a',    // Dark green
+      fill: '#f0fdf4', // Light green
+      stroke: '#16a34a', // Dark green
       strokeWidth: 2,
     },
     street: {
-      fill: '#f1f5f9',      // Light slate
-      stroke: '#64748b',    // Slate
+      fill: '#f1f5f9', // Light slate
+      stroke: '#64748b', // Slate
       strokeWidth: 1,
     },
     common: {
-      fill: '#fefce8',      // Light yellow
-      stroke: '#ca8a04',    // Yellow
+      fill: '#fefce8', // Light yellow
+      stroke: '#ca8a04', // Yellow
       strokeWidth: 1,
     },
     amenity: {
-      fill: '#fef3f2',      // Light red
-      stroke: '#dc2626',    // Red
+      fill: '#fef3f2', // Light red
+      stroke: '#dc2626', // Red
       strokeWidth: 1,
     },
   };
@@ -99,4 +99,4 @@ export const useItem = (itemGetter: () => PlanItem) => {
     textColor: computed<string>(() => getContrastColor(style.fill)),
     isHovering: ref(false),
   };
-}
+};

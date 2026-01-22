@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
+import { SelectAddOption, ValueType } from '.';
 import Dropdown from '../dropdown/Dropdown.vue';
 import DropdownContent from '../dropdown/DropdownContent.vue';
 import DropdownTrigger from '../dropdown/DropdownTrigger.vue';
 import FormSelectAddOption from './FormSelectAddOption.vue';
 import * as keys from './keys';
-import { SelectAddOption, ValueType } from '.';
 
 const selected = defineModel<(string | number)[]>();
 
@@ -24,12 +24,17 @@ const sortedOptions = computed(() => {
 
   // If options are only "0" and "1", sort as "1" then "0"
   if (keys.length === 2 && keys.includes('0') && keys.includes('1')) {
-    return [['1', props.options['1']], ['0', props.options['0']]];
+    return [
+      ['1', props.options['1']],
+      ['0', props.options['0']],
+    ];
   }
 
   // If all keys are numeric, sort by label (value)
-  if (keys.every(key => !isNaN(Number(key)))) {
-    return Object.entries(props.options).sort(([, a], [, b]) => (a as string).localeCompare(b as string));
+  if (keys.every((key) => !isNaN(Number(key)))) {
+    return Object.entries(props.options).sort(([, a], [, b]) =>
+      (a as string).localeCompare(b as string),
+    );
   }
 
   // Otherwise, return as is
@@ -71,7 +76,7 @@ const pauseModalClosing = inject(keys.pauseModalClosing, () => null) as (pause?:
     >
       <!-- Visible input-->
       <input
-        class="size-full pointer-events-none truncate px-3 pr-10 text-text outline-0"
+        class="pointer-events-none size-full truncate px-3 pr-10 text-text outline-0"
         tabindex="-1"
         :class="{ 'placeholder-transparent': isOpen }"
         :value="modelLabel"

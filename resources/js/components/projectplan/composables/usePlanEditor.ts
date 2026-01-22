@@ -4,7 +4,10 @@ import type { PolygonConfig } from '../types';
  * Calculate canvas scale factors
  * Returns how much the canvas is scaled compared to declared boundary dimensions
  */
-const getCanvasScale = (containerRef: Ref<HTMLDivElement | undefined>, boundary: ComputedRef<PolygonConfig>) => {
+const getCanvasScale = (
+  containerRef: Ref<HTMLDivElement | undefined>,
+  boundary: ComputedRef<PolygonConfig>,
+) => {
   return computed(() => {
     if (!containerRef.value) {
       return { scaleX: 1, scaleY: 1 };
@@ -22,7 +25,7 @@ const getCanvasScale = (containerRef: Ref<HTMLDivElement | undefined>, boundary:
       scaleY: container.height / boundaryHeight,
     };
   });
-}
+};
 
 /**
  * Calculate ghost dimensions based on canvas scaling
@@ -100,7 +103,12 @@ export const usePlanEditor = (
    * This approach works for both regular (square) and irregular shapes,
    * snapping the visual center rather than an arbitrary corner.
    */
-  const translateItemTo = (item: PlanItem, newCenterX: number, newCenterY: number, gridSize: number = 5): Point[] => {
+  const translateItemTo = (
+    item: PlanItem,
+    newCenterX: number,
+    newCenterY: number,
+    gridSize: number = 5,
+  ): Point[] => {
     // Calculate current centroid
     const xCoords = item.polygon.map(([x]: Point) => x);
     const yCoords = item.polygon.map(([, y]: Point) => y);
@@ -112,7 +120,9 @@ export const usePlanEditor = (
     const offsetY = newCenterY - currentCenterY;
 
     // Translate all points to new center
-    const translatedPolygon = item.polygon.map(([x, y]: Point): Point => [x + offsetX, y + offsetY]);
+    const translatedPolygon = item.polygon.map(
+      ([x, y]: Point): Point => [x + offsetX, y + offsetY],
+    );
 
     // Calculate centroid of translated polygon
     const translatedXCoords = translatedPolygon.map(([x]) => x);
@@ -129,10 +139,9 @@ export const usePlanEditor = (
     const snapCorrectionY = snappedCenterY - translatedCenterY;
 
     // Apply snap correction to all points
-    return translatedPolygon.map(([x, y]: Point): Point => [
-      x + snapCorrectionX,
-      y + snapCorrectionY
-    ]);
+    return translatedPolygon.map(
+      ([x, y]: Point): Point => [x + snapCorrectionX, y + snapCorrectionY],
+    );
   };
 
   return {
@@ -140,4 +149,4 @@ export const usePlanEditor = (
     screenToCanvasCoords,
     translateItemTo,
   };
-}
+};

@@ -1,4 +1,4 @@
-import { setCookie, getCookie } from '@/lib/utils';
+import { getCookie, setCookie } from '@/lib/utils';
 
 const groupMembers = ref<boolean>(getCookie('groupMembers') === 'true');
 

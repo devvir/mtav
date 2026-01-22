@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { ValueType } from '.';
 import FormError from './FormError.vue';
 import FormLabel from './FormLabel.vue';
-import { ValueType } from '.';
 
 const props = defineProps<{
   model: ValueType | ValueType[];
@@ -22,7 +22,7 @@ const valueProvided = computed<boolean>(() =>
 <template>
   <div class="col-span-2 grid-cols-subgrid grid-rows-[1fr_1rem] @md:grid">
     <div
-      class="group relative z-1 min-h-12 col-span-2 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
+      class="group relative z-1 col-span-2 min-h-12 grid-cols-subgrid items-center overflow-hidden rounded-xl border transition-all @md:grid @md:rounded-2xl"
       :class="{
         'border-border': !disabled,
         'focus-within:border-interactive focus-within:ring-2 focus-within:ring-interactive/20':
@@ -44,7 +44,7 @@ const valueProvided = computed<boolean>(() =>
       />
 
       <div
-        class="h-full bg-surface text-lg text-text transition-colors py-1.5"
+        class="h-full bg-surface py-1.5 text-lg text-text transition-colors"
         :class="{
           'group-focus-within:bg-surface': !disabled,
           'bg-surface-sunken opacity-50': disabled,

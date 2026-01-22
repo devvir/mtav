@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   media: ApiResource<Media>;
@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <div
-    class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/85 via-black/60 via-60% to-transparent p-4 text-white"
+    class="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/85 via-black/60 via-60% to-transparent p-4 text-white"
   >
     <div class="space-y-2">
       <p class="text-lg leading-relaxed">

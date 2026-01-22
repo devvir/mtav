@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from '@/components/badge';
-import { EntityCard, CardContent } from '@/components/card';
+import { CardContent, EntityCard } from '@/components/card';
 import { fromUTC } from '@/composables/useDates';
 import { _ } from '@/composables/useTranslations';
 

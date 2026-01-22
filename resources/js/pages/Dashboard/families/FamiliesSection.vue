@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Copilot - Pending review
+import { can } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { UsersRound } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import FamilyCard from './FamilyCard.vue';
-import { can } from '@/composables/useAuth';
 
 defineProps<{
   families: Family[];

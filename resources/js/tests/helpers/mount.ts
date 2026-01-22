@@ -1,9 +1,8 @@
 // Copilot - Pending review
-import { mount as vtuMount, flushPromises } from '@vue/test-utils';
+import { flushPromises, mount as vtuMount } from '@vue/test-utils';
 import type { Component } from 'vue';
-import { vi } from 'vitest';
-import { mockInertia } from './inertia';
 import { mockUIComponents } from '../mocks/components';
+import { mockInertia } from './inertia';
 
 export interface MountOptions {
   props?: Record<string, any>;
@@ -21,13 +20,7 @@ export interface MountOptions {
  * Reduces boilerplate for component tests
  */
 export function mount(component: Component, options: MountOptions = {}) {
-  const {
-    props = {},
-    slots = {},
-    global = {},
-    inertiaProps = {},
-    auth = {},
-  } = options;
+  const { props = {}, slots = {}, global = {}, inertiaProps = {}, auth = {} } = options;
 
   // Set up Inertia mocks
   mockInertia(inertiaProps, auth);
@@ -61,7 +54,7 @@ export function mount(component: Component, options: MountOptions = {}) {
  */
 export async function flushUpdates() {
   await flushPromises();
-  return new Promise(resolve => setTimeout(resolve, 0));
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /**

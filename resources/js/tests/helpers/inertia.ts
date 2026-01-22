@@ -18,42 +18,46 @@ export function mockInertia(props: Record<string, any> = {}, auth: Record<string
     ...props,
   };
 
-  vi.mock('@inertiajs/vue3', () => ({
-    useForm: vi.fn((data) => ({
-      data: () => data,
-      ...data,
-      errors: {},
-      processing: false,
-      isDirty: false,
-      submit: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      patch: vi.fn(),
-      delete: vi.fn(),
-      get: vi.fn(),
-      reset: vi.fn(),
-      setData: vi.fn(),
-      clearErrors: vi.fn(),
-      setError: vi.fn(),
-      transform: vi.fn(),
-    })),
-    usePage: vi.fn(() => ({
-      props: pageProps,
-      url: '/',
-      component: 'Test',
-    })),
-    router: {
-      post: vi.fn(),
-      put: vi.fn(),
-      patch: vi.fn(),
-      delete: vi.fn(),
-      get: vi.fn(),
-      visit: vi.fn(),
-    },
-    Link: {
-      template: '<a><slot /></a>',
-    },
-  }), { virtual: true });
+  vi.mock(
+    '@inertiajs/vue3',
+    () => ({
+      useForm: vi.fn((data) => ({
+        data: () => data,
+        ...data,
+        errors: {},
+        processing: false,
+        isDirty: false,
+        submit: vi.fn(),
+        post: vi.fn(),
+        put: vi.fn(),
+        patch: vi.fn(),
+        delete: vi.fn(),
+        get: vi.fn(),
+        reset: vi.fn(),
+        setData: vi.fn(),
+        clearErrors: vi.fn(),
+        setError: vi.fn(),
+        transform: vi.fn(),
+      })),
+      usePage: vi.fn(() => ({
+        props: pageProps,
+        url: '/',
+        component: 'Test',
+      })),
+      router: {
+        post: vi.fn(),
+        put: vi.fn(),
+        patch: vi.fn(),
+        delete: vi.fn(),
+        get: vi.fn(),
+        visit: vi.fn(),
+      },
+      Link: {
+        template: '<a><slot /></a>',
+      },
+    }),
+    { virtual: true },
+  );
 }
 
 /**

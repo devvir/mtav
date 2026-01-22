@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import {EntityCard, CardContent, CardFooter, CardHeader, ContentGrid, CreatedMeta, StatBox } from '@/components/card';
+import {
+  CardContent,
+  CardFooter,
+  CardHeader,
+  ContentGrid,
+  CreatedMeta,
+  EntityCard,
+  StatBox,
+} from '@/components/card';
 import { Building2, Home, UsersRound } from 'lucide-vue-next';
 
 defineProps<{

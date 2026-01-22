@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {
-  EntityCard,
   CardContent,
   CardHeader,
   ContentHighlight,
   ContentLine,
+  EntityCard,
 } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import AdminCardFooter from './AdminCardFooter.vue';

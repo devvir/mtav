@@ -14,11 +14,17 @@ const props = defineProps<{
   isExpanded: boolean;
 }>();
 
-const entityName = computed(() => props.entityKey.charAt(0).toUpperCase() + props.entityKey.slice(1));
+const entityName = computed(
+  () => props.entityKey.charAt(0).toUpperCase() + props.entityKey.slice(1),
+);
 </script>
 
 <template>
-  <Collapsible :open="isExpanded" :id="entityKey" class="rounded-lg border border-border bg-surface">
+  <Collapsible
+    :open="isExpanded"
+    :id="entityKey"
+    class="rounded-lg border border-border bg-surface"
+  >
     <CollapsibleTrigger as-child>
       <Button
         variant="ghost"

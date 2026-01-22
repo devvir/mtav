@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { entityRoutes } from '@/composables/useResources';
-import { _ } from '@/composables/useTranslations';
-import type { CardType } from '.';
-import * as exposed from './exposed';
-import Card from './Card.vue';
 import { cn } from '@/lib/utils';
 import { HTMLAttributes } from 'vue';
+import type { CardType } from '.';
+import Card from './Card.vue';
+import * as exposed from './exposed';
 
 const props = defineProps<{
   resource: ApiResource;
@@ -30,12 +29,11 @@ provide(exposed.routes, routes);
 <template>
   <Card
     :dimmed
-    :cardLink="cardLink ?? ((type === 'index' && ! noLink) ? detailsRoute : undefined)"
+    :cardLink="cardLink ?? (type === 'index' && !noLink ? detailsRoute : undefined)"
     :panel-classes
-    :class="cn(
-      { 'border-red-200 bg-surface opacity-60 shadow-sm': resource.deleted_at },
-      $props.class,
-    )"
+    :class="
+      cn({ 'border-red-200 bg-surface opacity-60 shadow-sm': resource.deleted_at }, $props.class)
+    "
   >
     <slot :card-type="type" :entity-routes="routes" />
   </Card>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { useDragAndDrop } from '@/composables/useDragAndDrop';
 import PreferencesControls from './PreferencesControls.vue';
 
@@ -24,9 +23,13 @@ const getUnitRotation = (unitId: number) => {
 const localPreferences = reactive([...props.preferences]);
 
 // Watch for external changes
-watch(() => props.preferences, (newPreferences: Unit[]) => {
-  localPreferences.splice(0, localPreferences.length, ...newPreferences);
-}, { deep: true });
+watch(
+  () => props.preferences,
+  (newPreferences: Unit[]) => {
+    localPreferences.splice(0, localPreferences.length, ...newPreferences);
+  },
+  { deep: true },
+);
 
 // Preference reordering logic
 const move = (from: number, to: number) => {
@@ -53,31 +56,40 @@ const moveDown = (index: number) => {
   <TransitionGroup
     name="preference"
     tag="div"
-    class="hidden lg:grid gap-2 auto-rows-fr w-full"
+    class="hidden w-full auto-rows-fr gap-2 lg:grid"
     style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))"
   >
     <!-- Droppable Slot Container (Full cell area) -->
     <div
       v-for="(unit, index) in localPreferences"
       :key="unit.id"
-      class="relative flex items-center justify-center min-h-[160px] p-2"
+      class="relative flex min-h-[160px] items-center justify-center p-2"
       @drop.prevent="handleDrop($event, index)"
       @dragover.prevent
       @dragenter.prevent
     >
       <!-- Fixed Numbered Slot (Background) -->
-      <div class="absolute inset-0 rounded-lg border-2 border-dashed border-border-subtle bg-surface-sunken/30 flex items-end justify-end pb-4 pr-4 pointer-events-none">
+      <div
+        class="pointer-events-none absolute inset-0 flex items-end justify-end rounded-lg border-2 border-dashed border-border-subtle bg-surface-sunken/30 pr-4 pb-4"
+      >
         <span class="text-4xl font-bold text-text-subtle/30 select-none">{{ index + 1 }}</span>
       </div>
 
       <!-- Movable Unit Card (Foreground) - Inset from slot edges -->
       <div
-        class="relative z-10 group w-[calc(100%-12px)] h-[calc(100%-12px)] rounded-lg border-2 shadow-sm select-none transition-all bg-surface/50 border-border backdrop-blur-[2px]"
+        class="group relative z-10 h-[calc(100%-12px)] w-[calc(100%-12px)] rounded-lg border-2 border-border bg-surface/50 shadow-sm backdrop-blur-[2px] transition-all select-none"
         :class="[
           disabled ? 'cursor-wait' : 'cursor-move',
-          draggedIndex === index ? 'opacity-40 scale-95 rotate-2' : 'hover:shadow-md hover:scale-[1.02]',
+          draggedIndex === index
+            ? 'scale-95 rotate-2 opacity-40'
+            : 'hover:scale-[1.02] hover:shadow-md',
         ]"
-        :style="{ transform: draggedIndex === index ? 'scale(0.95) rotate(2deg)' : `rotate(${getUnitRotation(unit.id)}deg)` }"
+        :style="{
+          transform:
+            draggedIndex === index
+              ? 'scale(0.95) rotate(2deg)'
+              : `rotate(${getUnitRotation(unit.id)}deg)`,
+        }"
         :draggable="!disabled"
         @dragstart="handleDragStart($event, index)"
         @dragend.prevent="handleDragEnd"
@@ -87,12 +99,14 @@ const moveDown = (index: number) => {
           <!-- Default priority badge not shown unless slot is provided -->
         </slot>
 
-        <div class="p-4 flex flex-col items-center justify-center gap-3 h-full">
+        <div class="flex h-full flex-col items-center justify-center gap-3 p-4">
           <!-- Unit Content Slot -->
-          <div class="text-center flex-1 flex items-center justify-center">
+          <div class="flex flex-1 items-center justify-center text-center">
             <slot name="unit-content" :unit="unit" :index="index">
               <!-- Default content if slot not provided -->
-              <h3 class="font-semibold text-text text-xl leading-tight font-mono">{{ unit.identifier }}</h3>
+              <h3 class="font-mono text-xl leading-tight font-semibold text-text">
+                {{ unit.identifier }}
+              </h3>
             </slot>
           </div>
 

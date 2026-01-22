@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import Head from '@/components/Head.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
+import { UploadForm } from '@/components/entities/media';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { UploadForm } from '@/components/entities/media';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 

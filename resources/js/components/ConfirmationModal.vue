@@ -29,15 +29,17 @@ const props = defineProps<{
 
 const confirmText = ref('');
 
-const disabled = computed(() => new Intl.Collator('en', { sensitivity: 'base' }).compare(
-  confirmText.value,
-  props.expectedText,
-));
+const disabled = computed(() =>
+  new Intl.Collator('en', { sensitivity: 'base' }).compare(confirmText.value, props.expectedText),
+);
 
 // Clear input when modal closes
-watch(() => props.open, (isOpen: boolean) => {
-  if (! isOpen) confirmText.value = '';
-});
+watch(
+  () => props.open,
+  (isOpen: boolean) => {
+    if (!isOpen) confirmText.value = '';
+  },
+);
 </script>
 
 <template>

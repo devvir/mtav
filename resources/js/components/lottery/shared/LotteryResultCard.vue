@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { Card, CardContent } from '@/components/card';
+import { _ } from '@/composables/useTranslations';
 import { Home } from 'lucide-vue-next';
 
 defineProps<{
@@ -10,15 +10,20 @@ defineProps<{
 
 <template>
   <Card class="overflow-hidden *:p-3">
-    <CardContent class="flex-row p-2 items-stretch gap-2.5">
+    <CardContent class="flex-row items-stretch gap-2.5 p-2">
       <!-- House Icon -->
-      <div class="size-9 shrink-0 rounded-lg bg-green-700/5 dark:bg-green-300/2 flex items-center justify-center">
+      <div
+        class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-green-700/5 dark:bg-green-300/2"
+      >
         <Home class="size-4 text-green-900" />
       </div>
 
       <!-- Family and Unit Info -->
-      <div class="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-        <h3 class="font-semibold text-sm text-text truncate leading-tight max-w-[200px]" :title="family.name">
+      <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+        <h3
+          class="max-w-[200px] truncate text-sm leading-tight font-semibold text-text"
+          :title="family.name"
+        >
           {{ family.name }}
         </h3>
         <p v-if="family.unit" class="text-xs text-text-subtle">

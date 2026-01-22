@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AuthIntro from '@/layouts/auth/AuthIntro.vue';
 import FlashMessages from '@/components/flash/FlashMessages.vue';
 import { _ } from '@/composables/useTranslations';
+import AuthIntro from '@/layouts/auth/AuthIntro.vue';
 
 const props = defineProps<{
   title?: string;

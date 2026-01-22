@@ -1,8 +1,8 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mount, flushUpdates } from '@/tests/helpers/mount';
 import FormInput from '@/components/forms/FormInput.vue';
 import { createMockFormInputProps } from '@/tests/helpers/fixtures';
+import { mount } from '@/tests/helpers/mount';
+import { describe, expect, it } from 'vitest';
 
 describe('FormInput', () => {
   let wrapper;

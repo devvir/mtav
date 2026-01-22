@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardHeader, HeaderSub } from '@/components/card';
+import { CardHeader, EntityCard, HeaderSub } from '@/components/card';
 import AdminCardFooter from './AdminCardFooter.vue';
 
 defineProps<{

@@ -1,4 +1,4 @@
-import type { ScaleMode, PolygonConfig } from '../types';
+import type { PolygonConfig, ScaleMode } from '../types';
 
 /**
  * Public API of the module
@@ -82,17 +82,24 @@ function calculateBoundingBox(items: PlanItem[], boundary?: PolygonConfig): Boun
   const maxY = Math.max(...yCoords);
 
   return {
-    minX, minY, maxX, maxY,
+    minX,
+    minY,
+    maxX,
+    maxY,
     width: maxX - minX,
     height: maxY - minY,
   };
 }
 
-function getScaleTransform(bbox: BoundingBox, forceRtio: number, scaleFn: (w: number, h: number) => number): Transform {
+function getScaleTransform(
+  bbox: BoundingBox,
+  forceRtio: number,
+  scaleFn: (w: number, h: number) => number,
+): Transform {
   const scale = scaleFn(forceRtio, 1);
 
-  const centerOffsetX = bbox.width * (forceRtio - scale) / 2;
-  const centerOffsetY = bbox.height * (1 - scale) / 2;
+  const centerOffsetX = (bbox.width * (forceRtio - scale)) / 2;
+  const centerOffsetY = (bbox.height * (1 - scale)) / 2;
 
   return {
     scaleX: scale,
@@ -102,10 +109,15 @@ function getScaleTransform(bbox: BoundingBox, forceRtio: number, scaleFn: (w: nu
   };
 }
 
-function scalingSpec(mode: ScaleMode, items: PlanItem[], boundary: PolygonConfig | undefined, forceRatio?: number) {
+function scalingSpec(
+  mode: ScaleMode,
+  items: PlanItem[],
+  boundary: PolygonConfig | undefined,
+  forceRatio?: number,
+) {
   const bbox = calculateBoundingBox(items, boundary);
   const padding = boundary ? (boundary.strokeWidth || 1) / 2 : 0;
-  const stretch = (mode === 'none' || ! forceRatio) ? 1 : forceRatio * bbox.width / bbox.height;
+  const stretch = mode === 'none' || !forceRatio ? 1 : (forceRatio * bbox.width) / bbox.height;
 
   let transform: Transform = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
 
@@ -117,7 +129,12 @@ function scalingSpec(mode: ScaleMode, items: PlanItem[], boundary: PolygonConfig
       transform = getScaleTransform(bbox, forceRatio || 1, Math.max);
       break;
     case 'fill':
-      transform = { scaleX: stretch, scaleY: 1, offsetX: -bbox.minX * stretch, offsetY: -bbox.minY };
+      transform = {
+        scaleX: stretch,
+        scaleY: 1,
+        offsetX: -bbox.minX * stretch,
+        offsetY: -bbox.minY,
+      };
       break;
   }
 
@@ -129,7 +146,11 @@ function scalingSpec(mode: ScaleMode, items: PlanItem[], boundary: PolygonConfig
  * Handles multiple scaling modes and coordinate transformations
  */
 export const useScaling = (mode: ScaleMode): UseScaling => {
-  function scale(items: PlanItem[], boundary: PolygonConfig | undefined, forceRatio?: number): ScaleResult {
+  function scale(
+    items: PlanItem[],
+    boundary: PolygonConfig | undefined,
+    forceRatio?: number,
+  ): ScaleResult {
     const { bbox, stretch, padding, ...transform } = scalingSpec(mode, items, boundary, forceRatio);
 
     return {
@@ -145,4 +166,4 @@ export const useScaling = (mode: ScaleMode): UseScaling => {
   return {
     scale,
   };
-}
+};

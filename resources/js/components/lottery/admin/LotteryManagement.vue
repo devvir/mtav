@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
+import { Alert, AlertDescription } from '@/components/alert';
 import { Card, CardContent, CardHeader } from '@/components/card';
-import { Button } from '@/components/ui/button';
+import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import FormInput from '@/components/forms/FormInput.vue';
 import Textarea from '@/components/Textarea.vue';
-import ConfirmationModal from '@/components/ConfirmationModal.vue';
-import { Alert, AlertDescription } from '@/components/alert';
+import { Button } from '@/components/ui/button';
+import { _ } from '@/composables/useTranslations';
 
-import { PlayIcon, AlertTriangle } from 'lucide-vue-next';
 import { Label } from '@/components/ui/label';
+import { AlertTriangle, PlayIcon } from 'lucide-vue-next';
 
 const props = defineProps<{
   lottery: Lottery;
@@ -24,13 +24,13 @@ const execute = () => {
   const form = useForm({ options: props.options });
 
   form.post(route('lottery.execute', props.lottery.id), {
-    onFinish: () => confirmationModalOpen.value = false,
+    onFinish: () => (confirmationModalOpen.value = false),
     preserveScroll: true,
   });
 };
 
 const canExecute = computed(
-  () => props.lottery.start_date && new Date(props.lottery.start_date) < new Date()
+  () => props.lottery.start_date && new Date(props.lottery.start_date) < new Date(),
 );
 
 const updateForm = useForm({
@@ -38,15 +38,16 @@ const updateForm = useForm({
   description: props.lottery.description,
 });
 
-const updateLottery = () => updateForm.patch(route('lottery.update', props.lottery.id), {
-  preserveScroll: true,
-});
+const updateLottery = () =>
+  updateForm.patch(route('lottery.update', props.lottery.id), {
+    preserveScroll: true,
+  });
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Lottery Execution -->
-    <Card class="p-base max-w-full">
+    <Card class="max-w-full p-base">
       <CardHeader :title="_('Lottery Execution')">
         {{ _('Execute the lottery when ready') }}
       </CardHeader>
@@ -58,11 +59,17 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
           <AlertDescription>{{ warning }}</AlertDescription>
         </Alert>
 
-        <div v-if="!canExecute" class="text-sm text-text-muted text-center py-4">
+        <div v-if="!canExecute" class="py-4 text-center text-sm text-text-muted">
           {{ _('The lottery will be available for execution after the scheduled date.') }}
         </div>
 
-        <Button v-else @click="confirmationModalOpen = true" variant="default" size="lg" class="w-full gap-2">
+        <Button
+          v-else
+          @click="confirmationModalOpen = true"
+          variant="default"
+          size="lg"
+          class="w-full gap-2"
+        >
           <PlayIcon class="h-5 w-5" />
           {{ warning ? _('Confirm and Execute') : _('Execute Lottery') }}
         </Button>
@@ -78,7 +85,12 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
       <CardContent>
         <form @submit.prevent="updateLottery" class="w-full space-y-6">
           <!-- Start Date -->
-          <FormInput v-model="updateForm.start_date" name="start_date" type="datetime-local" :label="_('Lottery Date')" />
+          <FormInput
+            v-model="updateForm.start_date"
+            name="start_date"
+            type="datetime-local"
+            :label="_('Lottery Date')"
+          />
 
           <!-- Description -->
           <div class="space-y-2">
@@ -93,7 +105,7 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
           </div>
 
           <!-- Error Display -->
-          <div v-if="updateForm.hasErrors" class="rounded-lg bg-red-50 dark:bg-red-950/20 p-4">
+          <div v-if="updateForm.hasErrors" class="rounded-lg bg-red-50 p-4 dark:bg-red-950/20">
             <p class="text-sm text-red-800 dark:text-red-200">
               {{ Object.values(updateForm.errors).flat().join(' ') }}
             </p>
@@ -112,7 +124,10 @@ const updateLottery = () => updateForm.patch(route('lottery.update', props.lotte
   <ConfirmationModal
     v-model:open="confirmationModalOpen"
     :title="_('Confirm Lottery Execution')"
-    :description="warning || _('This action is irreversible. All units will be permanently assigned to families.')"
+    :description="
+      warning ||
+      _('This action is irreversible. All units will be permanently assigned to families.')
+    "
     :expected-text="warning ? _('CONFIRM') : _('EXECUTE')"
     :confirm-button-text="warning ? _('Confirm') : _('Execute Lottery')"
     variant="default"

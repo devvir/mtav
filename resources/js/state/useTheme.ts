@@ -1,4 +1,4 @@
-import { setCookie, getCookie } from '@/lib/utils';
+import { getCookie, setCookie } from '@/lib/utils';
 
 type Mode = 'light' | 'dark' | 'system';
 type Theme = 'default' | 'ocean' | 'forest' | 'sunset' | 'mono' | 'high-contrast';

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import IntroCarousel from '@/layouts/auth/IntroCarousel.vue';
 import { _ } from '@/composables/useTranslations';
+import IntroCarousel from '@/layouts/auth/IntroCarousel.vue';
 </script>
 
 <template>
-  <div class="relative flex flex-col items-center justify-center gap-2 bg-linear-to-br from-primary/5 to-primary/10 px-4 py-6 sm:gap-4 sm:py-8 lg:w-1/2 lg:gap-6 lg:px-12 lg:py-16">
+  <div
+    class="relative flex flex-col items-center justify-center gap-2 bg-linear-to-br from-primary/5 to-primary/10 px-4 py-6 sm:gap-4 sm:py-8 lg:w-1/2 lg:gap-6 lg:px-12 lg:py-16"
+  >
     <!-- Carousel -->
     <div class="w-full max-w-lg pb-1">
       <IntroCarousel />
@@ -17,7 +19,11 @@ import { _ } from '@/composables/useTranslations';
       </div>
 
       <p class="flex-1 text-sm leading-relaxed tracking-wide text-muted-foreground">
-        {{ _('MTAV facilites a fair distribution of housing units among families in cooperative housing projects.') }}
+        {{
+          _(
+            'MTAV facilites a fair distribution of housing units among families in cooperative housing projects.',
+          )
+        }}
       </p>
     </div>
   </div>

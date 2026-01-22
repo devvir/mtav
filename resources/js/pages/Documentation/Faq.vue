@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import Head from '@/components/Head.vue';
+import { _ } from '@/composables/useTranslations';
 
 interface FaqItem {
   question: string;

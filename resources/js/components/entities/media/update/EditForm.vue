@@ -30,7 +30,11 @@ const updateMedia = () => {
   <div class="mx-auto w-full max-w-2xl space-y-6 px-6">
     <FormHeader
       :title="_('Edit {mediaCategory}', { mediaCategory: categories[category] })"
-      :subtitle="_('Update the description for your {mediaCategory}', { mediaCategory: categories[category] })"
+      :subtitle="
+        _('Update the description for your {mediaCategory}', {
+          mediaCategory: categories[category],
+        })
+      "
     />
 
     <main class="space-y-6">

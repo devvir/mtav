@@ -1,7 +1,7 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mount } from '@/tests/helpers/mount';
 import TextLink from '@/components/TextLink.vue';
+import { mount } from '@/tests/helpers/mount';
+import { describe, expect, it } from 'vitest';
 
 describe('TextLink', () => {
   let wrapper;

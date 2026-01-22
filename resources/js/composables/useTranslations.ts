@@ -1,8 +1,8 @@
 type Replacements = Record<string, string>;
 
 // Import supported locales explicitly
-import esUY from '@lang/es_UY.json';
 import en from '@lang/en.json';
+import esUY from '@lang/es_UY.json';
 
 const locales = {
   es_UY: esUY,

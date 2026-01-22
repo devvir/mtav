@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <section class="flex size-full flex-col items-center justify-center py-16 text-center space-y-4">
+  <section class="flex size-full flex-col items-center justify-center space-y-4 py-16 text-center">
     <div class="rounded-full bg-muted/50 p-6">
       <FileText class="size-12 text-muted-foreground" stroke-width="1.5" />
     </div>

@@ -28,16 +28,15 @@ const isUpdateJsonExpanded = ref(false);
       <div class="mb-4 rounded bg-slate-900 p-3">
         <button
           @click="isCreateJsonExpanded = !isCreateJsonExpanded"
-          class="flex w-full items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+          class="flex w-full items-center justify-between text-xs font-semibold text-slate-400 transition-colors hover:text-slate-200"
         >
           <span>FormService Output:</span>
           <ChevronDown v-if="isCreateJsonExpanded" class="h-4 w-4" />
           <ChevronRight v-else class="h-4 w-4" />
         </button>
-        <pre
-          v-if="isCreateJsonExpanded"
-          class="mt-2 text-xs text-green-400 overflow-x-auto"
-        >{{ JSON.stringify(createFormSpec, null, 2) }}</pre>
+        <pre v-if="isCreateJsonExpanded" class="mt-2 overflow-x-auto text-xs text-green-400">{{
+          JSON.stringify(createFormSpec, null, 2)
+        }}</pre>
       </div>
 
       <!-- FormService-based Form -->
@@ -52,9 +51,7 @@ const isUpdateJsonExpanded = ref(false);
           autocomplete="off"
         />
       </div>
-      <div v-else class="text-sm text-muted-foreground">
-        No form spec available
-      </div>
+      <div v-else class="text-sm text-muted-foreground">No form spec available</div>
     </div>
 
     <!-- Edit Form -->
@@ -65,16 +62,15 @@ const isUpdateJsonExpanded = ref(false);
       <div v-if="updateFormSpec" class="mb-4 rounded bg-slate-900 p-3">
         <button
           @click="isUpdateJsonExpanded = !isUpdateJsonExpanded"
-          class="flex w-full items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+          class="flex w-full items-center justify-between text-xs font-semibold text-slate-400 transition-colors hover:text-slate-200"
         >
           <span>FormService Output:</span>
           <ChevronDown v-if="isUpdateJsonExpanded" class="h-4 w-4" />
           <ChevronRight v-else class="h-4 w-4" />
         </button>
-        <pre
-          v-if="isUpdateJsonExpanded"
-          class="mt-2 text-xs text-green-400 overflow-x-auto"
-        >{{ JSON.stringify(updateFormSpec, null, 2) }}</pre>
+        <pre v-if="isUpdateJsonExpanded" class="mt-2 overflow-x-auto text-xs text-green-400">{{
+          JSON.stringify(updateFormSpec, null, 2)
+        }}</pre>
       </div>
 
       <!-- FormService-based Form -->
@@ -89,9 +85,7 @@ const isUpdateJsonExpanded = ref(false);
           autocomplete="off"
         />
       </div>
-      <p v-else class="text-sm text-muted-foreground">
-        No sample data available
-      </p>
+      <p v-else class="text-sm text-muted-foreground">No sample data available</p>
     </div>
   </div>
 </template>

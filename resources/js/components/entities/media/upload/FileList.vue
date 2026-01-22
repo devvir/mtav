@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import type { InertiaForm } from '@inertiajs/vue3';
-import type { MediaUploadForm } from '../types';
 import { FileItem } from '.';
+import type { MediaUploadForm } from '../types';
 
 const files = defineModel<Record<string, File>>();
 

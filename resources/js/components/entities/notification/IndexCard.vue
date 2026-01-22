@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { route } from 'ziggy-js';
-import axios from 'axios';
-import { Check, CheckCheck, Globe, Lock, Briefcase } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/card';
-import { _ } from '@/composables/useTranslations';
-import { fromUTC } from '@/composables/useDates';
+import { Button } from '@/components/ui/button';
 import { currentUser, iAmSuperadmin } from '@/composables/useAuth';
+import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
+import axios from 'axios';
+import { Briefcase, Check, CheckCheck, Globe, Lock } from 'lucide-vue-next';
+import { route } from 'ziggy-js';
 
 const props = defineProps<{
   notification: Notification;
@@ -22,7 +22,9 @@ const showProjectName = computed(() => {
 
 const projectName = computed(() => {
   if (!showProjectName.value || !props.notification.target_id) return undefined;
-  return currentUser.value?.projects?.find((p: { id: number }) => p.id === props.notification.target_id)?.name;
+  return currentUser.value?.projects?.find(
+    (p: { id: number }) => p.id === props.notification.target_id,
+  )?.name;
 });
 
 const targetInfo = computed(() => {
@@ -52,14 +54,15 @@ const markAsUnread = () => {
     :resource="notification"
     :dimmed="isRead"
     :class="!isRead ? 'border-l-4 border-l-primary' : ''"
-    :card-link="notification.data?.action" no-modal
+    :card-link="notification.data?.action"
+    no-modal
     @click="markAsRead"
   >
     <CardHeader :title="notification.data.message">
       <template v-slot:kicker>
-        <div class="flex gap-2 flex-wrap mb-2 @max-sm:flex-col">
+        <div class="mb-2 flex flex-wrap gap-2 @max-sm:flex-col">
           <div class="flex items-center gap-2">
-            <component :is="targetInfo.icon" class="size-3 inline-block" />
+            <component :is="targetInfo.icon" class="inline-block size-3" />
             {{ targetInfo.label }}
             <p v-if="projectName">{{ projectName }}</p>
             <span>|</span>

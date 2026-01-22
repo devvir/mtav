@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { Plan } from '@/components/projectplan';
 import { Button } from '@/components/ui/button';
+import { _ } from '@/composables/useTranslations';
 
 defineProps<{
   plan: Plan;
@@ -24,7 +24,7 @@ defineProps<{
     </CardHeader>
 
     <CardContent>
-      <Plan :plan class="w-full mx-auto" />
+      <Plan :plan class="mx-auto w-full" />
     </CardContent>
   </Card>
 </template>

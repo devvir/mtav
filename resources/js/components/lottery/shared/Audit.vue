@@ -1,19 +1,19 @@
 <!-- Copilot - Pending review -->
 <script setup lang="ts">
-import { useLotteryAudits } from '../composables/useLotteryAudits';
-import { router } from '@inertiajs/vue3';
 import { _ } from '@/composables/useTranslations';
-import { CheckCircle, XCircle, Clock, AlertCircle, Loader2 } from 'lucide-vue-next';
+import { router } from '@inertiajs/vue3';
+import { AlertCircle, CheckCircle, Clock, Loader2, XCircle } from 'lucide-vue-next';
+import { useLotteryAudits } from '../composables/useLotteryAudits';
 
 const props = defineProps<{
   lottery: ApiResource<Lottery>;
   families: ApiResource<Family>[];
 }>();
 
-const POLL_INTERVAL = 500;                  // 0.5 second
-const TIMEOUT_MS = 60000;                   // 30 seconds
-const ESTIMATED_SECONDS_PER_UNIT_TYPE = 2;  // Estimated time per unit type group
-const SUCCESS_MESSAGE_VISIBILITY = 600;     // In seconds
+const POLL_INTERVAL = 500; // 0.5 second
+const TIMEOUT_MS = 60000; // 30 seconds
+const ESTIMATED_SECONDS_PER_UNIT_TYPE = 2; // Estimated time per unit type group
+const SUCCESS_MESSAGE_VISIBILITY = 600; // In seconds
 
 const {
   hasAudits,
@@ -33,12 +33,15 @@ const estimatedProgress = ref(0);
 const progressIntervalId = ref<number | null>(null);
 
 // Reset timeout whenever audit count changes (new audit arrived)
-watch(() => props.lottery.audits?.length ?? 0, (newCount: number) => {
-  if (newCount > lastAuditCount.value) {
-    lastAuditCount.value = newCount;
-    resetTimeout();
-  }
-});
+watch(
+  () => props.lottery.audits?.length ?? 0,
+  (newCount: number) => {
+    if (newCount > lastAuditCount.value) {
+      lastAuditCount.value = newCount;
+      resetTimeout();
+    }
+  },
+);
 
 // Start polling if execution is in progress
 const intervalId = ref<number | null>(null);
@@ -58,14 +61,18 @@ onUnmounted(() => {
 });
 
 // Watch for isExecuting becoming true after mount (e.g., after form submission)
-watch(isExecuting, (executing: boolean) => {
-  if (executing && !intervalId.value) {
-    // Execution started, begin polling
-    startPolling();
-    resetTimeout();
-    startEstimatedProgress();
-  }
-}, { immediate: false });
+watch(
+  isExecuting,
+  (executing: boolean) => {
+    if (executing && !intervalId.value) {
+      // Execution started, begin polling
+      startPolling();
+      resetTimeout();
+      startEstimatedProgress();
+    }
+  },
+  { immediate: false },
+);
 
 function startPolling() {
   if (intervalId.value) return;
@@ -126,14 +133,14 @@ function updateEstimatedProgress() {
   const currentSegmentStart = processedGroups.value * segmentSize; // e.g., 33.3% if 1 of 3 done
 
   // Time elapsed since last completion (or since init if nothing completed yet)
-  const segmentElapsed = elapsed - (processedGroups.value * ESTIMATED_SECONDS_PER_UNIT_TYPE);
+  const segmentElapsed = elapsed - processedGroups.value * ESTIMATED_SECONDS_PER_UNIT_TYPE;
 
   // Progress within current segment (0 to 1, but cap at 0.99 to not reach 100% prematurely)
   const segmentProgress = Math.min(segmentElapsed / ESTIMATED_SECONDS_PER_UNIT_TYPE, 0.99);
 
   // Estimated progress: start + (progress_fraction * segment_size)
   // e.g., 33.3% + (13/40 * 33.3%) = 33.3% + 10.8% = 44.1%
-  estimatedProgress.value = currentSegmentStart + (segmentProgress * segmentSize);
+  estimatedProgress.value = currentSegmentStart + segmentProgress * segmentSize;
 }
 
 // Watch processed groups to jump to actual progress when it changes
@@ -192,16 +199,17 @@ const phaseInfo = computed(() => {
 
 // Only show audit UI when lottery is executing, completed, or failed (not invalidated)
 const shouldShowAudit = computed(() => {
-  return hasAudits.value && (
-    (props.lottery.is_completed && showCompletedFeedback.value)
-    || props.lottery.is_executing
-    || hasFailure.value
-  ) ;
+  return (
+    hasAudits.value &&
+    ((props.lottery.is_completed && showCompletedFeedback.value) ||
+      props.lottery.is_executing ||
+      hasFailure.value)
+  );
 });
 
 // Completed execution feedback is shown only for a certain period
 const showCompletedFeedback = computed(() => {
-  if (! props.lottery.audits!.length) return false;
+  if (!props.lottery.audits!.length) return false;
 
   const lastAudit = props.lottery.audits[props.lottery.audits.length - 1];
   const ageMs = Date.now() - new Date(lastAudit.created_at).getTime();
@@ -211,19 +219,31 @@ const showCompletedFeedback = computed(() => {
 </script>
 
 <template>
-  <div v-if="shouldShowAudit" class="w-full bg-surface border border-border rounded-lg p-6 space-y-4">
+  <div
+    v-if="shouldShowAudit"
+    class="w-full space-y-4 rounded-lg border border-border bg-surface p-6"
+  >
     <!-- Header -->
     <div class="flex items-center gap-3">
-      <div v-if="hasFailure" class="flex items-center justify-center size-10 rounded-full bg-error-subtle">
+      <div
+        v-if="hasFailure"
+        class="flex size-10 items-center justify-center rounded-full bg-error-subtle"
+      >
         <XCircle class="size-5 text-error" />
       </div>
-      <div v-else-if="isExecuting" class="flex items-center justify-center size-10 rounded-full bg-interactive/10">
-        <Loader2 class="size-5 text-interactive animate-spin" />
+      <div
+        v-else-if="isExecuting"
+        class="flex size-10 items-center justify-center rounded-full bg-interactive/10"
+      >
+        <Loader2 class="size-5 animate-spin text-interactive" />
       </div>
-      <div v-else-if="timedOut" class="flex items-center justify-center size-10 rounded-full bg-warning-subtle">
+      <div
+        v-else-if="timedOut"
+        class="flex size-10 items-center justify-center rounded-full bg-warning-subtle"
+      >
         <AlertCircle class="size-5 text-warning" />
       </div>
-      <div v-else class="flex items-center justify-center size-10 rounded-full bg-success-subtle">
+      <div v-else class="flex size-10 items-center justify-center rounded-full bg-success-subtle">
         <CheckCircle class="size-5 text-success" />
       </div>
 
@@ -244,8 +264,11 @@ const showCompletedFeedback = computed(() => {
     </div>
 
     <!-- Failure Details -->
-    <div v-if="hasFailure && failureAudit" class="bg-error-subtle border border-error rounded-md p-4">
-      <p class="text-sm font-medium text-error mb-2">
+    <div
+      v-if="hasFailure && failureAudit"
+      class="rounded-md border border-error bg-error-subtle p-4"
+    >
+      <p class="mb-2 text-sm font-medium text-error">
         {{ failureAudit.audit.user_message || _('An error occurred during execution') }}
       </p>
       <p class="text-xs text-error-subtle-foreground">
@@ -257,31 +280,47 @@ const showCompletedFeedback = computed(() => {
     </div>
 
     <!-- Timeout Warning -->
-    <div v-if="timedOut && !hasFailure" class="bg-warning-subtle border border-warning rounded-md p-4">
+    <div
+      v-if="timedOut && !hasFailure"
+      class="rounded-md border border-warning bg-warning-subtle p-4"
+    >
       <p class="text-sm text-warning-subtle-foreground">
-        {{ _('This is taking longer than expected. Please refresh the page or contact an Administrator if the Lottery results do not show after a few minutes.') }}
+        {{
+          _(
+            'This is taking longer than expected. Please refresh the page or contact an Administrator if the Lottery results do not show after a few minutes.',
+          )
+        }}
       </p>
     </div>
 
     <!-- Phase Progress -->
     <div v-if="phaseInfo && phaseInfo.length > 0" class="space-y-2">
       <div v-for="(phase, idx) in phaseInfo" :key="idx" class="flex items-center gap-3">
-        <div v-if="phase.completed" class="flex items-center justify-center size-6 rounded-full bg-success-subtle">
+        <div
+          v-if="phase.completed"
+          class="flex size-6 items-center justify-center rounded-full bg-success-subtle"
+        >
           <CheckCircle class="size-4 text-success" />
         </div>
-        <div v-else-if="phase.current" class="flex items-center justify-center size-6 rounded-full bg-interactive/10">
-          <Loader2 class="size-4 text-interactive animate-spin" />
+        <div
+          v-else-if="phase.current"
+          class="flex size-6 items-center justify-center rounded-full bg-interactive/10"
+        >
+          <Loader2 class="size-4 animate-spin text-interactive" />
         </div>
-        <div v-else class="flex items-center justify-center size-6 rounded-full bg-surface-interactive">
+        <div
+          v-else
+          class="flex size-6 items-center justify-center rounded-full bg-surface-interactive"
+        >
           <Clock class="size-4 text-text-muted" />
         </div>
 
         <span
           class="text-sm"
           :class="[
-            phase.completed ? 'text-success font-medium' : '',
-            phase.current ? 'text-interactive font-medium' : '',
-            !phase.completed && !phase.current ? 'text-text-muted' : ''
+            phase.completed ? 'font-medium text-success' : '',
+            phase.current ? 'font-medium text-interactive' : '',
+            !phase.completed && !phase.current ? 'text-text-muted' : '',
           ]"
         >
           {{ phase.name }}
@@ -293,9 +332,11 @@ const showCompletedFeedback = computed(() => {
     <div v-if="isExecuting && groupsCount > 0" class="space-y-2">
       <div class="flex justify-between text-sm">
         <span class="text-text-muted">{{ _('Groups Processed') }}</span>
-        <span class="font-medium text-text">{{ processedGroups }} / {{ groupsCount }} ({{ Math.round(progress) }}%)</span>
+        <span class="font-medium text-text"
+          >{{ processedGroups }} / {{ groupsCount }} ({{ Math.round(progress) }}%)</span
+        >
       </div>
-      <div class="h-2 bg-border rounded-full overflow-hidden">
+      <div class="h-2 overflow-hidden rounded-full bg-border">
         <div
           class="h-full bg-interactive transition-all duration-100 ease-linear"
           :style="{ width: `${Math.max(progress, estimatedProgress)}%` }"
@@ -304,7 +345,7 @@ const showCompletedFeedback = computed(() => {
     </div>
 
     <!-- Completion Message -->
-    <div v-if="!isExecuting && !hasFailure && !timedOut" class="text-sm text-success font-medium">
+    <div v-if="!isExecuting && !hasFailure && !timedOut" class="text-sm font-medium text-success">
       {{ _('All families have been assigned to their units.') }}
     </div>
   </div>

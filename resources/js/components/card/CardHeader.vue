@@ -3,9 +3,9 @@ import { Avatar, type AvatarSize } from '@/components/avatar';
 import { Badge } from '@/components/badge';
 import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
+import { HTMLAttributes } from 'vue';
 import { ActionsType, CardActions, type CardType, HeaderSub } from '.';
 import * as exposed from './exposed';
-import { HTMLAttributes } from 'vue';
 
 defineEmits<{
   (e: 'execute', action: ResourceAction): void;
@@ -37,7 +37,7 @@ const actionsType = computed<ActionsType | null>(() => autoActions[cardType] ?? 
       <h3
         v-if="kicker || $slots.kicker"
         class="text-xs tracking-wide text-text-subtle"
-        :class="{ 'uppercase text-text-subtle/60 text-2xs': !$slots.kicker }"
+        :class="{ 'text-2xs text-text-subtle/60 uppercase': !$slots.kicker }"
       >
         <slot name="kicker">
           {{ kicker }}

@@ -1,11 +1,25 @@
 <script setup lang="ts">
-import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/layout/sidebar';
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/layout/sidebar';
 import { can } from '@/composables/useAuth';
-import { projectIsSelected } from '@/state/useCurrentProject';
 import { currentRoute } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
+import { projectIsSelected } from '@/state/useCurrentProject';
 import { useMemberGrouping } from '@/state/useMemberGrouping';
-import { Building2Icon, CalendarIcon, FilesIcon, HomeIcon, LayoutGrid, LucideIcon, TrophyIcon, UsersIcon } from 'lucide-vue-next';
+import {
+  Building2Icon,
+  CalendarIcon,
+  FilesIcon,
+  HomeIcon,
+  LayoutGrid,
+  LucideIcon,
+  TrophyIcon,
+  UsersIcon,
+} from 'lucide-vue-next';
 
 interface NavItem {
   label: MaybeRef<string>;
@@ -33,8 +47,8 @@ const allNavItems: NavItem[] = [
     routes: ['lottery.*'],
   },
   {
-    label: computed(() => groupMembers.value ? 'Families' : 'Members'),
-    route: computed(() => groupMembers.value ? 'families.index' : 'members.index'),
+    label: computed(() => (groupMembers.value ? 'Families' : 'Members')),
+    route: computed(() => (groupMembers.value ? 'families.index' : 'members.index')),
     icon: UsersIcon,
     onlyIf: can.viewAny('members'),
     routes: ['families.*', 'members.*'],

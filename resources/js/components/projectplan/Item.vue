@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Polygon from './core/Polygon.vue';
 import { useItem } from './composables/useItem';
 import { useTextFitting } from './composables/useTextFitting';
+import Polygon from './core/Polygon.vue';
 
 interface ItemProps {
   item: PlanItem;
@@ -16,10 +16,7 @@ const emit = defineEmits<{
   mouseup: [id: number, event: MouseEvent];
 }>();
 
-const {
-  item,
-  highlighted = false,
-} = defineProps<ItemProps>();
+const { item, highlighted = false } = defineProps<ItemProps>();
 
 const label = computed(() => item.name || item.unit?.identifier || '');
 
@@ -62,14 +59,16 @@ const handlePolygonHover = (hovering: boolean) => {
       :title="label"
       text-anchor="middle"
       dominant-baseline="central"
-      class="pointer-events-none select-none font-semibold line-clamp-2 transition-all duration-300"
-    >{{ label }}</text>
+      class="pointer-events-none line-clamp-2 font-semibold transition-all duration-300 select-none"
+      >{{ label }}</text
+    >
   </g>
 </template>
 
 <style scoped>
 @keyframes drop-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }

@@ -1,7 +1,7 @@
 // Copilot - Pending review
-import { describe, it, expect } from 'vitest';
-import { mount } from '@/tests/helpers/mount';
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import { mount } from '@/tests/helpers/mount';
+import { describe, expect, it } from 'vitest';
 
 describe('HeadingSmall', () => {
   describe('rendering', () => {

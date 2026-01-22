@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Badge } from '@/components/badge';
-import EntityCard from '@/components/card/EntityCard.vue';
 import CardContent from '@/components/card/CardContent.vue';
 import CardFooter from '@/components/card/CardFooter.vue';
 import CardHeader from '@/components/card/CardHeader.vue';
+import EntityCard from '@/components/card/EntityCard.vue';
 import { Calendar, Camera, Check, Clock } from 'lucide-vue-next';
 
 // Simple mock data for showcase

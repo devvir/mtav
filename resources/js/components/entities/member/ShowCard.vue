@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
-import { ContentHighlight, ContentDetail, ContentGrid } from '@/components/card/snippets';
-import { _ } from '@/composables/useTranslations';
-import { fromUTC } from '@/composables/useDates';
-import { MailIcon, PhoneIcon, UsersIcon, HomeIcon, CalendarIcon } from 'lucide-vue-next';
+import { CardContent, CardFooter, CardHeader, EntityCard } from '@/components/card';
+import { ContentDetail, ContentGrid, ContentHighlight } from '@/components/card/snippets';
 import { iAmAdmin } from '@/composables/useAuth';
+import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
+import { CalendarIcon, HomeIcon, MailIcon, PhoneIcon, UsersIcon } from 'lucide-vue-next';
 
 defineProps<{
   member: ApiResource<Member>;
@@ -18,10 +18,10 @@ defineProps<{
     <CardContent class="space-y-6">
       <!-- Family Information -->
       <div v-if="member.family" class="grid grid-cols-[auto_1fr] gap-3">
-        <component :is="HomeIcon" class="h-5 w-5 mt-0.5 text-text-muted" />
+        <component :is="HomeIcon" class="mt-0.5 h-5 w-5 text-text-muted" />
         <div class="min-w-0">
-          <div class="font-medium text-sm">{{ _('Family') }}</div>
-          <div class="text-text-muted text-sm truncate">
+          <div class="text-sm font-medium">{{ _('Family') }}</div>
+          <div class="truncate text-sm text-text-muted">
             <Link
               :href="route('families.show', member.family.id)"
               :modal="true"
@@ -35,11 +35,7 @@ defineProps<{
 
       <!-- Contact Information -->
       <ContentGrid>
-        <ContentDetail
-          :icon="MailIcon"
-          :title="_('Email')"
-          :content="member.email"
-        />
+        <ContentDetail :icon="MailIcon" :title="_('Email')" :content="member.email" />
 
         <ContentDetail
           v-if="member.phone"

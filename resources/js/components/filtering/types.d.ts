@@ -1,4 +1,4 @@
-import { OPTIONS, SEARCH, SWITCH } from ".";
+import { OPTIONS, SEARCH, SWITCH } from '.';
 
 export type OptionValue = string | number;
 

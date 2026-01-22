@@ -25,11 +25,14 @@ const formatPoints = (points: Point[]) => points.map(([x, y]) => `${x},${y}`).jo
 <template>
   <polygon
     :points="formatPoints(polygon)"
-    :fill :stroke :stroke-width :opacity
+    :fill
+    :stroke
+    :stroke-width
+    :opacity
     v-bind="$attrs"
     @click="emit('click')"
     @mouseenter="emit('hover', true)"
     @mouseleave="emit('hover', false)"
-    @mousedown="e => emit('mousedown', e)"
+    @mousedown="(e) => emit('mousedown', e)"
   />
 </template>

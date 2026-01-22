@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Copilot - Pending review
+import { can } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { Building2 } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import UnitTypeCard from './UnitTypeCard.vue';
-import { can } from '@/composables/useAuth';
 
 defineProps<{
   unitTypes: UnitType[];

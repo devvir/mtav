@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
-import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 import NoItems from '@/components/NoItems.vue';
 import { Card } from '@/components/card';
+import InfiniteScroll from '@/components/pagination/InfiniteScroll.vue';
 
 export type CardSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
@@ -16,7 +15,10 @@ const props = defineProps<{
 
 // Skeleton cards to show on first page load only
 let loadingCards = Array.from({ length: Math.floor(5 + Math.random() * 5) }, (_, i) => ({ id: i }));
-watch(() => props.resources , () => loadingCards = []);
+watch(
+  () => props.resources,
+  () => (loadingCards = []),
+);
 
 const resourcesList = computed(() => props.resources?.data ?? loadingCards);
 
@@ -26,12 +28,18 @@ const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') 
 
 <template>
   <section v-if="resourcesList.length" class="w-full">
-    <TransitionGroup name="fade" tag="ul" :appear="!! resources"
+    <TransitionGroup
+      name="fade"
+      tag="ul"
+      :appear="!!resources"
       class="grid list-none place-items-stretch sm:auto-rows-auto"
-      :class="cardSize === 'full'
-        ? 'gap-2'
-        : '@md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))] gap-base'"
-      :style="{ '--card-size-multiplier': cardSizeMultiplier }">
+      :class="
+        cardSize === 'full'
+          ? 'gap-2'
+          : 'gap-base @md:grid-cols-[repeat(auto-fill,minmax(calc(min(20rem,calc(15rem+4.5cqw))*var(--card-size-multiplier)),1fr))]'
+      "
+      :style="{ '--card-size-multiplier': cardSizeMultiplier }"
+    >
       <li
         v-for="item in resourcesList"
         :key="item.id"
@@ -43,11 +51,16 @@ const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') 
 
         <!-- Loading Skeleton Card -->
         <!-- TODO: extract to IndexSkeletonCard (placeholder closer to the real Cards) -->
-        <div v-else class="animate animate-pulse h-40"><Card class="opacity-60" /></div>
+        <div v-else class="animate h-40 animate-pulse"><Card class="opacity-60" /></div>
       </li>
     </TransitionGroup>
 
-    <InfiniteScroll v-if="resources" :pageSpecs="resources" :loadable :params="{ q: usePage().props.q }" />
+    <InfiniteScroll
+      v-if="resources"
+      :pageSpecs="resources"
+      :loadable
+      :params="{ q: usePage().props.q }"
+    />
   </section>
 
   <NoItems v-else-if="resources" :message="noItemsMessage" />

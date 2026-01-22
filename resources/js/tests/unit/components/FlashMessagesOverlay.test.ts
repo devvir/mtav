@@ -1,8 +1,8 @@
 // Copilot - Pending review
-import { describe, it, expect, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import FlashMessagesOverlay from '@/components/flash/FlashMessagesOverlay.vue';
 import { useFlashMessages } from '@/components/flash/useFlashMessages';
+import { mount } from '@vue/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('FlashMessagesOverlay - Feature Tests', () => {
   describe('overlay visibility with flash messages', () => {
@@ -97,4 +97,3 @@ describe('FlashMessagesOverlay - Feature Tests', () => {
     });
   });
 });
-

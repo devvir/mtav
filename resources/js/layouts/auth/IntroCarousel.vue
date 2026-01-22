@@ -15,9 +15,10 @@ const carouselInterval = ref<NodeJS.Timeout | null>(null);
 const imagesLoaded = ref(false);
 const loadedCount = ref(0);
 
-const nextSlide = () => currentSlide.value = (currentSlide.value + 1) % carouselImages.length;
-const prevSlide = () => currentSlide.value = currentSlide.value ? currentSlide.value - 1 : carouselImages.length - 1;
-const goToSlide = (index: number) => currentSlide.value = index;
+const nextSlide = () => (currentSlide.value = (currentSlide.value + 1) % carouselImages.length);
+const prevSlide = () =>
+  (currentSlide.value = currentSlide.value ? currentSlide.value - 1 : carouselImages.length - 1);
+const goToSlide = (index: number) => (currentSlide.value = index);
 
 const startAutoplay = () => {
   if (imagesLoaded.value) {
@@ -71,10 +72,7 @@ onUnmounted(() => stopAutoplay());
     <!-- Carousel images -->
     <div class="relative aspect-video">
       <!-- Loading skeleton -->
-      <div
-        v-if="!imagesLoaded"
-        class="absolute inset-0 flex items-center justify-center bg-muted"
-      >
+      <div v-if="!imagesLoaded" class="absolute inset-0 flex items-center justify-center bg-muted">
         <LoaderCircle class="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
 
@@ -93,7 +91,7 @@ onUnmounted(() => stopAutoplay());
       <!-- Navigation buttons -->
       <button
         @click="prevSlide"
-        class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100 sm:p-2"
+        class="absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70 sm:p-2"
         :aria-label="_('Previous image')"
       >
         <ChevronLeft class="h-4 w-4 sm:h-5 sm:w-5" />
@@ -101,7 +99,7 @@ onUnmounted(() => stopAutoplay());
 
       <button
         @click="nextSlide"
-        class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100 sm:p-2"
+        class="absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70 sm:p-2"
         :aria-label="_('Next image')"
       >
         <ChevronRight class="h-4 w-4 sm:h-5 sm:w-5" />

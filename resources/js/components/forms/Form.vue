@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { _ } from '@/composables/useTranslations';
 import { InertiaForm } from '@inertiajs/vue3';
+import {
+  FilteredOptionsSpecs,
+  FilteredSelectOptions,
+  FormSpecs,
+  FormUpdateEvent,
+  ValueType,
+} from '.';
 import MaybeModal from '../MaybeModal.vue';
 import FormInput from './FormInput.vue';
 import FormSelect from './FormSelect.vue';
 import FormSubmit from './FormSubmit.vue';
 import * as keys from './keys';
-import { FormSpecs, FilteredOptionsSpecs, FormUpdateEvent, ValueType, FilteredSelectOptions } from '.';
 
 const emit = defineEmits<{
   update: [payload: FormUpdateEvent];
@@ -49,28 +55,38 @@ const formFields: Record<string, ValueType | ValueType[]> = props.specs
 
 const form = useForm(formFields);
 
-const dependencies: [string, string, FilteredSelectOptions][] = Object.entries((props.specs ?? {}) as FormSpecs)
+const dependencies: [string, string, FilteredSelectOptions][] = Object.entries(
+  (props.specs ?? {}) as FormSpecs,
+)
   .filter(([, spec]) => spec.element === 'select' && spec.filteredBy)
-  .map(([name, spec]) => [name, (spec as FilteredOptionsSpecs).filteredBy, (spec as FilteredOptionsSpecs).options]);
+  .map(([name, spec]) => [
+    name,
+    (spec as FilteredOptionsSpecs).filteredBy,
+    (spec as FilteredOptionsSpecs).options,
+  ]);
 
 const options = reactive<{ [key: string]: FilteredSelectOptions }>({});
 const placeholders = reactive<{ [key: string]: string }>({});
 
 // Handle dependant selects (e.g. those with project-scoped options)
-watch(() => form, () => {
-  dependencies.forEach(([name, filteredBy, allOptions]) => {
-    const selectedParent = form[filteredBy] as string | number;
-    options[name] = selectedParent ? allOptions[selectedParent] ?? [] : [];
+watch(
+  () => form,
+  () => {
+    dependencies.forEach(([name, filteredBy, allOptions]) => {
+      const selectedParent = form[filteredBy] as string | number;
+      options[name] = selectedParent ? (allOptions[selectedParent] ?? []) : [];
 
-    // Set placeholder based on parent selection
-    delete placeholders[name];
+      // Set placeholder based on parent selection
+      delete placeholders[name];
 
-    if (!selectedParent && props.specs[filteredBy]) {
-      const parentLabel = _(props.specs![filteredBy].label);
-      placeholders[name] = _('Please select a {parent} first', { parent: parentLabel });
-    }
-  });
-}, { immediate: true, deep: true });
+      if (!selectedParent && props.specs[filteredBy]) {
+        const parentLabel = _(props.specs![filteredBy].label);
+        placeholders[name] = _('Please select a {parent} first', { parent: parentLabel });
+      }
+    });
+  },
+  { immediate: true, deep: true },
+);
 
 // Emit update event when a form value changes
 watch(form, (data: InertiaForm<object>) =>
@@ -129,7 +145,11 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
               <Component
                 :is="name2component(element)"
                 :name="<keyof typeof formFields>name"
-                v-bind="def.filteredBy ? { ...def, options: options[name], placeholder: placeholders[name] } : def"
+                v-bind="
+                  def.filteredBy
+                    ? { ...def, options: options[name], placeholder: placeholders[name] }
+                    : def
+                "
                 v-model="form[name] as ValueType"
                 :error="form.errors[name]"
                 @input="form.clearErrors(<keyof typeof formFields>name)"
@@ -138,7 +158,7 @@ provide(keys.pauseModalClosing, (pause: boolean = true) => (pauseModalClosing.va
           </slot>
         </div>
 
-        <aside v-if="$slots.aside" class="w-full mb-base">
+        <aside v-if="$slots.aside" class="mb-base w-full">
           <slot name="aside" />
         </aside>
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-vue-next';
-import { cn } from '@/lib/utils';
-import { getMediaConfig } from '..';
 import { _ } from '@/composables/useTranslations';
+import { cn } from '@/lib/utils';
+import { Upload } from 'lucide-vue-next';
+import { getMediaConfig } from '..';
 import type { MediaUploadForm } from '../types';
 
 const files = defineModel<Record<string, File>>();
@@ -64,13 +64,17 @@ const addFiles = (newFiles: File[]) => {
   <!-- Drop Zone -->
   <div
     ref="dropZoneRef"
-    :class="cn(
-      'group relative overflow-hidden rounded-lg border-2 border-dashed p-12 text-center transition-all duration-200 hover:bg-muted/30 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
-      isOverDropZone ? 'border-primary bg-muted/50' : 'border-muted'
-    )"
+    :class="
+      cn(
+        'group relative overflow-hidden rounded-lg border-2 border-dashed p-12 text-center transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:outline-none hover:bg-muted/30',
+        isOverDropZone ? 'border-primary bg-muted/50' : 'border-muted',
+      )
+    "
     @click="openFileDialog()"
   >
-    <Upload class="mx-auto h-12 w-12 text-muted-foreground transition-colors group-hover:text-foreground" />
+    <Upload
+      class="mx-auto h-12 w-12 text-muted-foreground transition-colors group-hover:text-foreground"
+    />
     <div class="mt-4 space-y-2">
       <p class="text-lg font-medium">{{ mediaConfig.dropText }}</p>
       <p class="text-sm text-muted-foreground">{{ mediaConfig.supportText }}</p>

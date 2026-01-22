@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PolygonConfig } from '../types';
 import Polygon from '../core/Polygon.vue';
+import type { PolygonConfig } from '../types';
 
 const {
   polygon,
@@ -12,9 +12,5 @@ const {
 </script>
 
 <template>
-  <Polygon
-    :polygon
-    :fill :stroke :stroke-width :opacity
-    class="pointer-events-none -z-1"
-  />
+  <Polygon :polygon :fill :stroke :stroke-width :opacity class="pointer-events-none -z-1" />
 </template>

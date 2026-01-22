@@ -28,19 +28,19 @@ export default { layout: null };
     description="Enter your email to receive a password reset link"
   >
     <form @submit.prevent="submit" class="space-y-6">
-        <div class="grid gap-2">
-          <Label for="email">{{ _('Email address') }}</Label>
-          <Input
-            id="email"
-            type="email"
-            name="email"
-            autocomplete="off"
-            v-model="form.email"
-            autofocus
-            :placeholder="_('email@example.com')"
-          />
-          <InputError :message="form.errors.email" />
-        </div>
+      <div class="grid gap-2">
+        <Label for="email">{{ _('Email address') }}</Label>
+        <Input
+          id="email"
+          type="email"
+          name="email"
+          autocomplete="off"
+          v-model="form.email"
+          autofocus
+          :placeholder="_('email@example.com')"
+        />
+        <InputError :message="form.errors.email" />
+      </div>
 
       <div class="flex items-center justify-start">
         <Button class="w-full" :disabled="form.processing">

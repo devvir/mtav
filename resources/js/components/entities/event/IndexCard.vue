@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { BadgeGroup } from '@/components/badge';
-import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { CardContent, CardFooter, CardHeader, EntityCard } from '@/components/card';
+import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
 import EventBadge from './badges/EventBadge.vue';
 import { useEventBadges } from './badges/useEventBadges';
-import { _ } from '@/composables/useTranslations';
-import { fromUTC } from '@/composables/useDates';
 
 const props = defineProps<{
   event: ApiResource<Event>;
@@ -15,10 +15,9 @@ const { badges } = useEventBadges(props.event);
 const dimmed = computed(() => {
   const event = props.event;
 
-  return event.type !== 'lottery' && (
-    event.status === 'completed' ||
-    !event.is_published ||
-    !event.start_date
+  return (
+    event.type !== 'lottery' &&
+    (event.status === 'completed' || !event.is_published || !event.start_date)
   );
 });
 </script>
@@ -30,11 +29,7 @@ const dimmed = computed(() => {
       :kicker="event.start_date ? fromUTC(event.start_date) : _('No Date Set')"
     >
       <BadgeGroup class="mt-3">
-        <EventBadge
-          v-for="badge in badges"
-          :key="badge.text"
-          :config="badge"
-        />
+        <EventBadge v-for="badge in badges" :key="badge.text" :config="badge" />
       </BadgeGroup>
     </CardHeader>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UploadHeader, FileUpload, FileList, ProgressBar } from '.';
+import { FileList, FileUpload, ProgressBar, UploadHeader } from '.';
 import { Description, FormActions, FormErrors } from '..';
 import type { MediaUploadForm } from '../types';
 
@@ -18,9 +18,10 @@ const form = useForm<MediaUploadForm>({
   category: props.category,
 });
 
-const uploadFiles = () => form.post(route('media.store'), {
-  onSuccess: () => emit('submit'),
-});
+const uploadFiles = () =>
+  form.post(route('media.store'), {
+    onSuccess: () => emit('submit'),
+  });
 </script>
 
 <template>

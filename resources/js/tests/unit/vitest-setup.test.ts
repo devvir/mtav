@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('Vitest Setup Verification', () => {
   it('vitest is working', () => {

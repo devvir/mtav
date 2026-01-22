@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type FormServiceData, FormAside } from '@/components/forms';
 import FormPage from '@/components/entities/FormPage.vue';
+import { type FormServiceData, FormAside } from '@/components/forms';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
 

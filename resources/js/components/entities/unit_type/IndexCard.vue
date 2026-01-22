@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardContent, CardFooter, CardHeader } from '@/components/card';
+import { CardContent, CardFooter, CardHeader, EntityCard } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { Home, UsersRound } from 'lucide-vue-next';
 

@@ -2,7 +2,7 @@
 @import 'tw-animate-css';
 @import './theme.css';
 
-@plugin "@tailwindcss/typography";
+@plugin '@tailwindcss/typography';
 
 @source '../../node_modules/@inertiaui/modal-vue/src/**/*.{js,vue}';
 
@@ -172,7 +172,7 @@
     @apply items-stretch;
 
     .im-modal-wrapper {
-      @apply max-w-screen! w-auto!;
+      @apply w-auto! max-w-screen!;
 
       .im-modal-content {
         @apply h-full!;
@@ -181,7 +181,7 @@
   }
 
   [data-inertiaui-modal-id] .im-close-button {
-    @apply relative z-10 p-1 rounded-full hover:text-text active:scale-95 transition-transform hover:bg-error-subtle/20;
+    @apply relative z-10 rounded-full p-1 transition-transform hover:bg-error-subtle/20 hover:text-text active:scale-95;
   }
 
   [data-inertiaui-modal-id] .im-close-button svg {

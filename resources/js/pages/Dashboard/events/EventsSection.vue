@@ -1,11 +1,11 @@
 <script setup lang="ts">
 // Copilot - Pending review
+import { can } from '@/composables/useAuth';
 import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
 import { Calendar } from 'lucide-vue-next';
 import SectionHeader from '../shared/SectionHeader.vue';
 import EventCard from './EventCard.vue';
-import { can } from '@/composables/useAuth';
 
 defineProps<{
   events: Event[];

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { Button } from '@/components/ui/button';
-import { Undo, Redo, RotateCcw } from 'lucide-vue-next';
+import { _ } from '@/composables/useTranslations';
+import { Redo, RotateCcw, Undo } from 'lucide-vue-next';
 
 interface Props {
   canUndo: boolean;
@@ -20,10 +20,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <aside class="w-30 bg-card border-l border-border flex flex-col items-center py-4 gap-6">
+  <aside class="flex w-30 flex-col items-center gap-6 border-l border-border bg-card py-4">
     <!-- Actions Section -->
     <section class="flex flex-col items-center gap-2">
-      <div class="text-xs text-muted-foreground px-2 mb-1">
+      <div class="mb-1 px-2 text-xs text-muted-foreground">
         {{ _('Actions') }}
       </div>
 
@@ -33,7 +33,7 @@ const emit = defineEmits<{
         size="sm"
         :disabled="!canUndo || processing"
         :title="_('Undo')"
-        class="flex flex-col items-center gap-1 h-auto py-2 px-2"
+        class="flex h-auto flex-col items-center gap-1 px-2 py-2"
         @click="emit('undo')"
       >
         <Undo :size="20" />
@@ -46,7 +46,7 @@ const emit = defineEmits<{
         size="sm"
         :disabled="!canRedo || processing"
         @click="emit('redo')"
-        class="flex flex-col items-center gap-1 h-auto py-2 px-2"
+        class="flex h-auto flex-col items-center gap-1 px-2 py-2"
         :title="_('Redo')"
       >
         <Redo :size="20" />
@@ -59,7 +59,7 @@ const emit = defineEmits<{
         size="sm"
         :disabled="!hasChanges || processing"
         @click="emit('reset')"
-        class="flex flex-col items-center gap-1 h-auto py-2 px-2"
+        class="flex h-auto flex-col items-center gap-1 px-2 py-2"
         :title="_('Reset All')"
       >
         <RotateCcw :size="20" />

@@ -22,7 +22,7 @@ export const useScrollBehavior = () => {
 
     window.scrollTo({
       top: Math.max(0, elementTop), // Ensure we don't scroll above the page
-      behavior: 'smooth'
+      behavior: 'smooth',
     });
   };
 

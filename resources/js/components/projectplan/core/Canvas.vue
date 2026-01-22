@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { PolygonConfig, ScaleMode } from '../types';
+import Boundary from '../components/Boundary.vue';
 import { useScaling } from '../composables/useScaling';
 import Item from '../Item.vue';
-import Boundary from '../components/Boundary.vue';
+import type { PolygonConfig, ScaleMode } from '../types';
 
 interface Props {
   items: PlanItem[];
@@ -48,7 +48,7 @@ const handleItemHover = (id: number, hovering: boolean) => {
   else if (hoveredItemId.value === id) hoveredItemId.value = undefined;
 
   emit('itemHover', id, hovering);
-}
+};
 </script>
 
 <template>
@@ -69,7 +69,9 @@ const handleItemHover = (id: number, hovering: boolean) => {
     />
 
     <!-- Items layer -->
-    <Item v-for="item in scaledItems" :key="item.id"
+    <Item
+      v-for="item in scaledItems"
+      :key="item.id"
       :item
       :highlighted="isItemHighlighted(item.id)"
       @hover="handleItemHover"

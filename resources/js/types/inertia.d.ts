@@ -14,7 +14,7 @@ export interface Auth {
   notifications: {
     recent: Notification[];
     unread: number;
-  }
+  };
 }
 
 export interface FlashProps {

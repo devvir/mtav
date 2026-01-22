@@ -15,9 +15,9 @@ defineProps<{
       <span>{{ Math.round(form.progress.percentage) }}%</span>
     </div>
 
-    <div class="w-full bg-secondary rounded-full h-2">
+    <div class="h-2 w-full rounded-full bg-secondary">
       <div
-        class="bg-primary h-2 rounded-full transition-all duration-300"
+        class="h-2 rounded-full bg-primary transition-all duration-300"
         :style="{ width: form.progress.percentage + '%' }"
       />
     </div>

@@ -1,9 +1,16 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.unmock('@/composables/useTranslations');
 
-import { useTranslation, _, trans, locale, translations, setLocale } from '@/composables/useTranslations';
+import {
+  _,
+  locale,
+  setLocale,
+  trans,
+  translations,
+  useTranslation,
+} from '@/composables/useTranslations';
 
 describe('useTranslations composable', () => {
   beforeEach(() => {
@@ -17,7 +24,13 @@ describe('useTranslations composable', () => {
     });
 
     it('returns reactive locale, translations, and methods', () => {
-      const { locale: localRef, translations: trans, setLocale: setLoc, trans: transFn, _ } = useTranslation();
+      const {
+        locale: localRef,
+        translations: trans,
+        setLocale: setLoc,
+        trans: transFn,
+        _,
+      } = useTranslation();
 
       expect(localRef).toBeDefined();
       expect(trans).toBeDefined();
@@ -87,7 +100,6 @@ describe('useTranslations composable', () => {
   describe('setLocale method', () => {
     it('changes locale', async () => {
       const { locale: localRef, setLocale: setLoc } = useTranslation();
-      const initialLocale = localRef.value;
 
       await setLoc('es_UY');
       expect(localRef.value).toBe('es_UY');
@@ -150,8 +162,6 @@ describe('useTranslations composable', () => {
   describe('replacements in translations', () => {
     it('replaces single placeholder', () => {
       const { trans: transFn } = useTranslation();
-      // Manually create a test case with mock translations
-      const mockDict = { 'hello {name}': 'Hello {name}' };
 
       // This tests the replacement regex logic
       const testKey = 'hello {name}';

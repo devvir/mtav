@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { _ } from '@/composables/useTranslations';
 import { fromUTC } from '@/composables/useDates';
+import { _ } from '@/composables/useTranslations';
 import * as exposed from '../exposed';
 
 const props = defineProps<{
@@ -18,6 +18,6 @@ const createdLabel = computed(() => {
 
 <template>
   <span class="text-xs" :title="fromUTC(resource.created_at)">
-      {{ createdLabel }}
+    {{ createdLabel }}
   </span>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import FormElement from './FormElement.vue';
-import { ValueType } from '.';
 import { fromUTC, toUTC } from '@/composables/useDates';
+import { ValueType } from '.';
+import FormElement from './FormElement.vue';
 
 const rawModel = defineModel<ValueType>();
 
@@ -21,12 +21,12 @@ const props = defineProps<{
 
 const model = computed({
   get() {
-    return (props.type === 'datetime-local' && rawModel.value)
+    return props.type === 'datetime-local' && rawModel.value
       ? fromUTC(rawModel.value, 'datetime-local')
       : rawModel.value;
   },
   set(value: string) {
-    rawModel.value = (props.type === 'datetime-local' && value) ? toUTC(value) : value;
+    rawModel.value = props.type === 'datetime-local' && value ? toUTC(value) : value;
   },
 });
 </script>
@@ -38,11 +38,17 @@ const model = computed({
     v-bind="{ model, type, ...$props, ...$attrs }"
   >
     <input
-      class="size-full bg-transparent px-3 text-text caret-interactive outline-0 focus:outline-0 [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+      class="size-full bg-transparent px-3 text-text caret-interactive outline-0 focus:outline-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 dark:[&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
       v-model="model"
-      :id :name :type
-      :min :max :minlength :maxlength
-      :disabled :required
+      :id
+      :name
+      :type
+      :min
+      :max
+      :minlength
+      :maxlength
+      :disabled
+      :required
       :placeholder
       :autocomplete="autocomplete ? 'on' : 'off'"
       :title="JSON.stringify({ ...$attrs })"

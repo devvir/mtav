@@ -22,19 +22,23 @@ const selectOption = (value: OptionValue) => {
 </script>
 
 <template>
-  <div :class="cn(
-    'grid grid-cols-2 overflow-hidden rounded-xl border-2 border-border bg-surface/50 backdrop-blur-sm',
-    $props.class
-  )">
+  <div
+    :class="
+      cn(
+        'grid grid-cols-2 overflow-hidden rounded-xl border-2 border-border bg-surface/50 backdrop-blur-sm',
+        $props.class,
+      )
+    "
+  >
     <button
       v-for="(label, value) in options"
       :key="value"
       type="button"
-      class="flex items-center justify-center px-4 py-1 text-sm font-medium transition-all duration-100 whitespace-nowrap"
+      class="flex items-center justify-center px-4 py-1 text-sm font-medium whitespace-nowrap transition-all duration-100"
       :class="
-        (selected === value)
+        selected === value
           ? 'bg-primary text-primary-foreground shadow-sm'
-          : 'text-text-muted hover:text-text hover:bg-surface-elevated'
+          : 'text-text-muted hover:bg-surface-elevated hover:text-text'
       "
       @click="selectOption(value)"
     >

@@ -1,7 +1,5 @@
 // Copilot - Pending review
 
-import { echo } from '@laravel/echo-vue';
-import type { PresenceChannel } from 'laravel-echo';
 import { auth, projects } from '@/composables/useAuth';
 import type {
   BroadcastMessage,
@@ -9,6 +7,8 @@ import type {
   OnlineUser,
   PresenceInfo,
 } from '@/types/broadcasting';
+import { echo } from '@laravel/echo-vue';
+import type { PresenceChannel } from 'laravel-echo';
 
 /**
  * Map to store cleanup functions for channel subscriptions.
@@ -273,7 +273,10 @@ const privateCallbacks = new Set<MessageCallback>();
 /**
  * Register a callback for a specific message type.
  */
-function registerMessageCallback(type: BroadcastMessageType, callback: MessageCallback): () => void {
+function registerMessageCallback(
+  type: BroadcastMessageType,
+  callback: MessageCallback,
+): () => void {
   if (!messageCallbacks.has(type)) {
     messageCallbacks.set(type, new Set());
   }

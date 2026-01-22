@@ -20,8 +20,17 @@ declare module '@inertiaui/modal-vue' {
 
   // Modal width types
   export type ModalWidth =
-    | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-    | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
+    | 'xs'
+    | 'sm'
+    | 'md'
+    | 'lg'
+    | 'xl'
+    | '2xl'
+    | '3xl'
+    | '4xl'
+    | '5xl'
+    | '6xl'
+    | '7xl';
 
   // Event listener types
   export type EventListener = (...args: any[]) => void;

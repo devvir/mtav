@@ -1,5 +1,7 @@
 import '../css/app.css';
 
+import { autoRefreshCsrfToken } from '@/composables/useCsrfToken';
+import { initializeTheme } from '@/state/useTheme';
 import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
 import { createInertiaApp, Link } from '@inertiajs/vue3';
 import { putConfig, renderApp } from '@inertiaui/modal-vue';
@@ -8,8 +10,6 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
-import { autoRefreshCsrfToken } from '@/composables/useCsrfToken';
-import { initializeTheme } from '@/state/useTheme';
 import AppSidebarLayout from './layouts/app/AppSidebarLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MTAV';

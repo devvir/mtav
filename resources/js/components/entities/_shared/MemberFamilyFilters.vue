@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Filters, Switch, SEARCH } from '@/components/filtering';
+import { Filters, SEARCH, Switch } from '@/components/filtering';
 
 type BINARY = '0' | '1';
 
@@ -20,6 +20,6 @@ watch(model, (value: BINARY) => router.visit(route(routes[value])));
 
 <template>
   <Filters :config="{ q: { type: SEARCH } }" auto-filter>
-    <Switch :options v-model='model' @input="emit('input', $event === '1')" />
+    <Switch :options v-model="model" @input="emit('input', $event === '1')" />
   </Filters>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { ValueType } from '.';
 import FormElement from './FormElement.vue';
 import FormSelectUI from './FormSelectUI.vue';
-import { ValueType } from '.';
 
 const originalModel = defineModel<ValueType | ValueType[]>();
 
@@ -41,7 +41,7 @@ watch(
           :id
           :name="`${name}[]`"
           v-bind="$attrs"
-          class="absolute -bottom-96 text-transparent bg-transparent"
+          class="absolute -bottom-96 bg-transparent text-transparent"
           tabindex="-1"
           @click.stop
         >

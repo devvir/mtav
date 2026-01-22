@@ -8,13 +8,17 @@ export const useAccordionState = (entities: Ref<EntityDisplay[]>) => {
   const expandedSections = ref<Record<string, boolean>>({});
 
   // Initialize expanded state when entities change
-  watch(entities, (newEntities: EntityDisplay[]) => {
-    const newState: Record<string, boolean> = {};
-    newEntities.forEach((entity: EntityDisplay) => {
-      newState[entity.key] = expandedSections.value[entity.key] ?? false;
-    });
-    expandedSections.value = newState;
-  }, { immediate: true });
+  watch(
+    entities,
+    (newEntities: EntityDisplay[]) => {
+      const newState: Record<string, boolean> = {};
+      newEntities.forEach((entity: EntityDisplay) => {
+        newState[entity.key] = expandedSections.value[entity.key] ?? false;
+      });
+      expandedSections.value = newState;
+    },
+    { immediate: true },
+  );
 
   /**
    * Toggle a specific section

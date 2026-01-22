@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Unmock the actual composable for this test file
 vi.unmock('@/components/flash/useFlashMessages');

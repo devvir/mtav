@@ -5,9 +5,15 @@ export interface EventBadgeConfig {
   priority: number;
   type: 'event-type' | 'status' | 'rsvp' | 'draft';
   variant:
-   | 'lottery' | 'online' | 'onsite'
-   | 'completed' | 'ongoing' | 'upcoming' | 'no-date'
-   | 'draft' | 'rsvp';
+    | 'lottery'
+    | 'online'
+    | 'onsite'
+    | 'completed'
+    | 'ongoing'
+    | 'upcoming'
+    | 'no-date'
+    | 'draft'
+    | 'rsvp';
   show?: boolean;
   adminOnly?: boolean;
 }
@@ -72,25 +78,29 @@ export const useEventBadges = (event: ComputedRef<Event>) => {
   /**
    * RSVP configuration badge
    */
-  const rsvpBadge = computed((): EventBadgeConfig => ({
-    text: _('RSVP Required'),
-    priority: 7, // After status badges
-    type: 'rsvp',
-    variant: 'rsvp',
-    show: event.allows_rsvp,
-  }));
+  const rsvpBadge = computed(
+    (): EventBadgeConfig => ({
+      text: _('RSVP Required'),
+      priority: 7, // After status badges
+      type: 'rsvp',
+      variant: 'rsvp',
+      show: event.allows_rsvp,
+    }),
+  );
 
   /**
    * Draft status badge (only shown when event is not published)
    */
-  const draftBadge = computed((): EventBadgeConfig => ({
-    text: _('Draft'),
-    priority: 10, // Move to end of list
-    type: 'draft',
-    variant: 'draft',
-    show: !event.is_published && event.status === 'upcoming',
-    adminOnly: true,
-  }));
+  const draftBadge = computed(
+    (): EventBadgeConfig => ({
+      text: _('Draft'),
+      priority: 10, // Move to end of list
+      type: 'draft',
+      variant: 'draft',
+      show: !event.is_published && event.status === 'upcoming',
+      adminOnly: true,
+    }),
+  );
 
   /**
    * Get all badges in priority order
@@ -101,7 +111,7 @@ export const useEventBadges = (event: ComputedRef<Event>) => {
       draftBadge.value,
       rsvpBadge.value,
       statusBadge.value,
-    ].filter(badge => badge.show || typeof badge.show === 'undefined');
+    ].filter((badge) => badge.show || typeof badge.show === 'undefined');
 
     return badgeList.sort((a, b) => a.priority - b.priority);
   });

@@ -17,17 +17,14 @@ function getPolygonWidth(points: Point[]): number {
  * Calculate optimal font size for text within polygon width
  * Aims to fit text on 1-2 lines with reasonable padding
  */
-export const useTextFitting = (
-  polygonGetter: () => Point[],
-  label: ComputedRef<string>
-) => {
+export const useTextFitting = (polygonGetter: () => Point[], label: ComputedRef<string>) => {
   const minFontSize = 8;
   const maxFontSize = 12;
   const padding = 8; // pixels on each side
 
   const fontSize = computed(() => {
     const polygonWidth = getPolygonWidth(polygonGetter());
-    const availableWidth = polygonWidth - (2 * padding);
+    const availableWidth = polygonWidth - 2 * padding;
 
     // Rough approximation: at 12px, average character is ~7px wide
     // Adjust based on label length and available width
@@ -45,7 +42,7 @@ export const useTextFitting = (
 
   const isTruncated = computed(() => {
     const polygonWidth = getPolygonWidth(polygonGetter());
-    const availableWidth = polygonWidth - (2 * padding);
+    const availableWidth = polygonWidth - 2 * padding;
     const charactersPerLine = Math.floor(availableWidth / 7);
     return label.value.length > charactersPerLine;
   });
@@ -54,4 +51,4 @@ export const useTextFitting = (
     fontSize,
     isTruncated,
   };
-}
+};

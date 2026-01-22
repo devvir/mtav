@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EntityCard, CardContent } from '@/components/card';
+import { CardContent, EntityCard } from '@/components/card';
 
 defineProps<{
   media: ApiResource<Media>;
@@ -21,8 +21,12 @@ defineProps<{
         />
 
         <!-- Subtle overlay with description and owner -->
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 via-70% to-transparent p-3 text-white transition-all duration-300">
-          <div class="transition-transform duration-300 not-group-hocus:translate-y-[calc(100%-1.75em)] not-group-hocus:truncate group-hocus:line-clamp-3">
+        <div
+          class="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 via-black/60 via-70% to-transparent p-3 text-white transition-all duration-300"
+        >
+          <div
+            class="transition-transform duration-300 not-group-hocus:translate-y-[calc(100%-1.75em)] not-group-hocus:truncate group-hocus:line-clamp-3"
+          >
             {{ media.description || 'No description' }}
           </div>
           <div class="mt-1 text-xs opacity-75">

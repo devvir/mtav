@@ -1,10 +1,19 @@
 // Copilot - Pending review
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Unmock the actual composable for this test file
 vi.unmock('@/composables/useAuth');
 
-import { auth, currentUser, iAmMember, iAmAdmin, iAmNotAdmin, iAmSuperadmin, iAmNotSuperadmin, can } from '@/composables/useAuth';
+import {
+  auth,
+  can,
+  currentUser,
+  iAmAdmin,
+  iAmMember,
+  iAmNotAdmin,
+  iAmNotSuperadmin,
+  iAmSuperadmin,
+} from '@/composables/useAuth';
 
 describe('useAuth composable', () => {
   beforeEach(() => {

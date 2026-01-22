@@ -13,7 +13,10 @@
  * @param format - Optional format string
  * @returns Formatted date string in local timezone
  */
-export function fromUTC(utcString: string, format: 'default' | 'date' | 'time' | 'datetime-local' | 'iso' = 'default'): string {
+export function fromUTC(
+  utcString: string,
+  format: 'default' | 'date' | 'time' | 'datetime-local' | 'iso' = 'default',
+): string {
   if (!utcString) {
     console.warn('fromUTC: Empty or null date string provided');
     return '';

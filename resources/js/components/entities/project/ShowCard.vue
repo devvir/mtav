@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { BinaryBadge } from '@/components/badge';
-import { EntityCard, CardContent, CardHeader, ContentGrid, ContentHighlight, ContentLine, StatBox } from '@/components/card';
+import {
+  CardContent,
+  CardHeader,
+  ContentGrid,
+  ContentHighlight,
+  ContentLine,
+  EntityCard,
+  StatBox,
+} from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { Calendar, Camera, Home, Shield, User, UsersRound } from 'lucide-vue-next';
 import ProjectFooter from './shared/ProjectFooter.vue';

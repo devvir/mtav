@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader } from '@/components/card';
-import Canvas from '@/components/projectplan/core/Canvas.vue';
 import type { PolygonConfig, ScaleMode } from '@/components/projectplan';
+import Canvas from '@/components/projectplan/core/Canvas.vue';
 
 // Example PlanItem - single square for testing scaling
 const createTestItems = (): PlanItem[] => [
   {
     id: 1,
     type: 'unit',
-    polygon: [[100, 100], [300, 100], [300, 300], [100, 300]],
+    polygon: [
+      [100, 100],
+      [300, 100],
+      [300, 300],
+      [100, 300],
+    ],
     floor: 0,
     name: 'A1',
     metadata: {
@@ -26,7 +31,12 @@ const createTestItems = (): PlanItem[] => [
 
 // Create boundary matching the shape's bounding area
 const createTestBoundary = (): PolygonConfig => ({
-  polygon: [[50, 50], [350, 50], [350, 350], [50, 350]],
+  polygon: [
+    [50, 50],
+    [350, 50],
+    [350, 350],
+    [50, 350],
+  ],
   stroke: '#f59e0b',
   strokeWidth: 3,
   fill: 'none',
@@ -34,8 +44,8 @@ const createTestBoundary = (): PolygonConfig => ({
 
 // Different container dimensions
 const containers = [
-  { name: 'Tall', ratio: 3/4 },
-  { name: 'Wide', ratio: 4/3 },
+  { name: 'Tall', ratio: 3 / 4 },
+  { name: 'Wide', ratio: 4 / 3 },
   { name: 'Square', ratio: 1 },
 ];
 
@@ -62,17 +72,25 @@ const modeDescriptions: Record<ScaleMode, string> = {
     </CardHeader>
 
     <CardContent>
-      <div class="space-y-6 w-full">
+      <div class="w-full space-y-6">
         <!-- Grid of scaling mode tests -->
         <div class="space-y-8">
           <div v-for="container in containers" :key="container.name" class="space-y-3">
-            <h3 class="font-semibold text-sm">{{ container.name }} (Ratio 12/{{ Math.round(12 * container.ratio) }})</h3>
-            <div class="grid grid-cols-4 gap-4 w-full">
-              <div v-for="scaleMode in scaleModes" :key="scaleMode" class="border border-border rounded-lg overflow-hidden flex flex-col">
+            <h3 class="text-sm font-semibold">
+              {{ container.name }} (Ratio 12/{{ Math.round(12 * container.ratio) }})
+            </h3>
+            <div class="grid w-full grid-cols-4 gap-4">
+              <div
+                v-for="scaleMode in scaleModes"
+                :key="scaleMode"
+                class="flex flex-col overflow-hidden rounded-lg border border-border"
+              >
                 <div class="bg-muted p-2 text-center">
                   <h4 class="text-sm font-semibold">{{ modeLabels[scaleMode] }}</h4>
                 </div>
-                <div class="flex-1 flex items-center justify-center bg-white/90 p-2 min-h-[250px] border border-dashed border-gray-300">
+                <div
+                  class="flex min-h-[250px] flex-1 items-center justify-center border border-dashed border-gray-300 bg-white/90 p-2"
+                >
                   <Canvas
                     :items="createTestItems()"
                     :boundary="createTestBoundary()"
@@ -81,7 +99,7 @@ const modeDescriptions: Record<ScaleMode, string> = {
                     bgColor="#fff"
                   />
                 </div>
-                <div class="bg-muted p-2 text-xs text-muted-foreground text-center">
+                <div class="bg-muted p-2 text-center text-xs text-muted-foreground">
                   {{ modeDescriptions[scaleMode] }}
                 </div>
               </div>

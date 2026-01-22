@@ -7,8 +7,18 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
       return {
         supportedTypes: ['image/*', 'video/*'],
         validationMimeTypes: [
-          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-          'video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
+          'video/mp4',
+          'video/webm',
+          'video/ogg',
+          'video/avi',
+          'video/mov',
+          'video/quicktime',
         ],
         maxFileSize: 50 * 1024 * 1024, // 50MB for videos
         title: _('Upload Media'),
@@ -18,14 +28,19 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Media'),
         submitText: _('Upload Media'),
         submittingText: _('Uploading media...'),
-        validationMessage: _('Unsupported file type. Please use images or videos.')
+        validationMessage: _('Unsupported file type. Please use images or videos.'),
       };
 
     case 'image':
       return {
         supportedTypes: ['image/*'],
         validationMimeTypes: [
-          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
         ],
         maxFileSize: 10 * 1024 * 1024, // 10MB
         title: _('Upload Images'),
@@ -35,14 +50,19 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Images'),
         submitText: _('Upload Images'),
         submittingText: _('Uploading images...'),
-        validationMessage: _('Unsupported file type. Please use image files.')
+        validationMessage: _('Unsupported file type. Please use image files.'),
       };
 
     case 'video':
       return {
         supportedTypes: ['video/*'],
         validationMimeTypes: [
-          'video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'
+          'video/mp4',
+          'video/webm',
+          'video/ogg',
+          'video/avi',
+          'video/mov',
+          'video/quicktime',
         ],
         maxFileSize: 100 * 1024 * 1024, // 100MB
         title: _('Upload Videos'),
@@ -52,14 +72,20 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Videos'),
         submitText: _('Upload Videos'),
         submittingText: _('Uploading videos...'),
-        validationMessage: _('Unsupported file type. Please use video files.')
+        validationMessage: _('Unsupported file type. Please use video files.'),
       };
 
     case 'audio':
       return {
         supportedTypes: ['audio/*'],
         validationMimeTypes: [
-          'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/flac', 'audio/m4a'
+          'audio/mpeg',
+          'audio/mp3',
+          'audio/wav',
+          'audio/ogg',
+          'audio/aac',
+          'audio/flac',
+          'audio/m4a',
         ],
         maxFileSize: 50 * 1024 * 1024, // 50MB
         title: _('Upload Audio'),
@@ -69,7 +95,7 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Audio'),
         submitText: _('Upload Audio'),
         submittingText: _('Uploading audio...'),
-        validationMessage: _('Unsupported file type. Please use audio files.')
+        validationMessage: _('Unsupported file type. Please use audio files.'),
       };
 
     case 'document':
@@ -86,7 +112,7 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
           'application/vnd.oasis.opendocument.spreadsheet',
           'application/vnd.oasis.opendocument.presentation',
           'text/plain',
-          'text/csv'
+          'text/csv',
         ],
         validationMimeTypes: [
           'application/pdf',
@@ -100,7 +126,7 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
           'application/vnd.oasis.opendocument.spreadsheet',
           'application/vnd.oasis.opendocument.presentation',
           'text/plain',
-          'text/csv'
+          'text/csv',
         ],
         maxFileSize: 25 * 1024 * 1024, // 25MB
         title: _('Upload Documents'),
@@ -110,7 +136,7 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Documents'),
         submitText: _('Upload Documents'),
         submittingText: _('Uploading documents...'),
-        validationMessage: _('Unsupported file type. Please use document files.')
+        validationMessage: _('Unsupported file type. Please use document files.'),
       };
 
     case 'unknown':
@@ -126,7 +152,7 @@ export const getMediaConfig = (category: MediaCategory): MediaConfig => {
         buttonText: _('Choose Files'),
         submitText: _('Upload Files'),
         submittingText: _('Uploading files...'),
-        validationMessage: _('File validation will be performed server-side.')
+        validationMessage: _('File validation will be performed server-side.'),
       };
   }
 };

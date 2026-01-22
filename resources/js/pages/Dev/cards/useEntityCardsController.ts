@@ -1,5 +1,5 @@
-import { useEntityConfig } from './useEntityConfig';
 import { useAccordionState } from './useAccordionState';
+import { useEntityConfig } from './useEntityConfig';
 import { useHashNavigation } from './useHashNavigation';
 import { useScrollBehavior } from './useScrollBehavior';
 
@@ -15,7 +15,8 @@ export const useEntityCardsController = (entityData: Record<string, ApiResource[
   const entities = computed(() => getAvailableEntities(entityData));
 
   // Set up accordion state management
-  const { expandedSections, toggleSection, expandAll, collapseAll, isExpanded } = useAccordionState(entities);
+  const { expandedSections, toggleSection, expandAll, collapseAll, isExpanded } =
+    useAccordionState(entities);
 
   /**
    * Handle section toggle with URL and scroll management

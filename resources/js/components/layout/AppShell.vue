@@ -14,4 +14,3 @@ defineProps<{
     <slot />
   </SidebarProvider>
 </template>
-

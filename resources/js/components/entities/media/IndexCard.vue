@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import VisualIndexCard from './VisualIndexCard.vue';
 import DocumentIndexCard from './DocumentIndexCard.vue';
+import VisualIndexCard from './VisualIndexCard.vue';
 
 const props = defineProps<{
   media: ApiResource<Media>;

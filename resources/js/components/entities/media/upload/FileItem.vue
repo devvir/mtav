@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { FileText, Image, Play, X } from 'lucide-vue-next';
 import { _ } from '@/composables/useTranslations';
+import { FileText, Image, Play, X } from 'lucide-vue-next';
 
 const emit = defineEmits<{
   remove: [];
@@ -49,23 +49,23 @@ const createPreview = (file: File): string | undefined => {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 p-3 border rounded-lg border-border">
+  <div class="flex items-center gap-3 rounded-lg border border-border p-3">
     <!-- Preview or Icon -->
     <div class="flex-shrink-0">
       <img
         v-if="file.type.startsWith('image/')"
         :src="createPreview(file)"
         :alt="file.name"
-        class="w-12 h-12 object-cover rounded"
+        class="h-12 w-12 rounded object-cover"
       />
-      <div v-else class="w-12 h-12 flex items-center justify-center bg-muted rounded">
-        <component :is="getFileIcon(file.type)" class="w-6 h-6" />
+      <div v-else class="flex h-12 w-12 items-center justify-center rounded bg-muted">
+        <component :is="getFileIcon(file.type)" class="h-6 w-6" />
       </div>
     </div>
 
     <!-- File Info -->
-    <div class="flex-1 min-w-0">
-      <p class="font-medium truncate">{{ file.name }}</p>
+    <div class="min-w-0 flex-1">
+      <p class="truncate font-medium">{{ file.name }}</p>
       <div class="flex items-center gap-2 text-sm text-muted-foreground">
         <span>{{ getFileTypeLabel(file.type) }}</span>
         <span>•</span>
@@ -74,9 +74,9 @@ const createPreview = (file: File): string | undefined => {
 
       <!-- Individual Progress Bar -->
       <div v-if="processing && progress !== undefined" class="mt-2">
-        <div class="w-full bg-secondary rounded-full h-1">
+        <div class="h-1 w-full rounded-full bg-secondary">
           <div
-            class="bg-primary h-1 rounded-full transition-all duration-300"
+            class="h-1 rounded-full bg-primary transition-all duration-300"
             :style="{ width: progress + '%' }"
           />
         </div>
@@ -84,13 +84,8 @@ const createPreview = (file: File): string | undefined => {
     </div>
 
     <!-- Remove Button -->
-    <Button
-      variant="ghost"
-      size="sm"
-      @click="emit('remove')"
-      :disabled="processing"
-    >
-      <X class="w-4 h-4" />
+    <Button variant="ghost" size="sm" @click="emit('remove')" :disabled="processing">
+      <X class="h-4 w-4" />
     </Button>
   </div>
 </template>

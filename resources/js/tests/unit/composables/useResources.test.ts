@@ -1,9 +1,9 @@
 // Copilot - Pending review
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.unmock('@/composables/useResources');
 
-import {
+import useResources, {
   actions,
   entityFromNS,
   entityLabel,
@@ -11,7 +11,6 @@ import {
   entityPlural,
   entityRoutes,
 } from '@/composables/useResources';
-import useResources from '@/composables/useResources';
 
 describe('useResources composable', () => {
   describe('exported functions', () => {
@@ -223,17 +222,9 @@ describe('useResources composable', () => {
 
   describe('entity mapping consistency', () => {
     it('all entities in actions are mappable', () => {
-      const testEntities: Array<'project' | 'family' | 'member' | 'unit' | 'event' | 'admin' | 'unit_type' | 'media' | 'log'> = [
-        'project',
-        'family',
-        'member',
-        'unit',
-        'event',
-        'admin',
-        'unit_type',
-        'media',
-        'log',
-      ];
+      const testEntities: Array<
+        'project' | 'family' | 'member' | 'unit' | 'event' | 'admin' | 'unit_type' | 'media' | 'log'
+      > = ['project', 'family', 'member', 'unit', 'event', 'admin', 'unit_type', 'media', 'log'];
 
       testEntities.forEach((entity) => {
         const ns = entityNS(entity);

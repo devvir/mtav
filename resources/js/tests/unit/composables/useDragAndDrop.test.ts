@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.unmock('@/composables/useDragAndDrop');
 
@@ -214,11 +214,12 @@ describe('useDragAndDrop composable', () => {
       const onMove = vi.fn();
       const onDragEnd = vi.fn();
 
-      const { draggedIndex, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = useDragAndDrop({
-        onMove,
-        onDragStart,
-        onDragEnd,
-      });
+      const { draggedIndex, handleDragStart, handleDragOver, handleDrop, handleDragEnd } =
+        useDragAndDrop({
+          onMove,
+          onDragStart,
+          onDragEnd,
+        });
 
       // Start drag
       const startEvent = createMockDragEvent('dragstart');

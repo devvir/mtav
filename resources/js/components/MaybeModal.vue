@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'vue';
-import { Modal, useModal } from '@inertiaui/modal-vue';
 import { MAYBEMODAL } from '@/composables/useInertiaUIModal';
+import { cn } from '@/lib/utils';
+import { Modal, useModal } from '@inertiaui/modal-vue';
+import type { HTMLAttributes } from 'vue';
 
 defineProps<{
   panelClasses?: HTMLAttributes['class'];

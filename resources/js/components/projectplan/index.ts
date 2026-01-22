@@ -7,8 +7,8 @@
  * - Item: Generic plan item renderer (any type: unit, park, street, etc.)
  */
 
+export { default as Item } from './Item.vue';
 export { default as Plan } from './Plan.vue';
 export { default as Unit } from './Unit.vue';
-export { default as Item } from './Item.vue';
 
-export type { ScaleMode, PolygonConfig } from './types';
+export type { PolygonConfig, ScaleMode } from './types';

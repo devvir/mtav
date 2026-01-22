@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
 import Head from '@/components/Head.vue';
 import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
 import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
 import MaybeModal from '@/components/MaybeModal.vue';
 import { entityLabel, entityNS } from '@/composables/useResources';
+import { cn } from '@/lib/utils';
 import { ModalWidth } from '@inertiaui/modal-vue';
 
 defineEmits<{ modalEvent: any[] }>(); // Hotfix to remove InertiaUI Modal warnings
@@ -31,7 +31,7 @@ const ShowCard = defineAsyncComponent(
   <Head :title no-translation />
 
   <Breadcrumbs>
-    <Breadcrumb v-if="! pageTitle" :route="routeIndex" :text="indexName" no-translation />
+    <Breadcrumb v-if="!pageTitle" :route="routeIndex" :text="indexName" no-translation />
     <Breadcrumb :route="routeShow" :params="resource.id">{{ title }}</Breadcrumb>
   </Breadcrumbs>
 
@@ -39,6 +39,7 @@ const ShowCard = defineAsyncComponent(
     <component
       :is="ShowCard"
       v-bind="{ [entity]: resource }"
-      :class="cn('mx-auto max-w-xl pt-4 pb-1 *:px-8', $props.class)" />
+      :class="cn('mx-auto max-w-xl pt-4 pb-1 *:px-8', $props.class)"
+    />
   </MaybeModal>
 </template>
