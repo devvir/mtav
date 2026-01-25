@@ -4,6 +4,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/layout/sidebar';
 import { can } from '@/composables/useAuth';
 import { currentRoute } from '@/composables/useRoute';
@@ -30,6 +31,7 @@ interface NavItem {
 }
 
 const { groupMembers } = useMemberGrouping();
+const { setOpenMobile } = useSidebar();
 
 const allNavItems: NavItem[] = [
   {
@@ -106,6 +108,7 @@ const activeNavItem = computed(() =>
             :href="route(toValue(item.route))"
             :class="{ 'pointer-events-none': item.route === currentRoute }"
             prefetch
+            @click="setOpenMobile(false)"
           >
             <component :is="item.icon" />
             <span>{{ _(toValue(item.label)) }}</span>

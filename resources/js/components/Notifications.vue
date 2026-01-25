@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import { Dropdown, DropdownContent, DropdownTrigger } from '@/components/dropdown';
-import { notifications } from '@/composables/useAuth';
+import { useGlobalProps } from '@/composables/useGlobalProps';
 import { _ } from '@/composables/useTranslations';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bell } from 'lucide-vue-next';
 import { route as routeUri } from 'ziggy-js';
 
+const globalProps = useGlobalProps();
+
+// Computed reference to notifications from global props
+const notifications = computed(() => globalProps.auth?.notifications);
+
 const markAsRead = (notification: Notification, close: () => void) => {
-  if (!notification.is_read) axios.post(routeUri('notifications.read', notification.id));
+  if (!notification.is_read) {
+    axios.post(routeUri('notifications.read', notification.id));
+    // Decrement unread count when marking a single notification as read
+    if (globalProps.auth?.notifications) {
+      globalProps.auth.notifications.unread = Math.max(0, globalProps.auth.notifications.unread - 1);
+    }
+  }
 
   notification.is_read = true;
   setTimeout(() => close(), 100);
@@ -17,8 +28,12 @@ const markAsRead = (notification: Notification, close: () => void) => {
 const markAllAsRead = () => {
   axios.post(routeUri('notifications.readAll'));
 
-  // Optimistically mark all as read
-  notifications.value.recent.forEach((n: Notification) => (n.is_read = true));
+  // Optimistically mark all as read using the mutable global props copy
+  if (globalProps.auth?.notifications) {
+    globalProps.auth.notifications.recent.forEach((n: Notification) => (n.is_read = true));
+    // Reset unread count to 0
+    globalProps.auth.notifications.unread = 0;
+  }
 };
 </script>
 
@@ -32,7 +47,7 @@ const markAllAsRead = () => {
 
       <!-- Unread count badge -->
       <span
-        v-if="notifications.unread"
+        v-if="notifications?.unread"
         class="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-accent-foreground text-xs font-bold text-background"
       >
         {{ notifications.unread > 9 ? '9+' : notifications.unread }}
@@ -40,13 +55,13 @@ const markAllAsRead = () => {
     </DropdownTrigger>
 
     <DropdownContent
-      class="top-10 right-0 mr-3 w-80 origin-top overflow-hidden rounded-xl border border-border bg-surface-elevated shadow shadow-accent/70 backdrop-blur-2xl"
+      class="top-10 right-0 mr-3 w-80 origin-top overflow-hidden rounded-xl border border-border bg-surface-elevated shadow shadow-accent/70 backdrop-blur-2xl max-xs:fixed max-xs:inset-x max-xs:top-16"
     >
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-border/30 px-4 py-3">
         <h3 class="text-sm font-semibold text-text">{{ _('Notifications') }}</h3>
         <button
-          v-if="notifications.unread"
+          v-if="notifications?.unread"
           class="text-xs text-text-subtle hocus:text-text"
           @click="markAllAsRead"
         >
@@ -57,8 +72,8 @@ const markAllAsRead = () => {
       <!-- Notifications list -->
       <div class="max-h-96 divide-y divide-border/70 overflow-y-auto">
         <component
+          v-for="notification in notifications?.recent || []"
           :is="notification.data?.action ? Link : 'div'"
-          v-for="notification in notifications.recent"
           :key="notification.id"
           :href="notification.data?.action"
           class="flex items-start gap-3 px-4 py-3 transition-colors"
@@ -85,7 +100,7 @@ const markAllAsRead = () => {
 
         <!-- Empty state -->
         <div
-          v-if="notifications.recent.length === 0"
+          v-if="!notifications?.recent || notifications.recent.length === 0"
           class="flex flex-col items-center justify-center py-12 text-text-subtle"
         >
           <Bell class="mb-3 size-12 opacity-30" />

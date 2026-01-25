@@ -32,7 +32,7 @@ const cardSizeMultiplier = computed<number>(() => size[(props.cardSize ?? 'md') 
       name="fade"
       tag="ul"
       :appear="!!resources"
-      class="grid list-none place-items-stretch sm:auto-rows-auto"
+      class="flex flex-col xs:grid list-none place-items-stretch sm:auto-rows-auto"
       :class="
         cardSize === 'full'
           ? 'gap-2'

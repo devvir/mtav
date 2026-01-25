@@ -13,7 +13,7 @@ import AppSidebar from '@/components/layout/sidebar/AppSidebar.vue';
         class="@container/header sticky inset-0 z-2 bg-background/40 backdrop-blur-lg"
       />
 
-      <div class="@container/main relative z-1 h-full px-padding-x pb-padding-y">
+      <div class="@container/main relative z-1 h-full px-2 xs:px-padding-x pb-padding-y">
         <slot />
       </div>
     </AppContent>
