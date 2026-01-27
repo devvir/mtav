@@ -1,5 +1,5 @@
 // Copilot - Pending review
-import type { ComputedRef, Ref } from 'vue';
+import { ComputedRef } from 'vue';
 
 export interface LotteryAuditsComposable {
   hasAudits: ComputedRef<boolean>;
@@ -13,9 +13,9 @@ export interface LotteryAuditsComposable {
   initAuditTimestamp: ComputedRef<number | null>;
 }
 
-export function useLotteryAudits(
+export const useLotteryAudits = (
   lottery: ComputedRef<Lottery> | Ref<Lottery>,
-): LotteryAuditsComposable {
+): LotteryAuditsComposable => {
   const lotteryValue = isRef(lottery) ? lottery : computed(() => lottery.value);
 
   // Check if there are any audits
@@ -25,17 +25,17 @@ export function useLotteryAudits(
 
   // Check if there's a failure audit
   const hasFailure = computed(() => {
-    return !!lotteryValue.value?.audits?.some((audit) => audit.type === 'failure');
+    return !!lotteryValue.value?.audits?.some((audit: LotteryAudit) => audit.type === 'failure');
   });
 
   // Get the failure audit (most recent one if multiple)
   const failureAudit = computed(() => {
-    return lotteryValue.value?.audits?.find((audit) => audit.type === 'failure');
+    return lotteryValue.value?.audits?.find((audit: LotteryAudit) => audit.type === 'failure');
   });
 
   // Get init audit for timestamp
   const initAudit = computed(() => {
-    return lotteryValue.value?.audits?.find((audit) => audit.type === 'init');
+    return lotteryValue.value?.audits?.find((audit: LotteryAudit) => audit.type === 'init');
   });
 
   // Get timestamp from init audit (in milliseconds)
@@ -79,7 +79,7 @@ export function useLotteryAudits(
     if (!lotteryValue.value?.audits) return 0;
 
     const groupExecutions = lotteryValue.value.audits.filter(
-      (audit) => audit.type === 'group_execution',
+      (audit: LotteryAudit) => audit.type === 'group_execution',
     );
 
     return groupExecutions.length;

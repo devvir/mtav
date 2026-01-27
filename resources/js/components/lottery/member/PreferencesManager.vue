@@ -1,7 +1,9 @@
+// Copilot - Pending review
 <script setup lang="ts">
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { _ } from '@/composables/useTranslations';
 import { HeartIcon } from 'lucide-vue-next';
+import { usePreferences } from '../composables/usePreferences';
 import PreferencesEmptyState from './PreferencesEmptyState.vue';
 import PreferencesGridDesktop from './PreferencesGridDesktop.vue';
 import PreferencesGridMobile from './PreferencesGridMobile.vue';
@@ -11,13 +13,7 @@ const props = defineProps<{
   preferences: ApiResource<Unit>[];
 }>();
 
-const preferences = reactive(props.preferences);
-const form = useForm({ preferences });
-
-const submit = (updatedPreferences: Unit[]) => {
-  form.preferences = updatedPreferences;
-  form.post(route('lottery.preferences'), { preserveScroll: true });
-};
+const { localPreferences, disabled, submit } = usePreferences(toRef(props, 'preferences'));
 </script>
 
 <template>
@@ -32,17 +28,17 @@ const submit = (updatedPreferences: Unit[]) => {
     </CardHeader>
 
     <CardContent class="w-full flex-1 overflow-y-auto">
-      <PreferencesEmptyState v-if="preferences.length === 0" />
+      <PreferencesEmptyState v-if="localPreferences.length === 0" />
 
       <!-- Mobile/Tablet: Vertical List -->
-      <PreferencesGridMobile :preferences :disabled="form.processing" @change="submit">
+      <PreferencesGridMobile :preferences="localPreferences" :disabled @change="submit">
         <template #unit-details="{ unit, index }">
           <PreferencesGridMobileSlot :unit :index />
         </template>
       </PreferencesGridMobile>
 
       <!-- Desktop: Grid Layout with Fixed Numbered Slots -->
-      <PreferencesGridDesktop :preferences :disabled="form.processing" @change="submit">
+      <PreferencesGridDesktop :preferences="localPreferences" :disabled @change="submit">
         <template #priority-badge="{ index }">
           <div
             v-if="index < 3"

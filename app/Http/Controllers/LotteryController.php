@@ -77,7 +77,7 @@ class LotteryController
             return back()->with('error', $e->getUserMessage());
         }
 
-        return back()->with('success', __('lottery.lottery_preferences_updated'));
+        return back();
     }
 
     /**
