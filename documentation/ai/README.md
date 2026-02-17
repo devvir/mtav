@@ -109,7 +109,7 @@ documentation/ai/
 - Test helpers go in `tests/Helpers/` (autoloaded by Pest)
 
 **Key architectural patterns** (internalize these):
-- **STI (Single Table Inheritance)**: User → Admin/Member (see `core/USER_SYSTEM.md`)
+- **Pseudo-STI (Scope-Based Type Discrimination)**: User → Admin/Member via global scopes, not true STI (see `core/USER_SYSTEM.md`)
 - **Family Atomicity**: Families are atomic units, members mirror family's project
 - **Two-Level Auth**: Global scopes (query) + Policies (action) (see `core/SCOPING.md`)
 - **Universe Fixture**: `universe.sql` loaded once, rolled back per test
@@ -187,7 +187,7 @@ documentation/ai/
 ### Core System Patterns
 
 **`core/USER_SYSTEM.md`** - Complete user type system
-- STI (Single Table Inheritance) pattern
+- Pseudo-STI (scope-based type discrimination) pattern
 - Member/Admin/Superadmin capabilities
 - Database schema, relationships
 - Validation rules, constraints

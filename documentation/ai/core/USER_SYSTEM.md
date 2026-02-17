@@ -2,7 +2,7 @@
 
 ## Overview
 
-MTAV uses **Single Table Inheritance (STI)** for user management with three distinct actor types:
+MTAV uses a **pseudo-STI pattern** (scope-based type discrimination) for user management with three distinct actor types:
 
 ```
 Superadmin (highest privileges)
@@ -11,6 +11,13 @@ Admin (project-scoped management)
     ↓ separate from
 Member (family-bound participation)
 ```
+
+**Implementation Pattern**: This is **NOT true Single Table Inheritance** (no `type` discriminator column). Instead:
+- `Admin` and `Member` classes extend `User`
+- Type discrimination via **global scopes** on `is_admin` boolean and `family_id` presence
+- `Admin::query()` automatically scoped to `where('is_admin', true)`
+- `Member::query()` automatically scoped to `where('is_admin', false)->whereNotNull('family_id')`
+- `User` model creates helper instances (`adminCast`, `memberCast`) for type-specific behavior
 
 **Key Principle**: Admins and Members are **mutually exclusive** - a user cannot be both.
 
@@ -237,8 +244,9 @@ $user->isSuperadmin() // true if email in config array AND is_admin = true
 
 ### User (Base Model)
 
-**Pattern**: Single Table Inheritance (STI)
-**Discriminator**: `is_admin` field
+**Pattern**: Pseudo-STI (scope-based type discrimination)
+**Type Discriminator**: `is_admin` boolean field + `family_id` presence
+**Implementation**: Global scopes on `Admin` and `Member` subclasses filter queries automatically
 
 **Validation Rules**:
 - `firstname`: REQUIRED, string, max:255
@@ -262,12 +270,17 @@ public function activeProjects(): BelongsToMany
 
 **Model Methods**:
 ```php
-public function isSuperadmin(): bool
-public function isAdmin(): bool
-public function isMember(): bool
-public function toAdmin(): ?Admin
-public function toMember(): ?Member
+public function isSuperadmin(): bool  // Checks email in config + is_admin = true
+public function isAdmin(): bool      // Returns is_admin || isSuperadmin()
+public function isMember(): bool     // Returns !is_admin
+public function asAdmin(): ?Admin    // Returns adminCast helper instance
+public function asMember(): ?Member  // Returns memberCast helper instance
 ```
+
+**Type Casting Behavior**:
+- `User` model's `booted()` method creates `Admin` or `Member` instances via `Admin::make()` and `Member::make()`
+- These are stored as `adminCast` and `memberCast` properties for type-specific method access
+- **Important**: These are helper instances, not the actual model - queries still go through global scopes
 
 **Soft Delete Behavior**:
 - Uses `SoftDeletes` trait
@@ -278,20 +291,30 @@ public function toMember(): ?Member
 ### Admin Model
 
 **Extends**: User
-**Global Scope**: `where('is_admin', true)`
+**Global Scope**: `where('is_admin', true)` (applied automatically to all `Admin::query()` calls)
+**Table**: Uses `users` table (shared with all user types)
+**Key Behavior**: 
+- All queries on `Admin::query()` are automatically filtered to `is_admin = true`
+- Cannot query admins via `User::query()` without bypassing scope
+- Helper instance created in `User::booted()` as `adminCast` property
 
 **Additional Methods**:
-- Project management helpers
-- Admin-specific relationships
+- Project management helpers (`manages()`)
+- Admin-specific relationships (`events()`, `upcomingEvents()`)
 
 ### Member Model
 
 **Extends**: User
-**Global Scope**: `where('is_admin', false)`
+**Global Scope**: `where('is_admin', false)->whereNotNull('family_id')` (applied automatically to all `Member::query()` calls)
+**Table**: Uses `users` table (shared with all user types)
+**Key Behavior**:
+- All queries on `Member::query()` are automatically filtered to `is_admin = false AND family_id IS NOT NULL`
+- Cannot query members via `User::query()` without bypassing scope
+- Helper instance created in `User::booted()` as `memberCast` property
 
 **Additional Methods**:
-- Family-specific helpers
-- Member-specific relationships
+- Family-specific helpers (`family()`, `project()`)
+- Member-specific relationships (`rsvps()`, `events()`)
 
 ---
 

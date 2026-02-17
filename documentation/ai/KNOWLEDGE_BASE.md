@@ -1,6 +1,6 @@
 # MTAV - Core Knowledge Base
 
-**Last Updated:** 2025-11-20
+**Last Updated:** 2025-01-27
 
 This document contains the essential architectural principles, patterns, and constraints needed for daily development work on MTAV.
 
@@ -58,7 +58,15 @@ This document contains the essential architectural principles, patterns, and con
 - **Admin/Member are mutually exclusive** - cannot be both
 - **Project-based scoping** - most models automatically scoped to current project context
 
-**Reference**: See `policies-reference.md` for detailed authorization patterns.
+**User Type Implementation**: Uses a **pseudo-STI pattern** (not true Single Table Inheritance):
+- `Admin` and `Member` classes extend `User` but use **global scopes** to filter queries
+- `Admin` scope: `where('is_admin', true)`
+- `Member` scope: `where('is_admin', false)->whereNotNull('family_id')`
+- No `type` discriminator column - type determined by `is_admin` boolean and `family_id` presence
+- `User` model creates helper instances (`adminCast`, `memberCast`) via `Admin::make()` and `Member::make()` for type-specific behavior
+- **Important**: Queries on `Admin::query()` or `Member::query()` are automatically filtered by global scopes
+
+**Reference**: See `policies-reference.md` for detailed authorization patterns and `core/USER_SYSTEM.md` for user type implementation details.
 
 ---
 
@@ -132,7 +140,11 @@ This document contains the essential architectural principles, patterns, and con
 
 ## Queue Workers (Background Jobs)
 
-**Development**: Uses `sync` driver - jobs execute immediately in the request (no background processing)
+**Development**: Queue driver is configurable via `QUEUE_CONNECTION` environment variable:
+- **Default in config**: `database` (set in `config/queue.php` line 16)
+- **Typical dev setup**: Override via `.env` to use `sync` or `deferred` for immediate/queued execution
+- **Tests**: Always use `sync` driver (set in `phpunit.xml` line 40) - jobs execute immediately in test requests
+- **No background workers in dev**: Development typically uses `sync` or `deferred` to avoid running queue workers
 
 **Production**: Uses `database` driver with supervisord-managed queue workers:
 - **3-5 queue worker processes** managed by supervisord
@@ -142,7 +154,7 @@ This document contains the essential architectural principles, patterns, and con
 - Container: `queue` service in production compose
 
 **Queue Configuration**:
-- Default connection: `database` (set in `config/queue.php`)
+- Default connection: `database` (set in `config/queue.php` line 16, can be overridden via `QUEUE_CONNECTION` env var)
 - Table: `jobs` (created during migrations)
 - Retry logic: 3 attempts, 90-second timeout between retries
 

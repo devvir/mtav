@@ -28,7 +28,7 @@ echo -e "${BLUE}📝 Setting up environment...${NC}"
 # 3. Start dev services (without assets container)
 echo -e "${BLUE}🐳 Starting containers...${NC}"
 export COMPOSE_PROJECT_NAME=dev
-"$SCRIPTS_DIR/compose.sh" up php nginx mysql mailhog --build -d
+"$SCRIPTS_DIR/compose.sh" up php nginx mysql mailhog reverb --build -d
 
 # 4. Wait for services to be healthy
 echo -e "${BLUE}⏳ Waiting for database...${NC}"

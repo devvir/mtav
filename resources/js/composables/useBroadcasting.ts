@@ -62,8 +62,8 @@ export function useBroadcasting() {
   const initializeChannels = () => {
     if (!auth.value.user) return;
 
-    console.log('[useBroadcasting] Initializing channels for user:', auth.value.user.id);
-    console.log('[useBroadcasting] Available projects:', auth.value.projects);
+    // console.log('[useBroadcasting] Initializing channels for user:', auth.value.user.id);
+    // console.log('[useBroadcasting] Available projects:', auth.value.projects);
 
     // Connect to private channel
     connectToPrivateChannel();
@@ -71,7 +71,7 @@ export function useBroadcasting() {
     // Connect to project channels
     if (projects.value.length) {
       projects.value.forEach((project: any) => {
-        console.log('[useBroadcasting] Connecting to project channel:', project.id);
+        // console.log('[useBroadcasting] Connecting to project channel:', project.id);
         connectToProjectChannel(project.id);
       });
     }
@@ -99,7 +99,7 @@ export function useBroadcasting() {
     // Listen to all known message types
     MESSAGE_TYPES.forEach((type) => {
       channel.listen(`.${type}`, (data: BroadcastMessage) => {
-        console.log('[useBroadcasting] Private channel event:', { type, data });
+        // console.log('[useBroadcasting] Private channel event:', { type, data });
         triggerPrivateCallbacks(data);
         triggerMessageCallbacks(data);
         triggerAnyCallbacks(data);
@@ -119,20 +119,20 @@ export function useBroadcasting() {
     const channelName = `projects.${projectId}`;
     const key = `presence-${channelName}`;
 
-    console.log('[useBroadcasting] Attempting to join presence channel:', channelName);
+    // console.log('[useBroadcasting] Attempting to join presence channel:', channelName);
 
     if (subscriptions.has(key)) return; // Already subscribed
 
     const channel = echo().join(channelName) as PresenceChannel;
 
-    console.log('[useBroadcasting] Joined presence channel:', channelName);
+    // console.log('[useBroadcasting] Joined presence channel:', channelName);
 
     // Initialize online users list for this project
     onlineUsersByProject.set(projectId, []);
 
     // Handle initial presence
     channel.here((users: any[]) => {
-      console.log('[useBroadcasting] Users already in project channel:', users);
+      // console.log('[useBroadcasting] Users already in project channel:', users);
       const onlineUsers = users.map((user) => ({
         id: user.id,
         name: user.name,
@@ -143,7 +143,7 @@ export function useBroadcasting() {
 
     // Handle user joining
     channel.joining((user: any) => {
-      console.log('[useBroadcasting] User joining project channel:', user);
+      // console.log('[useBroadcasting] User joining project channel:', user);
       const users = onlineUsersByProject.get(projectId) || [];
       const newUser: OnlineUser = {
         id: user.id,
@@ -155,7 +155,7 @@ export function useBroadcasting() {
 
     // Handle user leaving
     channel.leaving((user: any) => {
-      console.log('[useBroadcasting] User leaving project channel:', user);
+      // console.log('[useBroadcasting] User leaving project channel:', user);
       const users = onlineUsersByProject.get(projectId) || [];
       onlineUsersByProject.set(
         projectId,
@@ -166,7 +166,7 @@ export function useBroadcasting() {
     // Listen to all known message types
     MESSAGE_TYPES.forEach((type) => {
       channel.listen(`.${type}`, (data: BroadcastMessage) => {
-        console.log('[useBroadcasting] Project channel event:', { type, data, projectId });
+        // console.log('[useBroadcasting] Project channel event:', { type, data, projectId });
         triggerProjectCallbacks(data, projectId);
         triggerMessageCallbacks(data);
         triggerAnyCallbacks(data);
@@ -194,7 +194,7 @@ export function useBroadcasting() {
     // Listen to all known message types
     MESSAGE_TYPES.forEach((type) => {
       channel.listen(`.${type}`, (data: BroadcastMessage) => {
-        console.log('[useBroadcasting] Global channel event:', { type, data });
+        // console.log('[useBroadcasting] Global channel event:', { type, data });
         triggerGlobalCallbacks(data);
         triggerMessageCallbacks(data);
         triggerAnyCallbacks(data);
