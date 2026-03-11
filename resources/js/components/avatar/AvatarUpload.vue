@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/composables/useInitials';
 import { _ } from '@/composables/useTranslations';
+import axios from 'axios';
 import { Camera, Loader2, X } from 'lucide-vue-next';
 
 interface Props {
@@ -98,20 +99,7 @@ const uploadAvatar = async (file: File) => {
   formData.append('avatar', file);
 
   try {
-    const response = await fetch(route(props.uploadRoute), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN':
-          document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    const data = await response.json();
+    const { data } = await axios.post(route(props.uploadRoute), formData);
 
     emit('success', data.avatar_url);
   } catch (_error) {

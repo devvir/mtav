@@ -17,9 +17,9 @@ class AvatarController
 
         $user->avatar && Storage::disk('public')->delete($user->avatar);
 
-        $user->update([
-            'avatar' => $request->avatar->store('avatars', 'public'),
-        ]);
+        $path = $request->avatar->store('avatars', 'public');
+
+        $user->update(['avatar' => $path]);
 
         return response()->json([
             'message'    => __('Avatar updated successfully!'),

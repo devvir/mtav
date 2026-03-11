@@ -56,8 +56,8 @@ echo -e "${BLUE}📦 Installing PHP dependencies...${NC}"
 "$SCRIPTS_DIR/composer.sh" install --no-interaction --optimize-autoloader
 
 # 8. Run migrations and seed
-echo -e "${BLUE}🗄️  Running database migrations and seeders...${NC}"
-"$SCRIPTS_DIR/artisan.sh" migrate:fresh --seed --force
+# echo -e "${BLUE}🗄️  Running database migrations and seeders...${NC}"
+# "$SCRIPTS_DIR/artisan.sh" migrate:fresh --seed --force
 
 # 9. Create storage symlink
 echo -e "${BLUE}🔗 Creating storage symlink...${NC}"
