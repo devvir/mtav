@@ -15,7 +15,7 @@ defineProps<{
       <div class="flex justify-between">
         {{ _('Project Layout Plan') }}
 
-        <Button as-child size="sm">
+        <Button as-child size="sm" v-if="plan.allows.update">
           <Link :href="route('plans.edit', plan.id)">
             {{ _('Update') }}
           </Link>
