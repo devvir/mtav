@@ -1,4 +1,4 @@
-# Broadcasting System - Testing Guide
+# Broadcasting System
 
 ## Overview
 
@@ -96,16 +96,8 @@ console.log('Online users:', onlineUsers.value);
 
 ## Testing
 
-### Temporary Test Middleware
-
-A temporary test middleware (`app/Http/Middleware/BroadcastNavigationTest.php`) broadcasts navigation events. This is **TEMPORARY** and should be removed after testing.
-
-### Current Test Setup
-
-1. **Middleware**: Broadcasts `user.navigation` message on every request
-2. **Component**: `AppSidebarHeader.vue` listens for messages and logs them
-
-### Testing Steps
+There is no app code that auto-broadcasts on every request. To exercise the pipeline
+manually, follow these steps.
 
 1. **Start the development environment**:
    ```bash
@@ -129,37 +121,25 @@ A temporary test middleware (`app/Http/Middleware/BroadcastNavigationTest.php`) 
    REVERB_SCHEME=http
    ```
 
-4. **Open the application** in a browser and log in.
+4. **Open the application** in a browser and log in. Keep the browser DevTools open on the
+   Network tab → WS to see the WebSocket frames.
 
-5. **Open browser console** and navigate between pages.
-
-6. **Expected console output**:
-   ```
-   [useBroadcasting] Private channel event: { eventName, data }
-   [AppSidebarHeader] Navigation message received: { type, data, metadata }
-   [AppSidebarHeader] Private channel message: { ... }
-   [AppSidebarHeader] ANY message received: { ... }
-   ```
-
-7. **Test presence** by opening the app in multiple browser tabs/windows:
-   - Users should see each other joining/leaving
-   - Check `onlineUsers` in console
-
-### Cleanup After Testing
-
-1. **Remove test middleware** from `bootstrap/app.php`:
-   ```php
-   // Remove this line:
-   BroadcastNavigationTest::class, // TEMPORARY TEST
-   ```
-
-2. **Remove test middleware file**:
+5. **Send a test broadcast** from `tinker` to the logged-in user (replace `1` with the
+   user id):
    ```bash
-   rm app/Http/Middleware/BroadcastNavigationTest.php
+   mtav artisan tinker
+   >>> use App\Services\BroadcastService;
+   >>> use App\Services\Broadcast\DataObjects\Message;
+   >>> use App\Services\Broadcast\Enums\BroadcastMessage;
+   >>> app(BroadcastService::class)->toUser(1, Message::make(BroadcastMessage::NOTIFICATION, ['text' => 'hello']));
    ```
 
-3. **Remove test code from AppSidebarHeader.vue**:
-   Remove the broadcasting test listeners (keep the composable import if needed for future features).
+   You should see the corresponding WebSocket frame arrive in the browser, and any
+   component registered via `useBroadcasting().onMessage('notification', …)` should fire.
+
+6. **Test presence** by opening the app in multiple browser tabs / windows logged in as
+   different users in the same project — `useBroadcasting().getOnlineUsers(projectId)`
+   should track them joining and leaving.
 
 ## Troubleshooting
 
@@ -202,14 +182,11 @@ A temporary test middleware (`app/Http/Middleware/BroadcastNavigationTest.php`) 
 
 ## Next Steps
 
-After confirming the base system works:
-
-1. Remove temporary test code
-2. Implement real features using the broadcasting system
-3. Add backend tracking of online users (if needed)
-4. Add visual indicators for online presence
-5. Add notification UI components
-6. Add real-time resource updates
+1. Implement real features using the broadcasting system
+2. Add backend tracking of online users (if needed)
+3. Add visual indicators for online presence
+4. Add notification UI components
+5. Add real-time resource updates
 
 ## API Reference
 
@@ -230,7 +207,6 @@ After confirming the base system works:
 - `USER_JOINED` - User joined
 - `USER_LEFT` - User left
 - `USER_TYPING` - User is typing
-- `USER_NAVIGATION` - User navigated
 - `NOTIFICATION` - General notification
 - `SYSTEM_MESSAGE` - System message
 - `LOTTERY_STARTED` - Lottery started
