@@ -30,7 +30,6 @@ const MESSAGE_TYPES: BroadcastMessageType[] = [
   'user.joined',
   'user.left',
   'user.typing',
-  'user.navigation',
   'notification',
   'system.message',
   'lottery.started',

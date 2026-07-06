@@ -18,7 +18,6 @@ enum BroadcastMessage: string
     case USER_JOINED = 'user.joined';
     case USER_LEFT = 'user.left';
     case USER_TYPING = 'user.typing';
-    case USER_NAVIGATION = 'user.navigation';
 
     case NOTIFICATION = 'notification';
     case SYSTEM_MESSAGE = 'system.message';
@@ -38,7 +37,6 @@ enum BroadcastMessage: string
             self::USER_JOINED       => 'User Joined',
             self::USER_LEFT         => 'User Left',
             self::USER_TYPING       => 'User Typing',
-            self::USER_NAVIGATION   => 'User Navigation',
             self::NOTIFICATION      => 'Notification',
             self::SYSTEM_MESSAGE    => 'System Message',
             self::LOTTERY_STARTED   => 'Lottery Started',
