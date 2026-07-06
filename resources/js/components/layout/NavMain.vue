@@ -49,11 +49,18 @@ const allNavItems: NavItem[] = [
     routes: ['lottery.*'],
   },
   {
-    label: computed(() => (groupMembers.value ? 'Families' : 'Members')),
-    route: computed(() => (groupMembers.value ? 'families.index' : 'members.index')),
+    label: 'Families',
+    route: 'families.index',
     icon: UsersIcon,
     onlyIf: can.viewAny('members'),
-    routes: ['families.*', 'members.*'],
+    routes: ['families.*'],
+  },
+  {
+    label: 'Members',
+    route: 'members.index',
+    icon: UsersIcon,
+    onlyIf: can.viewAny('members'),
+    routes: ['members.*'],
   },
   {
     label: 'Gallery',
