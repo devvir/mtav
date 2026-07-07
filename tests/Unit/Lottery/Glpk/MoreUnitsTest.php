@@ -1,11 +1,10 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Services\Lottery\LotteryOrchestrator;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
-uses()->group('Unit.Lottery.Glpk');
+uses()->group('Unit.Lottery.Glpk', 'slow');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');

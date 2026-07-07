@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 describe('Project Model', function () {
     it('has many units', function () {
-        $project = Project::find(1); // Project #1 from universe
+        $project = Project::find(1); // Project #1 has Units #1, #2 (and deleted #3)
 
-        expect($project->units)->toBeInstanceOf(Collection::class);
+        expect($project->units->pluck('id'))->toContain(1, 2)
+            ->and($project->units->every(fn ($u) => $u->project_id === 1))->toBeTrue();
     });
 
     it('has many Families', function () {
@@ -144,8 +145,15 @@ describe('Project Model', function () {
 
     it('has many audits', function () {
         $project = Project::find(1);
+        $audit = \App\Models\LotteryAudit::create([
+            'execution_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+            'project_id'     => 1,
+            'lottery_id'     => $project->lottery->id,
+            'type'           => 'init',
+            'audit'          => [],
+        ]);
 
-        expect($project->audits)->toBeInstanceOf(Collection::class);
+        expect($project->fresh()->audits->pluck('id'))->toContain($audit->id);
     });
 
     it('has active scope that filters active projects', function () {

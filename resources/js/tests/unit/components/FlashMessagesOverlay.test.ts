@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import FlashMessagesOverlay from '@/components/flash/FlashMessagesOverlay.vue';
 import { useFlashMessages } from '@/components/flash/useFlashMessages';
 import { mount } from '@vue/test-utils';

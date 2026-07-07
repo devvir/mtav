@@ -17,15 +17,16 @@ NC='\033[0m' # No Color
 TEST_TYPE="${1:-all}"
 
 # Validate test type
-if [[ ! "$TEST_TYPE" =~ ^(all|php|vue|e2e)$ ]]; then
+if [[ ! "$TEST_TYPE" =~ ^(all|php|vue|e2e|precommit)$ ]]; then
     echo -e "${RED}❌ Invalid test type: $TEST_TYPE${NC}"
-    echo "Usage: test.sh [all|php|vue|e2e] [additional test args]"
+    echo "Usage: test.sh [all|php|vue|e2e|precommit] [additional test args]"
     echo ""
     echo "Test types:"
-    echo "  all  - Run all tests (PHP + Vue + E2E)"
-    echo "  php  - Run PHP tests only (Pest)"
-    echo "  vue  - Run Vue tests only (Vitest)"
-    echo "  e2e  - Run E2E tests only (Playwright)"
+    echo "  all       - Run all tests (PHP + Vue + E2E)"
+    echo "  php       - Run PHP tests only (Pest)"
+    echo "  vue       - Run Vue tests only (Vitest)"
+    echo "  e2e       - Run E2E tests only (Playwright)"
+    echo "  precommit - PHP + Vue in one environment cycle, skipping 'slow'-group tests"
     exit 1
 fi
 
@@ -51,6 +52,11 @@ case $TEST_TYPE in
         ;;
     e2e)
         RUN_E2E=true
+        ;;
+    precommit)
+        RUN_PHP=true
+        RUN_VUE=true
+        PEST_EXTRA_ARGS=(--exclude-group slow)
         ;;
 esac
 
@@ -162,7 +168,7 @@ if [ "$RUN_PHP" = true ]; then
         exit 1
     fi
 
-    if run_php_tests "${processed_args[@]}"; then
+    if run_php_tests "${processed_args[@]}" "${PEST_EXTRA_ARGS[@]}"; then
         echo ""
         echo -e "${GREEN}✅ PHP tests passed${NC}"
         PHP_SUCCESS=true

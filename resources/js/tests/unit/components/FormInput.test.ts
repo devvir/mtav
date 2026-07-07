@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import FormInput from '@/components/forms/FormInput.vue';
 import { createMockFormInputProps } from '@/tests/helpers/fixtures';
 import { mount } from '@/tests/helpers/mount';

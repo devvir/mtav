@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.unmock('@/composables/useTranslations');

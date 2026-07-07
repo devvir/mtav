@@ -1,4 +1,3 @@
-// Copilot - Pending review
 
 /**
  * Mock common composables - called from setup.ts at module level

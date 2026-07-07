@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import FlashMessage from '@/components/flash/FlashMessage.vue';
 import { createMockFlashMessageProps } from '@/tests/helpers/fixtures';
 import { mount } from '@/tests/helpers/mount';

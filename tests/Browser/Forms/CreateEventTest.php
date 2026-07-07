@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Enums\EventType;
 use App\Models\Event;

@@ -5,7 +5,6 @@ use App\Models\Member;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 describe('User Model', function () {
     it('can be converted to a Member when is_admin is false', function () {
@@ -80,8 +79,9 @@ describe('User Model', function () {
 
     it('has many media through media relation', function () {
         $user = User::find(102);
+        $media = \App\Models\Media::factory()->create(['owner_id' => 102]);
 
-        expect($user->media())->toBeInstanceOf(HasMany::class);
+        expect($user->media->pluck('id'))->toContain($media->id);
     });
 
     it('has notifications through HasNotifications trait', function () {

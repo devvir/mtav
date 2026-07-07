@@ -1,4 +1,3 @@
-// Copilot - Pending review
 <?php
 
 use App\Models\Admin;
@@ -42,73 +41,71 @@ describe('Event Model Relations', function () {
     it('has audit records for lottery events', function () {
         $lotteryEvent = Event::factory()->create(['type' => 'lottery']);
 
-        expect($lotteryEvent->audits())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+        $audit = \App\Models\LotteryAudit::create([
+            'execution_uuid' => \Illuminate\Support\Str::uuid()->toString(),
+            'project_id'     => $lotteryEvent->project_id,
+            'lottery_id'     => $lotteryEvent->id,
+            'type'           => 'init',
+            'audit'          => [],
+        ]);
+
+        expect($lotteryEvent->audits->pluck('id'))->toCollect($audit->id);
     });
 });
 
+/**
+ * Scope tests assert exact Event IDs from the universe fixture (14 events,
+ * visible in full because these tests run unauthenticated / unscoped).
+ */
 describe('Event Model Scopes - Type Filters', function () {
     it('filters lottery events', function () {
-        $lotteries = Event::lottery()->get();
-        expect($lotteries->every(fn ($e) => $e->type->value === 'lottery'))->toBeTrue();
+        expect(Event::lottery()->pluck('id'))->toCollect(1, 6, 10, 13, 14);
     });
 
     it('filters online events', function () {
-        $online = Event::online()->get();
-        expect($online->every(fn ($e) => $e->type->value === 'online'))->toBeTrue();
+        expect(Event::online()->pluck('id'))->toCollect(2, 3, 7, 11);
     });
 
     it('filters onsite events', function () {
-        $onsite = Event::onsite()->get();
-        expect($onsite->every(fn ($e) => $e->type->value === 'onsite'))->toBeTrue();
+        expect(Event::onsite()->pluck('id'))->toCollect(4, 5, 8, 9, 12);
     });
 });
 
 describe('Event Model Scopes - Publication Status', function () {
     it('filters published events', function () {
-        $published = Event::published()->get();
-        expect($published->every(fn ($e) => $e->is_published === true))->toBeTrue();
+        // All events except unpublished #5 and #12
+        expect(Event::published()->pluck('id'))->toCollect(1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 13, 14);
     });
 });
 
 describe('Event Model Scopes - Temporal Filters', function () {
     it('filters upcoming events', function () {
-        $upcoming = Event::upcoming()->get();
+        // Future start dates: #1(+30d), #2(+7d), #4(+14d), #5(+21d), #6(+45d),
+        // #7(+10d), #8(+3d), #11(+5d), #12(+12d)
+        expect(Event::upcoming()->pluck('id'))->toCollect(1, 2, 4, 5, 6, 7, 8, 11, 12);
+    });
 
-        expect($upcoming->every(function ($event) {
-            return is_null($event->start_date) || $event->start_date > now();
-        }))->toBeTrue();
+    it('includes events without a start date (TBD) in upcoming', function () {
+        $tbd = Event::factory()->create(['start_date' => null, 'end_date' => null]);
+
+        expect(Event::upcoming()->pluck('id'))->toContain($tbd->id);
     });
 
     it('filters past events', function () {
-        $past = Event::past()->get();
-
-        // Check that events have either explicit end date in past or start date too old
-        expect($past->every(function ($event) {
-            $implicitEnd = $event->start_date?->copy()->addMinutes(Event::IMPLICIT_DURATION);
-            $hasExplicitEnd = isset($event->end_date) && $event->end_date < now();
-            $implicitlyEnded = is_null($event->end_date) && $implicitEnd && $implicitEnd < now();
-
-            return $hasExplicitEnd || $implicitlyEnded;
-        }))->toBeTrue();
+        // Explicitly ended: #3(-5d), #9(-10d).
+        // Implicitly ended (no end date, started beyond IMPLICIT_DURATION): #10, #13, #14
+        expect(Event::past()->pluck('id'))->toCollect(3, 9, 10, 13, 14);
     });
 
     it('filters ongoing events', function () {
-        $ongoing = Event::ongoing()->get();
+        // No fixture event is ongoing; create one that started recently (within
+        // the implicit duration) and has no end date.
+        $ongoing = Event::factory()->create([
+            'start_date' => now()->subMinutes(Event::IMPLICIT_DURATION - 10),
+            'end_date'   => null,
+        ]);
 
-        // Ongoing = not upcoming and not past
-        expect($ongoing->every(function ($event) {
-            $isUpcoming = is_null($event->start_date) || $event->start_date > now();
-            if ($isUpcoming) {
-                return false;
-            }
-
-            $implicitEnd = $event->start_date?->copy()->addMinutes(Event::IMPLICIT_DURATION);
-            $hasExplicitEnd = isset($event->end_date) && $event->end_date < now();
-            $implicitlyEnded = is_null($event->end_date) && $implicitEnd && $implicitEnd < now();
-            $isPast = $hasExplicitEnd || $implicitlyEnded;
-
-            return !$isPast;
-        }))->toBeTrue();
+        expect(Event::ongoing()->pluck('id'))->toCollect($ongoing->id);
     });
 });
 

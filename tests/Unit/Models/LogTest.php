@@ -1,4 +1,3 @@
-// Copilot - Pending review
 <?php
 
 use App\Models\Log;

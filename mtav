@@ -35,6 +35,7 @@ print_help() {
     echo -e "  ${YELLOW}mtav pest [args]${NC}       # Run PHP tests (Pest)"
     echo -e "  ${YELLOW}mtav vitest [args]${NC}     # Run Vue tests (Vitest)"
     echo -e "  ${YELLOW}mtav e2e [args]${NC}        # Run E2E tests (Playwright)"
+    echo -e "  ${YELLOW}mtav precommit [args]${NC}  # Pest + Vitest in one env cycle, skips 'slow' group"
     echo ""
     echo -e "${GREEN}Development Shortcuts:${NC}"
     echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
@@ -187,6 +188,10 @@ case $COMMAND in
 
     vitest)
         "$SCRIPTS_DIR/test.sh" vue "$@"
+        ;;
+
+    precommit)
+        "$SCRIPTS_DIR/test.sh" precommit "$@"
         ;;
 
     e2e)

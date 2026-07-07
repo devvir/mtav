@@ -1,5 +1,3 @@
-// Copilot - Pending review
-
 <?php
 
 use App\Events\Lottery\LotteryExecutionTriggered;

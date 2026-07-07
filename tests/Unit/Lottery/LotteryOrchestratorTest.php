@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Events\Lottery\GroupLotteryExecuted;
 use App\Events\Lottery\ProjectLotteryExecuted;

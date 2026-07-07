@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Models\Plan;
 use App\Models\PlanItem;

@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import { vi } from 'vitest';
 
 /**

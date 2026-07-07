@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Models\LotteryAudit;
 use App\Services\Lottery\DataObjects\LotterySpec;

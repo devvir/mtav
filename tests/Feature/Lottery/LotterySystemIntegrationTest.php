@@ -1,13 +1,12 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Models\Event;
 use App\Models\Family;
 use App\Models\Unit;
 use App\Models\User;
 
-uses()->group('Stress.Lottery.System');
+uses()->group('Stress.Lottery.System', 'slow');
 
 beforeEach(function () {
     config()->set('lottery.default', 'test');

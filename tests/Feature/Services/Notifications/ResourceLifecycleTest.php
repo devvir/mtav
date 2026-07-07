@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 /**
  * Tests for ResourceLifecycle notification service.

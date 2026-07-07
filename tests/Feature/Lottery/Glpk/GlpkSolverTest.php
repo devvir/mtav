@@ -7,7 +7,7 @@ use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
-uses()->group('Feature.Lottery.Glpk');
+uses()->group('Feature.Lottery.Glpk', 'slow');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');

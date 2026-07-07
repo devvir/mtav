@@ -1,2 +1,62 @@
-mtav vitest && \
-mtav pest --testsuite Arch,Unit,Feature
+# Fast pre-commit: run core tests against the already-running testing env.
+#
+# - Only runs the suites relevant to the STAGED files (docs-only commits are
+#   instant; PHP-only commits skip Vitest, and vice versa).
+# - Core PHP = Arch + Unit suites minus the 'slow' group (~50s).
+#   Feature tests are NOT run here — run `mtav precommit` (or CI) for the
+#   full suite before pushing/releasing.
+# - If the testing env is not up, tests are SKIPPED with a warning instead of
+#   paying the multi-minute compose up/composer install cycle on every commit.
+
+STAGED=$(git diff --cached --name-only)
+
+RUN_PHP=false
+RUN_VUE=false
+echo "$STAGED" | grep -qE '^(app|bootstrap|config|database|routes|tests|lang)/|\.php$|composer\.(json|lock)$' && RUN_PHP=true
+echo "$STAGED" | grep -qE '^resources/js/|\.(ts|vue|js)$|package(-lock)?\.json$|vite\.config' && RUN_VUE=true
+
+if [ "$RUN_PHP" = false ] && [ "$RUN_VUE" = false ]; then
+    echo "✅ No PHP/JS changes staged — skipping tests"
+    exit 0
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -q '^testing-php-1$'; then
+    echo "⚠️  Testing env not running — SKIPPING pre-commit tests."
+    echo "   Start it with:  COMPOSE_PROJECT_NAME=testing .docker/scripts/up.sh testing --detach"
+    echo "   Full suite:     mtav precommit"
+    exit 0
+fi
+
+PHP_OK=0
+VITEST_OK=0
+
+if [ "$RUN_VUE" = true ]; then
+    VITEST_LOG=$(mktemp)
+    # Vitest in the background, in parallel with the PHP run
+    docker exec testing-assets-1 npm run test -- --run > "$VITEST_LOG" 2>&1 &
+    VITEST_PID=$!
+fi
+
+if [ "$RUN_PHP" = true ]; then
+    echo "🧪 Core PHP tests (Arch + Unit, minus slow)..."
+    # Add tests/Feature/Healthcheck etc. here for smoke coverage (~40s more).
+    docker exec -e DB_HOST=mysql_test -e DB_USERNAME=root -e DB_PASSWORD=root testing-php-1 \
+        php artisan test tests/Arch tests/Unit --exclude-group slow --compact
+    PHP_OK=$?
+fi
+
+if [ "$RUN_VUE" = true ]; then
+    echo "🎨 Waiting for Vitest..."
+    wait $VITEST_PID
+    VITEST_OK=$?
+    tail -n 4 "$VITEST_LOG"
+    [ $VITEST_OK -ne 0 ] && cat "$VITEST_LOG"
+    rm -f "$VITEST_LOG"
+fi
+
+if [ $PHP_OK -ne 0 ] || [ $VITEST_OK -ne 0 ]; then
+    echo "💥 Core tests failed — commit aborted (full suite: mtav precommit)"
+    exit 1
+fi
+
+echo "✅ Core tests passed"

@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 uses()->group('Unit.Services.FormService');
 

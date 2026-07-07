@@ -8,7 +8,7 @@
  *
  * Purpose: Detect broken pages, not business logic issues.
  */
-uses()->group('Feature.Healthcheck');
+uses()->group('Feature.Healthcheck', 'slow');
 
 describe('For an Admin', function () {
     it('includes Project name when visiting the Dashboard', function () {

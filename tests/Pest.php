@@ -10,8 +10,12 @@ use Tests\TestCaseBrowser;
  */
 pest()
     ->extend(TestCase::class)
-    ->beforeEach(fn () => $this->withoutVite())
-    ->beforeEach(fn () => DB::beginTransaction())
+    // NOTE: Pest keeps only ONE beforeEach hook per uses() chain (a second
+    // ->beforeEach() overwrites the first), so both steps share one closure.
+    ->beforeEach(function () {
+        $this->withoutVite();
+        DB::beginTransaction();
+    })
     ->afterEach(fn () => DB::rollback())
     ->in('Unit', 'Feature', 'Stress');
 

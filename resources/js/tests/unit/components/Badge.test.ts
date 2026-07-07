@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import Badge from '@/components/badge/Badge.vue';
 import { createMockBadgeProps } from '@/tests/helpers/fixtures';
 import { mount } from '@/tests/helpers/mount';

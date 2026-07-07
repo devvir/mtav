@@ -1,4 +1,3 @@
-<!-- Copilot - Pending review -->
 
 # Frontend Test Planning - MTAV
 

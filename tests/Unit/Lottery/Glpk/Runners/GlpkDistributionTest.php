@@ -1,12 +1,11 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\TaskRunners\GlpkDistribution;
 
-uses()->group('Unit.Lottery.Glpk');
+uses()->group('Unit.Lottery.Glpk', 'slow');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');

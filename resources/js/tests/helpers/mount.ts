@@ -1,4 +1,3 @@
-// Copilot - Pending review
 import { flushPromises, mount as vtuMount } from '@vue/test-utils';
 import type { Component } from 'vue';
 import { mockUIComponents } from '../mocks/components';

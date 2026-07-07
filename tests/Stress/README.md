@@ -1,4 +1,3 @@
-<!-- Copilot - Pending review -->
 
 # Stress Tests
 

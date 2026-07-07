@@ -1,6 +1,5 @@
 <?php
 
-// Copilot - Pending review
 
 use App\Enums\NotificationTarget;
 use App\Http\Resources\NotificationResource;
