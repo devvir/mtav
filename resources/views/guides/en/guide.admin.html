@@ -1,325 +1,132 @@
 <div class="prose max-w-none dark:prose-invert">
-  <h1>Administrator Guide - MTAV</h1>
+  <h1>Administrator Guide</h1>
   <p class="lead">
-    As an MTAV administrator, you are responsible for managing one or more housing cooperative
-    projects. This guide will help you use all administrative functionalities to maintain a fair and
-    transparent process.
+    As an administrator you are the operational lead of one or more projects: you configure the
+    project, register the families, accompany the process and run the lottery. This guide walks that
+    path in order, from a freshly created project to the published result.
   </p>
 
-  <h2>Roles and Responsibilities</h2>
-
-  <h3>Your Role as Administrator</h3>
-  <p>As an administrator, you can:</p>
+  <h2>Before you start</h2>
   <ul>
-    <li>Manage projects assigned to you</li>
-    <li>Create and manage families and members</li>
-    <li>Define unit types and project units</li>
-    <li>Execute the lottery process</li>
-    <li>Manage community events</li>
-    <li>Supervise the preference process</li>
-  </ul>
-
-  <p>
-    <strong>Scope:</strong> You can only access and manage projects that have been assigned to you.
-    You cannot create new projects (only superadministrators can do that).
-  </p>
-
-  <h2>Navigation for Administrators</h2>
-
-  <h3>Multi-Project Context</h3>
-  <p>If you manage multiple projects:</p>
-  <ul>
-    <li>You'll start in the <strong>Projects index</strong> view</li>
-    <li>You must select a specific project to work with</li>
-    <li>Once selected, all actions will apply to that project</li>
-  </ul>
-
-  <h3>Single Project Context</h3>
-  <p>If you manage a single project, you'll automatically enter that project's context.</p>
-
-  <h2>Project Management</h2>
-
-  <h3>Project States</h3>
-  <ul>
-    <li><strong>Planned:</strong> In design phase, units and types can be freely modified</li>
-    <li><strong>Under Construction:</strong> Construction in progress, limited changes</li>
-    <li><strong>Completed:</strong> Project finished, units cannot be added/removed</li>
-  </ul>
-
-  <h3>Project Configuration</h3>
-  <p>From the Projects section you can:</p>
-  <ul>
-    <li>View project general information</li>
-    <li>Change project state</li>
-    <li>Upload plans and blueprints</li>
-    <li>Manage descriptive information</li>
-  </ul>
-
-  <h2>Unit Type Management</h2>
-
-  <h3>What are Unit Types?</h3>
-  <p>
-    Unit types categorize housing units by size and purpose (e.g., "Large Family Home", "Couple
-    Apartment"). This allows families to compete only within their assigned category.
-  </p>
-
-  <h3>Creating Unit Types</h3>
-  <ol>
-    <li>Go to the project management section</li>
-    <li>Access "Unit Types"</li>
-    <li>Click "Create Unit Type"</li>
-    <li>Define name and description</li>
-    <li>Save the type</li>
-  </ol>
-
-  <p><strong>Important:</strong> You must define unit types BEFORE creating individual units.</p>
-
-  <h2>Unit Management</h2>
-
-  <h3>Creating Units</h3>
-  <ol>
-    <li>Go to the Units section</li>
-    <li>Click "Create Unit"</li>
     <li>
-      Complete the information:
-      <ul>
-        <li>Unit number (unique in the project)</li>
-        <li>Assigned unit type</li>
-        <li>Bedrooms and bathrooms</li>
-        <li>Square meters</li>
-        <li>Special characteristics</li>
-      </ul>
+      Projects are created by the <strong>platform team</strong> (superadministration), which also
+      designates you as administrator. If you need a new project, contact them.
     </li>
-    <li>Save the unit</li>
-  </ol>
-
-  <h3>Modifying Units</h3>
-  <p>
-    <strong>Characteristics (bedrooms, square meters, etc.):</strong> Can be modified at any time.
-    If changed after families have set preferences, automatic notification will be sent to affected
-    families.
-  </p>
-
-  <p>
-    <strong>Unit type:</strong> Can only be changed while the unit is in "Planned" or "Under
-    Construction" state. Completed units cannot change type.
-  </p>
-
-  <h3>Deleting Units</h3>
-  <p>Units can only be deleted if the project is NOT completed. When deleting a unit:</p>
-  <ul>
-    <li>It's automatically removed from all family preferences</li>
-    <li>Email notification is sent to affected families</li>
-    <li>The action is recorded in the audit log</li>
-  </ul>
-
-  <h2>Family and Member Management</h2>
-
-  <h3>Creating Families</h3>
-  <ol>
-    <li>Go to the Families section</li>
-    <li>Click "Create Family"</li>
-    <li>Assign a unit type to the family</li>
-    <li>Add descriptive information</li>
-    <li>Save the family</li>
-  </ol>
-
-  <h3>Managing Members</h3>
-  <p><strong>Inviting New Members:</strong></p>
-  <ol>
-    <li>Go to the Members section</li>
-    <li>Click "Invite Member"</li>
-    <li>Enter email address</li>
-    <li>Assign to a family</li>
-    <li>The member receives invitation by email</li>
-  </ol>
-
-  <p><strong>Moving Members Between Families:</strong></p>
-  <p>
-    You can reassign members to different families. If the new family is in a different project, the
-    member will automatically change projects.
-  </p>
-
-  <p>
-    <strong>Family Atomicity Principle:</strong> Remember that families are atomic units. All
-    members of a family must be in the same project.
-  </p>
-
-  <h2>Preference Management</h2>
-
-  <h3>Supervising the Process</h3>
-  <p>You can:</p>
-  <ul>
-    <li>See which families have completed their preferences</li>
-    <li>See which families haven't participated yet</li>
-    <li>Manage preferences on behalf of families (if necessary)</li>
-  </ul>
-
-  <h3>Lottery Requirement</h3>
-  <p>
-    <strong>ALL families must complete their preferences before executing the lottery.</strong> Your
-    responsibility is to ensure everyone participates by contacting them outside the system if
-    necessary.
-  </p>
-
-  <h2>Executing the Lottery</h2>
-
-  <h3>Preparation</h3>
-  <p>Before executing the lottery, verify:</p>
-  <ul>
-    <li>All units are created and configured</li>
-    <li>All families have assigned unit types</li>
-    <li>ALL families have completed their preferences</li>
-    <li>Project information is up to date</li>
-  </ul>
-
-  <h3>Lottery Execution</h3>
-  <ol>
-    <li>Go to the Lottery section</li>
-    <li>Review participation summary</li>
-    <li>Click "Execute Lottery"</li>
-    <li>The system will calculate optimal assignments</li>
-    <li>Review the results</li>
-    <li>Results are final and immutable</li>
-  </ol>
-
-  <h3>After the Lottery</h3>
-  <ul>
-    <li>Families receive automatic email notification</li>
-    <li>Preferences are frozen permanently</li>
-    <li>Assignments CANNOT be modified manually</li>
-    <li>Only a superadministrator can invalidate a lottery</li>
-  </ul>
-
-  <h2>Event Management</h2>
-
-  <h3>Types of Events</h3>
-  <ul>
-    <li><strong>Community Events:</strong> Meetings, social activities, assemblies</li>
-    <li><strong>Lottery Events:</strong> The main housing assignment event</li>
-  </ul>
-
-  <h3>Creating Events</h3>
-  <ol>
-    <li>Go to the Events section</li>
-    <li>Click "Create Event"</li>
     <li>
-      Complete information:
-      <ul>
-        <li>Title and description</li>
-        <li>Date and time</li>
-        <li>Location (physical or "online")</li>
-        <li>Event type</li>
-      </ul>
+      You can manage <strong>several projects</strong>; the application works on one
+      <strong>selected project</strong> at a time (pick it under Projects if you manage more than
+      one).
     </li>
-    <li>Publish the event</li>
-  </ol>
-
-  <h2>Blueprint and Plans Management</h2>
-
-  <h3>Uploading Plans</h3>
-  <ol>
-    <li>Go to project configuration</li>
-    <li>Access the "Blueprints" section</li>
-    <li>Upload image or PDF file</li>
-    <li>Add description if necessary</li>
-    <li>Save the blueprint</li>
-  </ol>
-
-  <p>Plans help families visualize unit locations during the preference process.</p>
-
-  <h2>Invitation Management</h2>
-
-  <h3>Pending Invitations</h3>
-  <p>You can:</p>
-  <ul>
-    <li>View all sent invitations</li>
-    <li>Cancel invitations that haven't been accepted</li>
-    <li>Resend invitations if necessary</li>
+    <li>
+      Navigation lives in the <strong>left sidebar</strong> (Dashboard, Lottery, Families, Members,
+      Gallery, Events, Documents, Projects); on mobile, tap the menu button to expand it. Creating
+      entities — types, units, families, members, events — happens through the
+      <strong>+ (Quick Actions)</strong> button, top right. The <strong>Dashboard</strong>
+      summarizes the project's state by section.
+    </li>
   </ul>
 
-  <h3>Managing Other Administrator Invitations</h3>
+  <h2>Setting up a project</h2>
+  <p>The natural order to get a project ready for its lottery:</p>
+
+  <h3>1. Define the unit types</h3>
   <p>
-    You can invite other administrators to help you manage your projects. You can only assign them
-    to projects you already manage.
+    A <strong>unit type</strong> groups homes that are comparable with each other: "two bedrooms",
+    "three bedrooms", "studio". Each family will compete only for units of its type, so define the
+    types first.
   </p>
 
-  <h2>Limitations and Restrictions</h2>
+  <h3>2. Load the units</h3>
+  <p>
+    Each <strong>unit</strong> is a concrete home, with its identifier (the name or code the
+    cooperative knows it by, e.g. "A-101") and its type. The identifier must be unique within the
+    project.
+  </p>
 
-  <h3>What You CANNOT Do</h3>
+  <h3>3. The plan (optional, recommended)</h3>
+  <p>
+    Every project has a <strong>plan</strong> where you can draw and place the units and common
+    spaces, dragging elements into position. Families find it enormously helpful when deciding
+    their preferences: they see where each unit is before ranking them.
+  </p>
+
+  <h3>4. Register the families</h3>
+  <p>
+    Create each <strong>family</strong> with its name and its <strong>unit type</strong> (set this
+    carefully: it determines which units the family competes for). Then <strong>invite at least one
+    member</strong> of each family: they get an email with the link to complete their registration.
+    From there, each member can invite the rest of their own family — you don't have to load
+    everyone yourself.
+  </p>
+
+  <h3>5. Events and communication</h3>
+  <p>
+    Under <strong>Events</strong> you can publish meetings and assemblies (on-site or online), with
+    optional attendance confirmation. The <strong>lottery event is created automatically</strong>
+    with the project: you don't create or delete it; edit it to set or change its date and
+    description (while it hasn't been executed). In the <strong>Gallery</strong> and
+    <strong>Documents</strong>, anyone in the project can share images, documents and audio.
+  </p>
+
+  <h2>The lottery</h2>
+
+  <h3>Before running it</h3>
   <ul>
-    <li>Create new projects (only superadministrators)</li>
-    <li>Access projects not assigned to you</li>
-    <li>Modify lottery results after execution</li>
-    <li>Delete units from completed projects</li>
-    <li>Change types of completed units</li>
-    <li>Add units to completed projects</li>
+    <li>Check that <strong>all families</strong> are registered, each with its correct type.</li>
+    <li>Check that <strong>all units</strong> are loaded.</li>
+    <li>
+      Families register preferences until the moment of execution; agree on the date with the
+      cooperative and publish it in the lottery event.
+    </li>
   </ul>
 
-  <h3>States and Restrictions</h3>
+  <h3>Execution</h3>
+  <p>From <strong>Lottery</strong>, run it when the process is ready. When you do:</p>
   <ul>
-    <li><strong>Completed Project:</strong> Cannot add/delete units</li>
-    <li><strong>Completed Unit:</strong> Cannot change type</li>
-    <li><strong>Executed Lottery:</strong> Frozen preferences, immutable assignments</li>
+    <li><strong>Preferences lock</strong> automatically.</li>
+    <li>
+      The system draws <strong>per unit type</strong> (each family competes for the units of its
+      type) and assigns all units at once, first guaranteeing the least-favored family does as well
+      as possible, then maximizing overall satisfaction.
+    </li>
+    <li>
+      If the number of families and units doesn't match, the system <strong>warns you and asks for
+      confirmation</strong> before continuing.
+    </li>
+    <li>
+      If something fails, the lottery <strong>returns to its previous state</strong> (preferences
+      unlock) and you can retry; the error is recorded.
+    </li>
   </ul>
 
-  <h2>Best Practices</h2>
+  <h3>Afterwards</h3>
+  <p>
+    The result is <strong>final</strong>: it cannot be edited or negotiated, and it is visible to
+    the whole project. Every step of the execution lands in a permanent <strong>audit log</strong>.
+    Only in exceptional situations (e.g. a data error discovered later) can the superadministration
+    <strong>invalidate</strong> the whole execution so the data can be fixed and the lottery run
+    again.
+  </p>
 
-  <h3>Project Planning</h3>
-  <ol>
-    <li>Define all unit types at the start</li>
-    <li>Create all units before inviting families</li>
-    <li>Upload plans as early as possible to help families</li>
-    <li>Communicate important dates clearly</li>
-  </ol>
-
-  <h3>Family Management</h3>
+  <h2>Ongoing management</h2>
   <ul>
-    <li>Assign unit types carefully according to family composition</li>
-    <li>Maintain regular communication with families</li>
-    <li>Help families with technical difficulties</li>
+    <li>
+      <strong>Families, members and units</strong> can be edited at any point before the lottery; if
+      a change affects registered preferences (a new unit, a type change), the families' lists
+      adjust automatically.
+    </li>
+    <li>
+      Deleting by mistake is not catastrophic: families, members and content <strong>can be
+      restored</strong>.
+    </li>
+    <li>The project's <strong>activity log</strong> records general activity.</li>
   </ul>
 
-  <h3>Lottery Process</h3>
-  <ul>
-    <li>Give sufficient time for all families to set preferences</li>
-    <li>Verify all information is complete before the lottery</li>
-    <li>Communicate results clearly</li>
-    <li>Maintain transparency throughout the process</li>
-  </ul>
-
-  <h2>Audit and Transparency</h2>
-
-  <h3>Action Logging</h3>
-  <p>All administrative actions are recorded:</p>
-  <ul>
-    <li>Unit changes</li>
-    <li>Family modifications</li>
-    <li>Lottery executions</li>
-    <li>Invitation management</li>
-  </ul>
-
-  <h3>Transparency with Members</h3>
-  <ul>
-    <li>Members can see all families and units in the project</li>
-    <li>The lottery process is auditable</li>
-    <li>Results are public to all members</li>
-    <li>Maintain open communication about changes and decisions</li>
-  </ul>
-
-  <h2>Support and Escalation</h2>
-
-  <p>If you need help:</p>
-  <ul>
-    <li>Contact a superadministrator for exceptional situations</li>
-    <li>Review this guide and frequently asked questions</li>
-    <li>Document any problems for reporting</li>
-  </ul>
-
-  <p class="mt-8 text-center">
-    <strong
-      >Your role is fundamental to the cooperative's success. Thank you for your dedication to
-      fairness and transparency!</strong
-    >
+  <h2>Your account</h2>
+  <p>
+    Your personal settings (profile, photo, email — with verification —, password, appearance and
+    themes) work the same as for any user: they're behind your name, at the bottom of the sidebar.
+    The details are in the <strong>Member Guide</strong>, which is also the best way to know the
+    application as families see it.
   </p>
 </div>

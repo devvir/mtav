@@ -1,67 +1,63 @@
 {
-  "title": "FAQ - Member",
-  "description": "Frequently asked questions for members",
-  "guideText": "Read the comprehensive Member Guide",
+  "title": "Frequently asked questions",
+  "description": "Quick answers for members",
+  "guideText": "Read the full Member Guide",
   "questions": [
     {
-      "question": "How do I update my profile information?",
-      "answer": "Click on your user information at the bottom of the left sidebar to open the user menu. Then select 'Settings' to access your profile. You can update your personal information, contact details, and preferences. Don't forget to save your changes."
+      "question": "How do I get into MTAV?",
+      "answer": "By invitation only: someone from your cooperative (an administrator or a member of your family) creates your account and you receive an email with a link to choose your password and complete your details. From then on you sign in with your email and password."
     },
     {
-      "question": "How do I set my housing preferences?",
-      "answer": "Go to the Preferences section in the sidebar. You can select the units you prefer and rank them in order of preference. These preferences will be used during the lottery process."
+      "question": "How do I register my family's preferences?",
+      "answer": "In the Lottery section (sidebar) you'll see the units of your family's type. Order them from most to least desired: by dragging them, or with each unit's move up / move down buttons (they work with the keyboard too). You can check the project plan to locate each unit before deciding."
     },
     {
-      "question": "How does the lottery system work?",
-      "answer": "The lottery system uses advanced methods to assign housing units fairly, based on all families' preferences and unit availability. Make sure to set your preferences before the lottery date. You'll be notified of the results via email and in the application."
+      "question": "Can I change my preferences later?",
+      "answer": "Yes, as many times as you like, until the moment the lottery runs. Once it does, they lock automatically and become part of the execution record."
     },
     {
-      "question": "How do I RSVP for events?",
-      "answer": "Events appear in the Events section. Click on an event to view details and RSVP. You can indicate whether you're attending and how many family members will join you."
+      "question": "Who sees my family's preferences?",
+      "answer": "Only the members of your own family (everyone sees and edits the same order). No other family sees them — neither before nor after the lottery."
     },
     {
-      "question": "Can I invite family members?",
-      "answer": "Yes! Family members can be added from your profile or from the Families section. They will be associated with your household and can also set their own preferences."
+      "question": "How does the lottery work?",
+      "answer": "The system assigns all units at once based on the preferences: first it guarantees the least-favored family does as well as possible, and within that guarantee it maximizes overall satisfaction. The result is final: it cannot be edited or negotiated."
     },
     {
-      "question": "How do I upload photos or videos?",
-      "answer": "Use the Gallery section to upload photos and videos related to the cooperative. You can organize them by project or event. Please ensure your uploads comply with the community guidelines."
+      "question": "Why do I only see some of the project's units?",
+      "answer": "Your family is assigned a unit type (e.g. \"two bedrooms\") and takes part in the lottery only for units of that type. The administration defines the types for each project."
     },
     {
-      "question": "How do I view other members?",
-      "answer": "The Members section shows all cooperative members in your project. You can view member profiles, see who else is in your project, and connect with your community."
+      "question": "What if units are added or removed, or my family changes type?",
+      "answer": "Your preference list adjusts automatically: you don't lose the order you had already registered. It's still a good idea to review it after a change."
     },
     {
-      "question": "What if I want to leave the cooperative?",
-      "answer": "If you need to leave, please contact an administrator through the application or via email. There is a formal process to follow, and administrators will guide you through the necessary steps."
+      "question": "How do I know which unit my family received?",
+      "answer": "Once the lottery runs, the result is visible in the Lottery section for the whole project: you'll see which unit each family received."
     },
     {
-      "question": "Can I change my preferences after submitting them?",
-      "answer": "Yes, you can modify your preferences freely until the lottery is executed. Once the lottery runs, preferences are frozen permanently as an audit record."
+      "question": "Can I invite other members of my family?",
+      "answer": "Yes — only from your own family. Each invitee receives an email with their registration link and gets their own account. You'll find the invitation among your Quick Actions (the + button, top right)."
     },
     {
-      "question": "What does 'family atomicity' mean?",
-      "answer": "It means that the family is the basic unit of participation in the project. All members of a family must be in the same project and will receive the same housing unit assigned by the lottery."
+      "question": "How do I confirm attendance to an event?",
+      "answer": "In the Events section, open the event: if it asks for confirmation, you can answer whether you're going. The confirmation list is visible to the whole project."
     },
     {
-      "question": "Can I see other families' preferences?",
-      "answer": "No, each family's preferences are private until after the lottery. You can only see your own preferences and, after the lottery, the final assignment results."
-    },
-    {
-      "question": "What types of units are available?",
-      "answer": "The available unit types depend on your specific project. Your family is assigned to a unit type (e.g., 'Large Family Home' or 'Couple Apartment') and you can only choose from units of that type."
-    },
-    {
-      "question": "How does the satisfaction calculation work in the lottery?",
-      "answer": "The lottery uses advanced mathematical methods to maximize overall satisfaction of all families. It considers all preferences simultaneously to find the fairest possible distribution, balancing everyone's desires."
+      "question": "How do I share photos or documents?",
+      "answer": "In the Gallery and Documents sections, anyone in the project can upload images, documents and audio. What you upload is associated with your name; you can edit its description or delete it."
     },
     {
       "question": "Can I change my email address?",
-      "answer": "For security reasons, email changes must be requested from an administrator. Contact your project administrator to make this change."
+      "answer": "Yes, yourself: tap your name (bottom of the sidebar) → Settings → Profile. The new address stays pending verification until you confirm from the link you receive; meanwhile your account keeps working with the previous address."
     },
     {
-      "question": "What happens if a unit I preferred is removed from the project?",
-      "answer": "If a unit is removed during construction, it will automatically be removed from your preferences and you'll receive an email notification. We recommend reviewing and updating your preferences when this happens."
+      "question": "I forgot my password, what do I do?",
+      "answer": "Use \"forgot password\" on the sign-in screen: you'll receive an email with a link to choose a new one."
+    },
+    {
+      "question": "Can I change how the application looks?",
+      "answer": "Yes: under Settings → Appearance you choose light, dark or automatic mode, and among several color themes — including a high-contrast one for better readability."
     }
   ]
 }

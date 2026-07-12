@@ -39,7 +39,8 @@ class DocumentationController extends Controller
     public function guide(Request $request): Response
     {
         $locale = app()->getLocale();
-        $role = $request->user()?->is_admin ? 'admin' : 'member';
+        $user = $request->user();
+        $role = $user?->isSuperadmin() ? 'superadmin' : ($user?->is_admin ? 'admin' : 'member');
         $guidePath = resource_path("views/guides/{$locale}/guide.{$role}.html");
 
         // Fallback to English if current locale file doesn't exist
@@ -48,7 +49,7 @@ class DocumentationController extends Controller
         }
 
         $content = File::get($guidePath);
-        $component = $role === 'admin' ? 'Documentation/AdminGuide' : 'Documentation/MemberGuide';
+        $component = $role === 'member' ? 'Documentation/MemberGuide' : 'Documentation/AdminGuide';
 
         return inertia($component, [
             'userRole' => $role,
