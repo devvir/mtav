@@ -1,0 +1,82 @@
+# Production Environment
+#
+# Self-contained images (no bind mounts): php-fpm without xdebug, pre-built
+# static assets served by their own nginx, reverse proxy, queue workers under
+# supervisord, and one-shot migrations. Isolated as project "mtav-prod".
+#
+# Everything is declared via extends (rather than include) because prod
+# services need composition-level wiring: depends_on and the shared named
+# volumes (app-storage, vite-manifest) declared below.
+
+name: mtav-prod
+
+services:
+  php:
+    extends:
+      file: ../services/php/prod.yml
+      service: php
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+
+  nginx:
+    extends:
+      file: ../services/nginx/prod.yml
+      service: nginx
+    depends_on:
+      - php
+      - assets
+
+  assets:
+    extends:
+      file: ../services/assets/prod.yml
+      service: assets
+
+  mysql:
+    extends:
+      file: ../services/mysql/compose.yml
+      service: mysql
+
+  migrations:
+    extends:
+      file: ../services/php/prod.yml
+      service: php
+    command: php artisan migrate --force
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  queue:
+    extends:
+      file: ../services/queue/compose.yml
+      service: queue
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+
+  reverb:
+    extends:
+      file: ../services/php/prod.yml
+      service: php
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "${REVERB_PORT:-}:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Mail sink so a local prod preview never sends real mail
+  mailhog:
+    extends:
+      file: ../services/mailhog/compose.yml
+      service: mailhog
+
+volumes:
+  mysql-data:
+  app-storage:
+  vite-manifest:

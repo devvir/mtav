@@ -1,0 +1,27 @@
+# Development Environment
+#
+# Daily-driver setup: bind-mounted code, Vite HMR, persistent database,
+# mail sink. Isolated as Docker Compose project "mtav-dev".
+#
+# Ports and env come from .env in this directory (layered on the root .env
+# by the mtav CLI, with optional personal overrides in .env.local).
+
+name: mtav-dev
+
+include:
+  - ../services/php/compose.yml
+  - ../services/nginx/compose.yml
+  - ../services/mysql/compose.yml
+  - ../services/assets/compose.yml
+  - ../services/mailhog/compose.yml
+
+services:
+  # Reverb touches the database at boot, so unlike php-fpm (which only
+  # connects per-request) it needs mysql up before starting.
+  reverb:
+    extends:
+      file: ../services/reverb/compose.yml
+      service: reverb
+    depends_on:
+      mysql:
+        condition: service_healthy

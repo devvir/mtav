@@ -22,11 +22,17 @@ The degree thesis (Spanish), the main long-form documentation of the project:
 - `ai/CODE-REVIEW.md` — code‑quality review (Opus, 2026‑05).
 - `ai/testing/` — testing notes (pending a focused review pass).
 
-## `technical/` — developer & DevOps guides
+## `technical/` — developer guides
 
-Working-with-the-codebase references: `docker.md`, `deployment.md`, `builds.md`,
-`build-images.md`, `scripts.md`, `troubleshooting.md`, `testing.md`, `forms-service.md`,
+Working-with-the-codebase references: `testing.md`, `forms-service.md`,
 `form-requests.md`, `BROADCASTING.md`, and `ER/` (entity‑relationship diagrams).
+
+## Docker & environments
+
+All infrastructure docs live in **`../docker/README.md`**: environments
+(dev/testing/staging/prod), the `mtav` CLI, full technical spec, and gotchas.
+(The old `technical/{docker,deployment,builds,build-images,scripts,troubleshooting}.md`
+were removed 2026‑07‑12 along with the `.docker/` infra they described.)
 
 ## Other
 

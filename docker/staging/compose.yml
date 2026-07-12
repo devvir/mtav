@@ -1,0 +1,35 @@
+# Staging Environment
+#
+# Dev images with production-style behavior: assets built once (no HMR),
+# cached config/routes/views. Isolated as project "mtav-staging".
+#
+# The assets service is only used as a one-shot builder
+# (`mtav staging` runs it with `compose run --rm`), so it sits behind a
+# profile and never starts with `up`.
+#
+# NOTE: staging shares the dev ports — stop the dev environment first.
+
+name: mtav-staging
+
+include:
+  - ../services/php/compose.yml
+  - ../services/nginx/compose.yml
+  - ../services/mysql/compose.yml
+  - ../services/mailhog/compose.yml
+
+services:
+  # Reverb touches the database at boot, so it needs mysql up before starting
+  reverb:
+    extends:
+      file: ../services/reverb/compose.yml
+      service: reverb
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  assets:
+    extends:
+      file: ../services/assets/compose.yml
+      service: assets
+    profiles:
+      - tools

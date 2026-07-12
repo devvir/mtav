@@ -26,30 +26,22 @@
   - Priority: MEDIUM - upload works but UX is confusing
 
 ### Queue Workers (Production + Dev)
-- [ ] **Configure Laravel queue workers for production and development**
-  - **Production**: Set up Supervisord to run `php artisan queue:work` processes
-    - Configure in `.docker/` setup for production container
-    - Files to modify: Add supervisord config for queue workers in Docker setup
-  - **Development**: Set up automatic queue workers for local development
-    - Options: Laravel Sail's queue worker, or separate Docker service, or supervisord in dev container
-    - Currently using `QUEUE_CONNECTION=sync` as workaround (immediate execution, not testing real async behavior)
-  - Currently: Emails are queued but not processed (no workers running)
-  - Status: Not implemented - using sync driver for dev, prod needs automation
-  - Priority: HIGH - needed before production deployment (invitation emails won't send without this)
-  - Note: Both dev and prod should use async queues to test real conditions
+- [x] **Configure Laravel queue workers for production and development**
+  - **Production**: DONE (2026-07-12 infra rewrite) — supervisord runs 3 `queue:work`
+    processes in the prod `queue` service (`docker/services/queue/`)
+  - **Development**: uses `QUEUE_CONNECTION=deferred` (no workers needed)
+  - Remaining consideration: dev doesn't exercise real async behavior; add a dev
+    queue worker service only if that ever matters for testing
 
 ---
 
 ## P2 (Medium Priority - Nice to Have)
 
 ### Docker Infrastructure
-- [ ] **Create and publish `mtav-php-base-dev` image**
-  - Separate dev base image with Node.js, npm, Playwright, and browser dependencies
-  - Based on production base, adding dev-only tools on top
-  - Would speed up dev container builds (currently rebuilds Playwright each time)
-  - Push to `ghcr.io/devvir/mtav-php-base-dev:latest`
-  - Status: Not implemented - currently installing in `.docker/php/Dockerfile`
-  - Impact: Faster dev container rebuilds, cleaner separation of concerns
+- [x] **~~Create and publish `mtav-php-base-dev` image~~** — OBSOLETE
+  - Superseded by the 2026-07-12 infra rewrite: `docker/services/php/Dockerfile`
+    is multi-stage (base → dev/prod → queue) built locally with layer caching;
+    no registry images involved, rebuilds only pay for changed layers
 
 ### Invitation System Enhancements
 - [ ] **Token expiration**

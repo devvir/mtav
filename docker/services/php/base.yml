@@ -1,0 +1,19 @@
+# PHP-FPM base service definition.
+#
+# Extend this to create PHP-based services: the fpm app server (compose.yml),
+# reverb, queue workers, one-shot migrations. Holds what extends cleanly across
+# all variants; volumes/ports/commands belong to the extending file.
+services:
+  php:
+    build:
+      context: ../../..
+      dockerfile: docker/services/php/Dockerfile
+      target: dev
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DB_HOST: ${DB_HOST:-mysql}
+      VITE_FORCE_BUILD: ${VITE_FORCE_BUILD:-}

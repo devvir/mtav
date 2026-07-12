@@ -1,0 +1,14 @@
+# Reverb WebSocket server — development variant (php image + reverb command).
+#
+# REVERB_PORT empty ⇒ random host port.
+services:
+  reverb:
+    extends:
+      file: ../php/base.yml
+      service: php
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "${REVERB_PORT:-}:8080"
+    volumes:
+      - ../../..:/var/www/html
+      - ../php/php.ini:/usr/local/etc/php/conf.d/custom.ini

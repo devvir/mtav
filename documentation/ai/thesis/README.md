@@ -29,7 +29,7 @@ Structure:
 | `documentation/thesis/bibliografia.md` | Bibliografía (top-level section, real entries; a few `[NOTA]`s for access dates / citation style). |
 | `documentation/thesis/apendices.md` | Apéndices A–H (A holds the data-model derivation; rest are placeholders). |
 | `documentation/thesis/referencias/antecedentes-y-bibliografia.md` | Distilled Fierro facts + citation list → feeds §2 and Appendix L. |
-| `app/Services/Lottery/`, `app/Models/`, migrations, `.docker/` | Code = source of truth for any factual claim about the app. |
+| `app/Services/Lottery/`, `app/Models/`, migrations, `docker/` | Code = source of truth for any factual claim about the app. |
 | `scripts/benchmark_analysis/`, `storage/benchmarks/` | Real benchmark data for §16. |
 
 Memory (`~/.claude/.../memory/`) holds the verified facts and working rules: `project_thesis`

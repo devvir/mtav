@@ -1,26 +1,45 @@
-/.phpunit.cache
-/bootstrap/ssr
+# Dependencies
 /node_modules
+/vendor
+/.pnpm-store
+
+# Environment & secrets
+.env
+.env.production
+/auth.json
+/storage/*.key
+
+# Docker
+/docker/.first-run
+!/docker/*/.env
+/docker/*/.env.local
+
+# Build artifacts
+/bootstrap/ssr
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
-/vendor
-.env
-.env.production
-.docker/first-run-executed
-cookies.txt
-.phpactor.json
+
+# Testing
+/.phpunit.cache
 .phpunit.result.cache
-Homestead.json
-Homestead.yaml
+.pest/
+
+# Logs & runtime
 npm-debug.log
 yarn-error.log
-/auth.json
+/storage/pail
+
+# IDE & tooling
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+.phpactor.json
+
+# Local scratch
+cookies.txt
+Homestead.json
+Homestead.yaml
 /.in-progress

@@ -1,0 +1,9 @@
+# PHP-FPM application server — development variant (code bind-mounted).
+services:
+  php:
+    extends:
+      file: base.yml
+      service: php
+    volumes:
+      - ../../..:/var/www/html
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini

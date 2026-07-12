@@ -1,0 +1,19 @@
+# MariaDB base service definition.
+#
+# Extend this to pick a storage strategy:
+#   compose.yml       — named volume (persistent; dev/staging/prod)
+#   tmpfs (testing)   — the testing composition adds tmpfs:/var/lib/mysql
+services:
+  mysql:
+    image: mariadb:12
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_DATABASE:-mtav}
+      MYSQL_USER: ${DB_USERNAME:-mtav}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 5s
+      retries: 15

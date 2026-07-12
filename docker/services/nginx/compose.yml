@@ -1,0 +1,13 @@
+# Nginx web server — development variant (serves the bind-mounted code,
+# proxies PHP to the php service).
+#
+# NGINX_PORT empty ⇒ random host port.
+services:
+  nginx:
+    image: nginx:1.26-alpine
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-}:80"
+    volumes:
+      - ../../..:/var/www/html:cached
+      - ./dev.conf:/etc/nginx/conf.d/default.conf

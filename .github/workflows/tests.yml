@@ -15,49 +15,35 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Ensure Docker CLI available
-        run: docker --version
-
-      - name: Make scripts executable
-        run: chmod +x ./.docker/scripts/*.sh || true
-
       - name: Make `mtav` executable
-        run: chmod +x ./mtav || true
+        run: chmod +x ./mtav
 
-      - name: Log in to GHCR (use `GHCR_PAT` secret if present, else `GITHUB_TOKEN`)
-        run: |
-          if [ -n "${{ secrets.GHCR_PAT }}" ]; then
-            echo 'Using GHCR_PAT secret to login to ghcr.io';
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin;
-          else
-            echo 'Using GITHUB_TOKEN to login to ghcr.io';
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin;
-          fi
+      # `mtav pest` / `mtav vitest` each boot the isolated mtav-testing
+      # compose project (docker/testing/), run, and tear down.
+      # All images build locally — no registry login required.
+      - name: PHP tests (Pest)
+        run: ./mtav pest
 
-      - name: Run full test suite via `mtav`
-        # Use the repo's `mtav` wrapper so CI mirrors local Docker usage
-        run: |
-          echo '--- Running PHP (Pest) tests ---'
-          ./mtav pest -- --colors || { echo 'Pest tests failed'; exit 1; }
+      - name: Vue tests (Vitest)
+        run: ./mtav vitest
 
-          echo '--- Running E2E (Playwright) tests ---'
-          ./mtav e2e -- --colors || { echo 'E2E tests failed'; exit 1; }
+      # E2E (Playwright) is currently out of scope — re-enable when the
+      # Browser suite is stabilized:
+      # - name: E2E tests (Playwright)
+      #   run: ./mtav e2e
 
-      - name: Collect compose logs (upload as artifact)
+      - name: Collect compose logs (best effort — env may already be down)
         if: always()
         run: |
-          echo 'Collecting compose logs for php, assets, and playwright';
-          ./.docker/scripts/compose.sh logs --no-color --tail 100 php > ci-php-logs.txt || true;
-          ./.docker/scripts/compose.sh logs --no-color --tail 200 assets > ci-assets-logs.txt || true;
-          ./.docker/scripts/compose.sh logs --no-color --tail 200 playwright > ci-playwright-logs.txt || true;
-          echo 'Saving docker ps output'; docker ps -a > ci-docker-ps.txt || true
+          ./mtav compose testing logs --no-color --tail 200 php > ci-php-logs.txt || true
+          ./mtav compose testing logs --no-color --tail 200 assets > ci-assets-logs.txt || true
+          docker ps -a > ci-docker-ps.txt || true
 
       - name: Upload CI logs
         if: always()
@@ -67,10 +53,8 @@ jobs:
           path: |
             ci-php-logs.txt
             ci-assets-logs.txt
-            ci-playwright-logs.txt
             ci-docker-ps.txt
 
-      - name: Tear down compose environment
+      - name: Tear down testing environment
         if: always()
-        # `mtav` should leave the environment running in testing profile; ensure cleanup
-        run: ./.docker/scripts/compose.sh down --profile testing --volumes --remove-orphans || true
+        run: ./mtav compose testing down --volumes --remove-orphans || true

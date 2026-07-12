@@ -13,16 +13,16 @@ STAGED=$(git diff --cached --name-only)
 RUN_PHP=false
 RUN_VUE=false
 echo "$STAGED" | grep -qE '^(app|bootstrap|config|database|routes|tests|lang)/|\.php$|composer\.(json|lock)$' && RUN_PHP=true
-echo "$STAGED" | grep -qE '^resources/js/|\.(ts|vue|js)$|package(-lock)?\.json$|vite\.config' && RUN_VUE=true
+echo "$STAGED" | grep -qE '^resources/js/|\.(ts|vue|js)$|package\.json$|pnpm-lock\.yaml$|vite\.config' && RUN_VUE=true
 
 if [ "$RUN_PHP" = false ] && [ "$RUN_VUE" = false ]; then
     echo "✅ No PHP/JS changes staged — skipping tests"
     exit 0
 fi
 
-if ! docker ps --format '{{.Names}}' | grep -q '^testing-php-1$'; then
+if ! docker ps --format '{{.Names}}' | grep -q '^mtav-testing-php-1$'; then
     echo "⚠️  Testing env not running — SKIPPING pre-commit tests."
-    echo "   Start it with:  COMPOSE_PROJECT_NAME=testing .docker/scripts/up.sh testing --detach"
+    echo "   Start it with:  ./mtav compose testing up -d --wait"
     echo "   Full suite:     mtav precommit"
     exit 0
 fi
@@ -33,14 +33,14 @@ VITEST_OK=0
 if [ "$RUN_VUE" = true ]; then
     VITEST_LOG=$(mktemp)
     # Vitest in the background, in parallel with the PHP run
-    docker exec testing-assets-1 npm run test -- --run > "$VITEST_LOG" 2>&1 &
+    docker exec mtav-testing-assets-1 pnpm run test --run > "$VITEST_LOG" 2>&1 &
     VITEST_PID=$!
 fi
 
 if [ "$RUN_PHP" = true ]; then
     echo "🧪 Core PHP tests (Arch + Unit, minus slow)..."
     # Add tests/Feature/Healthcheck etc. here for smoke coverage (~40s more).
-    docker exec -e DB_HOST=mysql_test -e DB_USERNAME=root -e DB_PASSWORD=root testing-php-1 \
+    docker exec mtav-testing-php-1 \
         php artisan test tests/Arch tests/Unit --exclude-group slow --compact
     PHP_OK=$?
 fi

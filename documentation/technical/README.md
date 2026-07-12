@@ -1,23 +1,23 @@
-# Project Documentation
+# Project Documentation — technical guides
 
-Welcome to the MTAV documentation collection. This folder centralizes developer-facing docs so contributors can find what they need quickly.
+Developer-facing references for working with the codebase.
 
 ## 📚 Available Documentation
 
-- **[docker.md](docker.md)** — Docker development setup and advanced container operations
 - **[testing.md](testing.md)** — Testing workflows, Git hooks, and quality checks
-- **[builds.md](builds.md)** — Production builds and deployment
-- **[troubleshooting.md](troubleshooting.md)** — Common issues and configuration
-- **[scripts.md](scripts.md)** — Individual script documentation and usage
-- **[build-images.md](build-images.md)** — Build system technical details
-- **[deployment.md](deployment.md)** — Production deployment configuration
+- **[forms-service.md](forms-service.md)** — The frontend Forms service
 - **[form-requests.md](form-requests.md)** — Custom FormRequest base class for IDE intellisense
+- **[BROADCASTING.md](BROADCASTING.md)** — Real-time broadcasting (Reverb/Echo)
+- **[ER/](ER/)** — Entity-relationship diagrams
 
-## 🔗 External References
+## 🐳 Docker & environments
 
-- **Package documentation**: Individual packages may have their own README files
-- **Root README**: `../README.md` — Project overview and getting started
+All infrastructure documentation lives with the infrastructure itself:
+**[docker/README.md](../../docker/README.md)** — environments (dev, testing,
+staging, prod), the `mtav` CLI, full technical specification, and gotchas.
 
 ## 📝 Notes
 
-This documentation folder is the canonical place for developer guides. When you add new docs, please link them from this index.
+When you add new docs, link them from this index. The degree thesis
+(`documentation/thesis/`) is the authoritative long-form description of the
+system; the code is the source of truth for implementation details.

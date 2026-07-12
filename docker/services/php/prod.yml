@@ -1,0 +1,16 @@
+# PHP-FPM application server — production variant (self-contained image).
+#
+# References the app-storage and vite-manifest named volumes; the composition
+# that extends this service must declare them (see docker/prod/compose.yml).
+services:
+  php:
+    extends:
+      file: base.yml
+      service: php
+    build:
+      target: prod
+    env_file:
+      - ../../../.env
+    volumes:
+      - app-storage:/var/www/html/storage
+      - vite-manifest:/var/www/html/vite_manifest

@@ -1,7 +1,33 @@
-vendor/
-node_modules/
+# Build context is the repository root (see docker/services/*/Dockerfile).
+# Keep the context small: exclude everything images never COPY.
+
+# Git
 .git/
-.env
+.gitignore
+.gitmodules
+
+# Docker (docker/ itself stays in: Dockerfiles COPY configs from it)
+.dockerignore
+
+# Documentation
+documentation/
+README.md
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dependencies (installed in-container)
+node_modules/
+vendor/
+
+# Build artifacts
+public/build
+public/hot
+
+# Storage and cache
 *.log
 storage/logs/*
 storage/app/*
@@ -10,8 +36,11 @@ storage/framework/sessions/*
 storage/framework/testing/*
 storage/framework/views/*
 bootstrap/cache/*
+
+# Environment
+.env*
+
+# Testing
+coverage
 .phpunit.result.cache
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+tests/

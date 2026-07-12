@@ -2,6 +2,13 @@
   "name": "mtav",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "vue-demi"
+    ]
+  },
   "scripts": {
     "build": "vite build",
     "build:ssr": "vite build && vite build --ssr",
@@ -17,11 +24,11 @@
     "@eslint/js": "^9.39.1",
     "@inertiaui/modal-vue": "^0.21.0",
     "@laravel/echo-vue": "^2.2.6",
+    "@playwright/test": "^1.57.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.10.1",
     "@vitest/ui": "^4.0.13",
     "@vue/eslint-config-typescript": "^14.6.0",
-    "@playwright/test": "^1.57.0",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -41,10 +48,12 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",
+    "@inertiajs/core": "^2.3.11",
     "@inertiajs/vue3": "^2.2.18",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.17",
     "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/server-renderer": "^3.5.27",
     "@vueuse/core": "^14.0.0",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",

@@ -1,0 +1,10 @@
+# Nginx reverse proxy — production variant (pure proxy: PHP to php-fpm,
+# static assets to the assets service).
+services:
+  nginx:
+    build:
+      context: ../../..
+      dockerfile: docker/services/nginx/prod.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-}:80"

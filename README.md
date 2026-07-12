@@ -58,14 +58,14 @@ That's it! You're ready to develop.
 ./mtav test
 
 # Run only frontend tests (Vitest)
-./mtav test --vitest
+./mtav vitest
 
 # Run only backend tests (Pest)
-./mtav test --pest
+./mtav pest
 
 # Pass arguments to Pest
-./mtav test --pest --filter="UserTest"
-./mtav test --pest --stop-on-failure
+./mtav pest --filter="UserTest"
+./mtav pest --stop-on-failure
 
 # View logs
 ./mtav logs
@@ -74,13 +74,14 @@ That's it! You're ready to develop.
 # Nuclear option: fresh rebuild
 ./mtav fresh
 
-# Build new images for production
-./mtav build <service> <tag>
+# Build and preview production images locally
+./mtav prod build
+./mtav prod up
 
 # Development shortcuts
 ./mtav artisan migrate
 ./mtav composer require package/name
-./mtav npm add vue-package
+./mtav pnpm add vue-package
 ./mtav shell php
 ```
 
@@ -102,7 +103,6 @@ That's it! You're ready to develop.
 
 ## 📚 Documentation
 
-- **[Testing & Git Hooks](documentation/testing.md)** — Test workflows and quality checks
-- **[Troubleshooting](documentation/troubleshooting.md)** — Common issues and configuration
-- **[Production Builds](documentation/builds.md)** — Building and deploying images
-- **[Docker Setup](documentation/docker.md)** — Advanced Docker operations and container details
+- **[Docker & Environments](docker/README.md)** — The full infrastructure spec: environments, commands, gotchas, internals
+- **[Testing & Git Hooks](documentation/technical/testing.md)** — Test workflows and quality checks
+- **[Documentation Index](documentation/README.md)** — All developer guides

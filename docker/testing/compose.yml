@@ -1,0 +1,42 @@
+# Testing Environment
+#
+# Runs Pest, Vitest, and Playwright (Browser suite). Isolated as project
+# "mtav-testing" — can run alongside the dev environment (distinct ports).
+#
+# The database lives in RAM (tmpfs) for fast tests, and tests connect to it
+# as plain "mysql" — project isolation replaces the old mysql_test naming.
+
+name: mtav-testing
+
+include:
+  - ../services/php/compose.yml
+  - ../services/nginx/compose.yml
+  - ../services/playwright/compose.yml
+
+services:
+  # Reverb touches the database at boot, so it needs mysql up before starting
+  reverb:
+    extends:
+      file: ../services/reverb/compose.yml
+      service: reverb
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Node toolbox, not a dev server: tests never use HMR (vitest runs headless,
+  # E2E uses built assets), so the container idles and the test runner execs
+  # pnpm install/test/build explicitly — no race against a boot-time install.
+  assets:
+    extends:
+      file: ../services/assets/compose.yml
+      service: assets
+    command: tail -f /dev/null
+
+  mysql:
+    extends:
+      file: ../services/mysql/base.yml
+      service: mysql
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-}:3306"
+    tmpfs:
+      - /var/lib/mysql # Store database in RAM for faster tests

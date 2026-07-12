@@ -1,0 +1,12 @@
+# Static assets server — production variant (pre-built, served by nginx).
+#
+# References the vite-manifest named volume; the composition that extends
+# this service must declare it (see docker/prod/compose.yml).
+services:
+  assets:
+    build:
+      context: ../../..
+      dockerfile: docker/services/assets/prod.Dockerfile
+    restart: unless-stopped
+    volumes:
+      - vite-manifest:/vite_manifest

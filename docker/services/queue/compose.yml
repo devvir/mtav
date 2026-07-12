@@ -1,0 +1,19 @@
+# Queue workers — production only (supervisord managing 3 worker processes).
+# In development, QUEUE_CONNECTION=deferred makes workers unnecessary.
+#
+# References the app-storage named volume; the composition that extends
+# this service must declare it (see docker/prod/compose.yml).
+services:
+  queue:
+    build:
+      context: ../../..
+      dockerfile: docker/services/php/Dockerfile
+      target: queue
+    restart: unless-stopped
+    env_file:
+      - ../../../.env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: ${DB_HOST:-mysql}
+    volumes:
+      - app-storage:/var/www/html/storage

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,11 +16,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureVite();
+
         $this->configureModels();
 
         $this->configureResources();
 
         $this->configurePolicies();
+    }
+
+    protected function configureVite(): void
+    {
+        /**
+         * Environments that must always serve built assets (testing, staging,
+         * prod) set VITE_FORCE_BUILD, which points the hot-file check at a
+         * path that never exists. All environments share the repo bind mount,
+         * so without this a dev server's public/hot would switch them to HMR.
+         */
+        if (env('VITE_FORCE_BUILD')) {
+            Vite::useHotFile(storage_path('framework/never-hot'));
+        }
     }
 
     protected function configureModels(): void

@@ -1,82 +1,87 @@
 # Testing & Git Hooks
 
-This document covers testing workflows and automated quality checks in the MTAV project.
+Testing workflows and automated quality checks. All test commands run inside
+the isolated `mtav-testing` Docker environment — see
+[docker/README.md](../../docker/README.md) for the infrastructure details.
 
 ## 🧪 Running Tests
 
-### All Tests
-
 ```bash
-# Run all tests (frontend + backend) in watch mode
-./mtav test
-
-# Run all tests once and exit
-./mtav test --once
+./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, Feature suites
+./mtav vitest [args]     # Vue tests (Vitest)
+./mtav e2e [args]        # Browser tests (Playwright) — currently being stabilized
+./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
+./mtav test              # Everything: Pest + Vitest + E2E
 ```
 
-### Individual Test Suites
+Each command boots the testing environment, installs dependencies, runs, and
+tears down. Arguments are forwarded to the underlying runner:
 
 ```bash
-# Frontend tests only (Vitest)
-./mtav test --vitest
-
-# Backend tests only (Pest)
-./mtav test --pest
-
-# Or run directly:
-./mtav npm test
-./mtav artisan test
+./mtav pest --filter="AdminControllerCrudTest"
+./mtav pest --stop-on-failure
+./mtav pest --testsuite Stress          # opt-in suites: Stress, Browser
+./mtav vitest resources/js/tests/unit/composables/useAuth.test.ts
 ```
 
-### Passing Arguments to Pest
+### Fast iteration (skip the boot/teardown cycle)
 
-You can pass any Pest/PHPUnit arguments after the flags:
+Keep the testing environment up and exec into it directly:
 
 ```bash
-# Run specific test file
-./mtav test --pest --filter="AdminControllerCrudTest"
-
-# Stop on first failure
-./mtav test --pest --stop-on-failure
-
-# Run once with filter
-./mtav test --once --pest --filter="UserTest"
-
-# Multiple arguments
-./mtav test --pest --filter="Family" --stop-on-failure --testdox
+./mtav compose testing up -d --wait                 # once
+docker exec mtav-testing-php-1 php artisan test --testsuite Arch,Unit,Feature --filter X
+docker exec mtav-testing-assets-1 pnpm run test --run
+./mtav compose testing down                         # when done
 ```
 
-## 🔗 Git Hooks & Quality Checks
+The testing environment runs alongside dev (different ports/project), so you
+never have to stop your dev session to run tests.
 
-**Important**: This project uses Git hooks that automatically run both backend and frontend tests before commits and pushes.
+### Notes
 
-### Pre-commit Hook
+- Tests use the `tests/Fixtures/universe.sql` fixture (see
+  `tests/Fixtures/UNIVERSE.md`) — loaded once per process, each test wrapped
+  in a rolled-back transaction.
+- The testing database lives in RAM (tmpfs) and is discarded on teardown.
+- Don't run two test invocations concurrently — they share the
+  `mtav-testing` compose project.
 
-- Runs tests and frontend linter (`eslint`)
-- Blocks commit if tests or linting fail
+## 🔗 Git Hooks
 
-### Pre-push Hook
+### Pre-commit (`.husky/pre-commit`)
 
-- Runs `php artisan insights` (PHP code quality analysis)
-- Blocks push if code quality checks fail
+Runs core tests scoped to the **staged** files against the already-running
+testing environment (docs-only commits are instant; PHP-only commits skip
+Vitest and vice versa):
 
-### Bypassing Hooks
+- PHP: Arch + Unit suites minus the `slow` group (~50s)
+- Vue: full Vitest run (parallel with the PHP run)
 
-If you need to bypass hooks (not recommended):
+If the testing environment is not up, the hook **skips with a warning**
+instead of paying the multi-minute boot cost — so keep it up while
+developing (`./mtav compose testing up -d --wait`). Run `mtav precommit`
+for the fuller check before pushing.
+
+### Pre-push (`.husky/pre-push`)
+
+Runs `php artisan insights` (code quality analysis).
+
+### Bypassing hooks
 
 ```bash
-# ⚠️ Skip hooks (use only when necessary)
-git commit --no-verify -m "Emergency fix"
+git commit --no-verify -m "Emergency fix"   # ⚠️ use only when necessary
 git push --no-verify
 ```
 
 ## 📋 Important Notes
 
-### InertiaUI Version Synchronization
+### InertiaUI version synchronization
 
-Keep InertiaUI packages in sync to avoid runtime issues:
+Keep the InertiaUI packages in sync to avoid runtime issues — update both
+to the same version:
 
-- Backend: `./mtav composer update inertiaui/modal`
-- Frontend: `./mtav npm update @inertiaui/modal-vue`
-
-Update both to the same version.
+```bash
+./mtav composer update inertiaui/modal
+./mtav pnpm update @inertiaui/modal-vue
+```

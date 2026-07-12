@@ -1,12 +1,24 @@
 #!/bin/bash
 
-# MTAV Development Environment - Simple Command Router
-# Routes common development tasks to appropriate scripts
+# MTAV Development Environment — CLI
+#
+# Thin wrapper around per-environment Docker Compose compositions:
+#
+#   docker/<env>/compose.yml       composition (project name, services, network)
+#   docker/<env>/.env              committed per-env overrides (ports, APP_ENV)
+#   docker/<env>/.env.local        optional personal overrides (gitignored)
+#   docker/services/<name>/        generic service definitions composed above
+#
+# Every docker compose invocation layers env files in order:
+#   root .env  →  docker/<env>/.env  →  docker/<env>/.env.local (if present)
 
 set -e
 
-DOCKER_DIR=".docker"
-SCRIPTS_DIR="$DOCKER_DIR/scripts"
+cd "$(dirname "$0")"
+
+DOCKER_DIR="docker"
+FIRST_RUN_WITNESS="$DOCKER_DIR/.first-run"
+ENVIRONMENTS=(dev testing staging prod)
 
 # Colors for output
 RED='\033[0;31m'
@@ -15,20 +27,546 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# ============================================================================
+# Compose plumbing
+# ============================================================================
+
+is_environment() {
+    local candidate="$1"
+    for env in "${ENVIRONMENTS[@]}"; do
+        [ "$env" = "$candidate" ] && return 0
+    done
+    return 1
+}
+
+# compose <env> <docker compose args...>
+compose() {
+    local env="$1"
+    shift
+    local args=(-f "$DOCKER_DIR/$env/compose.yml" --env-file .env --env-file "$DOCKER_DIR/$env/.env")
+    [ -f "$DOCKER_DIR/$env/.env.local" ] && args+=(--env-file "$DOCKER_DIR/$env/.env.local")
+    docker compose "${args[@]}" "$@"
+}
+
+# cexec <env> <service> <cmd...> — exec with TTY detection
+cexec() {
+    local env="$1" service="$2"
+    shift 2
+    local tty_flag=()
+    [ -t 0 ] || tty_flag=(-T)
+    compose "$env" exec "${tty_flag[@]}" "$service" "$@"
+}
+
+# env_port <env> <VAR> — resolve a variable from the layered env files
+env_port() {
+    local env="$1" var="$2"
+    (
+        set -a
+        source .env 2>/dev/null || true
+        source "$DOCKER_DIR/$env/.env" 2>/dev/null || true
+        [ -f "$DOCKER_DIR/$env/.env.local" ] && source "$DOCKER_DIR/$env/.env.local"
+        eval "printf '%s' \"\${$var}\""
+    )
+}
+
+# ============================================================================
+# Environment setup (.env creation / reconciliation)
+# ============================================================================
+
+env_setup() {
+    local host_uid host_gid
+    host_uid=$(id -u)
+    host_gid=$(id -g)
+
+    if [ ! -f .env ]; then
+        echo -e "${BLUE}📝 Creating .env file from template...${NC}"
+        cp .env.template .env
+
+        echo -e "${BLUE}🔑 Generating unique APP_KEY for development...${NC}"
+        local app_key
+        app_key="base64:$(openssl rand -base64 32)"
+        sed -i "s|^APP_KEY=.*|APP_KEY=$app_key|" .env
+
+        sed -i "s/^PUID=.*/PUID=$host_uid/" .env
+        sed -i "s/^PGID=.*/PGID=$host_gid/" .env
+
+        echo -e "${GREEN}✅ .env created (APP_KEY set, UID:$host_uid GID:$host_gid)${NC}"
+        echo "   Please review and adjust other settings as needed."
+        return
+    fi
+
+    # Add any keys the template gained since .env was created
+    local template_keys env_keys missing_keys
+    template_keys=$(grep -E '^[A-Z_]+=' .env.template | cut -d'=' -f1 | sort)
+    env_keys=$(grep -E '^[A-Z_]+=' .env | cut -d'=' -f1 | sort)
+    missing_keys=$(comm -23 <(echo "$template_keys") <(echo "$env_keys"))
+
+    if [ -n "$missing_keys" ]; then
+        echo -e "${YELLOW}⚠️  .env is missing keys from .env.template — adding them:${NC}"
+        for key in $missing_keys; do
+            local value
+            value=$(grep "^$key=" .env.template | head -1 | cut -d'=' -f2-)
+            printf '\n%s=%s\n' "$key" "$value" >> .env
+            echo "   Added: $key"
+        done
+    fi
+
+    # Keep PUID/PGID in sync with the host user
+    sed -i "s/^PUID=[0-9]*/PUID=$host_uid/" .env 2>/dev/null || true
+    sed -i "s/^PGID=[0-9]*/PGID=$host_gid/" .env 2>/dev/null || true
+}
+
+init_submodules() {
+    if [ -f .gitmodules ] && [ -z "$(ls -A packages/laravel-instant-api 2>/dev/null)" ]; then
+        echo -e "${BLUE}📦 Initializing git submodules...${NC}"
+        git submodule update --init --recursive
+        echo -e "${GREEN}✅ Submodules initialized${NC}"
+    fi
+}
+
+first_time_setup() {
+    echo -e "${BLUE}📦 First-time setup: dependencies and database...${NC}"
+
+    echo "Installing Composer dependencies..."
+    cexec dev php composer install --no-interaction
+
+    echo "Running database migrations..."
+    cexec dev php php artisan migrate --no-interaction
+
+    echo "Seeding database with sample data..."
+    cexec dev php php artisan db:seed --no-interaction
+
+    echo "Creating storage symlink..."
+    cexec dev php php artisan storage:link --relative --no-interaction --force
+
+    echo -e "${GREEN}✅ First-time setup completed successfully!${NC}"
+}
+
+# ============================================================================
+# Status
+# ============================================================================
+
+status() {
+    local env="${1:-dev}"
+
+    echo "📊 Container Status ($env):"
+    compose "$env" ps
+    echo ""
+    echo "🌐 Application URLs:"
+    echo "  • Main App:     http://localhost:$(env_port "$env" NGINX_PORT)"
+
+    local vite_port mailhog_port mysql_port
+    vite_port=$(env_port "$env" VITE_PORT)
+    mailhog_port=$(env_port "$env" MAILHOG_HTTP_PORT)
+    mysql_port=$(env_port "$env" MYSQL_PORT)
+    [ -n "$vite_port" ] && echo "  • Vite Dev:     http://localhost:$vite_port"
+    [ -n "$mailhog_port" ] && echo "  • MailHog:      http://localhost:$mailhog_port"
+    [ -n "$mysql_port" ] && echo "  • Database:     localhost:$mysql_port (mtav/secret)"
+}
+
+# ============================================================================
+# Environment lifecycle
+# ============================================================================
+
+up() {
+    local env="dev"
+    if [ $# -gt 0 ] && is_environment "$1"; then
+        env="$1"
+        shift
+    fi
+
+    init_submodules
+    env_setup
+
+    if [ "$env" = "dev" ] && [ ! -f "$FIRST_RUN_WITNESS" ]; then
+        echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
+        compose dev up --build --detach --wait --wait-timeout 120 "$@"
+        first_time_setup
+        touch "$FIRST_RUN_WITNESS"
+    else
+        echo -e "${BLUE}🚀 Starting $env environment...${NC}"
+        compose "$env" up --detach --wait --wait-timeout 120 "$@"
+    fi
+
+    # Keep the schema current on every up — plain migrate only, never fresh
+    # (mtav fresh is the explicit way to rebuild the database)
+    if [ "$env" = "dev" ]; then
+        echo -e "${BLUE}🗄️  Running database migrations...${NC}"
+        cexec dev php php artisan migrate --no-interaction
+    fi
+
+    status "$env"
+}
+
+down() {
+    local env="dev"
+    if [ $# -gt 0 ] && is_environment "$1"; then
+        env="$1"
+        shift
+    fi
+    echo -e "${YELLOW}🛑 Stopping and removing $env containers...${NC}"
+    compose "$env" down "$@"
+}
+
+stop() {
+    local env="dev"
+    if [ $# -gt 0 ] && is_environment "$1"; then
+        env="$1"
+        shift
+    fi
+    echo -e "${YELLOW}🛑 Stopping $env containers...${NC}"
+    compose "$env" stop "$@"
+}
+
+fresh() {
+    echo -e "${BLUE}🆕 Fresh start: cleaning and rebuilding everything...${NC}"
+    compose dev down --volumes --remove-orphans
+    rm -f "$FIRST_RUN_WITNESS"
+    up dev
+}
+
+update() {
+    echo -e "${BLUE}🔄 Updating containers and dependencies...${NC}"
+    env_setup
+    compose dev up --build --detach --wait --wait-timeout 120
+
+    echo "Installing Composer dependencies..."
+    cexec dev php composer install --no-interaction
+
+    echo "Installing Node dependencies..."
+    cexec dev assets pnpm install
+
+    echo "Running database migrations..."
+    cexec dev php php artisan migrate --no-interaction
+
+    status dev
+}
+
+rebuild() {
+    local service="${1:-}"
+    if [ -z "$service" ]; then
+        echo -e "${BLUE}🔨 Rebuilding all container images...${NC}"
+        compose dev build --no-cache
+        echo -e "${GREEN}✅ All images rebuilt — run 'mtav up' to restart${NC}"
+    else
+        echo -e "${BLUE}🔨 Rebuilding $service image...${NC}"
+        compose dev build --no-cache "$service"
+        echo -e "${YELLOW}Restarting $service container...${NC}"
+        compose dev up --detach "$service"
+        echo -e "${GREEN}✅ $service rebuilt and restarted${NC}"
+    fi
+}
+
+# ============================================================================
+# Staging (built assets, no HMR — shares dev ports, stop dev first)
+# ============================================================================
+
+staging() {
+    echo -e "${BLUE}🚀 Setting up staging environment...${NC}"
+    env_setup
+
+    echo -e "${BLUE}🐳 Starting containers...${NC}"
+    compose staging up --build --detach --wait --wait-timeout 120
+
+    echo -e "${BLUE}📦 Building frontend assets...${NC}"
+    compose staging run --rm assets sh -c "pnpm install && pnpm run build"
+
+    if [ -f public/build/manifest.json ]; then
+        echo -e "${GREEN}✅ Assets built successfully${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Warning: Asset build may have failed${NC}"
+    fi
+
+    echo -e "${BLUE}🧹 Removing Vite hot file (forces built assets)...${NC}"
+    rm -f public/hot
+
+    echo -e "${BLUE}📦 Installing PHP dependencies...${NC}"
+    cexec staging php composer install --no-interaction --optimize-autoloader
+
+    # Staging has its own database (unlike the old setup, which reused dev's):
+    # migrate always, seed only on a fresh volume
+    local fresh_db=false
+    cexec staging php php artisan migrate:status > /dev/null 2>&1 || fresh_db=true
+
+    echo -e "${BLUE}🗄️  Running database migrations...${NC}"
+    cexec staging php php artisan migrate --force --no-interaction
+
+    if [ "$fresh_db" = true ]; then
+        echo -e "${BLUE}🌱 Seeding fresh staging database...${NC}"
+        cexec staging php php artisan db:seed --force --no-interaction
+    fi
+
+    echo -e "${BLUE}🔗 Creating storage symlink...${NC}"
+    cexec staging php php artisan storage:link --relative --no-interaction --force
+
+    echo -e "${BLUE}⚡ Optimizing application...${NC}"
+    cexec staging php php artisan config:cache
+    cexec staging php php artisan route:cache
+    cexec staging php php artisan view:cache
+
+    echo ""
+    echo -e "${GREEN}✅ Staging environment ready!${NC}"
+    echo -e "${YELLOW}⚠️  Cached config/routes/views live in the shared bind mount.${NC}"
+    echo -e "${YELLOW}   Before returning to dev: mtav artisan optimize:clear && rm -rf public/build${NC}"
+    echo ""
+    status staging
+}
+
+# ============================================================================
+# Test suite
+# ============================================================================
+
+validate_and_process_pest_testsuite_args() {
+    local args=("$@")
+    local has_testsuite=false
+    local testsuite_value=""
+
+    for ((i = 0; i < ${#args[@]}; i++)); do
+        if [[ "${args[$i]}" == "--testsuite" ]]; then
+            has_testsuite=true
+            if [[ $((i + 1)) -lt ${#args[@]} ]]; then
+                testsuite_value="${args[$((i + 1))]}"
+            else
+                echo -e "${RED}❌ --testsuite flag provided but no value specified${NC}" >&2
+                return 1
+            fi
+            break
+        fi
+    done
+
+    if [ "$has_testsuite" = true ]; then
+        if ! [[ "$testsuite_value" =~ ^(Arch|Unit|Feature|Stress)(,(Arch|Unit|Feature|Stress))*$ ]]; then
+            echo -e "${RED}❌ Invalid testsuite: $testsuite_value${NC}" >&2
+            echo "Valid values (comma-separated): Arch, Unit, Feature, Stress" >&2
+            return 1
+        fi
+        echo "${args[@]}"
+    else
+        echo "--testsuite" "Arch,Unit,Feature" "${args[@]}"
+    fi
+}
+
+run_tests() {
+    local test_type="${1:-all}"
+    shift 2>/dev/null || true
+
+    if [[ ! "$test_type" =~ ^(all|php|vue|e2e|precommit)$ ]]; then
+        echo -e "${RED}❌ Invalid test type: $test_type${NC}"
+        echo "Usage: mtav test|pest|vitest|e2e|precommit [additional test args]"
+        exit 1
+    fi
+
+    local run_php=false run_vue=false run_e2e=false
+    local pest_extra_args=()
+
+    case $test_type in
+        all) run_php=true; run_vue=true; run_e2e=true ;;
+        php) run_php=true ;;
+        vue) run_vue=true ;;
+        e2e) run_e2e=true ;;
+        precommit)
+            run_php=true
+            run_vue=true
+            pest_extra_args=(--exclude-group slow)
+            ;;
+    esac
+
+    local test_args=("$@")
+    local php_success=true vue_success=true e2e_success=true
+
+    cleanup_environment() {
+        echo ""
+        echo -e "${BLUE}Stopping testing environment...${NC}"
+        compose testing down || true
+    }
+
+    cleanup_built_assets() {
+        echo ""
+        echo -e "${BLUE}Removing built assets (public/build)...${NC}"
+        cexec testing assets sh -lc 'rm -rf /var/www/html/public/build || true'
+    }
+
+    run_pest() {
+        echo ""
+        echo -e "${BLUE}Running tests...${NC}"
+        cexec testing php php artisan test "$@"
+    }
+
+    echo -e "${BLUE}🧪 Test Suite${NC}"
+    echo -e "${BLUE}════════════${NC}"
+    [ "$run_php" = true ] && echo -e "  • PHP (Pest)"
+    [ "$run_vue" = true ] && echo -e "  • Vue (Vitest)"
+    [ "$run_e2e" = true ] && echo -e "  • E2E (Playwright)"
+
+    echo ""
+    echo -e "${BLUE}Starting testing environment...${NC}"
+    env_setup
+    compose testing up --build --detach --wait --wait-timeout 120 --quiet-pull
+
+    echo ""
+    echo -e "${BLUE}Installing PHP dependencies...${NC}"
+    if ! cexec testing php composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
+        echo ""
+        echo -e "${RED}❌ composer install failed${NC}"
+        cleanup_environment
+        exit 1
+    fi
+
+    if [ "$run_vue" = true ] || [ "$run_e2e" = true ]; then
+        echo ""
+        echo -e "${BLUE}Installing Node dependencies...${NC}"
+        if ! cexec testing assets pnpm install; then
+            echo ""
+            echo -e "${RED}❌ pnpm install failed${NC}"
+            cleanup_environment
+            exit 1
+        fi
+    fi
+
+    if [ "$run_php" = true ]; then
+        echo ""
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}📦 PHP Tests (Pest)${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        local processed_args
+        if ! processed_args=($(validate_and_process_pest_testsuite_args "${test_args[@]}")); then
+            cleanup_environment
+            exit 1
+        fi
+
+        if run_pest "${processed_args[@]}" "${pest_extra_args[@]}"; then
+            echo ""
+            echo -e "${GREEN}✅ PHP tests passed${NC}"
+        else
+            echo ""
+            echo -e "${RED}❌ PHP tests failed${NC}"
+            php_success=false
+        fi
+    fi
+
+    if [ "$run_vue" = true ]; then
+        echo ""
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}🎨 Vue Tests (Vitest)${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        if cexec testing assets pnpm run test --run "${test_args[@]}"; then
+            echo ""
+            echo -e "${GREEN}✅ Vue tests passed${NC}"
+        else
+            echo ""
+            echo -e "${RED}❌ Vue tests failed${NC}"
+            vue_success=false
+        fi
+    fi
+
+    if [ "$run_e2e" = true ]; then
+        echo ""
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        echo ""
+        echo -e "${BLUE}Building assets...${NC}"
+        if ! cexec testing assets pnpm run build; then
+            echo ""
+            echo -e "${RED}❌ asset build failed${NC}"
+            cleanup_built_assets
+            cleanup_environment
+            exit 1
+        fi
+
+        # No need to touch public/hot: the testing php container sets
+        # VITE_FORCE_BUILD, which makes Laravel ignore the hot file entirely
+        # (deleting it here would break HMR for a concurrently running dev).
+        if run_pest --testsuite Browser "${test_args[@]}"; then
+            echo ""
+            echo -e "${GREEN}✅ E2E tests passed${NC}"
+        else
+            echo ""
+            echo -e "${RED}❌ E2E tests failed${NC}"
+            e2e_success=false
+        fi
+
+        cleanup_built_assets
+    fi
+
+    cleanup_environment
+
+    if [ "$php_success" = true ] && [ "$vue_success" = true ] && [ "$e2e_success" = true ]; then
+        echo ""
+        echo -e "${GREEN}🎉 All tests passed!${NC}"
+        exit 0
+    else
+        echo ""
+        echo -e "${RED}💥 Some tests failed${NC}"
+        exit 1
+    fi
+}
+
+# ============================================================================
+# Production (local preview — self-contained images)
+# ============================================================================
+
+prod() {
+    # Bare "mtav prod" starts the environment, mirroring "mtav dev"/"mtav staging"
+    local action="${1:-up}"
+    shift 2>/dev/null || true
+
+    case $action in
+        build)
+            echo -e "${BLUE}🏗️  Building production images...${NC}"
+            env_setup
+            compose prod build "$@"
+            ;;
+        up)
+            # No --build: prod is frozen — it runs the existing images as-is
+            # (compose only builds if an image doesn't exist yet).
+            # Bake new images explicitly with 'mtav prod build'.
+            echo -e "${BLUE}🚀 Starting production environment...${NC}"
+            env_setup
+            compose prod up --detach --wait --wait-timeout 300 "$@"
+            status prod
+            ;;
+        down)
+            compose prod down "$@"
+            ;;
+        logs)
+            compose prod logs -f "$@"
+            ;;
+        ps | status)
+            status prod
+            ;;
+        *)
+            echo "Usage: mtav prod [build|up|down|logs|status]   (default: up)"
+            exit 1
+            ;;
+    esac
+}
+
+# ============================================================================
+# Help
+# ============================================================================
+
 print_help() {
     echo -e "${BLUE}MTAV Development Environment${NC}"
     echo ""
+    echo -e "${GREEN}Environments:${NC}"
+    echo -e "  ${YELLOW}mtav dev${NC}               # Start dev: live code + HMR (alias: mtav up)"
+    echo -e "  ${YELLOW}mtav staging${NC}           # Start staging: current code, built assets, no HMR"
+    echo -e "  ${YELLOW}mtav prod${NC}              # Start prod: frozen pre-built images (bake: mtav prod build)"
+    echo ""
     echo -e "${GREEN}Simple Commands:${NC}"
-    echo -e "  ${YELLOW}mtav up${NC}                # Start development environment (builds everything on first run)"
-    echo -e "  ${YELLOW}mtav stop${NC}              # Stop containers (keeps containers for quick restart)"
-    echo -e "  ${YELLOW}mtav down${NC}              # Stop and remove containers (clean shutdown)"
-    echo -e "  ${YELLOW}mtav restart${NC}           # Restart: up then down (quick restart cycle)"
+    echo -e "  ${YELLOW}mtav up [env]${NC}          # Start environment (default: dev; builds everything on first run)"
+    echo -e "  ${YELLOW}mtav stop [env]${NC}        # Stop containers (keeps containers for quick restart)"
+    echo -e "  ${YELLOW}mtav down [env]${NC}        # Stop and remove containers (clean shutdown)"
+    echo -e "  ${YELLOW}mtav restart${NC}           # Restart: down then up (quick restart cycle)"
     echo -e "  ${YELLOW}mtav update${NC}            # Update containers and install all dependencies"
     echo -e "  ${YELLOW}mtav rebuild [service]${NC} # Rebuild images (all services or specific one)"
-    echo -e "  ${YELLOW}mtav status${NC}            # Show container status and URLs"
-    echo -e "  ${YELLOW}mtav logs${NC}              # Show all logs"
-    echo -e "  ${YELLOW}mtav fresh${NC}             # Complete fresh rebuild (down + build)"
-    echo -e "  ${YELLOW}mtav staging${NC}           # Setup staging environment (built assets, no HMR)"
+    echo -e "  ${YELLOW}mtav status [env]${NC}      # Show container status and URLs"
+    echo -e "  ${YELLOW}mtav logs [env] [svc]${NC}  # Follow logs"
+    echo -e "  ${YELLOW}mtav fresh${NC}             # Complete fresh rebuild (down + volumes + build + seed)"
     echo ""
     echo -e "${GREEN}Testing Commands:${NC}"
     echo -e "  ${YELLOW}mtav test [args]${NC}       # Run all tests (Pest + Vitest + Playwright)"
@@ -40,186 +578,159 @@ print_help() {
     echo -e "${GREEN}Development Shortcuts:${NC}"
     echo -e "  ${YELLOW}mtav artisan <cmd>${NC}     # Laravel Artisan commands"
     echo -e "  ${YELLOW}mtav composer <cmd>${NC}    # Composer package manager"
-    echo -e "  ${YELLOW}mtav npm <cmd>${NC}         # NPM package manager"
+    echo -e "  ${YELLOW}mtav pnpm <cmd>${NC}        # PNPM package manager"
     echo -e "  ${YELLOW}mtav shell [container]${NC} # Shell into container (default: php)"
     echo -e "  ${YELLOW}mtav tinker${NC}            # Laravel Tinker REPL (alias for 'mtav artisan tinker')"
     echo -e "  ${YELLOW}mtav stats${NC}             # Analyze ALL benchmark CSV files at once"
     echo ""
+    echo -e "${GREEN}Production:${NC}"
+    echo -e "  ${YELLOW}mtav prod build${NC}        # Bake self-contained production images from current code"
+    echo -e "  ${YELLOW}mtav prod [up]|down${NC}    # Start/stop the frozen production composition"
+    echo ""
+    echo -e "${GREEN}Advanced:${NC}"
+    echo -e "  ${YELLOW}mtav compose <env> <args>${NC}  # Raw docker compose against an environment"
+    echo -e "  Environments: ${YELLOW}dev testing staging prod${NC} — each an isolated compose project"
+    echo -e "  Env layering: .env → docker/<env>/.env → docker/<env>/.env.local (gitignored)"
+    echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
     echo -e "  1. ${YELLOW}git clone https://github.com/devvir/mtav${NC}"
     echo -e "  2. ${YELLOW}mtav up${NC}           # Everything will be built and ready"
-    echo -e "  3. Open ${BLUE}http://localhost:8080${NC}"
-    echo ""
-    echo -e "${GREEN}Daily Development:${NC}"
-    echo -e "  ${YELLOW}mtav up${NC}           # Start your day"
-    echo -e "  ${YELLOW}mtav update${NC}       # Update dependencies"
-    echo -e "  ${YELLOW}mtav stop${NC}         # Quick break (containers preserved)"
-    echo -e "  ${YELLOW}mtav down${NC}         # End your day (clean shutdown)"
-    echo ""
-    echo -e "${GREEN}Production Commands:${NC}"
-    echo -e "  ${YELLOW}mtav build <service> <tag>${NC}       # Build production image for single service"
-    echo -e "  ${YELLOW}mtav build --all <tag> [--push]${NC}  # Build all production services"
-    echo -e "  ${YELLOW}mtav rebuild-php-base <version>${NC}  # Build and push PHP base image"
-    echo -e "  ${YELLOW}mtav deploy${NC}                      # Deploy to production (pull + migrate + start)"
-    echo ""
-    echo -e "${GREEN}Advanced Commands:${NC}"
-    echo -e "  See ${YELLOW}.docker/scripts/README.md${NC} for detailed script usage"
+    echo -e "  3. Open ${BLUE}http://localhost:8000${NC}"
     echo ""
 }
 
-# Parse command
-COMMAND="$1"
+# ============================================================================
+# Command router
+# ============================================================================
+
+COMMAND="${1:-}"
 shift 2>/dev/null || true
 
 case $COMMAND in
     up)
-        # Initialize submodules if needed (packages/laravel-instant-api, etc.)
-        if [ -f .gitmodules ] && [ -z "$(ls -A packages/laravel-instant-api 2>/dev/null)" ]; then
-            echo -e "${BLUE}📦 Initializing git submodules...${NC}"
-            git submodule update --init --recursive
-            echo -e "${GREEN}✅ Submodules initialized${NC}"
-        fi
+        up "$@"
+        ;;
 
-        # Smart up: build on first run, regular up afterwards
-        if [ ! -f .docker/first-run-executed ]; then
-            echo -e "${GREEN}🚀 First time setup: building everything...${NC}"
-            "$SCRIPTS_DIR/env-setup.sh"
-            "$SCRIPTS_DIR/up.sh" dev --build --detach
-            "$SCRIPTS_DIR/setup-first.sh"
-            touch .docker/first-run-executed
-            "$SCRIPTS_DIR/status.sh"
-        else
-            "$SCRIPTS_DIR/up.sh" dev --detach "$@"
-            "$SCRIPTS_DIR/status.sh"
-        fi
+    dev)
+        up dev "$@"
         ;;
 
     stop)
-        echo -e "${YELLOW}🛑 Stopping development environment...${NC}"
-        "$SCRIPTS_DIR/stop.sh" "$@"
+        stop "$@"
         ;;
 
     down)
-        echo -e "${YELLOW}🛑 Stopping and removing containers...${NC}"
-        "$SCRIPTS_DIR/down.sh" "$@"
+        down "$@"
         ;;
 
     restart)
         echo -e "${BLUE}🔄 Restarting: down then up...${NC}"
-        "$0" down && "$0" up
+        down && up
         ;;
 
     update)
-        echo -e "${BLUE}🔄 Updating containers and dependencies...${NC}"
-        "$SCRIPTS_DIR/env-setup.sh"
-        "$SCRIPTS_DIR/up.sh" dev --build --detach
-        sleep 5
-        "$SCRIPTS_DIR/setup.sh"
-        "$SCRIPTS_DIR/status.sh"
+        update
         ;;
 
     fresh)
-        echo -e "${BLUE}🆕 Fresh start: cleaning and rebuilding everything...${NC}"
-        # Stop all running containers first
-        echo -e "${YELLOW}🛑 Stopping all running containers...${NC}"
-        export COMPOSE_PROJECT_NAME=dev
-        "$SCRIPTS_DIR/compose.sh" stop || true
-        # Remove first-run witness file to trigger full setup
-        rm -f .docker/first-run-executed
-        # Remove everything including volumes
-        echo -e "${YELLOW}🗑️  Removing containers and volumes...${NC}"
-        "$SCRIPTS_DIR/compose.sh" down --volumes --remove-orphans
-        docker network rm mtav_default 2>/dev/null || true
-        # Wait a moment for cleanup
-        sleep 2
-        # Start containers
-        echo -e "${GREEN}🚀 Starting fresh environment...${NC}"
-        "$0" up -d
-        # Run migrations and seed
-        echo -e "${BLUE}🗄️  Running migrations and seeding database...${NC}"
-        "$SCRIPTS_DIR/artisan.sh" migrate:fresh --seed
-        echo -e "${GREEN}✅ Fresh environment ready!${NC}"
+        fresh
         ;;
 
     staging)
-        "$SCRIPTS_DIR/staging.sh"
+        staging
         ;;
 
     status)
-        "$SCRIPTS_DIR/status.sh"
+        status "$@"
         ;;
 
     rebuild)
-        "$SCRIPTS_DIR/rebuild.sh" "$@"
-        ;;
-
-    rebuild-php-base)
-        "$SCRIPTS_DIR/rebuild-php-base.sh" "$@"
+        rebuild "$@"
         ;;
 
     logs)
-        echo -e "${BLUE}📋 Showing container logs...${NC}"
-        "$SCRIPTS_DIR/compose.sh" logs -f "$@"
+        env="dev"
+        if [ $# -gt 0 ] && is_environment "$1"; then
+            env="$1"
+            shift
+        fi
+        echo -e "${BLUE}📋 Showing $env container logs...${NC}"
+        compose "$env" logs -f "$@"
         ;;
 
     artisan)
-        "$SCRIPTS_DIR/artisan.sh" "$@"
+        cexec dev php php artisan "$@"
         ;;
 
     composer)
-        "$SCRIPTS_DIR/composer.sh" "$@"
+        cexec dev php composer "$@"
+        ;;
+
+    pnpm)
+        cexec dev assets pnpm "$@"
         ;;
 
     npm)
-        "$SCRIPTS_DIR/npm.sh" "$@"
+        echo -e "${YELLOW}⚠️  MTAV uses pnpm now — forwarding to 'mtav pnpm $*'${NC}"
+        cexec dev assets pnpm "$@"
         ;;
 
     shell)
-        "$SCRIPTS_DIR/shell.sh" "$@"
+        container="${1:-php}"
+        shift 2>/dev/null || true
+        if [[ "${1:-}" == "-c" ]]; then
+            cexec dev "$container" /bin/sh -c "$2"
+        else
+            echo "🐚 Opening shell in $container container..."
+            cexec dev "$container" /bin/sh
+        fi
+        ;;
+
+    tinker)
+        cexec dev php php artisan tinker "$@"
         ;;
 
     test)
-        "$SCRIPTS_DIR/test.sh" all "$@"
+        run_tests all "$@"
         ;;
 
     pest)
-        "$SCRIPTS_DIR/test.sh" php "$@"
+        run_tests php "$@"
         ;;
 
     vitest)
-        "$SCRIPTS_DIR/test.sh" vue "$@"
-        ;;
-
-    precommit)
-        "$SCRIPTS_DIR/test.sh" precommit "$@"
+        run_tests vue "$@"
         ;;
 
     e2e)
-        "$SCRIPTS_DIR/test.sh" e2e "$@"
+        run_tests e2e "$@"
         ;;
 
-    build)
-        echo -e "${BLUE}🏗️  Building production image...${NC}"
-        "$SCRIPTS_DIR/build.sh" "$@"
+    precommit)
+        run_tests precommit "$@"
         ;;
 
-    deploy)
-        echo -e "${BLUE}🚀 Deploying production build...${NC}"
-        "$SCRIPTS_DIR/deploy.sh" "$@"
+    prod)
+        prod "$@"
         ;;
 
-    # Convenient aliases
-    tinker)
-        "$SCRIPTS_DIR/artisan.sh" tinker "$@"
+    compose)
+        env="${1:-}"
+        shift 2>/dev/null || true
+        if ! is_environment "$env"; then
+            echo -e "${RED}❌ Unknown environment: '$env' (expected: ${ENVIRONMENTS[*]})${NC}"
+            exit 1
+        fi
+        compose "$env" "$@"
         ;;
 
     stats)
         echo -e "${BLUE}📊 Analyzing all benchmark files...${NC}"
-        cd "$(dirname "$0")/scripts/benchmark_analysis"
+        cd scripts/benchmark_analysis
         python3 generate_all.py
         ;;
 
-    help|--help|-h|"")
+    help | --help | -h | "")
         print_help
         ;;
 

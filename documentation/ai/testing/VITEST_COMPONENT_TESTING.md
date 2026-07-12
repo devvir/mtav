@@ -2,7 +2,7 @@
 # Vitest Component Testing Guide
 
 **Purpose**: Quick reference for writing unit/component tests for Vue components in MTAV using Vitest
-**Target**: Frontend component testing (NOT E2E - see E2E.md for Playwright tests)
+**Target**: Frontend component testing (NOT E2E — for browser tests see tests/Browser and documentation/technical/testing.md)
 **Last Updated**: December 2025
 
 ---
@@ -93,16 +93,16 @@ export default mergeConfig(
 ### Running Tests
 ```bash
 # Run all tests
-npm run test
+pnpm run test
 
 # Run specific test file
-npm run test -- SomeComponent.test.ts
+pnpm run test SomeComponent.test.ts
 
 # Run with UI
-npm run test -- --ui
+pnpm run test --ui
 
 # Watch mode
-npm run test -- --watch
+pnpm run test --watch
 ```
 
 ---
@@ -125,7 +125,7 @@ Vue component testing utilities.
 Visual test runner UI.
 
 ```bash
-npm run test -- --ui
+pnpm run test --ui
 ```
 
 Opens browser at `http://localhost:51204/` with test results.
@@ -571,7 +571,7 @@ it('debugs wrapper state', () => {
 
 ### Vitest UI
 ```bash
-npm run test -- --ui
+pnpm run test --ui
 ```
 
 Opens browser with visual test runner - click on test to see details.
@@ -648,9 +648,9 @@ describe('FormInput', () => {
 
 1. **Create test directory structure**: `resources/js/tests/dom/`
 2. **Start with high-priority components**: Form components first
-3. **Run tests with UI**: `npm run test -- --ui`
+3. **Run tests with UI**: `pnpm run test --ui`
 4. **Aim for meaningful coverage**: Not line coverage, but behavior coverage
 5. **Refactor tests as needed**: They're code too
 
 See [PHILOSOPHY.md](./PHILOSOPHY.md) for backend testing patterns (Pest).
-See [E2E.md](./E2E.md) for end-to-end browser testing (Playwright).
+For end-to-end browser testing (Playwright), see `tests/Browser/` and [technical/testing.md](../../technical/testing.md).

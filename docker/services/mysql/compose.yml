@@ -1,0 +1,15 @@
+# MariaDB — persistent variant (named volume).
+#
+# MYSQL_PORT empty ⇒ random host port (always bound to localhost only).
+services:
+  mysql:
+    extends:
+      file: base.yml
+      service: mysql
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
