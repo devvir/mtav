@@ -17,7 +17,8 @@ containers). Dev and testing are designed to run **simultaneously**.
 | Environment | Project | Purpose | Code | Assets | Database |
 |---|---|---|---|---|---|
 | `dev` | `mtav-dev` | daily development | live (bind mount) | **HMR**, always | persistent volume, migrate on every up |
-| `testing` | `mtav-testing` | Pest / Vitest / E2E | live (bind mount) | built (E2E only) | **tmpfs** (RAM, discarded) |
+| `testing` | `mtav-testing` | Pest / Vitest | live (bind mount) | none needed | **tmpfs** (RAM, discarded) |
+| `e2e` | `mtav-e2e` | Browser journey tests (Playwright) | live (bind mount) | **built** per run | **tmpfs** (RAM, discarded) |
 | `staging` | `mtav-staging` | snapshot check before baking images | current at spin time | **built** at spin time | persistent volume, migrate (+seed when fresh) |
 | `prod` | `mtav-prod` | frozen release preview / deployment | **baked into images** | **baked into images** | persistent volume, one-shot migrations |
 
@@ -45,11 +46,11 @@ mtav rebuild [service]   # rebuild image(s) --no-cache (dev)
 mtav status [env]        # containers + URLs
 mtav logs [env] [svc]    # follow logs
 
-# Testing (each boots mtav-testing, runs, tears down)
+# Testing (pest/vitest boot mtav-testing; e2e boots mtav-e2e; run → tear down)
 mtav test                # everything: Pest + Vitest + E2E
 mtav pest [args]         # PHP tests (default --testsuite Arch,Unit,Feature)
 mtav vitest [args]       # Vue tests
-mtav e2e [args]          # Browser suite (Playwright)
+mtav e2e [args]          # Browser journeys (see tests/Browser/README.md)
 mtav precommit           # Pest (minus 'slow' group) + Vitest in ONE env cycle
 
 # Shortcuts (run inside dev containers)
@@ -81,18 +82,20 @@ mtav compose <env> <any docker compose args>
   (third-party hosts often forbid Docker binding low ports; prod is expected
   to sit behind a host-level nginx that terminates SSL and proxies to
   whatever port prod exposes).
-- **Playwright versions are pinned together.** `PLAYWRIGHT_VERSION` (default
-  `1.57.0` in `docker/services/playwright/compose.yml`) drives both the
-  server image tag and the `npx playwright@<v>` CLI. A bare `npx playwright`
-  would download the *latest* client and fail against the image's browsers.
-  Keep it compatible with `@playwright/test` in package.json.
+- **Playwright versions are pinned together.** The e2e image tag
+  (`docker/services/e2e/Dockerfile`, `mcr.microsoft.com/playwright:v<X>-noble`)
+  ships that exact version's browsers, so the `playwright` / `@playwright/test`
+  devDependencies in package.json MUST match it (currently 1.61.1). The pest
+  browser plugin also enforces a minimum client version — check
+  `PlaywrightNpmServer::PLAYWRIGHT_VERSION` in the plugin when bumping.
 - **pnpm is strict** — imports must be declared in package.json (npm's flat
   hoisting hid this). A build error like `Failed to resolve import "x"`
   usually means a transitive dep is used directly: `mtav pnpm add x`.
   Dependency postinstall scripts must be allow-listed in
   `pnpm.onlyBuiltDependencies` (currently: esbuild, vue-demi).
-- **Don't run two test invocations concurrently** — they share the
-  `mtav-testing` project. Dev + one test run is fine (that's the point).
+- **Don't run two same-kind test invocations concurrently** — pest/vitest
+  share the `mtav-testing` project and e2e the `mtav-e2e` project. Dev + one
+  of each test kind simultaneously is fine (that's the point).
 - **`mtav up` never wipes data.** It runs a plain `migrate` every time.
   `mtav fresh` is the one and only command that destroys the dev database.
 - **First run is special**: `mtav dev` on a pristine clone creates `.env`
@@ -123,10 +126,11 @@ docker/
 │   ├── reverb/            # compose.yml (php base + reverb command)
 │   ├── queue/             # compose.yml (prod workers), supervisord.conf
 │   ├── mailhog/           # compose.yml
-│   └── playwright/        # compose.yml
+│   └── e2e/               # Dockerfile (playwright image + PHP), compose.yml
 │
 ├── dev/                   # composition + committed .env  (+ optional .env.local)
 ├── testing/               #   〃
+├── e2e/                   #   〃
 ├── staging/               #   〃
 └── prod/                  #   〃
 ```
@@ -150,7 +154,7 @@ docker/
    carry `depends_on` — so wiring always lives in the composition.
 
 3. **Hostnames are plain service names.** Within a composition, the app
-   reaches `mysql`, `reverb`, `playwright` — no `mysql_test`-style renaming,
+   reaches `mysql`, `reverb`, `mailhog` — no `mysql_test`-style renaming,
    because isolation comes from the project, not the service name.
 
 4. **Env layering.** Every `mtav` invocation runs:
@@ -245,12 +249,22 @@ Prod-only (dev uses `QUEUE_CONNECTION=deferred`, so no workers needed).
 Builds the `queue` stage; supervisord runs 3 workers
 (`--tries=3 --max-time=3600`), config in `supervisord.conf`.
 
-### mailhog / playwright
+### mailhog
 
-Mailhog: SMTP sink + web UI, present in dev/staging/prod-preview so no
-environment can ever send real mail. Playwright: the version-pinned
-`run-server` that Pest's browser plugin connects to at `playwright:5000`
-(hardcoded in `tests/Pest.php`).
+SMTP sink + web UI, present in dev/staging/prod-preview so no environment
+can ever send real mail.
+
+### e2e
+
+The E2E runner: `mcr.microsoft.com/playwright:v<X>-noble` (node + browsers +
+system deps) with PHP 8.4 (ondrej PPA), composer, pnpm, GLPK (real lottery
+solver), and ffmpeg added on top. Everything the browser journeys need lives
+in this one container because the **official** pest-plugin-browser assumes a
+single host: it serves the Laravel app **in-process** (an Amp socket server
+inside the pest process — which is why `actingAs()`, event listeners, and
+Eloquent all work mid-journey) and spawns `node_modules/.bin/playwright
+run-server` on localhost. The container idles; the `mtav e2e` flow execs
+build/test steps into it. See `tests/Browser/README.md` for the suite.
 
 ## Compositions
 
@@ -262,17 +276,27 @@ mailhog **1025/8025**, reverb **8080**.
 
 ### testing (`mtav-testing`)
 
-Includes php, nginx, playwright; wires reverb, tmpfs-mysql, and assets with
+Includes php and nginx; wires reverb, tmpfs-mysql, and assets with
 `command: tail -f /dev/null` — in testing the assets container is a **node
-toolbox**, not a dev server (Vitest is headless, E2E uses built assets), and
-an idle command means exec'd `pnpm install/test/build` never race a
-boot-time install. Ports: app **8001**, mysql **3308**, reverb **8082**,
-Vite unpublished. Sets `APP_ENV=testing` and `VITE_FORCE_BUILD=true`.
+toolbox**, not a dev server (Vitest is headless), and an idle command means
+exec'd `pnpm install/test` never race a boot-time install. Ports: app
+**8001**, mysql **3308**, reverb **8082**, Vite unpublished. Sets
+`APP_ENV=testing` and `VITE_FORCE_BUILD=true`.
 
 DB credentials in tests: the container env pins `DB_HOST=mysql`; phpunit.xml
 supplies `DB_USERNAME/DB_PASSWORD=root/root` (its `DB_HOST=mysql_test`
 default is overridden by the real container env — PHPUnit `<env>` entries
 only apply when the variable isn't already set).
+
+### e2e (`mtav-e2e`)
+
+Just the all-in-one e2e runner + a tmpfs mysql — no nginx (the app is served
+in-process), no published ports, fully parallel to dev and testing. The
+`mtav e2e` flow: up → composer/pnpm install → `pnpm run build` → start
+Reverb **inside the same container** (so the browser's `ws://localhost:8080`
+is real) → `php artisan test --testsuite Browser` → remove `public/build` →
+down. Four journey tests cover the app's main use cases end to end
+(`tests/Browser/README.md`); full run ≈ 2 min.
 
 ### staging (`mtav-staging`)
 
@@ -357,15 +381,16 @@ Per command — motivation and edge cases:
 - **`prod [up]`** — frozen semantics: no `--build`, compose only builds if an
   image doesn't exist at all. `prod build` is the explicit, deliberate bake.
   `prod down` keeps volumes (data survives re-releases).
-- **test commands** — each run boots `mtav-testing`, `composer install`s
-  (`--no-scripts`, cached vendor makes it fast), installs node deps when
-  Vitest/E2E are involved, runs, tears down. `pest` validates `--testsuite`
-  values (Arch|Unit|Feature|Stress, default Arch,Unit,Feature — Browser and
-  Stress are opt-in). `e2e` builds assets first and afterwards removes
-  `public/build` so the host isn't left polluted — but never touches
-  `public/hot`. `precommit` is the tight loop: Pest minus the `slow` group +
-  Vitest in one env cycle. For sub-minute iteration, skip the cycle
-  entirely: `mtav compose testing up -d --wait` once, then
+- **test commands** — `pest`/`vitest` boot `mtav-testing`, `composer install`
+  (`--no-scripts`, cached vendor makes it fast), install node deps when
+  Vitest is involved, run, tear down. `pest` validates `--testsuite` values
+  (Arch|Unit|Feature|Stress, default Arch,Unit,Feature — Browser and Stress
+  are opt-in). `e2e` drives the separate `mtav-e2e` composition (see above);
+  it builds assets and afterwards removes `public/build` so the host isn't
+  left polluted — but never touches `public/hot`. `test` = all three.
+  `precommit` is the tight loop: Pest minus the `slow` group + Vitest in one
+  env cycle. For sub-minute iteration, skip the cycle entirely:
+  `mtav compose testing up -d --wait` once, then
   `docker exec mtav-testing-php-1 php artisan test …` repeatedly (the husky
   pre-commit hook does exactly this and warn-skips when the env is down).
 - **`compose <env> …`** — the escape hatch. The CLI wraps compose, never
@@ -384,7 +409,10 @@ dropped deliberately — there is no production deployment yet, and when one
 happens the simplest path is clone + `mtav prod build && mtav prod` behind
 the host nginx (a registry can be reintroduced then if ever needed).
 
-Known deferred item: the full Browser (E2E) suite is out of scope pending
-stabilization — the infrastructure works (individual Browser tests pass; the
-CI step is commented out in `.github/workflows/tests.yml`), but the suite as
-a whole needs attention before it gates anything.
+The Browser suite was rewritten from scratch alongside this infra (2026-07):
+the old 205 page-by-page tests and the forked pest-plugin-browser (which
+existed only to reach a Playwright server in another container) were replaced
+by four journey tests on the official plugin in the all-in-one `mtav-e2e`
+composition. `mtav e2e` is the pre-deployment safety net (~2 min); the CI
+step remains opt-in (commented in `.github/workflows/tests.yml`) since the
+suite is meant to be run deliberately before deploying, not on every push.

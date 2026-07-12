@@ -24,6 +24,7 @@
 /.phpunit.cache
 .phpunit.result.cache
 .pest/
+/tests/Browser/Screenshots
 
 # Logs & runtime
 npm-debug.log

@@ -33,9 +33,10 @@ jobs:
       - name: Vue tests (Vitest)
         run: ./mtav vitest
 
-      # E2E (Playwright) is currently out of scope — re-enable when the
-      # Browser suite is stabilized:
-      # - name: E2E tests (Playwright)
+      # The E2E journey suite (mtav e2e) is the deliberate pre-deployment
+      # safety net, not a per-push gate — run it manually before deploying.
+      # Uncomment to gate CI on it as well (adds the ~2.5GB e2e image build):
+      # - name: E2E journeys (Playwright)
       #   run: ./mtav e2e
 
       - name: Collect compose logs (best effort — env may already be down)

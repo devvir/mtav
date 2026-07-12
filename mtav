@@ -18,7 +18,7 @@ cd "$(dirname "$0")"
 
 DOCKER_DIR="docker"
 FIRST_RUN_WITNESS="$DOCKER_DIR/.first-run"
-ENVIRONMENTS=(dev testing staging prod)
+ENVIRONMENTS=(dev testing staging prod e2e)
 
 # Colors for output
 RED='\033[0;31m'
@@ -346,6 +346,78 @@ validate_and_process_pest_testsuite_args() {
     fi
 }
 
+# E2E journeys run in their own composition (docker/e2e): one container with
+# PHP + node + playwright + browsers, where the pest browser plugin serves
+# the Laravel app in-process. Runs alongside dev AND the testing environment.
+run_e2e_suite() {
+    local test_args=("$@")
+    local e2e_ok=true
+
+    echo ""
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    cleanup_e2e() {
+        echo ""
+        # Built assets are removed so the host stays clean; public/hot is
+        # NEVER touched (deleting it would break a concurrently running dev)
+        echo -e "${BLUE}Removing built assets (public/build)...${NC}"
+        cexec e2e e2e sh -lc 'rm -rf /var/www/html/public/build || true'
+        echo -e "${BLUE}Stopping e2e environment...${NC}"
+        compose e2e down || true
+    }
+
+    echo ""
+    echo -e "${BLUE}Starting e2e environment...${NC}"
+    env_setup
+    compose e2e up --build --detach --wait --wait-timeout 120 --quiet-pull
+
+    echo ""
+    echo -e "${BLUE}Installing PHP dependencies...${NC}"
+    if ! cexec e2e e2e composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
+        echo -e "${RED}❌ composer install failed${NC}"
+        compose e2e down || true
+        return 1
+    fi
+
+    echo ""
+    echo -e "${BLUE}Installing Node dependencies...${NC}"
+    if ! cexec e2e e2e pnpm install; then
+        echo -e "${RED}❌ pnpm install failed${NC}"
+        compose e2e down || true
+        return 1
+    fi
+
+    echo ""
+    echo -e "${BLUE}Building assets...${NC}"
+    if ! cexec e2e e2e pnpm run build; then
+        echo -e "${RED}❌ asset build failed${NC}"
+        cleanup_e2e
+        return 1
+    fi
+
+    # Reverb runs inside the same container, so the browser's
+    # ws://localhost:8080 connections are real
+    echo ""
+    echo -e "${BLUE}Starting Reverb (in-container websockets)...${NC}"
+    compose e2e exec -d e2e php artisan reverb:start --host=127.0.0.1 --port=8080 || true
+
+    echo ""
+    echo -e "${BLUE}Running Browser journeys...${NC}"
+    if cexec e2e e2e php artisan test --testsuite Browser "${test_args[@]}"; then
+        echo ""
+        echo -e "${GREEN}✅ E2E tests passed${NC}"
+    else
+        echo ""
+        echo -e "${RED}❌ E2E tests failed${NC}"
+        e2e_ok=false
+    fi
+
+    cleanup_e2e
+    [ "$e2e_ok" = true ]
+}
+
 run_tests() {
     local test_type="${1:-all}"
     shift 2>/dev/null || true
@@ -380,12 +452,6 @@ run_tests() {
         compose testing down || true
     }
 
-    cleanup_built_assets() {
-        echo ""
-        echo -e "${BLUE}Removing built assets (public/build)...${NC}"
-        cexec testing assets sh -lc 'rm -rf /var/www/html/public/build || true'
-    }
-
     run_pest() {
         echo ""
         echo -e "${BLUE}Running tests...${NC}"
@@ -398,28 +464,30 @@ run_tests() {
     [ "$run_vue" = true ] && echo -e "  • Vue (Vitest)"
     [ "$run_e2e" = true ] && echo -e "  • E2E (Playwright)"
 
-    echo ""
-    echo -e "${BLUE}Starting testing environment...${NC}"
-    env_setup
-    compose testing up --build --detach --wait --wait-timeout 120 --quiet-pull
-
-    echo ""
-    echo -e "${BLUE}Installing PHP dependencies...${NC}"
-    if ! cexec testing php composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
+    if [ "$run_php" = true ] || [ "$run_vue" = true ]; then
         echo ""
-        echo -e "${RED}❌ composer install failed${NC}"
-        cleanup_environment
-        exit 1
-    fi
+        echo -e "${BLUE}Starting testing environment...${NC}"
+        env_setup
+        compose testing up --build --detach --wait --wait-timeout 120 --quiet-pull
 
-    if [ "$run_vue" = true ] || [ "$run_e2e" = true ]; then
         echo ""
-        echo -e "${BLUE}Installing Node dependencies...${NC}"
-        if ! cexec testing assets pnpm install; then
+        echo -e "${BLUE}Installing PHP dependencies...${NC}"
+        if ! cexec testing php composer install --no-interaction --no-scripts --prefer-dist --optimize-autoloader; then
             echo ""
-            echo -e "${RED}❌ pnpm install failed${NC}"
+            echo -e "${RED}❌ composer install failed${NC}"
             cleanup_environment
             exit 1
+        fi
+
+        if [ "$run_vue" = true ]; then
+            echo ""
+            echo -e "${BLUE}Installing Node dependencies...${NC}"
+            if ! cexec testing assets pnpm install; then
+                echo ""
+                echo -e "${RED}❌ pnpm install failed${NC}"
+                cleanup_environment
+                exit 1
+            fi
         fi
     fi
 
@@ -461,38 +529,15 @@ run_tests() {
         fi
     fi
 
-    if [ "$run_e2e" = true ]; then
-        echo ""
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}🌐 E2E Tests (Playwright)${NC}"
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-        echo ""
-        echo -e "${BLUE}Building assets...${NC}"
-        if ! cexec testing assets pnpm run build; then
-            echo ""
-            echo -e "${RED}❌ asset build failed${NC}"
-            cleanup_built_assets
-            cleanup_environment
-            exit 1
-        fi
-
-        # No need to touch public/hot: the testing php container sets
-        # VITE_FORCE_BUILD, which makes Laravel ignore the hot file entirely
-        # (deleting it here would break HMR for a concurrently running dev).
-        if run_pest --testsuite Browser "${test_args[@]}"; then
-            echo ""
-            echo -e "${GREEN}✅ E2E tests passed${NC}"
-        else
-            echo ""
-            echo -e "${RED}❌ E2E tests failed${NC}"
-            e2e_success=false
-        fi
-
-        cleanup_built_assets
+    if [ "$run_php" = true ] || [ "$run_vue" = true ]; then
+        cleanup_environment
     fi
 
-    cleanup_environment
+    if [ "$run_e2e" = true ]; then
+        if ! run_e2e_suite "${test_args[@]}"; then
+            e2e_success=false
+        fi
+    fi
 
     if [ "$php_success" = true ] && [ "$vue_success" = true ] && [ "$e2e_success" = true ]; then
         echo ""
@@ -589,7 +634,7 @@ print_help() {
     echo ""
     echo -e "${GREEN}Advanced:${NC}"
     echo -e "  ${YELLOW}mtav compose <env> <args>${NC}  # Raw docker compose against an environment"
-    echo -e "  Environments: ${YELLOW}dev testing staging prod${NC} — each an isolated compose project"
+    echo -e "  Environments: ${YELLOW}dev testing e2e staging prod${NC} — each an isolated compose project"
     echo -e "  Env layering: .env → docker/<env>/.env → docker/<env>/.env.local (gitignored)"
     echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"

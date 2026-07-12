@@ -87,6 +87,9 @@ class HandleInertiaRequests extends Middleware
             'route'   => $request->route()?->getName(),
             'project' => Project::current(),
 
+            // Settings/Profile relies on this to show email-verification notices
+            'updateStatus' => $request->session()->get('updateStatus'),
+
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'info'    => $request->session()->get('info'),

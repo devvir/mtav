@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Pest\Browser\Playwright\Servers\ExternalPlaywrightServer;
 use Tests\TestCase;
 use Tests\TestCaseBrowser;
 
@@ -25,8 +24,6 @@ pest()
 pest()
     ->extend(TestCaseBrowser::class)
     ->in('Browser');
-
-ExternalPlaywrightServer::use('playwright', 5000);
 
 /**
  * Custom Expectations

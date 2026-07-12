@@ -1,0 +1,21 @@
+# E2E test runner — PHP + node + playwright + browsers in one container.
+#
+# Idles by default; the mtav CLI execs the build/test steps into it.
+# The pest browser plugin serves the app in-process (no nginx needed) and
+# reverb can run inside this same container so ws://localhost works.
+services:
+  e2e:
+    build:
+      context: ../../..
+      dockerfile: docker/services/e2e/Dockerfile
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    command: tail -f /dev/null
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-testing}
+      DB_HOST: ${DB_HOST:-mysql}
+      VITE_FORCE_BUILD: ${VITE_FORCE_BUILD:-true}
+    volumes:
+      - ../../..:/var/www/html

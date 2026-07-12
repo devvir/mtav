@@ -9,13 +9,16 @@ the isolated `mtav-testing` Docker environment — see
 ```bash
 ./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, Feature suites
 ./mtav vitest [args]     # Vue tests (Vitest)
-./mtav e2e [args]        # Browser tests (Playwright) — currently being stabilized
+./mtav e2e [args]        # Browser journeys (Playwright) — pre-deployment safety net
 ./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
 ./mtav test              # Everything: Pest + Vitest + E2E
 ```
 
-Each command boots the testing environment, installs dependencies, runs, and
-tears down. Arguments are forwarded to the underlying runner:
+Pest/Vitest boot the `mtav-testing` environment; `mtav e2e` boots its own
+`mtav-e2e` composition (all journeys documented in
+[tests/Browser/README.md](../../tests/Browser/README.md)). Each command
+installs dependencies, runs, and tears down. Arguments are forwarded to the
+underlying runner:
 
 ```bash
 ./mtav pest --filter="AdminControllerCrudTest"

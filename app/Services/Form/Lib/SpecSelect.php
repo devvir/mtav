@@ -48,6 +48,12 @@ class SpecSelect extends Spec
         // Hide project_id if user has only one project
         if (in_array($this->fieldName, ['project_id', 'project_ids']) && $this->userHasOnlyOneProject()) {
             $this->spec['hidden'] = true;
+
+            // A hidden select still has to submit a value; determineSelectedValue()
+            // only covers the scalar project_id, so default the plural (and the
+            // scalar outside a current-project context) to the user's only project.
+            $onlyProjectId = Auth::user()->projects->first()->id;
+            $this->spec['selected'] ??= $this->fieldName === 'project_ids' ? [$onlyProjectId] : $onlyProjectId;
         }
 
         // Determine if multiple select based on array type or relation type

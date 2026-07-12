@@ -1,0 +1,23 @@
+# E2E Environment
+#
+# Browser (Playwright) journey tests — the last safety net before a
+# deployment. Isolated as project "mtav-e2e"; runs alongside dev AND testing.
+#
+# Just two services: the all-in-one e2e runner (PHP + node + playwright +
+# browsers; the pest browser plugin serves the Laravel app in-process) and a
+# RAM-backed database. No nginx, no separate assets/playwright containers.
+
+name: mtav-e2e
+
+include:
+  - ../services/e2e/compose.yml
+
+services:
+  mysql:
+    extends:
+      file: ../services/mysql/base.yml
+      service: mysql
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-}:3306"
+    tmpfs:
+      - /var/lib/mysql # Store database in RAM for faster tests

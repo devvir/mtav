@@ -46,7 +46,9 @@ describe('AdminController::create()', function () {
                     1 => 'Project 1',
                 ],
                 'required' => true,
-                'selected' => null,
+                // Hidden single-project selects preselect the only project —
+                // otherwise the form silently fails validation on submit
+                'selected' => [1],
             ],
         ]);
     });

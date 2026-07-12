@@ -29,7 +29,7 @@
     "nunomaduro/collision": "^8.8",
     "nunomaduro/phpinsights": "^2.13",
     "pestphp/pest": "^4.1",
-    "pestphp/pest-plugin-browser": "4.x-dev",
+    "pestphp/pest-plugin-browser": "^4.0",
     "pestphp/pest-plugin-laravel": "^4.0"
   },
   "autoload": {
@@ -85,10 +85,6 @@
     {
       "type": "path",
       "url": "packages/laravel-resource-tools"
-    },
-    {
-        "type": "vcs",
-        "url": "https://github.com/devvir/pest-plugin-browser"
     }
   ]
 }

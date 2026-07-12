@@ -7,9 +7,11 @@ use Illuminate\Testing\TestResponse;
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
 // Collection contains exactly the given items, in any order.
+// values() drops collection keys (e.g. the gaps unique() leaves): PHPUnit
+// only canonicalizes list arrays, so keyed arrays would compare keys too.
 expect()->extend(
     'toCollect',
-    fn (...$list) => expect($this->value->all())->toEqualCanonicalizing($list)
+    fn (...$list) => expect($this->value->values()->all())->toEqualCanonicalizing($list)
 );
 
 /**
