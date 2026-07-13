@@ -4,26 +4,17 @@
 
 # Parte I — Introducción y Contexto
 
-> **Documento de trabajo (borrador para revisión del tutor).**
->
-> **Convención de notas — `[NOTA: ...]`.** Todo lo que aparezca entre `[NOTA: ... ]` es una
-> anotación de borrador: pregunta abierta, dato a confirmar, pendiente o comentario para el tutor.
-> **No forma parte del texto final** y debe eliminarse antes de la entrega. Son fáciles de encontrar
-> y verificar: `grep -rn "\[NOTA:" documentation/thesis/`. Antes de exportar la versión final, esa
-> búsqueda debe devolver **cero** resultados. Las citas al pie y las referencias cruzadas
-> (p. ej. "véase la Sección 10") **sí** son parte del texto y se conservan.
-
----
-
 ## 1. Las cooperativas de vivienda en Uruguay
+
+Este capítulo presenta el contexto del problema: la historia y relevancia del cooperativismo de vivienda en Uruguay (§1.1), cómo se asignan hoy las viviendas al finalizar una obra (§1.2) y por qué esa asignación es un problema difícil (§1.3).
 
 ### 1.1 Historia y relevancia social
 
 Uruguay tiene una de las tradiciones de vivienda cooperativa más desarrolladas del mundo. Desde hace más de cincuenta años, las cooperativas de vivienda son un pilar de la política habitacional del país: ofrecen a familias de sectores medios y trabajadores una vía de acceso a la vivienda digna que no depende del mercado inmobiliario privado ni de la adjudicación directa por parte del Estado.
 
-El marco que hizo posible este modelo es la **Ley N.º 13.728 de 1968** (Ley Nacional de Vivienda), que creó el sistema de financiamiento público de vivienda social y reconoció explícitamente a las cooperativas como vehículo legítimo para acceder a él. La ley distingue dos grandes modalidades: las **cooperativas de usuarios**, en las que la cooperativa conserva la propiedad colectiva del inmueble y cada socio recibe un derecho de *uso y goce* sobre una unidad —perpetuo y heredable, pero no transferible en el mercado—, y las **cooperativas de propietarios**, en las que los socios acceden a la propiedad individual de su unidad. En la práctica uruguaya predomina ampliamente el modelo de usuarios: el socio nunca es dueño individual de su vivienda, sino titular de un derecho de uso dentro de un patrimonio colectivo.[^ley13728]
+El marco que hizo posible este modelo es la **Ley N.º 13.728 de 1968** (Plan Nacional de Vivienda), que creó el sistema de financiamiento público de vivienda social y reconoció explícitamente a las cooperativas como vehículo legítimo para acceder a él. El régimen cooperativo está regulado hoy por la **Ley General de Cooperativas N.º 18.407 de 2008** (que sustituyó el capítulo cooperativo de aquella ley fundacional), y distingue dos grandes modalidades (art. 128): las **cooperativas de usuarios**, que "sólo atribuyen a los socios el derecho de *uso y goce* sobre las viviendas sin limitación de tiempo" (art. 129) —un derecho inherente a la calidad de socio, no cedible en el mercado (art. 54) pero sí transmisible a los herederos, que pueden optar por continuar en el uso y goce de la vivienda (art. 141)—, y las **cooperativas de propietarios**, en las que los socios acceden a la propiedad individual de su unidad (art. 130). En la práctica uruguaya predomina ampliamente el modelo de usuarios: el socio nunca es dueño individual de su vivienda, sino titular de un derecho de uso dentro de un patrimonio colectivo (Ley N.º 13.728, 1968; Ley N.º 18.407, 2008).
 
-En **1970** se fundó **FUCVAM** (Federación Uruguaya de Cooperativas de Vivienda por Ayuda Mutua), que agrupa a las cooperativas construidas mediante el aporte de trabajo de los propios socios. FUCVAM se convirtió en un actor central del movimiento y es hoy un referente internacional del cooperativismo habitacional; nuclea a varios cientos de cooperativas que representan a decenas de miles de familias en todo el país.[^fucvam]
+En **1970** se fundó **FUCVAM** (Federación Uruguaya de Cooperativas de Vivienda por Ayuda Mutua), que agrupa a las cooperativas construidas mediante el aporte de trabajo de los propios socios. FUCVAM se convirtió en un actor central del movimiento y es hoy un referente internacional del cooperativismo habitacional; nuclea a varios cientos de cooperativas que representan a decenas de miles de familias en todo el país (FUCVAM, s.f.).[^fucvam] La otra gran federación es **FECOVI** (Federación de Cooperativas de Vivienda de Usuarios por Ahorro Previo), fundada en 1969, que agrupa a las cooperativas de la modalidad de ahorro previo —alrededor de 120 cooperativas que representan a más de 5.000 familias (FECOVI, s.f.)— y a la que pertenece la mayoría de las cooperativas que han utilizado MTAV. Existen además federaciones menores, y cooperativas que no integran ninguna federación.
 
 El modelo cooperativo se basa en la **autogestión**: un grupo de familias se organiza, accede a financiamiento —típicamente a través del Estado y la banca pública—, ejecuta o contrata la construcción, y al finalizar habita y administra colectivamente el conjunto. A lo largo de cinco décadas este modelo ha demostrado ser una herramienta eficaz de acceso a la vivienda para amplios sectores de la población. También ha generado desafíos organizativos propios —entre ellos, el problema que motiva este trabajo: **cómo asignar las unidades construidas entre las familias socias** al finalizar la obra.
 
@@ -56,18 +47,20 @@ Lo que se necesita es un método que **optimice la satisfacción colectiva respe
 
 ## 2. Antecedentes: el algoritmo de asignación y el MTAV original
 
+Este capítulo describe el antecedente directo de este trabajo: la herramienta MTAV desarrollada en la Facultad de Ingeniería (§2.1), su validación en proyectos reales (§2.2) y la limitación operativa que motiva esta tesis (§2.3).
+
 ### 2.1 El MTAV original: la herramienta de la Facultad de Ingeniería
 
 Frente a la limitación del sorteo aleatorio —que ignora las preferencias— y de la asignación negociada —que rara vez es transparente—, en la Facultad de Ingeniería de la Universidad de la República se desarrolló una alternativa basada en optimización matemática: **MTAV** (*Mejor Tecnología de Asignación de Viviendas*).
 
-MTAV fue desarrollado por un equipo de docentes, estudiantes y egresados de la Facultad, con participación de cooperativistas, y evolucionó a lo largo de varios trabajos sucesivos a partir de su formulación inicial en 2016.[^mtav2016][^mtav-evol] La idea central es simple de enunciar: cada familia ordena según su preferencia las viviendas disponibles, y el sistema busca —mediante **programación lineal entera**, resuelta con el solver de código abierto GLPK— la asignación que sea a la vez justa y globalmente satisfactoria.
+MTAV fue desarrollado por un equipo de docentes, estudiantes y egresados de la Facultad, con participación de cooperativistas, y evolucionó a lo largo de varios trabajos sucesivos (Fagián, Prino y Sánchez, 2017; Fierro, 2020) a partir de su formulación inicial en 2016 (Prino, Sánchez y Cancela, 2016). La idea central es simple de enunciar: cada familia ordena según su preferencia las viviendas disponibles, y el sistema busca —mediante **programación lineal entera**, resuelta con el solver de código abierto GLPK[^glpk]— la asignación que sea a la vez justa y globalmente satisfactoria.
 
 Para lograrlo, MTAV persigue **dos objetivos en orden de prioridad estricta**: primero la equidad y, solo después —sin sacrificar nada de esa equidad—, la satisfacción global. En la práctica, esto se resuelve en dos etapas encadenadas:
 
 1. **Primero, la equidad.** La primera etapa minimiza la *peor* prioridad que recibe cualquier familia; en otras palabras, busca que la familia menos favorecida quede lo mejor posible. Este es el criterio de **equidad max-min**: garantiza que ninguna familia quede desproporcionadamente perjudicada respecto de las demás.
 2. **Después, la satisfacción global.** Fijada esa cota de equidad, la segunda etapa elige, entre todas las asignaciones que la respetan, aquella que maximiza la satisfacción del conjunto —minimizando la suma total de prioridades asignadas.
 
-El resultado tiene propiedades valiosas: es **óptimo** (no existe otra asignación mejor bajo estos criterios), **verificable** (puede auditarse mostrando las preferencias y el resultado) y **equitativo ante iguales** —cuando dos familias tienen exactamente las mismas preferencias, un desempate aleatorio les da la misma probabilidad de obtener la vivienda en disputa. Estas propiedades no son solo intuitivas: fueron analizadas formalmente desde la teoría del diseño de mercados, que confirma que MTAV es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y que **trata por igual a quienes son iguales**.[^paleo] *(La formulación matemática completa se detalla en la Parte III y en el Apéndice C.)*
+El resultado tiene propiedades valiosas: es **óptimo** (no existe otra asignación mejor bajo estos criterios), **verificable** (puede auditarse mostrando las preferencias y el resultado) y **equitativo ante iguales** —cuando dos familias tienen exactamente las mismas preferencias, un desempate aleatorio les da la misma probabilidad de obtener la vivienda en disputa. Estas propiedades no son solo intuitivas: fueron analizadas formalmente desde la teoría del diseño de mercados, que confirma que MTAV es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y que **trata por igual a quienes son iguales** (Paleo Arrarte, 2021). *(La formulación matemática completa se detalla en la Parte III y en el Apéndice C.)*
 
 ### 2.2 Validación en el mundo real
 
@@ -79,7 +72,9 @@ Esta trayectoria es significativa. Indica que el enfoque matemático no solo es 
 
 A pesar de su solidez matemática y su eficacia probada, el MTAV original tiene una limitación importante que no es algorítmica sino **operativa**: no es una herramienta pensada para que cualquier persona la use por su cuenta.
 
-A la fecha, MTAV se distribuye como una **aplicación de escritorio** de instalación autónoma, con su manual de usuario. Una de las versiones publicadas de la herramienta[^mtav-repo] da una idea concreta de lo que implica usarla: instalar Python y el solver GLPK en la máquina, preparar las preferencias en una planilla CSV con un formato preciso —una matriz de familias por unidades, cargada a mano—, ejecutar el programa desde la línea de comandos y leer el resultado en un archivo de texto. En la práctica, poner en marcha un sorteo normalmente requiere la **asistencia del equipo de MTAV**: instalar y configurar el programa, preparar los datos de familias, unidades y preferencias, ejecutar el proceso e interpretar los resultados. No es un programa amigable para un cooperativista común sin acompañamiento técnico.
+En su versión inicial, la herramienta era un programa de línea de comandos[^mtav-repo]: usarla implicaba instalar Python y el solver GLPK en la máquina, preparar las preferencias en una planilla CSV con un formato preciso —una matriz de familias por unidades, cargada a mano—, ejecutar el programa desde la consola y leer el resultado en un archivo de texto.
+
+A la fecha, MTAV se distribuye como una **aplicación de escritorio** de instalación autónoma, con interfaz gráfica y su manual de usuario (MTAV: Manual del usuario, s.f.). La operativa es considerablemente más amigable que la inicial: la matriz de preferencias se crea y edita en pantalla —o se importa desde un archivo CSV generado con una planilla electrónica—, un botón "Asignar" ejecuta la optimización, y el resultado se muestra en pantalla y puede exportarse a PDF. Aun así, el flujo de un sorteo real sigue siendo esencialmente **manual y centralizado**: la recolección de preferencias típica consiste en distribuir planillas electrónicas a las familias, recibirlas (por correo electrónico u otro medio) y consolidarlas a mano en la matriz única que se le entrega al programa; esa matriz exige un formato estricto (ranking completo de 1 a N, sin blancos ni repetidos, con un tratamiento especial para las familias que no entregaron sus preferencias); y todo el proceso ocurre en una sola computadora, operada por una sola persona, que instala el programa, prepara los datos, ejecuta y comunica los resultados. Como resume la sección anterior, poner en marcha un sorteo requiere personal técnico o al menos con habilidades suficientes —en la práctica, muchas veces la **asistencia del equipo de MTAV**—, y el ingreso de las preferencias no es privado: pasa por planillas que terceros manipulan y consolidan.
 
 De ese modelo de uso se desprenden varias consecuencias:
 
@@ -94,11 +89,13 @@ Es precisamente este cuello de botella —no el algoritmo, sino todo lo que lo r
 
 ## 3. Motivación para MTAV en línea
 
+Este capítulo plantea la propuesta del trabajo: convertir la herramienta especializada en una plataforma de autogestión (§3.1) y las implicancias que esa transformación tiene más allá de la comodidad operativa (§3.2).
+
 ### 3.1 De herramienta especializada a plataforma de autogestión
 
 La motivación central de este trabajo es directa: si el algoritmo funciona y produce resultados justos, ¿por qué limitar su uso a quienes cuentan con acompañamiento técnico? No hay razón algorítmica para esa limitación; es puramente operativa.
 
-Esta dirección no es nueva ni improvisada. El propio trabajo académico previo sobre MTAV ya la había anticipado: en su proyecto de grado, Marcos Fierro propuso explícitamente un **"MTAV Online"** como línea de trabajo futuro, señalando las ventajas de llevar la herramienta a la web —acceso desde el navegador sin instalación, uso desde dispositivos móviles, generación de plantillas de preferencias, ingreso privado de las preferencias de cada usuario y mayor facilidad de difusión y mantenimiento.[^mtavonline] Esta tesis es, en buena medida, la **realización concreta de esa propuesta**.
+Esta dirección no es nueva ni improvisada. El propio trabajo académico previo sobre MTAV ya la había anticipado: en su proyecto de grado, Marcos Fierro propuso explícitamente un **"MTAV Online"** como línea de trabajo futuro, señalando las ventajas de llevar la herramienta a la web —acceso desde el navegador sin instalación, uso desde dispositivos móviles, generación de plantillas de preferencias, ingreso privado de las preferencias de cada usuario y mayor facilidad de difusión y mantenimiento (Fierro, 2024, §4.2). Esta tesis es, en buena medida, la **realización concreta de esa propuesta**.
 
 MTAV en línea convierte aquella prueba de concepto exitosa en una herramienta de autogestión. La idea es que cualquier cooperativa pueda, por sí misma:
 
@@ -125,9 +122,9 @@ Eliminar la dependencia del intermediario técnico tiene consecuencias que van m
 
 **Comunidad y naturaleza compartida.** Una cooperativa no construye solo viviendas: a lo largo de años construye también una comunidad. El MTAV original vive en una sola máquina, operada por una persona, con la información concentrada en un único lugar. Una aplicación en línea es, por naturaleza, compartida: la información y la actividad del proyecto se distribuyen a todos sus usuarios casi en tiempo real —quién se sumó, quién publicó algo, un administrador que agrega unidades, una familia recién incorporada.
 
-Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto y la gestión de eventos con confirmación de asistencia —todo ello ya implementado— y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (véase la Sección 10). Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
+Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto y la gestión de eventos con confirmación de asistencia —todo ello ya implementado— y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (véase la Sección 22). Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
 
-**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas varias extensiones al propio algoritmo —un criterio adicional de equidad basado en la desviación estándar y la elección sobre un frente de Pareto, la incorporación de preferencias de *vecindad* entre familias, y las preferencias "en bloque"— que exceden el alcance de esta tesis pero constituyen un camino natural de trabajo futuro (véase la Sección 10).[^fierro-futuro]
+**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas varias extensiones al propio algoritmo —un criterio adicional de equidad basado en la desviación estándar y la elección sobre un frente de Pareto, la incorporación de preferencias de *vecindad* entre familias, y las preferencias "en bloque"— que exceden el alcance de esta tesis pero constituyen un camino natural de trabajo futuro (Fierro, 2024; véase la Sección 22).
 
 ---
 
@@ -165,17 +162,16 @@ La forma más clara de entender MTAV en línea es seguir el ciclo de vida de un 
 
 **El sorteo.** Cuando el proceso está completo, el administrador ejecuta el sorteo. El sistema bloquea las preferencias, corre el algoritmo de optimización y asigna todas las unidades a la vez. El resultado es definitivo: no se edita ni se negocia. Solo en situaciones excepcionales —por ejemplo, si más tarde se detecta un error en los datos, como una familia que había quedado sin registrar— un superadministrador puede invalidar la ejecución completa, dejando constancia en el registro de auditoría, para volver a ejecutar el sorteo cuando corresponda.
 
-**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia; el registro de la ejecución queda de forma permanente. Cada cooperativista sigue viendo solo las preferencias de su propia familia, también después del sorteo (véase la Sección 10, Trabajo futuro).
+**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia; el registro de la ejecución queda de forma permanente. Cada cooperativista sigue viendo solo las preferencias de su propia familia, también después del sorteo (véase la Sección 22, Trabajo futuro).
+
+### 4.4 Organización del documento
+
+El resto del documento se organiza en tres partes y un conjunto de apéndices. La **Parte II** describe la aplicación en términos funcionales —el stack tecnológico y su justificación, el ciclo de vida de un proyecto, el sorteo desde la perspectiva del usuario, y las decisiones de accesibilidad y diseño móvil— y es suficiente, junto con esta Parte I, para comprender qué es y qué hace MTAV en línea sin formación técnica específica. La **Parte III** es la profundización algorítmica: el modelo de preferencias, la formulación matemática de las dos fases, el cuello de botella de la Fase 1 y la contribución original de este trabajo —la búsqueda binaria—, con su demostración de equivalencia y sus resultados empíricos. La **Parte IV** documenta la ingeniería del sistema —arquitectura, el sorteo como capa independiente, autorización y manejo de datos— y cierra con las conclusiones y el trabajo futuro. Los **apéndices** son material de referencia estrictamente opcional: modelo de datos, permisos, modelos matemáticos completos y auditoría, plano, testing, uso de IA, análisis y manuales de usuario.
 
 ---
 
-[^ley13728]: Ley N.º 13.728 del 17/12/1968 (Plan Nacional de Vivienda). Texto completo: IMPO — https://www.impo.com.uy/bases/leyes/13728-1968. [NOTA: verificar artículos específicos antes de citarlos en detalle.]
-[^fucvam]: FUCVAM (Federación Uruguaya de Cooperativas de Vivienda por Ayuda Mutua), nacida en 1970. Según su página institucional, "más de 730 cooperativas están federadas a FUCVAM en Uruguay, representando a más [de] 35.000 familias" (FUCVAM, *Historia*, https://www.fucvam.org.uy/quienes-somos/historia, consultado el 3 de julio de 2026).
-[^mtav2016]: Prino, M., Sánchez, E. y Cancela, H. (2016). *Optimal distribution of habitational units in a cooperative: A mathematical application to optimize satisfaction.* CLEI 2016 (XLII Latin American Computing Conference), pp. 1-7. doi:10.1109/CLEI.2016.7833357. Trabajo fundacional de MTAV.
-[^mtav-evol]: Ediciones sucesivas: Fagián, I., Prino, M. y Sánchez, E. (2017); Fierro, M. (2020, *MTAV 3.0*); ambos FING-Udelar, supervisados por H. Cancela.
-[^paleo]: Paleo Arrarte, J. M. (2021). *La asignación de apartamentos en cooperativas de vivienda: un enfoque desde el diseño de mercados.* Tesis de Maestría, FCEA-Udelar. Concluye que MTAV es eficiente ex-post (Pareto-óptimo) y satisface *equal treatment of equals*.
+[^glpk]: GLPK (GNU Linear Programming Kit): https://www.gnu.org/software/glpk/
+[^fucvam]: Según su página institucional, "más de 730 cooperativas están federadas a FUCVAM en Uruguay, representando a más [de] 35.000 familias" (FUCVAM, s.f.).
 [^mtav-uso]: Fierro (2024) refiere "numerosas cooperativas"; la cifra "más de veinte" según indicación del tutor (H. Cancela). [NOTA: eventual lista concreta de proyectos, a solicitar al tutor si se desea incluir.]
-[^strategyproof]: Paleo (2021) muestra que MTAV no siempre es *strategy-proof*: un participante con información completa de las preferencias ajenas podría manipular las propias para beneficiarse. El ingreso privado de preferencias en la plataforma web mitiga este escenario al impedir el acceso a las preferencias de los demás.
-[^mtav-repo]: Repositorio público de una versión de la herramienta original (Python + GLPK, ejecución por línea de comandos): https://github.com/eze91/MTAV. [NOTA: confirmar a qué edición de MTAV corresponde este repositorio y cómo se relaciona con las versiones de escritorio posteriores, antes de la versión final.]
-[^mtavonline]: Fierro, M. (2024). *Asignación de viviendas en cooperativas: Programación por restricciones y Análisis de equidad.* Proyecto de Grado, FING-Udelar (sup. H. Cancela), §4.2, subsección "MTAV Online". Licencia CC BY 4.0.
-[^fierro-futuro]: Fierro (2024): propuestas de programación por restricciones (MiniZinc), medida de equidad por desviación estándar con frente de Pareto, preferencias de vecindad y preferencias en bloque.
+[^strategyproof]: Paleo Arrarte (2021) muestra que MTAV no siempre es *strategy-proof*: un participante con información completa de las preferencias ajenas podría manipular las propias para beneficiarse. El ingreso privado de preferencias en la plataforma web mitiga este escenario al impedir el acceso a las preferencias de los demás.
+[^mtav-repo]: Repositorio público de la versión inicial, preparada por Ezequiel Sánchez y Martín Prino (Python + GLPK, ejecución por línea de comandos): https://github.com/eze91/MTAV. La versión actual de escritorio se distribuye, junto con su manual, desde https://drive.google.com/drive/folders/0B-xfr6ANdtHXLTdpd0duV1VrQWc

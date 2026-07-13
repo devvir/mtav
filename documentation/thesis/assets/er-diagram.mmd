@@ -1,0 +1,21 @@
+erDiagram
+    PROJECT ||--o{ UNIT_TYPE : tiene
+    PROJECT ||--o{ FAMILY : tiene
+    PROJECT ||--o{ UNIT : tiene
+    PROJECT ||--o{ EVENT : tiene
+    PROJECT ||--o{ MEDIA : tiene
+    PROJECT ||--|| PLAN : tiene
+    PROJECT ||--o{ LOTTERY_AUDIT : registra
+    PROJECT }o--o{ USER : "project_user (active)"
+    UNIT_TYPE ||--o{ UNIT : clasifica
+    UNIT_TYPE ||--o{ FAMILY : corresponde
+    FAMILY ||--o{ USER : "miembros (family_id)"
+    FAMILY |o--o{ UNIT : "asignacion (family_id, post-sorteo)"
+    FAMILY }o--o{ UNIT : "unit_preferences (order)"
+    PLAN ||--o{ PLAN_ITEM : compone
+    PLAN_ITEM ||--o{ UNIT : ubica
+    EVENT }o--o{ USER : "event_rsvp (status)"
+    EVENT ||--o{ LOTTERY_AUDIT : "sorteo auditado"
+    USER ||--o{ MEDIA : sube
+    USER ||--o{ EVENT : crea
+    USER }o--o{ NOTIFICATION : "notification_read"

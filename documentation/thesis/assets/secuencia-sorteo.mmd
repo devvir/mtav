@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    actor Admin as Administrador
+    participant HTTP as Controlador HTTP
+    participant Exec as Servicio de ejecución
+    participant Audit as Auditoría
+    participant Orch as Orquestador
+    participant Solver as Solver (búsqueda binaria + GLPK)
+    participant BD as Base de datos
+    actor Coop as Cooperativistas
+
+    Admin->>HTTP: Ejecutar sorteo
+    HTTP->>Exec: execute(sorteo)
+    Exec->>BD: Reserva atómica (despublica el sorteo)
+    Note over BD: Preferencias bloqueadas
+    Exec->>Exec: Valida integridad y balance
+    alt familias ≠ unidades
+        Exec-->>Admin: Advertencia: requiere confirmación
+    end
+    Exec->>Audit: init (manifiesto congelado)
+    Exec->>Orch: Ejecutar con el manifiesto
+    loop por cada tipo de vivienda
+        Orch->>Solver: Resolver sub-sorteo
+        Solver-->>Orch: Asignaciones del grupo
+        Orch->>Audit: custom (solver) + group_execution
+    end
+    Orch->>Solver: Sorteo de remanentes (huérfanos)
+    Orch->>BD: Registrar asignaciones (unidad → familia)
+    Orch->>Audit: project_execution (consolidado)
+    Orch-->>Coop: Notificaciones + difusión en tiempo real
+    Note over Coop: Resultado visible para todo el proyecto
+    alt falla la optimización
+        Orch->>Audit: failure (error registrado)
+        Orch->>BD: Revierte la reserva (republica el sorteo)
+        Note over BD: Preferencias desbloqueadas — se puede reintentar
+    end

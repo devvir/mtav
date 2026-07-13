@@ -8,19 +8,19 @@
 
 ---
 
-## 11. El problema de asignación y el modelo de preferencias
+## 10. El problema de asignación y el modelo de preferencias
 
 El sorteo resuelve un **problema de asignación**: distribuir un conjunto de viviendas entre un conjunto de familias, respetando las preferencias que cada familia expresa sobre las viviendas.
 
-**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en la Sección 17). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
+**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en la Sección 16). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
 
-**Descomposición por tipo de vivienda.** Como se explicó en la Parte II, cada familia opta únicamente por unidades de su tipo. Por lo tanto, el sorteo de un proyecto **no es un único problema**, sino una colección de subproblemas independientes, uno por cada tipo de vivienda: las familias de un tipo compiten entre sí por las unidades de ese tipo. La solución global se compone de las soluciones de cada subproblema, más una fase de redistribución de remanentes para los casos en que un subproblema queda desbalanceado (§17).
+**Descomposición por tipo de vivienda.** Como se explicó en la Parte II, cada familia opta únicamente por unidades de su tipo. Por lo tanto, el sorteo de un proyecto **no es un único problema**, sino una colección de subproblemas independientes, uno por cada tipo de vivienda: las familias de un tipo compiten entre sí por las unidades de ese tipo. La solución global se compone de las soluciones de cada subproblema, más una fase de redistribución de remanentes para los casos en que un subproblema queda desbalanceado (§16).
 
-**Caso balanceado y desbalanceado.** El núcleo del algoritmo se formula sobre el **caso balanceado**, en el que el número de familias es igual al número de unidades del tipo ($|C| = |V|$): cada familia recibe exactamente una unidad y cada unidad se asigna a exactamente una familia. Los casos desbalanceados —más familias que unidades, o más unidades que familias— se reducen al caso balanceado mediante selección de unidades y redistribución de remanentes, que se tratan en §17. La formulación que sigue asume el caso balanceado.
+**Caso balanceado y desbalanceado.** El núcleo del algoritmo se formula sobre el **caso balanceado**, en el que el número de familias es igual al número de unidades del tipo ($|C| = |V|$): cada familia recibe exactamente una unidad y cada unidad se asigna a exactamente una familia. Los casos desbalanceados —más familias que unidades, o más unidades que familias— se reducen al caso balanceado mediante selección de unidades y redistribución de remanentes, que se tratan en §16. La formulación que sigue asume el caso balanceado.
 
 ---
 
-## 12. Qué garantiza el algoritmo: equidad max-min y satisfacción global
+## 11. Qué garantiza el algoritmo: equidad max-min y satisfacción global
 
 El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero la equidad, y solo después la satisfacción global.
 
@@ -32,7 +32,7 @@ El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero
 
 ---
 
-## 13. Formulación matemática
+## 12. Formulación matemática
 
 El problema se modela como un problema de **programación lineal entera** (con variables binarias de asignación), resuelto en dos fases encadenadas. Se presentan a continuación ambos modelos; los archivos de modelo completos en lenguaje GMPL (GNU MathProg) están en el Apéndice C.
 
@@ -67,7 +67,7 @@ En conjunto, las dos fases implementan una **optimización lexicográfica**: se 
 
 ---
 
-## 14. El cuello de botella de la Fase 1: casos degenerados
+## 13. El cuello de botella de la Fase 1: casos degenerados
 
 La solución original —la misma que utiliza la herramienta de escritorio (Parte I, §2)— resuelve ambas fases con GLPK. La Fase 2, dada la cota $S$, resulta rápida y estable en todos los casos observados: la restricción $\sum_v p_{c,v} x_{c,v} \le S$ acota fuertemente el espacio de búsqueda. El problema está en la **Fase 1**: minimizar $z$ mediante *branch-and-bound* puede volverse extremadamente lento —o no terminar en tiempo razonable— sobre instancias **degeneradas**.
 
@@ -82,11 +82,11 @@ El diagnóstico es preciso: **el cuello de botella no es el problema de asignaci
 
 ---
 
-## 15. La búsqueda binaria: contribución original
+## 14. La búsqueda binaria: contribución original
 
 La contribución algorítmica de este trabajo consiste en **no minimizar $z$ directamente**, sino en **buscar el menor valor de la cota $S$ para el cual el problema es factible**, usando la Fase 2 como prueba de factibilidad. Esto reemplaza la Fase 1 problemática por una serie corta de ejecuciones de la Fase 2, que es rápida y estable.
 
-### 15.1 La idea
+### 14.1 La idea
 
 Para un valor $S$, considérese el predicado
 
@@ -94,7 +94,7 @@ $$F(S) = \text{«existe una asignación en la que toda familia recibe un rango} 
 
 Verificar $F(S)$ es exactamente lo que hace la Fase 2 con cota $S$: si GLPK encuentra una asignación que respeta $\sum_v p_{c,v} x_{c,v} \le S$ para toda familia, entonces $F(S)$ es verdadero; si el modelo resulta infactible, $F(S)$ es falso. El óptimo max-min $S^\ast$ de la Fase 1 es, por definición, **el menor $S$ tal que $F(S)$ es verdadero**.
 
-### 15.2 Monotonía y corrección
+### 14.2 Monotonía y corrección
 
 La búsqueda binaria es aplicable porque $F$ es **monótono** en $S$.
 
@@ -104,13 +104,13 @@ La búsqueda binaria es aplicable porque $F$ es **monótono** en $S$.
 
 En consecuencia, el conjunto de valores factibles forma un **intervalo superior** $\{S : F(S)\} = [S^\ast, N]$, y el de los infactibles, el intervalo $[1, S^\ast - 1]$ (posiblemente vacío, si toda familia puede recibir su primera opción). Es decir, el espacio de valores de $S$ queda **partido en dos** por el umbral $S^\ast$: infactible por debajo, factible a partir de $S^\ast$. Este es precisamente el escenario en que la búsqueda binaria localiza el umbral.
 
-### 15.3 El algoritmo
+### 14.3 El algoritmo
 
 Se realiza una búsqueda binaria clásica sobre $S \in [1, N]$: en cada paso se toma el valor medio $S$ del intervalo de búsqueda y se resuelve la Fase 2 con esa cota. Si es factible, $S^\ast \le S$ y se continúa en la mitad inferior; si es infactible, $S^\ast > S$ y se continúa en la mitad superior. El procedimiento converge al umbral $S^\ast$ en $O(\log N)$ pruebas de factibilidad.
 
 Un detalle valioso: como cada prueba de factibilidad **es** una ejecución de la Fase 2 —que, cuando es factible, devuelve una asignación concreta—, la última prueba factible (la de $S = S^\ast$) entrega a la vez la **cota óptima de equidad y una asignación que la alcanza**. Las dos fases del método original se funden así en una sola búsqueda.
 
-### 15.4 Equivalencia con el método original
+### 14.4 Equivalencia con el método original
 
 La búsqueda binaria produce **el mismo resultado** que la Fase 1 original, por dos vías complementarias:
 
@@ -121,11 +121,11 @@ Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la F
 
 ---
 
-## 16. Resultados empíricos
+## 15. Resultados empíricos
 
 Para cuantificar la mejora se ejecutaron *benchmarks* sobre cuatro escenarios de preferencias —**aleatorias**, **realistas** (mezcla de unidades populares e impopulares, que simula el comportamiento real), **idénticas** y **opuestas** (los dos casos degenerados)— en tamaños de 5 a 500 familias, con cientos a miles de repeticiones por configuración.
 
-**Solución original (GLPK en ambas fases).** Como se detalló en §14, los *timeouts* aparecen ya en tamaños de 25 a 30 familias en el escenario aleatorio, y los escenarios degenerados resultan intratables.
+**Solución original (GLPK en ambas fases).** Como se detalló en §13, los *timeouts* aparecen ya en tamaños de 25 a 30 familias en el escenario aleatorio, y los escenarios degenerados resultan intratables.
 
 **Con búsqueda binaria.** El método propuesto resuelve **el 100 % de las instancias, sin un solo *timeout***, en los cuatro escenarios y en todos los tamaños hasta 500 familias —incluidos los casos idénticos y opuestos que la solución original no podía terminar—. Los tiempos medios de ejecución (resolución completa) son:
 
@@ -141,15 +141,19 @@ Dos lecturas importantes de estos números:
 - **El cuello de botella desapareció.** Instancias que antes no terminaban —tanto las degeneradas como las aleatorias por encima de unas pocas decenas de familias— hoy se resuelven de forma confiable. El caso de preferencias idénticas, el peor posible para el desempate, se resuelve al 100 % incluso a tamaño 500.
 - **El tiempo restante es de la Fase 2, no de la Fase 1.** El crecimiento del tiempo con el tamaño se debe a la optimización de asignación en sí (la Fase 2 con GLPK), no a la degeneración que la búsqueda binaria eliminó. Además, estos tamaños corresponden a un sorteo por tipo de unidad: un proyecto real se reparte en varios tipos, cada uno con su propio subproblema más pequeño, y las cooperativas reales están muy por debajo de las 500 unidades. En la práctica, el sorteo se resuelve en el rango de fracciones de segundo a pocos segundos.
 
-[NOTA: los valores de la tabla son medias sobre `storage/benchmarks/` (glpk\_*), computadas en `scripts/benchmark_analysis/`. Al finalizar conviene incluir alguna visualización (p. ej. tiempos por tamaño, o distribución en el caso idéntico) y decidir cuánto detalle estadístico —percentiles, etc.— va acá y cuánto a un apéndice.]
+La figura siguiente resume la comparación en el escenario aleatorio —el único en que la solución original produce datos comparables; en los degenerados directamente no terminaba—. La banda de cada serie va de la mediana al percentil 99: la del método original se dispara precisamente en el rango de tamaños de un proyecto real, mientras que la de la búsqueda binaria se mantiene angosta y estable hasta tamaño 500.
+
+![Comparación del método original y la búsqueda binaria (escenario aleatorio, mediana y banda hasta p99)](assets/benchmark-antes-despues.png)
+
+El detalle por escenario —incluidos los casos degenerados que la solución original no podía resolver— y las estadísticas completas (percentiles, tasas de éxito, metodología) se presentan en el Apéndice C.3.
 
 ---
 
-## 17. Ejecución, orquestación por tipos y redistribución de remanentes
+## 16. Ejecución, orquestación por tipos y redistribución de remanentes
 
 Hasta aquí, la formulación asumió el caso balanceado (igual número de familias y unidades) y un único tipo de vivienda. La ejecución real de un sorteo de proyecto compone esos subproblemas y resuelve los desbalances.
 
-**Orquestación por tipos.** Siguiendo la descomposición establecida en §11, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
+**Orquestación por tipos.** Siguiendo la descomposición establecida en §10, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
 
 **Balanceo de subproblemas desbalanceados.** Cuando un subproblema no tiene igual número de familias que de unidades, se lo reduce al caso balanceado antes de resolverlo:
 
@@ -158,11 +162,11 @@ Hasta aquí, la formulación asumió el caso balanceado (igual número de famili
 
 **Redistribución de remanentes.** Las familias que quedaron sin unidad y las unidades que quedaron sin familia se acumulan como *remanentes* de las rondas por tipo. Una segunda pasada ejecuta un sorteo sobre esos remanentes, dándoles una nueva oportunidad de asignación en lugar de descartarlos.
 
-**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en la Sección 20 (Parte IV).
+**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en la Sección 19 (Parte IV).
 
 ---
 
-## 18. Inmutabilidad y auditoría
+## 17. Inmutabilidad y auditoría
 
 El sorteo es una instancia **única y sensible**: define dónde vivirá cada familia y no se repite. Por eso su ejecución está rodeada de garantías de integridad.
 
@@ -170,4 +174,4 @@ El sorteo es una instancia **única y sensible**: define dónde vivirá cada fam
 
 **Inmutabilidad.** Una vez ejecutado, el resultado es **definitivo**: no se edita ni se renegocia. Esta inmutabilidad es una exigencia del dominio —legal y social—, no una limitación técnica. La única excepción es la **invalidación** por parte de un superadministrador, reservada para situaciones excepcionales (por ejemplo, un error de datos detectado después); invalidar revierte la ejecución completa para poder repetirla, y queda registrada como tal.
 
-**Registro de auditoría.** Cada ejecución genera un conjunto de registros de auditoría, agrupados bajo un identificador común (UUID) que permite reconstruir la traza completa. Los tipos de registro distinguen los momentos del proceso: `INIT` (inicio, con los datos de entrada considerados), `GROUP_EXECUTION` (uno por cada sorteo de tipo de unidad), `PROJECT_EXECUTION` (finalización del proyecto), `INVALIDATE` (reversión por un superadministrador) y `FAILURE` (error de ejecución). Al conservar tanto las preferencias consideradas como el resultado producido, este registro constituye evidencia **no repudiable**: cualquiera puede verificar, después del hecho, que la asignación se corresponde con las preferencias ingresadas. El esquema y un ejemplo anotado del registro se incluyen en el Apéndice C.
+**Registro de auditoría.** Cada ejecución genera un conjunto de registros de auditoría, agrupados bajo un identificador común (UUID) que permite reconstruir la traza completa. Los tipos de registro distinguen los momentos del proceso: `INIT` (inicio, con los datos de entrada considerados), `CUSTOM` (pasos auxiliares, como la resolución del solver con sus artefactos), `GROUP_EXECUTION` (uno por cada sorteo de tipo de unidad), `PROJECT_EXECUTION` (finalización del proyecto), `INVALIDATE` (reversión por un superadministrador) y `FAILURE` (error de ejecución). Al conservar tanto las preferencias consideradas como el resultado producido, este registro constituye evidencia **no repudiable**: cualquiera puede verificar, después del hecho, que la asignación se corresponde con las preferencias ingresadas. El esquema y un ejemplo anotado del registro se incluyen en el Apéndice C.
