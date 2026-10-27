@@ -5,7 +5,7 @@ import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { Family, Paginated } from '@/types/models';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Home } from 'lucide-vue-next';
@@ -58,7 +58,7 @@ useProjectChanges({ families: ['families'], people: ['families'], lottery_runs: 
         </p>
         <p class="text-sm text-text-muted">
           {{ family.unit_type?.name }} ·
-          {{ _('{count} people', { count: family.members_count ?? 0 }) }}
+          {{ _n('{count} person', '{count} people', family.members_count ?? 0) }}
         </p>
         <p v-if="family.members?.length" class="mt-2 line-clamp-2 text-sm">
           {{ family.members.map((m) => m.firstname).join(', ') }}

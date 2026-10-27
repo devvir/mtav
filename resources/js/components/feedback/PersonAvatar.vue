@@ -34,7 +34,7 @@ const sizes = { sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-16 text-x
         sizes[size],
       )
     "
-    :style="{ backgroundColor: `hsl(${hue} 45% 42%)` }"
+    :style="{ backgroundColor: `hsl(${hue} 45% 32%)` }"
   >
     {{ initials }}
   </span>

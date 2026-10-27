@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { Family, Paginated, Ref } from '@/types/models';
 import { Link, router } from '@inertiajs/vue3';
 import { Pencil, Plus, Trash2, UserPlus, UsersRound } from 'lucide-vue-next';
@@ -74,7 +74,7 @@ useProjectChanges({ families: ['families'], people: ['families'] });
         <p class="font-semibold">{{ family.name }}</p>
         <p class="text-sm text-text-muted">
           {{ family.unit_type?.name }} ·
-          {{ _('{count} people', { count: family.members_count ?? 0 }) }}
+          {{ _n('{count} person', '{count} people', family.members_count ?? 0) }}
           <template v-if="family.unit">
             · <span class="text-success">{{ family.unit.identifier }}</span></template
           >

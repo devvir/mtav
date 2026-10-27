@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Contracts\Http\Kernel;
+use Tests\Browser\Support\ReadUploadsLikePhp;
 use Tests\TestCase;
 
 /**
@@ -16,6 +18,7 @@ pest()
  */
 pest()
     ->extend(TestCase::class)
+    ->beforeEach(fn () => app(Kernel::class)->prependMiddleware(ReadUploadsLikePhp::class))
     ->in('Browser');
 
 pest()->browser()->timeout(20_000);

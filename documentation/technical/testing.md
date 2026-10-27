@@ -9,7 +9,7 @@ the isolated `mtav-testing` Docker environment — see
 ```bash
 ./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, UseCases suites
 ./mtav vitest [args]     # Vue tests (Vitest)
-./mtav e2e [args]        # Browser tests (Playwright): every page renders, and the cooperative journey
+./mtav e2e [args]        # Browser tests (Playwright); --group=critical for the quick subset
 ./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
 ./mtav test              # Everything: Pest + Vitest + E2E
 ```
@@ -20,10 +20,11 @@ installs dependencies, runs, and tears down. Arguments are forwarded to the
 underlying runner:
 
 ```bash
-./mtav pest --filter="AdminControllerCrudTest"
+./mtav pest --filter="runs the lottery"
 ./mtav pest --stop-on-failure
 ./mtav pest --testsuite Stress          # opt-in suite: Stress
-./mtav vitest resources/js/tests/unit/composables/useAuth.test.ts
+./mtav vitest resources/js/tests/unit/planEditor.test.ts
+./mtav e2e tests/Browser/Features/PlanTest.php
 ```
 
 ### Fast iteration (skip the boot/teardown cycle)
@@ -46,10 +47,7 @@ never have to stop your dev session to run tests.
 - **Unit** — the lottery solvers and GLPK internals, on plain data.
 - **Arch** — architecture rules.
 - **Stress** — slow GLPK scenarios; opt in with `--testsuite Stress`.
-- **Browser** — run by `./mtav e2e`: a smoke test that renders every page of the three
-  areas without JavaScript errors, and the journey of a cooperative from sign-up to its
-  lottery. The app runs in-process, so tests mix browser steps with database checks.
-  Fields are found by their `name`; buttons by their text, or `[aria-label="…"]`.
+- **Browser** — run by `./mtav e2e` (see below).
 
 ### Use-case tests
 
@@ -70,6 +68,24 @@ Two groups track rules the code does not meet yet:
 ./mtav pest --exclude-group=bug --exclude-group=new   # what should be green
 ./mtav pest --group=bug --group=new                   # the open list
 ```
+
+### Browser tests
+
+`tests/Browser/` drives the real app in Chromium (Pest's browser plugin on Playwright).
+The app runs in-process, so tests mix browser steps with database checks.
+
+- `Critical/` (group `critical`): every page of the three areas renders without
+  JavaScript errors, and a cooperative goes from sign-up to its lottery. The quick
+  subset: `./mtav e2e --group=critical`.
+- `Features/`: one file per area of the app (accounts, projects, setup, people,
+  events, files, the lottery, the plan, guided help), plus phones, Spanish and
+  accessibility (axe). Edge cases live here: refusals, limits, validation, the last admin.
+
+Fields are found by their `name`; buttons by their text, icon buttons by
+`[aria-label="…"]`. Helpers in `tests/Helpers/browser.php`: `inDialog()` and `button()`
+(a button by its text, never a heading saying the same), `attachFile()` (the browser
+refuses local paths), and the links that would arrive by email. Assertions are retried
+until the timeout (20 s); clicks and key presses run once.
 
 ### Notes
 
@@ -105,16 +121,4 @@ Runs `php artisan insights` (code quality analysis).
 ```bash
 git commit --no-verify -m "Emergency fix"   # ⚠️ use only when necessary
 git push --no-verify
-```
-
-## 📋 Important Notes
-
-### InertiaUI version synchronization
-
-Keep the InertiaUI packages in sync to avoid runtime issues — update both
-to the same version:
-
-```bash
-./mtav composer update inertiaui/modal
-./mtav pnpm update @inertiaui/modal-vue
 ```

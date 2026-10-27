@@ -25,7 +25,7 @@ const submit = () =>
     {{ _('To start a project, or to take part in one you were invited to.') }}
   </p>
 
-  <form class="space-y-5" @submit.prevent="submit">
+  <form novalidate class="space-y-5" @submit.prevent="submit">
     <div class="grid gap-5 sm:grid-cols-2">
       <Field :label="_('First name')" :error="form.errors.firstname" required v-slot="field">
         <TextInput

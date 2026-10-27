@@ -2,7 +2,7 @@
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { UnitType } from '@/types/models';
 import { Link } from '@inertiajs/vue3';
 import { Map } from 'lucide-vue-next';
@@ -33,10 +33,10 @@ useProjectChanges({ units: ['unitTypes'], unit_types: ['unitTypes'], lottery_run
     <p class="mb-3 text-sm text-text-muted">
       {{ type.description ? type.description + ' · ' : ''
       }}{{
-        _('{units} units, {families} families', {
-          units: type.units?.length ?? 0,
-          families: type.families_count ?? 0,
-        })
+        [
+          _n('{count} unit', '{count} units', type.units?.length ?? 0),
+          _n('{count} family', '{count} families', type.families_count ?? 0),
+        ].join(', ')
       }}
     </p>
     <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

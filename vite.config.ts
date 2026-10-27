@@ -10,10 +10,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      laravel({
-        input: ['resources/js/app.ts'],
-        refresh: true,
-      }),
+      // Not under Vitest: the plugin deletes public/hot when its process exits, and
+      // every environment shares it (a test run would cut a running dev server off)
+      !process.env.VITEST &&
+        laravel({
+          input: ['resources/js/app.ts'],
+          refresh: true,
+        }),
 
       tailwindcss(),
 
@@ -38,13 +41,12 @@ export default defineConfig(({ mode }) => {
         dts: true,
         vueTemplate: true,
       }),
-
     ],
 
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './resources/js'),
-        '@lang': path.resolve(__dirname, './lang'),
+        '@': path.resolve(import.meta.dirname, './resources/js'),
+        '@lang': path.resolve(import.meta.dirname, './lang'),
       },
     },
 

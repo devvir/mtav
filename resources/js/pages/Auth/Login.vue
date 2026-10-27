@@ -16,7 +16,7 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
   <Head :title="_('Sign in')" />
   <h1 class="mb-6 text-2xl font-bold">{{ _('Sign in') }}</h1>
 
-  <form class="space-y-5" @submit.prevent="submit">
+  <form novalidate class="space-y-5" @submit.prevent="submit">
     <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
       <TextInput
         v-bind="field"

@@ -18,11 +18,13 @@ import { cn } from '@/lib/utils';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import {
   Bell,
+  BookOpen,
   Building2,
   ChevronsUpDown,
   FolderKanban,
   LogOut,
   Menu,
+  MessageCircleQuestion,
   Settings,
   ShieldCheck,
   X,
@@ -120,7 +122,7 @@ const navLink = (item: NavItem) =>
           <DropdownMenuContent align="start" class="w-64">
             <DropdownMenuLabel>{{ _('Your projects') }}</DropdownMenuLabel>
             <DropdownMenuItem v-for="item in page.props.projects" :key="item.id" as-child>
-              <Link :href="route('projects.show', item.id)" class="w-full">
+              <Link :href="route('projects.show', { project: item.id })" class="w-full">
                 <span class="flex-1 truncate">{{ item.name }}</span>
                 <ShieldCheck
                   v-if="item.is_admin"
@@ -184,6 +186,17 @@ const navLink = (item: NavItem) =>
               <DropdownMenuItem v-if="user.is_superadmin" as-child>
                 <Link :href="route('admin.projects.index')" class="w-full"
                   ><ShieldCheck class="size-4" /> {{ _('Platform console') }}</Link
+                >
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem as-child>
+                <Link :href="route('documentation.guide')" class="w-full"
+                  ><BookOpen class="size-4" /> {{ _('Guide') }}</Link
+                >
+              </DropdownMenuItem>
+              <DropdownMenuItem as-child>
+                <Link :href="route('documentation.faq')" class="w-full"
+                  ><MessageCircleQuestion class="size-4" /> {{ _('Questions and answers') }}</Link
                 >
               </DropdownMenuItem>
               <DropdownMenuSeparator />

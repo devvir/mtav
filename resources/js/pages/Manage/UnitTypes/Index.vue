@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { UnitType } from '@/types/models';
 import { Link, router } from '@inertiajs/vue3';
 import { Layers, Pencil, Plus, Trash2 } from 'lucide-vue-next';
@@ -67,10 +67,10 @@ useProjectChanges({ unit_types: ['unitTypes'], units: ['unitTypes'], families: [
         <p class="font-semibold">{{ type.name }}</p>
         <p class="text-sm text-text-muted">
           {{
-            _('{units} units, {families} families', {
-              units: type.units_count ?? 0,
-              families: type.families_count ?? 0,
-            })
+            [
+              _n('{count} unit', '{count} units', type.units_count ?? 0),
+              _n('{count} family', '{count} families', type.families_count ?? 0),
+            ].join(', ')
           }}
           <span
             v-if="type.units_count !== type.families_count"

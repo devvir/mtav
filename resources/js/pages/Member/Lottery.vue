@@ -22,8 +22,7 @@ const props = defineProps<{
   family: { id: number; name: string; unit_type: string } | null;
   ranking: Unit[] | null;
   assignment:
-    | { id: number; name: string; unit: { id: number; identifier: string } | null }[]
-    | null;
+    { id: number; name: string; unit: { id: number; identifier: string } | null }[] | null;
   canRank: boolean;
 }>();
 

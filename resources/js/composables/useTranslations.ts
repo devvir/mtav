@@ -43,3 +43,16 @@ export const useTranslation = () => {
 };
 
 export const { locale, translations, setLocale, trans, _ } = useTranslation();
+
+/** The locale as browsers name it (es_UY → es-UY), for Intl and toLocale* formatting */
+export const languageTag = computed(() => locale.value.replace('_', '-'));
+
+/**
+ * A count with its noun in the right form: `_n('{count} family', '{count} families', n)`.
+ * Each form is translated on its own; the language's plural rules pick one.
+ */
+export function _n(one: string, other: string, count: number, replacements: Replacements = {}) {
+  const form = new Intl.PluralRules(languageTag.value).select(count) === 'one' ? one : other;
+
+  return trans(form, { count, ...replacements });
+}

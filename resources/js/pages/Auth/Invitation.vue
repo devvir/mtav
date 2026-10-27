@@ -75,7 +75,7 @@ const what = computed(() => {
     {{ _('Join {project}', { project: invitation.project }) }}
   </Button>
 
-  <form v-else class="mt-6 space-y-5" @submit.prevent="accept">
+  <form novalidate v-else class="mt-6 space-y-5" @submit.prevent="accept">
     <p class="text-sm text-text-muted">
       {{ _('Choose a password for your account ({email}).', { email: invitation.email }) }}
     </p>

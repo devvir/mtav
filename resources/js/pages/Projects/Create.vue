@@ -25,6 +25,7 @@ const form = useForm({ name: '', description: '', organization: '' });
 
   <div class="grid gap-8 lg:grid-cols-[1fr_20rem]">
     <form
+      novalidate
       class="space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
       @submit.prevent="form.post(route('projects.store'))"
     >

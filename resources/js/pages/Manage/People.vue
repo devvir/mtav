@@ -112,7 +112,7 @@ useProjectChanges({ people: ['members'] });
     :description="_('Their role and family in this project.')"
     persistent
   >
-    <form id="person-form" class="space-y-5" @submit.prevent="save">
+    <form novalidate id="person-form" class="space-y-5" @submit.prevent="save">
       <Field
         :label="_('Family')"
         :hint="_('Someone who is not an admin must be in a family.')"

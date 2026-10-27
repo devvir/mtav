@@ -7,7 +7,7 @@ import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { Paginated } from '@/types/models';
 import { router, usePage } from '@inertiajs/vue3';
 
@@ -64,7 +64,7 @@ async function toggle(user: Row) {
           <Badge v-if="!user.verified" tone="warning">{{ _('Email not confirmed') }}</Badge>
         </p>
         <p class="truncate text-sm text-text-muted">
-          {{ user.email }} · {{ _('{count} projects', { count: user.projects_count }) }} ·
+          {{ user.email }} · {{ _n('{count} project', '{count} projects', user.projects_count) }} ·
           <DateTime :value="user.created_at" :time="false" />
         </p>
       </div>

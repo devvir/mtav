@@ -1,55 +1,39 @@
 {
   "title": "Frequently asked questions",
-  "description": "Quick answers for administrators",
-  "guideText": "Read the full Administrator Guide",
+  "description": "Quick answers for admins",
+  "guideText": "Read the admin guide",
   "questions": [
     {
-      "question": "How do I create a new project?",
-      "answer": "Project creation is reserved to the platform's superadministration (a deliberate anti-abuse measure). If you need a new project, contact the platform team; they create it and designate you as its administrator."
+      "question": "Why are there limits in my project?",
+      "answer": "New projects work within limits until a superadmin approves them, to prevent abuse. Ask for approval from the Overview."
     },
     {
-      "question": "In what order do I set up a new project?",
-      "answer": "The natural order: 1) define the unit types; 2) load each type's units; 3) optionally build the plan; 4) create the families (each with its type) and invite at least one member of each; 5) publish any events you need and agree on the lottery date. Creation of all of these lives in the + (Quick Actions) button, top right."
+      "question": "What is a unit type?",
+      "answer": "A group of equivalent units, like 2 bedrooms. Each family has one type, and competes only for units of that type."
     },
     {
-      "question": "Do I have to load every member of every family?",
-      "answer": "No: invite at least one per family. Each member can invite the rest of their own family, and each invitee completes their registration from the emailed link."
+      "question": "What if there are more units than families?",
+      "answer": "You can still run the lottery: you are asked to confirm, and some units are left without a family (or families without a unit, the other way round)."
     },
     {
-      "question": "How do I schedule the lottery?",
-      "answer": "The lottery event is created automatically with the project — you don't create it and can't delete it. Edit it to set or change its date and description; this is possible while the lottery hasn't been executed."
+      "question": "How do I add many units?",
+      "answer": "Use Add and continue with another: the form stays ready for the next unit, with the same type."
     },
     {
-      "question": "When can I run the lottery?",
-      "answer": "When all families are registered with their correct type and all units are loaded. Families can register and modify preferences until the moment of execution; when you run it, they lock automatically."
+      "question": "Can an admin also be in a family?",
+      "answer": "Yes. Invite them as an admin and into a family, or change their role and family in People."
     },
     {
-      "question": "What if the number of families and units doesn't match?",
-      "answer": "The system detects it, warns you and asks for your confirmation before continuing. If you confirm, the lottery runs taking the imbalance into account."
+      "question": "Someone lost their invitation.",
+      "answer": "Withdraw it in Invitations and send a new one; the old link stops working."
     },
     {
-      "question": "The execution failed, what do I do?",
-      "answer": "Nothing is lost: the lottery returns to its previous state (preferences unlock), the error is recorded in the audit log, and you can retry whenever you want."
+      "question": "Can I undo the lottery?",
+      "answer": "Only by invalidating it, giving a reason that everyone in the project reads. The run stays on record, and the lottery can run again."
     },
     {
-      "question": "Can I undo an executed lottery?",
-      "answer": "No — the result is final by design. Only in exceptional situations (e.g. a data error discovered afterwards) can the superadministration invalidate the whole execution, leaving an audit record, so the data can be fixed and the lottery run again."
-    },
-    {
-      "question": "Can I see the families' preferences?",
-      "answer": "No: preferences are private to each family. You see the overall state of the process and, after execution, the result and its audit log."
-    },
-    {
-      "question": "Can I manage several projects?",
-      "answer": "Yes, without limit. The application works on one selected project at a time; you switch it from the Projects section."
-    },
-    {
-      "question": "I deleted a family (or a member) by mistake",
-      "answer": "It's not catastrophic: families, members and shared content can be restored. No data is lost."
-    },
-    {
-      "question": "What is recorded for each lottery?",
-      "answer": "Everything: who ran it, with which families, units and preferences (frozen at execution time), the result of each per-type sub-lottery, and any failure or invalidation. That audit record is permanent and makes the result verifiable."
+      "question": "Who sees drafts?",
+      "answer": "Only admins, until you publish them."
     }
   ]
 }

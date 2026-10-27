@@ -92,13 +92,14 @@ class Event extends Model
     }
 
     /**
-     * The lottery first, then the most recent events, undated ones last.
+     * The lottery first, then by date (latest first, or soonest first with 'asc'),
+     * undated ones last.
      */
-    public function scopeSorted(Builder $query): void
+    public function scopeSorted(Builder $query, string $direction = 'desc'): void
     {
         $query->orderByRaw("type = 'lottery' DESC")
             ->orderByRaw('start_date IS NULL')
-            ->orderByDesc('start_date')
+            ->orderBy('start_date', $direction)
             ->orderBy('title');
     }
 

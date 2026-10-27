@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { locale } from '@/composables/useTranslations';
+import { languageTag as lang } from '@/composables/useTranslations';
 
 /**
  * A date (and time), formatted for the reader's language; the full timestamp on hover.
@@ -10,7 +10,6 @@ const props = withDefaults(
 );
 
 const date = computed(() => (props.value ? new Date(props.value) : null));
-const lang = computed(() => locale.value.replace('_', '-'));
 
 const text = computed(() => {
   if (!date.value) return '';

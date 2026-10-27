@@ -8,7 +8,7 @@ import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
 import type { Paginated, Project } from '@/types/models';
 import { Link, router } from '@inertiajs/vue3';
@@ -94,7 +94,7 @@ const tab = (active: boolean) =>
       <div class="min-w-0 flex-1">
         <p class="flex flex-wrap items-center gap-2">
           <Link
-            :href="route('projects.show', project.id)"
+            :href="route('projects.show', { project: project.id })"
             class="font-semibold hover:text-text-link"
             >{{ project.name }}</Link
           >
@@ -106,11 +106,11 @@ const tab = (active: boolean) =>
         </p>
         <p class="text-sm text-text-muted">
           {{
-            _('{people} people · {families} families · {units} units', {
-              people: project.people_count,
-              families: project.families_count ?? 0,
-              units: project.units_count ?? 0,
-            })
+            [
+              _n('{count} person', '{count} people', project.people_count),
+              _n('{count} family', '{count} families', project.families_count ?? 0),
+              _n('{count} unit', '{count} units', project.units_count ?? 0),
+            ].join(' · ')
           }}
           · <DateTime :value="project.created_at" :time="false" />
           <template v-if="project.creator">

@@ -50,7 +50,12 @@ watch(open, (isOpen) => !isOpen && request.value && settle(false));
     :description="request.options.message"
     size="sm"
   >
-    <form id="dialog-host-form" class="space-y-4" @submit.prevent="canConfirm && settle(true)">
+    <form
+      novalidate
+      id="dialog-host-form"
+      class="space-y-4"
+      @submit.prevent="canConfirm && settle(true)"
+    >
       <Field
         v-if="request.kind === 'confirm' && request.options.typeToConfirm"
         :label="_('Type {text} to confirm', { text: request.options.typeToConfirm })"

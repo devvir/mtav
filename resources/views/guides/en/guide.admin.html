@@ -1,132 +1,50 @@
 <div class="prose max-w-none dark:prose-invert">
-  <h1>Administrator Guide</h1>
+  <h1>Admin guide</h1>
   <p class="lead">
-    As an administrator you are the operational lead of one or more projects: you configure the
-    project, register the families, accompany the process and run the lottery. This guide walks that
-    path in order, from a freshly created project to the published result.
+    Admins configure a project and run its lottery, from <em>Manage project</em> (the link at
+    the bottom of the menu). The <em>Overview</em> there lists, in order, what is left to set
+    up. Every <strong>?</strong> in the admin area explains its page, and offers a guided tour.
   </p>
 
-  <h2>Before you start</h2>
-  <ul>
-    <li>
-      Projects are created by the <strong>platform team</strong> (superadministration), which also
-      designates you as administrator. If you need a new project, contact them.
-    </li>
-    <li>
-      You can manage <strong>several projects</strong>; the application works on one
-      <strong>selected project</strong> at a time (pick it under Projects if you manage more than
-      one).
-    </li>
-    <li>
-      Navigation lives in the <strong>left sidebar</strong> (Dashboard, Lottery, Families, Members,
-      Gallery, Events, Documents, Projects); on mobile, tap the menu button to expand it. Creating
-      entities — types, units, families, members, events — happens through the
-      <strong>+ (Quick Actions)</strong> button, top right. The <strong>Dashboard</strong>
-      summarizes the project's state by section.
-    </li>
-  </ul>
-
-  <h2>Setting up a project</h2>
-  <p>The natural order to get a project ready for its lottery:</p>
-
-  <h3>1. Define the unit types</h3>
+  <h2>Starting a project</h2>
   <p>
-    A <strong>unit type</strong> groups homes that are comparable with each other: "two bedrooms",
-    "three bedrooms", "studio". Each family will compete only for units of its type, so define the
-    types first.
+    Anyone with an account can start a project, and becomes its first admin. New projects work
+    within some limits (people, families and units, invitations a day, file storage) until a
+    superadmin approves them: ask for approval from the <em>Overview</em> once you are ready.
   </p>
 
-  <h3>2. Load the units</h3>
+  <h2>Setting it up</h2>
+  <ol>
+    <li><strong>Unit types</strong>: groups of equivalent units, like "2 bedrooms". Each type is its own lottery.</li>
+    <li><strong>Units</strong>: each with its type. <em>Add and continue</em> loads many quickly; a new type can be created on the way.</li>
+    <li><strong>Families</strong>: each with its type. There should be as many units as families of each type.</li>
+    <li><strong>Invitations</strong>: invite people into their family (or as fellow admins). Families can then invite their own people.</li>
+    <li><strong>Plan</strong>: place the units and draw what surrounds them, on as many floors as needed.</li>
+  </ol>
+
+  <h2>People and roles</h2>
   <p>
-    Each <strong>unit</strong> is a concrete home, with its identifier (the name or code the
-    cooperative knows it by, e.g. "A-101") and its type. The identifier must be unique within the
-    project.
+    In <em>People</em> you move someone to another family, make them an admin, or remove them
+    from the project. An admin may also belong to a family. A project always keeps at least one
+    admin.
   </p>
 
-  <h3>3. The plan (optional, recommended)</h3>
+  <h2>Events</h2>
   <p>
-    Every project has a <strong>plan</strong> where you can draw and place the units and common
-    spaces, dragging elements into position. Families find it enormously helpful when deciding
-    their preferences: they see where each unit is before ranking them.
-  </p>
-
-  <h3>4. Register the families</h3>
-  <p>
-    Create each <strong>family</strong> with its name and its <strong>unit type</strong> (set this
-    carefully: it determines which units the family competes for). Then <strong>invite at least one
-    member</strong> of each family: they get an email with the link to complete their registration.
-    From there, each member can invite the rest of their own family — you don't have to load
-    everyone yourself.
-  </p>
-
-  <h3>5. Events and communication</h3>
-  <p>
-    Under <strong>Events</strong> you can publish meetings and assemblies (on-site or online), with
-    optional attendance confirmation. The <strong>lottery event is created automatically</strong>
-    with the project: you don't create or delete it; edit it to set or change its date and
-    description (while it hasn't been executed). In the <strong>Gallery</strong> and
-    <strong>Documents</strong>, anyone in the project can share images, documents and audio.
+    Drafts are visible to admins only, until published. An event can ask people whether they
+    will go; you see who goes.
   </p>
 
   <h2>The lottery</h2>
-
-  <h3>Before running it</h3>
-  <ul>
-    <li>Check that <strong>all families</strong> are registered, each with its correct type.</li>
-    <li>Check that <strong>all units</strong> are loaded.</li>
-    <li>
-      Families register preferences until the moment of execution; agree on the date with the
-      cooperative and publish it in the lottery event.
-    </li>
-  </ul>
-
-  <h3>Execution</h3>
-  <p>From <strong>Lottery</strong>, run it when the process is ready. When you do:</p>
-  <ul>
-    <li><strong>Preferences lock</strong> automatically.</li>
-    <li>
-      The system draws <strong>per unit type</strong> (each family competes for the units of its
-      type) and assigns all units at once, first guaranteeing the least-favored family does as well
-      as possible, then maximizing overall satisfaction.
-    </li>
-    <li>
-      If the number of families and units doesn't match, the system <strong>warns you and asks for
-      confirmation</strong> before continuing.
-    </li>
-    <li>
-      If something fails, the lottery <strong>returns to its previous state</strong> (preferences
-      unlock) and you can retry; the error is recorded.
-    </li>
-  </ul>
-
-  <h3>Afterwards</h3>
   <p>
-    The result is <strong>final</strong>: it cannot be edited or negotiated, and it is visible to
-    the whole project. Every step of the execution lands in a permanent <strong>audit log</strong>.
-    Only in exceptional situations (e.g. a data error discovered later) can the superadministration
-    <strong>invalidate</strong> the whole execution so the data can be fixed and the lottery run
-    again.
+    Set its date in <em>Lottery</em>: families can change their rankings until then. Once the
+    date arrives, check that each type has as many units as families, and run it. If the
+    numbers differ you are asked to confirm, and some families or units are left over. The
+    result is final and recorded step by step.
   </p>
-
-  <h2>Ongoing management</h2>
-  <ul>
-    <li>
-      <strong>Families, members and units</strong> can be edited at any point before the lottery; if
-      a change affects registered preferences (a new unit, a type change), the families' lists
-      adjust automatically.
-    </li>
-    <li>
-      Deleting by mistake is not catastrophic: families, members and content <strong>can be
-      restored</strong>.
-    </li>
-    <li>The project's <strong>activity log</strong> records general activity.</li>
-  </ul>
-
-  <h2>Your account</h2>
   <p>
-    Your personal settings (profile, photo, email — with verification —, password, appearance and
-    themes) work the same as for any user: they're behind your name, at the bottom of the sidebar.
-    The details are in the <strong>Member Guide</strong>, which is also the best way to know the
-    application as families see it.
+    Only in exceptional cases (a family registered with the wrong type, a missing family…),
+    invalidate the run: every assignment is cleared, and everyone in the project reads who did
+    it and why. The lottery can then run again; the earlier run stays on record.
   </p>
 </div>

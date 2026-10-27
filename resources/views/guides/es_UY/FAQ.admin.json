@@ -1,55 +1,39 @@
 {
   "title": "Preguntas frecuentes",
   "description": "Respuestas rápidas para administradores",
-  "guideText": "Leé la Guía del Administrador completa",
+  "guideText": "Leer la guía para administradores",
   "questions": [
     {
-      "question": "¿Cómo creo un proyecto nuevo?",
-      "answer": "La creación de proyectos está reservada a la superadministración de la plataforma (medida deliberada contra el abuso). Si necesitás un proyecto nuevo, contactá al equipo de la plataforma; ellos lo crean y te designan como administrador."
+      "question": "¿Por qué mi proyecto tiene límites?",
+      "answer": "Los proyectos nuevos funcionan con límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde el Resumen."
     },
     {
-      "question": "¿En qué orden configuro un proyecto nuevo?",
-      "answer": "El orden natural: 1) definí los tipos de vivienda; 2) cargá las unidades de cada tipo; 3) opcionalmente armá el plano; 4) creá las familias (cada una con su tipo) e invitá al menos un integrante de cada una; 5) publicá los eventos que necesites y acordá la fecha del sorteo. La creación de todo esto está en el botón + (Acciones Rápidas), arriba a la derecha."
+      "question": "¿Qué es un tipo de vivienda?",
+      "answer": "Un grupo de viviendas equivalentes, como 2 dormitorios. Cada familia tiene un tipo, y compite solo por viviendas de ese tipo."
     },
     {
-      "question": "¿Tengo que cargar a todos los integrantes de cada familia?",
-      "answer": "No: invitá al menos uno por familia. Cada integrante puede invitar al resto de su propia familia, y cada invitado completa su registro desde el enlace que recibe por correo."
+      "question": "¿Y si hay más viviendas que familias?",
+      "answer": "Igual puedes realizar el sorteo: se te pide confirmar, y algunas viviendas quedan sin familia (o familias sin vivienda, al revés)."
     },
     {
-      "question": "¿Cómo agendo el sorteo?",
-      "answer": "El evento del sorteo se crea automáticamente con el proyecto — no lo creás ni lo podés borrar. Editalo para fijar o cambiar su fecha y descripción; se puede mientras el sorteo no se haya ejecutado."
+      "question": "¿Cómo cargo muchas viviendas?",
+      "answer": "Usa Agregar y seguir con otra: el formulario queda listo para la próxima, con el mismo tipo."
     },
     {
-      "question": "¿Cuándo puedo ejecutar el sorteo?",
-      "answer": "Cuando estén todas las familias registradas con su tipo correcto y todas las unidades cargadas. Las familias pueden registrar y modificar preferencias hasta el momento de la ejecución; al ejecutar, se bloquean automáticamente."
+      "question": "¿Un administrador puede estar en una familia?",
+      "answer": "Sí. Invítalo como administrador y a una familia, o cambia su rol y su familia en Personas."
     },
     {
-      "question": "¿Qué pasa si la cantidad de familias y unidades no coincide?",
-      "answer": "El sistema lo detecta, te lo advierte y pide tu confirmación antes de continuar. Si confirmás, el sorteo se ejecuta contemplando el desbalance."
+      "question": "Alguien perdió su invitación.",
+      "answer": "Retírala en Invitaciones y envía una nueva; el enlace anterior deja de funcionar."
     },
     {
-      "question": "La ejecución falló, ¿qué hago?",
-      "answer": "Nada se pierde: el sorteo vuelve a su estado anterior (las preferencias se desbloquean), el error queda registrado en la auditoría, y podés reintentar cuando quieras."
+      "question": "¿Puedo deshacer el sorteo?",
+      "answer": "Solo invalidándolo, con un motivo que todos en el proyecto leen. El sorteo queda registrado, y se puede volver a realizar."
     },
     {
-      "question": "¿Puedo deshacer un sorteo ya ejecutado?",
-      "answer": "No — el resultado es definitivo por diseño. Solo en situaciones excepcionales (por ejemplo, un error en los datos detectado después) la superadministración puede invalidar la ejecución completa, dejando constancia en la auditoría, para corregir y volver a sortear."
-    },
-    {
-      "question": "¿Puedo ver las preferencias de las familias?",
-      "answer": "No: las preferencias son privadas de cada familia. Vos ves el estado general del proceso y, tras la ejecución, el resultado y su registro de auditoría."
-    },
-    {
-      "question": "¿Puedo administrar varios proyectos?",
-      "answer": "Sí, sin límite. La aplicación trabaja sobre un proyecto seleccionado por vez; lo cambiás desde la sección Proyectos."
-    },
-    {
-      "question": "Borré una familia (o un miembro) por error",
-      "answer": "No es catastrófico: las familias, los miembros y los contenidos compartidos pueden restaurarse. Los datos no se pierden."
-    },
-    {
-      "question": "¿Qué queda registrado de cada sorteo?",
-      "answer": "Todo: quién lo ejecutó, con qué familias, unidades y preferencias (congeladas al momento de ejecutar), el resultado de cada sub-sorteo por tipo, y cualquier fallo o invalidación. Ese registro de auditoría es permanente y hace el resultado verificable."
+      "question": "¿Quién ve los borradores?",
+      "answer": "Solo los administradores, hasta que los publicas."
     }
   ]
 }

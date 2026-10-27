@@ -14,7 +14,7 @@ const form = useForm({ email: '' });
   <h1 class="text-2xl font-bold">{{ _('Forgot your password?') }}</h1>
   <p class="mt-1 mb-6 text-text-muted">{{ _('We will email you a link to choose a new one.') }}</p>
 
-  <form class="space-y-5" @submit.prevent="form.post(route('password.email'))">
+  <form novalidate class="space-y-5" @submit.prevent="form.post(route('password.email'))">
     <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
       <TextInput
         v-bind="field"

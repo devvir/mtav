@@ -1,63 +1,39 @@
 {
   "title": "Frequently asked questions",
-  "description": "Quick answers for members",
-  "guideText": "Read the full Member Guide",
+  "description": "Quick answers for the people of a project",
+  "guideText": "Read the full guide",
   "questions": [
     {
-      "question": "How do I get into MTAV?",
-      "answer": "By invitation only: someone from your cooperative (an administrator or a member of your family) creates your account and you receive an email with a link to choose your password and complete your details. From then on you sign in with your email and password."
+      "question": "How do I join a project?",
+      "answer": "With the invitation you receive by email, from an admin or from someone in your family. Without an account you choose a password; with one, you sign in and accept. Pending invitations also appear in Your projects."
     },
     {
-      "question": "How do I register my family's preferences?",
-      "answer": "In the Lottery section (sidebar) you'll see the units of your family's type. Order them from most to least desired: by dragging them, or with each unit's move up / move down buttons (they work with the keyboard too). You can check the project plan to locate each unit before deciding."
+      "question": "Who sees my family's ranking?",
+      "answer": "Only your family. Other families never see it, before or after the lottery."
     },
     {
-      "question": "Can I change my preferences later?",
-      "answer": "Yes, as many times as you like, until the moment the lottery runs. Once it does, they lock automatically and become part of the execution record."
+      "question": "Do I have to rank every unit?",
+      "answer": "No. Move the ones you care about; the rest keep a place of their own at the end of your ranking."
     },
     {
-      "question": "Who sees my family's preferences?",
-      "answer": "Only the members of your own family (everyone sees and edits the same order). No other family sees them — neither before nor after the lottery."
+      "question": "Can two of us change the ranking?",
+      "answer": "Yes: it is one ranking for the whole family, and any member can change it until the lottery runs. The latest change is the one that counts."
     },
     {
-      "question": "How does the lottery work?",
-      "answer": "The system assigns all units at once based on the preferences: first it guarantees the least-favored family does as well as possible, and within that guarantee it maximizes overall satisfaction. The result is final: it cannot be edited or negotiated."
+      "question": "How does the lottery decide?",
+      "answer": "It first makes the family that would be worst off as well off as possible, then the whole project as satisfied as possible. Only ties are broken at random."
     },
     {
-      "question": "Why do I only see some of the project's units?",
-      "answer": "Your family is assigned a unit type (e.g. \"two bedrooms\") and takes part in the lottery only for units of that type. The administration defines the types for each project."
+      "question": "Can the result change?",
+      "answer": "It is final. Only in exceptional cases an admin may invalidate a run; everyone then sees who did it, when and why, and the lottery runs again."
     },
     {
-      "question": "What if units are added or removed, or my family changes type?",
-      "answer": "Your preference list adjusts automatically: you don't lose the order you had already registered. It's still a good idea to review it after a change."
+      "question": "Who sees the files I share?",
+      "answer": "Everyone in the project, and nobody outside it. You can edit the description or remove what you shared."
     },
     {
-      "question": "How do I know which unit my family received?",
-      "answer": "Once the lottery runs, the result is visible in the Lottery section for the whole project: you'll see which unit each family received."
-    },
-    {
-      "question": "Can I invite other members of my family?",
-      "answer": "Yes — only from your own family. Each invitee receives an email with their registration link and gets their own account. You'll find the invitation among your Quick Actions (the + button, top right)."
-    },
-    {
-      "question": "How do I confirm attendance to an event?",
-      "answer": "In the Events section, open the event: if it asks for confirmation, you can answer whether you're going. The confirmation list is visible to the whole project."
-    },
-    {
-      "question": "How do I share photos or documents?",
-      "answer": "In the Gallery and Documents sections, anyone in the project can upload images, documents and audio. What you upload is associated with your name; you can edit its description or delete it."
-    },
-    {
-      "question": "Can I change my email address?",
-      "answer": "Yes, yourself: tap your name (bottom of the sidebar) → Settings → Profile. The new address stays pending verification until you confirm from the link you receive; meanwhile your account keeps working with the previous address."
-    },
-    {
-      "question": "I forgot my password, what do I do?",
-      "answer": "Use \"forgot password\" on the sign-in screen: you'll receive an email with a link to choose a new one."
-    },
-    {
-      "question": "Can I change how the application looks?",
-      "answer": "Yes: under Settings → Appearance you choose light, dark or automatic mode, and among several color themes — including a high-contrast one for better readability."
+      "question": "I changed my email and nothing happened.",
+      "answer": "We sent a confirmation link to the new address. Your account keeps the old one until you open it."
     }
   ]
 }

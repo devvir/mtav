@@ -103,7 +103,9 @@ dark mode, high contrast), Reka UI primitives in `components/ui`.
   `AppShell` is the frame: top bar, sidebar (drawer on phones), bottom tabs in the
   member app.
 - **Forms** are hand-written per entity (`components/forms`) on shared fields
-  (`components/form`: `Field` gives every input its label, hint, error and ids).
+  (`components/form`: `Field` gives every input its label, hint, error and ids). The
+  server validates; forms are `novalidate`, so every error reads the same, in the app's
+  language.
 - **Modals**: `components/modal/Modal.vue` (declarative), and `confirm()` / `prompt()`
   from `composables/useDialogs.ts` for questions asked from code (typed confirmations
   included), rendered by `DialogHost`.

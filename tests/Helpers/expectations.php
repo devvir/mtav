@@ -76,12 +76,17 @@ expect()->intercept(
 
 
 /**
- * The request was refused: 403, or 404 for what lies outside the user's projects.
+ * The request was refused: 403, 404 for what lies outside the user's projects, or —
+ * for a refused form submission — a redirect back with the "not allowed" message.
  */
 expect()->extend('toBeDenied', function () {
-    $status = $this->value->status();
+    $response = $this->value;
+    $status = $response->status();
 
-    expect(in_array($status, [403, 404]))->toBeTrue("Expected the request to be denied, got HTTP {$status}");
+    $denied = in_array($status, [403, 404])
+        || ($response->isRedirect() && $response->getSession()?->get('error') === __('flash.not_allowed'));
+
+    expect($denied)->toBeTrue("Expected the request to be denied, got HTTP {$status}");
 
     return $this;
 });

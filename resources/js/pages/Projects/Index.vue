@@ -5,7 +5,7 @@ import EmptyState from '@/components/feedback/EmptyState.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { Project } from '@/types/models';
 import { Link, router } from '@inertiajs/vue3';
 import { FolderPlus, Mail, ShieldCheck, Users } from 'lucide-vue-next';
@@ -69,7 +69,7 @@ const respond = (id: number, accept: boolean) =>
     <Link
       v-for="project in projects"
       :key="project.id"
-      :href="route('projects.show', project.id)"
+      :href="route('projects.show', { project: project.id })"
       class="group flex flex-col gap-3 rounded-2xl border-2 border-border bg-surface p-5 transition hover:border-border-interactive hover:shadow-md"
     >
       <div class="flex items-start justify-between gap-2">
@@ -82,7 +82,7 @@ const respond = (id: number, accept: boolean) =>
       <div class="mt-auto flex items-center gap-4 text-sm text-text-muted">
         <span class="flex items-center gap-1"
           ><Users class="size-4" />
-          {{ _('{count} people', { count: project.members_count ?? 0 }) }}</span
+          {{ _n('{count} person', '{count} people', project.members_count ?? 0) }}</span
         >
         <Badge v-if="!project.is_approved" tone="warning">{{ _('Awaiting approval') }}</Badge>
       </div>

@@ -40,13 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         /**
-         * Inertia visits get a friendly error page (or, for a refused form submission,
-         * a flash message on the page they came from) instead of the framework's.
+         * People get a friendly error page (or, for a refused form submission, a flash
+         * message on the page they came from) instead of the framework's.
          */
         $exceptions->respond(function (Response $response, Throwable $_, Request $request) {
             $status = $response->getStatusCode();
 
-            if (! $request->header('X-Inertia') || ! in_array($status, [403, 404, 500, 503])) {
+            if ($request->expectsJson() || ! in_array($status, [403, 404, 500, 503])) {
                 return $response;
             }
 

@@ -3,7 +3,7 @@ import Badge from '@/components/feedback/Badge.vue';
 import DateTime from '@/components/feedback/DateTime.vue';
 import { Button } from '@/components/ui/button';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, languageTag as lang } from '@/composables/useTranslations';
 import type { ProjectEvent } from '@/types/models';
 import { Link, router } from '@inertiajs/vue3';
 import { Check, MapPin, Video, X } from 'lucide-vue-next';
@@ -31,7 +31,7 @@ const rsvp = (attending: boolean) =>
     >
       <template v-if="event.start_date">
         <span class="text-xs font-semibold text-text-muted uppercase">{{
-          new Date(event.start_date).toLocaleString(undefined, { month: 'short' })
+          new Date(event.start_date).toLocaleString(lang, { month: 'short' })
         }}</span>
         <span class="text-2xl font-bold">{{ new Date(event.start_date).getDate() }}</span>
       </template>

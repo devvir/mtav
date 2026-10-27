@@ -155,12 +155,12 @@ status() {
     echo "🌐 Application URLs:"
     echo "  • Main App:     http://localhost:$(env_port "$env" NGINX_PORT)"
 
-    local vite_port mailhog_port mysql_port
+    local vite_port mailpit_port mysql_port
     vite_port=$(env_port "$env" VITE_PORT)
-    mailhog_port=$(env_port "$env" MAILHOG_HTTP_PORT)
+    mailpit_port=$(env_port "$env" MAILPIT_HTTP_PORT)
     mysql_port=$(env_port "$env" MYSQL_PORT)
     [ -n "$vite_port" ] && echo "  • Vite Dev:     http://localhost:$vite_port"
-    [ -n "$mailhog_port" ] && echo "  • MailHog:      http://localhost:$mailhog_port"
+    [ -n "$mailpit_port" ] && echo "  • Mailpit:      http://localhost:$mailpit_port"
     [ -n "$mysql_port" ] && echo "  • Database:     localhost:$mysql_port (mtav/secret)"
 }
 
@@ -269,7 +269,8 @@ staging() {
     compose staging up --build --detach --wait --wait-timeout 120
 
     echo -e "${BLUE}📦 Building frontend assets...${NC}"
-    compose staging run --rm assets sh -c "pnpm install && pnpm run build"
+    # -T: no TTY — a scripted build step must never hang on an interactive prompt
+    compose staging run --rm -T assets sh -c "pnpm install && pnpm run build"
 
     if [ -f public/build/manifest.json ]; then
         echo -e "${GREEN}✅ Assets built successfully${NC}"
@@ -316,6 +317,8 @@ staging() {
 # Test suite
 # ============================================================================
 
+# Sets PEST_ARGS: the arguments, with the default suites unless --testsuite is given
+# (an array, so arguments with spaces such as --filter="runs the lottery" stay whole)
 validate_and_process_pest_testsuite_args() {
     local args=("$@")
     local has_testsuite=false
@@ -340,9 +343,9 @@ validate_and_process_pest_testsuite_args() {
             echo "Valid values (comma-separated): Arch, Unit, UseCases, Stress" >&2
             return 1
         fi
-        echo "${args[@]}"
+        PEST_ARGS=("${args[@]}")
     else
-        echo "--testsuite" "Arch,Unit,UseCases" "${args[@]}"
+        PEST_ARGS=(--testsuite Arch,Unit,UseCases "${args[@]}")
     fi
 }
 
@@ -497,13 +500,12 @@ run_tests() {
         echo -e "${YELLOW}📦 PHP Tests (Pest)${NC}"
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-        local processed_args
-        if ! processed_args=($(validate_and_process_pest_testsuite_args "${test_args[@]}")); then
+        if ! validate_and_process_pest_testsuite_args "${test_args[@]}"; then
             cleanup_environment
             exit 1
         fi
 
-        if run_pest "${processed_args[@]}" "${pest_extra_args[@]}"; then
+        if run_pest "${PEST_ARGS[@]}" "${pest_extra_args[@]}"; then
             echo ""
             echo -e "${GREEN}✅ PHP tests passed${NC}"
         else

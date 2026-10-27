@@ -17,17 +17,19 @@ class EventController extends Controller
 {
     public function index(Request $request, Project $project): Response
     {
+        $past = $request->query('when') === 'past';
+
         $events = $project->events()->published()
             ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->when($request->query('when') === 'past', fn ($q) => $q->where('start_date', '<', now()), fn ($q) => $q->upcoming())
+            ->when($past, fn ($q) => $q->where('start_date', '<', now()), fn ($q) => $q->upcoming())
             ->with('rsvps')
-            ->sorted()
+            ->sorted($past ? 'desc' : 'asc')
             ->paginate(30)
             ->withQueryString();
 
         return inertia('Member/Events/Index', [
             'events'  => EventResource::collection($events),
-            'filters' => ['q' => $request->q, 'when' => $request->query('when') === 'past' ? 'past' : 'upcoming'],
+            'filters' => ['q' => $request->q, 'when' => $past ? 'past' : 'upcoming'],
         ]);
     }
 

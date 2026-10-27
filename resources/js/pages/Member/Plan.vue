@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlanView from '@/components/domain/PlanView.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
+import { floorLabel } from '@/components/plan/floors';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { _ } from '@/composables/useTranslations';
 import type { Plan } from '@/types/models';
@@ -41,9 +42,12 @@ useProjectChanges({ plan: ['plan'], units: ['plan'], lottery_runs: ['plan'] });
       ]"
       @click="floor = f"
     >
-      {{ f === 0 ? _('Ground floor') : _('Floor {n}', { n: f }) }}
+      {{ floorLabel(f) }}
     </button>
   </div>
+  <p v-else-if="floors.length && floors[0] !== 0" class="mb-4 font-medium">
+    {{ floorLabel(floors[0]) }}
+  </p>
 
   <PlanView :plan :floor :highlight-type="family?.unit_type_id" :own-unit="ownUnit" />
 </template>

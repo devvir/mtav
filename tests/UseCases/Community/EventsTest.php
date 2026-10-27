@@ -98,6 +98,19 @@ describe('An admin', function () {
 });
 
 describe('A member', function () {
+    it('sees the coming events soonest first, and past ones latest first', function () {
+        $later = anEvent($this->project, ['start_date' => now()->addMonth()]);
+        $sooner = anEvent($this->project, ['start_date' => now()->addDay()]);
+        $longAgo = anEvent($this->project, ['start_date' => now()->subMonth()]);
+        $recently = anEvent($this->project, ['start_date' => now()->subDay()]);
+
+        $member = $this->as($this->member, $this->project);
+
+        // The lottery leads the coming events, dated or not
+        expect(listedEventIds($member->get(route('events.index'))))->toBe([$this->project->lottery->id, $sooner->id, $later->id])
+            ->and(listedEventIds($member->get(route('events.index', ['when' => 'past']))))->toBe([$recently->id, $longAgo->id]);
+    });
+
     it('cannot create, change or cancel events', function () {
         $event = anEvent($this->project, ['title' => 'Original']);
 

@@ -73,6 +73,7 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
 
   <div class="grid gap-6 lg:grid-cols-[1fr_1fr]">
     <form
+      novalidate
       data-tour="invite.form"
       class="h-fit space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
       @submit.prevent="send"

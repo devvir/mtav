@@ -36,6 +36,7 @@ const submit = () => form.post(route('media.store'), { forceFormData: true });
   />
 
   <form
+    novalidate
     class="max-w-2xl space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
     @submit.prevent="submit"
   >

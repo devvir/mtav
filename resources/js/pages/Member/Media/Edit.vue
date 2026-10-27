@@ -23,6 +23,7 @@ const form = useForm({
   />
 
   <form
+    novalidate
     class="max-w-2xl space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
     @submit.prevent="form.put(route('media.update', media.id))"
   >

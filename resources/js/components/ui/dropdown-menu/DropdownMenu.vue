@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { DropdownMenuRoot, type DropdownMenuRootEmits, type DropdownMenuRootProps, useForwardPropsEmits } from 'reka-ui'
 
-const props = defineProps<DropdownMenuRootProps>()
+// Not modal: the page stays usable (and clickable) while a menu is open
+const props = withDefaults(defineProps<DropdownMenuRootProps>(), { modal: false })
 const emits = defineEmits<DropdownMenuRootEmits>()
 
 const forwarded = useForwardPropsEmits(props, emits)

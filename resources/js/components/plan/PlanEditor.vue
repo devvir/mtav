@@ -7,6 +7,7 @@ import { _ } from '@/composables/useTranslations';
 import { cn } from '@/lib/utils';
 import type { Plan, Point } from '@/types/models';
 import { Copy, Layers, Plus, Redo2, Save, Trash2, Undo2 } from 'lucide-vue-next';
+import { floorLabel } from './floors';
 import { usePlanEditor, type ShapeType } from './usePlanEditor';
 
 /**
@@ -174,9 +175,6 @@ const corners = computed(() => {
   }));
 });
 
-const floorLabel = (f: number) =>
-  f === 0 ? _('Ground floor') : f < 0 ? _('Basement {n}', { n: -f }) : _('Floor {n}', { n: f });
-
 const newShape = ref<ShapeType>('building');
 </script>
 
@@ -296,6 +294,7 @@ const newShape = ref<ShapeType>('building');
         <g
           v-for="item in visible"
           :key="item.key"
+          :data-shape="item.unit?.identifier ?? item.name"
           class="cursor-move"
           @pointerdown.stop="startMove($event, item.key)"
         >
@@ -385,17 +384,24 @@ const newShape = ref<ShapeType>('building');
           <SelectInput
             v-bind="field"
             v-model="selectedItem.type"
+            name="shape_type"
             :options="shapeTypes"
             @change="editor.commit()"
           />
         </Field>
         <Field v-if="!selectedItem.unit" :label="_('Name')" optional v-slot="field">
-          <TextInput v-bind="field" v-model="selectedItem.name" @change="editor.commit()" />
+          <TextInput
+            v-bind="field"
+            v-model="selectedItem.name"
+            name="shape_name"
+            @change="editor.commit()"
+          />
         </Field>
         <Field :label="_('Colour')" v-slot="field">
           <input
             v-bind="field"
             v-model="selectedItem.color"
+            name="shape_color"
             type="color"
             class="h-11 w-full cursor-pointer rounded-lg border-2 border-border bg-surface"
             @change="editor.commit()"
@@ -405,6 +411,7 @@ const newShape = ref<ShapeType>('building');
           <SelectInput
             v-bind="field"
             v-model="selectedItem.floor"
+            name="shape_floor"
             :options="allFloors.map((f) => ({ value: f, label: floorLabel(f) }))"
             @change="((floor = selectedItem!.floor), editor.commit())"
           />

@@ -2,60 +2,56 @@ name: tests
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
   pull_request:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
+  workflow_dispatch:
 
 jobs:
-  ci:
+  # Every push: the business rules (Pest use cases), the lottery solvers, frontend logic.
+  checks:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v4
 
-      - name: Make `mtav` executable
-        run: chmod +x ./mtav
-
-      # `mtav pest` / `mtav vitest` each boot the isolated mtav-testing
-      # compose project (docker/testing/), run, and tear down.
-      # All images build locally — no registry login required.
-      - name: PHP tests (Pest)
+      # `mtav pest` / `mtav vitest` each boot the isolated mtav-testing compose
+      # project (docker/testing/), run, and tear down. Images build locally.
+      - name: PHP tests (Arch, Unit, UseCases)
         run: ./mtav pest
 
       - name: Vue tests (Vitest)
         run: ./mtav vitest
 
-      # The E2E journey suite (mtav e2e) is the deliberate pre-deployment
-      # safety net, not a per-push gate — run it manually before deploying.
-      # Uncomment to gate CI on it as well (adds the ~2.5GB e2e image build):
-      # - name: E2E journeys (Playwright)
-      #   run: ./mtav e2e
+      - name: Collect logs
+        if: failure()
+        run: ./mtav compose testing logs --no-color --tail 300 > ci-testing-logs.txt || true
 
-      - name: Collect compose logs (best effort — env may already be down)
-        if: always()
-        run: |
-          ./mtav compose testing logs --no-color --tail 200 php > ci-php-logs.txt || true
-          ./mtav compose testing logs --no-color --tail 200 assets > ci-assets-logs.txt || true
-          docker ps -a > ci-docker-ps.txt || true
-
-      - name: Upload CI logs
-        if: always()
+      - name: Upload logs
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-container-logs
-          path: |
-            ci-php-logs.txt
-            ci-assets-logs.txt
-            ci-docker-ps.txt
+          name: testing-logs
+          path: ci-testing-logs.txt
 
-      - name: Tear down testing environment
-        if: always()
-        run: ./mtav compose testing down --volumes --remove-orphans || true
+  # Before merging (and on demand): the whole browser suite — every page of the three
+  # areas, every feature's edge cases, phones, Spanish, accessibility. Takes minutes.
+  e2e:
+    needs: checks
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Browser tests (Playwright)
+        run: ./mtav e2e
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: tests/Browser/Screenshots

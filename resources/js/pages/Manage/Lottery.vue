@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { confirm as ask, prompt } from '@/composables/useDialogs';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
-import { _ } from '@/composables/useTranslations';
+import { _, _n } from '@/composables/useTranslations';
 import type { LotteryRun, ProjectEvent } from '@/types/models';
 import { router, useForm } from '@inertiajs/vue3';
 import { CircleAlert, CircleCheck, Dices, LoaderCircle, Undo2 } from 'lucide-vue-next';
@@ -139,6 +139,7 @@ useProjectChanges({
   <div class="grid gap-6 lg:grid-cols-2">
     <!-- Schedule -->
     <form
+      novalidate
       data-tour="lottery.schedule"
       class="space-y-5 rounded-2xl border-2 border-border bg-surface p-5"
       @submit.prevent="saveSchedule"
@@ -191,10 +192,10 @@ useProjectChanges({
           />
           <span class="flex-1">{{ type.name }}</span>
           <span class="text-sm text-text-muted">{{
-            _('{units} units · {families} families', {
-              units: type.units_count,
-              families: type.families_count,
-            })
+            [
+              _n('{count} unit', '{count} units', type.units_count),
+              _n('{count} family', '{count} families', type.families_count),
+            ].join(' · ')
           }}</span>
         </li>
       </ul>

@@ -37,13 +37,14 @@ describe('Someone who signed up', function () {
     });
 
     it('asks a superadmin to approve the project, who is told about it', function () {
+        $superadmin = aSuperadmin();
         $project = anUnapprovedProject($this->person);
 
         $this->as($this->person, $project)->post(route('manage.approval.request'))->assertSessionHasNoErrors();
 
         expect($project->fresh()->approval_requested_at)->not->toBeNull();
 
-        $seen = $this->as(aSuperadmin())->get(route('notifications.index'))->inertiaProps('notifications.data');
+        $seen = $this->as($superadmin)->get(route('notifications.index'))->inertiaProps('notifications.data');
 
         expect(collect($seen)->pluck('title'))->toContain(__('notifications.approval_requested_title'));
     });

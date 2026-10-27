@@ -36,7 +36,15 @@ function submit(another = false) {
       props.unit ? route('manage.units.update', props.unit.id) : route('manage.units.store'),
       {
         preserveScroll: another,
-        onSuccess: () => another && form.reset('identifier'),
+        onSuccess: () => {
+          if (!another) return;
+          form.reset('identifier');
+          // The next unit goes to the type just created
+          if (creatingType.value && props.unitType) {
+            creatingType.value = false;
+            form.unit_type_id = props.unitType;
+          }
+        },
       },
     );
 }
@@ -50,6 +58,7 @@ watch(
 
 <template>
   <form
+    novalidate
     class="max-w-2xl space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
     @submit.prevent="submit(false)"
   >
