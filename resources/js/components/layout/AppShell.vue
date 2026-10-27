@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PersonAvatar from '@/components/feedback/PersonAvatar.vue';
 import Toaster from '@/components/feedback/Toaster.vue';
+import TourHost from '@/components/help/TourHost.vue';
 import DialogHost from '@/components/modal/DialogHost.vue';
 import {
   DropdownMenu,
@@ -283,5 +284,6 @@ const navLink = (item: NavItem) =>
 
     <Toaster />
     <DialogHost />
+    <TourHost />
   </div>
 </template>

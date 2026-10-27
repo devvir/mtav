@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Pagination from '@/components/feedback/Pagination.vue';
 import SearchField from '@/components/feedback/SearchField.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
@@ -20,7 +21,19 @@ useProjectChanges({ families: ['families'], people: ['families'], lottery_runs: 
   <PageHeader
     :title="_('Families')"
     :description="_('Each family ranks the units of its type and receives one in the lottery.')"
-  />
+  >
+    <template #info>
+      <InfoTip :title="_('What is a family?')">
+        <p>
+          {{
+            _(
+              'The family takes part in the lottery as one: its members share one ranking, and it receives one unit.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <SearchField
     :model-value="filters.q"

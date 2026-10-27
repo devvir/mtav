@@ -27,7 +27,14 @@ const submit = () =>
 
   <form class="space-y-5" @submit.prevent="submit">
     <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
-      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" readonly />
+      <TextInput
+        v-bind="field"
+        name="email"
+        v-model="form.email"
+        type="email"
+        autocomplete="email"
+        readonly
+      />
     </Field>
     <Field
       :label="_('New password')"
@@ -37,7 +44,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password" v-model="form.password"
+        name="password"
+        v-model="form.password"
         type="password"
         autocomplete="new-password"
         autofocus
@@ -50,7 +58,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password_confirmation" v-model="form.password_confirmation"
+        name="password_confirmation"
+        v-model="form.password_confirmation"
         type="password"
         autocomplete="new-password"
       />

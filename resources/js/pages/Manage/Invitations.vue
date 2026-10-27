@@ -5,6 +5,7 @@ import CheckboxField from '@/components/form/CheckboxField.vue';
 import Field from '@/components/form/Field.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import TextInput from '@/components/form/TextInput.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
@@ -56,16 +57,41 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
   <PageHeader
     :title="_('Invitations')"
     :description="_('People join the project from the link they receive by email.')"
-  />
+  >
+    <template #info>
+      <InfoTip :title="_('How invitations work')" tour="manage.invitations">
+        <p>
+          {{
+            _(
+              'People join only by invitation: an emailed link, valid for two weeks. Members can also invite people into their own family.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <div class="grid gap-6 lg:grid-cols-[1fr_1fr]">
     <form
+      data-tour="invite.form"
       class="h-fit space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
       @submit.prevent="send"
     >
       <h2 class="text-lg font-semibold">{{ _('Invite someone') }}</h2>
-      <Field :label="_('Email')" :error="form.errors.email" required v-slot="field">
-        <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="off" />
+      <Field
+        data-tour="invite.email"
+        :label="_('Email')"
+        :error="form.errors.email"
+        required
+        v-slot="field"
+      >
+        <TextInput
+          v-bind="field"
+          name="email"
+          v-model="form.email"
+          type="email"
+          autocomplete="off"
+        />
       </Field>
       <div class="grid gap-5 sm:grid-cols-2">
         <Field :label="_('First name')" :error="form.errors.firstname" optional v-slot="field">
@@ -76,6 +102,7 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
         </Field>
       </div>
       <Field
+        data-tour="invite.family"
         :label="_('Family')"
         :hint="form.is_admin ? _('Optional for admins.') : undefined"
         :error="form.errors.family_id"
@@ -84,7 +111,8 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
       >
         <SelectInput
           v-bind="field"
-          name="family_id" v-model="form.family_id"
+          name="family_id"
+          v-model="form.family_id"
           :options="[
             ...(form.is_admin ? [{ value: '', label: _('No family') }] : []),
             ...families.map((f) => ({ value: f.id, label: f.name })),
@@ -93,7 +121,9 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
         />
       </Field>
       <CheckboxField
-        name="is_admin" v-model="form.is_admin"
+        data-tour="invite.admin"
+        name="is_admin"
+        v-model="form.is_admin"
         :label="_('As an admin')"
         :hint="_('To help configure the project and run the lottery.')"
       />
@@ -112,7 +142,7 @@ useProjectChanges({ invitations: ['invitations'], families: ['families'] });
       </div>
     </form>
 
-    <section>
+    <section data-tour="invite.pending">
       <h2 class="mb-3 text-lg font-semibold">
         {{ _('Waiting for an answer ({count})', { count: invitations.length }) }}
       </h2>

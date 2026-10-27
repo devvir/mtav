@@ -3,6 +3,7 @@ import Badge from '@/components/feedback/Badge.vue';
 import DateTime from '@/components/feedback/DateTime.vue';
 import Pagination from '@/components/feedback/Pagination.vue';
 import SearchField from '@/components/feedback/SearchField.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
@@ -48,10 +49,22 @@ const tab = (active: boolean) =>
 </script>
 
 <template>
-  <PageHeader :title="_('Projects')" :description="_('Every project on the platform.')" />
+  <PageHeader :title="_('Projects')" :description="_('Every project on the platform.')">
+    <template #info>
+      <InfoTip :title="_('About approvals')" tour="platform.approvals">
+        <p>
+          {{
+            _(
+              'Anyone can start a project. Until a superadmin approves it, it works within limits, to prevent abuse.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-    <nav class="-mx-1 flex gap-1 overflow-x-auto px-1">
+    <nav data-tour="approvals.tabs" class="-mx-1 flex gap-1 overflow-x-auto px-1">
       <Link
         v-for="item in shows"
         :key="item.value"
@@ -69,7 +82,10 @@ const tab = (active: boolean) =>
     <SearchField :model-value="filters.q" class="lg:max-w-xs" />
   </div>
 
-  <ul class="divide-y divide-border-subtle rounded-2xl border-2 border-border bg-surface">
+  <ul
+    data-tour="approvals.list"
+    class="divide-y divide-border-subtle rounded-2xl border-2 border-border bg-surface"
+  >
     <li
       v-for="project in projects.data"
       :key="project.id"

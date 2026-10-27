@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DateTime from '@/components/feedback/DateTime.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
@@ -106,10 +107,20 @@ useProjectChanges({
 </script>
 
 <template>
-  <PageHeader :title="_('Overview')" :description="project.name" />
+  <PageHeader :title="_('Overview')" :description="project.name">
+    <template #info>
+      <InfoTip :title="_('Setting up the project')" tour="manage.setup">
+        <p>
+          {{
+            _('The checklist takes you from an empty project to its lottery, one step at a time.')
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <div class="grid gap-6 lg:grid-cols-[1fr_22rem]">
-    <section class="rounded-2xl border-2 border-border bg-surface p-5">
+    <section data-tour="setup.checklist" class="rounded-2xl border-2 border-border bg-surface p-5">
       <h2 class="mb-4 text-lg font-semibold">{{ _('Getting to the lottery') }}</h2>
       <ol class="space-y-1">
         <li v-for="(step, index) in steps" :key="index">
@@ -152,6 +163,7 @@ useProjectChanges({
       </section>
 
       <section
+        data-tour="setup.approval"
         v-if="!approval.approved"
         class="rounded-2xl border-2 border-warning/50 bg-surface p-5"
       >

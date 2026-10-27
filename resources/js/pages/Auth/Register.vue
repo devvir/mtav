@@ -28,15 +28,32 @@ const submit = () =>
   <form class="space-y-5" @submit.prevent="submit">
     <div class="grid gap-5 sm:grid-cols-2">
       <Field :label="_('First name')" :error="form.errors.firstname" required v-slot="field">
-        <TextInput v-bind="field" name="firstname" v-model="form.firstname" autocomplete="given-name" autofocus />
+        <TextInput
+          v-bind="field"
+          name="firstname"
+          v-model="form.firstname"
+          autocomplete="given-name"
+          autofocus
+        />
       </Field>
       <Field :label="_('Last name')" :error="form.errors.lastname" optional v-slot="field">
-        <TextInput v-bind="field" name="lastname" v-model="form.lastname" autocomplete="family-name" />
+        <TextInput
+          v-bind="field"
+          name="lastname"
+          v-model="form.lastname"
+          autocomplete="family-name"
+        />
       </Field>
     </div>
 
     <Field :label="_('Email')" :error="form.errors.email" required v-slot="field">
-      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" />
+      <TextInput
+        v-bind="field"
+        name="email"
+        v-model="form.email"
+        type="email"
+        autocomplete="email"
+      />
     </Field>
 
     <Field
@@ -48,7 +65,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password" v-model="form.password"
+        name="password"
+        v-model="form.password"
         type="password"
         autocomplete="new-password"
       />
@@ -62,7 +80,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password_confirmation" v-model="form.password_confirmation"
+        name="password_confirmation"
+        v-model="form.password_confirmation"
         type="password"
         autocomplete="new-password"
       />

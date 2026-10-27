@@ -112,5 +112,9 @@ dark mode, high contrast), Reka UI primitives in `components/ui`.
 - **Live updates**: `useProjectChanges({ resource: [props to reload] })` reloads a page's
   props when someone else changes them; `useLiveNotifications()` (in the shell) shows
   notifications as toasts. Both need `VITE_REVERB_APP_KEY`.
+- **Guided help**: `InfoTip` (a ? beside what needs explaining) ends, where a tour exists,
+  with "Show me how", which plays a tour (`tours/index.ts`; `composables/useTour.ts`):
+  steps point at `data-tour="…"` marks, missing ones are skipped; `TourHost` (in the
+  shell) dims the page and lights up each step's element.
 - **Copy**: `_('English text')` everywhere; `lang/es_UY.json` holds the Spanish, keyed by
   the English (the English file is empty on purpose).

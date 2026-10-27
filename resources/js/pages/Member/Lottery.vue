@@ -2,6 +2,7 @@
 import RankingList from '@/components/domain/RankingList.vue';
 import Badge from '@/components/feedback/Badge.vue';
 import DateTime from '@/components/feedback/DateTime.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { useProjectChanges } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
@@ -61,10 +62,32 @@ useProjectChanges({
 </script>
 
 <template>
-  <PageHeader :title="_('Lottery')" :description="lottery.description" />
+  <PageHeader :title="_('Lottery')" :description="lottery.description">
+    <template #info>
+      <InfoTip :title="_('How the lottery works')" tour="member.ranking">
+        <p>
+          {{
+            _(
+              'Each family ranks the units of its type. The lottery first makes the worst-off family as well off as possible, then the whole project as satisfied as possible; only ties are drawn at random.',
+            )
+          }}
+        </p>
+        <p>
+          {{
+            _(
+              'The result is final. If a run is ever invalidated, everyone sees who did it and why.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <!-- Status -->
-  <section class="mb-6 rounded-2xl border-2 border-border bg-surface p-5">
+  <section
+    data-tour="lottery.status"
+    class="mb-6 rounded-2xl border-2 border-border bg-surface p-5"
+  >
     <div v-if="status === 'completed'" class="flex items-start gap-3">
       <Home class="size-8 shrink-0 text-success" />
       <div>
@@ -121,14 +144,14 @@ useProjectChanges({
 
   <div class="grid gap-6 lg:grid-cols-2">
     <!-- The family's ranking -->
-    <section v-if="family && ranking.length">
+    <section data-tour="ranking.list" v-if="family && ranking.length">
       <div class="mb-3 flex items-center justify-between gap-2">
         <h2 class="text-lg font-semibold">{{ _("Your family's ranking") }}</h2>
         <span v-if="saving" class="flex items-center gap-1 text-sm text-text-muted"
           ><LoaderCircle class="size-4 animate-spin" /> {{ _('Saving') }}</span
         >
       </div>
-      <p class="mb-3 text-sm text-text-muted">
+      <p data-tour="ranking.saving" class="mb-3 text-sm text-text-muted">
         {{
           canRank
             ? _(

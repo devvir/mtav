@@ -16,7 +16,14 @@ const form = useForm({ email: '' });
 
   <form class="space-y-5" @submit.prevent="form.post(route('password.email'))">
     <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
-      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" autofocus />
+      <TextInput
+        v-bind="field"
+        name="email"
+        v-model="form.email"
+        type="email"
+        autocomplete="email"
+        autofocus
+      />
     </Field>
     <Button type="submit" class="w-full" :disabled="form.processing">{{
       _('Send the link')

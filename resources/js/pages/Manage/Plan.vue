@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import PlanEditor from '@/components/plan/PlanEditor.vue';
 import { route } from '@/composables/useRoute';
@@ -41,6 +42,18 @@ onBeforeUnmount(stopGuard);
   <PageHeader
     :title="_('Plan')"
     :description="_('Where each unit is, and what surrounds it. Everyone in the project sees it.')"
-  />
+  >
+    <template #info>
+      <InfoTip :title="_('Drawing the plan')" tour="manage.plan">
+        <p>
+          {{
+            _(
+              'Show people where each unit is, and what surrounds it: buildings, streets, green areas, on as many floors as needed.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
   <PlanEditor ref="editor" :plan :processing @save="save" />
 </template>

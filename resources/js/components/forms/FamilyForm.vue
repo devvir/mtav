@@ -45,7 +45,8 @@ const submit = () =>
     >
       <SelectInput
         v-bind="field"
-        name="unit_type_id" v-model="form.unit_type_id"
+        name="unit_type_id"
+        v-model="form.unit_type_id"
         :options="unitTypes.map((type) => ({ value: type.id, label: type.name }))"
         :placeholder="_('Choose a type')"
       />

@@ -54,16 +54,23 @@ watch(
     @submit.prevent="submit(false)"
   >
     <Field
+      data-tour="units.identifier"
       :label="_('Identifier')"
       :hint="_('How people refer to it: a number, a block and floor…')"
       :error="form.errors.identifier"
       required
       v-slot="field"
     >
-      <TextInput v-bind="field" name="identifier" v-model="form.identifier" :placeholder="_('A-101')" autofocus />
+      <TextInput
+        v-bind="field"
+        name="identifier"
+        v-model="form.identifier"
+        :placeholder="_('A-101')"
+        autofocus
+      />
     </Field>
 
-    <fieldset class="space-y-3">
+    <fieldset data-tour="units.type" class="space-y-3">
       <legend class="text-sm font-medium">
         {{ _('Unit type') }} <span class="text-error" aria-hidden="true">*</span>
       </legend>
@@ -77,7 +84,8 @@ watch(
         >
           <SelectInput
             v-bind="field"
-            name="unit_type_id" v-model="form.unit_type_id"
+            name="unit_type_id"
+            v-model="form.unit_type_id"
             :options="unitTypes.map((type) => ({ value: type.id, label: type.name }))"
           />
         </Field>
@@ -100,7 +108,8 @@ watch(
         >
           <TextInput
             v-bind="field"
-            name="new_unit_type[name]" v-model="form.new_unit_type.name"
+            name="new_unit_type[name]"
+            v-model="form.new_unit_type.name"
             :placeholder="_('2 bedrooms')"
           />
         </Field>
@@ -110,7 +119,11 @@ watch(
           optional
           v-slot="field"
         >
-          <TextInput v-bind="field" name="new_unit_type[description]" v-model="form.new_unit_type.description" />
+          <TextInput
+            v-bind="field"
+            name="new_unit_type[description]"
+            v-model="form.new_unit_type.description"
+          />
         </Field>
         <Button
           v-if="unitTypes.length"
@@ -129,9 +142,14 @@ watch(
       :cancel-href="route('manage.units.index')"
     >
       <template v-if="!unit" #secondary>
-        <Button type="button" variant="outline" :disabled="form.processing" @click="submit(true)">{{
-          _('Add and continue with another')
-        }}</Button>
+        <Button
+          data-tour="units.another"
+          type="button"
+          variant="outline"
+          :disabled="form.processing"
+          @click="submit(true)"
+          >{{ _('Add and continue with another') }}</Button
+        >
       </template>
     </FormActions>
   </form>

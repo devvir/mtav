@@ -4,6 +4,7 @@ import DateTime from '@/components/feedback/DateTime.vue';
 import Field from '@/components/form/Field.vue';
 import TextArea from '@/components/form/TextArea.vue';
 import TextInput from '@/components/form/TextInput.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm as ask, prompt } from '@/composables/useDialogs';
@@ -121,11 +122,24 @@ useProjectChanges({
 </script>
 
 <template>
-  <PageHeader :title="_('Lottery')" />
+  <PageHeader :title="_('Lottery')">
+    <template #info>
+      <InfoTip :title="_('Running the lottery')" tour="manage.lottery">
+        <p>
+          {{
+            _(
+              'Once its date arrives, you run the lottery and every family receives a unit from its ranking, fairly and in one go. The result is final, and recorded.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
+  </PageHeader>
 
   <div class="grid gap-6 lg:grid-cols-2">
     <!-- Schedule -->
     <form
+      data-tour="lottery.schedule"
       class="space-y-5 rounded-2xl border-2 border-border bg-surface p-5"
       @submit.prevent="saveSchedule"
     >
@@ -138,7 +152,8 @@ useProjectChanges({
       >
         <TextInput
           v-bind="field"
-          name="start_date" v-model="schedule.start_date"
+          name="start_date"
+          v-model="schedule.start_date"
           type="datetime-local"
           :disabled="Boolean(status)"
         />
@@ -146,7 +161,8 @@ useProjectChanges({
       <Field :label="_('Description')" :error="schedule.errors.description" v-slot="field">
         <TextArea
           v-bind="field"
-          name="description" v-model="schedule.description"
+          name="description"
+          v-model="schedule.description"
           rows="3"
           :disabled="Boolean(status)"
         />
@@ -159,7 +175,10 @@ useProjectChanges({
     </form>
 
     <!-- Readiness and run -->
-    <section class="space-y-4 rounded-2xl border-2 border-border bg-surface p-5">
+    <section
+      data-tour="lottery.readiness"
+      class="space-y-4 rounded-2xl border-2 border-border bg-surface p-5"
+    >
       <h2 class="text-lg font-semibold">{{ _('Readiness') }}</h2>
       <ul class="space-y-2">
         <li v-for="type in readiness" :key="type.id" class="flex items-center gap-3">
@@ -207,14 +226,14 @@ useProjectChanges({
           }}
         </p>
         <Button class="w-full" :disabled="!due || !readiness.length" @click="run()"
-          ><Dices /> {{ _('Run the lottery') }}</Button
+          ><Dices data-tour="lottery.run" /> {{ _('Run the lottery') }}</Button
         >
       </template>
     </section>
   </div>
 
   <!-- Runs -->
-  <section v-if="runs.length" class="mt-8">
+  <section data-tour="lottery.runs" v-if="runs.length" class="mt-8">
     <h2 class="mb-3 text-lg font-semibold">{{ _('Runs') }}</h2>
     <ul class="divide-y divide-border-subtle rounded-2xl border-2 border-border bg-surface">
       <li

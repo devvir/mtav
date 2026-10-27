@@ -185,6 +185,7 @@ const newShape = ref<ShapeType>('building');
     <div class="min-w-0 space-y-3">
       <!-- Toolbar -->
       <div
+        data-tour="plan.toolbar"
         class="flex flex-wrap items-center gap-2 rounded-2xl border-2 border-border bg-surface p-2"
       >
         <div class="flex items-center gap-1">
@@ -229,12 +230,17 @@ const newShape = ref<ShapeType>('building');
           {{ _('Snap to grid') }}</label
         >
         <Button class="ml-auto" :disabled="processing" @click="emit('save', editor.payload())"
-          ><Save /> {{ _('Save the plan') }}</Button
+          ><Save data-tour="plan.save" /> {{ _('Save the plan') }}</Button
         >
       </div>
 
       <!-- Floors -->
-      <div class="flex flex-wrap items-center gap-2" role="tablist" :aria-label="_('Floors')">
+      <div
+        data-tour="plan.floors"
+        class="flex flex-wrap items-center gap-2"
+        role="tablist"
+        :aria-label="_('Floors')"
+      >
         <button
           v-for="f in allFloors"
           :key="f"
@@ -258,6 +264,7 @@ const newShape = ref<ShapeType>('building');
 
       <!-- Canvas -->
       <svg
+        data-tour="plan.canvas"
         ref="svg"
         :viewBox="`0 0 ${canvas.width} ${canvas.height}`"
         class="h-auto w-full touch-none rounded-2xl border-2 border-border bg-surface select-none"

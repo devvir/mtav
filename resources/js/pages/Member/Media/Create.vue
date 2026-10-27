@@ -50,7 +50,8 @@ const submit = () => form.post(route('media.store'), { forceFormData: true });
       required
     >
       <FileDrop
-        name="files" v-model="form.files"
+        name="files"
+        v-model="form.files"
         :accept
         multiple
         :max-files="maxFiles"
@@ -68,7 +69,8 @@ const submit = () => form.post(route('media.store'), { forceFormData: true });
     >
       <TextInput
         v-bind="field"
-        name="description" v-model="form.description"
+        name="description"
+        v-model="form.description"
         :placeholder="_('Building site, week 12')"
       />
     </Field>

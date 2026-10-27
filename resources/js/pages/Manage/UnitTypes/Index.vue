@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EmptyState from '@/components/feedback/EmptyState.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
@@ -32,8 +33,19 @@ useProjectChanges({ unit_types: ['unitTypes'], units: ['unitTypes'], families: [
     :title="_('Unit types')"
     :description="_('Groups of equivalent units. Each family competes only for units of its type.')"
   >
+    <template #info>
+      <InfoTip :title="_('What is a unit type?')" tour="manage.unit_types">
+        <p>
+          {{
+            _(
+              "A group of equivalent units, like '2 bedrooms'. Each family has one type, and competes only for units of that type: each type is, in fact, its own lottery.",
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
     <template #actions>
-      <Button as-child
+      <Button data-tour="unit_types.add" as-child
         ><Link :href="route('manage.unit_types.create')"
           ><Plus /> {{ _('Add a unit type') }}</Link
         ></Button
@@ -42,6 +54,7 @@ useProjectChanges({ unit_types: ['unitTypes'], units: ['unitTypes'], families: [
   </PageHeader>
 
   <ul
+    data-tour="unit_types.list"
     v-if="unitTypes.length"
     class="divide-y divide-border-subtle rounded-2xl border-2 border-border bg-surface"
   >

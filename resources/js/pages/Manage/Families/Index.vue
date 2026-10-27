@@ -2,6 +2,7 @@
 import EmptyState from '@/components/feedback/EmptyState.vue';
 import Pagination from '@/components/feedback/Pagination.vue';
 import SearchField from '@/components/feedback/SearchField.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { confirm } from '@/composables/useDialogs';
@@ -34,6 +35,17 @@ useProjectChanges({ families: ['families'], people: ['families'] });
 
 <template>
   <PageHeader :title="_('Families')">
+    <template #info>
+      <InfoTip :title="_('What is a family?')">
+        <p>
+          {{
+            _(
+              'The lottery participant: its members share one ranking, and it receives one unit of its type.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
     <template #actions>
       <Button as-child
         ><Link :href="route('manage.families.create')"

@@ -18,13 +18,21 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
 
   <form class="space-y-5" @submit.prevent="submit">
     <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
-      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" autofocus />
+      <TextInput
+        v-bind="field"
+        name="email"
+        v-model="form.email"
+        type="email"
+        autocomplete="email"
+        autofocus
+      />
     </Field>
 
     <Field :label="_('Password')" :error="form.errors.password" v-slot="field">
       <TextInput
         v-bind="field"
-        name="password" v-model="form.password"
+        name="password"
+        v-model="form.password"
         type="password"
         autocomplete="current-password"
       />

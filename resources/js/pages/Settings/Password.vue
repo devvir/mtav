@@ -28,7 +28,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="current_password" v-model="form.current_password"
+        name="current_password"
+        v-model="form.current_password"
         type="password"
         autocomplete="current-password"
       />
@@ -42,7 +43,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password" v-model="form.password"
+        name="password"
+        v-model="form.password"
         type="password"
         autocomplete="new-password"
       />
@@ -55,7 +57,8 @@ const submit = () =>
     >
       <TextInput
         v-bind="field"
-        name="password_confirmation" v-model="form.password_confirmation"
+        name="password_confirmation"
+        v-model="form.password_confirmation"
         type="password"
         autocomplete="new-password"
       />

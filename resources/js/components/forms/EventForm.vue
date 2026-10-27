@@ -91,7 +91,8 @@ const kind = (active: boolean) =>
     >
       <TextInput
         v-bind="field"
-        name="location" v-model="form.location"
+        name="location"
+        v-model="form.location"
         :type="form.type === 'online' ? 'url' : 'text'"
       />
     </Field>
@@ -104,7 +105,12 @@ const kind = (active: boolean) =>
         optional
         v-slot="field"
       >
-        <TextInput v-bind="field" name="start_date" v-model="form.start_date" type="datetime-local" />
+        <TextInput
+          v-bind="field"
+          name="start_date"
+          v-model="form.start_date"
+          type="datetime-local"
+        />
       </Field>
       <Field
         :label="_('Ends')"
@@ -115,7 +121,8 @@ const kind = (active: boolean) =>
       >
         <TextInput
           v-bind="field"
-          name="end_date" v-model="form.end_date"
+          name="end_date"
+          v-model="form.end_date"
           type="datetime-local"
           :min="form.start_date || undefined"
         />
@@ -124,13 +131,15 @@ const kind = (active: boolean) =>
 
     <div class="space-y-2">
       <CheckboxField
-        name="is_published" v-model="form.is_published"
+        name="is_published"
+        v-model="form.is_published"
         :label="_('Published')"
         :hint="_('Drafts are visible to admins only.')"
         :error="form.errors.is_published"
       />
       <CheckboxField
-        name="allows_rsvp" v-model="form.allows_rsvp"
+        name="allows_rsvp"
+        v-model="form.allows_rsvp"
         :label="_('Ask people whether they will go')"
         :error="form.errors.allows_rsvp"
       />

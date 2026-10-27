@@ -3,6 +3,7 @@ import MediaGrid from '@/components/domain/MediaGrid.vue';
 import EmptyState from '@/components/feedback/EmptyState.vue';
 import Pagination from '@/components/feedback/Pagination.vue';
 import SearchField from '@/components/feedback/SearchField.vue';
+import InfoTip from '@/components/help/InfoTip.vue';
 import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { useProjectChanges } from '@/composables/useRealtime';
@@ -42,8 +43,19 @@ const tab = (active: boolean) =>
     :title="_('Files')"
     :description="_('Photos, videos, documents and audio shared in the project.')"
   >
+    <template #info>
+      <InfoTip :title="_('About files')" tour="member.files">
+        <p>
+          {{
+            _(
+              'Everyone in the project can share and see them; nobody outside it can. You can edit or remove what you shared.',
+            )
+          }}
+        </p>
+      </InfoTip>
+    </template>
     <template v-if="canUpload" #actions>
-      <Button as-child>
+      <Button data-tour="files.share" as-child>
         <Link
           :href="
             route('media.create', {
@@ -57,7 +69,7 @@ const tab = (active: boolean) =>
   </PageHeader>
 
   <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <nav class="-mx-1 flex gap-1 overflow-x-auto px-1">
+    <nav data-tour="files.tabs" class="-mx-1 flex gap-1 overflow-x-auto px-1">
       <Link
         v-for="t in tabs"
         :key="t.value"

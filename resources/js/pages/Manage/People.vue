@@ -121,7 +121,8 @@ useProjectChanges({ people: ['members'] });
       >
         <SelectInput
           v-bind="field"
-          name="family_id" v-model="form.family_id"
+          name="family_id"
+          v-model="form.family_id"
           :options="[
             { value: '', label: _('No family') },
             ...families.map((f) => ({ value: f.id, label: f.name })),
@@ -129,7 +130,8 @@ useProjectChanges({ people: ['members'] });
         />
       </Field>
       <CheckboxField
-        name="is_admin" v-model="form.is_admin"
+        name="is_admin"
+        v-model="form.is_admin"
         :label="_('Admin of the project')"
         :hint="_('Admins configure the project and run the lottery.')"
         :error="form.errors.is_admin"

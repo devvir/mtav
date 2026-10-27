@@ -40,7 +40,8 @@ const form = useForm({ name: '', description: '', organization: '' });
       <Field :label="_('Description')" :error="form.errors.description" required v-slot="field">
         <TextArea
           v-bind="field"
-          name="description" v-model="form.description"
+          name="description"
+          v-model="form.description"
           :placeholder="_('What the project is about, how many dwellings…')"
         />
       </Field>

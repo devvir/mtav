@@ -20,7 +20,10 @@ defineProps<{ title: string; description?: string; back?: { href: string; label:
     </Link>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div class="min-w-0">
-        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ title }}</h1>
+        <div class="flex items-center gap-1">
+          <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ title }}</h1>
+          <slot name="info" />
+        </div>
         <p v-if="description" class="mt-1 max-w-2xl text-text-muted">{{ description }}</p>
       </div>
       <div v-if="$slots.actions" class="flex flex-wrap gap-2"><slot name="actions" /></div>

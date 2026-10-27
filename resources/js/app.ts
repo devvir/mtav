@@ -1,4 +1,5 @@
 import '../css/app.css';
+import './tours';
 
 import { realtimeEnabled } from '@/composables/useRealtime';
 import { route } from '@/composables/useRoute';
