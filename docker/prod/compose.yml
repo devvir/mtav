@@ -71,10 +71,10 @@ services:
         condition: service_healthy
 
   # Mail sink so a local prod preview never sends real mail
-  mailhog:
+  mailpit:
     extends:
-      file: ../services/mailhog/compose.yml
-      service: mailhog
+      file: ../services/mailpit/compose.yml
+      service: mailpit
 
 volumes:
   mysql-data:

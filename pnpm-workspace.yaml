@@ -1,0 +1,10 @@
+# The dev assets container (Alpine, musl) and the e2e runner (Ubuntu, glibc) share
+# node_modules: install the native binaries both need
+supportedArchitectures:
+  os: [linux]
+  cpu: [x64, arm64]
+  libc: [glibc, musl]
+
+# Packages allowed to run install scripts
+allowBuilds:
+  esbuild: true

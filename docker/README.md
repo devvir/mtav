@@ -84,8 +84,8 @@ mtav compose <env> <any docker compose args>
   whatever port prod exposes).
 - **Playwright versions are pinned together.** The e2e image tag
   (`docker/services/e2e/Dockerfile`, `mcr.microsoft.com/playwright:v<X>-noble`)
-  ships that exact version's browsers, so the `playwright` / `@playwright/test`
-  devDependencies in package.json MUST match it (currently 1.61.1). The pest
+  ships that exact version's browsers, so the `playwright` devDependency in
+  package.json MUST match it (currently 1.64.1). The pest
   browser plugin also enforces a minimum client version — check
   `PlaywrightNpmServer::PLAYWRIGHT_VERSION` in the plugin when bumping.
 - **pnpm is strict** — imports must be declared in package.json (npm's flat
@@ -125,7 +125,7 @@ docker/
 │   │                      #   prod.Dockerfile, prod.conf
 │   ├── reverb/            # compose.yml (php base + reverb command)
 │   ├── queue/             # compose.yml (prod workers), supervisord.conf
-│   ├── mailhog/           # compose.yml
+│   ├── mailpit/           # compose.yml
 │   └── e2e/               # Dockerfile (playwright image + PHP), compose.yml
 │
 ├── dev/                   # composition + committed .env  (+ optional .env.local)
@@ -154,7 +154,7 @@ docker/
    carry `depends_on` — so wiring always lives in the composition.
 
 3. **Hostnames are plain service names.** Within a composition, the app
-   reaches `mysql`, `reverb`, `mailhog` — no `mysql_test`-style renaming,
+   reaches `mysql`, `reverb`, `mailpit` — no `mysql_test`-style renaming,
    because isolation comes from the project, not the service name.
 
 4. **Env layering.** Every `mtav` invocation runs:
@@ -182,7 +182,7 @@ docker/
 
 | Stage | Adds | Used by |
 |---|---|---|
-| `base` | php:8.4-fpm-alpine, extensions (pdo_mysql, gd, intl, zip, sockets, bcmath, exif, pcntl), ffmpeg, glpk, composer | — |
+| `base` | php:8.5-fpm-alpine, extensions (pdo_mysql, gd, intl, zip, sockets, bcmath, exif, pcntl), ffmpeg, glpk, composer | — |
 | `dev` | xdebug (off by default, `XDEBUG_MODE=coverage` to enable), node + standalone pnpm, `hostuser` mapped to host UID/GID (`PUID`/`PGID` build args) | dev/testing/staging php, reverb |
 | `prod` | `prod.ini` (opcache, no display_errors), `composer install --no-dev`, app code baked in, storage skeleton, `public/build/manifest.json` symlink → shared volume, `CMD php artisan optimize && php-fpm` | prod php, migrations, reverb |
 | `queue` | supervisord + 3 `queue:work` workers | prod queue |
@@ -199,7 +199,7 @@ locally (minutes, once — layer-cached afterwards, shared across all targets).
 
 ### nginx
 
-- **dev** (`compose.yml`): stock `nginx:1.26-alpine`, serves the bind-mounted
+- **dev** (`compose.yml`): stock `nginx:1.30-alpine`, serves the bind-mounted
   `public/`, fastcgi to `php:9000` (`dev.conf`: generous timeouts/buffers).
 - **prod** (`prod.yml` + `prod.Dockerfile`): pure proxy, no filesystem —
   static asset paths proxied to the `assets` service, everything else
@@ -207,7 +207,7 @@ locally (minutes, once — layer-cached afterwards, shared across all targets).
 
 ### mysql
 
-`base.yml`: mariadb:12, credentials from `DB_*` vars (root password
+`base.yml`: mariadb:12.3 (LTS), credentials from `DB_*` vars (root password
 `DB_ROOT_PASSWORD`, default `root` — phpunit.xml expects root/root),
 healthcheck every 3s. `compose.yml` extends it with the persistent
 `mysql-data` volume and a localhost-only port binding. The testing
@@ -217,7 +217,7 @@ speed trick and the reason tests never need cleanup.
 
 ### assets
 
-- **dev** (`compose.yml` + `dev.Dockerfile`): node:22-alpine + standalone
+- **dev** (`compose.yml` + `dev.Dockerfile`): node:26-alpine + standalone
   pnpm binary, `CMD pnpm install && pnpm run dev --host 0.0.0.0` — Vite with
   HMR on `VITE_PORT`. Chokidar polling (inotify is unreliable across the
   bind mount).
@@ -249,7 +249,7 @@ Prod-only (dev uses `QUEUE_CONNECTION=deferred`, so no workers needed).
 Builds the `queue` stage; supervisord runs 3 workers
 (`--tries=3 --max-time=3600`), config in `supervisord.conf`.
 
-### mailhog
+### mailpit
 
 SMTP sink + web UI, present in dev/staging/prod-preview so no environment
 can ever send real mail.
@@ -257,7 +257,7 @@ can ever send real mail.
 ### e2e
 
 The E2E runner: `mcr.microsoft.com/playwright:v<X>-noble` (node + browsers +
-system deps) with PHP 8.4 (ondrej PPA), composer, pnpm, GLPK (real lottery
+system deps) with PHP 8.5 (ondrej PPA), composer, pnpm, GLPK (real lottery
 solver), and ffmpeg added on top. Everything the browser journeys need lives
 in this one container because the **official** pest-plugin-browser assumes a
 single host: it serves the Laravel app **in-process** (an Amp socket server
@@ -270,9 +270,9 @@ build/test steps into it. See `tests/Browser/README.md` for the suite.
 
 ### dev (`mtav-dev`)
 
-Includes php, nginx, mysql, assets, mailhog; wires reverb (`depends_on`
+Includes php, nginx, mysql, assets, mailpit; wires reverb (`depends_on`
 mysql). Ports: app **8000**, Vite **5173**, mysql **3307** (localhost only),
-mailhog **1025/8025**, reverb **8080**.
+mailpit **1025/8025**, reverb **8080**.
 
 ### testing (`mtav-testing`)
 
@@ -295,12 +295,11 @@ in-process), no published ports, fully parallel to dev and testing. The
 `mtav e2e` flow: up → composer/pnpm install → `pnpm run build` → start
 Reverb **inside the same container** (so the browser's `ws://localhost:8080`
 is real) → `php artisan test --testsuite Browser` → remove `public/build` →
-down. Four journey tests cover the app's main use cases end to end
-(`tests/Browser/README.md`); full run ≈ 2 min.
+down. What the suite covers: `documentation/technical/testing.md`.
 
 ### staging (`mtav-staging`)
 
-Includes php, nginx, mysql, mailhog; wires reverb; declares assets behind
+Includes php, nginx, mysql, mailpit; wires reverb; declares assets behind
 `profiles: [tools]` so it **never starts with `up`** — `mtav staging` runs
 it once via `compose run --rm assets 'pnpm install && pnpm run build'`.
 Deliberately uses **dev's ports** (staging is "dev, but frozen for a look"
@@ -321,7 +320,7 @@ how `mtav prod build && mtav prod` rolls a new version: only containers
 whose images changed get recreated.
 
 Ports (9xxx block so a preview coexists with dev/testing): app **9000**,
-mailhog **9025/9825**, reverb **9080**, mysql unpublished. On a real server,
+mailpit **9025/9825**, reverb **9080**, mysql unpublished. On a real server,
 override in `docker/prod/.env.local` and point the host nginx (SSL
 termination) at `NGINX_PORT`.
 
@@ -397,22 +396,3 @@ Per command — motivation and edge cases:
   hides it; anything not covered by a command is one `mtav compose` away
   with the correct project and env layering guaranteed.
 - **`npm`** — forwards to pnpm with a warning (muscle-memory shim).
-
-## History & context
-
-Replaced the previous `.docker/` setup (removed 2026-07-12): one monolithic
-compose file juggling dev/testing via profiles, ~20 wrapper scripts
-exporting env vars, a parallel `build/` tree pushing versioned images to
-ghcr.io, and an `mtav-deploy` submodule for server-side pulls. All of that
-collapsed into the layout above; the registry/versioning machinery was
-dropped deliberately — there is no production deployment yet, and when one
-happens the simplest path is clone + `mtav prod build && mtav prod` behind
-the host nginx (a registry can be reintroduced then if ever needed).
-
-The Browser suite was rewritten from scratch alongside this infra (2026-07):
-the old 205 page-by-page tests and the forked pest-plugin-browser (which
-existed only to reach a Playwright server in another container) were replaced
-by four journey tests on the official plugin in the all-in-one `mtav-e2e`
-composition. `mtav e2e` is the pre-deployment safety net (~2 min); the CI
-step remains opt-in (commented in `.github/workflows/tests.yml`) since the
-suite is meant to be run deliberately before deploying, not on every push.

@@ -43,6 +43,15 @@ decision taken on the way is listed below for review.
   for configuring a project; a platform console (`/admin`) for superadmins. They share
   the domain layer (models, services, policies) and the design system; each has its own
   routes, controllers, layout and pages, shaped for its audience.
+- **React frontend.** The frontend moves from Vue to React 19 on Inertia's React adapter,
+  built on Mantine and Tabler icons, starting from the author's jobhunter design system
+  (`@jobhunter/design` and its UI Lab) copied in as MTAV's own design package with its
+  own palette and brand. Done after the dependency upgrade is green and committed, before
+  the parity check and dashboards. The browser suite is framework-agnostic and guards the
+  rewrite. The thesis's stack chapter is updated at the end, with a note.
+- **Latest everything.** Every dependency moves to its latest major: PHP 8.5, Laravel 13,
+  Inertia 3, Pest 5, Vite 8, Node 26, MariaDB 12.3 (LTS), nginx 1.30, pnpm 12, Mailpit
+  in place of the abandoned MailHog. TypeScript waits at 6 until vue-tsc supports 7 (moot once the frontend is React).
 - **Thesis parked.** The tutor already reviewed the published draft. It is updated at
   the very end, from the tutor's review, with notes marking each change.
 
@@ -93,5 +102,25 @@ decision taken on the way is listed below for review.
 5. **Plan editor**: multiple floors, resizing, polygons, non-unit items.
 6. **Guided help**: info icons (?) explaining concepts where needed, ending, where it
    fits, with "Show me how", which starts a guided tour of that spot.
-7. **Polish**: UI pass, containers and deployment, documentation rewritten against the
-   code, E2E journeys rewritten.
+7. **Polish**: containers and deployment, documentation rewritten against the code, E2E
+   journeys rewritten.
+8. **Parity check** against the pre-refactor app (`452ca64~1`, still running at
+   stg.mtav.uy with the same demo logins), page by page: nothing it did is lost without a
+   decision.
+9. **Dashboards**, at least as rich as the old one, shaped per audience: the member app's
+   home (the lottery, what is coming, recent files, the families and people), the admin
+   overview (setup progress, what needs attention, limits), the platform console (projects
+   awaiting approval, activity).
+10. **Visual design pass**, last — once everything works. A modern look across every
+    theme: glossy, semi-transparent cards; sticky bars with backdrop blur; soft light on
+    what is interactive; plenty of icons; badges with a status dot; motion for what comes
+    and goes. A new look, not the old one; ideas worth keeping from it: generated avatars
+    per family, dense stat tiles, a stacked photo preview, hero headers, quick actions.
+    High contrast and reduced motion keep their own, plainer rendering. It starts from the
+    jobhunter design system (see *React frontend*) and is built as a
+    **component library** first: design tokens (pages never name a colour) and every
+    shared component — buttons, chips, badges, fields and dropdowns, cards, stat tiles,
+    tables, avatars — composed from smaller ones, so nothing on a page is one-off. A **UI
+    Lab** page (superadmins, in the platform console) shows each component in every
+    state and variant (base, hover, pressed, keyboard focus, disabled), switchable across
+    themes and modes.

@@ -15,7 +15,7 @@ include:
   - ../services/php/compose.yml
   - ../services/nginx/compose.yml
   - ../services/mysql/compose.yml
-  - ../services/mailhog/compose.yml
+  - ../services/mailpit/compose.yml
 
 services:
   # Reverb touches the database at boot, so it needs mysql up before starting

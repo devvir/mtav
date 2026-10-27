@@ -32,29 +32,36 @@ class DatabaseSeeder extends Seeder
 
         $acacias = $projects->create($superadmin, [
             'name'         => 'Cooperativa Las Acacias',
-            'description'  => 'Forty dwellings in two blocks, built by mutual aid.',
+            'description'  => 'Cuarenta viviendas en dos bloques, construidas por ayuda mutua.',
             'organization' => 'FUCVAM',
         ]);
         $ceibos = $projects->create($superadmin, [
             'name'        => 'Cooperativa Los Ceibos',
-            'description' => 'A smaller project, still loading its families.',
+            'description' => 'Un proyecto más chico, que todavía está sumando familias.',
         ]);
 
         foreach ([$acacias, $ceibos] as $project) {
             $project->memberships()->create(['user_id' => $admin->id, 'is_admin' => true]);
         }
 
-        $this->structure($acacias, $plans, ['2 bedrooms' => 6, '3 bedrooms' => 4], $admin, $member);
-        $this->structure($ceibos, $plans, ['2 bedrooms' => 3]);
+        $this->structure($acacias, $plans, ['2 dormitorios' => 6, '3 dormitorios' => 4], $admin, $member);
+        $this->structure($ceibos, $plans, ['2 dormitorios' => 3]);
 
         foreach ($acacias->families as $family) {
             $preferences->rank($family, $family->unitType->units->shuffle()->take(3)->pluck('id')->all());
         }
 
-        Event::factory()->count(3)->create(['project_id' => $acacias->id, 'creator_id' => $admin->id]);
-        Event::factory()->create([
-            'project_id' => $acacias->id, 'creator_id' => $admin->id, 'title' => 'Asamblea general', 'allows_rsvp' => true,
-        ]);
+        foreach ([
+            ['Asamblea general', 'Orden del día: avance de obra, cuotas y el sorteo.', 'Salón comunal, Av. Italia 3456', 9, true],
+            ['Jornada de trabajo en obra', 'Turno de la mañana: encofrado del bloque B. Traer guantes.', 'Obra, Camino Carrasco 7120', 3, true],
+            ['Comisión de finanzas', 'Revisión del balance trimestral.', 'Sede de FUCVAM, Bvar. Artigas 1424', 16, false],
+            ['Visita al terreno', 'Recorrida con el arquitecto por los dos bloques.', 'Obra, Camino Carrasco 7120', -12, false],
+        ] as [$title, $description, $location, $inDays, $rsvp]) {
+            Event::factory()->create([
+                'project_id' => $acacias->id, 'creator_id' => $admin->id, 'title' => $title, 'description' => $description,
+                'location'   => $location, 'start_date' => now()->addDays($inDays)->setTime(10, 0), 'allows_rsvp' => $rsvp,
+            ]);
+        }
         $acacias->lottery->update(['start_date' => now()->addMonth()]);
     }
 
@@ -65,12 +72,13 @@ class DatabaseSeeder extends Seeder
      */
     private function structure(Project $project, PlanService $plans, array $types, User ...$people): void
     {
-        foreach ($types as $name => $count) {
-            $type = UnitType::factory()->create(['project_id' => $project->id, 'name' => $name]);
+        foreach (array_keys($types) as $index => $name) {
+            $type = UnitType::factory()->create(['project_id' => $project->id, 'name' => $name, 'description' => null]);
+            $block = chr(ord('A') + $index);
 
-            for ($i = 1; $i <= $count; $i++) {
+            for ($i = 1; $i <= $types[$name]; $i++) {
                 $unit = Unit::factory()->create([
-                    'project_id' => $project->id, 'unit_type_id' => $type->id, 'identifier' => "{$type->id}-{$i}0{$i}",
+                    'project_id' => $project->id, 'unit_type_id' => $type->id, 'identifier' => "{$block}-" . (100 + $i),
                 ]);
                 $plans->place($unit);
 

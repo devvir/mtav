@@ -5,7 +5,7 @@
 #   tmpfs (testing)   — the testing composition adds tmpfs:/var/lib/mysql
 services:
   mysql:
-    image: mariadb:12
+    image: mariadb:12.3
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}

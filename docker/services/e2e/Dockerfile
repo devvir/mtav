@@ -8,24 +8,24 @@
 # the npm client only drives browsers of its own version (the browsers are
 # preinstalled in this image at /ms-playwright).
 
-FROM mcr.microsoft.com/playwright:v1.61.1-noble
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
-# PHP 8.4 (ondrej PPA — noble ships 8.3) + extensions matching the app image,
+# PHP 8.5 (ondrej PPA — noble ships 8.3) + extensions matching the app image,
 # plus the real GLPK solver (lottery execution) and ffmpeg (media handling)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common ca-certificates \
     && add-apt-repository -y ppa:ondrej/php \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-        php8.4-cli \
-        php8.4-bcmath \
-        php8.4-curl \
-        php8.4-gd \
-        php8.4-intl \
-        php8.4-mbstring \
-        php8.4-mysql \
-        php8.4-xml \
-        php8.4-zip \
+        php8.5-cli \
+        php8.5-bcmath \
+        php8.5-curl \
+        php8.5-gd \
+        php8.5-intl \
+        php8.5-mbstring \
+        php8.5-mysql \
+        php8.5-xml \
+        php8.5-zip \
         glpk-utils \
         ffmpeg \
         git \
@@ -35,10 +35,11 @@ RUN apt-get update \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Standalone pnpm binary — same pinning discipline as the other images
-ARG PNPM_VERSION=10.34.5
+ARG PNPM_VERSION=12.15.0
 RUN arch=$(case "$(uname -m)" in x86_64) echo x64;; aarch64) echo arm64;; esac) \
-    && wget -qO /usr/local/bin/pnpm "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linuxstatic-${arch}" \
-    && chmod +x /usr/local/bin/pnpm
+    && mkdir -p /opt/pnpm \
+    && wget -qO- "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-${arch}.tar.gz" | tar xz -C /opt/pnpm \
+    && ln -s /opt/pnpm/pnpm /usr/local/bin/pnpm
 
 # User/group mapping for host compatibility (bind-mounted repo writes)
 ARG PUID=1000

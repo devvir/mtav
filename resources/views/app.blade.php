@@ -4,47 +4,22 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {{-- Inline script to detect dark mode preference and apply it immediately --}}
+        {{-- The person's mode and theme (cookies set by useTheme), applied before the first paint --}}
         <script>
-            (function() {
-                // Parse cookies to find mode value
-                const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
-                    const [name, value] = cookie.split('=');
-                    acc[decodeURIComponent(name)] = decodeURIComponent(value);
-                    return acc;
-                }, {});
+            (function () {
+                const cookie = (name) => document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))?.[1];
+                const mode = cookie('mode') || 'system';
+                const theme = cookie('theme') || 'default';
+                const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
 
-                const mode = cookies.mode || 'system';
-                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                if (mode === 'dark' || (mode === 'system' && prefersDark)) {
-                  document.documentElement.classList.add('dark');
-                }
+                document.documentElement.classList.toggle('dark', dark);
+                if (theme !== 'default') document.documentElement.classList.add('theme-' + theme);
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
-        <style>
-            html {
-                background-color: oklch(1 0 0);
-            }
-
-            html.dark {
-                background-color: oklch(14.1% 0.005 285.823);
-            }
-
-            @if (env('APP_DEBUG') && request()->has('b'))
-                * {
-                    border: 1px solid rgba(255, 0, 0, 0.2);
-                    outline: 1px solid rgba(255, 0, 0, 0.2);
-                }
-            @endif
-        </style>
-
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title data-inertia>{{ config('app.name') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

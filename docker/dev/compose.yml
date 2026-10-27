@@ -13,7 +13,7 @@ include:
   - ../services/nginx/compose.yml
   - ../services/mysql/compose.yml
   - ../services/assets/compose.yml
-  - ../services/mailhog/compose.yml
+  - ../services/mailpit/compose.yml
 
 services:
   # Reverb touches the database at boot, so unlike php-fpm (which only

@@ -1,5 +1,5 @@
 # Production Nginx for MTAV — pure proxy (php-fpm + assets service)
-FROM nginx:1.26-alpine
+FROM nginx:1.30-alpine
 
 # Health check - verify nginx is ready to serve requests
 RUN apk add --no-cache curl

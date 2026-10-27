@@ -21,7 +21,7 @@ A Laravel + Vue.js + Inertia.js app with a streamlined Docker development setup.
    - Creates your `.env` file
    - Builds all Docker containers
    - Installs PHP dependencies (Composer)
-   - Installs JS dependencies (NPM)
+   - Installs JS dependencies (pnpm)
    - Generates Laravel app key
    - Runs database migrations + seeding
    - Initializes git submodules (local packages)
@@ -32,64 +32,38 @@ A Laravel + Vue.js + Inertia.js app with a streamlined Docker development setup.
 
 That's it! You're ready to develop.
 
-## 📋 Daily Development Commands
+## 📋 Common Commands
+
+The essentials for day-to-day work. Run `./mtav help` for the full list, or see
+the **[Docker & Environments guide](docker/README.md)** for everything the CLI
+can do (all environments, `staging`, `prod`, `update`, `rebuild`, `compose`, …).
 
 ```bash
-# Start your development day
-./mtav up
+# Environment lifecycle
+./mtav up            # Start dev (first run builds, migrates, and seeds)
+./mtav down          # Stop and remove containers (database volume is kept)
+./mtav restart       # Down, then up
+./mtav fresh         # Rebuild from scratch — WIPES and reseeds the database
 
-# Update dependencies and run migrations
-./mtav update
+# Tests
+./mtav test          # Everything: Pest + Vitest + E2E
+./mtav pest [args]   # Backend tests (Pest)   e.g. ./mtav pest --filter=UserTest
+./mtav vitest [args] # Frontend tests (Vitest)
+./mtav e2e [args]    # Browser journey suite  (see tests/Browser/README.md)
 
-# Rebuild container images
-./mtav rebuild         # Rebuild all images
-./mtav rebuild php     # Rebuild only php image (and restart container)
-
-# Quick break (containers preserved)
-./mtav stop
-
-# Stop everything (clean shutdown, containers stopped and removed)
-./mtav down
-
-# Check what's running
-./mtav status
-
-# Run all tests (frontend + backend)
-./mtav test
-
-# Run only frontend tests (Vitest)
-./mtav vitest
-
-# Run only backend tests (Pest)
-./mtav pest
-
-# Pass arguments to Pest
-./mtav pest --filter="UserTest"
-./mtav pest --stop-on-failure
-
-# View logs
-./mtav logs
-./mtav logs php    # specific service
-
-# Nuclear option: fresh rebuild
-./mtav fresh
-
-# Build and preview production images locally
-./mtav prod build
-./mtav prod up
-
-# Development shortcuts
-./mtav artisan migrate
-./mtav composer require package/name
-./mtav pnpm add vue-package
-./mtav shell php
+# Everyday shortcuts (run inside the dev containers)
+./mtav artisan <cmd>    # Laravel Artisan   e.g. ./mtav artisan migrate
+./mtav composer <cmd>   # Composer
+./mtav pnpm <cmd>       # pnpm (package manager)
+./mtav shell [service]  # Shell into a container (default: php)
+./mtav logs [service]   # Follow logs
 ```
 
 ## 🌐 Application URLs
 
 - **Main Application**: http://localhost:8000
 - **Vite Dev Server**: http://localhost:5173 (auto-reloads on changes)
-- **Email Testing (MailHog)**: http://localhost:8025
+- **Email Testing (Mailpit)**: http://localhost:8025
 - **Database**: localhost:3307 (user: mtav, password: secret)
 
 ### Development Workflow
@@ -103,6 +77,7 @@ That's it! You're ready to develop.
 
 ## 📚 Documentation
 
-- **[Docker & Environments](docker/README.md)** — The full infrastructure spec: environments, commands, gotchas, internals
+- **[Docker & Environments](docker/README.md)** — The full infrastructure spec: environments, the complete `mtav` command set, gotchas, internals
 - **[Testing & Git Hooks](documentation/technical/testing.md)** — Test workflows and quality checks
+- **[E2E Journey Suite](tests/Browser/README.md)** — What the browser (`mtav e2e`) journeys cover
 - **[Documentation Index](documentation/README.md)** — All developer guides

@@ -9,7 +9,7 @@
 # Build context is the repository root.
 
 # ============================================================================
-FROM php:8.4-fpm-alpine AS base
+FROM php:8.5-fpm-alpine AS base
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD php -r "echo 'OK';" || exit 1
@@ -58,10 +58,11 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers \
     && apk del .build-deps
 
 # Standalone pnpm binary — version-pinned, no npm involved
-ARG PNPM_VERSION=10.34.5
+ARG PNPM_VERSION=12.15.0
 RUN arch=$(case "$(uname -m)" in x86_64) echo x64;; aarch64) echo arm64;; esac) \
-    && wget -qO /usr/local/bin/pnpm "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linuxstatic-${arch}" \
-    && chmod +x /usr/local/bin/pnpm
+    && mkdir -p /opt/pnpm \
+    && wget -qO- "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-${arch}-musl.tar.gz" | tar xz -C /opt/pnpm \
+    && ln -s /opt/pnpm/pnpm /usr/local/bin/pnpm
 
 # User/group mapping for host compatibility
 ARG PUID=1000
