@@ -228,6 +228,7 @@ return [
     'member_needs_family'       => 'Someone who is not an admin must belong to a family.',
     'preferences_foreign_units' => 'You can only rank units of your family\'s type.',
     'unit_assigned'             => 'This unit was already given to a family in the lottery: it cannot be removed.',
+    'plan_unit_items'           => 'Units\' shapes stay on the plan as long as their unit exists; add units from the units page.',
     'unit_type_in_use'          => 'Families or units still use this unit type.',
 
     /** Limits of projects awaiting approval */

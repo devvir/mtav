@@ -47,6 +47,7 @@ class ProjectService
 
             if (! $creator->isSuperadmin()) {
                 $project->memberships()->create(['user_id' => $creator->id, 'is_admin' => true]);
+                $creator->unsetRelation('memberships');
             }
 
             return $project;

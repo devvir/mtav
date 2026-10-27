@@ -228,6 +228,7 @@ return [
     'member_needs_family'       => 'Quien no es administrador debe pertenecer a una familia.',
     'preferences_foreign_units' => 'Solo puedes ordenar viviendas del tipo de tu familia.',
     'unit_assigned'             => 'Esta vivienda ya fue asignada a una familia en el sorteo: no se puede quitar.',
+    'plan_unit_items'           => 'Las formas de las viviendas siguen en el plano mientras la vivienda exista; agrega viviendas desde la página de viviendas.',
     'unit_type_in_use'          => 'Todavía hay familias o viviendas con este tipo.',
 
     /** Límites de los proyectos sin aprobar */

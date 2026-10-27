@@ -92,3 +92,25 @@ Project files live on the private `media` disk and are served by `media.file` /
 the superadmins (global), and broadcasts it (`NotificationSent`) on `users.{id}`,
 `projects.{id}` or `superadmins` (`routes/channels.php`). People see notifications from
 their registration on; read state is per user.
+
+## Frontend
+
+Vue 3 + Inertia, Tailwind 4 on the design tokens of `resources/css/theme.css` (themes,
+dark mode, high contrast), Reka UI primitives in `components/ui`.
+
+- **Layouts** follow the areas (`layouts/`): a page's folder picks its layout
+  (`Member/…`, `Manage/…`, `Platform/…`, `Auth/…`, the rest is the account area).
+  `AppShell` is the frame: top bar, sidebar (drawer on phones), bottom tabs in the
+  member app.
+- **Forms** are hand-written per entity (`components/forms`) on shared fields
+  (`components/form`: `Field` gives every input its label, hint, error and ids).
+- **Modals**: `components/modal/Modal.vue` (declarative), and `confirm()` / `prompt()`
+  from `composables/useDialogs.ts` for questions asked from code (typed confirmations
+  included), rendered by `DialogHost`.
+- **Routes**: `route()` (`composables/useRoute.ts`) reads Ziggy from each visit's props,
+  so the current project is the default `{project}`.
+- **Live updates**: `useProjectChanges({ resource: [props to reload] })` reloads a page's
+  props when someone else changes them; `useLiveNotifications()` (in the shell) shows
+  notifications as toasts. Both need `VITE_REVERB_APP_KEY`.
+- **Copy**: `_('English text')` everywhere; `lang/es_UY.json` holds the Spanish, keyed by
+  the English (the English file is empty on purpose).

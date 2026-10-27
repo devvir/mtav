@@ -49,9 +49,7 @@ class DocumentationController extends Controller
         }
 
         $content = File::get($guidePath);
-        $component = $role === 'member' ? 'Documentation/MemberGuide' : 'Documentation/AdminGuide';
-
-        return inertia($component, [
+        return inertia('Documentation/Guide', [
             'userRole' => $role,
             'content'  => $content,
         ]);

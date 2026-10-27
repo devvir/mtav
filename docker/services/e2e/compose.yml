@@ -17,5 +17,7 @@ services:
       APP_ENV: ${APP_ENV:-testing}
       DB_HOST: ${DB_HOST:-mysql}
       VITE_FORCE_BUILD: ${VITE_FORCE_BUILD:-true}
+      # Reverb runs inside this container (started by the mtav CLI)
+      REVERB_HOST: 127.0.0.1
     volumes:
       - ../../..:/var/www/html

@@ -21,7 +21,7 @@ class PlanController extends Controller
 
     public function update(PlanRequest $request, Project $project, PlanService $plans): RedirectResponse
     {
-        $plans->update($project->plan, $request->validated('polygon'), $request->validated('items'));
+        $plans->update($project->plan, $request->validated());
 
         return back()->with('success', __('flash.plan_updated'));
     }

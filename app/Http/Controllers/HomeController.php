@@ -15,6 +15,9 @@ class HomeController extends Controller
     {
         $user = $request->user();
 
+        /** Messages for the page people land on must survive this extra redirect */
+        $request->session()->reflash();
+
         return match (true) {
             $user->isSuperadmin()             => to_route('admin.projects.index'),
             $user->memberships->count() === 1 => to_route('projects.show', $user->memberships->first()->project_id),

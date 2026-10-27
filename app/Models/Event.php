@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\EventType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Event extends Model
 {
+    use BroadcastsProjectChanges;
+
     public const IMPLICIT_DURATION = 60;
 
     protected $fillable = [

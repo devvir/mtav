@@ -1,4 +1,4 @@
-type Replacements = Record<string, string>;
+type Replacements = Record<string, string | number>;
 
 // Import supported locales explicitly
 import en from '@lang/en.json';

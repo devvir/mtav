@@ -4,7 +4,6 @@ import laravel from 'laravel-vite-plugin';
 import path from 'path';
 import AutoImport from 'unplugin-auto-import/vite';
 import { defineConfig, loadEnv } from 'vite';
-import i18nPlugin from './resources/js/plugins/i18n';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -13,7 +12,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       laravel({
         input: ['resources/js/app.ts'],
-        ssr: 'resources/js/ssr.ts',
         refresh: true,
       }),
 
@@ -41,7 +39,6 @@ export default defineConfig(({ mode }) => {
         vueTemplate: true,
       }),
 
-      i18nPlugin(),
     ],
 
     resolve: {

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Inertia\Response;
 
 /**
@@ -31,13 +32,13 @@ class ProjectController extends Controller
             ->withQueryString();
 
         return inertia('Platform/Projects', [
-            'projects' => $projects->through(fn (Project $project) => [
+            'projects' => JsonResource::collection($projects->through(fn (Project $project) => [
                 ...ProjectResource::make($project)->resolve($request),
                 'people_count'   => $project->memberships_count,
                 'families_count' => $project->families_count,
                 'units_count'    => $project->units_count,
                 'creator'        => $project->creator?->only('id', 'email') + ['name' => $project->creator?->name],
-            ]),
+            ])),
             'counts' => [
                 'awaiting' => Project::whereNull('approved_at')->whereNotNull('approval_requested_at')->count(),
             ],

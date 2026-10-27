@@ -9,7 +9,7 @@ the isolated `mtav-testing` Docker environment — see
 ```bash
 ./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, UseCases suites
 ./mtav vitest [args]     # Vue tests (Vitest)
-./mtav e2e [args]        # Browser journeys (Playwright) — being rewritten for the new UI
+./mtav e2e [args]        # Browser tests (Playwright): every page renders, and the cooperative journey
 ./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
 ./mtav test              # Everything: Pest + Vitest + E2E
 ```
@@ -46,6 +46,10 @@ never have to stop your dev session to run tests.
 - **Unit** — the lottery solvers and GLPK internals, on plain data.
 - **Arch** — architecture rules.
 - **Stress** — slow GLPK scenarios; opt in with `--testsuite Stress`.
+- **Browser** — run by `./mtav e2e`: a smoke test that renders every page of the three
+  areas without JavaScript errors, and the journey of a cooperative from sign-up to its
+  lottery. The app runs in-process, so tests mix browser steps with database checks.
+  Fields are found by their `name`; buttons by their text, or `[aria-label="…"]`.
 
 ### Use-case tests
 

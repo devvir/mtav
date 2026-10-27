@@ -1,31 +1,17 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
-export default defineConfig((configEnv) => mergeConfig(
-  viteConfig(configEnv),
-  {
+/**
+ * Frontend logic that is worth testing on its own (geometry, queues, components with
+ * behaviour). Pages are covered by the browser suite (tests/Browser).
+ */
+export default defineConfig((configEnv) =>
+  mergeConfig(viteConfig(configEnv), {
     test: {
       globals: true,
       clearMocks: true,
-      setupFiles: ['resources/js/tests/setup.ts'],
-      projects: [
-        {
-          extends: true,
-          test: {
-            name: 'unit',
-            include: ['resources/js/tests/unit/**'],
-            environment: 'jsdom',
-          },
-        },
-        {
-          extends: true,
-          test: {
-            name: 'feature',
-            include: ['resources/js/tests/feature/**'],
-            environment: 'jsdom',
-          },
-        },
-      ],
+      environment: 'jsdom',
+      include: ['resources/js/tests/**/*.test.ts'],
     },
-  },
-));
+  }),
+);

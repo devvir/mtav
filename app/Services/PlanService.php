@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Events\ProjectChanged;
 use App\Models\Plan;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\Plan\Defaults;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PlanService
@@ -43,19 +45,34 @@ class PlanService
     }
 
     /**
-     * Save the boundary and the shapes of the plan's items.
+     * Save the plan as drawn: boundary, size, and every shape (new ones created,
+     * missing non-unit ones removed).
      *
-     * @param array<int, array{float, float}> $polygon
-     * @param array<int, array{id: int, polygon: array<int, array{float, float}>}> $items
+     * @param array{width: float, height: float, polygon: array, items: array} $data
      */
-    public function update(Plan $plan, array $polygon, array $items): void
+    public function update(Plan $plan, array $data): void
     {
-        DB::transaction(function () use ($plan, $polygon, $items) {
-            $plan->update(['polygon' => $polygon]);
+        DB::transaction(function () use ($plan, $data) {
+            $plan->update(collect($data)->only('width', 'height', 'polygon')->all());
 
-            foreach ($items as $item) {
-                $plan->items()->whereKey($item['id'])->update(['polygon' => $item['polygon']]);
+            $kept = [];
+
+            foreach ($data['items'] as $item) {
+                $attributes = [
+                    'floor'    => $item['floor'],
+                    'polygon'  => $item['polygon'],
+                    'name'     => $item['name'] ?? null,
+                    'metadata' => isset($item['color']) ? ['color' => $item['color']] : null,
+                ];
+
+                $kept[] = isset($item['id'])
+                    ? tap($plan->items()->whereKey($item['id'])->first())->update($attributes)->id
+                    : $plan->items()->create([...$attributes, 'type' => $item['type']])->id;
             }
+
+            $plan->items()->whereNull('unit_id')->whereNotIn('id', $kept)->delete();
+
+            DB::afterCommit(fn () => rescue(fn () => ProjectChanged::dispatch($plan->project_id, 'plan', 'updated', $plan->id, Auth::id())));
         });
     }
 }

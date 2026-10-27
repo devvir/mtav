@@ -1,19 +1,12 @@
 <script setup lang="ts">
-import Head from '@/components/Head.vue';
-import InputError from '@/components/InputError.vue';
+import Field from '@/components/form/Field.vue';
+import TextInput from '@/components/form/TextInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { route } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
-import AuthLayout from '@/layouts/AuthLayout.vue';
-import { LoaderCircle } from 'lucide-vue-next';
+import { Head, useForm } from '@inertiajs/vue3';
 
-interface Props {
-  token: string;
-  email: string;
-}
-
-const props = defineProps<Props>();
+const props = defineProps<{ token: string; email: string }>();
 
 const form = useForm({
   token: props.token,
@@ -28,62 +21,42 @@ const submit = () =>
   });
 </script>
 
-<script lang="ts">
-export default { layout: null };
-</script>
-
 <template>
-  <Head title="Reset Password" />
+  <Head :title="_('Choose a new password')" />
+  <h1 class="mb-6 text-2xl font-bold">{{ _('Choose a new password') }}</h1>
 
-  <AuthLayout title="Reset Password" description="Please enter your new password below">
-    <form @submit.prevent="submit" class="space-y-6">
-      <div class="grid gap-2">
-        <Label for="email">{{ _('Email') }}</Label>
-        <Input
-          id="email"
-          type="email"
-          name="email"
-          autocomplete="email"
-          v-model="form.email"
-          class="mt-1 block w-full"
-          readonly
-        />
-        <InputError :message="form.errors.email" class="mt-2" />
-      </div>
-
-      <div class="grid gap-2">
-        <Label for="password">{{ _('Password') }}</Label>
-        <Input
-          id="password"
-          type="password"
-          name="password"
-          autocomplete="new-password"
-          v-model="form.password"
-          class="mt-1 block w-full"
-          autofocus
-          :placeholder="_('Password')"
-        />
-        <InputError :message="form.errors.password" />
-      </div>
-
-      <div class="grid gap-2">
-        <Label for="password_confirmation">{{ _('Confirm Password') }}</Label>
-        <Input
-          id="password_confirmation"
-          type="password"
-          name="password_confirmation"
-          autocomplete="new-password"
-          v-model="form.password_confirmation"
-          class="mt-1 block w-full"
-          :placeholder="_('Confirm Password')"
-        />
-        <InputError :message="form.errors.password_confirmation" />
-      </div>
-
-      <Button type="submit" class="w-full" :disabled="form.processing">
-        <LoaderCircle v-if="form.processing" class="size-4 animate-spin" />
-        {{ _('Reset Password') }}
-      </Button>
-    </form>
-  </AuthLayout>
+  <form class="space-y-5" @submit.prevent="submit">
+    <Field :label="_('Email')" :error="form.errors.email" v-slot="field">
+      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" readonly />
+    </Field>
+    <Field
+      :label="_('New password')"
+      :hint="_('At least 8 characters.')"
+      :error="form.errors.password"
+      v-slot="field"
+    >
+      <TextInput
+        v-bind="field"
+        name="password" v-model="form.password"
+        type="password"
+        autocomplete="new-password"
+        autofocus
+      />
+    </Field>
+    <Field
+      :label="_('Repeat the password')"
+      :error="form.errors.password_confirmation"
+      v-slot="field"
+    >
+      <TextInput
+        v-bind="field"
+        name="password_confirmation" v-model="form.password_confirmation"
+        type="password"
+        autocomplete="new-password"
+      />
+    </Field>
+    <Button type="submit" class="w-full" :disabled="form.processing">{{
+      _('Save the password')
+    }}</Button>
+  </form>
 </template>

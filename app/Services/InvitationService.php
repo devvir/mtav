@@ -74,6 +74,7 @@ class InvitationService
             $membership->family_id = $invitation->family_id ?? $membership->family_id;
             $membership->is_admin = $invitation->is_admin || $membership->is_admin;
             $membership->save();
+            $user->unsetRelation('memberships');
 
             $invitation->update(['accepted_at' => now()]);
 

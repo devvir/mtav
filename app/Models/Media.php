@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\MediaCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Media extends Model
 {
+    use BroadcastsProjectChanges;
+
     public const DISK = 'media';
 
     protected $fillable = [

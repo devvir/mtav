@@ -1,109 +1,65 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
-
-import Head from '@/components/Head.vue';
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import Field from '@/components/form/Field.vue';
+import FormActions from '@/components/form/FormActions.vue';
+import TextInput from '@/components/form/TextInput.vue';
+import PageHeader from '@/components/layout/PageHeader.vue';
+import { route } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
+import { useForm } from '@inertiajs/vue3';
 
-const passwordInput = ref<HTMLInputElement | null>(null);
-const currentPasswordInput = ref<HTMLInputElement | null>(null);
+const form = useForm({ current_password: '', password: '', password_confirmation: '' });
 
-const form = useForm({
-  current_password: '',
-  password: '',
-  password_confirmation: '',
-});
-
-const updatePassword = () => {
-  form.put(route('password.update'), {
-    preserveScroll: true,
-    onSuccess: () => form.reset(),
-    onError: (errors: Record<string, string>) => {
-      if (errors.password) {
-        form.reset('password', 'password_confirmation');
-        if (passwordInput.value instanceof HTMLInputElement) {
-          passwordInput.value.focus();
-        }
-      }
-
-      if (errors.current_password) {
-        form.reset('current_password');
-        if (currentPasswordInput.value instanceof HTMLInputElement) {
-          currentPasswordInput.value.focus();
-        }
-      }
-    },
-  });
-};
+const submit = () =>
+  form.put(route('password.update'), { preserveScroll: true, onSuccess: () => form.reset() });
 </script>
 
 <template>
-  <Head title="Password settings" />
+  <PageHeader :title="_('Password')" />
 
-  <Breadcrumbs global>
-    <Breadcrumb route="profile.edit" text="Settings" />
-    <Breadcrumb route="password.edit" text="Change Password" />
-  </Breadcrumbs>
-
-  <SettingsLayout>
-    <div class="space-y-6">
-      <HeadingSmall
-        title="Update password"
-        description="Ensure your account is using a long, random password to stay secure"
+  <form
+    class="max-w-xl space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
+    @submit.prevent="submit"
+  >
+    <Field
+      :label="_('Current password')"
+      :error="form.errors.current_password"
+      required
+      v-slot="field"
+    >
+      <TextInput
+        v-bind="field"
+        name="current_password" v-model="form.current_password"
+        type="password"
+        autocomplete="current-password"
       />
-
-      <form @submit.prevent="updatePassword" class="space-y-6">
-        <div class="grid gap-2">
-          <Label for="current_password">{{ _('Current Password') }}</Label>
-          <Input
-            id="current_password"
-            ref="currentPasswordInput"
-            v-model="form.current_password"
-            type="password"
-            class="mt-1 block w-full"
-            autocomplete="current-password"
-            :placeholder="_('Current Password')"
-          />
-          <InputError :message="form.errors.current_password" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="password">{{ _('New Password') }}</Label>
-          <Input
-            id="password"
-            ref="passwordInput"
-            v-model="form.password"
-            type="password"
-            class="mt-1 block w-full"
-            autocomplete="new-password"
-            :placeholder="_('New Password')"
-          />
-          <InputError :message="form.errors.password" />
-        </div>
-
-        <div class="grid gap-2">
-          <Label for="password_confirmation">{{ _('Confirm Password') }}</Label>
-          <Input
-            id="password_confirmation"
-            v-model="form.password_confirmation"
-            type="password"
-            class="mt-1 block w-full"
-            autocomplete="new-password"
-            :placeholder="_('Confirm Password')"
-          />
-          <InputError :message="form.errors.password_confirmation" />
-        </div>
-
-        <div class="flex items-center gap-4">
-          <Button type="submit" :disabled="form.processing">{{ _('Update password') }}</Button>
-        </div>
-      </form>
-    </div>
-  </SettingsLayout>
+    </Field>
+    <Field
+      :label="_('New password')"
+      :hint="_('At least 8 characters.')"
+      :error="form.errors.password"
+      required
+      v-slot="field"
+    >
+      <TextInput
+        v-bind="field"
+        name="password" v-model="form.password"
+        type="password"
+        autocomplete="new-password"
+      />
+    </Field>
+    <Field
+      :label="_('Repeat the new password')"
+      :error="form.errors.password_confirmation"
+      required
+      v-slot="field"
+    >
+      <TextInput
+        v-bind="field"
+        name="password_confirmation" v-model="form.password_confirmation"
+        type="password"
+        autocomplete="new-password"
+      />
+    </Field>
+    <FormActions :submit-label="_('Change the password')" :processing="form.processing" />
+  </form>
 </template>

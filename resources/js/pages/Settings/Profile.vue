@@ -1,140 +1,109 @@
 <script setup lang="ts">
-import { AvatarUpload } from '@/components/avatar';
-import Head from '@/components/Head.vue';
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import InputError from '@/components/InputError.vue';
-import Breadcrumb from '@/components/layout/header/Breadcrumb.vue';
-import Breadcrumbs from '@/components/layout/header/Breadcrumbs.vue';
-import Textarea from '@/components/Textarea.vue';
+import PersonAvatar from '@/components/feedback/PersonAvatar.vue';
+import Field from '@/components/form/Field.vue';
+import FormActions from '@/components/form/FormActions.vue';
+import TextArea from '@/components/form/TextArea.vue';
+import TextInput from '@/components/form/TextInput.vue';
+import PageHeader from '@/components/layout/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { currentUser } from '@/composables/useAuth';
+import { route } from '@/composables/useRoute';
 import { _ } from '@/composables/useTranslations';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Camera } from 'lucide-vue-next';
 
-defineProps<{
-  updateStatus?: string;
+const props = defineProps<{
+  profile: {
+    firstname: string;
+    lastname: string | null;
+    email: string;
+    new_email: string | null;
+    phone: string | null;
+    legal_id: string | null;
+    about: string | null;
+  };
 }>();
 
-const profile = currentUser.value!;
+const user = computed(() => usePage().props.auth.user!);
+const form = useForm({ ...props.profile });
 
-const form = useForm({
-  email: profile.new_email ?? profile.email,
-  firstname: profile.firstname,
-  lastname: profile.lastname ?? '',
-  legal_id: profile.legal_id ?? '',
-  phone: profile.phone ?? '',
-  about: profile.about ?? '',
-});
-
-const submit = () => form.post(route('profile.update'), { preserveScroll: true });
+const picker = useTemplateRef<HTMLInputElement>('picker');
+const uploadAvatar = (file?: File) =>
+  file &&
+  router.post(
+    route('avatar.update'),
+    { avatar: file },
+    { forceFormData: true, preserveScroll: true },
+  );
 </script>
 
 <template>
-  <Head title="Profile settings" />
+  <PageHeader :title="_('Profile')" :description="_('How people in your projects see you.')" />
 
-  <Breadcrumbs global>
-    <Breadcrumb route="profile.edit" text="Settings" no-link />
-    <Breadcrumb route="profile.edit" text="Update Profile" />
-  </Breadcrumbs>
+  <div class="mb-6 flex items-center gap-4">
+    <PersonAvatar :name="user.name" :src="user.avatar" size="lg" />
+    <Button variant="outline" @click="picker?.click()"><Camera /> {{ _('Change picture') }}</Button>
+    <input
+      ref="picker"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      class="sr-only"
+      @change="uploadAvatar(($event.target as HTMLInputElement).files?.[0])"
+    />
+  </div>
+  <p
+    v-if="usePage().props.errors.avatar"
+    role="alert"
+    class="-mt-4 mb-6 text-sm font-medium text-error"
+  >
+    {{ usePage().props.errors.avatar }}
+  </p>
 
-  <SettingsLayout>
-    <form @submit.prevent="submit" class="space-y-8">
-      <!-- Grid: 2 cols, 5 rows -->
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Row 1: Title + Avatar -->
-        <HeadingSmall
-          title="Profile information"
-          description="Update your personal information and contact details"
-        />
-        <div class="justify-self-start md:row-span-2 md:justify-self-end">
-          <AvatarUpload
-            :subject="profile"
-            size="lg"
-            upload-route="avatar.update"
-            @success="(url: string) => (profile.avatar = url)"
-          />
-        </div>
+  <form
+    class="max-w-2xl space-y-5 rounded-2xl border-2 border-border bg-surface p-5 sm:p-6"
+    @submit.prevent="form.patch(route('profile.update'), { preserveScroll: true })"
+  >
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field :label="_('First name')" :error="form.errors.firstname" required v-slot="field">
+        <TextInput v-bind="field" name="firstname" v-model="form.firstname" autocomplete="given-name" />
+      </Field>
+      <Field :label="_('Last name')" :error="form.errors.lastname" optional v-slot="field">
+        <TextInput v-bind="field" name="lastname" v-model="form.lastname" autocomplete="family-name" />
+      </Field>
+    </div>
 
-        <!-- Row 2: Email (aligned to bottom) -->
-        <div class="space-y-2 self-end">
-          <Label for="email">
-            {{ _('Email address') }}
-            <span class="text-text-subtle">{{
-              profile.new_email ? `(${_('pending verification')})` : ''
-            }}</span>
-          </Label>
-          <Input id="email" type="email" v-model="form.email" required autocomplete="username" />
-          <InputError :message="form.errors.email" />
-        </div>
+    <Field
+      :label="_('Email')"
+      :hint="
+        profile.new_email
+          ? _('Waiting for you to confirm {email}.', { email: profile.new_email })
+          : _('Changing it sends a confirmation to the new address.')
+      "
+      :error="form.errors.email"
+      required
+      v-slot="field"
+    >
+      <TextInput v-bind="field" name="email" v-model="form.email" type="email" autocomplete="email" />
+    </Field>
 
-        <!-- Row 3: First Name + Last Name -->
-        <div class="space-y-2">
-          <Label for="firstname">{{ _('First Name') }}</Label>
-          <Input id="firstname" v-model="form.firstname" required />
-          <InputError :message="form.errors.firstname" />
-        </div>
-        <div class="space-y-2">
-          <Label for="lastname">{{ _('Last Name') }}</Label>
-          <Input id="lastname" v-model="form.lastname" />
-          <InputError :message="form.errors.lastname" />
-        </div>
-
-        <!-- Row 4: Legal ID + Phone -->
-        <div class="space-y-2">
-          <Label for="legal_id">{{ _('Legal ID') }}</Label>
-          <Input id="legal_id" v-model="form.legal_id" />
-          <InputError :message="form.errors.legal_id" />
-        </div>
-        <div class="space-y-2">
-          <Label for="phone">{{ _('Phone Number') }}</Label>
-          <Input id="phone" v-model="form.phone" type="tel" />
-          <InputError :message="form.errors.phone" />
-        </div>
-
-        <!-- Row 5: Bio (full width) -->
-        <div class="space-y-2 md:col-span-2">
-          <Label for="about">{{ _('About me') }}</Label>
-          <Textarea id="about" v-model="form.about" :rows="4" />
-          <InputError :message="form.errors.about" />
-        </div>
-      </div>
-
-      <!-- Email change verification notice -->
-      <div
-        v-if="updateStatus === 'email-verification-sent'"
-        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20"
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field :label="_('Phone')" :error="form.errors.phone" optional v-slot="field">
+        <TextInput v-bind="field" name="phone" v-model="form.phone" type="tel" autocomplete="tel" />
+      </Field>
+      <Field
+        :label="_('ID number')"
+        :hint="_('Only your projects\' admins see it.')"
+        :error="form.errors.legal_id"
+        optional
+        v-slot="field"
       >
-        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">
-          {{ _('Verification email sent') }}
-        </p>
-        <p class="mt-2 text-sm text-blue-800 dark:text-blue-300">
-          {{
-            _(
-              'A verification link has been sent to your new email address. Please click it to confirm the email change.',
-            )
-          }}
-        </p>
-      </div>
+        <TextInput v-bind="field" name="legal_id" v-model="form.legal_id" />
+      </Field>
+    </div>
 
-      <!-- Email change completed notice -->
-      <div
-        v-if="updateStatus === 'email-verified'"
-        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20"
-      >
-        <p class="text-sm font-medium text-green-900 dark:text-green-200">
-          {{ _('Email address verified') }}
-        </p>
-        <p class="mt-2 text-sm text-green-800 dark:text-green-300">
-          {{ _('Your email address has been successfully updated.') }}
-        </p>
-      </div>
+    <Field :label="_('About you')" :error="form.errors.about" optional v-slot="field">
+      <TextArea v-bind="field" name="about" v-model="form.about" />
+    </Field>
 
-      <!-- Submit button -->
-      <div class="flex items-center gap-4">
-        <Button type="submit" :disabled="form.processing" size="lg">{{ _('Save Changes') }}</Button>
-      </div>
-    </form>
-  </SettingsLayout>
+    <FormActions :submit-label="_('Save')" :processing="form.processing" />
+  </form>
 </template>

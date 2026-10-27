@@ -170,3 +170,12 @@ describe('A member', function () {
         $this->as($member, $project)->get(route('projects.show'))->assertOk();
     });
 });
+
+it('keeps the message of an action through the landing redirect', function () {
+    $person = aUser();
+
+    $this->as($person)->withSession(['success' => 'Welcome!'])->get(route('home'))
+        ->assertRedirect(route('projects.index'));
+
+    $this->as($person)->get(route('projects.index'))->assertSessionHas('success', 'Welcome!');
+});

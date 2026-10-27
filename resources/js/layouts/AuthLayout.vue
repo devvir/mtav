@@ -1,39 +1,27 @@
 <script setup lang="ts">
-import FlashMessages from '@/components/flash/FlashMessages.vue';
-import { _ } from '@/composables/useTranslations';
-import AuthIntro from '@/layouts/auth/AuthIntro.vue';
+import Toaster from '@/components/feedback/Toaster.vue';
+import DialogHost from '@/components/modal/DialogHost.vue';
+import { route } from '@/composables/useRoute';
+import { Link, usePage } from '@inertiajs/vue3';
+import { Building2 } from 'lucide-vue-next';
 
-const props = defineProps<{
-  title?: string;
-  description?: string;
-  wide?: boolean;
-}>();
-
-const maxWidthClass = computed(() => (props.wide ? 'max-w-4xl' : 'max-w-md'));
+/**
+ * Signing in, signing up, invitations: a simple centred card.
+ */
+const page = usePage();
 </script>
 
 <template>
-  <div class="flex min-h-svh flex-col bg-background lg:flex-row">
-    <!-- Left side - Intro section -->
-    <AuthIntro />
-
-    <!-- Right side - Content -->
-    <div class="flex flex-1 items-center justify-center px-4 py-12 lg:px-12">
-      <div class="w-full space-y-8" :class="maxWidthClass">
-        <!-- Form header -->
-        <div v-if="title" class="hidden space-y-2 text-center sm:block lg:text-left">
-          <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
-            {{ _(title) }}
-          </h2>
-          <p v-if="description" class="text-sm text-muted-foreground sm:text-base">
-            {{ _(description) }}
-          </p>
-        </div>
-
-        <FlashMessages no-auto-dismiss multiline />
-
-        <slot />
-      </div>
-    </div>
+  <div class="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
+    <Link :href="route('home')" class="mb-8 flex items-center gap-2 text-2xl font-bold">
+      <Building2 class="size-8 text-interactive" /> {{ page.props.name }}
+    </Link>
+    <main
+      class="w-full max-w-md rounded-2xl border-2 border-border bg-surface p-6 shadow-sm sm:p-8"
+    >
+      <slot />
+    </main>
+    <Toaster />
+    <DialogHost />
   </div>
 </template>

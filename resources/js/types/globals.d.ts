@@ -1,20 +1,15 @@
-// Extend ImportMeta interface for Vite...
-declare module 'vite/client' {
-  interface ImportMetaEnv {
-    readonly VITE_APP_NAME: string;
-    [key: string]: string | boolean | undefined;
-  }
+import type { SharedProps } from './page';
 
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-    readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
-  }
+declare module '@inertiajs/core' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- augments Inertia's PageProps
+  interface PageProps extends SharedProps {}
 }
 
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   interface ComponentCustomProperties {
-    $inertia: typeof Router;
-    $page: Page;
-    $headManager: ReturnType<typeof createHeadManager>;
+    route: typeof import('@/composables/useRoute').route;
+    _: typeof import('@/composables/useTranslations')._;
   }
 }
+
+export {};

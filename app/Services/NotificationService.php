@@ -33,7 +33,8 @@ class NotificationService
             'triggered_by' => $trigger?->id,
         ]);
 
-        NotificationSent::dispatch($notification);
+        /** Live delivery is a bonus: a websocket server that is down never fails the action */
+        rescue(fn () => NotificationSent::dispatch($notification));
 
         return $notification;
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
@@ -24,7 +25,7 @@ class UserController extends Controller
             ->withQueryString();
 
         return inertia('Platform/Users', [
-            'users' => $users->through(fn (User $user) => [
+            'users' => JsonResource::collection($users->through(fn (User $user) => [
                 'id'             => $user->id,
                 'name'           => $user->name,
                 'email'          => $user->email,
@@ -32,7 +33,7 @@ class UserController extends Controller
                 'verified'       => $user->hasVerifiedEmail(),
                 'projects_count' => $user->memberships_count,
                 'created_at'     => $user->created_at,
-            ]),
+            ])),
             'filters' => ['q' => $request->q, 'superadmins' => $request->boolean('superadmins')],
         ]);
     }

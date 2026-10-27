@@ -69,9 +69,13 @@ decision taken on the way is listed below for review.
 - **Private media.** Files live on a private disk and are streamed by a route that
   checks project access. SVG is not accepted.
 - **GLPK is the default solver**; random only when chosen explicitly.
-- **Forms (stage 4, open with the author):** our own definitions of field constraints,
-  used by validation and passed to hand-written Vue forms as hints. FormService and the
-  two `devvir/*` packages go.
+- **Forms:** hand-written per entity (`components/forms`) on shared field components
+  (`components/form`); validation lives in one FormRequest per entity. FormService and
+  the two `devvir/*` packages are gone. (The author proposed generating forms and
+  validation from our own entity definitions; still open to revisit.)
+- **Modals:** our own `Modal` (Reka's Dialog primitive; a bottom sheet on phones) and
+  `confirm()` / `prompt()` dialogs called from code.
+- **Live updates are best effort:** a websocket server that is down never fails an action.
 
 ## Work order
 
@@ -87,5 +91,7 @@ decision taken on the way is listed below for review.
    replacing InertiaUI Modal; forms per entity on shared field components (including a
    dedicated unit type form); pages adapted to the new routes and props.
 5. **Plan editor**: multiple floors, resizing, polygons, non-unit items.
-6. **Polish**: UI pass, containers and deployment, documentation rewritten against the
+6. **Guided help**: info icons (?) explaining concepts where needed, ending, where it
+   fits, with "Show me how", which starts a guided tour of that spot.
+7. **Polish**: UI pass, containers and deployment, documentation rewritten against the
    code, E2E journeys rewritten.

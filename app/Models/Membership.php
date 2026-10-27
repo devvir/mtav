@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -9,6 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Membership extends Model
 {
+    use BroadcastsProjectChanges;
+
+    /** Pages call the people of a project "people" */
+    protected string $broadcastAs = 'people';
+
     protected $fillable = [
         'user_id',
         'project_id',
