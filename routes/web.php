@@ -1,38 +1,182 @@
 <?php
 
-use App\Http\Controllers\Auth\InvitationController;
-use App\Http\Middleware\Auth\ProjectMustBeSelected;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\Manage;
+use App\Http\Controllers\Member;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Platform;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\Settings\AvatarController;
+use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Middleware\EnsureSuperadmin;
+use App\Http\Middleware\ResolveProject;
 use Illuminate\Support\Facades\Route;
 
-/** Healthcheck Route */
+/**
+ * Three areas share these routes (see documentation/planning/refactor.md):
+ *  - the member app, /projects/{project}/…            what people do in a project
+ *  - the project admin area, /projects/{project}/manage/…   configuring a project
+ *  - the platform console, /admin/…                    superadmins only
+ */
+
 Route::get('ping', fn () => 'pong');
 
-/** User Invitation Routes */
-Route::get('invitation', [InvitationController::class, 'edit'])->name('invitation.edit');
-Route::post('invitation', [InvitationController::class, 'update'])->name('invitation.update');
+/**
+ * Accounts
+ */
+Route::middleware('guest')->group(function () {
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:10,1');
 
-/** Guest-only Routes */
-Route::middleware('guest')->group(__DIR__ . '/web/guest.php');
+    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,10');
 
-/** Auth-handling Routes (password reset, email verification, etc.) */
-Route::middleware('auth')->group(__DIR__ . '/web/auth.php');
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:3,5')
+        ->name('password.email');
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+});
 
-/** Documentation Routes */
-Route::middleware('auth')->group(__DIR__ . '/web/documentation.php');
+/** Invitation links work for guests and signed-in people alike */
+Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('invitation.show');
+Route::post('invitations/{token}', [InvitationController::class, 'accept'])
+    ->middleware('throttle:10,1')
+    ->name('invitation.accept');
 
-/** User Settings Routes */
-Route::middleware('auth', 'verified')->group(__DIR__ . '/web/settings.php');
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-/** Project-context Routes */
-Route::middleware('auth', 'verified')->group(__DIR__ . '/web/context.php');
+    Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('verify-email', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:3,10')
+        ->name('verification.send');
+    Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
 
-/** Project-scoped Routes and set/unset Current Project endpoints */
-Route::middleware('auth', 'verified', ProjectMustBeSelected::class)->group(__DIR__ . '/web/project.php');
+    Route::get('documentation/faq', [DocumentationController::class, 'faq'])->name('documentation.faq');
+    Route::get('documentation/guide', [DocumentationController::class, 'guide'])->name('documentation.guide');
+});
 
-/** General User Routes (Members, Admins and Superadmins) */
-Route::middleware('auth', 'verified')->group(__DIR__ . '/web/users.php');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', HomeController::class)->name('home');
 
-/** Development Routes (only in development environments) */
-if (app()->environment('local', 'testing')) {
-    Route::middleware('auth')->prefix('dev')->group(__DIR__ . '/web/dev.php');
-}
+    /** Settings */
+    Route::redirect('settings', '/settings/profile');
+    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
+    Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
+    Route::get('settings/appearance', fn () => inertia('Settings/Appearance'))->name('appearance');
+
+    /** Notifications */
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::delete('notifications/{notification}/read', [NotificationController::class, 'unread'])->name('notifications.unread');
+
+    /** One's projects; starting one */
+    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::post('my-invitations/{invitation}', [InvitationController::class, 'respond'])->name('invitations.respond');
+
+    /**
+     * The member app
+     */
+    Route::prefix('projects/{project}')
+        ->middleware(ResolveProject::class)
+        ->scopeBindings()
+        ->group(function () {
+            Route::get('/', Member\DashboardController::class)->name('projects.show');
+
+            Route::get('people', [Member\PeopleController::class, 'index'])->name('people.index');
+            Route::get('people/{member}', [Member\PeopleController::class, 'show'])->name('people.show');
+            Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
+
+            Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
+            Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
+
+            /** Members invite people into their own family */
+            Route::get('invitations', [Member\InvitationController::class, 'index'])->name('invitations.index');
+            Route::post('invitations', [Member\InvitationController::class, 'store'])
+                ->middleware('throttle:30,1')
+                ->name('invitations.store');
+            Route::delete('invitations/{invitation}', [Member\InvitationController::class, 'destroy'])
+                ->name('invitations.destroy');
+
+            Route::get('units', [Member\UnitController::class, 'index'])->name('units.index');
+            Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
+            Route::get('plan', Member\PlanController::class)->name('plan.show');
+
+            Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
+            Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
+            Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
+
+            Route::resource('media', Member\MediaController::class)->parameters(['media' => 'media']);
+            Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
+            Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
+
+            Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
+            Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
+
+            /**
+             * The project admin area
+             */
+            Route::prefix('manage')->name('manage.')->middleware('can:update,project')->group(function () {
+                Route::get('/', Manage\OverviewController::class)->name('overview');
+
+                Route::get('settings', [Manage\SettingsController::class, 'edit'])->name('settings.edit');
+                Route::put('settings', [Manage\SettingsController::class, 'update'])->name('settings.update');
+                Route::delete('settings', [Manage\SettingsController::class, 'destroy'])->name('settings.destroy');
+                Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])->name('approval.request');
+
+                Route::get('people', [Manage\PeopleController::class, 'index'])->name('people.index');
+                Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
+                Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
+
+                Route::get('invitations', [Manage\InvitationController::class, 'index'])->name('invitations.index');
+                Route::post('invitations', [Manage\InvitationController::class, 'store'])
+                    ->middleware('throttle:60,1')
+                    ->name('invitations.store');
+                Route::delete('invitations/{invitation}', [Manage\InvitationController::class, 'destroy'])
+                    ->name('invitations.destroy');
+
+                Route::resource('families', Manage\FamilyController::class)->except('show');
+                Route::resource('unit_types', Manage\UnitTypeController::class)
+                    ->except('show')
+                    ->parameters(['unit_types' => 'unitType']);
+                Route::resource('units', Manage\UnitController::class)->except('show');
+                Route::get('plan', [Manage\PlanController::class, 'edit'])->name('plan.edit');
+                Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
+                Route::resource('events', Manage\EventController::class)->except('show');
+
+                Route::get('lottery', [Manage\LotteryController::class, 'show'])->name('lottery.show');
+                Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
+                Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');
+                Route::post('lottery/runs/{lotteryRun}/invalidation', [Manage\LotteryController::class, 'invalidate'])
+                    ->name('lottery.invalidate');
+            });
+        });
+
+    /**
+     * The platform console
+     */
+    Route::prefix('admin')->name('admin.')->middleware(EnsureSuperadmin::class)->group(function () {
+        Route::get('/', [Platform\ProjectController::class, 'index'])->name('projects.index');
+        Route::put('projects/{project}/approval', [Platform\ProjectController::class, 'approve'])->name('projects.approve');
+        Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
+        Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
+    });
+});

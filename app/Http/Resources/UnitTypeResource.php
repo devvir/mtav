@@ -4,36 +4,27 @@ namespace App\Http\Resources;
 
 use App\Models\UnitType;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property-read UnitType $resource
- *
  * @mixin UnitType
  */
 class UnitTypeResource extends JsonResource
 {
-    public function toArray(Request $_): array
+    public function toArray(Request $request): array
     {
         return [
-            ...$this->commonResourceData(),
-
-            'name'        => $this->name,
-            'description' => $this->description,
-
-            ...$this->relationsData(),
-        ];
-    }
-
-    protected function relationsData(): array
-    {
-        return [
-            'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
-
-            'families'       => $this->whenLoaded('families'),
-            'families_count' => $this->whenCountedOrLoaded('families'),
-
-            'units'       => $this->whenLoaded('units'),
-            'units_count' => $this->whenCountedOrLoaded('units'),
+            'id'             => $this->id,
+            'name'           => $this->name,
+            'description'    => $this->description,
+            'units_count'    => $this->whenCounted('units'),
+            'families_count' => $this->whenCounted('families'),
+            'units'          => UnitResource::collection($this->whenLoaded('units')),
+            'families'       => FamilyResource::collection($this->whenLoaded('families')),
+            'can'            => [
+                'update' => $request->user()?->can('update', $this->resource),
+                'delete' => $request->user()?->can('delete', $this->resource),
+            ],
         ];
     }
 }

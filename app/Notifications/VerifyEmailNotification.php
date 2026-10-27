@@ -2,29 +2,36 @@
 
 namespace App\Notifications;
 
-use App\Notifications\Concerns\LocalizableEmail;
-use App\Notifications\Contracts\LocalizedEmail;
+use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Foundation\Auth\User;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends VerifyEmail implements LocalizedEmail
+/**
+ * Confirms an email address: the one given at sign-up, or a new one (sent to the
+ * new address, and taking effect once confirmed).
+ */
+class VerifyEmailNotification extends VerifyEmail
 {
-    use LocalizableEmail;
-
-    public function template(): string
+    public function __construct(public ?string $newEmail = null)
     {
-        return 'verify-email';
     }
 
-    public function subjectKey(User $notifiable): string
+    public function toMail($notifiable): MailMessage
     {
-        return 'verify_email';
-    }
+        /** @var User $notifiable */
+        $email = $this->newEmail ?? $notifiable->email;
 
-    public function data(User $notifiable): array
-    {
-        return [
-            'url' => $this->verificationUrl($notifiable),
-        ];
+        $url = URL::temporarySignedRoute('verification.verify', now()->addHour(), [
+            'id'   => $notifiable->getKey(),
+            'hash' => sha1($email),
+        ]);
+
+        return (new MailMessage())
+            ->subject(__('emails.verify_email_subject'))
+            ->greeting(__('emails.greeting_name', ['name' => $notifiable->firstname]))
+            ->line(__($this->newEmail ? 'emails.verify_new_email_intro' : 'emails.verify_email_intro'))
+            ->action(__('emails.verify_email_action'), $url)
+            ->line(__('emails.verify_email_ignore'));
     }
 }

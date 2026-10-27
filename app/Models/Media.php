@@ -3,21 +3,36 @@
 namespace App\Models;
 
 use App\Enums\MediaCategory;
-use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A file shared in a project. Stored on the private media disk: only people who
+ * take part in the project can download it.
+ */
 class Media extends Model
 {
-    use ProjectScope;
-    use SoftDeletes;
+    public const DISK = 'media';
+
+    protected $fillable = [
+        'project_id',
+        'owner_id',
+        'category',
+        'path',
+        'thumbnail',
+        'description',
+        'alt_text',
+        'mime_type',
+        'file_size',
+        'width',
+        'height',
+    ];
 
     protected $casts = [
         'category'  => MediaCategory::class,
+        'file_size' => 'integer',
         'width'     => 'integer',
         'height'    => 'integer',
-        'file_size' => 'integer',
     ];
 
     public function project(): BelongsTo
@@ -30,74 +45,25 @@ class Media extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function isAudio(): bool
-    {
-        return $this->category === MediaCategory::AUDIO;
-    }
-
-    public function isDocument(): bool
-    {
-        return $this->category === MediaCategory::DOCUMENT;
-    }
-
-    public function isImage(): bool
-    {
-        return $this->category === MediaCategory::IMAGE;
-    }
-
-    public function isVideo(): bool
-    {
-        return $this->category === MediaCategory::VIDEO;
-    }
-
     public function isVisual(): bool
     {
         return in_array($this->category, [MediaCategory::IMAGE, MediaCategory::VIDEO]);
     }
 
-    public function scopeAudios(Builder $query): void
-    {
-        $query->where('category', MediaCategory::AUDIO);
-    }
-
-    public function scopeDocuments(Builder $query): void
-    {
-        $query->where('category', MediaCategory::DOCUMENT);
-    }
-
-    public function scopeImages(Builder $query): void
-    {
-        $query->where('category', MediaCategory::IMAGE);
-    }
-
-    public function scopeVideos(Builder $query): void
-    {
-        $query->where('category', MediaCategory::VIDEO);
-    }
-
-    public function scopeVisual(Builder $query): void
-    {
-        $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO]);
-    }
-
+    /**
+     * Filter by category; VISUAL means images and videos.
+     */
     public function scopeCategory(Builder $query, MediaCategory $category): void
     {
-        match ($category) {
-            MediaCategory::AUDIO    => $query->audios(),
-            MediaCategory::DOCUMENT => $query->documents(),
-            MediaCategory::IMAGE    => $query->images(),
-            MediaCategory::VIDEO    => $query->videos(),
-            MediaCategory::VISUAL   => $query->visual(),
-        };
+        $category === MediaCategory::VISUAL
+            ? $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO])
+            : $query->where('category', $category);
     }
 
-    public function scopeSearch(Builder $query, string $q, bool $searchOwner = false): void
+    public function scopeSearch(Builder $query, string $q): void
     {
-        $query
+        $query->where(fn (Builder $query) => $query
             ->whereLike('description', "%{$q}%")
-            ->when($searchOwner, fn (Builder $query) => $query->orWhereHas(
-                'owner',
-                fn (Builder $query) => $query->whereRaw('CONCAT(firstname, " ", lastname) LIKE ?', "%{$q}%")
-            ));
+            ->orWhereHas('owner', fn (Builder $query) => $query->search($q)));
     }
 }

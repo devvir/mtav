@@ -14,7 +14,7 @@ class DocumentationController extends Controller
     public function faq(Request $request): Response
     {
         $locale = app()->getLocale();
-        $role = $request->user()?->is_admin ? 'admin' : 'member';
+        $role = $this->role($request);
         $faqPath = resource_path("views/guides/{$locale}/FAQ.{$role}.json");
 
         // Fallback to English if current locale file doesn't exist
@@ -40,7 +40,7 @@ class DocumentationController extends Controller
     {
         $locale = app()->getLocale();
         $user = $request->user();
-        $role = $user?->isSuperadmin() ? 'superadmin' : ($user?->is_admin ? 'admin' : 'member');
+        $role = $user->isSuperadmin() ? 'superadmin' : $this->role($request);
         $guidePath = resource_path("views/guides/{$locale}/guide.{$role}.html");
 
         // Fallback to English if current locale file doesn't exist
@@ -55,5 +55,15 @@ class DocumentationController extends Controller
             'userRole' => $role,
             'content'  => $content,
         ]);
+    }
+
+    /**
+     * Admins of any project (or superadmins) read the admin guide.
+     */
+    private function role(Request $request): string
+    {
+        $user = $request->user();
+
+        return $user->isSuperadmin() || $user->memberships->contains('is_admin', true) ? 'admin' : 'member';
     }
 }

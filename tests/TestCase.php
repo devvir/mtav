@@ -2,27 +2,29 @@
 
 namespace Tests;
 
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Tests\Concerns\Utilities;
+use Illuminate\Support\Facades\URL;
 
+/**
+ * Tests start from an empty schema (migrated once per run; each test runs inside a
+ * rolled-back transaction that still fires after-commit callbacks) and build exactly
+ * the data they need with the scenario builders in tests/Helpers/scenario.php.
+ */
 abstract class TestCase extends BaseTestCase
 {
-    use Utilities;
+    use RefreshDatabase;
 
-    public static $bootstrapped = false;
-
-    protected function setUp(): void
+    /**
+     * Act as the given user (as the session guard would load them), optionally within
+     * a project: like the app does, the project becomes the default {project} of URLs.
+     */
+    public function as(User $user, ?Project $project = null): static
     {
-        parent::setUp();
+        $project && URL::defaults(['project' => $project->id]);
 
-        /**
-         * Seed the test database (once for the whole suite)
-         */
-        static::$bootstrapped || loadUniverse();
-
-        /**
-         * Flag suite-wide bootstrap as completed.
-         */
-        static::$bootstrapped = true;
+        return $this->actingAs(User::findOrFail($user->id));
     }
 }

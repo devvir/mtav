@@ -2,135 +2,74 @@
 
 namespace App\Services\Lottery;
 
-use App\Events\InvalidPreferences;
 use App\Models\Family;
 use App\Models\Unit;
-use App\Services\Lottery\Exceptions\LockedLotteryPreferencesException;
-use Illuminate\Database\Eloquent\Collection;
+use App\Services\Lottery\Exceptions\LotteryLockedException;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Service for handling family unit preferences.
+ * A family's ranking of the units it competes for (those of its type).
  *
- * Ensures data integrity, non-biased default assignments, complete
- * ordering, non-repetition, consistency (all preferences belong to
- * units of the correct type for the family), removes invalid entries.
+ * Families rank as many units as they like; the rest follow in an order that is
+ * random but fixed for each family, so that families who do not rank are not all
+ * pointed at the same units. Rankings of units that left the family's type (or the
+ * project) are simply ignored.
  */
 class PreferencesService
 {
     /**
-     * Auto-added preferences' order starts at this number.
+     * Every unit of the family's type, most wanted first.
+     *
+     * @return EloquentCollection<int, Unit>
      */
-    public const MIN_AUTO_ORDER_INDEX = 1000;
-
-    public function preferences(Family $family): Collection
+    public function ranking(Family $family): EloquentCollection
     {
-        $this->sanitizeBeforeFetch($family);
+        $units = Unit::where('unit_type_id', $family->unit_type_id)->get()->keyBy('id');
 
-        $this->addMissingPreferences($family);
+        $ranked = DB::table('unit_preferences')
+            ->where('family_id', $family->id)
+            ->whereIn('unit_id', $units->keys())
+            ->orderBy('rank')
+            ->pluck('unit_id');
 
-        $family->refresh();
+        $unranked = $units->keys()->diff($ranked)
+            ->sortBy(fn (int $unitId) => $this->defaultOrder($family, $unitId));
 
-        return $family->preferences;
+        return new EloquentCollection($ranked->concat($unranked)->map(fn (int $unitId) => $units[$unitId])->values());
     }
 
     /**
-     * Update family unit preferences (replaces existing preferences).
+     * Replace the family's ranking. Units not listed keep following, in default order.
      *
-     * Note: $preferences must include all Units of the Family's UnitType.
+     * @param array<int> $unitIds  Most wanted first
      *
-     * @param array<array{id: int}> $preferences
+     * @throws ValidationException if a unit is not of the family's type
+     * @throws LotteryLockedException once the lottery has run (or is running)
      */
-    public function updatePreferences(Family $family, array $preferences): void
+    public function rank(Family $family, array $unitIds): void
     {
-        $this->validateBeforeUpdate($family, $preferences);
-
-        $family->preferences()->sync(
-            collect($preferences)->map(fn ($preference, $idx) => [
-                'unit_id' => $preference['id'],
-                'order'   => $idx + 1,
-            ])->keyBy('unit_id')
-        );
-    }
-
-    /**
-     * Sanitize family preferences by removing invalid entries.
-     *
-     * Dispatches InvalidPreferences if invalid preferences are found.
-     */
-    protected function sanitizeBeforeFetch(Family $family): void
-    {
-        // Bypass any and all scopes (e.g. Units from other Projects or soft-deleted)
-        $scopelessUnits = DB::select(
-            'SELECT unit_id FROM unit_preferences WHERE family_id = ?',
-            [$family->id]
-        );
-
-        $validUnitIds = $family->unitType->units()->pluck('id');
-        $invalidUnitIds = collect($scopelessUnits)->pluck('unit_id')->diff($validUnitIds);
-
-        if ($invalidUnitIds->isNotEmpty()) {
-            DB::unprepared("
-                DELETE FROM unit_preferences
-                WHERE family_id = {$family->id} AND unit_id IN ({$invalidUnitIds->join(',')})
-            ");
-
-            // Ensure consumers holding a reference to this Family instance get fresh data
-            $family->unsetRelation('preferences');
-
-            InvalidPreferences::dispatch($family, $invalidUnitIds->values()->all());
-        }
-    }
-
-    protected function addMissingPreferences(Family $family): void
-    {
-        $units = $this->missingPreferences($family);
-        $startAt = max(self::MIN_AUTO_ORDER_INDEX, $family->preferences->max('pivot.order') ?? 0);
-
-        $newPreferences = $units->mapWithKeys(fn (Unit $unit, int $spot) => [
-            $unit->id => ['order' => $startAt + $spot + 1],
-        ]);
-
-        $family->preferences()->syncWithoutDetaching($newPreferences);
-    }
-
-    /**
-     * Get remaining units (not yet preferred) in random order
-     */
-    protected function missingPreferences(Family $family): Collection
-    {
-        $family->load('preferences', 'unitType.units');
-
-        return $family->unitType->units
-            ->whereNotIn('id', $family->preferences->pluck('id'))
-            ->shuffle()
-            ->values();
-    }
-
-    /**
-     * Validate that new preferences for a Family are complete and valid.
-     *
-     * @param array<array{id: int}> $preferences
-     *
-     * @throws InvalidArgumentException if validation fails.
-     * @throws LockedLotteryPreferencesException if lottery execution has started.
-     */
-    protected function validateBeforeUpdate(Family $family, array $preferences): void
-    {
-        if (! $family->project->lottery->isPublished()) {
-            throw new LockedLotteryPreferencesException();
+        if ($family->project->lotteryLocked()) {
+            throw new LotteryLockedException();
         }
 
-        $inputUnitIds = collect($preferences)->pluck('id');
-        $candidateIds = $family->unitType->units()->pluck('id');
+        $unitIds = array_values(array_unique(array_map('intval', $unitIds)));
+        $valid = Unit::where('unit_type_id', $family->unit_type_id)->whereIn('id', $unitIds)->pluck('id');
 
-        if ($inputUnitIds->diff($candidateIds)->isNotEmpty()) {
-            throw new InvalidArgumentException('Preferences contain one or more invalid Units.');
+        if ($valid->count() !== count($unitIds)) {
+            throw ValidationException::withMessages(['preferences' => __('validation.preferences_foreign_units')]);
         }
 
-        if ($candidateIds->diff($inputUnitIds)->isNotEmpty()) {
-            throw new InvalidArgumentException('Preferences is missing one or more valid Units.');
-        }
+        DB::transaction(function () use ($family, $unitIds) {
+            $family->preferences()->sync(
+                collect($unitIds)->mapWithKeys(fn (int $unitId, int $index) => [$unitId => ['rank' => $index + 1]])
+            );
+        });
+    }
+
+    private function defaultOrder(Family $family, int $unitId): string
+    {
+        return hash('sha256', config('app.key') . ":{$family->id}:{$unitId}");
     }
 }

@@ -4,24 +4,28 @@ namespace App\Models;
 
 use App\Services\Lottery\Enums\LotteryAuditType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A permanent record of what a lottery run considered and decided.
+ */
 class LotteryAudit extends Model
 {
-    use SoftDeletes;
+    public const UPDATED_AT = null;
+
+    protected $fillable = [
+        'lottery_run_id',
+        'type',
+        'audit',
+        'created_at',
+    ];
 
     protected $casts = [
         'type'  => LotteryAuditType::class,
         'audit' => 'array',
     ];
 
-    public function project(): BelongsTo
+    public function run(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function lottery(): BelongsTo
-    {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(LotteryRun::class, 'lottery_run_id');
     }
 }

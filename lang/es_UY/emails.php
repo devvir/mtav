@@ -1,19 +1,26 @@
 <?php
 
 return [
+    'greeting'      => '¡Hola!',
+    'greeting_name' => '¡Hola, :name!',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Email Subject Lines
-    |--------------------------------------------------------------------------
-    |
-    */
+    'invitation_subject'      => 'Te invitan a :project',
+    'invitation_family'       => ':inviter te invita a sumarte a la familia :family en :project.',
+    'invitation_admin'        => ':inviter te invita a ayudar a gestionar :project.',
+    'invitation_admin_family' => ':inviter te invita a ayudar a gestionar :project, como integrante de la familia :family.',
+    'invitation_action'       => 'Aceptar la invitación',
+    'invitation_expiry'       => 'La invitación vale hasta el :date.',
+    'invitation_ignore'       => 'Si no la esperabas, puedes ignorar este email.',
 
-    'reset_password' => 'Restablecer Contraseña',
-    'verify_email'   => 'Verificar Correo Electrónico',
+    'reset_password_subject' => 'Elige una contraseña nueva',
+    'reset_password_intro'   => 'Alguien pidió restablecer la contraseña de tu cuenta.',
+    'reset_password_action'  => 'Elegir una contraseña nueva',
+    'reset_password_expiry'  => 'El enlace vale por :minutes minutos.',
+    'reset_password_ignore'  => 'Si no fuiste tú, tu contraseña sigue igual: ignora este email.',
 
-    'member_invitation'        => '¡Te invitaron a unirte a MTAV!',
-    'member_invitation_family' => '¡Te invitaron a unirte a tu Familia en MTAV!',
-    'admin_invitation'         => 'Te invitaron a MTAV como Administrador',
-
+    'verify_email_subject'   => 'Confirma tu email',
+    'verify_email_intro'     => 'Confirma que esta es tu dirección de email.',
+    'verify_new_email_intro' => 'Confirma que esta es tu nueva dirección de email. Tu cuenta sigue usando la anterior hasta que lo hagas.',
+    'verify_email_action'    => 'Confirmar mi email',
+    'verify_email_ignore'    => 'Si no creaste una cuenta, ignora este email.',
 ];

@@ -2,23 +2,26 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+/**
+ * The project plan: a canvas with the project boundary and the shapes on it.
+ */
 class Plan extends Model
 {
-    use ProjectScope;
-
-    protected $with = [
-        'items',
+    protected $fillable = [
+        'project_id',
+        'polygon',
+        'width',
+        'height',
+        'unit_system',
     ];
 
     protected $casts = [
         'polygon' => 'array',
-        'width'   => 'decimal:2',
-        'height'  => 'decimal:2',
+        'width'   => 'float',
+        'height'  => 'float',
     ];
 
     public function project(): BelongsTo
@@ -29,10 +32,5 @@ class Plan extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PlanItem::class);
-    }
-
-    public function units(): HasManyThrough
-    {
-        return $this->hasManyThrough(Unit::class, PlanItem::class);
     }
 }

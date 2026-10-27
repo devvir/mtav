@@ -38,6 +38,14 @@ return [
             'report' => false,
         ],
 
+        /** Project files: private, streamed by a route that checks project access */
+        'media' => [
+            'driver' => 'local',
+            'root'   => storage_path('app/media'),
+            'throw'  => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver'     => 'local',
             'root'       => storage_path('app/public'),

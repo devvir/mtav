@@ -184,49 +184,56 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Custom Business Rule Validation Messages
+    | Field names, as people read them
     |--------------------------------------------------------------------------
     */
 
-    'unit_must_match_family_type' => 'The unit must belong to your family\'s unit type.',
+    'attributes' => [
+        'firstname'          => 'first name',
+        'lastname'           => 'last name',
+        'email'              => 'email',
+        'password'           => 'password',
+        'current_password'   => 'current password',
+        'phone'              => 'phone',
+        'legal_id'           => 'ID number',
+        'about'              => 'about',
+        'name'               => 'name',
+        'description'        => 'description',
+        'organization'       => 'organization',
+        'identifier'         => 'identifier',
+        'unit_type_id'       => 'unit type',
+        'new_unit_type.name' => 'unit type name',
+        'family_id'          => 'family',
+        'title'              => 'title',
+        'location'           => 'location',
+        'start_date'         => 'start',
+        'end_date'           => 'end',
+        'files'              => 'files',
+        'files.*'            => 'file',
+        'reason'             => 'reason',
+        'confirmation'       => 'confirmation',
+    ],
 
     /*
     |--------------------------------------------------------------------------
-    | Custom Validation Attributes
-    |--------------------------------------------------------------------------
-    |
-    | The following language lines are used to swap our attribute placeholder
-    | with something more reader friendly such as "E-Mail Address" instead
-    | of "email". This simply helps us make our message more expressive.
-    |
-    */
-
-    'attributes' => [],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Custom Validation Messages
+    | Business rules
     |--------------------------------------------------------------------------
     */
 
-    'belongs_to_project'               => 'The selected :attribute does not belong to the selected Project.',
-    'family_belongs_to_project'        => 'The selected Family does not belong to the selected Project.',
-    'invalid_invitation_credentials'   => 'Invitation expired or invalid. If you received an invitation, please check your email and follow the link.',
-    'plan_items_mismatch'              => 'One or more items do not belong to this Project.',
-    'project_context_mismatch'         => 'Cannot specify a Project when a Project context is already active.',
-    'project_has_active_members'       => 'Cannot delete a Project with active Members. Please remove them first.',
-    'project_requires_admin'           => 'Cannot delete the only Admin in Project ":project".',
-    'unauthorized_project_access'      => 'You do not have permission to perform this action on the selected Project.',
-    'unauthorized_projects_assignment' => 'You can only assign Projects you manage. Unauthorized Projects: :ids',
-    'unit_already_assigned'            => 'Cannot delete a Unit that was already assigned to a Family.',
-    'unit_type_belongs_to_project'     => 'The selected Unit Type does not belong to the selected Project.',
-    'unit_type_has_dependencies'       => 'Cannot delete a Unit Type that is assigned to Families or Units. Please reassign them first.',
+    'already_in_project'        => 'This person already takes part in the project in that role.',
+    'cannot_revoke_self'        => 'You cannot remove your own superadmin role.',
+    'email_taken'               => 'Another account already uses this email.',
+    'family_has_unit'           => 'This family already received a unit in the lottery: it cannot be removed.',
+    'last_admin'                => 'A project needs at least one admin.',
+    'member_needs_family'       => 'Someone who is not an admin must belong to a family.',
+    'preferences_foreign_units' => 'You can only rank units of your family\'s type.',
+    'unit_assigned'             => 'This unit was already given to a family in the lottery: it cannot be removed.',
+    'unit_type_in_use'          => 'Families or units still use this unit type.',
 
-    // Media validation messages
-    'media_file_required'     => 'Please select a file to upload.',
-    'media_file_too_large'    => 'The file must not be larger than 10MB.',
-    'media_invalid_file_type' => 'The file must be a valid image or document type.',
-
-    // Email validation messages
-    'email_verification_invalid' => 'The email verification link is invalid or has expired.',
+    /** Limits of projects awaiting approval */
+    'limit_families'    => 'Projects awaiting approval can have up to :max families.',
+    'limit_units'       => 'Projects awaiting approval can have up to :max units.',
+    'limit_members'     => 'Projects awaiting approval can have up to :max people.',
+    'limit_invitations' => 'Projects awaiting approval can send up to :max invitations a day.',
+    'limit_storage'     => 'Projects awaiting approval can store up to :max MB of files.',
 ];

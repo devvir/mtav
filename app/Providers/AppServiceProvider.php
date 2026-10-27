@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
@@ -12,17 +12,20 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Bootstrap any application services.
+     * Abilities that need a personal stake in the project (a family, a membership),
+     * which superadmins do not get by default.
      */
+    private const PERSONAL_ABILITIES = ['rankUnits', 'rsvp'];
+
     public function boot(): void
     {
         $this->configureVite();
-
         $this->configureModels();
 
-        $this->configureResources();
+        JsonResource::withoutWrapping();
 
-        $this->configurePolicies();
+        Gate::before(fn (User $user, string $ability) => $user->isSuperadmin()
+            && ! in_array($ability, self::PERSONAL_ABILITIES) ?: null);
     }
 
     protected function configureVite(): void
@@ -40,35 +43,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureModels(): void
     {
-        /**
-         * For Dev only:
-         *  - preventLazyLoading();
-         *  - preventAccessingMissingAttributes();
-         *  - preventSilentlyDiscardingAttributes();
-         */
-        if (! app()->environment('production')) {
-            Model::shouldBeStrict();
-        }
-
-        /**
-         * Automatically eager load relationships when accessed from Collection items.
-         */
+        Model::shouldBeStrict(! app()->isProduction());
         Model::automaticallyEagerLoadRelationships();
-    }
-
-    protected function configureResources(): void
-    {
-        /**
-         * Disable default data wrapper in JsonResource collections.
-         */
-        JsonResource::withoutWrapping();
-    }
-
-    protected function configurePolicies(): void
-    {
-        /**
-         * Superadmins have full access to any action, bypassing Policies.
-         */
-        Gate::before(fn (User $user) => $user->isSuperadmin() ?: null);
     }
 }

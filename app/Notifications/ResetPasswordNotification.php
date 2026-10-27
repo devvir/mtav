@@ -2,18 +2,14 @@
 
 namespace App\Notifications;
 
-use App\Notifications\Concerns\LocalizableEmail;
-use App\Notifications\Contracts\LocalizedEmail;
-use Illuminate\Foundation\Auth\User;
+use App\Models\User;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ResetPasswordNotification extends Notification implements LocalizedEmail
+class ResetPasswordNotification extends Notification
 {
-    use LocalizableEmail;
-
     public function __construct(public string $token)
     {
-        // ...
     }
 
     public function via(): array
@@ -21,23 +17,16 @@ class ResetPasswordNotification extends Notification implements LocalizedEmail
         return ['mail'];
     }
 
-    public function template(): string
+    public function toMail(User $notifiable): MailMessage
     {
-        return 'reset-password';
-    }
+        $url = route('password.reset', ['token' => $this->token, 'email' => $notifiable->email]);
 
-    public function subjectKey(User $notifiable): string
-    {
-        return 'reset_password';
-    }
-
-    public function data(User $notifiable): array
-    {
-        return [
-            'url' => url(route('password.reset', [
-                'token' => $this->token,
-                'email' => $notifiable->getEmailForPasswordReset(),
-            ], false)),
-        ];
+        return (new MailMessage())
+            ->subject(__('emails.reset_password_subject'))
+            ->greeting(__('emails.greeting_name', ['name' => $notifiable->firstname]))
+            ->line(__('emails.reset_password_intro'))
+            ->action(__('emails.reset_password_action'), $url)
+            ->line(__('emails.reset_password_expiry', ['minutes' => config('auth.passwords.users.expire')]))
+            ->line(__('emails.reset_password_ignore'));
     }
 }

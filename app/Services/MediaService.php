@@ -4,175 +4,146 @@ namespace App\Services;
 
 use App\Enums\MediaCategory;
 use App\Models\Media;
-use Exception;
-use FFMpeg\FFMpeg;
+use App\Models\Project;
+use App\Models\User;
+use FFMpeg\FFProbe;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
+/**
+ * Stores files shared in a project on the private media disk.
+ */
 class MediaService
 {
-    public function __construct(
-        private MediaThumbnailService $thumbnailService
-    ) {
-        // ...
-    }
-
     /**
-     * Create a new Media record and store its associated file and thumbnail.
-     *
-     * @param array<string, mixed> $attributes
+     * Accepted types, by category. SVG is deliberately absent (it can carry scripts).
      */
-    public function create(UploadedFile $file, array $attributes = []): Media
-    {
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $metadata = $this->extractFileMetadata($file);
-
-        $media = Media::make([
-            'path'      => $file->storeAs('media', $filename, 'public'),
-            'width'     => $metadata['width'] ?? null,
-            'height'    => $metadata['height'] ?? null,
-            'category'  => $metadata['category'],
-            'mime_type' => $file->getMimeType(),
-            'file_size' => $file->getSize(),
-            ...Arr::only($attributes, ['description', 'alt_text', 'owner_id', 'project_id']),
-        ]);
-
-        $media->thumbnail = $this->thumbnailService->generateThumbnail($media);
-        $media->save();
-
-        return $media;
-    }
-
-    /**
-     * Force delete a media record, its file and its thumbnail.
-     */
-    public function forceDeleteMedia(Media $media): bool
-    {
-        if (Storage::disk('public')->exists($media->path)) {
-            return Storage::disk('public')->delete($media->path);
-        }
-
-        $this->thumbnailService->deleteThumbnail($media);
-
-        return $media->forceDelete();
-    }
-
-    /**
-     * Extract metadata from an uploaded file.
-     *
-     * @return array{category: MediaCategory, width?: int, height?: int}
-     */
-    public function extractFileMetadata(UploadedFile $file): array
-    {
-        $metadata = [
-            'category' => $this->mime2category($file->getMimeType()),
-        ];
-
-        // Add dimensions for images
-        if ($metadata['category'] === MediaCategory::IMAGE) {
-            $dimensions = $this->getImageDimensions($file);
-            $metadata = array_merge($metadata, $dimensions);
-        }
-
-        // Add dimensions for videos
-        if ($metadata['category'] === MediaCategory::VIDEO) {
-            $dimensions = $this->getVideoDimensions($file);
-            $metadata = array_merge($metadata, $dimensions);
-        }
-
-        return $metadata;
-    }
-
-    /**
-     * Get image dimensions if the file is an image.
-     *
-     * @return array{width?: int, height?: int}
-     */
-    public function getImageDimensions(UploadedFile $file): array
-    {
-        if (! str_starts_with($file->getMimeType(), 'image/')) {
-            return [];
-        }
-
-        try {
-            $imageSize = getimagesize($file->getPathname());
-
-            return [
-                'width'  => $imageSize[0] ?? null,
-                'height' => $imageSize[1] ?? null,
-            ];
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Get video dimensions if the file is a video.
-     *
-     * @return array{width?: int, height?: int}
-     */
-    public function getVideoDimensions(UploadedFile $file): array
-    {
-        if (! str_starts_with($file->getMimeType(), 'video/')) {
-            return [];
-        }
-
-        try {
-            $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries'  => '/usr/bin/ffmpeg',
-                'ffprobe.binaries' => '/usr/bin/ffprobe',
-            ]);
-
-            $video = $ffmpeg->open($file->getPathname());
-            $streams = $video->getStreams()->videos();
-
-            if ($streams->count() === 0) {
-                return [];
-            }
-
-            $videoStream = $streams->first();
-
-            return [
-                'width'  => $videoStream->get('width'),
-                'height' => $videoStream->get('height'),
-            ];
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Determine the media category based on MIME type.
-     */
-    public function mime2category(string $mimeType): MediaCategory
-    {
-        if (str_starts_with($mimeType, 'image/')) {
-            return MediaCategory::IMAGE;
-        }
-
-        if (str_starts_with($mimeType, 'video/')) {
-            return MediaCategory::VIDEO;
-        }
-
-        if (str_starts_with($mimeType, 'audio/')) {
-            return MediaCategory::AUDIO;
-        }
-
-        if (in_array($mimeType, [
+    public const MIME_TYPES = [
+        'image'    => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        'video'    => ['video/mp4', 'video/webm', 'video/quicktime'],
+        'audio'    => ['audio/mpeg', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm'],
+        'document' => [
             'application/pdf',
+            'text/plain',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'application/vnd.ms-powerpoint',
             'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'text/plain',
-        ])) {
-            return MediaCategory::DOCUMENT;
+            'application/vnd.oasis.opendocument.text',
+            'application/vnd.oasis.opendocument.spreadsheet',
+        ],
+    ];
+
+    public function __construct(private MediaThumbnailService $thumbnails)
+    {
+    }
+
+    /**
+     * The largest file a project accepts, in kilobytes.
+     */
+    public static function maxFileKb(Project $project): int
+    {
+        return 1024 * ($project->limit('media_file_mb') ?? config('limits.media_file_max_mb'));
+    }
+
+    /**
+     * @param array<UploadedFile> $files
+     *
+     * @return array<Media>
+     *
+     * @throws ValidationException when the project's storage would be exceeded
+     */
+    public function store(Project $project, User $owner, array $files, string $description): array
+    {
+        $this->ensureStorageAvailable($project, $files);
+
+        return array_map(fn (UploadedFile $file) => $this->storeOne($project, $owner, $file, $description), $files);
+    }
+
+    public function delete(Media $media): void
+    {
+        Storage::disk(Media::DISK)->delete(array_filter([$media->path, $media->thumbnail]));
+
+        $media->delete();
+    }
+
+    public static function categoryOf(string $mimeType): ?MediaCategory
+    {
+        foreach (self::MIME_TYPES as $category => $types) {
+            if (in_array($mimeType, $types)) {
+                return MediaCategory::from($category);
+            }
         }
 
-        return MediaCategory::UNKNOWN; // Unrecognized or not-yet-supported types
+        return null;
+    }
+
+    private function storeOne(Project $project, User $owner, UploadedFile $file, string $description): Media
+    {
+        $mimeType = $file->getMimeType();
+        $extension = $file->guessExtension() ?: 'bin';
+
+        $path = $file->storeAs("projects/{$project->id}", Str::uuid() . ".{$extension}", Media::DISK);
+
+        $media = new Media([
+            'project_id'  => $project->id,
+            'owner_id'    => $owner->id,
+            'category'    => self::categoryOf($mimeType),
+            'path'        => $path,
+            'description' => $description,
+            'mime_type'   => $mimeType,
+            'file_size'   => $file->getSize(),
+            ...$this->dimensions($file, $mimeType),
+        ]);
+
+        $media->thumbnail = $this->thumbnails->generate($media);
+        $media->save();
+
+        return $media;
+    }
+
+    private function ensureStorageAvailable(Project $project, array $files): void
+    {
+        $quotaMb = $project->limit('media_storage_mb');
+
+        if ($quotaMb === null) {
+            return;
+        }
+
+        $used = $project->media()->sum('file_size');
+        $incoming = array_sum(array_map(fn (UploadedFile $file) => $file->getSize(), $files));
+
+        if ($used + $incoming > $quotaMb * 1024 * 1024) {
+            throw ValidationException::withMessages([
+                'files' => __('validation.limit_storage', ['max' => $quotaMb]),
+            ]);
+        }
+    }
+
+    /**
+     * @return array{width?: int, height?: int}
+     */
+    private function dimensions(UploadedFile $file, string $mimeType): array
+    {
+        try {
+            if (str_starts_with($mimeType, 'image/') && ($size = @getimagesize($file->getPathname()))) {
+                return ['width' => $size[0], 'height' => $size[1]];
+            }
+
+            if (str_starts_with($mimeType, 'video/')) {
+                $stream = FFProbe::create()->streams($file->getPathname())->videos()->first();
+
+                return $stream ? ['width' => $stream->get('width'), 'height' => $stream->get('height')] : [];
+            }
+        } catch (Throwable $_) {
+            /** Dimensions are a nicety: a file whose size cannot be read is still accepted */
+        }
+
+        return [];
     }
 }

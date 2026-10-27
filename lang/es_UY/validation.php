@@ -184,45 +184,56 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Atributos de Validación Personalizados
+    | Nombres de los campos, como se leen
     |--------------------------------------------------------------------------
-    |
-    | Las siguientes líneas de idioma se usan para intercambiar nuestro
-    | marcador de posición de atributo con algo más amigable como "Email"
-    | en lugar de "email". Esto simplemente nos ayuda a hacer
-    | nuestros mensajes más expresivos.
-    |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'firstname'          => 'nombre',
+        'lastname'           => 'apellido',
+        'email'              => 'email',
+        'password'           => 'contraseña',
+        'current_password'   => 'contraseña actual',
+        'phone'              => 'teléfono',
+        'legal_id'           => 'cédula',
+        'about'              => 'sobre ti',
+        'name'               => 'nombre',
+        'description'        => 'descripción',
+        'organization'       => 'organización',
+        'identifier'         => 'identificador',
+        'unit_type_id'       => 'tipo de vivienda',
+        'new_unit_type.name' => 'nombre del tipo de vivienda',
+        'family_id'          => 'familia',
+        'title'              => 'título',
+        'location'           => 'lugar',
+        'start_date'         => 'inicio',
+        'end_date'           => 'fin',
+        'files'              => 'archivos',
+        'files.*'            => 'archivo',
+        'reason'             => 'motivo',
+        'confirmation'       => 'confirmación',
+    ],
 
     /*
     |--------------------------------------------------------------------------
-    | Mensajes de Validación Personalizados
+    | Reglas del negocio
     |--------------------------------------------------------------------------
     */
 
-    'belongs_to_project'               => 'El/La :attribute seleccionado/a no pertenece al Proyecto seleccionado.',
-    'family_belongs_to_project'        => 'La Familia seleccionada no pertenece al Proyecto seleccionado.',
-    'invalid_invitation_credentials'   => 'Invitación expirada o inválida. Por favor revisa tu email y sigue el enlace.',
-    'plan_items_mismatch'              => 'Uno o más elementos no pertenecen a este Projecto.',
-    'project_context_mismatch'         => 'No se puede especificar un Proyecto cuando ya hay un contexto de Proyecto activo.',
-    'project_has_active_members'       => 'No se puede eliminar un Proyecto con Miembros activos. Por favor remuévelos primero.',
-    'project_requires_admin'           => 'No se puede eliminar el único Admin del Proyecto ":project".',
-    'unauthorized_project_access'      => 'No tienes permiso para realizar esta acción en el Proyecto seleccionado.',
-    'unauthorized_projects_assignment' => 'Solo puedes asignar Proyectos que gestionas. Proyectos no autorizados: :ids',
-    'unit_type_belongs_to_project'     => 'El Tipo de Unidad seleccionado no pertenece al Proyecto seleccionado.',
-    'unit_already_assigned'            => 'No se puede eliminar una Unidad que ya fue asignada a una Familia.',
-    'unit_type_has_dependencies'       => 'No se puede eliminar un Tipo de Unidad que está asignado a Familias o Unidades. Por favor reasígnalas primero.',
+    'already_in_project'        => 'Esta persona ya participa del proyecto con ese rol.',
+    'cannot_revoke_self'        => 'No puedes quitarte tu propio rol de superadministrador.',
+    'email_taken'               => 'Otra cuenta ya usa este email.',
+    'family_has_unit'           => 'Esta familia ya recibió una vivienda en el sorteo: no se puede quitar.',
+    'last_admin'                => 'Un proyecto necesita al menos un administrador.',
+    'member_needs_family'       => 'Quien no es administrador debe pertenecer a una familia.',
+    'preferences_foreign_units' => 'Solo puedes ordenar viviendas del tipo de tu familia.',
+    'unit_assigned'             => 'Esta vivienda ya fue asignada a una familia en el sorteo: no se puede quitar.',
+    'unit_type_in_use'          => 'Todavía hay familias o viviendas con este tipo.',
 
-    // Mensajes de validación de medios
-    'media_file_required'     => 'Por favor selecciona un archivo para subir.',
-    'media_file_too_large'    => 'El archivo no debe ser mayor a 10MB.',
-    'media_invalid_file_type' => 'El archivo debe ser una imagen o documento válido.',
-
-    // Mensajes de validación del sorteo
-    'unit_must_match_family_type' => 'La unidad debe pertenecer al tipo de unidad de tu familia.',
-
-    // Mensajes de validación de email
-    'email_verification_invalid' => 'El enlace de verificación es inválido o ha expirado.',
+    /** Límites de los proyectos sin aprobar */
+    'limit_families'    => 'Los proyectos sin aprobar pueden tener hasta :max familias.',
+    'limit_units'       => 'Los proyectos sin aprobar pueden tener hasta :max viviendas.',
+    'limit_members'     => 'Los proyectos sin aprobar pueden tener hasta :max personas.',
+    'limit_invitations' => 'Los proyectos sin aprobar pueden enviar hasta :max invitaciones por día.',
+    'limit_storage'     => 'Los proyectos sin aprobar pueden guardar hasta :max MB de archivos.',
 ];

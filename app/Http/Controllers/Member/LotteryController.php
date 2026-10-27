@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers\Member;
+
+use App\Enums\LotteryRunStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\EventResource;
+use App\Http\Resources\LotteryRunResource;
+use App\Http\Resources\UnitResource;
+use App\Models\Project;
+use App\Services\Lottery\Exceptions\LotteryExecutionException;
+use App\Services\Lottery\PreferencesService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+/**
+ * The lottery as people in the project live it: when it happens, their family's
+ * ranking, the outcome, and every run (invalidated ones with their reason).
+ */
+class LotteryController extends Controller
+{
+    public function __construct(private PreferencesService $preferences)
+    {
+    }
+
+    public function show(Request $request, Project $project): Response
+    {
+        $user = $request->user();
+        $family = $user->familyIn($project);
+        $activeRun = $project->activeLotteryRun;
+
+        return inertia('Member/Lottery', [
+            'lottery' => EventResource::make($project->lottery),
+            'status'  => $activeRun?->status->value,
+            'runs'    => LotteryRunResource::collection(
+                $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
+            ),
+            /** Families see only their own ranking */
+            'family'  => $family ? ['id' => $family->id, 'name' => $family->name, 'unit_type' => $family->unitType->name] : null,
+            'ranking' => $family ? UnitResource::collection($this->preferences->ranking($family)) : null,
+            /** Once decided, everyone sees which unit each family received */
+            'assignment' => $activeRun?->status === LotteryRunStatus::COMPLETED
+                ? $project->families()->with('unit:id,family_id,identifier')->alphabetically()->get()
+                    ->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'unit' => $f->unit?->only('id', 'identifier')])
+                : null,
+            'canRank' => $user->can('rankUnits', $project) && ! $activeRun,
+        ]);
+    }
+
+    /**
+     * Any member of a family ranks the units of its type for the whole family.
+     */
+    public function rank(Request $request, Project $project): RedirectResponse
+    {
+        $this->authorize('rankUnits', $project);
+
+        $units = $request->validate([
+            'preferences'   => ['present', 'array'],
+            'preferences.*' => ['integer'],
+        ])['preferences'];
+
+        try {
+            $this->preferences->rank($request->user()->familyIn($project), $units);
+        } catch (LotteryExecutionException $e) {
+            return back()->with('error', $e->getUserMessage());
+        }
+
+        return back();
+    }
+}

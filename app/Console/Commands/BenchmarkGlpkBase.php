@@ -7,13 +7,13 @@ namespace App\Console\Commands;
 use App\Models\LotteryAudit;
 use App\Services\Lottery\AuditService;
 use App\Services\Lottery\DataObjects\LotteryManifest;
+use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkTimeoutException;
 use App\Services\Lottery\Solvers\GlpkSolver;
 use Exception;
 use Illuminate\Console\Command;
-use Mockery;
 
 abstract class BenchmarkGlpkBase extends Command
 {
@@ -30,19 +30,17 @@ abstract class BenchmarkGlpkBase extends Command
 
     protected function initializeSolver(): void
     {
-        // Mock AuditService to avoid database operations during benchmarking
-        $mockAudit = Mockery::mock(AuditService::class);
-        $mockAuditRecord = Mockery::mock(LotteryAudit::class);
-        $mockAudit->shouldReceive('custom')->andReturn($mockAuditRecord);
-        app()->instance(AuditService::class, $mockAudit);
+        // Benchmarks audit nothing: there is no lottery run to attach records to
+        app()->instance(AuditService::class, new class () extends AuditService {
+            public function record(LotteryManifest|int $run, LotteryAuditType $type, array $audit): LotteryAudit
+            {
+                return new LotteryAudit();
+            }
+        });
 
         $this->solver = app(GlpkSolver::class);
 
-        $this->manifest = new class () extends LotteryManifest {
-            public function __construct()
-            {
-            }
-        };
+        $this->manifest = new LotteryManifest(uuid: 'benchmark', projectId: 0, runId: 0, data: []);
     }
 
     protected function createOutputFile(string $outputPath, bool $writeHeader = true): void
@@ -190,6 +188,5 @@ abstract class BenchmarkGlpkBase extends Command
             fclose($this->csv);
         }
 
-        Mockery::close();
     }
 }

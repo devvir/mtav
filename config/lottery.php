@@ -11,11 +11,12 @@ return [
     | The solver determines how units are assigned to families based on
     | their preferences.
     |
-    | Supported: "random", "test", or any custom solver defined below
+    | Supported: "glpk" (optimal, the default), "random" and "test" (development
+    | only), or any custom solver defined below
     |
     */
 
-    'default' => env('LOTTERY_SOLVER', 'random'),
+    'default' => env('LOTTERY_SOLVER', 'glpk'),
 
     /*
     |--------------------------------------------------------------------------

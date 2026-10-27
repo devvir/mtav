@@ -1,14 +1,13 @@
 <?php
 
 
-use App\Services\Lottery\LotteryOrchestrator;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
 uses()->group('Unit.Lottery.Glpk', 'slow');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');
-    config()->set('lottery.default', 'glpk');
+    fakeAudits();
 });
 
 describe('Orchestrator with more units than families', function () {
@@ -25,8 +24,7 @@ describe('Orchestrator with more units than families', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(app(GlpkSolver::class), $manifest);
-        $result = $orchestrator->execute();
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
 
         // Should assign 3 families, orphan 2 units
         expect($result->picks)->toHaveCount(3);
@@ -52,8 +50,7 @@ describe('Orchestrator with more units than families', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(app(GlpkSolver::class), $manifest);
-        $result = $orchestrator->execute();
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
 
         // Should assign 3 families, orphan 1 unit
         expect($result->picks)->toHaveCount(3);
@@ -93,8 +90,7 @@ describe('Orchestrator with more units than families', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(app(GlpkSolver::class), $manifest);
-        $result = $orchestrator->execute();
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
 
         // Should assign: 2 + 2 + 2 (redistribution) = 6 families total
         expect($result->picks)->toHaveCount(6);
@@ -137,8 +133,7 @@ describe('Orchestrator with more units than families', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(app(GlpkSolver::class), $manifest);
-        $result = $orchestrator->execute();
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
 
         // All 8 families should be assigned
         expect($result->picks)->toHaveCount(8);

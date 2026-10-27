@@ -8,6 +8,7 @@ uses()->group('lottery', 'stress');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');
+    fakeAudits();
 });
 
 /**

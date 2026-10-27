@@ -1,39 +1,24 @@
 <?php
 
 return [
+    'title'               => 'Lottery',
+    'default_description' => 'The draw that gives each family a unit, from the rankings the families made.',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Lottery Translation Lines
-    |--------------------------------------------------------------------------
-    |
-    | Translation lines specific to lottery operations.
-    |
-    */
+    'locked'                => 'The lottery already ran (or is running): this can no longer change.',
+    'execution_failed'      => 'Something went wrong while running the lottery. You can try again; if it keeps failing, contact the platform team.',
+    'requires_confirmation' => 'Please confirm before running the lottery.',
 
-    'already_executed_or_executing' => 'The lottery has already been executed or is currently being executed.',
-    'not_yet_scheduled'             => 'The lottery cannot be executed before the scheduled date.',
-    'no_date_set'                   => 'You must schedule a start date for the lottery before executing it.',
-    'cannot_execute_generic'        => 'The lottery cannot be executed. Verify that it meets the necessary conditions.',
-    'execution_failed'              => 'An error occurred during lottery execution. Please contact the system administrator.',
-    'glpk_execution_failed'         => 'The optimization algorithm failed to execute. Please contact support.',
-    'glpk_timeout'                  => 'The optimization algorithm took too long to complete and was stopped. Please try executing the lottery again. If the problem persists, contact support',
-    'glpk_infeasible'               => 'The optimization algorithm determined that no valid assignment exists for the current preferences. This is extremely rare and may indicate a configuration error. Please contact support.',
+    'cannot_run_already_run'      => 'The lottery already ran.',
+    'cannot_run_not_scheduled'    => 'Set the lottery\'s date before running it.',
+    'cannot_run_not_due'          => 'The lottery cannot run before its date.',
+    'cannot_run_too_few_families' => 'At least two families are needed to run the lottery.',
+    'cannot_run_too_large'        => 'Projects awaiting approval can run lotteries of up to :max families. Ask for approval to lift the limit.',
 
-    'insufficient_families'       => 'Not enough families to execute the lottery. At least 2 families are required.',
-    'unit_family_mismatch_intro'  => 'There are inconsistencies between units and families:',
+    'unit_family_mismatch_intro'  => 'The number of units and families differ:',
     'mismatch_excess_units'       => ':unit_type has :units units for :families families',
     'mismatch_insufficient_units' => ':unit_type has :units units for :families families',
 
-    'degenerate_case_requires_greedy_confirmation' => 'The problem configuration may cause the optimization algorithm to timeout. The system will use a fair greedy algorithm instead. This maintains fairness but uses a different approach. Do you confirm this?',
-
-    'preferences_locked' => 'Cannot update preferences: lottery execution is in progress or already completed.',
-    'lottery_locked'     => 'Cannot update lottery: execution is in progress or already completed.',
-
-    'invalidation_failed'      => 'An error occurred while invalidating the lottery. Please contact the system administrator.',
-    'invalidated_successfully' => 'Lottery execution has been successfully invalidated. All unit assignments have been removed.',
-
-    'lottery_updated'             => 'Great! The lottery details were updated.',
-    'lottery_preferences_updated' => 'Perfect! Your unit preferences were saved.',
-
+    'glpk_execution_failed' => 'The assignment could not be computed. Please contact the platform team.',
+    'glpk_timeout'          => 'Computing the assignment took too long and was stopped. Please try again.',
+    'glpk_infeasible'       => 'No valid assignment exists for the current rankings. Please contact the platform team.',
 ];

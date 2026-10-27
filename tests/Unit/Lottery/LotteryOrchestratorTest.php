@@ -1,23 +1,20 @@
 <?php
 
 
-use App\Events\Lottery\GroupLotteryExecuted;
-use App\Events\Lottery\ProjectLotteryExecuted;
-use App\Models\LotteryAudit;
-use App\Services\Lottery\AuditService;
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
-use App\Services\Lottery\ExecutionService;
-use App\Services\Lottery\LotteryOrchestrator;
 use App\Services\Lottery\Solvers\TestSolver;
-use Illuminate\Support\Facades\Event;
 
 uses()->group('Unit.Lottery');
 
 beforeEach(function () {
-    Event::fake();
-    config()->set('lottery.default', 'test');
+    $this->audits = fakeAudits();
 });
+
+function auditTypes(): array
+{
+    return array_count_values(array_column(test()->audits->records, 'type'));
+}
 
 describe('LotteryOrchestrator', function () {
     test('perfect match: all groups balanced', function () {
@@ -34,16 +31,14 @@ describe('LotteryOrchestrator', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         expect($report->picks)->toHaveCount(5);
         expect($report->orphans['families'])->toHaveCount(0);
         expect($report->orphans['units'])->toHaveCount(0);
 
-        // Assert events were dispatched: 2 unit types + 1 second-chance + 1 final
-        Event::assertDispatched(\App\Events\Lottery\GroupLotteryExecuted::class, 2);
-        Event::assertDispatched(\App\Events\Lottery\ProjectLotteryExecuted::class, 1);
+        // One audit per unit type (nothing left over for a second chance), one for the project
+        expect(auditTypes())->toBe(['group_execution' => 2, 'project_execution' => 1]);
     });
 
     test('phase 1 only: groups with more units than families', function () {
@@ -63,8 +58,7 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         // Expect 3 picks total (2 + 1), 4 orphan units, 0 orphan families
         expect($report->picks)->toHaveCount(3);
@@ -86,8 +80,7 @@ describe('LotteryOrchestrator', function () {
             ],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         // Expect 3 picks total (2 + 1), 0 orphan units, 4 orphan families
         expect($report->picks)->toHaveCount(3);
@@ -118,8 +111,7 @@ describe('LotteryOrchestrator', function () {
             ],
         );
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         // Phase 1: 2 picks, 3 orphan units (202, 203, 204)
         // Phase 2: 2 picks, 3 orphan families (104, 105, 106)
@@ -147,8 +139,7 @@ describe('LotteryOrchestrator', function () {
             ],
         );
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         // Phase 1: 1 pick, 3 orphan units (201, 202, 203)
         // Phase 2: 1 pick, 3 orphan families (102, 103, 104)
@@ -176,8 +167,7 @@ describe('LotteryOrchestrator', function () {
             ],
         );
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         // Phase 1: 1 pick, 5 orphan units (201-205)
         // Phase 2: 1 pick, 2 orphan families (102, 103)
@@ -191,8 +181,7 @@ describe('LotteryOrchestrator', function () {
     test('empty manifest', function () {
         $manifest = mockManifest(7, []);
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         expect($report->picks)->toHaveCount(0);
         expect($report->orphans['families'])->toHaveCount(0);
@@ -210,8 +199,7 @@ describe('LotteryOrchestrator', function () {
             ]
         );
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $report = $orchestrator->execute();
+        $report = orchestrator(new TestSolver())->execute($manifest);
 
         expect($report->picks)->toHaveCount(1);
         expect($report->orphans['families'])->toHaveCount(0);
@@ -219,45 +207,26 @@ describe('LotteryOrchestrator', function () {
     });
 });
 
-describe('LotteryOrchestrator Audit Integration', function () {
-    test('dispatches group lottery events for audit listeners', function () {
+describe('LotteryOrchestrator audits', function () {
+    test('records each group and the whole project', function () {
         $manifest = mockManifest(1, [
             10 => ['families' => [100 => [200]], 'units' => [200]],
             20 => ['families' => [101 => [201]], 'units' => [201]],
         ]);
 
-        $orchestrator = LotteryOrchestrator::make(new TestSolver(), $manifest);
-        $orchestrator->execute();
+        orchestrator(new TestSolver())->execute($manifest);
 
-        // 2 groups + 1 second-chance = 3 group events, 1 project event
-        Event::assertDispatched(GroupLotteryExecuted::class, 2);
-        Event::assertDispatched(ProjectLotteryExecuted::class, 1);
+        expect(auditTypes())->toBe(['group_execution' => 2, 'project_execution' => 1]);
     });
 
-    test('audit service receives exception call on failure', function () {
+    test('lets solver failures through, for the run to record', function () {
         $manifest = mockManifest(1, [
             10 => ['families' => [100 => [200]], 'units' => [200]],
         ]);
 
-        $solverMock = Mockery::mock(SolverInterface::class);
-        $solverMock->shouldReceive('execute')->andThrow(new LotteryExecutionException('Test failure'));
+        $solver = Mockery::mock(SolverInterface::class);
+        $solver->shouldReceive('execute')->andThrow(new LotteryExecutionException('Test failure'));
 
-        $auditServiceMock = Mockery::mock(AuditService::class);
-        $auditServiceMock->shouldReceive('exception')
-            ->once()
-            ->with(
-                Mockery::on(fn ($m) => $m->uuid === $manifest->uuid),
-                'execution_error',
-                Mockery::type(LotteryExecutionException::class)
-            )
-            ->andReturn(new LotteryAudit());
-
-        $executionServiceMock = Mockery::mock(ExecutionService::class);
-        $executionServiceMock->shouldReceive('cancelExecutionReservation')->once();
-
-        $orchestrator = new LotteryOrchestrator($solverMock, $manifest, $auditServiceMock, $executionServiceMock);
-        $result = $orchestrator->execute();
-
-        expect($result->picks)->toBeEmpty();
+        expect(fn () => orchestrator($solver)->execute($manifest))->toThrow(LotteryExecutionException::class);
     });
 });

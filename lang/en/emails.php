@@ -1,19 +1,26 @@
 <?php
 
 return [
+    'greeting'      => 'Hello!',
+    'greeting_name' => 'Hello :name!',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Email Subject Lines
-    |--------------------------------------------------------------------------
-    |
-    */
+    'invitation_subject'      => 'You are invited to :project',
+    'invitation_family'       => ':inviter invites you to join the :family family in :project.',
+    'invitation_admin'        => ':inviter invites you to help manage :project.',
+    'invitation_admin_family' => ':inviter invites you to help manage :project, as a member of the :family family.',
+    'invitation_action'       => 'Accept the invitation',
+    'invitation_expiry'       => 'The invitation is valid until :date.',
+    'invitation_ignore'       => 'If you were not expecting it, you can ignore this email.',
 
-    'reset_password' => 'Reset Password',
-    'verify_email'   => 'Verify Email Address',
+    'reset_password_subject' => 'Choose a new password',
+    'reset_password_intro'   => 'Someone asked to reset the password of your account.',
+    'reset_password_action'  => 'Choose a new password',
+    'reset_password_expiry'  => 'The link is valid for :minutes minutes.',
+    'reset_password_ignore'  => 'If it was not you, your password stays as it is: ignore this email.',
 
-    'member_invitation'        => "You've been invited to join MTAV!",
-    'member_invitation_family' => "You've been invited to join your Family in MTAV!",
-    'admin_invitation'         => "You've been invited to MTAV as an Administrator",
-
+    'verify_email_subject'   => 'Confirm your email address',
+    'verify_email_intro'     => 'Please confirm this is your email address.',
+    'verify_new_email_intro' => 'Please confirm this is your new email address. Your account keeps using the old one until you do.',
+    'verify_email_action'    => 'Confirm my email',
+    'verify_email_ignore'    => 'If you did not create an account, ignore this email.',
 ];

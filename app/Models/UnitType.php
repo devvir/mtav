@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A group of equivalent units: families compete only for units of their own type.
+ */
 class UnitType extends Model
 {
-    use ProjectScope;
-    use SoftDeletes;
+    protected $fillable = [
+        'project_id',
+        'name',
+        'description',
+    ];
 
     public function project(): BelongsTo
     {
@@ -28,13 +32,13 @@ class UnitType extends Model
         return $this->hasMany(Family::class);
     }
 
+    public function isInUse(): bool
+    {
+        return $this->units()->exists() || $this->families()->exists();
+    }
+
     public function scopeAlphabetically(Builder $query): void
     {
         $query->orderBy('name');
-    }
-
-    public function scopeSearch(Builder $query, string $q): void
-    {
-        $query->whereLike('name', "%{$q}%");
     }
 }

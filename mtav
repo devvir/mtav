@@ -335,14 +335,14 @@ validate_and_process_pest_testsuite_args() {
     done
 
     if [ "$has_testsuite" = true ]; then
-        if ! [[ "$testsuite_value" =~ ^(Arch|Unit|Feature|Stress)(,(Arch|Unit|Feature|Stress))*$ ]]; then
+        if ! [[ "$testsuite_value" =~ ^(Arch|Unit|UseCases|Stress)(,(Arch|Unit|UseCases|Stress))*$ ]]; then
             echo -e "${RED}❌ Invalid testsuite: $testsuite_value${NC}" >&2
-            echo "Valid values (comma-separated): Arch, Unit, Feature, Stress" >&2
+            echo "Valid values (comma-separated): Arch, Unit, UseCases, Stress" >&2
             return 1
         fi
         echo "${args[@]}"
     else
-        echo "--testsuite" "Arch,Unit,Feature" "${args[@]}"
+        echo "--testsuite" "Arch,Unit,UseCases" "${args[@]}"
     fi
 }
 

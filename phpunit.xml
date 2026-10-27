@@ -11,14 +11,11 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
+        <testsuite name="UseCases">
+            <directory>tests/UseCases</directory>
         </testsuite>
         <testsuite name="Stress">
             <directory>tests/Stress</directory>
-        </testsuite>
-        <testsuite name="Browser">
-            <directory>tests/Browser</directory>
         </testsuite>
     </testsuites>
 
@@ -41,7 +38,6 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
-        <env name="SUPERADMINS" value="superadmin1@example.com"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

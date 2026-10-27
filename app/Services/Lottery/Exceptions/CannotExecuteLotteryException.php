@@ -2,24 +2,14 @@
 
 namespace App\Services\Lottery\Exceptions;
 
-use App\Models\Event;
-
+/**
+ * The lottery cannot run now: not scheduled yet, not due, already run, too few
+ * families, or too large for an unapproved project.
+ */
 class CannotExecuteLotteryException extends LotteryExecutionException
 {
-    public function __construct(public readonly Event $lottery)
+    public static function because(string $reason, array $params = []): static
     {
-        $json = json_encode($lottery->withoutRelations()->getAttributes());
-
-        parent::__construct("Cannot execute lottery due to its current state: {$json}");
-    }
-
-    public function getUserMessage(): string
-    {
-        return match (true) {
-            ! $this->lottery->isPublished()    => __('lottery.already_executed_or_executing'),
-            ! $this->lottery->start_date       => __('lottery.no_date_set'),
-            $this->lottery->start_date > now() => __('lottery.not_yet_scheduled'),
-            default                            => __('lottery.cannot_execute_generic'),
-        };
+        return static::withUserMessage("lottery.cannot_run_{$reason}", $params, "Cannot run the lottery: {$reason}");
     }
 }

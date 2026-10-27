@@ -10,6 +10,7 @@ uses()->group('Stress.Lottery.Glpk');
 
 beforeEach(function () {
     config()->set('logging.default', 'null');
+    fakeAudits();
 });
 
 describe('GLPK Solver Stress Tests', function () {
@@ -54,23 +55,22 @@ describe('GLPK Solver Stress Tests', function () {
 
     describe('Model correctness - proper INFEASIBLE handling', function () {
         test('Phase 2 with impossibly strict S returns INFEASIBLE (not OPTIMAL with zeros)', function () {
-            // Recreate the scenario from laravel.log that triggered "No assignments found":
-            // 2 families, 2 units, but S is impossibly low for the preference structure
+            // 2 families, 2 units, both wanting unit 10 first: S=1 (everyone gets their
+            // first choice) cannot be met
             $families = [
-                1 => [10, 20], // Family 1: prefers unit 10 (rank 1), then unit 20 (rank 2)
-                1 => [20, 10], // Family 2: prefers unit 20 (rank 1), then unit 10 (rank 2)
+                1 => [10, 20],
+                2 => [10, 20],
             ];
             $units = [10, 20];
 
             $spec = new LotterySpec($families, $units);
             $manifest = mockManifest(1, [1 => ['families' => $families, 'units' => $units]]);
 
-            // Try Phase 2 with S=1 (impossibly strict - both families want their first choice)
             // With = 1 constraints, GLPK should return INFEASIBLE
             // (not OPTIMAL with all zeros like with split >= 1, <= 1 constraints)
             $phase2 = app(UnitDistribution::class);
 
-            expect(fn () => $phase2->execute($spec, 300, ['min_satisfaction' => 1]))
+            expect(fn () => $phase2->withContext(['min_satisfaction' => 1])->execute($spec, 300))
                 ->toThrow(GlpkInfeasibleException::class);
         });
     });

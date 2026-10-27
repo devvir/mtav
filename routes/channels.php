@@ -1,30 +1,19 @@
 <?php
 
-use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 /**
- * Users with more than one Project may subscribe to the global channel.
+ * Each person's own notifications.
  */
-Broadcast::channel('global', function (User $user) {
-    return $user->asAdmin()?->projects()->count() > 1;
-});
+Broadcast::channel('users.{id}', fn (User $user, int $id) => $user->id === $id);
 
 /**
- * Users may subscribe to the channel of any Project they have access to.
- * This is a presence channel, so it returns user data.
+ * What happens in a project, for the people taking part in it.
  */
-Broadcast::channel('projects.{project}', function (User $user, Project $project) {
-    return [
-        'id'   => $user->id,
-        'name' => $user->fullname,
-    ];
-});
+Broadcast::channel('projects.{id}', fn (User $user, int $id) => $user->canAccess($id));
 
 /**
- * Users may subscribe to their own private channel.
+ * Platform-wide notices (new projects, approval requests) for superadmins.
  */
-Broadcast::channel('private.{user}', function (User $authUser, User $user) {
-    return $user->is($authUser);
-});
+Broadcast::channel('superadmins', fn (User $user) => $user->isSuperadmin());

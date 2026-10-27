@@ -2,54 +2,70 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasMedia;
-use App\Observers\ProjectObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Enums\EventType;
+use App\Enums\LotteryRunStatus;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
-#[ObservedBy([ProjectObserver::class])]
+/**
+ * A housing project. Until a superadmin approves it (trusts its managers), it works
+ * within the limits in config/limits.php.
+ */
 class Project extends Model
 {
-    use HasMedia;
-    use SoftDeletes;
+    protected $fillable = [
+        'name',
+        'description',
+        'organization',
+        'active',
+        'created_by',
+        'approval_requested_at',
+        'approved_at',
+        'approved_by',
+    ];
 
-    public static function current(): ?Project
+    protected $casts = [
+        'active'                => 'boolean',
+        'approval_requested_at' => 'datetime',
+        'approved_at'           => 'datetime',
+    ];
+
+    public function creator(): BelongsTo
     {
-        return currentProject();
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function families(): HasMany
+    public function memberships(): HasMany
     {
-        return $this->hasMany(Family::class);
+        return $this->hasMany(Membership::class);
     }
 
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class)
-            ->wherePivot('active', true)
-            ->withTimestamps();
-    }
-
+    /**
+     * Everyone taking part in the project (admins and family members).
+     */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(Member::class, 'project_user', relatedPivotKey: 'user_id')
-            ->wherePivot('active', true)
+        return $this->belongsToMany(User::class, 'memberships')
+            ->withPivot('family_id', 'is_admin')
             ->withTimestamps();
     }
 
     public function admins(): BelongsToMany
     {
-        return $this->belongsToMany(Admin::class, 'project_user', relatedPivotKey: 'user_id')
-            ->withPivot('active')
-            ->withTimestamps();
+        return $this->members()->wherePivot('is_admin', true);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
+    public function families(): HasMany
+    {
+        return $this->hasMany(Family::class);
     }
 
     public function unitTypes(): HasMany
@@ -72,24 +88,27 @@ class Project extends Model
         return $this->hasMany(Event::class);
     }
 
-    public function upcomingEvents(): HasMany
-    {
-        return $this->events()->upcoming();
-    }
-
+    /**
+     * The lottery's schedule and description (an event of the project).
+     */
     public function lottery(): HasOne
     {
-        return $this->events()->whereType('lottery')->one();
+        return $this->hasOne(Event::class)->where('type', EventType::LOTTERY);
     }
 
-    public function logs(): HasMany
+    public function lotteryRuns(): HasMany
     {
-        return $this->hasMany(Log::class);
+        return $this->hasMany(LotteryRun::class);
     }
 
-    public function audits(): HasMany
+    /**
+     * The run that decided (or is deciding) the assignment, if any.
+     */
+    public function activeLotteryRun(): HasOne
     {
-        return $this->hasMany(LotteryAudit::class);
+        return $this->hasOne(LotteryRun::class)
+            ->whereIn('status', [LotteryRunStatus::RUNNING, LotteryRunStatus::COMPLETED])
+            ->latestOfMany();
     }
 
     public function media(): HasMany
@@ -97,53 +116,25 @@ class Project extends Model
         return $this->hasMany(Media::class);
     }
 
-    public function addMember(Member|int $memberOrId): self
+    public function isApproved(): bool
     {
-        $this->members()->syncWithPivotValues(
-            $memberOrId,
-            ['active' => true],
-            detaching: false
-        );
-
-        return $this;
+        return (bool) $this->approved_at;
     }
 
-    public function removeMember(Member|int $memberOrId): self
+    /**
+     * A limit for unapproved projects (null: no limit).
+     */
+    public function limit(string $key): ?int
     {
-        $this->members()->updateExistingPivot(
-            $memberOrId,
-            ['active' => false]
-        );
-
-        return $this;
+        return $this->isApproved() ? null : config("limits.unapproved.{$key}");
     }
 
-    public function addAdmin(Admin|int $adminOrId): self
+    /**
+     * Whether preferences are locked: a lottery run is running or decided the assignment.
+     */
+    public function lotteryLocked(): bool
     {
-        return $this->addAdmins($adminOrId);
-    }
-
-    public function addAdmins(Collection|EloquentModel|array|int $ids): self
-    {
-        $this->admins()->syncWithPivotValues($ids, [
-            'active' => true,
-        ], detaching: false);
-
-        return $this;
-    }
-
-    public function hasMember(Member|int $memberOrId): bool
-    {
-        $memberId = $memberOrId instanceof Member ? $memberOrId->id : $memberOrId;
-
-        return $this->members()->where('users.id', $memberId)->exists();
-    }
-
-    public function hasAdmin(Admin|int $adminOrId): bool
-    {
-        $adminId = $adminOrId instanceof Admin ? $adminOrId->id : $adminOrId;
-
-        return $this->admins()->where('users.id', $adminId)->exists();
+        return $this->activeLotteryRun()->exists();
     }
 
     public function scopeActive(Builder $query): void
@@ -159,22 +150,5 @@ class Project extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->whereLike('name', "%{$q}%");
-    }
-
-    public static function boot(): void
-    {
-        parent::boot();
-
-        static::addGlobalScope('available', function (Builder $builder) {
-            if (Auth::guest() || Auth::user()->isSuperadmin()) {
-                return;
-            }
-
-            $validIds = DB::table('project_user')
-                ->where('user_id', Auth::id())
-                ->pluck('project_id');
-
-            $builder->whereIn('projects.id', $validIds);
-        });
     }
 }

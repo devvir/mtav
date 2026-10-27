@@ -4,10 +4,9 @@ namespace App\Http\Resources;
 
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property-read Notification $resource
- *
  * @mixin Notification
  */
 class NotificationResource extends JsonResource
@@ -15,13 +14,13 @@ class NotificationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            ...$this->commonResourceData(),
-
-            'id'        => $this->id,
-            'data'      => $this->data,
-            'target'    => $this->target->value,
-            'target_id' => $this->target_id,
-            'is_read'   => $this->whenHas('read', fn () => $this->read),
+            'id'         => $this->id,
+            'type'       => $this->type->value,
+            'title'      => $this->data['title'] ?? '',
+            'message'    => $this->data['message'] ?? '',
+            'url'        => $this->data['url'] ?? null,
+            'read'       => (bool) $this->read,
+            'created_at' => $this->created_at,
         ];
     }
 }

@@ -2,28 +2,24 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Http\Requests\Settings\AvatarUpdateRequest;
-use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class AvatarController
+class AvatarController extends Controller
 {
-    /**
-     * Update the user's avatar.
-     */
-    public function update(AvatarUpdateRequest $request): JsonResponse
+    public function update(Request $request): RedirectResponse
     {
+        $request->validate(['avatar' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:2048']]);
+
         $user = $request->user();
+        $previous = $user->avatar;
 
-        $user->avatar && Storage::disk('public')->delete($user->avatar);
+        $user->update(['avatar' => $request->file('avatar')->store('avatars', 'public')]);
 
-        $path = $request->avatar->store('avatars', 'public');
+        $previous && Storage::disk('public')->delete($previous);
 
-        $user->update(['avatar' => $path]);
-
-        return response()->json([
-            'message'    => __('Avatar updated successfully!'),
-            'avatar_url' => asset('storage/' . $path),
-        ]);
+        return back()->with('success', __('flash.avatar_updated'));
     }
 }

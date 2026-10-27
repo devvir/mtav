@@ -3,61 +3,59 @@
 namespace App\Services;
 
 use App\Models\Plan;
-use App\Models\PlanItem;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\Plan\Defaults;
-use App\Services\Plan\Polygons;
+use Illuminate\Support\Facades\DB;
 
 class PlanService
 {
-    public function __construct(
-        private readonly Defaults $defaults,
-        private readonly Polygons $polygons,
-    ) {
-        // ...
+    public function __construct(private Defaults $defaults)
+    {
     }
 
     /**
-     * Create a default plan for a Project.
+     * An empty 800×600 canvas whose boundary is the whole canvas.
      */
-    public function addProject(Project $project, string $unitSystem = 'meters'): Plan
+    public function createFor(Project $project): Plan
     {
-        return Plan::create([
-            'project_id'  => $project->id,
+        return $project->plan()->create([
             'polygon'     => [[0, 0], [800, 0], [800, 600], [0, 600]],
             'width'       => 800,
             'height'      => 600,
-            'unit_system' => $unitSystem,
+            'unit_system' => 'meters',
         ]);
     }
 
     /**
-     * Create a plan item for a Unit with default positioning.
+     * Give a new unit a square on the plan, next to the units placed before it.
      */
-    public function addUnit(Unit $unit): PlanItem
+    public function place(Unit $unit): void
     {
         $plan = $unit->project->plan;
 
-        return PlanItem::create([
-            'plan_id' => $plan->id,
+        $plan->items()->create([
+            'unit_id' => $unit->id,
             'type'    => 'unit',
-            'polygon' => $this->defaults->getNextAvailablePosition($plan),
             'floor'   => 0,
+            'polygon' => $this->defaults->getNextAvailablePosition($plan),
         ]);
     }
 
     /**
-     * Update Plan boundary and PlanItem polygons.
+     * Save the boundary and the shapes of the plan's items.
      *
-     * @param  Plan  $plan
-     * @param  array{
-     *   polygon: array<int, array{float, float}>,
-     *   items: array<int, array{id: int, polygon: array<int, array{float, float}>}>
-     * }  $data
+     * @param array<int, array{float, float}> $polygon
+     * @param array<int, array{id: int, polygon: array<int, array{float, float}>}> $items
      */
-    public function updatePlan(Plan $plan, array $data): void
+    public function update(Plan $plan, array $polygon, array $items): void
     {
-        $this->polygons->update($plan, $data['polygon'], $data['items']);
+        DB::transaction(function () use ($plan, $polygon, $items) {
+            $plan->update(['polygon' => $polygon]);
+
+            foreach ($items as $item) {
+                $plan->items()->whereKey($item['id'])->update(['polygon' => $item['polygon']]);
+            }
+        });
     }
 }

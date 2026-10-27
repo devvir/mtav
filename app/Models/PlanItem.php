@@ -3,12 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * A shape on the plan: a unit, or anything else drawn there (buildings, streets, …).
+ */
 class PlanItem extends Model
 {
-    protected $with = [
-        'unit',
+    protected $fillable = [
+        'plan_id',
+        'unit_id',
+        'type',
+        'floor',
+        'polygon',
+        'name',
+        'metadata',
     ];
 
     protected $casts = [
@@ -22,8 +30,8 @@ class PlanItem extends Model
         return $this->belongsTo(Plan::class);
     }
 
-    public function unit(): HasOne
+    public function unit(): BelongsTo
     {
-        return $this->hasOne(Unit::class);
+        return $this->belongsTo(Unit::class);
     }
 }

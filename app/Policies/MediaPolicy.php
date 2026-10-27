@@ -3,37 +3,34 @@
 namespace App\Policies;
 
 use App\Models\Media;
+use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
-class MediaPolicy
+/**
+ * Everyone in a project shares files; a file's owner edits its description, and
+ * the owner or an admin removes it.
+ */
+class MediaPolicy extends ProjectResourcePolicy
 {
-    public function viewAny(User $user): bool
+    public function create(User $user, Project $project): bool
     {
-        return true;
+        return (bool) $user->membershipIn($project);
     }
 
-    public function view(User $user, Media $media): bool
+    /**
+     * @param Media $model
+     */
+    public function update(User $user, Model $model): bool
     {
-        return true;
+        return $model->owner_id === $user->id;
     }
 
-    public function create(User $user): bool
+    /**
+     * @param Media $model
+     */
+    public function delete(User $user, Model $model): bool
     {
-        return true;
-    }
-
-    public function update(User $user, Media $media): bool
-    {
-        return $user->id === $media->owner_id;
-    }
-
-    public function delete(User $user, Media $media): bool
-    {
-        return $user->id === $media->owner_id || $user->isAdmin();
-    }
-
-    public function restore(User $user, Media $media): bool
-    {
-        return $user->id === $media->owner_id || $user->isAdmin();
+        return $model->owner_id === $user->id || $user->manages($model->project_id);
     }
 }

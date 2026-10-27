@@ -2,25 +2,39 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
-use App\Services\Notifications\ResourceLifecycle;
-use App\Services\Notifications\SystemNotifications;
-use Illuminate\Database\Eloquent\Model;
+use App\Events\NotificationSent;
+use App\Models\Notification;
+use App\Models\User;
 
+/**
+ * Creates in-app notifications and pushes them to whoever is online.
+ */
 class NotificationService
 {
-    public function __construct(
-        protected ResourceLifecycle $resources,
-        protected SystemNotifications $system,
-    ) {
-        // ...
-    }
-
     /**
-     * Handle resource lifecycle events.
+     * @param int|null $targetId  The user (private) or project (project) addressed
      */
-    public function handleResourceEvent(Model $model, NotificationType $type): void
-    {
-        $this->resources->notify($model, $type);
+    public function send(
+        NotificationTarget $target,
+        NotificationType $type,
+        string $title,
+        string $message,
+        ?string $url = null,
+        ?User $trigger = null,
+        ?int $targetId = null,
+    ): Notification {
+        $notification = Notification::create([
+            'type'         => $type,
+            'target'       => $target,
+            'target_id'    => $target === NotificationTarget::GLOBAL ? null : $targetId,
+            'data'         => compact('title', 'message', 'url'),
+            'triggered_by' => $trigger?->id,
+        ]);
+
+        NotificationSent::dispatch($notification);
+
+        return $notification;
     }
 }

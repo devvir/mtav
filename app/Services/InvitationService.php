@@ -2,94 +2,126 @@
 
 namespace App\Services;
 
-use App\Events\UserRegistration;
-use App\Models\Admin;
-use App\Models\Member;
+use App\Enums\NotificationTarget;
+use App\Enums\NotificationType;
+use App\Models\Family;
+use App\Models\Invitation;
+use App\Models\Membership;
+use App\Models\Project;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Arr;
+use App\Notifications\InvitationNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
+/**
+ * People join a project by invitation: an emailed link, valid for a few days, that
+ * creates their account (or adds the project to an existing one).
+ */
 class InvitationService
 {
-    /**
-     * Create and invite a new admin.
-     *
-     * @param array{email: string, firstname: string} $input
-     * @param array<int> $projectIds
-     */
-    public function inviteAdmin(array $input, array $projectIds): Admin
+    public function __construct(private NotificationService $notifications)
     {
-        $data = [
-            ...Arr::only($input, ['email', 'firstname', 'lastname']),
-            'password' => $this->createToken(),
-            'is_admin' => true,
-        ];
-
-        $admin = DB::transaction(fn () => tap(
-            Admin::create($data),
-            fn (Admin $admin) => $admin->projects()->attach($projectIds)
-        ));
-
-        event(new UserRegistration($admin, $data['password']));
-
-        return $admin;
     }
 
     /**
-     * Create and invite a new member.
+     * @param array{email: string, firstname?: ?string, lastname?: ?string} $person
      *
-     * @param array{family_id: int, email: string, firstname: string, lastname?: string} $input
+     * @throws ValidationException when the person is already in, or a limit is reached
      */
-    public function inviteMember(array $input, int $projectId): Member
+    public function invite(Project $project, User $inviter, array $person, ?Family $family, bool $asAdmin): Invitation
     {
-        $data = [
-            ...Arr::only($input, ['family_id', 'email', 'firstname', 'lastname']),
-            'password' => $this->createToken(),
-        ];
+        $email = strtolower(trim($person['email']));
 
-        $member = DB::transaction(
-            fn () => Member::create($data)->joinProject($projectId)
+        $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
+        $this->ensureWithinLimits($project);
+
+        $token = Str::random(48);
+
+        $invitation = DB::transaction(function () use ($project, $inviter, $person, $email, $family, $asAdmin, $token) {
+            /** A newer invitation replaces any pending one for the same person */
+            $project->invitations()->pending()->where('email', $email)->delete();
+
+            return $project->invitations()->create([
+                'family_id'  => $family?->id,
+                'is_admin'   => $asAdmin,
+                'email'      => $email,
+                'firstname'  => $person['firstname'] ?? null,
+                'lastname'   => $person['lastname'] ?? null,
+                'token_hash' => Invitation::hashToken($token),
+                'invited_by' => $inviter->id,
+                'expires_at' => now()->addDays(config('limits.invitation_days')),
+            ]);
+        });
+
+        Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
+
+        return $invitation;
+    }
+
+    /**
+     * Accept an invitation on behalf of a (new or existing) user.
+     */
+    public function accept(Invitation $invitation, User $user): Membership
+    {
+        $membership = DB::transaction(function () use ($invitation, $user) {
+            $membership = Membership::firstOrNew([
+                'user_id'    => $user->id,
+                'project_id' => $invitation->project_id,
+            ]);
+
+            $membership->family_id = $invitation->family_id ?? $membership->family_id;
+            $membership->is_admin = $invitation->is_admin || $membership->is_admin;
+            $membership->save();
+
+            $invitation->update(['accepted_at' => now()]);
+
+            /** Whoever accepts an emailed link proves they own the address */
+            $user->email === $invitation->email && ! $user->hasVerifiedEmail() && $user->markEmailAsVerified();
+
+            return $membership;
+        });
+
+        $this->notifications->send(
+            NotificationTarget::PROJECT,
+            NotificationType::MEMBER_JOINED,
+            title: __('notifications.member_joined_title'),
+            message: $invitation->family
+                ? __('notifications.member_joined_family_message', ['name' => $user->name, 'family' => $invitation->family->name])
+                : __('notifications.member_joined_message', ['name' => $user->name]),
+            url: route('people.show', ['project' => $invitation->project_id, 'member' => $user->id]),
+            trigger: $user,
+            targetId: $invitation->project_id,
         );
 
-        event(new UserRegistration($member, $data['password']));
-
-        return $member;
+        return $membership;
     }
 
-    /**
-     * Complete the user's registration.
-     *
-     * @param array{avatar?: UploadedFile, firstname: string} $data
-     */
-    public function completeRegistration(User $user, string $password, array $data): User
+    private function ensureNotAlreadyIn(Project $project, string $email, ?Family $family, bool $asAdmin): void
     {
-        $avatar = isset($data['avatar']) ? $this->storeAvatar($data['avatar']) : null;
+        $membership = $project->memberships()->whereRelation('user', 'email', $email)->first();
 
-        $user->update([
-            'password'               => $password,
-            'avatar'                 => $avatar,
-            'invitation_accepted_at' => now(),
-            'email_verified_at'      => now(),
-            ...Arr::only($data, ['firstname', 'lastname', 'phone', 'legal_id']),
-        ]);
+        $alreadyIn = $membership
+            && (! $family || $membership->family_id)
+            && (! $asAdmin || $membership->is_admin);
 
-        return $user;
+        if ($alreadyIn) {
+            throw ValidationException::withMessages(['email' => __('validation.already_in_project')]);
+        }
     }
 
-    /**
-     * Accepts either the resolved Avatar path or a FileUpload to process.
-     */
-    protected function storeAvatar(string|UploadedFile $avatar): ?string
+    private function ensureWithinLimits(Project $project): void
     {
-        return is_string($avatar) ? $avatar : $avatar->store('avatars', 'public');
-    }
+        $maxMembers = $project->limit('members');
+        $perDay = $project->limit('invitations_per_day');
 
-    /**
-     * Create a new random invitation token.
-     */
-    protected function createToken(): string
-    {
-        return base64_encode(random_bytes(32));
+        if ($maxMembers !== null && $project->memberships()->count() + $project->invitations()->pending()->count() >= $maxMembers) {
+            throw ValidationException::withMessages(['email' => __('validation.limit_members', ['max' => $maxMembers])]);
+        }
+
+        if ($perDay !== null && $project->invitations()->where('created_at', '>', now()->subDay())->count() >= $perDay) {
+            throw ValidationException::withMessages(['email' => __('validation.limit_invitations', ['max' => $perDay])]);
+        }
     }
 }

@@ -2,53 +2,30 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Concerns\HasMedia;
 use App\Models\Family;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property-read Family $resource
- *
  * @mixin Family
  */
 class FamilyResource extends JsonResource
 {
-    use HasMedia;
-
-    public function toArray(Request $_): array
+    public function toArray(Request $request): array
     {
         return [
-            ...$this->commonResourceData(),
-
-            'name'   => $this->name,
-            'avatar' => $this->resolveAvatar(),
-
-            ...$this->relationsData(),
+            'id'            => $this->id,
+            'name'          => $this->name,
+            'avatar'        => $this->avatar ? Storage::disk('public')->url($this->avatar) : null,
+            'unit_type'     => $this->whenLoaded('unitType', fn () => ['id' => $this->unitType->id, 'name' => $this->unitType->name]),
+            'unit'          => $this->whenLoaded('unit', fn () => $this->unit ? ['id' => $this->unit->id, 'identifier' => $this->unit->identifier] : null),
+            'members'       => MemberResource::collection($this->whenLoaded('members')),
+            'members_count' => $this->whenCounted('members'),
+            'can'           => [
+                'update' => $request->user()?->can('update', $this->resource),
+                'delete' => $request->user()?->can('delete', $this->resource),
+            ],
         ];
-    }
-
-    private function relationsData(): array
-    {
-        return [
-            'members'       => $this->whenLoaded('members'),
-            'members_count' => $this->whenCountedOrLoaded('members'),
-
-            'preferences'       => $this->whenLoaded('preferences'),
-            'preferences_count' => $this->whenCountedOrLoaded('preferences'),
-
-            'project'   => $this->whenLoaded('project', default: ['id' => $this->project_id]),
-            'unit_type' => $this->whenLoaded('unitType', default: ['id' => $this->unit_type_id]),
-            'unit'      => $this->whenLoaded('unit'),
-
-            ...$this->sharedMediaData(),
-        ];
-    }
-
-    private function resolveAvatar(): string
-    {
-        return $this->avatar
-            ? Storage::url($this->avatar)
-            : "https://api.dicebear.com/9.x/identicon/svg?seed={$this->name}";
     }
 }

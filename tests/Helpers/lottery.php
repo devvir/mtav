@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\LotteryAudit;
 use App\Services\Lottery\AuditService;
+use App\Services\Lottery\Contracts\SolverInterface;
+use App\Services\Lottery\Enums\LotteryAuditType;
+use App\Services\Lottery\LotteryOrchestrator;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Glpk;
@@ -8,41 +12,16 @@ use App\Services\Lottery\Solvers\Glpk\TaskRunners\TaskRunnerFactory;
 use Illuminate\Support\Str;
 
 /**
- * Mock manifest class for testing.
- *
- * Use this in tests that need to dispatch events with manifests without
- * unnecessary database access.
- */
-class MockManifest extends LotteryManifest
-{
-    public function __construct(
-        string $uuid,
-        int $projectId,
-        int $lotteryId,
-        array $data = [],
-        array $options = []
-    ) {
-        $this->uuid = $uuid;
-        $this->projectId = $projectId;
-        $this->lotteryId = $lotteryId;
-        $this->data = $data;
-        $this->options = $options;
-    }
-}
-
-/**
- * Create a mock lottery manifest for testing.
+ * A lottery manifest for tests: plain data, no database.
  */
 function mockManifest(
     int $projectId = 1,
     array $data = [],
-    int $lotteryId = 1,
+    int $runId = 1,
     ?string $uuid = null,
     array $options = []
-): MockManifest {
-    $uuid ??= Str::uuid()->toString();
-
-    return new MockManifest($uuid, $projectId, $lotteryId, $data, $options);
+): LotteryManifest {
+    return new LotteryManifest($uuid ?? Str::uuid()->toString(), $projectId, $runId, $data, $options);
 }
 
 /**
@@ -72,4 +51,35 @@ function mockGlpkWithAuditCapture(array $config = []): Glpk
     );
 
     return $glpkMock;
+}
+
+/**
+ * Keep audit records in memory (unit tests have no lottery runs to attach them to).
+ *
+ * @return object{records: array<array{type: string, audit: array}>}
+ */
+function fakeAudits(): object
+{
+    $fake = new class () extends AuditService {
+        public array $records = [];
+
+        public function record(LotteryManifest|int $run, LotteryAuditType $type, array $audit): LotteryAudit
+        {
+            $this->records[] = ['type' => $type->value, 'audit' => $audit];
+
+            return new LotteryAudit();
+        }
+    };
+
+    app()->instance(AuditService::class, $fake);
+
+    return $fake;
+}
+
+/**
+ * An orchestrator over the given solver, auditing in memory.
+ */
+function orchestrator(SolverInterface $solver): LotteryOrchestrator
+{
+    return new LotteryOrchestrator($solver, app(AuditService::class));
 }

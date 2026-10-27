@@ -1,19 +1,17 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\HandleInvitedUsers;
-use App\Http\Middleware\HandleSelectedProject;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
@@ -32,26 +30,37 @@ return Application::configure(basePath: dirname(__DIR__))
                 Request::HEADER_X_FORWARDED_PROTO
         );
 
-        $middleware->encryptCookies(except: ['project']);
-
         $middleware->web(append: [
-            HandleInvitedUsers::class,
-            HandleSelectedProject::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,
         ]);
 
-        $middleware->api(append: [ 'web' ]);
-        $middleware->statefulApi();
-
-        $middleware->validateCsrfTokens(except: [
-            'login',
-            'logout',
-            'csrf-token',
-        ]);
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        /** For Policy-based denials on navigation, silently redirect to the Dashboard */
-        $exceptions->render(fn (AccessDeniedHttpException $_) => redirect()->route('dashboard'));
+        /**
+         * Inertia visits get a friendly error page (or, for a refused form submission,
+         * a flash message on the page they came from) instead of the framework's.
+         */
+        $exceptions->respond(function (Response $response, Throwable $_, Request $request) {
+            $status = $response->getStatusCode();
+
+            if (! $request->header('X-Inertia') || ! in_array($status, [403, 404, 500, 503])) {
+                return $response;
+            }
+
+            if ($status === 403 && ! $request->isMethod('GET')) {
+                return back()->with('error', __('flash.not_allowed'));
+            }
+
+            if ($status === 500 && app()->hasDebugModeEnabled()) {
+                return $response;
+            }
+
+            return Inertia::render('Error', ['status' => $status])
+                ->toResponse($request)
+                ->setStatusCode($status);
+        });
     })
     ->create();

@@ -1,8 +1,6 @@
 # MTAV Documentation
 
-Index of the project's documentation. (Older AI "knowledge base" docs were removed in 2026‑07; the
-degree thesis is now the authoritative description of the system, and the code is the source of
-truth for implementation details.)
+Index of the project's documentation. The code is the source of truth for implementation details.
 
 ## `thesis/` — Proyecto de Grado
 
@@ -19,23 +17,21 @@ The degree thesis (Spanish), the main long-form documentation of the project:
 
 - `ai/thesis/README.md` — **orientation for any agent working on the thesis** (file map, workflow,
   rules, status). Start here for thesis work.
-- `ai/CODE-REVIEW.md` — code‑quality review (Opus, 2026‑05).
-- `ai/testing/` — testing notes (pending a focused review pass).
 
 ## `technical/` — developer guides
 
-Working-with-the-codebase references: `testing.md`, `forms-service.md`,
-`form-requests.md`, `BROADCASTING.md`, and `ER/` (entity‑relationship diagrams).
+Working-with-the-codebase references: `architecture.md` and `testing.md`.
+
+## `planning/` — work in progress
+
+- `planning/refactor.md` — the ongoing refactor: business rules, decisions, work order.
 
 ## Docker & environments
 
 All infrastructure docs live in **`../docker/README.md`**: environments
 (dev/testing/staging/prod), the `mtav` CLI, full technical spec, and gotchas.
-(The old `technical/{docker,deployment,builds,build-images,scripts,troubleshooting}.md`
-were removed 2026‑07‑12 along with the `.docker/` infra they described.)
 
 ## Other
 
 - `export/` — exported deliverables (e.g. `.docx`).
-- `TODO.md` — project todo list.
 - Root `../README.md` — project overview / quick start.

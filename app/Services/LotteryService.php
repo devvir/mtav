@@ -2,100 +2,228 @@
 
 namespace App\Services;
 
-use App\Enums\EventType;
+use App\Enums\LotteryRunStatus;
+use App\Enums\NotificationTarget;
+use App\Enums\NotificationType;
+use App\Jobs\RunLottery;
 use App\Models\Event;
-use App\Models\Family;
+use App\Models\LotteryRun;
 use App\Models\Project;
+use App\Models\Unit;
 use App\Models\User;
+use App\Services\Lottery\AuditService;
+use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotteryManifest;
+use App\Services\Lottery\Enums\LotteryAuditType;
+use App\Services\Lottery\Exceptions\CannotExecuteLotteryException;
+use App\Services\Lottery\Exceptions\LotteryLockedException;
+use App\Services\Lottery\Exceptions\UnitFamilyMismatchException;
 use App\Services\Lottery\PreferencesService;
-use App\Services\Lottery\Exceptions\LockedLotteryException;
-use App\Services\Lottery\ExecutionService;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
+/**
+ * A project's lottery, from scheduling to the final assignment (and, exceptionally,
+ * its invalidation).
+ */
 class LotteryService
 {
     public function __construct(
-        private PreferencesService $preferencesService,
-        private ExecutionService $executionService
+        private PreferencesService $preferences,
+        private AuditService $audits,
+        private NotificationService $notifications,
     ) {
-        // ...
-    }
-
-    public function createLotteryEvent(Project $project, ?User $creator = null): Event
-    {
-        return Event::create([
-            'project_id'   => $project->id,
-            'creator_id'   => $creator?->id,
-            'title'        => __('Lottery'),
-            'description'  => __('general.lottery_default_description'),
-            'type'         => EventType::LOTTERY,
-            'is_published' => true,
-        ]);
     }
 
     /**
-     * Update lottery event details.
+     * @param array{description?: string, start_date?: ?string} $data
      *
-     * @param  array<string, mixed>  $data
-     *
-     * @throws LockedLotteryException if lottery execution has started.
+     * @throws LotteryLockedException once the lottery has run (or is running)
      */
-    public function updateLotteryEvent(Event $lottery, array $data): void
+    public function schedule(Event $lottery, array $data): void
     {
-        if (! $lottery->is_published) {
-            throw new LockedLotteryException();
+        if ($lottery->project->lotteryLocked()) {
+            throw new LotteryLockedException();
         }
 
-        $lottery->update(
-            Arr::only($data, ['title', 'description', 'start_date'])
+        $lottery->update($data);
+    }
+
+    /**
+     * Start a run: lock the lottery, record what it decides from, and solve it in the
+     * background. Only one run can be active (running or completed) at a time.
+     *
+     * @param array<string> $options  Confirmations given by the admin
+     *
+     * @throws CannotExecuteLotteryException|UnitFamilyMismatchException
+     */
+    public function run(Project $project, User $admin, array $options = []): LotteryRun
+    {
+        $run = DB::transaction(function () use ($project, $admin, $options) {
+            Project::whereKey($project->id)->lockForUpdate()->first();
+
+            $this->ensureCanRun($project, $options);
+
+            $run = $project->lotteryRuns()->create([
+                'uuid'       => (string) Str::uuid(),
+                'status'     => LotteryRunStatus::RUNNING,
+                'solver'     => config('lottery.default'),
+                'options'    => $options,
+                'started_by' => $admin->id,
+                'started_at' => now(),
+            ]);
+
+            $this->audits->record($run->id, LotteryAuditType::INIT, [
+                'admin'    => $admin->only('id', 'email'),
+                'manifest' => $this->manifest($run),
+            ]);
+
+            return $run;
+        });
+
+        RunLottery::dispatch($run);
+
+        return $run;
+    }
+
+    /**
+     * What a run decides from: every family's complete ranking, per unit type.
+     */
+    public function manifest(LotteryRun $run): LotteryManifest
+    {
+        $project = $run->project;
+        $units = $project->units()->get(['id', 'unit_type_id'])->groupBy('unit_type_id');
+
+        $data = $project->families()->get()->groupBy('unit_type_id')
+            ->map(fn ($families, $typeId) => [
+                'families' => $families->mapWithKeys(fn ($family) => [
+                    $family->id => $this->preferences->ranking($family)->pluck('id')->all(),
+                ])->all(),
+                'units' => ($units[$typeId] ?? collect())->pluck('id')->all(),
+            ])
+            ->all();
+
+        return new LotteryManifest($run->uuid, $project->id, $run->id, $data, $run->options ?? []);
+    }
+
+    /**
+     * Write the assignment, all at once, and close the run.
+     */
+    public function complete(LotteryRun $run, ExecutionResult $result): void
+    {
+        DB::transaction(function () use ($run, $result) {
+            foreach ($result->picks as $familyId => $unitId) {
+                Unit::whereKey($unitId)->where('project_id', $run->project_id)->update(['family_id' => $familyId]);
+            }
+
+            $run->update(['status' => LotteryRunStatus::COMPLETED, 'finished_at' => now()]);
+        });
+
+        $this->notifications->send(
+            NotificationTarget::PROJECT,
+            NotificationType::LOTTERY_COMPLETED,
+            title: __('notifications.lottery_completed_title'),
+            message: __('notifications.lottery_completed_message'),
+            url: route('lottery.show', $run->project_id),
+            trigger: $run->starter,
+            targetId: $run->project_id,
         );
     }
 
     /**
-     * Get sorted Unit preferences for a Family.
-     *
-     * Returns all Units of the Family's UnitType, with preferences first (in order)
-     * and then all remaining ones (ordered by ID).
+     * Close a run that could not finish; the lottery can be run again.
      */
-    public function preferences(Family $family): Collection
+    public function fail(LotteryRun $run, string $userMessage, array $debug = []): void
     {
-        return $this->preferencesService->preferences($family);
+        $run->update([
+            'status'      => LotteryRunStatus::FAILED,
+            'finished_at' => now(),
+            'failure'     => $userMessage,
+        ]);
+
+        $this->audits->record($run->id, LotteryAuditType::FAILURE, [
+            'message' => $userMessage,
+            ...$debug,
+        ]);
+
+        if ($run->started_by) {
+            $this->notifications->send(
+                NotificationTarget::PRIVATE,
+                NotificationType::LOTTERY_FAILED,
+                title: __('notifications.lottery_failed_title'),
+                message: $userMessage,
+                url: route('lottery.show', $run->project_id),
+                targetId: $run->started_by,
+            );
+        }
     }
 
     /**
-     * Update family unit preferences (replaces existing preferences).
-     *
-     * Note: $preferences must include all Units of the Family's UnitType.
-     *
-     * @param array<array{id: int}> $preferences
+     * Undo a completed run, leaving a reason that everyone in the project can read.
      */
-    public function updatePreferences(Family $family, array $preferences): void
+    public function invalidate(LotteryRun $run, User $admin, string $reason): void
     {
-        $this->preferencesService->updatePreferences($family, $preferences);
+        DB::transaction(function () use ($run, $admin, $reason) {
+            $run->project->units()->update(['family_id' => null]);
+
+            $run->update([
+                'status'              => LotteryRunStatus::INVALIDATED,
+                'invalidated_by'      => $admin->id,
+                'invalidated_at'      => now(),
+                'invalidation_reason' => $reason,
+            ]);
+
+            $this->audits->record($run->id, LotteryAuditType::INVALIDATE, [
+                'admin'  => $admin->only('id', 'email'),
+                'reason' => $reason,
+            ]);
+        });
+
+        $this->notifications->send(
+            NotificationTarget::PROJECT,
+            NotificationType::LOTTERY_INVALIDATED,
+            title: __('notifications.lottery_invalidated_title'),
+            message: __('notifications.lottery_invalidated_message', ['name' => $admin->name, 'reason' => $reason]),
+            url: route('lottery.show', $run->project_id),
+            trigger: $admin,
+            targetId: $run->project_id,
+        );
     }
 
     /**
-     * Execute Lottery and assign all Units to Families.
-     *
-     * @param array<string> $options  User-confirmed options
-     *
-     * @throws Lottery\Exceptions\CannotExecuteLotteryException
-     * @throws Lottery\Exceptions\LotteryExecutionException
-     * @throws Lottery\Exceptions\LotteryRequiresConfirmationException
+     * @throws CannotExecuteLotteryException|UnitFamilyMismatchException
      */
-    public function execute(Event $lottery, array $options = []): void
+    private function ensureCanRun(Project $project, array $options): void
     {
-        $this->executionService->execute($lottery, $options);
-    }
+        $lottery = $project->lottery;
+        $families = $project->families()->count();
+        $maxFamilies = $project->limit('families');
 
-    /**
-     * Invalidate a partial or completed Lottery execution.
-     *
-     * Restores lottery, removes assignments, and adds an INVALIDATE audit.
-     */
-    public function invalidate(Event $lottery): void
-    {
-        $this->executionService->invalidate($lottery);
+        match (true) {
+            $project->activeLotteryRun()->exists() => throw CannotExecuteLotteryException::because('already_run'),
+            ! $lottery->start_date                 => throw CannotExecuteLotteryException::because('not_scheduled'),
+            $lottery->start_date->isFuture()       => throw CannotExecuteLotteryException::because('not_due'),
+            $families < 2                          => throw CannotExecuteLotteryException::because('too_few_families'),
+            $maxFamilies !== null && $families > $maxFamilies
+                    => throw CannotExecuteLotteryException::because('too_large', ['max' => $maxFamilies]),
+            default => null,
+        };
+
+        if (in_array('mismatch-allowed', $options)) {
+            return;
+        }
+
+        $mismatches = $project->unitTypes()->withCount('units', 'families')->get()
+            ->filter(fn ($type) => $type->units_count !== $type->families_count)
+            ->map(fn ($type) => [
+                'unit_type_id'   => $type->id,
+                'unit_type_name' => $type->name,
+                'units_count'    => $type->units_count,
+                'families_count' => $type->families_count,
+            ]);
+
+        if ($mismatches->isNotEmpty()) {
+            throw new UnitFamilyMismatchException($mismatches);
+        }
     }
 }

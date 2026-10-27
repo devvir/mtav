@@ -2,64 +2,38 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Member;
-use Closure;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 /**
- * @property-read Member $resource
+ * A person as seen within a project. Contact details are shown to the project's
+ * admins and to the person themselves.
  *
- * @mixin Member
+ * @mixin User
  */
-class MemberResource extends UserResource
+class MemberResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
-            ...parent::toArray($request),
-
-            ...$this->relationsData(),
-        ];
-    }
-
-    protected function relationsData(): array
-    {
-        $this->fillDerivedRsvpRelations();
+        $viewer = $request->user();
+        $project = currentProject();
+        $membership = $project ? $this->membershipIn($project) : null;
+        $showContact = $viewer && ($viewer->is($this->resource) || ($project && $viewer->manages($project)));
 
         return [
-            'project' => $this->whenLoaded('projects', fn () => $this->projects->first()),
-            'family'  => $this->whenLoaded('family', default: ['id' => $this->family_id]),
-
-            /** RSVPs */
-            'rsvps'                     => $this->whenLoaded('rsvps'),
-            'rsvps_count'               => $this->whenCountedOrLoaded('rsvps'),
-            'upcoming_rsvps'            => $this->whenLoaded('upcomingRsvps'),
-            'upcoming_rsvps_count'      => $this->whenCountedOrLoaded('upcomingRsvps'),
-            'acknowledged_events'       => $this->whenLoaded('acknowledgedEvents'),
-            'acknowledged_events_count' => $this->whenCountedOrLoaded('acknowledgedEvents'),
-            'accepted_events'           => $this->whenLoaded('acceptedEvents'),
-            'accepted_events_count'     => $this->whenCountedOrLoaded('acceptedEvents'),
-            'declined_events'           => $this->whenLoaded('declinedEvents'),
-            'declined_events_count'     => $this->whenCountedOrLoaded('declinedEvents'),
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'firstname' => $this->firstname,
+            'lastname'  => $this->lastname,
+            'avatar'    => $this->avatar ? Storage::disk('public')->url($this->avatar) : null,
+            'about'     => $this->about,
+            'is_admin'  => (bool) $membership?->is_admin,
+            'family'    => $membership?->family ? ['id' => $membership->family->id, 'name' => $membership->family->name] : null,
+            'joined_at' => $membership?->created_at,
+            'email'     => $this->when($showContact, $this->email),
+            'phone'     => $this->when($showContact, $this->phone),
         ];
-    }
-
-    /**
-     * Prepare derived relations from loaded base data.
-     */
-    protected function fillDerivedRsvpRelations(): void
-    {
-        $member = $this->resource;
-
-        collect([ /** from 'rsvps', derive => using */
-            'upcomingRsvps'      => fn ($rsvps) => $rsvps->where('end_date', '>', now()),
-            'acknowledgedEvents' => fn ($rsvps) => $rsvps->whereNotNull('pivot.status'),
-            'acceptedEvents'     => fn ($rsvps) => $rsvps->where('pivot.status', true),
-            'declinedEvents'     => fn ($rsvps) => $rsvps->where('pivot.status', false),
-        ])->each(fn (Closure $using, string $derive) => $member->deriveRelation(
-            from: 'rsvps',
-            derive: $derive,
-            using: $using,
-        ));
     }
 }

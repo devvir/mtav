@@ -4,37 +4,24 @@ namespace App\Http\Resources;
 
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property-read Unit $resource
- *
  * @mixin Unit
  */
 class UnitResource extends JsonResource
 {
-    public function toArray(Request $_): array
+    public function toArray(Request $request): array
     {
         return [
-            ...$this->commonResourceData(),
-
+            'id'         => $this->id,
             'identifier' => $this->identifier,
-
-            ...$this->relationsData(),
-        ];
-    }
-
-    protected function relationsData(): array
-    {
-        return [
-            'type'    => $this->whenLoaded('type', default: ['id' => $this->unit_type_id]),
-            'project' => $this->whenLoaded('project', default: ['id' => $this->project_id]),
-            'family'  => $this->whenLoaded('family', default: ['id' => $this->family_id]),
-
-            'plan_item' => $this->whenLoaded('planItem', default: ['id' => $this->plan_item_id]),
-            'plan'      => $this->whenLoaded(
-                'plan',
-                default: $this->whenLoaded('planItem', ['id' => $this->planItem->plan_id])
-            ),
+            'type'       => $this->whenLoaded('type', fn () => ['id' => $this->type->id, 'name' => $this->type->name]),
+            'family'     => $this->whenLoaded('family', fn () => $this->family ? ['id' => $this->family->id, 'name' => $this->family->name] : null),
+            'can'        => [
+                'update' => $request->user()?->can('update', $this->resource),
+                'delete' => $request->user()?->can('delete', $this->resource),
+            ],
         ];
     }
 }

@@ -2,123 +2,95 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Admin;
-use App\Models\Event;
-use App\Models\Family;
 use App\Models\Media;
-use App\Models\Member;
+use App\Models\Notification;
 use App\Models\Project;
-use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template]
-     */
     protected $rootView = 'app';
 
     /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
+     * Shared with every page: kept to what the layout reads.
      *
      * @return array<string, mixed>
      */
     public function share(Request $request): array
     {
-        return [
-            ...parent::share($request),
-
-            ...$this->transient($request),
-
-            'name' => config('app.name'),
-            'env'  => config('app.env'),
-
-            'auth' => $this->auth($request),
-
-            'ziggy' => [
-                ...(new Ziggy())->toArray(),
-                'location' => $request->url(),
-            ],
-        ];
-    }
-
-    /**
-     * Auth-specific shared data.
-     */
-    protected function auth(Request $request): ?array
-    {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = $request->user();
 
-        if (! $user) {
-            return ['user' => null, 'notifications' => []];
-        }
-
-        // Convert to the concrete logged-in type of User: Member or Admin
-        $user = $user->isMember() ? $user->asMember() : $user->asAdmin();
-
+        /** Closures resolve at render time: the project is known only after routing */
         return [
-            'user' => [
-                ...$user->toResource()->withoutAbilities()->resolve(),
-                'projects' => Project::all(),
-                'can'      => $this->policies(),
-            ],
-
-            'notifications' => [
-                'recent' => $user->recentNotifications(),
-                'unread' => $user->unreadNotifications()->count(),
-            ],
-        ];
-    }
-
-    /**
-     * Transient shared data (state, flash messages).
-     */
-    protected function transient(Request $request): array
-    {
-        return [
-            'route'   => $request->route()?->getName(),
-            'project' => Project::current(),
-
-            // Settings/Profile relies on this to show email-verification notices
-            'updateStatus' => $request->session()->get('updateStatus'),
-
-            'flash' => [
+            ...parent::share($request),
+            'name'          => config('app.name'),
+            'locale'        => app()->getLocale(),
+            'auth'          => ['user' => $user ? $this->user($user) : null],
+            'projects'      => fn () => $user ? $this->projects($user) : [],
+            'project'       => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
+            'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
+            'flash'         => [
                 'success' => $request->session()->get('success'),
                 'info'    => $request->session()->get('info'),
                 'warning' => $request->session()->get('warning'),
                 'error'   => $request->session()->get('error'),
             ],
+            'ziggy' => fn () => [...(new Ziggy())->toArray(), 'location' => $request->url()],
         ];
     }
 
-    protected function policies(): array
+    private function user(User $user): array
     {
         return [
-            'create' => [
-                'admins'   => Gate::allows('create', Admin::class),
-                'events'   => Gate::allows('create', Event::class),
-                'families' => Gate::allows('create', Family::class),
-                'media'    => Gate::allows('create', Media::class),
-                'members'  => Gate::allows('create', Member::class),
-                'projects' => Gate::allows('create', Project::class),
-                'units'    => Gate::allows('create', Unit::class),
-            ],
-            'viewAny' => [
-                'admins'   => Gate::allows('viewAny', Admin::class),
-                'events'   => Gate::allows('viewAny', Event::class),
-                'families' => Gate::allows('viewAny', Family::class),
-                'media'    => Gate::allows('viewAny', Media::class),
-                'members'  => Gate::allows('viewAny', Member::class),
-                'projects' => Gate::allows('viewAny', Project::class),
-                'units'    => Gate::allows('viewAny', Unit::class),
+            'id'            => $user->id,
+            'name'          => $user->name,
+            'firstname'     => $user->firstname,
+            'lastname'      => $user->lastname,
+            'email'         => $user->email,
+            'avatar'        => $user->avatar ? Storage::disk('public')->url($user->avatar) : null,
+            'is_superadmin' => $user->isSuperadmin(),
+            'verified'      => $user->hasVerifiedEmail(),
+        ];
+    }
+
+    /**
+     * The projects the user takes part in (for the project switcher).
+     */
+    private function projects(User $user): array
+    {
+        return $user->projects()->orderBy('name')->get(['projects.id', 'projects.name'])
+            ->map(fn (Project $project) => [
+                'id'       => $project->id,
+                'name'     => $project->name,
+                'is_admin' => (bool) $project->pivot->is_admin,
+            ])
+            ->all();
+    }
+
+    /**
+     * The project being browsed, and the user's part in it.
+     */
+    private function project(Project $project, User $user): array
+    {
+        $family = $user->familyIn($project);
+
+        return [
+            'id'                    => $project->id,
+            'name'                  => $project->name,
+            'is_approved'           => $project->isApproved(),
+            'approval_requested_at' => $project->approval_requested_at,
+            'family'                => $family ? ['id' => $family->id, 'name' => $family->name] : null,
+            'can'                   => [
+                'manage'  => $user->can('update', $project),
+                'invite'  => $user->can('invite', [$project, $family]),
+                'rank'    => $user->can('rankUnits', $project),
+                'upload'  => $user->can('create', [Media::class, $project]),
+                'approve' => $user->can('approve', $project),
             ],
         ];
     }

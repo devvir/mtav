@@ -4,29 +4,20 @@ namespace App\Enums;
 
 enum NotificationType: string
 {
-    /** Resource lifecycle events */
+    /** Something was added, changed or removed in a project */
     case RESOURCE_CREATED = 'resource_created';
     case RESOURCE_UPDATED = 'resource_updated';
     case RESOURCE_DELETED = 'resource_deleted';
-    case RESOURCE_RESTORED = 'resource_restored';
 
-    /** User/Member events */
-    case REGISTRATION_CONFIRMED = 'registration_confirmed';
+    /** People */
+    case MEMBER_JOINED = 'member_joined';
 
-    /** Unit/Housing events */
-    case UNIT_ASSIGNED = 'unit_assigned';
+    /** Lottery */
     case LOTTERY_COMPLETED = 'lottery_completed';
+    case LOTTERY_FAILED = 'lottery_failed';
+    case LOTTERY_INVALIDATED = 'lottery_invalidated';
 
-    /** Event/RSVP events */
-    case RSVP_CONFIRMED = 'rsvp_confirmed';
-    case EVENT_REMINDER = 'event_reminder';
-
-    /** Project/Construction events */
-    case CONSTRUCTION_UPDATE = 'construction_update';
-    case MILESTONE_REACHED = 'milestone_reached';
-
-    /** General/Admin events */
-    case NEWS_POSTED = 'news_posted';
-    case SYSTEM_ANNOUNCEMENT = 'system_announcement';
-    case SYSTEM_MAINTENANCE = 'system_maintenance';
+    /** Project approval */
+    case APPROVAL_REQUESTED = 'approval_requested';
+    case PROJECT_APPROVED = 'project_approved';
 }

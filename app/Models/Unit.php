@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\ProjectScope;
-use App\Observers\UnitObserver;
-use App\Relations\BelongsToThrough;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[ObservedBy([UnitObserver::class])]
+/**
+ * A concrete dwelling. Unassigned until the lottery gives it to a family.
+ */
 class Unit extends Model
 {
-    use ProjectScope;
-    use SoftDeletes;
+    protected $fillable = [
+        'project_id',
+        'unit_type_id',
+        'family_id',
+        'identifier',
+    ];
 
     public function project(): BelongsTo
     {
@@ -31,14 +33,9 @@ class Unit extends Model
         return $this->belongsTo(Family::class);
     }
 
-    public function planItem(): BelongsTo
+    public function planItem(): HasOne
     {
-        return $this->belongsTo(PlanItem::class);
-    }
-
-    public function plan(): BelongsToThrough
-    {
-        return $this->belongsToThrough(Plan::class, PlanItem::class);
+        return $this->hasOne(PlanItem::class);
     }
 
     public function scopeAlphabetically(Builder $query): void
@@ -48,15 +45,9 @@ class Unit extends Model
 
     public function scopeSearch(Builder $query, string $q): void
     {
-        $query
+        $query->where(fn (Builder $query) => $query
             ->whereLike('identifier', "%{$q}%")
-            ->orWhereHas(
-                'type',
-                fn (Builder $query) => $query->whereLike('description', "%{$q}%")
-            )
-            ->orWhereHas(
-                'family',
-                fn (Builder $query) => $query->whereLike('name', "%{$q}%")
-            );
+            ->orWhereHas('type', fn (Builder $query) => $query->whereLike('name', "%{$q}%"))
+            ->orWhereHas('family', fn (Builder $query) => $query->whereLike('name', "%{$q}%")));
     }
 }

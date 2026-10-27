@@ -4,12 +4,12 @@ namespace App\Enums;
 
 enum NotificationTarget: string
 {
-    /** For a specific User */
+    /** For one user */
     case PRIVATE = 'private';
 
-    /** For all Users in a Project */
+    /** For everyone in a project */
     case PROJECT = 'project';
 
-    /** For all multi-project Admins (incl. Superadmins) */
+    /** For the platform's superadmins */
     case GLOBAL = 'global';
 }

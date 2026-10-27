@@ -28,8 +28,6 @@ expect()->extend('toBeNotFound', fn () => $this->fail('toBeNotFound is not defin
 // Polymorphic Eloquent expectations
 expect()->extend('toExist', fn () => $this->fail('toExist is not defined for the given input'));
 expect()->extend('notToExist', fn () => $this->fail('notToExist is not defined for the given input'));
-expect()->extend('toBeAdmin', fn () => $this->fail('toBeAdmin is not defined for the given input'));
-expect()->extend('toBeMember', fn () => $this->fail('toBeMember is not defined for the given input'));
 
 /**
  * Polymorphic expectations, concrete implementations.
@@ -76,26 +74,14 @@ expect()->intercept(
     fn () => $this->exists()->toBeFalse(message: 'The entity or entities do exist')
 );
 
-// Assert User is Admin
-expect()->intercept(
-    'toBeAdmin',
-    User::class,
-    fn () => $this->is_admin->toBeTrue(message: 'The given User is not an Admin')
-);
-expect()->intercept(
-    'toBeAdmin',
-    User::class,
-    fn () => $this->fail('The given User is null')
-);
 
-// Assert User is Member
-expect()->intercept(
-    'toBeMember',
-    User::class,
-    fn () => $this->is_admin->toBeFalse(message: 'The given User is not an Member')
-);
-expect()->intercept(
-    'toBeMember',
-    User::class,
-    fn () => $this->fail('The given User is null')
-);
+/**
+ * The request was refused: 403, or 404 for what lies outside the user's projects.
+ */
+expect()->extend('toBeDenied', function () {
+    $status = $this->value->status();
+
+    expect(in_array($status, [403, 404]))->toBeTrue("Expected the request to be denied, got HTTP {$status}");
+
+    return $this;
+});

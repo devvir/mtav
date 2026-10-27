@@ -4,91 +4,37 @@ namespace App\Http\Resources;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property-read Event $resource
- *
  * @mixin Event
  */
 class EventResource extends JsonResource
 {
-    public function toArray(Request $_): array
+    public function toArray(Request $request): array
     {
-        return [
-            ...$this->commonResourceData(),
-
-            'type'        => $this->type->value,
-            'type_label'  => $this->type->label(),
-            'status'      => $this->status,
-            'title'       => $this->title,
-            'description' => $this->description,
-            'location'    => $this->location,
-            'start_date'  => $this->start_date,
-            'end_date'    => $this->end_date,
-
-            ...$this->booleanProps(),
-
-            ...$this->relationsData(),
-
-            ...$this->lotteryData(),
-        ];
-    }
-
-    protected function booleanProps(): array
-    {
-        return [
-            'is_published' => $this->isPublished(),
-            'allows_rsvp'  => $this->allowsRsvp(),
-
-            'accepted' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe(true)),
-            'declined' => $this->whenLoaded('rsvps', fn () => $this->acknowledgedByMe(false)),
-
-            'is_lottery' => $this->isLottery(),
-            'is_online'  => $this->isOnline(),
-            'is_onsite'  => $this->isOnSite(),
-        ];
-    }
-
-    protected function relationsData(): array
-    {
-        return [
-            'creator'     => $this->whenLoaded('creator', default: ['id' => $this->creator_id]),
-            'project'     => $this->whenLoaded('project', default: ['id' => $this->project_id]),
-            'rsvps'       => $this->whenLoaded('rsvps'),
-            'rsvps_count' => $this->whenCountedOrLoaded('rsvps'),
-
-            'accepted_count' => $this->whenLoaded(
-                'rsvps',
-                fn () => $this->rsvps->where('pivot.status', true)->count()
-            ),
-            'declined_count' => $this->whenLoaded(
-                'rsvps',
-                fn () => $this->rsvps->where('pivot.status', false)->count()
-            ),
-
-            'audits' => $this->whenLoaded('audits'),
-        ];
-    }
-
-    protected function lotteryData(): array
-    {
-        if (! $this->isLottery()) {
-            return [];
-        }
+        $user = $request->user();
 
         return [
-            'is_completed' => !! $this->deleted_at,
-            'is_executing' => ! $this->is_published && ! $this->deleted_at,
+            'id'           => $this->id,
+            'type'         => $this->type->value,
+            'title'        => $this->title,
+            'description'  => $this->description,
+            'location'     => $this->location,
+            'start_date'   => $this->start_date,
+            'end_date'     => $this->end_date,
+            'status'       => $this->status,
+            'is_published' => $this->is_published,
+            'allows_rsvp'  => $this->allows_rsvp,
+            'creator'      => $this->whenLoaded('creator', fn () => $this->creator?->name),
+            'attending'    => $this->whenLoaded('rsvps', fn () => $this->rsvps->firstWhere('id', $user?->id)?->pivot->attending),
+            'attendees'    => $this->whenLoaded('rsvps', fn () => $this->rsvps->where('pivot.attending', true)
+                ->map(fn ($person) => ['id' => $person->id, 'name' => $person->name])->values()),
+            'can' => [
+                'update' => $user?->can('update', $this->resource),
+                'delete' => $user?->can('delete', $this->resource),
+                'rsvp'   => $user?->can('rsvp', $this->resource),
+            ],
         ];
-    }
-
-    protected function acknowledgedByMe(bool $status)
-    {
-        $currentUser = request()->user();
-
-        return $this->rsvp && $currentUser?->isMember() && $this->rsvps->where([
-            'user_id'      => $currentUser->id,
-            'pivot.status' => $status,
-        ])->isNotEmpty();
     }
 }

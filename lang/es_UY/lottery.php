@@ -1,39 +1,24 @@
 <?php
 
 return [
+    'title'               => 'Sorteo',
+    'default_description' => 'El sorteo que le da a cada familia una vivienda, a partir del orden de preferencias que eligieron.',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Lottery Translation Lines
-    |--------------------------------------------------------------------------
-    |
-    | Translation lines specific to lottery operations.
-    |
-    */
+    'locked'                => 'El sorteo ya se realizó (o se está realizando): esto ya no puede cambiar.',
+    'execution_failed'      => 'Algo salió mal al realizar el sorteo. Puedes volver a intentarlo; si sigue fallando, contacta al equipo de la plataforma.',
+    'requires_confirmation' => 'Confirma antes de realizar el sorteo.',
 
-    'already_executed_or_executing' => 'El sorteo ya fue ejecutado o está siendo ejecutado actualmente.',
-    'not_yet_scheduled'             => 'El sorteo no puede ser ejecutado antes de la fecha programada.',
-    'no_date_set'                   => 'Debes programar una fecha de inicio para el sorteo antes de ejecutarlo.',
-    'cannot_execute_generic'        => 'El sorteo no puede ser ejecutado. Verifica que cumpla las condiciones necesarias.',
-    'execution_failed'              => 'Ocurrió un error durante la ejecución del sorteo. Por favor, contacta al administrador del sistema.',
-    'glpk_execution_failed'         => 'El algoritmo de optimización falló al ejecutarse. Por favor contacta a soporte.',
-    'glpk_timeout'                  => 'El algoritmo de optimización tardó demasiado en completarse y fue detenido. Por favor intenta ejecutar el sorteo nuevamente. Si el problema persiste, contacta a soporte.',
-    'glpk_infeasible'               => 'El algoritmo de optimización determinó que no existe una asignación válida para las preferencias actuales. Esto es extremadamente raro y puede indicar un error de configuración. Por favor contacta a soporte.',
+    'cannot_run_already_run'      => 'El sorteo ya se realizó.',
+    'cannot_run_not_scheduled'    => 'Fija la fecha del sorteo antes de realizarlo.',
+    'cannot_run_not_due'          => 'El sorteo no puede realizarse antes de su fecha.',
+    'cannot_run_too_few_families' => 'Se necesitan al menos dos familias para realizar el sorteo.',
+    'cannot_run_too_large'        => 'Los proyectos sin aprobar pueden sortear hasta :max familias. Pide la aprobación para quitar el límite.',
 
-    'insufficient_families'       => 'No hay suficientes familias para ejecutar el sorteo. Se requieren al menos 2 familias.',
-    'unit_family_mismatch_intro'  => 'Hay inconsistencias entre unidades y familias:',
-    'mismatch_excess_units'       => ':unit_type tiene :units unidades para :families familias',
-    'mismatch_insufficient_units' => ':unit_type tiene :units unidades para :families familias',
+    'unit_family_mismatch_intro'  => 'La cantidad de viviendas y de familias no coincide:',
+    'mismatch_excess_units'       => ':unit_type tiene :units viviendas para :families familias',
+    'mismatch_insufficient_units' => ':unit_type tiene :units viviendas para :families familias',
 
-    'degenerate_case_requires_greedy_confirmation' => 'La configuración del problema puede causar que el algoritmo de optimización expire su tiempo límite. El sistema utilizará un algoritmo greedy justo en su lugar. Esto mantiene la equidad pero utiliza un enfoque diferente. ¿Confirma esto?',
-
-    'preferences_locked' => 'No se pueden actualizar las preferencias: la ejecución del sorteo está en progreso o ya finalizó.',
-    'lottery_locked'     => 'No se puede actualizar el sorteo: la ejecución está en progreso o ya finalizó.',
-
-    'invalidation_failed'      => 'Ocurrió un error al invalidar el sorteo. Por favor, contacta al administrador del sistema.',
-    'invalidated_successfully' => 'La ejecución del sorteo ha sido invalidada exitosamente. Todas las asignaciones de unidades fueron removidas.',
-
-    'lottery_updated'             => '¡Excelente! Los detalles del sorteo fueron actualizados.',
-    'lottery_preferences_updated' => '¡Perfecto! Tus preferencias de unidades fueron guardadas.',
-
+    'glpk_execution_failed' => 'No se pudo calcular la asignación. Contacta al equipo de la plataforma.',
+    'glpk_timeout'          => 'El cálculo de la asignación tardó demasiado y se detuvo. Vuelve a intentarlo.',
+    'glpk_infeasible'       => 'No existe una asignación válida para las preferencias actuales. Contacta al equipo de la plataforma.',
 ];

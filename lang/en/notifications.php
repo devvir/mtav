@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * In-app notifications.
+ */
+return [
+    'project_created_title'   => 'New project',
+    'project_created_message' => ':name was created.',
+
+    'approval_requested_title'   => 'A project asks for approval',
+    'approval_requested_message' => ':requester asks you to approve :name.',
+
+    'project_approved_title'   => 'Your project is approved',
+    'project_approved_message' => ':name is approved: its limits are lifted.',
+
+    'member_joined_title'          => 'Someone joined',
+    'member_joined_message'        => ':name joined the project.',
+    'member_joined_family_message' => ':name joined the :family family.',
+
+    'lottery_completed_title'   => 'The lottery is done',
+    'lottery_completed_message' => 'Every family has its unit. See the results.',
+
+    'lottery_failed_title' => 'The lottery could not finish',
+
+    'lottery_invalidated_title'   => 'The lottery was invalidated',
+    'lottery_invalidated_message' => ':name invalidated the lottery: ":reason". It will run again.',
+];

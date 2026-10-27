@@ -2,43 +2,52 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Http\Requests\Settings\ProfileUpdateRequest;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Arr;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
-class ProfileController
+class ProfileController extends Controller
 {
-    /**
-     * Show the user's profile settings page.
-     */
-    public function edit(): Response
-    {
-        return inertia('Settings/Profile');
-    }
-
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function edit(Request $request): Response
     {
         $user = $request->user();
 
-        $user->update(Arr::except($request->validated(), ['email']));
+        return inertia('Settings/Profile', [
+            'profile' => $user->only('firstname', 'lastname', 'email', 'new_email', 'phone', 'legal_id', 'about'),
+        ]);
+    }
 
-        if (strtolower($request->email) !== strtolower($user->email)) {
-            $user->update(['new_email' => $request->email]);
+    /**
+     * A new email address replaces the current one once confirmed from the new inbox.
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $user = $request->user();
 
-            User::make([ /** Notify user on the NEW email, not the old one */
-                'id'    => $user->id,
-                'email' => $request->email,
-            ])->notify(new VerifyEmailNotification());
+        $data = $request->validate([
+            'firstname' => ['required', 'string', 'between:2,80'],
+            'lastname'  => ['nullable', 'string', 'between:2,80'],
+            'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
+            'phone'     => ['nullable', 'string', 'between:4,30'],
+            'legal_id'  => ['nullable', 'string', 'between:2,30'],
+            'about'     => ['nullable', 'string', 'max:1000'],
+        ]);
 
-            return to_route('profile.edit')->with('updateStatus', 'email-verification-sent');
+        $newEmail = strtolower($data['email']);
+        unset($data['email']);
+
+        $user->update($data);
+
+        if ($newEmail !== $user->email && $newEmail !== $user->new_email) {
+            $user->update(['new_email' => $newEmail]);
+            $user->notify((new VerifyEmailNotification($newEmail)));
+
+            return back()->with('info', __('flash.email_verification_sent', ['email' => $newEmail]));
         }
 
-        return to_route('profile.edit')->with('success', __('flash.profile_updated'));
+        return back()->with('success', __('flash.profile_updated'));
     }
 }
