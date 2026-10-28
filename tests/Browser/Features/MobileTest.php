@@ -15,11 +15,12 @@ it('moves around the member app with the bottom tabs and the drawer', function (
 
     visit(route('projects.show', $this->project))
         ->on()->mobile()
-        ->click('nav[aria-label="Main"] >> text=Events')
-        ->assertPathIs("/projects/{$this->project->id}/events")
-        ->click('[aria-label="Menu"]')
-        ->click('[role="dialog"] >> text=Families')
+        ->click('nav[aria-label="Main"] >> text=Families')
+        ->assertPathIs("/projects/{$this->project->id}/families")
         ->assertSee('García')
+        ->click('[aria-label="Menu"]')
+        ->click('[role="dialog"] >> text=Events')
+        ->assertPathIs("/projects/{$this->project->id}/events")
         ->assertNoSmoke();
 });
 

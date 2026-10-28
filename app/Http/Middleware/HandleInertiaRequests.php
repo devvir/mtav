@@ -5,9 +5,11 @@ namespace App\Http\Middleware;
 use App\Models\Media;
 use App\Models\Notification;
 use App\Models\Project;
+use App\Http\Resources\NotificationResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -34,13 +36,29 @@ class HandleInertiaRequests extends Middleware
             'projects'      => fn () => $user ? $this->projects($user) : [],
             'project'       => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
             'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
-            'flash'         => [
+            /** The latest few, for the bell's menu: sent only when it asks (a partial reload) */
+            'recentNotifications' => Inertia::optional(fn () => $user
+                ? NotificationResource::collection(Notification::for($user)->limit(8)->get())
+                : []),
+            'flash' => [
                 'success' => $request->session()->get('success'),
                 'info'    => $request->session()->get('info'),
                 'warning' => $request->session()->get('warning'),
                 'error'   => $request->session()->get('error'),
             ],
-            'ziggy' => fn () => [...(new Ziggy())->toArray(), 'location' => $request->url()],
+            /**
+             * The route list, sent once (the client remembers it), and what changes per visit:
+             * the defaults (the project being browsed) and where one is
+             */
+            'routes' => Inertia::once(fn () => (new Ziggy())->toArray()),
+            'ziggy'  => fn () => [
+                'defaults' => url()->getDefaultParameters(),
+                'location' => [
+                    'host'     => $request->getHttpHost(),
+                    'pathname' => '/' . ltrim($request->path(), '/'),
+                    'search'   => $request->getQueryString() ? '?' . $request->getQueryString() : '',
+                ],
+            ],
         ];
     }
 

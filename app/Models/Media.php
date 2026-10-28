@@ -58,8 +58,8 @@ class Media extends Model
      */
     public function scopeCategory(Builder $query, MediaCategory $category): void
     {
-        $category === MediaCategory::VISUAL
-            ? $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO])
+        $category === MediaCategory::MEDIA
+            ? $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO, MediaCategory::AUDIO])
             : $query->where('category', $category);
     }
 

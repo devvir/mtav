@@ -1,4 +1,4 @@
-import { _ } from '@/composables/useTranslations';
+import { _ } from '@/lib/translations';
 
 /** How a floor is called: ground floor at 0, basements below, floors above */
 export const floorLabel = (floor: number) =>

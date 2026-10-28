@@ -464,7 +464,7 @@ run_tests() {
     echo -e "${BLUE}🧪 Test Suite${NC}"
     echo -e "${BLUE}════════════${NC}"
     [ "$run_php" = true ] && echo -e "  • PHP (Pest)"
-    [ "$run_vue" = true ] && echo -e "  • Vue (Vitest)"
+    [ "$run_vue" = true ] && echo -e "  • Frontend (Vitest)"
     [ "$run_e2e" = true ] && echo -e "  • E2E (Playwright)"
 
     if [ "$run_php" = true ] || [ "$run_vue" = true ]; then
@@ -518,15 +518,15 @@ run_tests() {
     if [ "$run_vue" = true ]; then
         echo ""
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}🎨 Vue Tests (Vitest)${NC}"
+        echo -e "${YELLOW}🎨 Frontend Tests (Vitest)${NC}"
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
         if cexec testing assets pnpm run test --run "${test_args[@]}"; then
             echo ""
-            echo -e "${GREEN}✅ Vue tests passed${NC}"
+            echo -e "${GREEN}✅ Frontend tests passed${NC}"
         else
             echo ""
-            echo -e "${RED}❌ Vue tests failed${NC}"
+            echo -e "${RED}❌ Frontend tests failed${NC}"
             vue_success=false
         fi
     fi
@@ -618,7 +618,7 @@ print_help() {
     echo -e "${GREEN}Testing Commands:${NC}"
     echo -e "  ${YELLOW}mtav test [args]${NC}       # Run all tests (Pest + Vitest + Playwright)"
     echo -e "  ${YELLOW}mtav pest [args]${NC}       # Run PHP tests (Pest)"
-    echo -e "  ${YELLOW}mtav vitest [args]${NC}     # Run Vue tests (Vitest)"
+    echo -e "  ${YELLOW}mtav vitest [args]${NC}     # Run frontend tests (Vitest)"
     echo -e "  ${YELLOW}mtav e2e [args]${NC}        # Run E2E tests (Playwright)"
     echo -e "  ${YELLOW}mtav precommit [args]${NC}  # Pest + Vitest in one env cycle, skips 'slow' group"
     echo ""

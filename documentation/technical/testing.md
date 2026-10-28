@@ -8,7 +8,7 @@ the isolated `mtav-testing` Docker environment — see
 
 ```bash
 ./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, UseCases suites
-./mtav vitest [args]     # Vue tests (Vitest)
+./mtav vitest [args]     # Frontend tests (Vitest)
 ./mtav e2e [args]        # Browser tests (Playwright); --group=critical for the quick subset
 ./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
 ./mtav test              # Everything: Pest + Vitest + E2E
@@ -105,7 +105,7 @@ testing environment (docs-only commits are instant; PHP-only commits skip
 Vitest and vice versa):
 
 - PHP: Arch + Unit suites minus the `slow` group (~50s)
-- Vue: full Vitest run (parallel with the PHP run)
+- Frontend: full Vitest run (parallel with the PHP run)
 
 If the testing environment is not up, the hook **skips with a warning**
 instead of paying the multi-minute boot cost — so keep it up while

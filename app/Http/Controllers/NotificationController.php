@@ -33,7 +33,10 @@ class NotificationController extends Controller
 
         $notification->markAsReadBy($request->user());
 
-        return back();
+        // Opening a notification: read, and straight to what it is about
+        $url = $notification->data['url'] ?? null;
+
+        return $url ? redirect($url) : back();
     }
 
     public function unread(Request $request, Notification $notification): RedirectResponse

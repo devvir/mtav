@@ -24,7 +24,7 @@ class MediaController extends Controller
 
     public function index(Request $request, Project $project): Response
     {
-        $category = MediaCategory::tryFrom((string) $request->query('category')) ?? MediaCategory::VISUAL;
+        $category = MediaCategory::tryFrom((string) $request->query('category')) ?? MediaCategory::MEDIA;
 
         $media = $project->media()
             ->category($category)
@@ -65,7 +65,7 @@ class MediaController extends Controller
         $this->authorize('create', [Media::class, $project]);
 
         $stored = $this->media->store($project, $request->user(), $request->file('files'), $request->validated('description'));
-        $category = count($stored) === 1 && ! $stored[0]->isVisual() ? $stored[0]->category->value : null;
+        $category = count($stored) === 1 && $stored[0]->category === MediaCategory::DOCUMENT ? MediaCategory::DOCUMENT->value : null;
 
         return to_route('media.index', array_filter(['category' => $category]))
             ->with('success', trans_choice('flash.media_uploaded', count($stored), ['count' => count($stored)]));
@@ -91,7 +91,7 @@ class MediaController extends Controller
     {
         $this->authorize('delete', $media);
 
-        $category = $media->isVisual() ? null : $media->category->value;
+        $category = $media->category === MediaCategory::DOCUMENT ? MediaCategory::DOCUMENT->value : null;
 
         $this->media->delete($media);
 

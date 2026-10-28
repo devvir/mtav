@@ -76,9 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
-    Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
-    Route::get('settings/appearance', fn () => inertia('Settings/Appearance'))->name('appearance');
 
     /** Notifications */
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -118,7 +116,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('units', [Member\UnitController::class, 'index'])->name('units.index');
             Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
-            Route::get('plan', Member\PlanController::class)->name('plan.show');
 
             Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
             Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
@@ -178,5 +175,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('projects/{project}/approval', [Platform\ProjectController::class, 'approve'])->name('projects.approve');
         Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
         Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
+        Route::inertia('lab', 'Platform/Lab')->name('lab');
     });
 });

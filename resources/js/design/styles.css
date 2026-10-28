@@ -1,0 +1,619 @@
+/*
+ * MTAV's design system: what every component leans on, drawn with the theme's tokens
+ * (--mtav-*, theme/theme.ts). Imported once, after Mantine's styles. Pages never name a
+ * colour; components never reach outside their own class.
+ */
+
+/* -- the page ----------------------------------------------------------------------- */
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  background: var(--mtav-glow), var(--mtav-canvas);
+  background-attachment: fixed;
+  color: var(--mtav-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--mantine-color-brand-5) 30%, transparent);
+}
+
+* {
+  scrollbar-color: var(--mtav-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+:focus-visible {
+  outline: 2px solid var(--mtav-brand);
+  outline-offset: 2px;
+}
+
+.ds-num {
+  font-variant-numeric: tabular-nums;
+}
+.ds-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Secondary text: never smaller than 13px, readable on every surface */
+.ds-caption {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--mtav-muted);
+}
+
+/*
+ * A form field: its label and a short hint on one line, then the input and its error. Fields
+ * side by side keep their inputs in line whether or not they have a hint (the input never
+ * moves down for one).
+ */
+.ds-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+.ds-field.ds-field > * {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+.ds-field.ds-field > .ds-field-label,
+.ds-field.ds-field > .ds-field-hint {
+  flex-basis: auto;
+  min-width: 0;
+  margin-bottom: 6px;
+}
+.ds-field-label {
+  font-weight: 600;
+}
+.ds-field-hint {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--mtav-muted);
+}
+
+/* A small heading in capitals: a stat's name, a column's, a menu group's */
+.ds-label,
+.ds-panel-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mtav-muted);
+}
+.ds-panel-label {
+  padding: 6px 12px 4px;
+}
+
+/* -- bars: glass that stays on top while the page scrolls under it ------------------- */
+
+.ds-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--mtav-header);
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+  border-bottom: 1px solid var(--mtav-border);
+}
+
+/* A thread of light along the bar's lower edge */
+.ds-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--mtav-brand) 50%, transparent) 30%,
+    transparent 75%
+  );
+  pointer-events: none;
+}
+
+/* -- surfaces: panels, stat tiles, cards ------------------------------------------- */
+
+.ds-surface,
+.ds-panel,
+.ds-stat {
+  background: var(--mtav-surface);
+  border: 1px solid var(--mtav-border);
+  border-radius: var(--mtav-radius-card);
+  box-shadow: var(--mtav-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ds-panel {
+  overflow: clip;
+}
+.ds-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mtav-border);
+  background: linear-gradient(180deg, var(--mtav-surface-2), transparent);
+}
+.ds-panel-title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+.ds-panel-body {
+  padding: 16px;
+}
+.ds-panel-body[data-flush] {
+  padding: 0;
+}
+
+/* A card that opens something: it lifts a little toward the pointer */
+.ds-interactive {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+.ds-interactive:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--mtav-brand) 35%, var(--mtav-border));
+  box-shadow:
+    var(--mtav-shadow),
+    0 14px 32px -20px color-mix(in srgb, var(--mtav-brand) 60%, transparent);
+}
+
+/* A stat tile: its tone along the top, and a glow behind its icon */
+.ds-stat {
+  position: relative;
+  padding: 16px 16px 14px;
+  overflow: hidden;
+}
+.ds-stat::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ds-tone) 75%, transparent),
+    transparent 70%
+  );
+}
+.ds-stat::after {
+  content: '';
+  position: absolute;
+  right: -46px;
+  top: -46px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ds-tone) 14%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.ds-figure {
+  margin-top: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* An icon in its tone, on a tile of it */
+.ds-glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--ds-tone);
+  background: color-mix(in srgb, var(--ds-tone) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-tone) 26%, transparent);
+}
+
+/* -- floating panels: menus, popovers, lists of suggestions ------------------------ */
+
+.ds-floating {
+  background: var(--mtav-surface-raised);
+  border: 1px solid var(--mtav-border);
+  padding: 6px;
+}
+.ds-menu-item {
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 550;
+}
+.ds-menu-item[data-hovered],
+.ds-menu-item[data-combobox-selected] {
+  background: var(--mtav-brand-soft);
+}
+[data-combobox-option][data-checked] {
+  color: var(--mtav-brand);
+  font-weight: 700;
+}
+
+/* -- controls ---------------------------------------------------------------------- */
+
+.ds-button {
+  font-weight: 650;
+  transition:
+    transform 80ms,
+    box-shadow 150ms,
+    background-color 150ms;
+}
+.ds-button:active:not(:disabled):not([data-disabled]) {
+  transform: translateY(1px);
+}
+/* Filled buttons shine: a highlight on top, and a soft light of their colour below */
+.ds-button[data-variant='filled']:not(:disabled):not([data-disabled]) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    0 8px 20px -10px var(--button-bg);
+}
+.ds-button[data-variant='default'] {
+  background: var(--mtav-surface-2);
+  border-color: var(--mtav-border-strong);
+}
+.ds-button[data-variant='default']:hover {
+  background: var(--mtav-hover);
+}
+
+/* A field answers to the pointer before it is used: its edge warms toward the brand */
+.mantine-Input-input[data-variant='default']:hover:not(:focus, :disabled, [data-error]) {
+  border-color: color-mix(in srgb, var(--mtav-brand) 40%, var(--mtav-border));
+}
+
+.ds-badge[data-variant='light'] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--badge-color) 24%, transparent);
+}
+
+/* A state: a dot in its tone, and its name */
+.ds-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.ds-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ds-tone);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-tone) 20%, transparent);
+}
+/* What is happening now pulses */
+.ds-dot[data-live] {
+  animation: ds-pulse 1.8s ease-out infinite;
+}
+@keyframes ds-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-tone) 60%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+.ds-segmented {
+  background: var(--mtav-surface-2);
+  border: 1px solid var(--mtav-border);
+}
+/* Tabs stay on one line, scrolling sideways when the screen is narrow */
+.ds-tabs-list {
+  --tab-border-color: var(--mtav-border);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  /* room for the active tab's line, which overlaps the list's own */
+  padding-bottom: 1px;
+}
+.ds-tabs-list > * {
+  flex-shrink: 0;
+}
+@media (max-width: 36em) {
+  .ds-tabs-list > * {
+    padding-inline: 10px;
+  }
+}
+
+/* -- navigation: an area's places --------------------------------------------------- */
+
+.ds-nav-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 11px;
+  color: var(--mtav-muted);
+  font-size: 15px;
+  font-weight: 550;
+  text-decoration: none;
+  transition:
+    color 120ms,
+    background-color 120ms;
+}
+.ds-nav-item:hover {
+  color: var(--mtav-text);
+  background: var(--mtav-hover);
+}
+.ds-nav-item[data-active] {
+  color: var(--mtav-text);
+  background: color-mix(in srgb, var(--mtav-brand) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mtav-brand) 24%, transparent);
+}
+.ds-nav-item[data-active] svg {
+  color: var(--mtav-brand);
+}
+/* The place one is at: a lit edge */
+.ds-nav-item[data-active]::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--mtav-brand);
+  box-shadow: 0 0 12px var(--mtav-brand);
+}
+
+/* -- tables ------------------------------------------------------------------------- */
+
+.ds-table {
+  --table-border-color: var(--mtav-border);
+  --table-hover-color: var(--mtav-hover);
+}
+.ds-th {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mtav-muted);
+  white-space: nowrap;
+}
+
+/* -- motion and contrast, as the person asks ------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ds-interactive:hover {
+    transform: none;
+  }
+}
+
+/* High contrast: no glass, no glows, lines at full strength */
+[data-high-contrast] .ds-bar,
+[data-high-contrast] .ds-surface,
+[data-high-contrast] .ds-panel,
+[data-high-contrast] .ds-stat {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-high-contrast] .ds-bar::after,
+[data-high-contrast] .ds-stat::before,
+[data-high-contrast] .ds-stat::after {
+  display: none;
+}
+[data-high-contrast] .ds-button[data-variant='filled'] {
+  box-shadow: none;
+}
+[data-high-contrast] .ds-nav-item[data-active]::before {
+  box-shadow: none;
+}
+[data-high-contrast] .ds-panel,
+[data-high-contrast] .ds-surface,
+[data-high-contrast] .ds-stat {
+  border-width: 2px;
+}
+
+/* -- brand ----------------------------------------------------------------------------- */
+
+.ds-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.ds-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  color: #fff;
+  background: linear-gradient(140deg, var(--mantine-color-brand-4), var(--mantine-color-brand-7));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 30%),
+    0 6px 16px -6px var(--mantine-color-brand-6);
+}
+.ds-logo-name {
+  font-family: var(--mantine-font-family-headings);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.ds-family-mark {
+  border-radius: 10px;
+  flex: none;
+}
+
+/* -- page heads, empty places, counts ------------------------------------------------ */
+
+.ds-page-header {
+  margin-bottom: 24px;
+}
+.ds-page-back {
+  margin-bottom: 8px;
+}
+.ds-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ds-page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--mantine-font-family-headings);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+.ds-page-description {
+  margin: 6px 0 0;
+  color: var(--mtav-muted);
+  max-width: 70ch;
+}
+.ds-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ds-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px dashed var(--mtav-border-strong);
+  border-radius: var(--mtav-radius-card);
+  background: var(--mtav-surface);
+}
+.ds-empty-title {
+  margin: 8px 0 0;
+  font-weight: 700;
+  font-size: 17px;
+}
+.ds-empty-text {
+  margin: 0 0 8px;
+  max-width: 52ch;
+  font-size: 15px;
+}
+
+.ds-count {
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--mtav-on-brand);
+  background: var(--mantine-color-brand-filled);
+}
+
+/* A state as a pill: its tone's tint and a ring of it */
+.ds-status[data-pill] {
+  padding: 2px 10px 2px 8px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ds-tone);
+  background: color-mix(in srgb, var(--ds-tone) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-tone) 28%, transparent);
+}
+
+/* -- files ----------------------------------------------------------------------------- */
+
+.ds-drop {
+  border: 2px dashed var(--mtav-border-strong);
+  background: var(--mtav-surface);
+  transition:
+    border-color 150ms,
+    background 150ms;
+}
+.ds-drop:hover,
+.ds-drop[data-accept] {
+  border-color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+}
+.ds-drop[data-error] {
+  border-color: var(--mtav-negative);
+}
+.ds-drop-icon {
+  color: var(--mtav-muted);
+}
+.ds-file {
+  padding: 8px 10px;
+  border: 1px solid var(--mtav-border);
+  border-radius: 12px;
+  background: var(--mtav-surface);
+}
+
+/* -- pills: which part of a list, or which of a few views ------------------------------ */
+
+.ds-pills {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  max-width: 100%;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--mtav-border);
+  border-radius: 14px;
+  background: var(--mtav-surface);
+}
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--mtav-muted);
+  text-decoration: none;
+  transition:
+    color 120ms,
+    background-color 120ms;
+}
+.ds-pill:hover {
+  color: var(--mtav-text);
+  background: var(--mtav-hover);
+}
+.ds-pill[data-active] {
+  color: var(--mtav-text);
+  background: color-mix(in srgb, var(--mtav-brand) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mtav-brand) 30%, transparent);
+}

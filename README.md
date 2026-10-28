@@ -1,6 +1,6 @@
 # MTAV Development Environment
 
-A Laravel + Vue.js + Inertia.js app with a streamlined Docker development setup.
+A Laravel + React + Inertia app with a streamlined Docker development setup.
 
 ## 🚀 Developer Quick Start
 

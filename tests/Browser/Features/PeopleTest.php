@@ -109,7 +109,7 @@ it('lets a member invite the rest of their family', function () {
     $this->as($member);
 
     visit(route('projects.show', $this->project))
-        ->click('Invite to my family')
+        ->click('Invite a family member')
         ->assertSee('Invite the people of the García family')
         ->fill('email', 'cousin@example.com')
         ->click('Send the invitation')

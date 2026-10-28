@@ -1,4 +1,4 @@
-import { usePlanEditor } from '@/components/plan/usePlanEditor';
+import { PlanModel } from '@/components/plan/model';
 import type { Plan } from '@/types/models';
 
 const plan = (): Plan => ({
@@ -32,7 +32,7 @@ const plan = (): Plan => ({
 
 describe('the plan editor', () => {
   it('moves shapes along the grid when snapping', () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
 
     // Moved by (7, 3), the top-left corner lands on the grid point (15, 15)
     expect(
@@ -51,7 +51,7 @@ describe('the plan editor', () => {
       [25, 25],
     ]);
 
-    editor.snap.value = false;
+    editor.snap = false;
     expect(
       editor.translate(
         [
@@ -70,7 +70,7 @@ describe('the plan editor', () => {
   });
 
   it('resizes a shape from a corner, keeping the opposite one fixed', () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
     const square: [number, number][] = [
       [0, 0],
       [10, 0],
@@ -89,7 +89,7 @@ describe('the plan editor', () => {
   });
 
   it('adds a corner on an edge, at the closest point', () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
 
     const polygon = editor.insertVertex(
       [
@@ -110,43 +110,43 @@ describe('the plan editor', () => {
   });
 
   it('undoes and redoes changes', () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
 
     editor.add('green');
-    expect(editor.items.value).toHaveLength(2);
+    expect(editor.items).toHaveLength(2);
 
     editor.undo();
-    expect(editor.items.value).toHaveLength(1);
+    expect(editor.items).toHaveLength(1);
 
     editor.redo();
-    expect(editor.items.value).toHaveLength(2);
-    expect(editor.items.value[1].type).toBe('green');
+    expect(editor.items).toHaveLength(2);
+    expect(editor.items[1].type).toBe('green');
   });
 
   it("never removes a unit's shape", () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
 
-    editor.selected.value = 'item-10';
+    editor.selected = 'item-10';
     editor.remove();
 
-    expect(editor.items.value).toHaveLength(1);
+    expect(editor.items).toHaveLength(1);
   });
 
   it('removes a selected corner, but keeps at least a triangle', () => {
-    const editor = usePlanEditor(plan());
-    editor.selected.value = 'item-10';
+    const editor = new PlanModel(plan());
+    editor.selected = 'item-10';
 
-    editor.selectedVertex.value = 0;
+    editor.selectedVertex = 0;
     editor.remove();
-    expect(editor.items.value[0].polygon).toHaveLength(3);
+    expect(editor.items[0].polygon).toHaveLength(3);
 
-    editor.selectedVertex.value = 0;
+    editor.selectedVertex = 0;
     editor.remove();
-    expect(editor.items.value[0].polygon).toHaveLength(3);
+    expect(editor.items[0].polygon).toHaveLength(3);
   });
 
   it('sends every shape, new ones without an id', () => {
-    const editor = usePlanEditor(plan());
+    const editor = new PlanModel(plan());
     editor.add('street');
 
     const payload = editor.payload();

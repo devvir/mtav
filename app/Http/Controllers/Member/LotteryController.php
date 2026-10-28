@@ -6,12 +6,14 @@ use App\Enums\LotteryRunStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Http\Resources\LotteryRunResource;
+use App\Http\Resources\PlanResource;
 use App\Http\Resources\UnitResource;
 use App\Models\Project;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\PreferencesService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Response;
 
 /**
@@ -37,7 +39,14 @@ class LotteryController extends Controller
                 $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
             ),
             /** Families see only their own ranking */
-            'family'  => $family ? ['id' => $family->id, 'name' => $family->name, 'unit_type' => $family->unitType->name] : null,
+            'family' => $family ? [
+                'id'           => $family->id,
+                'name'         => $family->name,
+                'unit_type'    => $family->unitType->name,
+                'unit_type_id' => $family->unit_type_id,
+            ] : null,
+            /** Where the family's possible units are: after the page, it is not needed to rank */
+            'plan'    => Inertia::defer(fn () => PlanResource::make($project->plan->load('items.unit.family'))),
             'ranking' => $family ? UnitResource::collection($this->preferences->ranking($family)) : null,
             /** Once decided, everyone sees which unit each family received */
             'assignment' => $activeRun?->status === LotteryRunStatus::COMPLETED

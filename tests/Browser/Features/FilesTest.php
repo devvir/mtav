@@ -65,10 +65,12 @@ it('files documents under documents', function () {
 
 it('refuses files that could run scripts', function () {
     attachFile(visit(route('media.create', $this->project)), 'input[type="file"]', fixtureFile('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'))
+        ->assertSee('logo.svg cannot be shared')
         ->fill('description', 'A logo')
         ->click('Share')
-        ->assertSee('The file field must be a file of type');
+        ->assertSee('The files field is required.');
 
+    // The server refuses them too (UseCases\Community\MediaTest)
     expect(Media::count())->toBe(0);
 });
 

@@ -82,6 +82,22 @@ it('switches between projects', function () {
         ->assertSee('Cooperativa Dos');
 });
 
+it('shows no choice of projects to someone in only one', function () {
+    $project = aProject(['name' => 'Cooperativa Uno']);
+    $this->as(aMemberOf(aFamily($project)), $project);
+
+    visit(route('projects.show', $project))
+        ->assertSee('Cooperativa Uno')
+        ->assertMissing('header .shell-switcher')
+        ->click('[aria-label="Your account"]')
+        ->assertDontSeeIn('[role="menu"]', 'Your projects');
+
+    // Their account pages keep the project's places at hand
+    visit(route('profile.edit'))
+        ->assertSeeIn('.shell-nav', 'Lottery')
+        ->assertDontSeeIn('.shell-nav', 'Your projects');
+});
+
 it('keeps people out of projects they are not part of', function () {
     $project = aProject();
     $this->as(aUser());

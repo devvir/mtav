@@ -27,7 +27,7 @@ it('adds a named green area that members then see', function () {
     expect(PlanItem::where('type', 'green')->sole()->name)->toBe('Central park');
 
     $this->as(aMemberOf(aFamily($this->project, $this->type)));
-    visit(route('plan.show', $this->project))->assertSee('Central park');
+    visit(route('units.index', $this->project))->assertSee('Central park');
 });
 
 it('moves a shape with the keyboard and undoes it', function () {
@@ -60,5 +60,5 @@ it('puts units on other floors', function () {
     expect(PlanItem::whereNotNull('unit_id')->sole()->floor)->toBe(1);
 
     $this->as(aMemberOf(aFamily($this->project, $this->type)));
-    visit(route('plan.show', $this->project))->assertSee('Floor 1');
+    visit(route('units.index', $this->project))->assertSee('Floor 1');
 });

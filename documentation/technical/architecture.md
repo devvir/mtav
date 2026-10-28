@@ -95,28 +95,37 @@ their registration on; read state is per user.
 
 ## Frontend
 
-Vue 3 + Inertia, Tailwind 4 on the design tokens of `resources/css/theme.css` (themes,
-dark mode, high contrast), Reka UI primitives in `components/ui`.
+React 19 + Inertia, on Mantine (`@mantine/core`, `dates`, `dropzone`, `notifications`),
+Tabler icons and dnd-kit for dragging.
 
+- **Design system** (`resources/js/design`): the Mantine theme for each palette, MTAV's
+  tokens (`--mtav-*`, classes `ds-*`) and shared components (`Panel`, `Stat`, `Glyph`,
+  `Status`, `EmptyState`, `PersonAvatar`, `FamilyMark`, `FileDrop`…). Colours are chosen
+  by measured contrast (`theme/contrast.ts`): every text and filled background reads at
+  4.6:1 or more in every palette, light or dark, standard or high contrast. `Appearance`
+  keeps the palette, scheme and contrast in cookies, read before the first paint. The UI
+  Lab (`/admin/lab`, `resources/js/lab`) shows every component in its states.
 - **Layouts** follow the areas (`layouts/`): a page's folder picks its layout
   (`Member/…`, `Manage/…`, `Platform/…`, `Auth/…`, the rest is the account area).
-  `AppShell` is the frame: top bar, sidebar (drawer on phones), bottom tabs in the
-  member app.
-- **Forms** are hand-written per entity (`components/forms`) on shared fields
-  (`components/form`: `Field` gives every input its label, hint, error and ids). The
-  server validates; forms are `novalidate`, so every error reads the same, in the app's
-  language.
-- **Modals**: `components/modal/Modal.vue` (declarative), and `confirm()` / `prompt()`
-  from `composables/useDialogs.ts` for questions asked from code (typed confirmations
-  included), rendered by `DialogHost`.
-- **Routes**: `route()` (`composables/useRoute.ts`) reads Ziggy from each visit's props,
-  so the current project is the default `{project}`.
+  `AppShell` is the frame: top bar with the notifications bell, sidebar in groups (drawer
+  on phones), bottom tabs in the member app.
+- **Forms** are hand-written per entity (`components/forms`) on Mantine inputs, wired to
+  Inertia's `useForm` by `lib/forms.ts`. A field's short hint sits beside its label, so
+  fields side by side stay in line; required fields carry an asterisk, and `FormActions`
+  says so beside the buttons. The server validates; forms are `noValidate`, so every
+  error reads the same, in the app's language.
+- **Dialogs**: Mantine modals in pages, and `confirm()` / `prompt()` from
+  `lib/dialogs.ts` for questions asked from code (typed confirmations included),
+  rendered by `DialogHost`.
+- **Routes**: `route()` (`lib/route.ts`) works from the route list sent once per session
+  (the `routes` prop) and each visit's `ziggy` prop, so the current project is the
+  default `{project}`.
 - **Live updates**: `useProjectChanges({ resource: [props to reload] })` reloads a page's
   props when someone else changes them; `useLiveNotifications()` (in the shell) shows
   notifications as toasts. Both need `VITE_REVERB_APP_KEY`.
 - **Guided help**: `InfoTip` (a ? beside what needs explaining) ends, where a tour exists,
-  with "Show me how", which plays a tour (`tours/index.ts`; `composables/useTour.ts`):
-  steps point at `data-tour="…"` marks, missing ones are skipped; `TourHost` (in the
-  shell) dims the page and lights up each step's element.
+  with "Show me how", which plays a tour (`tours/index.ts`; `lib/tour.ts`): steps point
+  at `data-tour="…"` marks, missing ones are skipped; `TourHost` (in the shell) dims the
+  page and lights up each step's element.
 - **Copy**: `_('English text')` everywhere; `lang/es_UY.json` holds the Spanish, keyed by
   the English (the English file is empty on purpose).

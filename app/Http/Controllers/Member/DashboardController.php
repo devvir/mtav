@@ -40,7 +40,7 @@ class DashboardController extends Controller
                     ->with('rsvps')->orderBy('start_date')->limit(3)->get()
             )),
             'media' => Inertia::defer(fn () => MediaResource::collection(
-                $project->media()->category(MediaCategory::VISUAL)->with('owner')->latest()->limit(8)->get()
+                $project->media()->category(MediaCategory::MEDIA)->with('owner')->latest()->limit(8)->get()
             )),
         ]);
     }

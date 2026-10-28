@@ -30,7 +30,7 @@ it('renders the member app', function () {
         route('projects.show', $this->project)                  => 'Cooperativa Las Acacias',
         route('events.index', $this->project)                   => 'General assembly',
         route('events.show', [$this->project, $this->event])    => 'General assembly',
-        route('media.index', $this->project)                    => 'Files',
+        route('media.index', $this->project)                    => 'Media',
         route('media.create', $this->project)                   => 'Share files',
         route('lottery.show', $this->project)                   => 'A-101',
         route('families.index', $this->project)                 => 'García Pérez',
@@ -39,7 +39,6 @@ it('renders the member app', function () {
         route('people.show', [$this->project, $this->member])   => 'García Pérez',
         route('units.index', $this->project)                    => 'A-101',
         route('units.show', [$this->project, $this->unit])      => 'A-101',
-        route('plan.show', $this->project)                      => 'Plan',
         route('invitations.index', $this->project)              => 'Invite to your family',
     ];
 
@@ -87,8 +86,6 @@ it('renders the platform console and the account pages', function () {
         route('projects.create')      => 'Start a project',
         route('notifications.index')  => 'Notifications',
         route('profile.edit')         => 'Profile',
-        route('password.edit')        => 'Password',
-        route('appearance')           => 'Appearance',
         route('documentation.guide')  => 'Superadmin guide',
         route('documentation.faq')    => 'Frequently asked questions',
     ];

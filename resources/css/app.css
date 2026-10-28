@@ -1,186 +1,706 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-@import './theme.css';
-
-@plugin '@tailwindcss/typography';
-
-@theme inline {
-  /* Uncomment below to debug transitions */
-  /* --default-transition-duration: 2000ms; */
-
-  --breakpoint-xs: 32rem;
-  --breakpoint-3xl: 120rem;
-
-  --spacing-padding-x: clamp(1rem, calc(0.2rem + 1.5vw), 2rem);
-  --spacing-padding-y: clamp(1.5rem, calc(1.1rem + 5vw), 2rem);
-
-  --spacing-base: calc(var(--spacing-padding-x) / 1.5);
-  --spacing-base-y: calc(var(--spacing-padding-x) / 3);
-
-  --spacing-wide: clamp(1.2rem, calc(var(--spacing-base) * 2), 2rem);
-  --spacing-wide-y: clamp(0.8rem, calc(var(--spacing-base-y) * 2), 1.33rem);
-
-  --font-sans:
-    'Instrument Sans', 'Liberation Sans', Tahoma, ui-sans-serif, system-ui, sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-card-elevated: var(--card-elevated);
-  --color-card-elevated-foreground: var(--card-elevated-foreground);
-
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-
-  --color-danger: var(--color-destructive-foreground);
-  --color-danger-foreground: var(--color-destructive);
-
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --color-sidebar: var(--sidebar-background);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  /*  color palette - Surface colors */
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-surface-elevated-foreground: var(--surface-elevated-foreground);
-  --color-surface-sunken: var(--surface-sunken);
-  --color-surface-sunken-foreground: var(--surface-sunken-foreground);
-  --color-surface-interactive: var(--surface-interactive);
-  --color-surface-interactive-hover: var(--surface-interactive-hover);
-
-  /*  color palette - Text colors */
-  --color-text: var(--text);
-  --color-text-muted: var(--text-muted);
-  --color-text-subtle: var(--text-subtle);
-  --color-text-inverse: var(--text-inverse);
-  --color-text-link: var(--text-link);
-  --color-text-link-hover: var(--text-link-hover);
-
-  /*  color palette - Interactive colors */
-  --color-interactive: var(--interactive);
-  --color-interactive-hover: var(--interactive-hover);
-  --color-interactive-active: var(--interactive-active);
-  --color-interactive-foreground: var(--interactive-foreground);
-  --color-interactive-secondary: var(--interactive-secondary);
-  --color-interactive-secondary-hover: var(--interactive-secondary-hover);
-  --color-interactive-secondary-foreground: var(--interactive-secondary-foreground);
-
-  /*  color palette - Border colors */
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-border-subtle: var(--border-subtle);
-  --color-border-interactive: var(--border-interactive);
-
-  /*  color palette - Semantic colors */
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-success-subtle: var(--success-subtle);
-  --color-success-subtle-foreground: var(--success-subtle-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-warning-subtle-foreground: var(--warning-subtle-foreground);
-  --color-error: var(--error);
-  --color-error-foreground: var(--error-foreground);
-  --color-error-subtle: var(--error-subtle);
-  --color-error-subtle-foreground: var(--error-subtle-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-info-subtle: var(--info-subtle);
-  --color-info-subtle-foreground: var(--info-subtle-foreground);
-
-  /*  color palette - Focus & Selection */
-  --color-focus-ring: var(--focus-ring);
-  --color-focus-ring-offset: var(--focus-ring-offset);
-  --color-selection: var(--selection);
-  --color-selection-foreground: var(--selection-foreground);
-}
-
 /*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+ * The app's own frame: the shell, the sign-in card, tours. Components draw themselves
+ * (resources/js/design/styles.css); pages compose them.
+ */
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+/* -- the shell ------------------------------------------------------------------------ */
 
-    /* Disable transitions, animations and smooth scrolling for reduced-motion settings */
-    @media (prefers-reduced-motion: reduce) {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-    }
+.shell {
+  min-height: 100dvh;
+}
+
+.shell-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 110;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  width: 272px;
+  padding: 18px 14px;
+  border-right: 1px solid var(--mtav-border);
+  background: var(--mtav-header);
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+}
+@media (min-width: 75em) {
+  .shell-sidebar {
+    display: flex;
   }
-
-  :root {
-    font-family: var(--font-sans);
-    font-size: clamp(1.05em, calc(0.85em + 0.4vw), 1.25em);
+  .shell-main {
+    padding-left: 272px;
   }
 }
 
-@layer components {
-  /* Hide lazy-loaded image containers until fully loaded */
-  .has-image:has(img:not([src])) {
-    visibility: hidden;
+.shell-logo {
+  display: inline-flex;
+  padding: 0 6px 14px;
+  color: inherit;
+  text-decoration: none;
+}
+.shell-heading {
+  padding: 4px 12px 8px;
+}
+.shell-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 22px;
+  overflow-y: auto;
+}
+.shell-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+/* A call to action among the places: apart from them, tinted in the brand */
+.shell-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mtav-border);
+}
+.ds-nav-item[data-action] {
+  color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mtav-brand) 22%, transparent);
+}
+.ds-nav-item[data-action]:hover {
+  background: color-mix(in srgb, var(--mtav-brand) 16%, transparent);
+}
+.shell-switch {
+  margin-top: 8px;
+  border: 1px solid var(--mtav-border);
+}
+
+.shell-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 64px;
+  padding: 0 16px;
+}
+@media (min-width: 48em) {
+  .shell-bar {
+    padding: 0 24px;
+  }
+}
+.shell-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.shell-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 50vw;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.shell-switcher:hover {
+  background: var(--mtav-hover);
+}
+.shell-account {
+  border-radius: 99px;
+}
+
+.shell-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  font-size: 14px;
+  color: var(--mtav-warning);
+  background: color-mix(in srgb, var(--mtav-warning) 10%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--mtav-warning) 30%, transparent);
+}
+.shell-banner p {
+  flex: 1;
+  margin: 0;
+}
+.shell-banner a {
+  color: inherit;
+  font-weight: 700;
+}
+
+.shell-page {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+@media (min-width: 48em) {
+  .shell-page {
+    padding: 32px 28px 64px;
+  }
+}
+.shell-page[data-with-tabs] {
+  padding-bottom: 112px;
+}
+@media (min-width: 75em) {
+  .shell-page[data-with-tabs] {
+    padding-bottom: 64px;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+/* Bottom tabs on phones: the member app's main places */
+.shell-tabs {
+  position: fixed;
+  inset: auto 0 0 0;
+  top: auto;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--mtav-border);
+  border-bottom: 0;
+}
+.shell-tabs::after {
+  display: none;
+}
+@media (min-width: 75em) {
+  .shell-tabs {
+    display: none;
   }
-  html,
-  body {
-    @apply bg-background text-foreground;
-  }
+}
+.shell-tab {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mtav-muted);
+  text-decoration: none;
+}
+.shell-tab[data-active] {
+  color: var(--mtav-brand);
+}
 
-  /* Apply selection colors */
-  ::selection {
-    background-color: var(--selection);
-    color: var(--selection-foreground);
+/* -- signing in ----------------------------------------------------------------------- */
+
+.auth {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+.auth-logo {
+  margin-bottom: 28px;
+  color: inherit;
+  text-decoration: none;
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 28px;
+}
+@media (min-width: 48em) {
+  .auth-card {
+    padding: 36px;
   }
 }
 
-@custom-variant dark (&:is(.dark *));
-@custom-variant hocus (&:hover, &:focus);
-@custom-variant hocus-within (&:hover, &:focus-within);
-@custom-variant factive (&:focus, &:active);
-@custom-variant factive-within (&:focus-within, &:active);
-@custom-variant hactive (&:hover, &:active);
+/* -- tours ---------------------------------------------------------------------------- */
+
+.tour-spotlight {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 4px var(--mtav-brand),
+    0 0 0 9999px rgb(0 0 0 / 55%);
+  transition: all 300ms ease;
+}
+.tour-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(0 0 0 / 55%);
+}
+.tour-card {
+  position: absolute;
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: var(--mantine-shadow-xl);
+  outline: none;
+}
+
+/* -- page layouts ----------------------------------------------------------------------- */
+
+/* The main part and a narrower one beside it on wide screens (a form and what explains it) */
+.with-aside {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 62em) {
+  .with-aside {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+  }
+}
+
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.error-status {
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--mtav-muted);
+  opacity: 0.6;
+}
+
+/* A choice drawn as a tile (appearance, kinds of things) */
+.choice-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 16px;
+  font-weight: 600;
+  transition:
+    border-color 150ms,
+    background-color 150ms;
+}
+.choice-tile:hover {
+  border-color: var(--mtav-border-strong);
+}
+.choice-tile[data-active] {
+  border-color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+  box-shadow: inset 0 0 0 1px var(--mtav-brand);
+}
+.palette-swatch {
+  display: inline-flex;
+  flex: none;
+  overflow: hidden;
+  border-radius: 99px;
+  box-shadow: 0 0 0 2px var(--mtav-surface-solid);
+}
+.palette-swatch span {
+  width: 14px;
+  height: 24px;
+}
+
+/* -- notifications ---------------------------------------------------------------------- */
+
+.notification-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notification-list li + li {
+  border-top: 1px solid var(--mtav-border);
+}
+.notification {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  transition: background-color 120ms;
+}
+.notification:hover {
+  background: var(--mtav-hover);
+}
+.notification[data-unread] {
+  background: color-mix(in srgb, var(--mtav-brand) 6%, transparent);
+}
+.notification-dot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+.notification[data-unread] .notification-dot {
+  background: var(--mtav-brand);
+  box-shadow: 0 0 10px var(--mtav-brand);
+}
+
+/* A row of a list drawn in a card: its own padding, a line between rows */
+.row {
+  padding: 14px 18px;
+}
+.row + .row {
+  border-top: 1px solid var(--mtav-border);
+}
+
+/* -- the member app ---------------------------------------------------------------------- */
+
+.dashboard-top {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 62em) {
+  .dashboard-top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+.stat-link {
+  color: inherit;
+  text-decoration: none;
+}
+.stat-link .ds-stat {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease;
+}
+.stat-link:hover .ds-stat {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--mtav-brand) 35%, var(--mtav-border));
+}
+.lottery-card {
+  color: inherit;
+  text-decoration: none;
+}
+.text-positive {
+  color: var(--mtav-positive);
+}
+
+.event-date {
+  display: flex;
+  width: 58px;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border-radius: 14px;
+  background: var(--mtav-brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mtav-brand) 20%, transparent);
+}
+.event-month {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mtav-brand);
+}
+.event-day {
+  font-family: var(--mantine-font-family-headings);
+  font-size: 24px;
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 36em) {
+  .media-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 62em) {
+  .media-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.media-tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+}
+.media-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+.media-tile:hover img {
+  transform: scale(1.05);
+}
+.media-kind {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mtav-muted);
+}
+.media-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.media-play svg {
+  padding: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(4px);
+}
+.media-stage {
+  overflow: hidden;
+  background: rgb(10 8 6 / 92%);
+}
+.media-stage img,
+.media-stage video {
+  display: block;
+  max-height: 75dvh;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.media-stage video {
+  width: 100%;
+}
+.media-stage iframe {
+  display: block;
+  width: 100%;
+  height: 75dvh;
+  border: 0;
+  background: #fff;
+}
+
+.two-columns {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 62em) {
+  .two-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.row[data-own] {
+  background: color-mix(in srgb, var(--mtav-positive) 10%, transparent);
+}
+
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ranking-item {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  transition:
+    opacity 150ms,
+    border-color 150ms;
+}
+.ranking-item[data-draggable] {
+  cursor: grab;
+}
+/* The row being dragged rises above the others, which make room as it passes */
+.ranking-item[data-dragging] {
+  position: relative;
+  z-index: 2;
+  cursor: grabbing;
+  box-shadow: var(--mantine-shadow-lg);
+}
+.ranking-item[data-first] {
+  border-color: color-mix(in srgb, var(--mtav-positive) 55%, transparent);
+}
+.ranking-position {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+}
+.ranking-item[data-first] .ranking-position {
+  color: var(--mtav-positive);
+  background: color-mix(in srgb, var(--mtav-positive) 14%, transparent);
+}
+.ranking-grip {
+  display: inline-flex;
+  width: 32px;
+  height: 40px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mtav-muted);
+  cursor: grab;
+}
+.ranking-grip:hover {
+  color: var(--mtav-text);
+  background: var(--mtav-hover);
+}
+
+/* -- the plan ----------------------------------------------------------------------------- */
+
+.plan-editor {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 88em) {
+  .plan-editor {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+  }
+}
+.plan-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+.plan-shape {
+  cursor: move;
+}
+.plan-edge {
+  cursor: copy;
+}
+.plan-vertex {
+  cursor: grab;
+}
+.plan-resize-nwse {
+  cursor: nwse-resize;
+}
+.plan-resize-nesw {
+  cursor: nesw-resize;
+}
+.floor-tab {
+  border: 1px solid var(--mtav-border);
+  background: var(--mtav-surface);
+  cursor: pointer;
+}
+
+/* -- the admin area ----------------------------------------------------------------------- */
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.checklist-step {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.checklist-step:hover {
+  background: var(--mtav-hover);
+}
+.checklist-step svg {
+  flex: none;
+  color: var(--mtav-muted);
+}
+.checklist-step[data-done] {
+  color: var(--mtav-muted);
+}
+.checklist-step[data-done] span {
+  text-decoration: line-through;
+}
+.checklist-step[data-done] svg {
+  color: var(--mtav-positive);
+}
+.approval-card {
+  border-color: color-mix(in srgb, var(--mtav-warning) 40%, var(--mtav-border));
+}
+.danger-card {
+  border-color: color-mix(in srgb, var(--mtav-negative) 40%, var(--mtav-border));
+}
+
+/* The bell's menu: the latest notifications */
+.bell-head {
+  border-bottom: 1px solid var(--mtav-border);
+}
+.bell-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bell-list li + li {
+  border-top: 1px solid var(--mtav-border);
+}
+.bell-list .notification {
+  padding: 12px 16px;
+}
+.bell-foot {
+  padding: 10px 16px;
+  text-align: center;
+  border-top: 1px solid var(--mtav-border);
+}
+
+/* A unit's place in the family's ranking, on the plan */
+.plan-rank circle {
+  fill: var(--mantine-color-brand-filled);
+  stroke: var(--mtav-surface-solid);
+  stroke-width: 1.5;
+}
+.plan-rank text {
+  fill: #fff;
+}
+.plan-rank[data-first] circle {
+  fill: var(--mantine-color-green-filled);
+}
+
+/* What the asterisk means, at the start of a form's buttons, level with their bottom (on its
+   own line on phones) */
+.form-actions.form-actions {
+  align-items: flex-end;
+}
+.form-note {
+  margin-right: auto;
+}
+@media (max-width: 36em) {
+  .form-note {
+    flex-basis: 100%;
+  }
+}
+
+/* A profile section: one card under its tab */
+.profile-section {
+  padding: 20px;
+  border-radius: var(--mtav-radius-card);
+}

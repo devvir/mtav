@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 
 /**
- * Accounts: signing up, in and out, passwords, email changes, appearance.
+ * Accounts: signing up, in and out, the profile (details, password, appearance), email changes.
  */
 
 it('explains what is wrong with a sign-up', function () {
@@ -69,7 +69,7 @@ it('changes the password, checking the current one', function () {
     $user = aUser(['password' => 'the-Old-pass-1']);
     $this->as($user);
 
-    visit(route('password.edit'))
+    visit(route('profile.edit', ['section' => 'password']))
         ->fill('current_password', 'not-it')
         ->fill('password', 'a-New-pass-123')
         ->fill('password_confirmation', 'a-New-pass-123')
@@ -116,11 +116,11 @@ it('edits the profile', function () {
 it('switches to dark mode and high contrast', function () {
     $this->as(aUser());
 
-    $page = visit(route('appearance'))->click('Dark')->click('High contrast');
+    // Kept for the next visit, and drawn before the page's scripts run
+    $page = visit(route('profile.edit'))->click('Appearance')->click('Dark')->click('High contrast')->refresh();
 
-    expect($page->script('document.documentElement.className'))
-        ->toContain('dark')
-        ->toContain('theme-high-contrast');
+    $page->assertScript("document.documentElement.getAttribute('data-mantine-color-scheme')", 'dark')
+        ->assertScript("document.documentElement.hasAttribute('data-high-contrast')", true);
 });
 
 it('signs out', function () {

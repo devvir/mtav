@@ -14,6 +14,8 @@ use App\Models\User;
 class NotificationService
 {
     /**
+     * @param string|null $url  What it is about: kept as a path in the app, so that it leads
+     *                          there whatever address the app is reached by
      * @param int|null $targetId  The user (private) or project (project) addressed
      */
     public function send(
@@ -25,6 +27,8 @@ class NotificationService
         ?User $trigger = null,
         ?int $targetId = null,
     ): Notification {
+        $url = $url === null ? null : $this->path($url);
+
         $notification = Notification::create([
             'type'         => $type,
             'target'       => $target,
@@ -37,5 +41,15 @@ class NotificationService
         rescue(fn () => NotificationSent::dispatch($notification));
 
         return $notification;
+    }
+
+    /** A URL's path, query and fragment: '/projects/1/events?x=1#y' */
+    private function path(string $url): string
+    {
+        $parts = parse_url($url);
+
+        return ($parts['path'] ?? '/')
+            . (isset($parts['query']) ? "?{$parts['query']}" : '')
+            . (isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
     }
 }

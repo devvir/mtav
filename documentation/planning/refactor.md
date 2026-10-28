@@ -33,16 +33,29 @@ decision taken on the way is listed below for review.
 - **Lottery invalidation** moves to admins, with mandatory visibility: invalidating
   requires a reason, and every member of the project sees that the lottery was
   invalidated, by whom, when and why.
+- **Features come out, whole (white-label).** Other deployments are MTAV with parts taken
+  out, never new features: everything MTAV needs is built, and nothing is coupled so
+  that it cannot be removed. What every version keeps is the core — people (members and
+  admins) state their preferences, and the lottery distributes the items of one set to
+  them. In MTAV the items are units and the participants families; elsewhere the items
+  may be anything, and the groups may be called otherwise or be absent (then each
+  person is a group of one, and groups are never shown). Units, unit types and the plan
+  are one module, in or out together; so are events, files and invitations by members.
+  To be designed in full once MTAV works; until then, no new coupling between modules.
 - **White-label, later (nice-to-have).** The deployment decides the vocabulary and
   shape of the grouping concept. Internally the lottery participant is the group, not
   its users. MTAV calls the group a *family*; another deployment may name it
   differently, or hide it entirely (each user is silently a group of one). Until then
   the code keeps families, but avoids assumptions that would block this.
-- **Three UIs, one app.** A member app (`/projects/{p}`) for what people do in a
-  project — admins in a family use it too; a project admin area (`/projects/{p}/manage`)
-  for configuring a project; a platform console (`/admin`) for superadmins. They share
-  the domain layer (models, services, policies) and the design system; each has its own
-  routes, controllers, layout and pages, shaped for its audience.
+- **One project UI; admins see more tools.** A project has one set of pages, the same
+  for everyone: families, units with their plan, events, media, the lottery, people.
+  Admins see the same pages with their tools on them (create, edit, remove, invite, run
+  the lottery, edit the plan in place); there are never two flows holding the same
+  things, one read-only and one not. Pages with no member counterpart (the project's
+  settings, invitations, the setup overview) sit in an admin group of the same sidebar.
+  Details of simple things (a person, a family, a unit, an event, a file) open as dialogs
+  over their list, with the item in the URL. The platform console (`/admin`) stays apart,
+  for superadmins.
 - **React frontend.** The frontend moves from Vue to React 19 on Inertia's React adapter,
   built on Mantine and Tabler icons, starting from the author's jobhunter design system
   (`@jobhunter/design` and its UI Lab) copied in as MTAV's own design package with its
@@ -111,7 +124,22 @@ decision taken on the way is listed below for review.
    home (the lottery, what is coming, recent files, the families and people), the admin
    overview (setup progress, what needs attention, limits), the platform console (projects
    awaiting approval, activity).
-10. **Visual design pass**, last — once everything works. A modern look across every
+10. **Units, types and the plan as one page** (the author's idea): "Units" holds the
+    types, the units and the plan together, and the plan is the units' visual aid, never
+    a drawing apart. A unit added anywhere appears on the plan (beside the canvas, waiting
+    to be placed); a unit added on the plan asks for its type and identifier. Each type
+    may carry a base shape and size, so a new unit of that type starts as that shape
+    (plain squares when none is set). Floors: the floors just below and above show
+    faintly behind the current one (onion skinning), and a unit's edges snap to those of
+    the units under it. One plan, in one place: the plan people see is the one admins edit,
+    switching it to editing in place (admins only), never a separate page to find. Look for
+    an established editor or library before building more by hand. The plan tells people what is what and where, because they choose by it
+    (near the playground, the parking, the common spaces; far from the street): besides
+    the boundary, streets, green areas and common spaces it has entrances, parking and
+    playgrounds; parks are drawn with trees (more as they grow); common spaces look
+    clearly unpickable; housing units carry a subtle house mark, recognisable at first
+    sight. Attractive and legible first, then precise.
+11. **Visual design pass**, last — once everything works. A modern look across every
     theme: glossy, semi-transparent cards; sticky bars with backdrop blur; soft light on
     what is interactive; plenty of icons; badges with a status dot; motion for what comes
     and goes. A new look, not the old one; ideas worth keeping from it: generated avatars

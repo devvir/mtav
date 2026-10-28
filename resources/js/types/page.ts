@@ -35,6 +35,11 @@ export interface SharedProps {
     error: string | null;
   };
   errors: Record<string, string>;
-  ziggy: Record<string, unknown> & { location: string };
+  /** The route list, sent once and remembered */
+  routes: Record<string, unknown>;
+  ziggy: {
+    defaults: Record<string, unknown>;
+    location: { host: string; pathname: string; search: string };
+  };
   [key: string]: unknown;
 }

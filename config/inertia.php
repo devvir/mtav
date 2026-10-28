@@ -169,7 +169,8 @@ return [
 
     'devtools' => [
 
-        'enabled' => env('INERTIA_DEVTOOLS_ENABLED'),
+        // Off unless asked for: it records and redacts every request, more than doubling its time
+        'enabled' => (bool) env('INERTIA_DEVTOOLS_ENABLED', false),
 
         'except' => ['telescope*', 'horizon*', '_inertia/devtools*'],
 

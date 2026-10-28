@@ -1,5 +1,5 @@
-import { defineTour } from '@/composables/useTour';
-import { _ } from '@/composables/useTranslations';
+import { defineTour } from '@/lib/tour';
+import { _ } from '@/lib/translations';
 
 /**
  * Every guided tour, by page. Steps point at data-tour="…" marks of the page;

@@ -1,8 +1,6 @@
-import tailwindcss from '@tailwindcss/vite';
-import vue from '@vitejs/plugin-vue';
+import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
-import AutoImport from 'unplugin-auto-import/vite';
 import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
@@ -14,33 +12,10 @@ export default defineConfig(({ mode }) => {
       // every environment shares it (a test run would cut a running dev server off)
       !process.env.VITEST &&
         laravel({
-          input: ['resources/js/app.ts'],
+          input: ['resources/js/app.tsx'],
           refresh: true,
         }),
-
-      tailwindcss(),
-
-      vue({
-        template: {
-          transformAssetUrls: {
-            base: null,
-            includeAbsolute: false,
-          },
-        },
-      }),
-
-      AutoImport({
-        imports: [
-          'vue',
-          '@vueuse/core',
-          { from: 'vue', imports: ['HTMLAttributes'], type: true },
-          {
-            '@inertiajs/vue3': ['useForm', 'usePage', 'router'],
-          },
-        ],
-        dts: true,
-        vueTemplate: true,
-      }),
+      react(),
     ],
 
     resolve: {
