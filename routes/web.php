@@ -178,3 +178,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::inertia('lab', 'Platform/Lab')->name('lab');
     });
 });
+
+/**
+ * An address that leads nowhere: answered by the app, signed in or not, so the error page
+ * has everything every page has (the language, the person, the routes)
+ */
+Route::fallback(fn () => abort(404));

@@ -1,6 +1,12 @@
 <?php
 
+use App\Enums\LotteryRunStatus;
 use App\Models\Event;
+use App\Models\Notification;
+use App\Services\Lottery\Contracts\SolverInterface;
+use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\DataObjects\LotteryManifest;
+use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
  * Once the lottery is due, an admin runs it: each family gets one unit of its type,
@@ -196,6 +202,26 @@ describe('An admin', function () {
 
         expect(assignment($families))->each->toBeNull();
     });
+    it('closes a run that fails, tells whoever started it, and lets the lottery run again', function () {
+        $solver = config('lottery.default');
+        config()->set('lottery.solvers.broken', ['solver' => BrokenSolver::class]);
+        config()->set('lottery.default', 'broken');
+        [$families] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+
+        runLottery();
+
+        $run = test()->project->lotteryRuns()->latest('id')->first();
+        expect($run->status)->toBe(LotteryRunStatus::FAILED)
+            ->and($run->failure)->toBe(__('lottery.execution_failed'))
+            ->and(assignment($families))->toBe([null, null])
+            ->and(Notification::for(test()->admin)->where('target_id', test()->admin->id)->exists())->toBeTrue();
+
+        config()->set('lottery.default', $solver);
+        runLottery()->assertSessionHasNoErrors();
+
+        expect(assignment($families))->not->toContain(null);
+    });
 });
 
 describe('A member', function () {
@@ -222,3 +248,12 @@ describe('A member', function () {
         }
     });
 });
+
+/** A solver that breaks, as an unreachable or crashing one would */
+class BrokenSolver implements SolverInterface
+{
+    public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
+    {
+        throw new RuntimeException('The solver crashed');
+    }
+}

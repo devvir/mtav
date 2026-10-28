@@ -61,6 +61,34 @@ it('adds units one after another, creating a type on the way', function () {
     expect(Unit::where('unit_type_id', $penthouse->id)->pluck('identifier')->sort()->values()->all())->toBe(['A-101', 'A-102']);
 });
 
+it('switches between an existing type and a new one while adding a unit', function () {
+    $studio = aUnitType($this->project, ['name' => 'Studio']);
+
+    visit(route('manage.units.create', $this->project))
+        ->click('Or create a new type')
+        ->fill('[name="new_unit_type[name]"]', 'Loft')
+        ->click('Use an existing type')
+        ->assertNotPresent('[name="new_unit_type[name]"]')
+        ->fill('identifier', 'C-301')
+        ->click('Add the unit')
+        ->assertSee('The unit was added.');
+
+    expect(Unit::firstWhere('identifier', 'C-301')->unit_type_id)->toBe($studio->id)
+        ->and(UnitType::where('name', 'Loft')->exists())->toBeFalse();
+});
+
+it('starts empty lists from their first item', function () {
+    visit(route('manage.unit_types.index', $this->project))
+        ->click('Add the first one')
+        ->assertPathIs(route('manage.unit_types.create', $this->project, absolute: false));
+
+    aUnitType($this->project);
+
+    visit(route('manage.families.index', $this->project))
+        ->click('Add the first one')
+        ->assertPathIs(route('manage.families.create', $this->project, absolute: false));
+});
+
 it('edits and removes units, but not one already given to a family', function () {
     $type = aUnitType($this->project);
     $free = aUnit($type, ['identifier' => 'A-101']);
@@ -115,4 +143,30 @@ it('walks the admin from an empty project to the lottery', function () {
         ->assertSee('Getting to the lottery')
         ->click('Add the unit types')
         ->assertSee('No unit types yet');
+});
+
+it('opens unit types, units and families for editing from their lists', function () {
+    $type = aUnitType($this->project, ['name' => 'Studio']);
+    $unit = aUnit($type, ['identifier' => 'A-101']);
+    $family = aFamily($this->project, $type, ['name' => 'García']);
+
+    visit(route('manage.unit_types.index', $this->project))
+        ->click('[aria-label="Edit Studio"]')
+        ->assertPathIs(route('manage.unit_types.edit', [$this->project, $type], absolute: false))
+        ->navigate(route('manage.units.index', $this->project))
+        ->click('[aria-label="Edit A-101"]')
+        ->assertPathIs(route('manage.units.edit', [$this->project, $unit], absolute: false))
+        ->navigate(route('manage.families.index', $this->project))
+        ->click('[aria-label="Edit García"]')
+        ->assertPathIs(route('manage.families.edit', [$this->project, $family], absolute: false));
+});
+
+it('leads an unapproved project\'s admins to what the limits are', function () {
+    $project = anUnapprovedProject();
+    $this->as(anAdminOf($project));
+
+    visit(route('manage.units.index', $project))
+        ->assertSee('This project is awaiting approval: some limits apply.')
+        ->click('.shell-banner >> text=Details')
+        ->assertPathIs(route('manage.overview', $project, absolute: false));
 });

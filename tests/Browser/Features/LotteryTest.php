@@ -42,6 +42,64 @@ it('keeps a family\'s ranking after leaving the page', function () {
         ->assertSeeIn('ol li:first-child', $second->identifier);
 });
 
+it('moves a unit down with its button', function () {
+    $first = app(PreferencesService::class)->ranking($this->family)[0];
+    $this->as($this->member);
+
+    visit(route('lottery.show', $this->project))
+        ->click("[aria-label=\"Move {$first->identifier} down\"]")
+        ->assertSeeIn('ol li:last-child', $first->identifier)
+        ->wait(2);
+
+    expect(app(PreferencesService::class)->ranking($this->family)[1]->id)->toBe($first->id);
+});
+
+it('reorders the ranking with the keyboard', function () {
+    $first = app(PreferencesService::class)->ranking($this->family)[0];
+    $this->as($this->member);
+
+    // Space picks the unit up from its grip, the arrows move it, Space drops it
+    $grip = "[aria-label=\"Move {$first->identifier}, number 1\"]";
+    visit(route('lottery.show', $this->project))
+        ->keys($grip, 'Space')
+        ->assertAttribute($grip, 'aria-pressed', 'true')
+        ->keys($grip, 'ArrowDown')
+        // Dropped once the move registered (announced to screen readers)
+        ->assertScript(
+            "[...document.querySelectorAll('[id^=DndLiveRegion]')].some((region) => region.textContent.includes('goes to number 2'))",
+            true,
+        )
+        ->keys($grip, 'Space')
+        ->assertSeeIn('ol li:last-child', $first->identifier)
+        ->wait(2);
+
+    expect(app(PreferencesService::class)->ranking($this->family)[1]->id)->toBe($first->id);
+});
+
+it('reorders the ranking by dragging', function () {
+    [$first, $second] = app(PreferencesService::class)->ranking($this->family)->all();
+    $this->as($this->member);
+
+    // A hand's drag: press on the row, move a little at a time, release over the other row
+    $page = visit(route('lottery.show', $this->project))->assertSee($second->identifier);
+    $page->script(<<<'JS'
+        async () => {
+            const [top, bottom] = document.querySelectorAll('ol.ranking > li');
+            const at = (el) => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; };
+            const [x, y] = at(bottom);
+            const [, toY] = at(top);
+            const fire = (target, type, cx, cy) => target.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: cx, clientY: cy, button: 0, buttons: 1 }));
+            const pause = () => new Promise((resolve) => setTimeout(resolve, 20));
+            fire(bottom, 'mousedown', x, y);
+            for (let step = 1; step <= 12; step++) { fire(document, 'mousemove', x, y + ((toY - y) * step) / 12); await pause(); }
+            fire(document, 'mouseup', x, toY);
+        }
+        JS);
+    $page->assertSeeIn('ol li:first-child', $second->identifier)->wait(2);
+
+    expect(app(PreferencesService::class)->ranking($this->family)[0]->id)->toBe($second->id);
+});
+
 it('locks the ranking while the lottery runs', function () {
     aLotteryInProgress($this->project);
     $this->as($this->member);

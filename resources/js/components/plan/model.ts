@@ -306,14 +306,22 @@ export class PlanModel {
   }
 
   /** Remove the selected corner, or the selected shape (never a unit) */
+  /** Removes the selected corner (of a shape or the boundary; three always stay), else the shape */
   remove() {
+    const polygon = this.activePolygon;
+    if (this.selectedVertex !== null && polygon) {
+      if (polygon.length > 3) {
+        this.setActivePolygon(polygon.filter((_, index) => index !== this.selectedVertex));
+        this.selectedVertex = null;
+        this.commit();
+      }
+      return;
+    }
+
     const item = this.selectedItem;
     if (!item) return;
 
-    if (this.selectedVertex !== null && item.polygon.length > 3) {
-      item.polygon.splice(this.selectedVertex, 1);
-      this.selectedVertex = null;
-    } else if (!item.unit) {
+    if (!item.unit) {
       this.items = this.items.filter((other) => other.key !== item.key);
       this.selected = null;
     }

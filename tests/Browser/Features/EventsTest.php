@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EventType;
 use App\Models\Event;
 
 /**
@@ -77,4 +78,37 @@ it('cancels an event', function () {
         ->assertSee('The event was cancelled.');
 
     expect(Event::find($event->id))->toBeNull();
+});
+
+it('asks members whether they go only when the event says so', function () {
+    $this->as($this->admin);
+
+    visit(route('manage.events.create', $this->project))
+        ->fill('title', 'Work day')
+        ->fill('description', 'Painting the fences')
+        ->fill('location', 'The site')
+        ->click('Ask people whether they will go')
+        ->click('Create the event')
+        ->assertSee('The event was created.');
+
+    anEvent($this->project, ['title' => 'Open day']);
+
+    $this->as($this->member);
+    visit(route('events.show', [$this->project, Event::firstWhere('title', 'Work day')]))
+        ->assertSee('Will you go?');
+    visit(route('events.show', [$this->project, Event::firstWhere('title', 'Open day')]))
+        ->assertSee('Open day')
+        ->assertDontSee('Will you go?');
+});
+
+it('lets members join an online event from its page', function () {
+    $event = anEvent($this->project, [
+        'title'    => 'Monthly call',
+        'type'     => EventType::ONLINE,
+        'location' => 'https://meet.example.com/mtav',
+    ]);
+    $this->as($this->member);
+
+    visit(route('events.show', [$this->project, $event]))
+        ->assertAttribute('a:has-text("Join online")', 'href', 'https://meet.example.com/mtav');
 });

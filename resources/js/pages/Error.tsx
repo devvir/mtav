@@ -1,9 +1,8 @@
 import { AccountLayout } from '@/layouts/AccountLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MemberLayout } from '@/layouts/MemberLayout';
-import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Button, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 
@@ -35,7 +34,8 @@ export default function Error({ status }: { status: number }) {
           {content.title}
         </Title>
         <Text c="dimmed">{content.message}</Text>
-        <Button component={Link} href={route('home')} mt="lg">
+        {/* A plain address: an error may come before the app knows its routes */}
+        <Button component="a" href="/" mt="lg">
           {_('Go to the start')}
         </Button>
       </Stack>

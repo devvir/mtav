@@ -62,3 +62,49 @@ it('puts units on other floors', function () {
     $this->as(aMemberOf(aFamily($this->project, $this->type)));
     visit(route('units.index', $this->project))->assertSee('Floor 1');
 });
+
+it('redoes what was undone', function () {
+    $this->as($this->admin);
+    $item = PlanItem::whereNotNull('unit_id')->sole();
+    $before = $item->polygon;
+
+    visit(route('manage.plan.edit', $this->project))
+        ->click('[data-shape="A-101"] polygon')
+        ->keys('[aria-label="Plan editor"]', 'ArrowRight')
+        ->click('[aria-label="Undo"]')
+        ->click('[aria-label="Redo"]')
+        ->click('Save the plan')
+        ->assertSee('The plan was saved.');
+
+    expect($item->fresh()->polygon[0])->toBe([$before[0][0] + 5, $before[0][1]]);
+});
+
+it('duplicates a shape, and never a unit', function () {
+    $this->as($this->admin);
+
+    visit(route('manage.plan.edit', $this->project))
+        ->click('[data-shape="A-101"] polygon')
+        ->assertNotPresent(button('Duplicate'))
+        ->select('[aria-label="Shape to add"]', 'green')
+        ->click('Add')
+        ->fill('shape_name', 'Park')
+        ->click('Duplicate')
+        ->click('Save the plan')
+        ->assertSee('The plan was saved.');
+
+    expect(PlanItem::where('type', 'green')->pluck('name')->all())->toBe(['Park', 'Park']);
+});
+
+it('removes a corner of the boundary', function () {
+    $this->as($this->admin);
+    $corners = count($this->project->plan->polygon);
+
+    visit(route('manage.plan.edit', $this->project))
+        ->click('Edit the boundary')
+        ->click('.plan-vertex >> nth=0')
+        ->click('Remove the corner')
+        ->click('Save the plan')
+        ->assertSee('The plan was saved.');
+
+    expect($this->project->plan->fresh()->polygon)->toHaveCount($corners - 1);
+});

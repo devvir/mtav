@@ -94,6 +94,7 @@ export const PlanEditor = forwardRef<
   const active = model.activePolygon;
   const selectedItem = model.selectedItem;
   const handle = Math.max(4, Math.min(canvas.width, canvas.height) / 120);
+  const margin = handle * 2;
 
   /** The pointer's position in plan coordinates */
   const toPlan = (event: { clientX: number; clientY: number }): Point => {
@@ -188,7 +189,10 @@ export const PlanEditor = forwardRef<
           model.translate(model.activePolygon, step[0] * size, step[1] * size),
         );
         model.commit();
-      } else if ((event.key === 'Delete' || event.key === 'Backspace') && model.selectedItem) {
+      } else if (
+        (event.key === 'Delete' || event.key === 'Backspace') &&
+        (model.selectedItem || model.selectedVertex !== null)
+      ) {
         event.preventDefault();
         model.remove();
       } else if (event.key === 'Escape') {
@@ -295,7 +299,8 @@ export const PlanEditor = forwardRef<
         <svg
           ref={svg}
           data-tour="plan.canvas"
-          viewBox={`0 0 ${canvas.width} ${canvas.height}`}
+          // A margin around the plan, so that handles on its edge can be grabbed whole
+          viewBox={`${-margin} ${-margin} ${canvas.width + margin * 2} ${canvas.height + margin * 2}`}
           className="plan-canvas ds-surface"
           role="application"
           aria-label={_('Plan editor')}
@@ -520,6 +525,19 @@ export const PlanEditor = forwardRef<
             <Text className="ds-caption">
               {_('The outline of the land. Move its corners, or double-click an edge to add one.')}
             </Text>
+            {model.selectedVertex !== null && model.activePolygon!.length > 3 ? (
+              <Button
+                variant="default"
+                color="red"
+                c="red"
+                size="xs"
+                w="fit-content"
+                leftSection={<IconTrash size={14} />}
+                onClick={() => model.remove()}
+              >
+                {_('Remove the corner')}
+              </Button>
+            ) : null}
           </Stack>
         ) : (
           <Stack gap="sm">

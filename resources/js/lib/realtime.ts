@@ -19,6 +19,8 @@ export function connectRealtime(given: RealtimeServer | null) {
     forceTLS: server.scheme === 'https',
     enabledTransports: ['ws', 'wss'],
   });
+  // Where Laravel apps keep it, for inspecting the connection from the console (and tests)
+  Object.assign(window, { Echo: echo() });
 }
 
 /** Live updates are on when a websocket server is configured */

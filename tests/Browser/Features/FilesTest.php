@@ -15,25 +15,6 @@ beforeEach(function () {
     $this->as($this->member);
 });
 
-/** A real file on disk for the browser to upload */
-function fixtureFile(string $name, string $content): string
-{
-    $path = sys_get_temp_dir() . '/' . $name;
-    file_put_contents($path, $content);
-
-    return $path;
-}
-
-function pngFile(string $name = 'photo.png'): string
-{
-    $image = imagecreatetruecolor(64, 48);
-    imagefill($image, 0, 0, imagecolorallocate($image, 30, 120, 200));
-    ob_start();
-    imagepng($image);
-
-    return fixtureFile($name, ob_get_clean());
-}
-
 it('shares a photo, then edits and removes it', function () {
     attachFile(visit(route('media.create', $this->project)), 'input[type="file"]', pngFile())
         ->assertSee('photo.png')
@@ -42,6 +23,7 @@ it('shares a photo, then edits and removes it', function () {
         ->assertSee('Your file is shared.')
         ->click('img[alt="Building site, week 12"]')
         ->assertSee('Shared by')
+        ->assertAttributeContains('a:has-text("Download")', 'href', '/file')
         ->click('Edit')
         ->fill('description', 'Building site, week 13')
         ->click('Save')
@@ -58,7 +40,9 @@ it('files documents under documents', function () {
     attachFile(visit(route('media.create', $this->project)), 'input[type="file"]', fixtureFile('minutes.txt', 'Minutes of the assembly'))
         ->fill('description', 'Assembly minutes')
         ->click('Share')
-        ->assertSee('Assembly minutes');
+        ->assertSee('Assembly minutes')
+        ->click('Assembly minutes')
+        ->assertAttributeContains('a:has-text("Download the document")', 'href', '/file');
 
     expect(Media::sole()->category->value)->toBe('document');
 });

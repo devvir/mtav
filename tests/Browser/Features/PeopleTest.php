@@ -44,7 +44,10 @@ it('withdraws an invitation, whose link then explains it is no longer valid', fu
     $link = invitationLinkFor('ana@example.com');
     auth()->logout();
 
-    visit($link)->assertSee('This invitation is no longer valid');
+    visit($link)
+        ->assertSee('This invitation is no longer valid')
+        ->click('Go to sign in')
+        ->assertPathIs('/login');
 });
 
 it('lets someone with an account join after signing in', function () {
@@ -168,4 +171,21 @@ it('lets a member leave the project', function () {
         ->assertSee('You left Cooperativa Las Acacias.');
 
     expect(User::find($member->id)->canAccess($this->project))->toBeFalse();
+});
+
+it('leads admins from the people to the invitations', function () {
+    $this->as($this->admin);
+
+    visit(route('manage.people.index', $this->project))
+        ->click('Invite people')
+        ->assertPathIs(route('manage.invitations.index', $this->project, absolute: false));
+});
+
+it('leads someone from their own person page to their profile', function () {
+    $member = aMemberOf($this->family);
+    $this->as($member);
+
+    visit(route('people.show', [$this->project, $member]))
+        ->click('Edit your profile')
+        ->assertPathIs(route('profile.edit', absolute: false));
 });

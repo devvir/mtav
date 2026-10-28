@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -31,6 +32,37 @@ it('asks to confirm the email before anything else', function () {
     visit(route('projects.index'))
         ->assertSee('Confirm your email')
         ->assertSee('new@example.com');
+});
+
+it('sends the confirmation link again on request', function () {
+    Notification::fake();
+    $user = User::factory()->unverified()->create(['email' => 'new@example.com']);
+    $this->as($user);
+
+    visit(route('verification.notice'))
+        ->click('Send the link again')
+        ->assertSee('We sent you a new confirmation link.');
+
+    Notification::assertSentTo($user, VerifyEmailNotification::class);
+});
+
+it('keeps someone signed in when they ask to', function () {
+    $user = aUser(['email' => 'ana@example.com', 'password' => 'the-Right-pass-1']);
+
+    visit(route('login'))
+        ->fill('email', 'ana@example.com')
+        ->fill('password', 'the-Right-pass-1')
+        ->check('remember')
+        ->click('[type="submit"]')
+        ->assertPathIsNot('/login');
+
+    expect($user->fresh()->remember_token)->not->toBeNull();
+});
+
+it('goes back to signing in from the forgotten password page', function () {
+    visit(route('password.request'))
+        ->click('Back to sign in')
+        ->assertPathIs('/login');
 });
 
 it('signs in, refusing a wrong password', function () {
@@ -111,6 +143,28 @@ it('edits the profile', function () {
         ->click('Save')
         ->assertSee('Your profile was saved.')
         ->assertNoSmoke();
+});
+
+it('moves between the profile\'s sections', function () {
+    $this->as(aUser());
+
+    visit(route('profile.edit'))
+        ->click('[role="tab"]:has-text("Password")')
+        ->assertVisible('[name="current_password"]')
+        ->assertQueryStringHas('section', 'password')
+        ->click('[role="tab"]:has-text("About you")')
+        ->assertVisible('[name="firstname"]')
+        ->assertQueryStringMissing('section');
+});
+
+it('changes the profile picture', function () {
+    $user = aUser(['firstname' => 'Ana']);
+    $this->as($user);
+
+    attachFile(visit(route('profile.edit')), 'input[type="file"]', pngFile('me.png'))
+        ->assertPresent('.shell-account img');
+
+    expect($user->fresh()->avatar)->not->toBeNull();
 });
 
 it('switches to dark mode and high contrast', function () {

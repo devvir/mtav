@@ -40,3 +40,30 @@ it('opens what a notification is about, and marks it read', function () {
         ->assertPathIs("/projects/{$this->project->id}/events")
         ->assertPresent('[aria-label="Notifications"]');
 });
+
+it('marks every notification read from the bell', function () {
+    app(NotificationService::class)->send(
+        NotificationTarget::PROJECT,
+        NotificationType::RESOURCE_CREATED,
+        'New file: Minutes',
+        'The minutes of the last assembly',
+        route('media.index', $this->project),
+        targetId: $this->project->id,
+    );
+
+    visit(route('projects.show', $this->project))
+        ->click('[aria-label="Notifications, 2 unread"]')
+        ->click('Mark all as read')
+        ->assertPresent('[aria-label="Notifications"]')
+        ->assertDontSee('Mark all as read');
+});
+
+it('shows only the unread ones on demand, and marks them all read from the list', function () {
+    visit(route('notifications.index'))
+        ->click('Only unread')
+        ->assertSee('New event: General assembly')
+        ->click('Mark all as read')
+        ->assertSee('Nothing unread')
+        ->click('Show all')
+        ->assertSee('New event: General assembly');
+});

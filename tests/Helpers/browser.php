@@ -103,3 +103,23 @@ function button(string $text): string
 {
     return "button:has-text(\"{$text}\")";
 }
+
+/** A real file on disk for the browser to upload */
+function fixtureFile(string $name, string $content): string
+{
+    $path = sys_get_temp_dir() . '/' . $name;
+    file_put_contents($path, $content);
+
+    return $path;
+}
+
+/** A small PNG on disk */
+function pngFile(string $name = 'photo.png'): string
+{
+    $image = imagecreatetruecolor(64, 48);
+    imagefill($image, 0, 0, imagecolorallocate($image, 30, 120, 200));
+    ob_start();
+    imagepng($image);
+
+    return fixtureFile($name, ob_get_clean());
+}

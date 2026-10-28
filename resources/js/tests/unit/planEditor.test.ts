@@ -145,6 +145,25 @@ describe('the plan editor', () => {
     expect(editor.items[0].polygon).toHaveLength(3);
   });
 
+  it('removes a corner of the boundary, but keeps at least a triangle', () => {
+    const editor = new PlanModel(plan());
+    editor.select('boundary');
+    const corners = editor.canvas.polygon.length;
+
+    editor.selectedVertex = 0;
+    editor.remove();
+    expect(editor.canvas.polygon).toHaveLength(Math.max(3, corners - 1));
+    expect(editor.items).toHaveLength(1);
+  });
+
+  it('snaps to the grid, or keeps a tenth of a unit when snapping is off', () => {
+    const editor = new PlanModel(plan());
+
+    expect(editor.round(12.34)).toBe(10);
+    editor.setSnap(false);
+    expect(editor.round(12.34)).toBe(12.3);
+  });
+
   it('sends every shape, new ones without an id', () => {
     const editor = new PlanModel(plan());
     editor.add('street');
