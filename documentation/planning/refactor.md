@@ -133,13 +133,30 @@ decision taken on the way is listed below for review.
    fits, with "Show me how", which starts a guided tour of that spot.
 7. **Polish**: containers, documentation rewritten against the code, E2E journeys
    rewritten.
-8. **Parity check** against the pre-refactor app (`452ca64~1`, still running at
-   stg.mtav.uy with the same demo logins), page by page: nothing it did is lost without a
-   decision.
-9. **Dashboards**, at least as rich as the old one, shaped per audience: the member app's
-   home (the lottery, what is coming, recent files, the families and people), the admin
-   overview (setup progress, what needs attention, limits), the platform console (projects
-   awaiting approval, activity).
+8. **Parity with the pre-refactor app** (`452ca64~1`, at stg.mtav.uy with the same demo
+   logins): what it had that the new app lacks, each to keep or drop by decision. Seen
+   so far (home pages as member and admin, menus):
+   - **Home**: counts of units, families, members, admins, media, documents and events;
+     a stacked preview of the gallery; the families with their marks; the admins; the
+     latest members; every unit by type. The new home has the lottery, three counts, what
+     is coming and recent files. *Recommendation*: bring families, admins and latest
+     members to the home (item 9); units by type already live on the units page.
+   - **Quick actions**: a "+" menu in the top bar (create a member, upload media, upload
+     documents, an event). *Recommendation*: keep, as a "+" menu of what the person may
+     do, the same on every page.
+   - **Projects** (several projects): cards with families and members counts, a search
+     and an "active / all" filter. *Recommendation*: check against Your projects, add the
+     counts and the filter if missing.
+   - **Branding**: "FING ≒ UDELAR" under the logo. *Recommendation*: an institution line
+     under the brand, set per deployment (white-label).
+   - **Links**: the documentation and the GitHub repository in the sidebar (the "Dev
+     Dashboard" is a development tool, not kept). *Recommendation*: link the repository
+     from the guide, since the code is published with the thesis.
+   Still to compare: each page's details, page by page, for admins.
+9. **Dashboards**, at least as rich as the old one, shaped per audience: the project's
+   home (the lottery, what is coming, recent files, the families and people, and for
+   admins the setup checklist until done), the setup overview (progress, what needs
+   attention, limits), the platform console (projects awaiting approval, activity).
 10. **The plan, richer** (the author's ideas; units, types and the plan already share one
     page, where admins edit the plan in place). A unit added anywhere appears on the plan,
     waiting beside the canvas to be placed. Each type may carry a base shape and size, so
