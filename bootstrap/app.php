@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Where a request's time goes, in DevTools (local development only)
+        if (env('APP_ENV') === 'local') {
+            $middleware->prepend(\App\Http\Middleware\ServerTiming::class);
+        }
+
         $middleware->trustProxies(
             at: [
                 '127.0.0.0/8',    // localhost

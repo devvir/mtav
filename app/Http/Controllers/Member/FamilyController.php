@@ -33,7 +33,7 @@ class FamilyController extends Controller
             'types'     => $project->unitTypes()->alphabetically()->get(['id', 'name']),
             'unitTypes' => $this->unitTypesFor($request, $project),
             // A family's details, shown over the list (?family=12)
-            'family' => fn () => ($family = $project->families()->find($request->integer('family')))
+            'family' => fn () => $request->integer('family') && ($family = $project->families()->find($request->integer('family')))
                 ? FamilyResource::make($family->load('unitType', 'unit', 'members'))
                 : null,
         ]);

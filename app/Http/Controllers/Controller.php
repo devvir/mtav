@@ -7,6 +7,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Pagination\LengthAwarePaginator as OnePage;
+use Illuminate\Pagination\Paginator;
 
 abstract class Controller
 {
@@ -24,8 +26,12 @@ abstract class Controller
     {
         $whole = config('lists.whole');
 
-        if ((clone $query)->count() <= $whole) {
-            return [$query->paginate(max(1, $whole)), true];
+        $count = (clone $query)->count();
+        if ($count <= $whole) {
+            // One page holding them all, without counting them again
+            return [new OnePage($query->get(), $count, max(1, $whole), 1, [
+                'path' => Paginator::resolveCurrentPath(),
+            ]), true];
         }
 
         return [$narrow($query)->paginate($perPage)->withQueryString(), false];

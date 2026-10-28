@@ -21,7 +21,7 @@
         <link rel="icon" href="/favicon.ico" sizes="any">
 
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @vite('resources/js/app.tsx')
         @inertiaHead
     </head>
     <body>

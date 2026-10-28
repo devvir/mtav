@@ -30,7 +30,7 @@ class UnitController extends Controller
             'plan'   => Inertia::defer(fn () => PlanResource::make($project->plan->load('items.unit.family'))),
             'family' => $request->user()->familyIn($project)?->only('id', 'name', 'unit_type_id'),
             // A unit's details, shown over the page (?unit=7)
-            'unit' => fn () => ($unit = $project->units()->find($request->integer('unit')))
+            'unit' => fn () => $request->integer('unit') && ($unit = $project->units()->find($request->integer('unit')))
                 ? UnitResource::make($unit->load('type', 'family'))
                 : null,
         ]);

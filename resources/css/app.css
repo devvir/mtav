@@ -139,6 +139,12 @@
   max-width: 1240px;
   margin: 0 auto;
   padding: 24px 16px 48px;
+  transition: opacity 200ms ease;
+}
+/* On its way to another page: dims only if the trip is not over in a blink */
+.shell-page[data-loading] {
+  opacity: 0.6;
+  transition-delay: 150ms;
 }
 @media (min-width: 48em) {
   .shell-page {

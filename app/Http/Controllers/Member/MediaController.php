@@ -40,7 +40,7 @@ class MediaController extends Controller
             'filters'  => ['q' => $request->q],
             'storage'  => $this->storage($project),
             // A file's details, shown over the page (?file=12)
-            'file' => fn () => ($file = $project->media()->find($request->integer('file')))
+            'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))
                 ? MediaResource::make($file->load('owner'))
                 : null,
         ]);

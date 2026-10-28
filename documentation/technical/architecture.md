@@ -131,7 +131,16 @@ Tabler icons and dnd-kit for dragging.
   rendered by `DialogHost`.
 - **Routes**: `route()` (`lib/route.ts`) works from the route list sent once per session
   (the `routes` prop) and each visit's `ziggy` prop, so the current project is the
-  default `{project}`.
+  default `{project}`. `routeIs()` compares the current route's name, which the server
+  sends with each visit, never URLs.
+- **Moving between pages**: every page comes with the app (no page waits for its code).
+  A link loads its page once the pointer rests on it (200 ms; passing over others loads
+  nothing). On the click, the sidebar and tabs light the place at once and the top bar
+  starts; the page dims only if the trip lasts more than a blink. Only those three listen
+  to the trip, and the sidebar is built once per place visited, so a visit within a page
+  (details, filters) leaves the frame as it is. In local development, each response's
+  `Server-Timing` header (DevTools) splits its time into starting the app, handling it
+  and the database.
 - **Live updates**: `useProjectChanges({ resource: [props to reload] })` reloads a page's
   props when someone else changes them; `useLiveNotifications()` (in the shell) shows
   notifications as toasts. Both need `VITE_REVERB_APP_KEY`.

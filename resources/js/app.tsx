@@ -23,6 +23,8 @@ import { ProjectLayout } from './layouts/ProjectLayout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MTAV';
 
+const PAGES = import.meta.glob<{ default: Page }>('./pages/**/*.tsx', { eager: true });
+
 type Layout = ComponentType<{ children: ReactNode }>;
 type Page = ComponentType & { layout?: (page: ReactNode) => ReactNode };
 
@@ -36,9 +38,10 @@ const LAYOUTS: [string, Layout][] = [
 
 createInertiaApp({
   title: (title) => (title ? `${title} · ${appName}` : appName),
-  resolve: async (name) => {
-    const pages = import.meta.glob<{ default: Page }>('./pages/**/*.tsx');
-    const page = (await pages[`./pages/${name}.tsx`]()).default;
+  // Every page comes with the app (it is small): moving between pages never waits for one
+  // to load
+  resolve: (name) => {
+    const page = PAGES[`./pages/${name}.tsx`]!.default;
 
     if (page.layout === undefined) {
       const Layout = LAYOUTS.find(([prefix]) => name.startsWith(prefix))?.[1] ?? AccountLayout;
@@ -59,5 +62,10 @@ createInertiaApp({
       </Appearance>,
     );
   },
-  progress: { color: 'var(--mantine-color-brand-filled)', delay: 150 },
+  // The bar starts with the click: the sidebar lights the place at once, the bar says it is
+  // on its way
+  // A link loads its page once the pointer rests on it: passing over others on the way
+  // (well under 200 ms each) loads nothing
+  defaults: { prefetch: { hoverDelay: 200 } },
+  progress: { color: 'var(--mantine-color-brand-filled)', delay: 0 },
 });

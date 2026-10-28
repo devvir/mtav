@@ -31,6 +31,22 @@ export default defineConfig(({ mode }) => {
       hmr: {
         host: env.VITE_HMR_HOST || 'localhost',
       },
+      // File events reach the container through the bind mount on Linux; polling (for
+      // hosts where they do not: VITE_WATCH_POLLING=true) costs whole CPU cores. Either
+      // way, only the sources are watched.
+      watch: {
+        usePolling: env.VITE_WATCH_POLLING === 'true',
+        interval: 1000,
+        ignored: [
+          '**/node_modules/**',
+          '**/vendor/**',
+          '**/storage/**',
+          '**/public/build/**',
+          '**/.git/**',
+          '**/tests/**',
+          '**/.pnpm-store/**',
+        ],
+      },
     },
   };
 });

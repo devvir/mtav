@@ -34,7 +34,7 @@ class EventController extends Controller
             'events'  => EventResource::collection($events),
             'filters' => ['q' => $request->q, 'when' => $past ? 'past' : 'upcoming'],
             // An event's details, shown over the list (?event=5); drafts for admins only
-            'event' => fn () => ($event = $project->events()->find($request->integer('event')))
+            'event' => fn () => $request->integer('event') && ($event = $project->events()->find($request->integer('event')))
                 && $request->user()->can('view', $event)
                 ? EventResource::make($event->load('creator', 'rsvps'))
                 : null,

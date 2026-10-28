@@ -17,7 +17,7 @@ import {
   IconUsers,
   IconUsersGroup,
 } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 /**
  * A project's places, the lottery first after home: the shell's main group, here and on
@@ -122,10 +122,27 @@ export function projectNav(
 
 /** A project's pages, the same for everyone; admins find their tools on them */
 export function ProjectLayout({ children }: { children: ReactNode }) {
-  const project = useCurrentPage().props.project;
+  const { props } = useCurrentPage();
+  const project = props.project;
+  const id = project?.id;
+  const manages = Boolean(project?.can.manage);
+  const hasFamily = Boolean(project?.family);
+  // Built once per place visited: visits within a page (details, filters) reuse them
+  const [nav, tabs] = useMemo(
+    () =>
+      project
+        ? [
+            projectNav(project, manages),
+            projectPlaces(project)
+              .filter((item) => !item.action)
+              .slice(0, 4),
+          ]
+        : [[], []],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id, project?.name, manages, hasFamily, props.ziggy.name, props.locale],
+  );
   // Leaving a project that is gone (deleted, or left): the next page brings its own frame
   if (!project) return children;
-  const places = projectPlaces(project);
 
   const banner =
     project.can.manage && !project.is_approved ? (
@@ -141,12 +158,7 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
     ) : null;
 
   return (
-    <AppShell
-      heading={project.name}
-      nav={projectNav(project, project.can.manage)}
-      tabs={places.filter((item) => !item.action).slice(0, 4)}
-      banner={banner}
-    >
+    <AppShell heading={project.name} nav={nav} tabs={tabs} banner={banner}>
       {children}
     </AppShell>
   );

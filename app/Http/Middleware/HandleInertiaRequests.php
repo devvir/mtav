@@ -49,13 +49,14 @@ class HandleInertiaRequests extends Middleware
             ],
             /**
              * The route list, sent once (the client remembers it), and what changes per visit:
-             * the defaults (the project being browsed) and where one is
+             * the defaults (the project being browsed), where one is and the route's name
              */
             'routes' => Inertia::once(fn () => (new Ziggy())->toArray()),
             /** Where browsers reach the websocket server (null: no live updates) */
             'realtime' => Inertia::once(fn () => $this->realtime()),
             'ziggy'    => fn () => [
                 'defaults' => url()->getDefaultParameters(),
+                'name'     => $request->route()?->getName(),
                 'location' => [
                     'host'     => $request->getHttpHost(),
                     'pathname' => '/' . ltrim($request->path(), '/'),

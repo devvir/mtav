@@ -52,6 +52,8 @@ export interface SharedProps {
   ziggy: {
     defaults: Record<string, unknown>;
     location: { host: string; pathname: string; search: string };
+    /** The current route's name */
+    name: string | null;
   };
   [key: string]: unknown;
 }

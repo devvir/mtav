@@ -17,7 +17,14 @@ import {
   IconUser,
   type Icon,
 } from '@tabler/icons-react';
-import { forwardRef, useEffect, type ComponentProps, type ReactNode } from 'react';
+import {
+  forwardRef,
+  memo,
+  useEffect,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
 import { NotificationsMenu } from './NotificationsMenu';
 import { QuickActions } from './QuickActions';
 import { useCurrentPage, useFlashToasts } from './page';
@@ -44,6 +51,120 @@ const PrefetchLink = forwardRef<HTMLAnchorElement, ComponentProps<typeof Link>>(
     return <Link ref={ref} prefetch cacheFor="20s" {...props} />;
   },
 );
+
+/**
+ * Where a visit to another page is heading while it loads (its path), so the navigation
+ * lights the place at once and the page shows it is on its way. Visits within a page
+ * (details, filters) and sending forms are not trips. Only what shows it listens: the rest
+ * of the frame stays put.
+ */
+let trip: string | null = null;
+const travellers = new Set<() => void>();
+const setTrip = (to: string | null) => {
+  if (to === trip) return;
+  trip = to;
+  travellers.forEach((notify) => notify());
+};
+let tracking = false;
+
+function useTrip(): string | null {
+  return useSyncExternalStore(
+    (notify) => {
+      if (!tracking) {
+        tracking = true;
+        router.on('start', ({ detail: { visit } }) => {
+          if (visit.method === 'get' && visit.url.pathname !== window.location.pathname)
+            setTrip(visit.url.pathname);
+        });
+        router.on('navigate', () => setTrip(null));
+        router.on('finish', ({ detail: { visit } }) => !visit.completed && setTrip(null));
+      }
+      travellers.add(notify);
+      return () => travellers.delete(notify);
+    },
+    () => trip,
+  );
+}
+
+/** Whether a place is lit: the one a trip heads to, or else the one we are at */
+const lit = (item: NavEntry, items: NavEntry[], to: string | null) =>
+  to && items.some((other) => other.href === to) ? item.href === to : item.active;
+
+/** The area's places in groups; while a trip loads, its place is the lit one */
+const Navigation = memo(function Navigation({ nav }: { nav: NavGroup[] }) {
+  const to = useTrip();
+  const items = nav.flatMap((group) => group.items);
+  const entry = (item: NavEntry) => {
+    const active = lit(item, items, to);
+    return (
+      <NavItem
+        key={item.href}
+        as={PrefetchLink}
+        href={item.href}
+        icon={item.icon}
+        label={item.label}
+        active={active}
+        count={item.count}
+        data-action={item.action || undefined}
+      />
+    );
+  };
+
+  return (
+    <nav className="shell-nav" aria-label={_('Navigation')}>
+      {nav.map((group) => {
+        const places = group.items.filter((item) => !item.action);
+        const actions = group.items.filter((item) => item.action);
+        return (
+          <div key={group.label} className="shell-group">
+            <Text className="ds-label shell-heading ds-truncate">{group.label}</Text>
+            {places.map(entry)}
+            {actions.length ? <div className="shell-actions">{actions.map(entry)}</div> : null}
+          </div>
+        );
+      })}
+    </nav>
+  );
+});
+
+/** The page, dimmed while on its way to another */
+function Page({ tabs, children }: { tabs: boolean; children: ReactNode }) {
+  const to = useTrip();
+
+  return (
+    <main
+      className="shell-page"
+      data-with-tabs={tabs || undefined}
+      data-loading={to ? true : undefined}
+    >
+      {children}
+    </main>
+  );
+}
+
+/** Phone bottom tabs: the member app's main places */
+const Tabs = memo(function Tabs({ tabs }: { tabs: NavEntry[] }) {
+  const to = useTrip();
+
+  return (
+    <nav className="ds-bar shell-tabs" aria-label={_('Main')}>
+      {tabs.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          prefetch
+          cacheFor="20s"
+          className="shell-tab"
+          data-active={lit(item, tabs, to) || undefined}
+          aria-current={lit(item, tabs, to) ? 'page' : undefined}
+        >
+          <item.icon size={24} stroke={1.8} />
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+});
 
 /**
  * The frame of every signed-in page: a glass bar on top (project switcher, notifications,
@@ -74,36 +195,7 @@ export function AppShell({
   useFlashToasts();
   useEffect(() => router.on('navigate', close), [close]);
 
-  const entry = (item: NavEntry) => (
-    <NavItem
-      key={item.href}
-      as={PrefetchLink}
-      href={item.href}
-      icon={item.icon}
-      label={item.label}
-      active={item.active}
-      count={item.count}
-      data-action={item.action || undefined}
-    />
-  );
-
-  const navigation = (
-    <>
-      <nav className="shell-nav" aria-label={_('Navigation')}>
-        {nav.map((group) => {
-          const places = group.items.filter((item) => !item.action);
-          const actions = group.items.filter((item) => item.action);
-          return (
-            <div key={group.label} className="shell-group">
-              <Text className="ds-label shell-heading ds-truncate">{group.label}</Text>
-              {places.map(entry)}
-              {actions.length ? <div className="shell-actions">{actions.map(entry)}</div> : null}
-            </div>
-          );
-        })}
-      </nav>
-    </>
-  );
+  const navigation = <Navigation nav={nav} />;
 
   return (
     <div className="shell">
@@ -233,28 +325,9 @@ export function AppShell({
 
         {banner}
 
-        <main className="shell-page" data-with-tabs={tabs?.length ? true : undefined}>
-          {children}
-        </main>
+        <Page tabs={Boolean(tabs?.length)}>{children}</Page>
 
-        {tabs?.length ? (
-          <nav className="ds-bar shell-tabs" aria-label={_('Main')}>
-            {tabs.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                prefetch
-                cacheFor="20s"
-                className="shell-tab"
-                data-active={item.active || undefined}
-                aria-current={item.active ? 'page' : undefined}
-              >
-                <item.icon size={24} stroke={1.8} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        ) : null}
+        {tabs?.length ? <Tabs tabs={tabs} /> : null}
       </div>
 
       <Drawer
