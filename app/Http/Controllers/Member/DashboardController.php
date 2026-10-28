@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Member;
 use App\Enums\MediaCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
+use App\Http\Resources\FamilyResource;
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\MemberResource;
 use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\Request;
@@ -43,9 +45,26 @@ class DashboardController extends Controller
                 $project->events()->published()->where('type', '!=', 'lottery')->upcoming()
                     ->with('rsvps')->orderBy('start_date')->limit(3)->get()
             )),
-            'media' => Inertia::defer(fn () => MediaResource::collection(
+            // Who the project is: a few families, its admins, who joined last
+            'community' => Inertia::defer(fn () => $this->community($project)),
+            'media'     => Inertia::defer(fn () => MediaResource::collection(
                 $project->media()->category(MediaCategory::MEDIA)->with('owner')->latest()->limit(8)->get()
             )),
         ]);
+    }
+
+    private function community(Project $project): array
+    {
+        $withMembership = ['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')];
+
+        return [
+            'families' => FamilyResource::collection(
+                $project->families()->withCount('members')->alphabetically()->limit(6)->get()
+            ),
+            'admins' => MemberResource::collection($project->admins()->with($withMembership)->alphabetically()->get()),
+            'latest' => MemberResource::collection(
+                $project->members()->with($withMembership)->orderByPivot('created_at', 'desc')->limit(6)->get()
+            ),
+        ];
     }
 }

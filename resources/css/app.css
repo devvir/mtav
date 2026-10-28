@@ -62,13 +62,20 @@
   padding-top: 12px;
   border-top: 1px solid var(--mtav-border);
 }
-.ds-nav-item[data-action] {
+/* A call to action in the sidebar: in the brand's colour and outlined, never filled like
+   the page one is at (which it only looks like once one is there) */
+.ds-nav-item[data-action]:not([data-active]) {
   color: var(--mtav-brand);
-  background: var(--mtav-brand-soft);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mtav-brand) 22%, transparent);
+  background: transparent;
+  box-shadow: none;
+  outline: 1px dashed color-mix(in srgb, var(--mtav-brand) 40%, transparent);
+  outline-offset: -1px;
 }
-.ds-nav-item[data-action]:hover {
-  background: color-mix(in srgb, var(--mtav-brand) 16%, transparent);
+.ds-nav-item[data-action]:not([data-active]) svg {
+  color: var(--mtav-brand);
+}
+.ds-nav-item[data-action]:not([data-active]):hover {
+  background: color-mix(in srgb, var(--mtav-brand) 8%, transparent);
 }
 
 .shell-bar {

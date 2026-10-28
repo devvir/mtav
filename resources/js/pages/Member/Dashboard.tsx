@@ -1,3 +1,4 @@
+import { CommunityPanel, type Community } from '@/components/domain/CommunityPanel';
 import { EventCard } from '@/components/domain/EventCard';
 import { MediaGrid } from '@/components/domain/MediaGrid';
 import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
@@ -37,9 +38,10 @@ interface Props {
   setup: Setup | null;
   events?: ProjectEvent[];
   media?: Media[];
+  community?: Community;
 }
 
-export default function Dashboard({ overview, lottery, setup, events, media }: Props) {
+export default function Dashboard({ overview, lottery, setup, events, media, community }: Props) {
   const project = usePage().props.project!;
   // No units yet: nothing to choose from, no figures worth showing, only what comes next
   const empty = !overview.units_count;
@@ -47,8 +49,8 @@ export default function Dashboard({ overview, lottery, setup, events, media }: P
     events: ['events'],
     media: ['media'],
     lottery_runs: ['lottery'],
-    families: ['overview', 'setup'],
-    people: ['overview', 'setup'],
+    families: ['overview', 'setup', 'community'],
+    people: ['overview', 'setup', 'community'],
     units: ['overview', 'setup'],
     unit_types: ['setup'],
   });
@@ -176,6 +178,14 @@ export default function Dashboard({ overview, lottery, setup, events, media }: P
           </Deferred>
         </Panel>
       </div>
+
+      {!empty ? (
+        <div style={{ marginTop: 24 }}>
+          <Deferred data="community" fallback={<Skeleton h={220} radius="lg" />}>
+            {community ? <CommunityPanel community={community} /> : null}
+          </Deferred>
+        </div>
+      ) : null}
 
       <Panel
         title={_('Recently shared')}
