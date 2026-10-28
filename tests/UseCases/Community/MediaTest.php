@@ -51,6 +51,13 @@ it('files a PDF under documents', function () {
     expect($this->project->media()->sole()->category)->toBe(MediaCategory::DOCUMENT);
 });
 
+it('files a phone\'s voice memo under audio', function () {
+    upload($this, $this->member, UploadedFile::fake()->create('memo.m4a', 300, 'audio/x-m4a'))
+        ->assertSessionHasNoErrors();
+
+    expect($this->project->media()->sole()->category)->toBe(MediaCategory::AUDIO);
+});
+
 it('shares several files at once', function () {
     upload(
         $this,

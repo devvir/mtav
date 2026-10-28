@@ -21,6 +21,8 @@ use RuntimeException;
  *  - superadmin@example.com   platform superadmin
  *  - admin@example.com        admin of both projects (and in a family of the first)
  *  - member@example.com       member of a family of the first project
+ *
+ * The first project also shares files of every kind (DemoMedia).
  */
 class DatabaseSeeder extends Seeder
 {
@@ -69,6 +71,9 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         $acacias->lottery->update(['start_date' => now()->addMonth()]);
+
+        $media = app(DemoMedia::class);
+        $media->share($acacias, $admin, $member, ...$acacias->members()->whereNotIn('users.id', [$admin->id, $member->id])->take(3)->get());
     }
 
     /**
