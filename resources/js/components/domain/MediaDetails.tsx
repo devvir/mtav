@@ -5,7 +5,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media } from '@/types/models';
 import { router } from '@inertiajs/react';
-import { Button, Card, Group, Modal, Text } from '@mantine/core';
+import { Button, Card, Group, Text } from '@mantine/core';
 import { IconDownload, IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -36,6 +36,9 @@ export function MediaDetails({ media }: { media: Media }) {
       {_('Download')}
     </Button>
   );
+
+  // Editing replaces the details in the same dialog (one dialog at a time)
+  if (editing) return <MediaForm media={media} onDone={() => setEditing(false)} />;
 
   return (
     <>
@@ -90,11 +93,6 @@ export function MediaDetails({ media }: { media: Media }) {
           </Button>
         ) : null}
       </Group>
-      {media.can.update ? (
-        <Modal opened={editing} onClose={() => setEditing(false)} title={_('Edit the description')}>
-          <MediaForm media={media} onDone={() => setEditing(false)} />
-        </Modal>
-      ) : null}
     </>
   );
 }

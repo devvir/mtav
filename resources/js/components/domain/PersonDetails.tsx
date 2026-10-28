@@ -6,7 +6,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Anchor, Badge, Button, Divider, Group, Modal, Stack, Text } from '@mantine/core';
+import { Anchor, Badge, Button, Divider, Group, Stack, Text } from '@mantine/core';
 import { IconLogout, IconMail, IconPhone, IconUserCog, IconUserMinus } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -47,6 +47,10 @@ export function PersonDetails({
     });
     if (ok) router.delete(route('membership.leave'));
   };
+
+  // Editing replaces the details in the same dialog (one dialog at a time)
+  if (editing && families)
+    return <MembershipForm person={person} families={families} onDone={() => setEditing(false)} />;
 
   return (
     <>
@@ -139,9 +143,6 @@ export function PersonDetails({
               </Button>
             ) : null}
           </Group>
-          <Modal opened={editing} onClose={() => setEditing(false)} title={person.name}>
-            <MembershipForm person={person} families={families} onDone={() => setEditing(false)} />
-          </Modal>
         </>
       ) : null}
     </>

@@ -5,17 +5,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Family, UnitType } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import {
-  Alert,
-  Button,
-  Card,
-  Divider,
-  Group,
-  Modal,
-  SimpleGrid,
-  Text,
-  Tooltip,
-} from '@mantine/core';
+import { Alert, Button, Card, Divider, Group, SimpleGrid, Text, Tooltip } from '@mantine/core';
 import { IconHome, IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -42,6 +32,10 @@ export function FamilyDetails({
     });
     if (ok) router.delete(route('manage.families.destroy', family.id));
   };
+
+  // Editing replaces the details in the same dialog (one dialog at a time)
+  if (editing && unitTypes)
+    return <FamilyForm family={family} unitTypes={unitTypes} onDone={() => setEditing(false)} />;
 
   return (
     <>
@@ -118,12 +112,6 @@ export function FamilyDetails({
             ) : null}
           </Group>
         </>
-      ) : null}
-
-      {unitTypes ? (
-        <Modal opened={editing} onClose={() => setEditing(false)} title={family.name}>
-          <FamilyForm family={family} unitTypes={unitTypes} onDone={() => setEditing(false)} />
-        </Modal>
       ) : null}
     </>
   );

@@ -4,7 +4,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Unit, UnitType } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
-import { Anchor, Button, Divider, Group, Modal, Text, Tooltip } from '@mantine/core';
+import { Anchor, Button, Divider, Group, Text, Tooltip } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 
@@ -28,6 +28,10 @@ export function UnitDetails({
     )
       router.delete(route('manage.units.destroy', unit.id));
   };
+
+  // Editing replaces the details in the same dialog (one dialog at a time)
+  if (editing && unitTypes)
+    return <UnitForm unit={unit} unitTypes={unitTypes} onDone={() => setEditing(false)} />;
 
   return (
     <>
@@ -77,9 +81,6 @@ export function UnitDetails({
               </Button>
             </Tooltip>
           </Group>
-          <Modal opened={editing} onClose={() => setEditing(false)} title={unit.identifier}>
-            <UnitForm unit={unit} unitTypes={unitTypes} onDone={() => setEditing(false)} />
-          </Modal>
         </>
       ) : null}
     </>

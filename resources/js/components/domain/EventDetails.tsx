@@ -6,18 +6,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
 import { router } from '@inertiajs/react';
-import {
-  Anchor,
-  Badge,
-  Button,
-  Card,
-  Divider,
-  Group,
-  Modal,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Anchor, Badge, Button, Card, Divider, Group, Stack, Text, Title } from '@mantine/core';
 import {
   IconCheck,
   IconClock,
@@ -47,6 +36,9 @@ export function EventDetails({ event }: { event: ProjectEvent }) {
   };
   const rsvp = (attending: boolean) =>
     router.put(route('events.rsvp', event.id), { attending }, { preserveScroll: true });
+
+  // Editing replaces the details in the same dialog (one dialog at a time)
+  if (editing) return <EventForm event={event} onDone={() => setEditing(false)} />;
 
   return (
     <>
@@ -157,9 +149,6 @@ export function EventDetails({ event }: { event: ProjectEvent }) {
               </Button>
             ) : null}
           </Group>
-          <Modal opened={editing} onClose={() => setEditing(false)} title={event.title} size="lg">
-            <EventForm event={event} onDone={() => setEditing(false)} />
-          </Modal>
         </>
       ) : null}
     </>
