@@ -171,6 +171,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->name('admin.')->middleware(EnsureSuperadmin::class)->group(function () {
         Route::get('/', [Platform\ProjectController::class, 'index'])->name('projects.index');
         Route::put('projects/{project}/approval', [Platform\ProjectController::class, 'approve'])->name('projects.approve');
+        Route::put('projects/{project}/restoration', [Platform\ProjectController::class, 'restore'])
+            ->name('projects.restore')->withTrashed();
+        Route::delete('projects/{project}', [Platform\ProjectController::class, 'destroy'])
+            ->name('projects.destroy')->withTrashed();
         Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
         Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');

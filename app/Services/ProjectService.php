@@ -7,9 +7,12 @@ use App\Enums\LotteryRunStatus;
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use App\Models\Event;
+use App\Models\Media;
+use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectService
 {
@@ -96,6 +99,41 @@ class ProjectService
             trigger: $superadmin,
             targetId: $project->id,
         );
+    }
+
+    /**
+     * Its admins delete it: archived when it has a history (kept for audits, gone for
+     * everyone but superadmins), else deleted for good. Whether it was archived.
+     */
+    public function remove(Project $project, User $by): bool
+    {
+        if (! $project->hasHistory()) {
+            $this->purge($project);
+
+            return false;
+        }
+
+        $project->forceFill(['archived_by' => $by->id])->save();
+        $project->delete();
+
+        return true;
+    }
+
+    /** An archived project, back as it was */
+    public function restore(Project $project): void
+    {
+        $project->forceFill(['archived_by' => null])->save();
+        $project->restore();
+    }
+
+    /** Deleted for good: everything in it, its files and its notifications */
+    public function purge(Project $project): void
+    {
+        DB::transaction(function () use ($project) {
+            Notification::where('target', NotificationTarget::PROJECT)->where('target_id', $project->id)->delete();
+            $project->forceDelete();
+        });
+        Storage::disk(Media::DISK)->deleteDirectory("projects/{$project->id}");
     }
 
     /**

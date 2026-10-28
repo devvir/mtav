@@ -62,13 +62,14 @@ class Invitation extends Model
         return $this->belongsTo(User::class, 'invited_by');
     }
 
+    /** Neither accepted nor expired, into a project still there (not archived) */
     public function isPending(): bool
     {
-        return ! $this->accepted_at && $this->expires_at->isFuture();
+        return ! $this->accepted_at && $this->expires_at->isFuture() && $this->project;
     }
 
     public function scopePending(Builder $query): void
     {
-        $query->whereNull('accepted_at')->where('expires_at', '>', now());
+        $query->whereNull('accepted_at')->where('expires_at', '>', now())->whereHas('project');
     }
 }

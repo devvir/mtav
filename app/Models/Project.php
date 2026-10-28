@@ -9,13 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * A housing project. Until a superadmin approves it (trusts its managers), it works
- * within the limits in config/limits.php.
+ * within the limits in config/limits.php. Deleted once it has a history, it is archived
+ * instead (soft deleted: gone for everyone but superadmins).
  */
 class Project extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'description',
@@ -36,6 +40,25 @@ class Project extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function archiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    /**
+     * Whether it has a history worth keeping for audits: other people took part (or were
+     * invited), it held events (besides its lottery's own), shared files or ran its
+     * lottery. A project its creator only set up has none, and is deleted for good.
+     */
+    public function hasHistory(): bool
+    {
+        return $this->memberships()->where('user_id', '!=', $this->created_by)->exists()
+            || $this->invitations()->exists()
+            || $this->events()->where('type', '!=', EventType::LOTTERY)->exists()
+            || $this->media()->exists()
+            || $this->lotteryRuns()->exists();
     }
 
     public function memberships(): HasMany

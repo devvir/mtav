@@ -64,6 +64,14 @@ lottery size). Its admins ask a superadmin to approve it; approval lifts the lim
 Projects started by a superadmin are approved at once. `Project::limit($key)` returns a
 limit, or null for approved projects.
 
+**Deleting** a project (its admins, by typing its name) archives it when it has a history
+(`Project::hasHistory`: other people in it or invited, events besides its lottery's,
+shared files, lottery runs), else deletes it for good (`ProjectService::remove`).
+Archiving is Laravel's soft delete: an archived project is gone for everyone (its pages,
+its invitations, its notifications) but superadmins, who find it under "Archived" in the
+console, restore it, or delete it for good (`ProjectService::purge`: its files and
+notifications too) after a summary of what goes with it and its name typed.
+
 ## Invitations
 
 `InvitationService` creates an invitation (`invitations`) and emails a link with a

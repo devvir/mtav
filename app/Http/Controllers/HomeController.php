@@ -18,10 +18,13 @@ class HomeController extends Controller
         /** Messages for the page people land on must survive this extra redirect */
         $request->session()->reflash();
 
+        // The projects they are in (archived ones are gone for them): one leads straight there
+        $projects = $user->projects()->limit(2)->pluck('projects.id');
+
         return match (true) {
-            $user->isSuperadmin()             => to_route('admin.projects.index'),
-            $user->memberships->count() === 1 => to_route('projects.show', $user->memberships->first()->project_id),
-            default                           => to_route('projects.index'),
+            $user->isSuperadmin()    => to_route('admin.projects.index'),
+            $projects->count() === 1 => to_route('projects.show', $projects->first()),
+            default                  => to_route('projects.index'),
         };
     }
 }

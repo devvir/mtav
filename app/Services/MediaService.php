@@ -22,8 +22,8 @@ class MediaService
      * Accepted types, by category. SVG is deliberately absent (it can carry scripts).
      */
     public const MIME_TYPES = [
-        'image'    => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-        'video'    => ['video/mp4', 'video/webm', 'video/quicktime'],
+        'image' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        'video' => ['video/mp4', 'video/webm', 'video/quicktime'],
         // audio/x-m4a: what phones' voice memos are reported as
         'audio'    => ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm'],
         'document' => [

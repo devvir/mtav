@@ -22,6 +22,8 @@ return [
     'project_left'       => 'Saliste de :project.',
     'approval_requested' => 'Le pedimos al equipo de la plataforma que apruebe tu proyecto. Pronto tendrás novedades.',
     'project_approved'   => ':project está aprobado: ya no tiene límites.',
+    'project_restored'   => ':project volvió, tal como estaba.',
+    'project_purged'     => ':project se eliminó definitivamente.',
 
     /** Personas */
     'invitation_sent'     => 'Enviamos la invitación a :email.',

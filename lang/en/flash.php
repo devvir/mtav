@@ -22,6 +22,8 @@ return [
     'project_left'       => 'You left :project.',
     'approval_requested' => 'We asked the platform team to approve your project. You will hear from us soon.',
     'project_approved'   => ':project is approved: its limits are lifted.',
+    'project_restored'   => ':project is back, as it was.',
+    'project_purged'     => ':project was deleted for good.',
 
     /** People */
     'invitation_sent'     => 'Invitation sent to :email.',

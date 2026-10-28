@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Project;
 use App\Models\User;
 
 /**
@@ -63,4 +64,37 @@ it('previews the components in either scheme', function () {
         ->assertScript("document.documentElement.getAttribute('data-mantine-color-scheme')", 'dark')
         ->click('.lab-head >> text=Light')
         ->assertScript("document.documentElement.getAttribute('data-mantine-color-scheme')", 'light');
+});
+
+it('restores an archived project, or deletes it for good after its summary and its name', function () {
+    $kept = aProject(['name' => 'Cooperativa Vuelta']);
+    $gone = aProject(['name' => 'Cooperativa Final']);
+    aMemberOf(aFamily($kept));
+    aMemberOf(aFamily($gone));
+    $kept->delete();
+    $gone->delete();
+
+    $page = visit(route('admin.projects.index', ['show' => 'archived']))
+        ->assertSee('Cooperativa Vuelta')
+        ->assertSee('Cooperativa Final');
+
+    $page->click('.row:has-text("Cooperativa Vuelta") >> ' . button('Restore'))
+        ->click(inDialog('Restore'))
+        ->assertSee('Cooperativa Vuelta is back, as it was.');
+
+    $page->click('.row:has-text("Cooperativa Final") >> ' . button('Delete for good'))
+        ->assertSee('Delete Cooperativa Final for good?')
+        ->assertSee('Lottery runs')
+        ->assertSee('Everything in it is deleted, its files too.');
+
+    // Not before the name is typed
+    expect($page->script('[...document.querySelectorAll(\'[role="dialog"] button\')].find((b) => b.textContent.includes("Delete for good")).disabled'))->toBeTrue();
+
+    $page->fill('[role="dialog"] input', 'Cooperativa Final')
+        ->click(inDialog('Delete for good'))
+        ->assertSee('Cooperativa Final was deleted for good.')
+        ->assertNoSmoke();
+
+    expect(Project::withTrashed()->find($gone->id))->toBeNull();
+    expect(Project::find($kept->id))->not->toBeNull();
 });

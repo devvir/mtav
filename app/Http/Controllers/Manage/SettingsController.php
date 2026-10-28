@@ -28,13 +28,14 @@ class SettingsController extends Controller
     /**
      * Deleting a project takes everything in it; the admin types its name to confirm.
      */
-    public function destroy(Request $request, Project $project): RedirectResponse
+    public function destroy(Request $request, Project $project, ProjectService $projects): RedirectResponse
     {
         $this->authorize('delete', $project);
 
         $request->validate(['confirmation' => ['required', 'in:' . $project->name]]);
 
-        $project->delete();
+        // Archived or deleted for good, it is gone for them either way
+        $projects->remove($project, $request->user());
 
         return to_route('projects.index')->with('success', __('flash.project_deleted'));
     }

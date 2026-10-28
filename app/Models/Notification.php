@@ -60,11 +60,11 @@ class Notification extends Model
 
     /**
      * Notifications a user receives, newest first, from their registration on, each
-     * with a `read` flag for that user.
+     * with a `read` flag for that user. An archived project's are no longer among them.
      */
     public function scopeFor(Builder $query, User $user): void
     {
-        $projectIds = $user->memberships->pluck('project_id');
+        $projectIds = Project::select('id')->whereIn('id', $user->memberships->pluck('project_id'));
 
         $query
             ->where(fn (Builder $q) => $q
