@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
             Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
 
-            Route::resource('media', Member\MediaController::class)->parameters(['media' => 'media']);
+            Route::resource('media', Member\MediaController::class)->except('edit')->parameters(['media' => 'media']);
             Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
             Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
 

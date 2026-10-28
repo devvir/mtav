@@ -17,9 +17,9 @@ removing (in dialogs, which a link opens with `?new=1`, `?new_type=1` or `?new_u
 drawing the plan in place, and running the lottery. What admins do is sent to the admin
 routes under `manage/`, gated as a whole.
 
-Simple things have no page of their own: a person, a family, a unit or an event opens in
-a dialog over its list, with the item in the address (`?person=19`, `?family=`, `?unit=`,
-`?event=`; `lib/detailsInAddress.ts`). Opening and closing are visits that reload only
+Simple things have no page of their own: a person, a family, a unit, an event or a shared
+file opens in a dialog over its list, with the item in the address (`?person=19`,
+`?family=`, `?unit=`, `?event=`, `?file=`; `lib/detailsInAddress.ts`). Opening and closing are visits that reload only
 that prop, so links open them and the back button closes them; their old addresses
 (`people/19`, …) redirect there, and saving one returns to it. The few pages with no
 counterpart for members

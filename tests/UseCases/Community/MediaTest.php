@@ -38,7 +38,10 @@ it('lets a member share an image with the project gallery', function () {
         ->owner_id->toBe($this->member->id)
         ->description->toBe('Building site, week 12');
 
-    $this->as($this->admin, $this->project)->get(route('media.show', $media))->assertOk();
+    $this->as($this->admin, $this->project)->get(route('media.show', $media))
+        ->assertRedirect(route('media.index', ['file' => $media->id]));
+
+    expect($this->get(route('media.index', ['file' => $media->id]))->inertiaProps('file.id'))->toBe($media->id);
 });
 
 it('files a PDF under documents', function () {

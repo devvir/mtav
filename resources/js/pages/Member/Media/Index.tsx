@@ -1,3 +1,4 @@
+import { MediaDetails } from '@/components/domain/MediaDetails';
 import { MediaGrid } from '@/components/domain/MediaGrid';
 import { FilterTabs } from '@/components/feedback/FilterTabs';
 import { Pagination } from '@/components/feedback/Pagination';
@@ -5,12 +6,13 @@ import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media, Paginated } from '@/types/models';
 import { Link, usePage } from '@inertiajs/react';
-import { Button, Group, Progress, Text } from '@mantine/core';
+import { Button, Group, Modal, Progress, Text } from '@mantine/core';
 import { IconPhoto, IconPhotoPlus } from '@tabler/icons-react';
 
 interface Props {
@@ -18,11 +20,14 @@ interface Props {
   category: 'media' | 'document';
   filters: { q: string | null };
   storage: { used_mb: number; limit_mb: number } | null;
+  /** A file's details, shown over the page (?file=12) */
+  file: Media | null;
 }
 
-export default function MediaIndex({ media, category, filters, storage }: Props) {
+export default function MediaIndex({ media, category, filters, storage, file }: Props) {
+  const details = useDetailsInAddress('file');
   const canUpload = usePage().props.project?.can.upload;
-  useProjectChanges({ media: ['media', 'storage'] });
+  useProjectChanges({ media: ['media', 'storage', 'file'] });
 
   const tabs = [
     { value: 'media', label: _('Media') },
@@ -91,6 +96,10 @@ export default function MediaIndex({ media, category, filters, storage }: Props)
           />
         </div>
       ) : null}
+
+      <Modal opened={Boolean(file)} onClose={details.close} title={file?.description} size="xl">
+        {file ? <MediaDetails media={file} /> : null}
+      </Modal>
     </>
   );
 }

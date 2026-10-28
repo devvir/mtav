@@ -39,12 +39,17 @@ class MediaController extends Controller
             'category' => $category->value,
             'filters'  => ['q' => $request->q],
             'storage'  => $this->storage($project),
+            // A file's details, shown over the page (?file=12)
+            'file' => fn () => ($file = $project->media()->find($request->integer('file')))
+                ? MediaResource::make($file->load('owner'))
+                : null,
         ]);
     }
 
-    public function show(Project $project, Media $media): Response
+    /** A file's details open over the media page: its address leads there */
+    public function show(Project $project, Media $media): RedirectResponse
     {
-        return inertia('Member/Media/Show', ['media' => MediaResource::make($media->load('owner'))]);
+        return to_route('media.index', [...$this->tab($media), 'file' => $media->id]);
     }
 
     public function create(Request $request, Project $project): Response
@@ -71,20 +76,14 @@ class MediaController extends Controller
             ->with('success', trans_choice('flash.media_uploaded', count($stored), ['count' => count($stored)]));
     }
 
-    public function edit(Project $project, Media $media): Response
-    {
-        $this->authorize('update', $media);
-
-        return inertia('Member/Media/Edit', ['media' => MediaResource::make($media)]);
-    }
-
     public function update(MediaRequest $request, Project $project, Media $media): RedirectResponse
     {
         $this->authorize('update', $media);
 
         $media->update($request->safe()->only('description', 'alt_text'));
 
-        return to_route('media.show', $media)->with('success', __('flash.media_updated'));
+        return to_route('media.index', [...$this->tab($media), 'file' => $media->id])
+            ->with('success', __('flash.media_updated'));
     }
 
     public function destroy(Project $project, Media $media): RedirectResponse
@@ -97,6 +96,12 @@ class MediaController extends Controller
 
         return to_route('media.index', array_filter(['category' => $category]))
             ->with('success', __('flash.media_deleted'));
+    }
+
+    /** The tab a file is listed under (documents apart) */
+    private function tab(Media $media): array
+    {
+        return $media->category === MediaCategory::DOCUMENT ? ['category' => MediaCategory::DOCUMENT->value] : [];
     }
 
     /**

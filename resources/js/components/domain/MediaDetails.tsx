@@ -1,14 +1,18 @@
 import { DateTime } from '@/components/feedback/DateTime';
-import { PageHeader } from '@/components/layout/PageHeader';
+import { MediaForm } from '@/components/forms/MediaForm';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media } from '@/types/models';
-import { Link, router } from '@inertiajs/react';
-import { Button, Card, Text } from '@mantine/core';
+import { router } from '@inertiajs/react';
+import { Button, Card, Group, Modal, Text } from '@mantine/core';
 import { IconDownload, IconPencil, IconTrash } from '@tabler/icons-react';
+import { useState } from 'react';
 
-export default function MediaShow({ media }: { media: Media }) {
+/** A shared file: seen or played where the browser can, downloaded otherwise; its owner
+ * (and admins) edit its description or remove it */
+export function MediaDetails({ media }: { media: Media }) {
+  const [editing, setEditing] = useState(false);
   const remove = async () => {
     if (
       await confirm({
@@ -35,39 +39,6 @@ export default function MediaShow({ media }: { media: Media }) {
 
   return (
     <>
-      <PageHeader
-        title={media.description}
-        back={{
-          href: route('media.index', media.category === 'document' ? { category: 'document' } : {}),
-          label: _('Media'),
-        }}
-        actions={
-          <>
-            {download}
-            {media.can.update ? (
-              <Button
-                variant="default"
-                component={Link}
-                href={route('media.edit', media.id)}
-                leftSection={<IconPencil size={18} />}
-              >
-                {_('Edit')}
-              </Button>
-            ) : null}
-            {media.can.delete ? (
-              <Button
-                variant="default"
-                color="red"
-                c="red"
-                onClick={remove}
-                leftSection={<IconTrash size={18} />}
-              >
-                {_('Remove')}
-              </Button>
-            ) : null}
-          </>
-        }
-      />
       <Card p={0} className="media-stage">
         {media.category === 'image' ? (
           <img src={media.url} alt={media.alt_text ?? media.description} />
@@ -96,6 +67,34 @@ export default function MediaShow({ media }: { media: Media }) {
         {media.owner ? `${_('Shared by {name}', { name: media.owner.name })} · ` : null}
         <DateTime value={media.created_at} />
       </Text>
+      <Group gap="sm" mt="lg">
+        {download}
+        {media.can.update ? (
+          <Button
+            variant="default"
+            leftSection={<IconPencil size={18} />}
+            onClick={() => setEditing(true)}
+          >
+            {_('Edit')}
+          </Button>
+        ) : null}
+        {media.can.delete ? (
+          <Button
+            variant="default"
+            color="red"
+            c="red"
+            onClick={remove}
+            leftSection={<IconTrash size={18} />}
+          >
+            {_('Remove')}
+          </Button>
+        ) : null}
+      </Group>
+      {media.can.update ? (
+        <Modal opened={editing} onClose={() => setEditing(false)} title={_('Edit the description')}>
+          <MediaForm media={media} onDone={() => setEditing(false)} />
+        </Modal>
+      ) : null}
     </>
   );
 }
