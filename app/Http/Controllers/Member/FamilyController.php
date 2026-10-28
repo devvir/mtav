@@ -7,6 +7,7 @@ use App\Http\Resources\FamilyResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Family;
 use App\Models\Project;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
@@ -26,15 +27,17 @@ class FamilyController extends Controller
             'families'  => FamilyResource::collection($families),
             'filters'   => ['q' => $request->q],
             'unitTypes' => $this->unitTypesFor($request, $project),
+            // A family's details, shown over the list (?family=12)
+            'family' => fn () => ($family = $project->families()->find($request->integer('family')))
+                ? FamilyResource::make($family->load('unitType', 'unit', 'members'))
+                : null,
         ]);
     }
 
-    public function show(Request $request, Project $project, Family $family): Response
+    /** A family's details open over the list: its address leads there */
+    public function show(Project $project, Family $family): RedirectResponse
     {
-        return inertia('Member/Families/Show', [
-            'family'    => FamilyResource::make($family->load('unitType', 'unit', 'members')),
-            'unitTypes' => $this->unitTypesFor($request, $project),
-        ]);
+        return to_route('families.index', ['family' => $family->id]);
     }
 
     /** For admins, who register and edit families here: the types a family can have */

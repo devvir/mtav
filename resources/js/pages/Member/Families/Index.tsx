@@ -1,3 +1,4 @@
+import { FamilyDetails } from '@/components/domain/FamilyDetails';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { FamilyForm } from '@/components/forms/FamilyForm';
@@ -5,6 +6,7 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, FamilyMark } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
@@ -17,18 +19,26 @@ export default function FamiliesIndex({
   families,
   filters,
   unitTypes,
+  family: shown,
 }: {
   families: Paginated<Family>;
   filters: { q: string | null };
-  /** For admins, who register families here */
+  /** For admins, who register and edit families here */
   unitTypes: UnitType[] | null;
+  /** A family's details, shown over the list (?family=12) */
+  family: Family | null;
 }) {
+  const details = useDetailsInAddress('family');
   const project = usePage().props.project!;
   const own = project.family?.id;
   const canManage = project.can.manage;
   const nothingYet = !families.data.length && !filters.q;
   const adding = useAddressedDialog('new', canManage);
-  useProjectChanges({ families: ['families'], people: ['families'], lottery_runs: ['families'] });
+  useProjectChanges({
+    families: ['families', 'family'],
+    people: ['families', 'family'],
+    lottery_runs: ['families', 'family'],
+  });
 
   return (
     <>
@@ -74,7 +84,13 @@ export default function FamiliesIndex({
           <Card
             key={family.id}
             component={Link}
-            href={route('families.show', family.id)}
+            href={route('families.index', {
+              ...(filters.q ? { q: filters.q } : {}),
+              family: family.id,
+            })}
+            only={['family']}
+            preserveState
+            preserveScroll
             p="md"
             className="ds-interactive"
             data-own={family.id === own || undefined}
@@ -117,6 +133,10 @@ export default function FamiliesIndex({
           <FamilyForm unitTypes={unitTypes} onDone={adding.close} />
         </Modal>
       ) : null}
+
+      <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.name} size="lg">
+        {shown ? <FamilyDetails family={shown} unitTypes={unitTypes} /> : null}
+      </Modal>
     </>
   );
 }

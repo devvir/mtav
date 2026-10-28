@@ -1,15 +1,17 @@
 import { PlanPanel } from '@/components/domain/PlanPanel';
+import { UnitDetails } from '@/components/domain/UnitDetails';
 import { UnitForm } from '@/components/forms/UnitForm';
 import { UnitTypeForm } from '@/components/forms/UnitTypeForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Panel } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
-import type { Plan, UnitType } from '@/types/models';
+import type { Plan, Unit, UnitType } from '@/types/models';
 import { Deferred, Link, router, usePage } from '@inertiajs/react';
 import {
   ActionIcon,
@@ -37,6 +39,8 @@ interface Props {
   unitTypes: UnitType[];
   plan?: Plan;
   family: { id: number; name: string; unit_type_id: number } | null;
+  /** A unit's details, shown over the page (?unit=7) */
+  unit: Unit | null;
 }
 
 /**
@@ -44,14 +48,15 @@ interface Props {
  * here (dialogs; ?new_type=1 and ?new_unit=1 open them), change or remove a type, and draw
  * the plan in place.
  */
-export default function UnitsIndex({ unitTypes, plan, family }: Props) {
+export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Props) {
+  const details = useDetailsInAddress('unit');
   const canManage = usePage().props.project!.can.manage;
   const noUnits = unitTypes.every((type) => !type.units?.length);
   const addingType = useAddressedDialog('new_type', canManage);
   const addingUnits = useAddressedDialog('new_unit', canManage);
   const [editingType, setEditingType] = useState<UnitType | null>(null);
   useProjectChanges({
-    units: ['unitTypes', 'plan'],
+    units: ['unitTypes', 'plan', 'unit'],
     unit_types: ['unitTypes'],
     families: ['unitTypes'],
     lottery_runs: ['unitTypes', 'plan'],
@@ -193,7 +198,10 @@ export default function UnitsIndex({ unitTypes, plan, family }: Props) {
                     <Card
                       key={unit.id}
                       component={Link}
-                      href={route('units.show', unit.id)}
+                      href={route('units.index', { unit: unit.id })}
+                      only={['unit']}
+                      preserveState
+                      preserveScroll
                       p="sm"
                       className="ds-interactive"
                     >
@@ -251,6 +259,10 @@ export default function UnitsIndex({ unitTypes, plan, family }: Props) {
           </Modal>
         </>
       ) : null}
+
+      <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.identifier}>
+        {shown ? <UnitDetails unit={shown} unitTypes={canManage ? unitTypes : null} /> : null}
+      </Modal>
     </>
   );
 }

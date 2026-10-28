@@ -18,7 +18,7 @@ class EventController extends Controller
     {
         $event = $project->events()->create([...$request->validated(), 'creator_id' => $request->user()->id]);
 
-        return to_route('events.show', $event)->with('success', __('flash.event_created'));
+        return to_route('events.index', ['event' => $event->id])->with('success', __('flash.event_created'));
     }
 
     public function update(EventRequest $request, Project $project, Event $event): RedirectResponse
@@ -27,7 +27,7 @@ class EventController extends Controller
 
         $event->update($request->validated());
 
-        return back()->with('success', __('flash.event_updated'));
+        return to_route('events.index', ['event' => $event->id])->with('success', __('flash.event_updated'));
     }
 
     public function destroy(Project $project, Event $event): RedirectResponse

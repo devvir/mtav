@@ -38,7 +38,7 @@ class PeopleController extends Controller
 
         $membership->update($data);
 
-        return back()->with('success', __('flash.member_updated'));
+        return to_route('people.index', ['person' => $member->id])->with('success', __('flash.member_updated'));
     }
 
     public function destroy(Project $project, User $member): RedirectResponse

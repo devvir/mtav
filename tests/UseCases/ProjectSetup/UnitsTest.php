@@ -114,7 +114,10 @@ describe('A member', function () {
         $unit = aUnit($this->type);
 
         $this->as($this->member, $this->project)->get(route('units.index'))->assertOk();
-        $this->as($this->member, $this->project)->get(route('units.show', $unit))->assertOk();
+        $this->as($this->member, $this->project)->get(route('units.show', $unit))
+            ->assertRedirect(route('units.index', ['unit' => $unit->id]));
+
+        expect($this->get(route('units.index', ['unit' => $unit->id]))->inertiaProps('unit.id'))->toBe($unit->id);
     });
 
     it('cannot create, change or delete units', function () {

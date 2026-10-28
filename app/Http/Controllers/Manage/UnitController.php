@@ -32,7 +32,7 @@ class UnitController extends Controller
             $plans->place($unit);
         });
 
-        return back()->with('success', __('flash.unit_created'));
+        return to_route('units.index')->with('success', __('flash.unit_created'));
     }
 
     public function update(UnitRequest $request, Project $project, Unit $unit): RedirectResponse
@@ -45,7 +45,7 @@ class UnitController extends Controller
 
         $unit->update($request->safe()->only('identifier', 'unit_type_id'));
 
-        return back()->with('success', __('flash.unit_updated'));
+        return to_route('units.index', ['unit' => $unit->id])->with('success', __('flash.unit_updated'));
     }
 
     public function destroy(Project $project, Unit $unit): RedirectResponse

@@ -8,6 +8,7 @@ use App\Http\Resources\UnitResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Project;
 use App\Models\Unit;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,17 +29,16 @@ class UnitController extends Controller
             /** Where they are: after the list */
             'plan'   => Inertia::defer(fn () => PlanResource::make($project->plan->load('items.unit.family'))),
             'family' => $request->user()->familyIn($project)?->only('id', 'name', 'unit_type_id'),
+            // A unit's details, shown over the page (?unit=7)
+            'unit' => fn () => ($unit = $project->units()->find($request->integer('unit')))
+                ? UnitResource::make($unit->load('type', 'family'))
+                : null,
         ]);
     }
 
-    public function show(Request $request, Project $project, Unit $unit): Response
+    /** A unit's details open over the units page: its address leads there */
+    public function show(Project $project, Unit $unit): RedirectResponse
     {
-        return inertia('Member/Units/Show', [
-            'unit' => UnitResource::make($unit->load('type', 'family')),
-            // For admins, who edit units here
-            'unitTypes' => $request->user()->can('update', $project)
-                ? UnitTypeResource::collection($project->unitTypes()->alphabetically()->get())
-                : null,
-        ]);
+        return to_route('units.index', ['unit' => $unit->id]);
     }
 }

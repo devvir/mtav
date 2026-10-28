@@ -1,4 +1,5 @@
 import { EventCard } from '@/components/domain/EventCard';
+import { EventDetails } from '@/components/domain/EventDetails';
 import { FilterTabs } from '@/components/feedback/FilterTabs';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
@@ -7,6 +8,7 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -18,10 +20,13 @@ import { IconCalendarOff, IconPlus } from '@tabler/icons-react';
 interface Props {
   events: Paginated<ProjectEvent>;
   filters: { q: string | null; when: 'upcoming' | 'past' };
+  /** An event's details, shown over the list (?event=5) */
+  event: ProjectEvent | null;
 }
 
-export default function EventsIndex({ events, filters }: Props) {
-  useProjectChanges({ events: ['events'] });
+export default function EventsIndex({ events, filters, event: shown }: Props) {
+  const details = useDetailsInAddress('event');
+  useProjectChanges({ events: ['events', 'event'] });
   const canManage = usePage().props.project!.can.manage;
   const creating = useAddressedDialog('new', canManage);
 
@@ -83,6 +88,10 @@ export default function EventsIndex({ events, filters }: Props) {
         size="lg"
       >
         <EventForm onDone={creating.close} />
+      </Modal>
+
+      <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.title} size="lg">
+        {shown ? <EventDetails event={shown} /> : null}
       </Modal>
     </>
   );

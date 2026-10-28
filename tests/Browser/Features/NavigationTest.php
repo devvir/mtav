@@ -79,11 +79,13 @@ it('says when a page does not exist, and leads back to the start', function () {
         ->assertPathIs(pathOf('projects.show', $this->project));
 });
 
-it('keeps a member\'s person page linked to their family', function () {
+it('links someone\'s details to their family\'s', function () {
     $this->as($this->member);
     $family = $this->member->familyIn($this->project);
 
     visit(route('people.show', [$this->project, $this->member]))
         ->click("a:has-text(\"{$family->name} family\")")
-        ->assertPathIs(pathOf('families.show', [$this->project, $family]));
+        ->assertPathIs(pathOf('families.index', $this->project))
+        ->assertQueryStringHas('family', (string) $family->id)
+        ->assertSeeIn('[role="dialog"]', $family->name);
 });

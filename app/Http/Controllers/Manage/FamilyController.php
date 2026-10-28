@@ -20,7 +20,7 @@ class FamilyController extends Controller
     {
         $family = $project->families()->create($request->validated());
 
-        return to_route('families.show', $family)->with('success', __('flash.family_created'));
+        return to_route('families.index', ['family' => $family->id])->with('success', __('flash.family_created'));
     }
 
     public function update(FamilyRequest $request, Project $project, Family $family): RedirectResponse
@@ -31,7 +31,7 @@ class FamilyController extends Controller
 
         $family->update($request->validated());
 
-        return back()->with('success', __('flash.family_updated'));
+        return to_route('families.index', ['family' => $family->id])->with('success', __('flash.family_updated'));
     }
 
     /**

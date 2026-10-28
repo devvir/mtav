@@ -33,14 +33,20 @@ class EventController extends Controller
         return inertia('Member/Events/Index', [
             'events'  => EventResource::collection($events),
             'filters' => ['q' => $request->q, 'when' => $past ? 'past' : 'upcoming'],
+            // An event's details, shown over the list (?event=5); drafts for admins only
+            'event' => fn () => ($event = $project->events()->find($request->integer('event')))
+                && $request->user()->can('view', $event)
+                ? EventResource::make($event->load('creator', 'rsvps'))
+                : null,
         ]);
     }
 
-    public function show(Project $project, Event $event): Response
+    /** An event's details open over the list: its address leads there */
+    public function show(Project $project, Event $event): RedirectResponse
     {
         $this->authorize('view', $event);
 
-        return inertia('Member/Events/Show', ['event' => EventResource::make($event->load('creator', 'rsvps'))]);
+        return to_route('events.index', ['event' => $event->id]);
     }
 
     public function rsvp(Request $request, Project $project, Event $event): RedirectResponse

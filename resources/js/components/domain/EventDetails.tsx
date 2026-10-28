@@ -1,14 +1,23 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { EventForm } from '@/components/forms/EventForm';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
-import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
 import { router } from '@inertiajs/react';
-import { Anchor, Badge, Button, Card, Group, Modal, Stack, Text, Title } from '@mantine/core';
+import {
+  Anchor,
+  Badge,
+  Button,
+  Card,
+  Divider,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import {
   IconCheck,
   IconClock,
@@ -20,8 +29,11 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 
-export default function EventShow({ event }: { event: ProjectEvent }) {
-  useProjectChanges({ events: ['event'] });
+/**
+ * An event: when and where, what it is about, and who goes (answering, where it asks);
+ * admins edit or cancel it.
+ */
+export function EventDetails({ event }: { event: ProjectEvent }) {
   const [editing, setEditing] = useState(false);
   const cancel = async () => {
     const ok = await confirm({
@@ -38,36 +50,8 @@ export default function EventShow({ event }: { event: ProjectEvent }) {
 
   return (
     <>
-      <PageHeader
-        title={event.title}
-        back={{ href: route('events.index'), label: _('Events') }}
-        actions={
-          event.can.update ? (
-            <Group gap="sm">
-              <Button
-                variant="default"
-                leftSection={<IconPencil size={18} />}
-                onClick={() => setEditing(true)}
-              >
-                {_('Edit')}
-              </Button>
-              {event.can.delete ? (
-                <Button
-                  variant="default"
-                  color="red"
-                  c="red"
-                  leftSection={<IconTrash size={18} />}
-                  onClick={cancel}
-                >
-                  {_('Cancel the event')}
-                </Button>
-              ) : null}
-            </Group>
-          ) : null
-        }
-      />
-      <div className="with-aside">
-        <Card p="xl">
+      <Stack gap="lg">
+        <div>
           <Stack gap={8} mb="lg" c="dimmed">
             {event.start_date ? (
               <Group gap="xs">
@@ -105,7 +89,7 @@ export default function EventShow({ event }: { event: ProjectEvent }) {
               {_('Posted by {name}', { name: event.creator })}
             </Text>
           ) : null}
-        </Card>
+        </div>
 
         {event.allows_rsvp ? (
           <Card p="lg">
@@ -148,12 +132,35 @@ export default function EventShow({ event }: { event: ProjectEvent }) {
             </Stack>
           </Card>
         ) : null}
-      </div>
+      </Stack>
 
       {event.can.update ? (
-        <Modal opened={editing} onClose={() => setEditing(false)} title={event.title} size="lg">
-          <EventForm event={event} onDone={() => setEditing(false)} />
-        </Modal>
+        <>
+          <Divider my="lg" />
+          <Group gap="sm">
+            <Button
+              variant="default"
+              leftSection={<IconPencil size={18} />}
+              onClick={() => setEditing(true)}
+            >
+              {_('Edit')}
+            </Button>
+            {event.can.delete ? (
+              <Button
+                variant="default"
+                color="red"
+                c="red"
+                leftSection={<IconTrash size={18} />}
+                onClick={cancel}
+              >
+                {_('Cancel the event')}
+              </Button>
+            ) : null}
+          </Group>
+          <Modal opened={editing} onClose={() => setEditing(false)} title={event.title} size="lg">
+            <EventForm event={event} onDone={() => setEditing(false)} />
+          </Modal>
+        </>
       ) : null}
     </>
   );

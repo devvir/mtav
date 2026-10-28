@@ -56,7 +56,11 @@ export function PersonDetails({
           <Stack gap={4}>
             <Group gap="xs">
               {person.family ? (
-                <Anchor component={Link} href={route('families.show', person.family.id)} fw={650}>
+                <Anchor
+                  component={Link}
+                  href={route('families.index', { family: person.family.id })}
+                  fw={650}
+                >
                   {_('{family} family', { family: person.family.name })}
                 </Anchor>
               ) : null}

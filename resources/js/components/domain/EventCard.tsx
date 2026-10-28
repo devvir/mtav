@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/feedback/DateTime';
-import { route } from '@/lib/route';
+import { route, routeIs } from '@/lib/route';
 import { _, languageTag } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
@@ -7,7 +7,14 @@ import { Anchor, Badge, Button, Card, Group, Stack } from '@mantine/core';
 import { IconCalendarQuestion, IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
 
 /** An event in a list: when, where, and one-tap attendance when it asks for it */
+/** The current query (the tab, a search), with this event's details */
+const detailsQuery = (id: number) => ({
+  ...Object.fromEntries(new URLSearchParams(window.location.search)),
+  event: id,
+});
+
 export function EventCard({ event, href }: { event: ProjectEvent; href?: string }) {
+  const detailsHere = routeIs('events.index');
   const rsvp = (attending: boolean) =>
     router.put(
       route('events.rsvp', event.id),
@@ -35,7 +42,14 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
           <Group gap="xs">
             <Anchor
               component={Link}
-              href={href ?? route('events.show', event.id)}
+              href={
+                href ??
+                route('events.index', detailsHere ? detailsQuery(event.id) : { event: event.id })
+              }
+              // On the events list, its details open over it without reloading the list
+              {...(detailsHere
+                ? { only: ['event'], preserveState: true, preserveScroll: true }
+                : {})}
               fw={700}
               fz="lg"
               c="var(--mtav-text)"

@@ -104,7 +104,11 @@ describe('A member', function () {
         $other = aFamily($this->project, $this->type);
         aMemberOf($other);
 
-        $this->as($this->member, $this->project)->get(route('families.show', $other))->assertOk();
+        $this->as($this->member, $this->project)->get(route('families.show', $other))
+            ->assertRedirect(route('families.index', ['family' => $other->id]));
+
+        expect($this->get(route('families.index', ['family' => $other->id]))->inertiaProps('family.id'))
+            ->toBe($other->id);
     });
 
     it('cannot register or remove families', function () {

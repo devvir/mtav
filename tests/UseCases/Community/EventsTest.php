@@ -46,7 +46,11 @@ describe('An admin', function () {
             ->and(listedEventIds($this->as($this->member, $this->project)->get(route('events.index'))))
             ->toContain($event->id);
 
-        $this->as($this->member, $this->project)->get(route('events.show', $event))->assertOk();
+        $this->as($this->member, $this->project)->get(route('events.show', $event))
+            ->assertRedirect(route('events.index', ['event' => $event->id]));
+
+        expect($this->get(route('events.index', ['event' => $event->id]))->inertiaProps('event.id'))
+            ->toBe($event->id);
     });
 
     it('keeps a draft event hidden from members', function () {
@@ -55,7 +59,8 @@ describe('An admin', function () {
         expect(listedEventIds($this->as($this->member, $this->project)->get(route('events.index'))))
             ->not->toContain($draft->id);
 
-        expect($this->as($this->member, $this->project)->get(route('events.show', $draft)))->toBeDenied();
+        expect($this->as($this->member, $this->project)->get(route('events.show', $draft)))->toBeDenied()
+            ->and($this->get(route('events.index', ['event' => $draft->id]))->inertiaProps('event'))->toBeNull();
 
         // Admins see drafts on the same list, to publish them when ready
         expect(listedEventIds($this->as($this->admin, $this->project)->get(route('events.index'))))->toContain($draft->id);
