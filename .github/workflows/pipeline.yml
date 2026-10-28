@@ -3,7 +3,7 @@
 #   every push and pull request   checks, tests, browser suite, the release image built
 #   main, once all of that passes the image published, staging deployed
 #
-# Production is deployed by hand (production.yml), from what staging runs.
+# Dev (dev.yml, any branch) and production (production.yml, main) are deployed by hand.
 name: pipeline
 
 on:
@@ -24,9 +24,6 @@ concurrency:
 
 permissions:
   contents: read
-
-env:
-  IMAGE: ghcr.io/devvir/mtav
 
 jobs:
   # Pushes to this repository run on push; pull requests run only when they come from forks
@@ -113,52 +110,20 @@ jobs:
 
   image:
     needs: [checks, tests, browser]
-    name: Release image
-    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    outputs:
-      image: ${{ steps.release.outputs.image }}
-    steps:
-      - uses: actions/checkout@v5
+    uses: ./.github/workflows/release-image.yml
+    with:
+      publish: ${{ (github.ref == 'refs/heads/main' && github.event_name == 'push') || inputs.publish == true }}
+      latest: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Publish?
-        id: release
-        run: |
-          echo "image=$IMAGE:sha-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          publish=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' || inputs.publish == true }}
-          echo "publish=$publish" >> "$GITHUB_OUTPUT"
-
-      - uses: docker/login-action@v3
-        if: steps.release.outputs.publish == 'true'
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: deploy/Dockerfile
-          push: ${{ steps.release.outputs.publish == 'true' }}
-          tags: |
-            ${{ steps.release.outputs.image }}
-            ${{ github.ref == 'refs/heads/main' && format('{0}:main', env.IMAGE) || '' }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
+  # Every green main goes to staging, by itself
   staging:
     needs: image
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Deploy to staging
     runs-on: ubuntu-latest
-    # The environment's rules decide when this runs (a required reviewer, while there is one)
     environment:
       name: staging
       url: https://stg.mtav.uy
@@ -167,10 +132,12 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
+        with:
+          sparse-checkout: deploy/ci
 
       - name: Deploy
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           TARGET: ${{ secrets.DEPLOY_TARGET }}
-        run: deploy/ci/deploy staging "${{ needs.image.outputs.image }}"
+        run: deploy/ci/deploy deploy staging "$GITHUB_SHA"

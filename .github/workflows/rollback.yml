@@ -1,0 +1,34 @@
+# Puts the release before the live one back, at once (it stays up, idle, after each
+# deploy). Its database keeps the newer release's migrations.
+name: rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to put back
+        type: choice
+        options: [staging, dev, production]
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: Roll back ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: deploy/ci
+
+      - name: Roll back
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TARGET: ${{ secrets.DEPLOY_TARGET }}
+        run: deploy/ci/deploy rollback "${{ inputs.environment }}"

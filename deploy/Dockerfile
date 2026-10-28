@@ -61,8 +61,12 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \
     && rm /usr/bin/composer
 
 COPY deploy/entrypoint.sh /usr/local/bin/mtav-entrypoint
+# How a release deploys itself (taken out of the image by the host's gate)
+COPY deploy/compose.yml deploy/slot.yml deploy/
+COPY deploy/switch/ deploy/switch/
+COPY deploy/host/deploy deploy/host/
 
-# Unprivileged: the web server listens on 8080, behind the host's proxy (deploy/edge)
+# Unprivileged: the web server listens on 8080, behind the environment's switch
 RUN adduser -D -u 1000 mtav \
     && chown -R mtav:mtav storage bootstrap/cache /data/caddy /config/caddy
 USER mtav

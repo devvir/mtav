@@ -1,0 +1,46 @@
+# Dev is deployed by hand, from any branch: "Run workflow", then pick the branch (and
+# whether to start from fresh demo data). The branch's release image is built if it is
+# not published yet; no tests gate it: dev is where branches are tried.
+name: dev
+
+on:
+  workflow_dispatch:
+    inputs:
+      fresh:
+        description: Start from fresh demo data
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/release-image.yml
+    with:
+      publish: true
+
+  dev:
+    needs: image
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://dev.mtav.uy
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: deploy/ci
+
+      - name: Deploy
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TARGET: ${{ secrets.DEPLOY_TARGET }}
+        run: deploy/ci/deploy deploy dev "$GITHUB_SHA" ${{ inputs.fresh && 'fresh' || '' }}

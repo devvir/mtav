@@ -1,0 +1,136 @@
+#!/bin/bash
+# Prepares a Linux host (Ubuntu, with Docker and nginx in front) for MTAV's environments,
+# once, as root, from a directory holding this script, the gate (deploy/host/gate) and the
+# pipeline's public key:
+#
+#   sudo bash setup <pipeline key .pub>
+#
+# Every step says what it does and can run again; the ones that restart something ask
+# first. It never touches the SSH server's settings, existing users' keys or their sudo.
+#
+#  1. security updates now, and unattended from then on
+#  2. services nothing uses, stopped (rpcbind, xinetd)
+#  3. nginx: TLS 1.2 and 1.3 only, no version in its answers, uploads up to 105 MB
+#  4. Docker: ports published on the loopback unless a service says otherwise
+#  5. certificates: renewed now, nginx reloaded after every renewal, the renewal tested
+#  6. the pipeline's user, mtav-deploy: no password, no shell of its own, no Docker; its
+#     key can run only the gate, through sudo, and nothing else
+set -euo pipefail
+
+key="${1:?usage: sudo bash setup <pipeline key .pub>}"
+here="$(cd "$(dirname "$0")" && pwd)"
+stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+
+[[ $EUID -eq 0 ]] || { echo "Run it with sudo."; exit 1; }
+[[ -f "$here/gate" ]] || { echo "The gate is not beside this script."; exit 1; }
+grep -qE '^ssh-(ed25519|rsa) ' "$key" || { echo "$key is not a public key."; exit 1; }
+
+step() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
+ask() {
+    local answer
+    read -r -p "$* [y/N] " answer
+    [[ "$answer" == [yY]* ]]
+}
+
+step "1. Security updates"
+apt-get update -qq
+if ask "Install the pending updates now (Docker may restart its containers)?"; then
+    DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=--force-confold upgrade
+fi
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq unattended-upgrades > /dev/null
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+echo "Security updates install themselves daily."
+
+step "2. Services nothing uses"
+for unit in rpcbind.socket rpcbind.service xinetd.service; do
+    if systemctl is-enabled --quiet "$unit" 2>/dev/null || systemctl is-active --quiet "$unit"; then
+        systemctl disable --now "$unit" && echo "Stopped $unit"
+    fi
+done
+
+step "3. nginx"
+cp -a /etc/nginx "/etc/nginx.backup-$stamp"
+sed -i -E 's/^(\s*)ssl_protocols .*;/\1ssl_protocols TLSv1.2 TLSv1.3;/' /etc/nginx/nginx.conf
+cat > /etc/nginx/conf.d/mtav.conf <<'EOF'
+# MTAV (deploy/host/setup): no version in answers; uploads as large as the app takes
+server_tokens off;
+client_max_body_size 105m;
+EOF
+if nginx -t 2>&1; then
+    systemctl reload nginx && echo "nginx reloaded (backup: /etc/nginx.backup-$stamp)"
+else
+    echo "nginx refused the change: putting the backup back"
+    rm -rf /etc/nginx && mv "/etc/nginx.backup-$stamp" /etc/nginx
+    exit 1
+fi
+
+step "4. Docker publishes on the loopback by default"
+daemon=/etc/docker/daemon.json
+if ! grep -q '"ip"' "$daemon" 2>/dev/null; then
+    if ask "Restart Docker to apply it (every container restarts, a few seconds)?"; then
+        [[ -f "$daemon" ]] && cp -a "$daemon" "$daemon.backup-$stamp"
+        python3 - "$daemon" <<'EOF'
+import json, os, sys
+path = sys.argv[1]
+config = json.load(open(path)) if os.path.exists(path) else {}
+config["ip"] = "127.0.0.1"
+open(path, "w").write(json.dumps(config, indent=2) + "\n")
+EOF
+        if ! systemctl restart docker; then
+            echo "Docker did not start with it: putting the backup back"
+            if [[ -f "$daemon.backup-$stamp" ]]; then mv "$daemon.backup-$stamp" "$daemon"; else rm -f "$daemon"; fi
+            systemctl restart docker
+            exit 1
+        fi
+        echo "Docker restarted"
+    fi
+else
+    echo "Already set"
+fi
+
+step "5. Certificates"
+mkdir -p /etc/letsencrypt/renewal-hooks/deploy
+cat > /etc/letsencrypt/renewal-hooks/deploy/reload-nginx <<'EOF'
+#!/bin/sh
+# A renewed certificate is served at once (deploy/host/setup)
+systemctl reload nginx
+EOF
+chmod 755 /etc/letsencrypt/renewal-hooks/deploy/reload-nginx
+systemctl enable --now certbot.timer > /dev/null 2>&1 || true
+if ask "Renew the certificates now?"; then
+    certbot renew --force-renewal --no-random-sleep-on-renew
+fi
+certbot renew --dry-run --no-random-sleep-on-renew
+certbot certificates 2>/dev/null | grep -E 'Certificate Name|Domains|Expiry'
+
+step "6. The pipeline's user"
+if ! id mtav-deploy > /dev/null 2>&1; then
+    useradd --create-home --shell /bin/bash mtav-deploy
+fi
+passwd -l mtav-deploy > /dev/null
+install -o root -g root -m 755 "$here/gate" /usr/local/sbin/mtav-gate
+install -d -o mtav-deploy -g mtav-deploy -m 700 /home/mtav-deploy/.ssh
+printf 'restrict,command="sudo -n /usr/local/sbin/mtav-gate" %s\n' "$(head -1 "$key")" \
+    > /home/mtav-deploy/.ssh/authorized_keys
+chown mtav-deploy:mtav-deploy /home/mtav-deploy/.ssh/authorized_keys
+chmod 600 /home/mtav-deploy/.ssh/authorized_keys
+
+# Checked before it goes in: a broken sudoers file would break sudo for everyone
+rules="$(mktemp)"
+cat > "$rules" <<'EOF'
+# MTAV's pipeline (deploy/host/setup): the gate, and nothing else, as root
+Defaults!/usr/local/sbin/mtav-gate env_keep += "SSH_ORIGINAL_COMMAND"
+mtav-deploy ALL=(root) NOPASSWD: /usr/local/sbin/mtav-gate
+EOF
+visudo -cf "$rules" > /dev/null
+install -o root -g root -m 440 "$rules" /etc/sudoers.d/mtav-deploy
+rm -f "$rules"
+visudo -c > /dev/null
+
+echo "The gate answers for mtav-deploy:"
+sudo -u mtav-deploy env SSH_ORIGINAL_COMMAND=status sudo -n /usr/local/sbin/mtav-gate
+
+step "Done"

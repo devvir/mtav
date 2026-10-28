@@ -1,0 +1,53 @@
+# The environment's front door, handing pages and the websocket server to the live slot.
+# Written by each deploy from this template (deploy/host/deploy), with ${SLOT} the slot
+# going live, then reloaded: connections already open finish where they started.
+
+# Slots are found by name when asked for, so the switch starts even before its slot does
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+# Pages, assets and uploads
+server {
+    listen 8080;
+    client_max_body_size 105m;
+
+    # Whether the switch itself answers (its health check)
+    location = /switch {
+        return 200 "${SLOT}\n";
+    }
+
+    location / {
+        set $live app-${SLOT}:8080;
+        proxy_pass http://$live;
+        proxy_http_version 1.1;
+        # What the host's proxy says about the visitor, passed on as it came
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $http_x_real_ip;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_buffer_size 128k;
+        proxy_buffers 4 256k;
+        proxy_busy_buffers_size 256k;
+        proxy_read_timeout 120s;
+    }
+}
+
+# The websocket server (live updates)
+server {
+    listen 8081;
+
+    location / {
+        set $live reverb-${SLOT}:8080;
+        proxy_pass http://$live;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_buffering off;
+        proxy_read_timeout 1h;
+    }
+}

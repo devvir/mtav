@@ -1,12 +1,12 @@
-# Production is deployed by hand: "Run workflow" here, then the production environment's
-# reviewer approves. It deploys the release staging runs, unless another one is named.
+# Production is deployed by hand, from main only: "Run workflow" on main. It deploys the
+# release staging runs (already tried there), or a commit named, which must be on main.
 name: production
 
 on:
   workflow_dispatch:
     inputs:
-      image:
-        description: Release to deploy (ghcr.io/devvir/mtav:sha-…); empty for the one staging runs
+      commit:
+        description: Commit to deploy (empty for the one staging runs)
         required: false
         default: ''
 
@@ -15,24 +15,32 @@ permissions:
 
 jobs:
   production:
+    if: github.ref == 'refs/heads/main'
     name: Deploy to production
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://mtav.uy
+      url: https://www.mtav.uy
     concurrency:
       group: deploy-production
       cancel-in-progress: false
+    env:
+      SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      TARGET: ${{ secrets.DEPLOY_TARGET }}
+      REQUESTED: ${{ inputs.commit }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Which release
+        id: release
+        run: |
+          staging="$(deploy/ci/deploy status | sed -nE 's/^staging live=[a-z]+:ghcr\.io\/devvir\/mtav:sha-([0-9a-f]{40}).*/\1/p')"
+          commit="$(git rev-parse --verify "${REQUESTED:-${staging:?staging runs no release yet: name a commit}}^{commit}")"
+          git merge-base --is-ancestor "$commit" origin/main || { echo "$commit is not on main"; exit 1; }
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
       - name: Deploy
-        env:
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          TARGET: ${{ secrets.DEPLOY_TARGET }}
-          REQUESTED: ${{ inputs.image }}
-        run: |
-          image="${REQUESTED:-$(deploy/ci/deploy --release-of staging)}"
-          [ -n "$image" ] || { echo "Staging runs no release yet: name one"; exit 1; }
-          deploy/ci/deploy production "$image"
+        run: deploy/ci/deploy deploy production "${{ steps.release.outputs.commit }}"

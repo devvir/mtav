@@ -1,76 +1,140 @@
 #!/bin/bash
-# Deploys a release to an environment on this host. Run by the gate, from the release's
-# own bundle (deploy/ of the commit being deployed):
+# Deploys a release to an environment on this host, blue/green: the release starts in the
+# slot that is not live, and the switch hands it the traffic only once it is healthy, so
+# visitors never see the site down. Run by the gate (deploy/host/gate) as root, from the
+# release's own deploy/ (taken out of its image):
 #
-#   deploy <environment> <image> <bundle directory>
+#   deploy <environment> <image> <bundle> [fresh]   the release goes live
+#   deploy --rollback <environment> <bundle>        the release before goes live again
 #
-# 1. the host's proxy, from the bundle's edge/ (started, or its configuration reloaded);
-# 2. the new image pulled, the database up;
-# 3. a dump of the database, before anything touches it (the last 20 are kept);
-# 4. migrations, run by the new image;
-# 5. every role on the new image, waiting until they report healthy;
-# 6. if they do not: back to the previous image (migrations stay: restoring the dump
-#    from step 3 is a decision for a person, see documentation/technical/delivery.md).
+# fresh (only where the environment allows it) starts the database over, with demo data.
+#
+# An environment's directory (<home>/<environment>) holds its .env and what the deploys
+# keep: compose.yml and slot.yml (copied from the release), switch/ (the live slot's
+# configuration), live and previous (slot and image of each), backups/ (database dumps).
 set -euo pipefail
 
-environment="$1"
-image="$2"
-bundle="$3"
-home="${MTAV_DELIVERY_HOME:-$HOME/delivery}"
-dir="$home/$environment"
+home="${MTAV_HOME:-/mtav}"
 
 say() { echo "[$(date -u +%H:%M:%S)] $*"; }
 
-compose() {
-    local release="$1"
-    shift
-    MTAV_ENV="$environment" MTAV_IMAGE="$release" \
-        docker compose --project-directory "$dir" -f "$dir/compose.yml" -p "mtav-$environment" "$@"
+if [[ "$1" == --rollback ]]; then
+    mode=rollback environment="$2" bundle="$3" image='' fresh=''
+else
+    mode=deploy environment="$1" image="$2" bundle="$3" fresh="${4:-}"
+fi
+dir="$home/$environment"
+export MTAV_ENV="$environment"
+
+env_compose() {
+    docker compose --project-directory "$dir" -f "$dir/compose.yml" --env-file "$dir/.env" \
+        -p "mtav-$environment" "$@"
 }
 
-previous="$(cat "$dir/release" 2>/dev/null || true)"
-say "Deploying $image to $environment (running: ${previous:-nothing yet})"
+slot_compose() {
+    local slot="$1" release="$2"
+    shift 2
+    MTAV_SLOT="$slot" MTAV_IMAGE="$release" \
+        docker compose --project-directory "$dir" -f "$dir/slot.yml" --env-file "$dir/.env" \
+        -p "mtav-$environment-$slot" "$@"
+}
 
-say "The host's proxy"
-mkdir -p "$home/edge"
-cp "$bundle/edge/compose.yml" "$bundle/edge/Caddyfile" "$home/edge/"
-docker compose -f "$home/edge/compose.yml" -p mtav-edge up -d --wait
-docker compose -f "$home/edge/compose.yml" -p mtav-edge exec -T caddy \
-    caddy reload --config /etc/caddy/Caddyfile --force
+# The switch hands the environment to a slot, and is asked whether the slot answers there
+go_live() {
+    local slot="$1"
+    mkdir -p "$dir/switch"
+    sed "s/\${SLOT}/$slot/g" "$dir/live.conf.template" > "$dir/switch/live.conf"
+    if [[ -n "$(env_compose ps -q switch 2>/dev/null)" ]]; then
+        env_compose exec -T switch nginx -s reload
+    else
+        env_compose up -d --wait switch
+    fi
+    for _ in $(seq 1 15); do
+        if [[ "$(env_compose exec -T switch wget -qO- http://127.0.0.1:8080/switch 2>/dev/null)" == "$slot" ]] \
+            && env_compose exec -T switch wget -qO /dev/null http://127.0.0.1:8080/up 2>/dev/null; then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
+}
 
-cp "$bundle/compose.yml" "$dir/compose.yml"
+live_slot='' live_image='' previous_slot='' previous_image=''
+[[ -f "$dir/live" ]] && read -r live_slot live_image < "$dir/live"
+[[ -f "$dir/previous" ]] && read -r previous_slot previous_image < "$dir/previous"
 
-say "Pulling the release"
-compose "$image" pull --quiet app
+if [[ "$mode" == rollback ]]; then
+    [[ -n "$previous_slot" && -n "$live_slot" ]] || { say "Nothing to go back to"; exit 1; }
+    say "Back to $previous_image (slot $previous_slot) from $live_image"
+    slot_compose "$previous_slot" "$previous_image" up -d --wait --wait-timeout 180
+    go_live "$previous_slot" || { say "The slot does not answer: $live_slot stays live"; go_live "$live_slot"; exit 1; }
+    slot_compose "$live_slot" "$live_image" stop worker
+    echo "$previous_slot $previous_image" > "$dir/live"
+    echo "$live_slot $live_image" > "$dir/previous"
+    say "Done: $environment runs $previous_image again (its migrations were kept)"
+    exit 0
+fi
+
+next=blue
+[[ "$live_slot" == blue ]] && next=green
+say "Deploying $image to $environment, slot $next (live: ${live_image:-nothing yet})"
+
+cp "$bundle/compose.yml" "$bundle/slot.yml" "$bundle/switch/live.conf.template" "$dir/"
+docker volume create "mtav-${environment}_files" > /dev/null
 
 say "The database"
-compose "$image" up -d --wait db
+env_compose up -d --wait db
 
-if [[ -n "$previous" ]]; then
+if [[ -n "$live_slot" ]]; then
     mkdir -p "$dir/backups"
     dump="$dir/backups/$(date -u +%Y%m%dT%H%M%SZ)-before-${image##*:}.sql.gz"
     say "Dumping the database to $dump"
-    compose "$image" exec -T db sh -c \
+    env_compose exec -T db sh -c \
         'mariadb-dump --single-transaction -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"' \
         | gzip > "$dump"
     ls -1t "$dir"/backups/*.sql.gz | tail -n +21 | xargs -r rm --
 fi
 
-say "Migrating"
-compose "$image" run --rm --no-deps app php artisan migrate --force
+if [[ "$fresh" == fresh ]]; then
+    say "Starting the database over, with demo data"
+    slot_compose "$next" "$image" run --rm --no-deps app sh -c \
+        'php artisan db:wipe --force && php artisan migrate --force --seed'
+else
+    # While the live release keeps serving: migrations must leave it working (add first,
+    # remove in a later release)
+    say "Migrating"
+    slot_compose "$next" "$image" run --rm --no-deps app php artisan migrate --force
+fi
 
-say "Starting the release"
-if ! compose "$image" up -d --wait --wait-timeout 180 --remove-orphans; then
-    say "The release did not come up healthy"
-    compose "$image" ps
-    compose "$image" logs --tail 80 app reverb worker || true
-    if [[ -n "$previous" ]]; then
-        say "Back to $previous"
-        compose "$previous" up -d --wait --wait-timeout 180 --remove-orphans
+say "Starting the release in slot $next"
+if ! slot_compose "$next" "$image" up -d --wait --wait-timeout 180 --remove-orphans; then
+    say "The release did not come up healthy: ${live_image:-nothing} stays live"
+    slot_compose "$next" "$image" ps
+    slot_compose "$next" "$image" logs --tail 80 || true
+    slot_compose "$next" "$image" down
+    exit 1
+fi
+
+say "Going live"
+if ! go_live "$next"; then
+    say "It does not answer through the switch"
+    slot_compose "$next" "$image" logs --tail 80 app || true
+    if [[ -n "$live_slot" ]]; then
+        go_live "$live_slot" || true
+        slot_compose "$next" "$image" down
+        say "${live_image} stays live"
     fi
     exit 1
 fi
 
-echo "$image" > "$dir/release"
-docker image prune -f > /dev/null
+# The slot before stays up, without its worker, so going back is instant
+if [[ -n "$live_slot" ]]; then
+    slot_compose "$live_slot" "$live_image" stop worker
+    echo "$live_slot $live_image" > "$dir/previous"
+fi
+echo "$next $image" > "$dir/live"
+
+# Releases older than the two kept (live, and the one to go back to) leave the host
+docker images ghcr.io/devvir/mtav --format '{{.Repository}}:{{.Tag}}' \
+    | grep -vxF -e "$image" -e "${live_image:-$image}" | xargs -r docker rmi > /dev/null 2>&1 || true
 say "Done: $environment runs $image"

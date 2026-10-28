@@ -115,4 +115,11 @@ return [
         'name'    => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Addresses under these domains get no mail (app/Listeners/SkipBlockedRecipients):
+    | "example.com" blocks it and its subdomains, ".test" every name ending so.
+    */
+
+    'blocked_domains' => array_values(array_filter(array_map('trim', explode(',', (string) env('MAIL_BLOCKED_DOMAINS', ''))))),
+
 ];

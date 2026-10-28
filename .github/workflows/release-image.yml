@@ -1,0 +1,73 @@
+# The release image of a commit (deploy/Dockerfile): built, and published to GitHub's
+# registry as ghcr.io/devvir/mtav:sha-<commit> when asked. Used by the pipeline (every
+# push) and by dev deploys (any branch).
+name: release image
+
+on:
+  workflow_call:
+    inputs:
+      publish:
+        description: Publish the image (else it is only built)
+        type: boolean
+        default: false
+      latest:
+        description: Also tag it as main
+        type: boolean
+        default: false
+    outputs:
+      image:
+        description: The image, by commit tag
+        value: ${{ jobs.image.outputs.image }}
+
+jobs:
+  image:
+    name: Release image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.name.outputs.image }}
+    env:
+      IMAGE: ghcr.io/devvir/mtav
+    steps:
+      - name: Name
+        id: name
+        run: echo "image=$IMAGE:sha-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        if: inputs.publish
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # A commit already published (staging's, deployed to dev) is not built again
+      - name: Already published?
+        id: published
+        if: inputs.publish && !inputs.latest
+        run: |
+          if docker manifest inspect "${{ steps.name.outputs.image }}" > /dev/null 2>&1; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.published.outputs.yes != 'true'
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.published.outputs.yes != 'true'
+
+      - uses: docker/build-push-action@v6
+        if: steps.published.outputs.yes != 'true'
+        with:
+          context: .
+          file: deploy/Dockerfile
+          push: ${{ inputs.publish }}
+          tags: |
+            ${{ steps.name.outputs.image }}
+            ${{ inputs.latest && format('{0}:main', env.IMAGE) || '' }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

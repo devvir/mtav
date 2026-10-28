@@ -1,0 +1,68 @@
+# One release of an environment, in one of its two slots (blue, green): the app's roles,
+# all from the same image. Run as the compose project mtav-<environment>-<slot>, beside
+# the environment's own (deploy/compose.yml), whose database, files and switch it shares.
+#
+# The switch reaches a slot's web and websocket servers as app-<slot> and reverb-<slot>;
+# the app reaches its own slot's websocket server the same way.
+
+x-app: &app
+  image: ${MTAV_IMAGE:?the release to run, set by the deploy}
+  env_file: .env
+  environment:
+    DB_HOST: db
+    REVERB_HOST: reverb-${MTAV_SLOT:?}
+    REVERB_PORT: 8080
+    REVERB_SCHEME: http
+  restart: unless-stopped
+  volumes:
+    - files:/app/storage/app
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '5'
+
+services:
+  app:
+    <<: *app
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8080/up']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+      start_interval: 2s
+    networks:
+      default:
+        aliases: ['app-${MTAV_SLOT}']
+
+  reverb:
+    <<: *app
+    command: ['php', 'artisan', 'reverb:start', '--host=0.0.0.0', '--port=8080']
+    healthcheck:
+      test: ['CMD', 'php', '-r', 'exit(@fsockopen("127.0.0.1", 8080) ? 0 : 1);']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+      start_interval: 2s
+    networks:
+      default:
+        aliases: ['reverb-${MTAV_SLOT}']
+
+  worker:
+    <<: *app
+    command: ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+    # Nothing to probe: a worker that dies is restarted
+    healthcheck:
+      disable: true
+
+volumes:
+  files:
+    name: mtav-${MTAV_ENV:?}_files
+    external: true
+
+networks:
+  default:
+    name: mtav-${MTAV_ENV}
+    external: true

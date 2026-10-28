@@ -1,12 +1,14 @@
 #!/bin/bash
-# The pipeline's side of a deploy: hands the host's gate (deploy/host/gate) a release and
-# this commit's deploy bundle, over SSH.
+# The pipeline's side of a deploy: hands a request to the host's gate (deploy/host/gate),
+# over SSH, and shows what it answers.
 #
-#   deploy <environment> <image>       deploys
-#   deploy --release-of <environment>  prints the image the environment runs
+#   deploy deploy <environment> <commit> [fresh]
+#   deploy rollback <environment>
+#   deploy status
 #
 # Needs SSH_KEY (the pipeline's private key), KNOWN_HOSTS (the host's key line) and TARGET
-# (user@host), from the deploying environment's secrets.
+# (mtav-deploy@host), from the repository's secrets. This is the only step that knows
+# where environments live: on another kind of host, it is the step that changes.
 set -euo pipefail
 
 : "${SSH_KEY:?}" "${KNOWN_HOSTS:?}" "${TARGET:?}"
@@ -17,15 +19,5 @@ printf '%s\n' "$SSH_KEY" > "$secrets/key"
 printf '%s\n' "$KNOWN_HOSTS" > "$secrets/known_hosts"
 chmod 600 "$secrets/key"
 
-host() {
-    ssh -i "$secrets/key" -o IdentitiesOnly=yes -o UserKnownHostsFile="$secrets/known_hosts" \
-        -o StrictHostKeyChecking=yes -o BatchMode=yes "$TARGET" "$@"
-}
-
-if [[ "${1:-}" == "--release-of" ]]; then
-    host release "$2"
-    exit
-fi
-
-cd "$(dirname "$0")/.."
-tar -czf - compose.yml edge host | host deploy "$1" "$2"
+exec ssh -i "$secrets/key" -o IdentitiesOnly=yes -o UserKnownHostsFile="$secrets/known_hosts" \
+    -o StrictHostKeyChecking=yes -o BatchMode=yes -o ServerAliveInterval=30 "$TARGET" "$@"

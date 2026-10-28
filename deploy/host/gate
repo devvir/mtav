@@ -1,15 +1,21 @@
 #!/bin/bash
-# The only thing the pipeline's SSH key may run on the host (installed once, by hand, as
-# the key's forced command: documentation/technical/delivery.md). It accepts two requests:
+# The only thing the pipeline may run on this host. Installed by deploy/host/setup as
+# /usr/local/sbin/mtav-gate (owned by root); the mtav-deploy user's key runs it, through
+# sudo, as that key's only command. It accepts:
 #
-#   deploy <environment> <image>   with the release's deploy bundle (a tar.gz) on stdin
-#   release <environment>          prints the image the environment runs
+#   deploy <environment> <commit> [fresh]   that commit's release goes live
+#   rollback <environment>                  the release before it goes live again
+#   status                                  what each environment runs
 #
-# and refuses anything else. The environment must already exist on the host (its directory
-# with a .env); the image must be one of MTAV's, by commit tag or digest.
+# and refuses anything else. The environment must be set up here (<home>/<environment>
+# with its .env, written from deploy/env.example); the release must be MTAV's image for that commit; "fresh" (the database
+# started over, with demo data) only where the environment's .env says
+# MTAV_FRESH_ALLOWED=true. The deploy's steps come from the release's own image
+# (deploy/host/deploy), never from the caller: this key can only run MTAV's releases.
 set -euo pipefail
 
-home="${MTAV_DELIVERY_HOME:-$HOME/delivery}"
+home="${MTAV_HOME:-/mtav}"
+source="https://github.com/devvir/mtav"
 
 refuse() {
     echo "gate: $*" >&2
@@ -18,31 +24,78 @@ refuse() {
 
 read -r -a request <<< "${SSH_ORIGINAL_COMMAND:-}"
 action="${request[0]:-}"
-environment="${request[1]:-}"
 
-[[ "$action" == deploy || "$action" == release ]] || refuse "not allowed: '${SSH_ORIGINAL_COMMAND:-}'"
-[[ "$environment" =~ ^[a-z][a-z0-9-]{0,30}$ ]] || refuse "unknown environment '$environment'"
-[[ -f "$home/$environment/.env" ]] || refuse "environment '$environment' is not set up on this host"
+# An MTAV environment's directory: its .env names the ports the switch listens on
+is_environment() {
+    grep -q '^MTAV_WEB_PORT=' "$1/.env" 2>/dev/null
+}
+
+environment_dir() {
+    [[ "$1" =~ ^[a-z][a-z0-9-]{0,30}$ ]] || refuse "unknown environment '$1'"
+    is_environment "$home/$1" || refuse "environment '$1' is not set up on this host"
+    echo "$home/$1"
+}
+
+# The release's deploy/, out of its image, into a directory removed on exit
+bundle_of() {
+    local image="$1" container
+    bundle="$(mktemp -d)"
+    trap 'rm -rf "$bundle"' EXIT
+    container="$(docker create "$image")" || refuse "cannot open $image"
+    docker cp -q "$container:/app/deploy/." "$bundle/" && docker rm "$container" > /dev/null
+    [[ -f "$bundle/host/deploy" ]] || refuse "$image carries no deploy steps"
+}
+
+lock() {
+    exec 9> "$1/.deploying"
+    flock -n 9 || refuse "a deploy to this environment is already running"
+}
 
 case "$action" in
-    release)
-        [[ ${#request[@]} -eq 2 ]] || refuse "usage: release <environment>"
-        cat "$home/$environment/release" 2>/dev/null || true
+    status)
+        [[ ${#request[@]} -eq 1 ]] || refuse "usage: status"
+        for dir in "$home"/*/; do
+            is_environment "$dir" || continue
+            record() { [[ -f "$dir/$1" ]] && tr ' ' : < "$dir/$1" || echo -; }
+            printf '%s live=%s previous=%s\n' "$(basename "$dir")" "$(record live)" "$(record previous)"
+        done
         ;;
+
     deploy)
-        [[ ${#request[@]} -eq 3 ]] || refuse "usage: deploy <environment> <image>"
-        image="${request[2]}"
-        [[ "$image" =~ ^ghcr\.io/devvir/mtav(:sha-[0-9a-f]{7,40}|@sha256:[0-9a-f]{64})$ ]] \
-            || refuse "not an MTAV release: '$image'"
+        [[ ${#request[@]} -eq 3 || ${#request[@]} -eq 4 ]] \
+            || refuse "usage: deploy <environment> <commit> [fresh]"
+        dir="$(environment_dir "${request[1]}")"
+        commit="${request[2]}"
+        fresh="${request[3]:-}"
+        [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || refuse "not a commit: '$commit'"
+        if [[ -n "$fresh" ]]; then
+            [[ "$fresh" == fresh ]] || refuse "unknown option '$fresh'"
+            grep -qx 'MTAV_FRESH_ALLOWED=true' "$dir/.env" \
+                || refuse "'${request[1]}' keeps its data: it cannot start over"
+        fi
+        lock "$dir"
 
-        bundle="$(mktemp -d)"
-        trap 'rm -rf "$bundle"' EXIT
-        tar -xzf - -C "$bundle" || refuse "no deploy bundle on stdin"
-        [[ -f "$bundle/host/deploy" ]] || refuse "the bundle has no host/deploy"
+        image="ghcr.io/devvir/mtav:sha-$commit"
+        docker pull --quiet "$image" > /dev/null || refuse "no release for $commit"
+        [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.source"}}' "$image")" == "$source" ]] \
+            || refuse "$image is not built from $source"
+        bundle_of "$image"
+        MTAV_HOME="$home" bash "$bundle/host/deploy" "${request[1]}" "$image" "$bundle" "$fresh"
+        ;;
 
-        exec 9> "$home/$environment/.deploying"
-        flock -n 9 || refuse "a deploy to '$environment' is already running"
+    rollback)
+        [[ ${#request[@]} -eq 2 ]] || refuse "usage: rollback <environment>"
+        dir="$(environment_dir "${request[1]}")"
+        lock "$dir"
+        [[ -f "$dir/previous" ]] || refuse "nothing to go back to"
+        read -r _ previous_image < "$dir/previous"
+        docker pull --quiet "$previous_image" > /dev/null || refuse "$previous_image is gone"
+        # Going back is the older release's own business: its steps, from its image
+        bundle_of "$previous_image"
+        MTAV_HOME="$home" bash "$bundle/host/deploy" --rollback "${request[1]}" "$bundle"
+        ;;
 
-        MTAV_DELIVERY_HOME="$home" bash "$bundle/host/deploy" "$environment" "$image" "$bundle"
+    *)
+        refuse "not allowed: '${SSH_ORIGINAL_COMMAND:-}'"
         ;;
 esac

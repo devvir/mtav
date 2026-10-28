@@ -1,0 +1,43 @@
+# Every morning: each site answers, and its certificate has three weeks left or more. A
+# failed run is GitHub's mail to the repository's owner (certificates renew by themselves;
+# this says when they did not).
+name: watch
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sites:
+    runs-on: ubuntu-latest
+    env:
+      CERTIFICATES: mtav.uy www.mtav.uy stg.mtav.uy dev.mtav.uy
+      # The sites a release runs on (each answers /up)
+      SITES: stg.mtav.uy
+      MIN_DAYS: 21
+    steps:
+      - name: Certificates
+        run: |
+          failed=0
+          for host in $CERTIFICATES; do
+            end="$(echo | openssl s_client -connect "$host:443" -servername "$host" 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)"
+            days=$(( ($(date -d "$end" +%s) - $(date +%s)) / 86400 ))
+            echo "$host: $days days left ($end)"
+            [ "$days" -ge "$MIN_DAYS" ] || { echo "::error::$host's certificate expires in $days days"; failed=1; }
+          done
+          exit $failed
+
+      - name: Sites
+        if: always()
+        run: |
+          failed=0
+          for host in $SITES; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$host/up")"
+            echo "$host: $status"
+            [ "$status" = 200 ] || { echo "::error::$host answers $status"; failed=1; }
+          done
+          exit $failed
