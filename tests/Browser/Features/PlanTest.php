@@ -42,7 +42,7 @@ it('moves a shape with the keyboard and undoes it', function () {
     $before = $item->polygon;
 
     editPlan($this)
-        ->click('[data-shape="A-101"] polygon')
+        ->click('[data-shape="A-101"] .plan-top')
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
         ->keys('[aria-label="Plan editor"]', 'ArrowDown')
@@ -58,7 +58,7 @@ it('puts units on other floors', function () {
     editPlan($this)
         ->click('Add a floor')
         ->click('Ground floor')
-        ->click('[data-shape="A-101"] polygon')
+        ->click('[data-shape="A-101"] .plan-top')
         ->select('shape_floor', '1')
         ->click('Save the plan')
         ->assertSee('The plan was saved.');
@@ -75,7 +75,7 @@ it('redoes what was undone', function () {
     $before = $item->polygon;
 
     editPlan($this)
-        ->click('[data-shape="A-101"] polygon')
+        ->click('[data-shape="A-101"] .plan-top')
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
         ->click('[aria-label="Redo"]')
@@ -89,7 +89,7 @@ it('duplicates a shape, and never a unit', function () {
     $this->as($this->admin);
 
     editPlan($this)
-        ->click('[data-shape="A-101"] polygon')
+        ->click('[data-shape="A-101"] .plan-top')
         ->assertNotPresent(button('Duplicate'))
         ->select('[aria-label="Shape to add"]', 'green')
         ->click('Add')

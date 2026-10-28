@@ -1,6 +1,15 @@
 import type { Plan, PlanItem, Point } from '@/types/models';
 
-export type ShapeType = 'unit' | 'building' | 'street' | 'green' | 'common' | 'other';
+export type ShapeType =
+  | 'unit'
+  | 'building'
+  | 'street'
+  | 'green'
+  | 'common'
+  | 'parking'
+  | 'playground'
+  | 'entrance'
+  | 'other';
 
 export interface EditableItem {
   key: string;
@@ -19,6 +28,9 @@ export const DEFAULT_COLORS: Record<ShapeType, string> = {
   street: '#a8a29e',
   green: '#86efac',
   common: '#fcd34d',
+  parking: '#57534e',
+  playground: '#fb923c',
+  entrance: '#a5b4fc',
   other: '#e9d5ff',
 };
 

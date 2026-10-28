@@ -710,6 +710,70 @@
   border-top: 1px solid var(--mtav-border);
 }
 
+/* The plan's materials (components/plan/render.tsx): the ground, units, outlines, labels */
+.plan-canvas {
+  --plan-land: #f1ece2;
+  --plan-land-grain: #d9cfbd;
+  --plan-unit: #e7e2da;
+}
+[data-mantine-color-scheme='dark'] .plan-canvas {
+  --plan-land: #2a2622;
+  --plan-land-grain: #3a342e;
+  --plan-unit: #a8a29e;
+}
+.plan-side-shade {
+  fill: #000;
+  opacity: 0.28;
+}
+.plan-outline {
+  stroke: #1c1917;
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.plan-item[data-selected] .plan-outline {
+  stroke: var(--mtav-brand);
+  stroke-opacity: 1;
+  stroke-width: 2.5;
+}
+.plan-label {
+  font-size: 12px;
+  font-weight: 650;
+  fill: #1c1917;
+  paint-order: stroke;
+  stroke: rgb(255 255 255 / 0.75);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.plan-door {
+  fill: #fff;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.plan-item[data-kind='entrance'] .plan-label {
+  dominant-baseline: hanging;
+}
+.plan-house {
+  fill: #fff;
+  opacity: 0.75;
+  pointer-events: none;
+}
+/* High contrast: plain fills and strong lines, no texture, light or depth */
+[data-high-contrast] .plan-canvas .plan-light,
+[data-high-contrast] .plan-canvas .plan-side,
+[data-high-contrast] .plan-canvas .plan-side-shade,
+[data-high-contrast] .plan-canvas .plan-trees {
+  display: none;
+}
+[data-high-contrast] .plan-canvas * {
+  filter: none;
+}
+[data-high-contrast] .plan-canvas .plan-outline {
+  stroke-opacity: 1;
+  stroke-width: 1.5;
+}
+
 /* A unit's place in the family's ranking, on the plan */
 .plan-rank circle {
   fill: var(--mantine-color-brand-filled);

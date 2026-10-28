@@ -72,8 +72,42 @@ class DatabaseSeeder extends Seeder
         }
         $acacias->lottery->update(['start_date' => now()->addMonth()]);
 
+        $this->site($acacias);
+
         $media = app(DemoMedia::class);
         $media->share($acacias, $admin, $member, ...$acacias->members()->whereNotIn('users.id', [$admin->id, $member->id])->take(3)->get());
+    }
+
+    /**
+     * The first project's site: its two blocks around a square with trees, the street and
+     * its entrance, parking, a playground and the common hall, on irregular land
+     */
+    private function site(Project $project): void
+    {
+        $plan = $project->plan;
+        $plan->update(['polygon' => [[30, 30], [770, 42], [762, 562], [38, 570]]]);
+        $rect = fn ($x, $y, $w, $h) => [[$x, $y], [$x + $w, $y], [$x + $w, $y + $h], [$x, $y + $h]];
+
+        // Block A (2 bedrooms) to the west, block B (3 bedrooms) to the east
+        foreach ($plan->items()->with('unit')->where('type', 'unit')->get() as $item) {
+            [$block, $number] = explode('-', $item->unit->identifier);
+            $n = (int) $number - 101;
+            $item->update(['polygon' => $block === 'A'
+                ? $rect(70 + ($n % 3) * 78, 80 + intdiv($n, 3) * 74, 70, 64)
+                : $rect(560 + ($n % 2) * 92, 80 + intdiv($n, 2) * 84, 84, 74)]);
+        }
+
+        foreach ([
+            ['green', 'Plaza', [[310, 92], [505, 82], [522, 248], [318, 268]]],
+            ['common', 'Salón comunal', $rect(330, 318, 150, 98)],
+            ['parking', 'Estacionamiento', $rect(70, 318, 196, 120)],
+            ['playground', 'Juegos', $rect(546, 300, 136, 84)],
+            ['green', null, $rect(546, 400, 190, 70)],
+            ['entrance', 'Entrada', $rect(372, 452, 56, 40)],
+            ['street', 'Av. Italia', $rect(40, 494, 720, 56)],
+        ] as [$type, $name, $polygon]) {
+            $plan->items()->create(['type' => $type, 'name' => $name, 'floor' => 0, 'polygon' => $polygon]);
+        }
     }
 
     /**

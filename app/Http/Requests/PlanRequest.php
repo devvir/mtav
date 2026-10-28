@@ -14,7 +14,7 @@ use Illuminate\Validation\Validator;
  */
 class PlanRequest extends FormRequest
 {
-    public const ITEM_TYPES = ['unit', 'building', 'street', 'green', 'common', 'other'];
+    public const ITEM_TYPES = ['unit', 'building', 'street', 'green', 'common', 'parking', 'playground', 'entrance', 'other'];
 
     public function rules(): array
     {

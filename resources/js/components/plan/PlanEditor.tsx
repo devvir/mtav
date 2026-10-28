@@ -28,6 +28,7 @@ import {
 import {
   forwardRef,
   useEffect,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -36,7 +37,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { floorLabel } from './floors';
-import { bounds, centre, PlanModel, type ShapeType } from './model';
+import { bounds, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
+import { PlanDefs, PlanGround, PlanShape } from './render';
 
 export type PlanPayload = ReturnType<PlanModel['payload']>;
 
@@ -49,8 +51,6 @@ type Drag =
   | { kind: 'move'; start: Point; original: Point[] }
   | { kind: 'vertex'; index: number }
   | { kind: 'resize'; anchor: Point; from: Point; original: Point[] };
-
-const points = (polygon: Point[]) => polygon.map(([x, y]) => `${x},${y}`).join(' ');
 
 const CORNERS: [number, number][] = [
   [0, 0],
@@ -79,6 +79,7 @@ export const PlanEditor = forwardRef<
   );
 
   const svg = useRef<SVGSVGElement>(null);
+  const look = `plan${useId().replace(/:/g, '')}`;
   const drag = useRef<Drag | null>(null);
   const [newShape, setNewShape] = useState<ShapeType>('building');
 
@@ -87,6 +88,9 @@ export const PlanEditor = forwardRef<
     { value: 'street', label: _('Street') },
     { value: 'green', label: _('Green area') },
     { value: 'common', label: _('Common space') },
+    { value: 'parking', label: _('Parking') },
+    { value: 'playground', label: _('Playground') },
+    { value: 'entrance', label: _('Entrance') },
     { value: 'other', label: _('Other') },
   ];
 
@@ -313,6 +317,7 @@ export const PlanEditor = forwardRef<
               model.select(null);
           }}
         >
+          <PlanDefs id={look} />
           <defs>
             <pattern id="plan-grid" width={25} height={25} patternUnits="userSpaceOnUse">
               <path
@@ -330,50 +335,35 @@ export const PlanEditor = forwardRef<
             data-background
           />
 
-          <polygon
-            points={points(canvas.polygon)}
-            fill="var(--mtav-surface-2)"
-            fillOpacity={0.6}
-            stroke="var(--mtav-border-strong)"
+          <PlanGround
+            id={look}
+            polygon={canvas.polygon}
             strokeWidth={model.editingBoundary ? 3 : 2}
-            strokeDasharray={model.editingBoundary ? '8 4' : undefined}
+            stroke={model.editingBoundary ? 'var(--mtav-brand)' : 'var(--mtav-border-strong)'}
             data-background
             onPointerDown={(event) => model.editingBoundary && startMove(event, 'boundary')}
           />
 
-          {model.visible.map((item) => {
-            const [x, y] = centre(item.polygon);
-            const isSelected = item.key === model.selected;
-            return (
-              <g
-                key={item.key}
-                data-shape={item.unit?.identifier ?? item.name}
-                className="plan-shape"
-                onPointerDown={(event) => startMove(event, item.key)}
-              >
-                <polygon
-                  points={points(item.polygon)}
-                  fill={item.color}
-                  fillOpacity={0.85}
-                  stroke={isSelected ? 'var(--mtav-brand)' : 'var(--mtav-text)'}
-                  strokeOpacity={isSelected ? 1 : 0.4}
-                  strokeWidth={isSelected ? 2.5 : 1}
-                />
-                <text
-                  x={x}
-                  y={y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={12}
-                  fontWeight={650}
-                  fill="#1c1917"
-                  pointerEvents="none"
-                >
-                  {item.unit?.identifier ?? item.name}
-                </text>
-              </g>
-            );
-          })}
+          {model.visible.map((item) => (
+            <g
+              key={item.key}
+              data-shape={item.unit?.identifier ?? item.name}
+              className="plan-shape"
+              onPointerDown={(event) => startMove(event, item.key)}
+            >
+              <PlanShape
+                id={look}
+                // The same trees as where people read the plan
+                seed={item.id ? String(item.id) : item.key}
+                kind={item.type}
+                polygon={item.polygon}
+                // The colour of a kind's own material is not a choice: only tints count
+                color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
+                label={item.unit?.identifier ?? item.name}
+                selected={item.key === model.selected}
+              />
+            </g>
+          ))}
 
           {/* The selected shape's handles */}
           {active && box ? (
