@@ -12,6 +12,7 @@ import {
   IconUsersPlus,
   type Icon,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface Action {
   label: string;
@@ -25,6 +26,7 @@ interface Action {
  */
 export function QuickActions() {
   const project = usePage().props.project;
+  const [opened, setOpened] = useState(false);
   if (!project) return null;
 
   const at = { project: project.id };
@@ -75,9 +77,9 @@ export function QuickActions() {
   if (!actions.length) return null;
 
   return (
-    <Menu position="bottom-end" width={250}>
+    <Menu position="bottom-end" width={250} opened={opened} onChange={setOpened}>
       <Menu.Target>
-        <Tooltip label={_('Quick actions')}>
+        <Tooltip label={_('Quick actions')} disabled={opened}>
           <ActionIcon
             size="xl"
             radius="xl"

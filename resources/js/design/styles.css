@@ -145,6 +145,11 @@ body {
   background: linear-gradient(180deg, var(--mtav-surface-2), transparent);
 }
 .ds-panel-title {
+  flex: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 15px;
   font-weight: 650;
   letter-spacing: -0.005em;

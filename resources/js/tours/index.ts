@@ -10,7 +10,7 @@ import { _ } from '@/lib/translations';
 defineTour('member.ranking', () => [
   {
     target: 'ranking.list',
-    title: _("Your family's ranking"),
+    title: _('Your preferences'),
     body: _(
       'These are the units your family competes for, most wanted first. The lottery tries to give every family a unit as high in its ranking as possible.',
     ),

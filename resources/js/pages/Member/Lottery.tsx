@@ -173,7 +173,7 @@ export default function Lottery({
         {family && ranking.length ? (
           <Panel
             data-tour="ranking.list"
-            title={_("Your family's ranking")}
+            title={_('Your preferences')}
             icon={IconListNumbers}
             actions={
               saving ? (
@@ -227,8 +227,9 @@ export default function Lottery({
 
         {family ? (
           <Panel
-            title={_('Where they are')}
+            title={_('Project plan')}
             icon={IconMap}
+            className="stays-in-view"
             tone="accent"
             aside={_('{type} units are highlighted, with their place in your ranking.', {
               type: family.unit_type,

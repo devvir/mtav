@@ -161,7 +161,7 @@
 }
 
 /* Bottom tabs on phones: the member app's main places */
-.shell-tabs {
+.ds-bar.shell-tabs {
   position: fixed;
   inset: auto 0 0 0;
   top: auto;
@@ -176,7 +176,7 @@
   display: none;
 }
 @media (min-width: 75em) {
-  .shell-tabs {
+  .ds-bar.shell-tabs {
     display: none;
   }
 }
@@ -252,6 +252,7 @@
 /* The main part and a narrower one beside it on wide screens (a form and what explains it) */
 .with-aside {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -354,6 +355,7 @@
 
 .dashboard-top {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -501,12 +503,34 @@
 
 .two-columns {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 @media (min-width: 62em) {
   .two-columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Side by side panels of a kind: one height, their actions along the same line */
+  .two-columns[data-even] {
+    align-items: stretch;
+  }
+  .two-columns[data-even] > .ds-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .two-columns[data-even] > .ds-panel > .ds-panel-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+  .two-columns[data-even] .panel-actions {
+    margin-top: auto;
+  }
+  /* Beside a long list it explains, a panel stays in view while the list scrolls */
+  .two-columns > .stays-in-view {
+    position: sticky;
+    top: 88px;
   }
 }
 .row[data-own] {
@@ -585,6 +609,7 @@
 
 .plan-editor {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }

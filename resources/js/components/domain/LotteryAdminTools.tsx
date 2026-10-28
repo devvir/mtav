@@ -11,13 +11,14 @@ import type { LotteryRun, ProjectEvent } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
 import {
   Alert,
+  Box,
   Button,
   Group,
   Loader,
   Stack,
   Text,
-  TextInput,
   Textarea,
+  TextInput,
   Title,
 } from '@mantine/core';
 import {
@@ -153,8 +154,21 @@ export function LotteryAdminTools({ lottery, status, readiness, runs, confirm }:
           )}
         </InfoTip>
       </Group>
-      <div className="two-columns">
-        <Panel title={_('When and what')} icon={IconCalendarEvent} data-tour="lottery.schedule">
+      <div className="two-columns" data-even>
+        <Panel
+          title={
+            <>
+              <Box component="span" visibleFrom="xs">
+                {_('Lottery description and date')}
+              </Box>
+              <Box component="span" hiddenFrom="xs">
+                {_('Description and date')}
+              </Box>
+            </>
+          }
+          icon={IconCalendarEvent}
+          data-tour="lottery.schedule"
+        >
           <Form onSubmit={saveSchedule}>
             <TextInput
               label={_('Date')}
@@ -211,7 +225,7 @@ export function LotteryAdminTools({ lottery, status, readiness, runs, confirm }:
             ) : null}
           </Stack>
 
-          <div style={{ marginTop: 16 }}>
+          <div className="panel-actions" style={{ paddingTop: 16 }}>
             {status === 'running' ? (
               <Alert color="blue" radius="lg" icon={<Loader size={18} />}>
                 {_('The lottery is running.')}

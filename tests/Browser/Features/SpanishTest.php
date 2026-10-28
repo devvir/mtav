@@ -14,9 +14,9 @@ it('speaks Spanish in the member app', function () {
 
     visit(route('lottery.show', $project))
         ->assertSee('Sorteo')
-        ->assertSee('El orden de tu familia')
+        ->assertSee('Tus preferencias')
         ->assertSee('Viviendas')
-        ->assertDontSee('Your family\'s ranking')
+        ->assertDontSee('Your preferences')
         ->assertNoSmoke();
 });
 

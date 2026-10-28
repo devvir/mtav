@@ -14,6 +14,7 @@ export function Panel({
   aside,
   actions,
   flush,
+  className,
   children,
   ...rest
 }: {
@@ -26,11 +27,19 @@ export function Panel({
   children: ReactNode;
 } & Omit<React.HTMLAttributes<HTMLElement>, 'title'>) {
   return (
-    <section className="ds-panel" {...rest}>
+    <section className={className ? `ds-panel ${className}` : 'ds-panel'} {...rest}>
       <header className="ds-panel-header">
         {icon ? <Glyph icon={icon} tone={tone} size={30} /> : null}
         <h2 className="ds-panel-title">{title}</h2>
-        {aside ? <span className="ds-caption ds-truncate">{aside}</span> : null}
+        {aside ? (
+          <span
+            className="ds-caption ds-truncate"
+            style={{ minWidth: 0 }}
+            title={typeof aside === 'string' ? aside : undefined}
+          >
+            {aside}
+          </span>
+        ) : null}
         {actions ? (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>{actions}</div>
         ) : null}

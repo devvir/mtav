@@ -67,10 +67,22 @@ decision taken on the way is listed below for review.
   in place of the abandoned MailHog. TypeScript waits at 6 until vue-tsc supports 7 (moot once the frontend is React).
 - **Delivery from scratch.** Building, testing and deploying are designed anew; nothing
   of the earlier deployment (its scripts, images or host setup) is kept by default. Every
-  push and pull request runs the whole test suite on GitHub Actions; a green `main`
-  publishes versioned images and deploys staging; production takes the same images,
-  deployed only by hand, with the author's approval. The author is present for the
-  first staging deploy. Design in `documentation/technical/delivery.md`.
+  push and pull request runs the whole test suite on GitHub Actions and builds one image
+  per commit (GitHub's registry); every environment runs those images, nothing is built
+  on a host. A green `main` deploys staging by itself; dev is deployed by hand from any
+  branch (optionally from fresh demo data); production by hand, from `main` only, with
+  the image staging already ran. Deploys are triggered on GitHub (its "Run workflow"
+  dialog, the command line, or the console below); only the step that reaches a host is
+  specific to today's single server, so moving to a cloud provider replaces that step
+  alone. The author is present for the first staging deploy. Design in
+  `documentation/technical/delivery.md`.
+- **Deployment tools in the console.** The platform console gets a Deployments page: what
+  each environment runs against `main`, deploying dev from a branch, production from
+  `main`, and an earlier image again. It is shown only to superadmins whose email is
+  listed in the environment's settings (`DEPLOYERS`), so granting superadmin never
+  grants deploying; an empty list hides it. The app asks GitHub to run the deploy (a
+  token limited to this repository's workflows), so it works the same wherever the
+  environments live.
 - **Full browser coverage.** The browser suite covers every button, every form and every
   edge case; anything later judged too slow or costly for every run moves to an
   on-demand run, by decision.

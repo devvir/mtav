@@ -86,3 +86,27 @@ it('renders the pages of people who are not signed in', function () {
         visit($url)->assertSee($text)->assertNoSmoke();
     }
 });
+
+it('fits a phone screen on every project page', function () {
+    $this->as($this->admin);
+
+    $pages = [
+        route('projects.show', $this->project),
+        route('lottery.show', $this->project),
+        route('families.index', $this->project),
+        route('people.index', $this->project),
+        route('units.index', $this->project),
+        route('events.index', $this->project),
+        route('media.index', $this->project),
+        route('manage.overview', $this->project),
+        route('manage.invitations.index', $this->project),
+        route('manage.settings.edit', $this->project),
+    ];
+
+    // Wider than the screen, a phone zooms the page out and the bottom tabs float mid-page
+    foreach ($pages as $url) {
+        visit($url)->on()->mobile()
+            ->assertScript('document.documentElement.scrollWidth <= window.innerWidth')
+            ->assertVisible('.shell-tabs');
+    }
+});
