@@ -83,6 +83,10 @@ decision taken on the way is listed below for review.
   grants deploying; an empty list hides it. The app asks GitHub to run the deploy (a
   token limited to this repository's workflows), so it works the same wherever the
   environments live.
+- **Mail per environment.** Staging and production send real mail; staging (and dev, if
+  it sends) skips addresses under blocked domains, logged instead: by default the
+  reserved ones every demo account uses (`example.com`, `.org`, `.net`, and the `.test`,
+  `.example`, `.invalid`, `.localhost` names), set per environment. Dev keeps a catcher.
 - **Full browser coverage.** The browser suite covers every button, every form and every
   edge case; anything later judged too slow or costly for every run moves to an
   on-demand run, by decision.

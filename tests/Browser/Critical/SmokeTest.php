@@ -88,9 +88,8 @@ it('renders the pages of people who are not signed in', function () {
 });
 
 it('fits a phone screen on every project page', function () {
-    $this->as($this->admin);
-
-    $pages = [
+    // A family's member sees the lottery's panels for families (its plan's long caption)
+    $memberPages = [
         route('projects.show', $this->project),
         route('lottery.show', $this->project),
         route('families.index', $this->project),
@@ -98,15 +97,22 @@ it('fits a phone screen on every project page', function () {
         route('units.index', $this->project),
         route('events.index', $this->project),
         route('media.index', $this->project),
+        route('invitations.index', $this->project),
+    ];
+    $adminPages = [
+        route('lottery.show', $this->project),
         route('manage.overview', $this->project),
         route('manage.invitations.index', $this->project),
         route('manage.settings.edit', $this->project),
     ];
 
     // Wider than the screen, a phone zooms the page out and the bottom tabs float mid-page
-    foreach ($pages as $url) {
-        visit($url)->on()->mobile()
-            ->assertScript('document.documentElement.scrollWidth <= window.innerWidth')
-            ->assertVisible('.shell-tabs');
-    }
+    $fits = fn (string $url) => visit($url)->on()->mobile()
+        ->assertScript('document.documentElement.scrollWidth <= screen.width')
+        ->assertVisible('.shell-tabs');
+
+    $this->as($this->member);
+    array_map($fits, $memberPages);
+    $this->as($this->admin);
+    array_map($fits, $adminPages);
 });
