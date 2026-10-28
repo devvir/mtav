@@ -12,7 +12,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 /**
- * Who takes part in the project.
+ * Who takes part in the project; admins change someone's role or family, or remove them,
+ * from their page.
  */
 class PeopleController extends Controller
 {
@@ -31,11 +32,17 @@ class PeopleController extends Controller
         ]);
     }
 
-    public function show(Project $project, User $member): Response
+    public function show(Request $request, Project $project, User $member): Response
     {
         $member->load(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family')]);
 
-        return inertia('Member/People/Show', ['person' => MemberResource::make($member)]);
+        return inertia('Member/People/Show', [
+            'person' => MemberResource::make($member),
+            // For admins, who change people's role and family here
+            'families' => $request->user()->can('update', $project)
+                ? $project->families()->alphabetically()->get(['id', 'name'])
+                : null,
+        ]);
     }
 
     /**

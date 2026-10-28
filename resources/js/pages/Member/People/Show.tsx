@@ -1,17 +1,37 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { MembershipForm } from '@/components/forms/MembershipForm';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Person } from '@/types/models';
+import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Anchor, Badge, Button, Card, Divider, Group, Stack, Text } from '@mantine/core';
-import { IconLogout, IconMail, IconPhone } from '@tabler/icons-react';
+import { Anchor, Badge, Button, Card, Divider, Group, Modal, Stack, Text } from '@mantine/core';
+import { IconLogout, IconMail, IconPhone, IconUserCog, IconUserMinus } from '@tabler/icons-react';
+import { useState } from 'react';
 
-export default function PersonShow({ person }: { person: Person }) {
+export default function PersonShow({
+  person,
+  families,
+}: {
+  person: Person;
+  /** For admins, who change people's role and family here */
+  families: Ref[] | null;
+}) {
   const { props } = usePage();
   const isMe = props.auth.user?.id === person.id;
+  const [editing, setEditing] = useState(false);
+
+  const remove = async () => {
+    const ok = await confirm({
+      title: _('Remove {name} from the project?', { name: person.name }),
+      message: _('Their account stays; they just stop taking part in this project.'),
+      confirmLabel: _('Remove'),
+      danger: true,
+    });
+    if (ok) router.delete(route('manage.people.destroy', person.id));
+  };
 
   const leave = async () => {
     const project = props.project!.name;
@@ -26,7 +46,34 @@ export default function PersonShow({ person }: { person: Person }) {
 
   return (
     <>
-      <PageHeader title={person.name} back={{ href: route('people.index'), label: _('People') }} />
+      <PageHeader
+        title={person.name}
+        back={{ href: route('people.index'), label: _('People') }}
+        actions={
+          families ? (
+            <Group gap="sm">
+              <Button
+                variant="default"
+                leftSection={<IconUserCog size={18} />}
+                onClick={() => setEditing(true)}
+              >
+                {_('Change role or family')}
+              </Button>
+              {!isMe ? (
+                <Button
+                  variant="default"
+                  color="red"
+                  c="red"
+                  leftSection={<IconUserMinus size={18} />}
+                  onClick={remove}
+                >
+                  {_('Remove from the project')}
+                </Button>
+              ) : null}
+            </Group>
+          ) : null
+        }
+      />
       <Card p="xl" maw={720}>
         <Group gap="lg">
           <PersonAvatar name={person.name} src={person.avatar} size={72} />
@@ -89,6 +136,12 @@ export default function PersonShow({ person }: { person: Person }) {
           </>
         ) : null}
       </Card>
+
+      {families ? (
+        <Modal opened={editing} onClose={() => setEditing(false)} title={person.name}>
+          <MembershipForm person={person} families={families} onDone={() => setEditing(false)} />
+        </Modal>
+      ) : null}
     </>
   );
 }

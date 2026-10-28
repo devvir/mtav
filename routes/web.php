@@ -139,7 +139,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::delete('settings', [Manage\SettingsController::class, 'destroy'])->name('settings.destroy');
                 Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])->name('approval.request');
 
-                Route::get('people', [Manage\PeopleController::class, 'index'])->name('people.index');
                 Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
                 Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
 

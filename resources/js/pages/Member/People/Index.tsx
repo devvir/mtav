@@ -6,8 +6,9 @@ import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Paginated, Person } from '@/types/models';
-import { Link } from '@inertiajs/react';
-import { Badge, Card, Group, SimpleGrid, Text } from '@mantine/core';
+import { Link, usePage } from '@inertiajs/react';
+import { Badge, Button, Card, Group, SimpleGrid, Text } from '@mantine/core';
+import { IconMail } from '@tabler/icons-react';
 
 export default function PeopleIndex({
   people,
@@ -17,10 +18,25 @@ export default function PeopleIndex({
   filters: { q: string | null };
 }) {
   useProjectChanges({ people: ['people'] });
+  const canManage = usePage().props.project!.can.manage;
 
   return (
     <>
-      <PageHeader title={_('People')} description={_('Everyone taking part in the project.')} />
+      <PageHeader
+        title={_('People')}
+        description={_('Everyone taking part in the project.')}
+        actions={
+          canManage ? (
+            <Button
+              component={Link}
+              href={route('manage.invitations.index')}
+              leftSection={<IconMail size={18} />}
+            >
+              {_('Invite people')}
+            </Button>
+          ) : null
+        }
+      />
       <div style={{ marginBottom: 16 }}>
         <QuerySearch value={filters.q} placeholder={_('Search by name')} maw={440} />
       </div>

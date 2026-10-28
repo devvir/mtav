@@ -39,9 +39,9 @@ it('opens the admin area\'s navigation in the drawer', function () {
 it('opens modals as sheets that fit the screen', function () {
     $this->as($this->admin);
 
-    $page = visit(route('manage.people.index', $this->project))
+    $page = visit(route('people.show', [$this->project, $this->member]))
         ->on()->mobile()
-        ->click("[aria-label=\"Change role or family of {$this->member->name}\"]")
+        ->click('Change role or family')
         ->assertSee('Their role and family in this project.');
 
     expect($page->script('Math.round(document.querySelector(\'[role="dialog"]\').getBoundingClientRect().width) <= window.innerWidth'))->toBeTrue();

@@ -82,8 +82,8 @@ it('lets admins find people, and units by type', function () {
     aUnit($loft, ['identifier' => 'L-201']);
     $this->as($this->admin);
 
-    visit(route('manage.people.index', $this->project))
-        ->type('[aria-label="Search by name or email"]', 'Bruno')
+    visit(route('people.index', $this->project))
+        ->type('[aria-label="Search by name"]', 'Bruno')
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García');
 

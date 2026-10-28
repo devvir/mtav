@@ -127,8 +127,8 @@ it('changes someone\'s family and role, keeping at least one admin', function ()
     $other = aFamily($this->project, null, ['name' => 'Pérez']);
     $this->as($this->admin);
 
-    visit(route('manage.people.index', $this->project))
-        ->click('[aria-label="Change role or family of Ana García"]')
+    visit(route('people.show', [$this->project, $member]))
+        ->click('Change role or family')
         ->select('family_id', (string) $other->id)
         ->check('is_admin')
         ->click(inDialog('Save'))
@@ -142,8 +142,8 @@ it('changes someone\'s family and role, keeping at least one admin', function ()
     $member->membershipIn($this->project)->update(['is_admin' => true]);
     $this->admin->membershipIn($this->project)->delete();
 
-    visit(route('manage.people.index', $this->project))
-        ->click('[aria-label="Change role or family of Ana García"]')
+    visit(route('people.show', [$this->project, $member]))
+        ->click('Change role or family')
         ->uncheck('is_admin')
         ->click(inDialog('Save'))
         ->assertSee('A project needs at least one admin.');
@@ -153,12 +153,26 @@ it('removes someone from the project', function () {
     $member = aMemberOf($this->family, ['firstname' => 'Ana', 'lastname' => 'García']);
     $this->as($this->admin);
 
-    visit(route('manage.people.index', $this->project))
-        ->click('[aria-label="Remove Ana García"]')
+    visit(route('people.show', [$this->project, $member]))
+        ->click('Remove from the project')
         ->click(inDialog('Remove'))
-        ->assertSee('The person was removed from the project.');
+        ->assertSee('The person was removed from the project.')
+        ->assertPathIs(route('people.index', $this->project, absolute: false));
 
     expect($member->fresh()->canAccess($this->project))->toBeFalse();
+});
+
+it('shows members no tools to change or remove others', function () {
+    $member = aMemberOf($this->family);
+    $other = aMemberOf($this->family, ['firstname' => 'Bruno']);
+    $this->as($member);
+
+    visit(route('people.show', [$this->project, $other]))
+        ->assertSee('Bruno')
+        ->assertDontSee('Change role or family')
+        ->assertDontSee('Remove from the project')
+        ->navigate(route('people.index', $this->project))
+        ->assertDontSee('Invite people');
 });
 
 it('lets a member leave the project', function () {
@@ -176,7 +190,7 @@ it('lets a member leave the project', function () {
 it('leads admins from the people to the invitations', function () {
     $this->as($this->admin);
 
-    visit(route('manage.people.index', $this->project))
+    visit(route('people.index', $this->project))
         ->click('Invite people')
         ->assertPathIs(route('manage.invitations.index', $this->project, absolute: false));
 });

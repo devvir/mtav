@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Manage;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\MemberResource;
 use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
@@ -11,32 +10,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Inertia\Response;
 
 /**
  * The people of a project: their families and roles.
  */
 class PeopleController extends Controller
 {
-    public function index(Request $request, Project $project): Response
-    {
-        $members = $project->members()
-            ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')])
-            ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->when($request->integer('family'), fn ($q, $familyId) => $q->wherePivot('family_id', $familyId))
-            ->when($request->boolean('admins'), fn ($q) => $q->wherePivot('is_admin', true))
-            ->alphabetically()
-            ->paginate(30)
-            ->withQueryString();
-
-        return inertia('Manage/People', [
-            'members'  => MemberResource::collection($members),
-            'families' => $project->families()->alphabetically()->get(['id', 'name']),
-            'filters'  => ['q' => $request->q, 'family' => $request->integer('family') ?: null, 'admins' => $request->boolean('admins')],
-        ]);
-    }
-
-
     /**
      * Admins move people between families and grant or revoke the admin role.
      */
@@ -68,7 +47,7 @@ class PeopleController extends Controller
 
         $member->membershipIn($project)->delete();
 
-        return back()->with('success', __('flash.member_removed'));
+        return to_route('people.index')->with('success', __('flash.member_removed'));
     }
 
     private function ensureNotLastAdmin(Project $project, User $member): void

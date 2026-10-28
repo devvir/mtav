@@ -62,9 +62,9 @@ export function ManageLayout({ children }: { children: ReactNode }) {
     },
     {
       label: _('People'),
-      href: route('manage.people.index'),
+      href: route('people.index'),
       icon: IconUsers,
-      active: routeIs('manage.people.*'),
+      active: routeIs('people.*'),
     },
     {
       label: _('Invitations'),
