@@ -51,17 +51,10 @@ it('renders the project admin area', function () {
     $this->as($this->admin);
 
     $pages = [
-        route('manage.overview', $this->project)                       => 'Getting to the lottery',
-        route('manage.unit_types.index', $this->project)               => '2 bedrooms',
-        route('manage.unit_types.create', $this->project)              => 'Add a unit type',
-        route('manage.unit_types.edit', [$this->project, $this->type]) => '2 bedrooms',
-        route('manage.units.index', $this->project)                    => 'A-101',
-        route('manage.units.create', $this->project)                   => 'Add units',
-        route('manage.units.edit', [$this->project, $this->unit])      => 'A-101',
-        route('manage.plan.edit', $this->project)                      => 'Save the plan',
-        route('manage.invitations.index', $this->project)              => 'Invite someone',
-        route('lottery.show', $this->project)                          => 'Readiness',
-        route('manage.settings.edit', $this->project)                  => 'Delete the project',
+        route('manage.overview', $this->project)          => 'Getting to the lottery',
+        route('manage.invitations.index', $this->project) => 'Invite someone',
+        route('lottery.show', $this->project)             => 'Readiness',
+        route('manage.settings.edit', $this->project)     => 'Delete the project',
     ];
 
     foreach ($pages as $url => $text) {

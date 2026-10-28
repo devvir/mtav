@@ -6,6 +6,12 @@ use App\Models\PlanItem;
  * The plan: drawing it, and seeing it.
  */
 
+/** The plan, switched to editing in place on the units page */
+function editPlan($test): object
+{
+    return visit(route('units.index', $test->project))->click('Edit the plan')->assertPresent('[aria-label="Plan editor"]');
+}
+
 beforeEach(function () {
     $this->project = aProject();
     $this->type = aUnitType($this->project);
@@ -16,7 +22,7 @@ beforeEach(function () {
 it('adds a named green area that members then see', function () {
     $this->as($this->admin);
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->select('[aria-label="Shape to add"]', 'green')
         ->click('Add')
         ->fill('shape_name', 'Central park')
@@ -35,7 +41,7 @@ it('moves a shape with the keyboard and undoes it', function () {
     $item = PlanItem::whereNotNull('unit_id')->sole();
     $before = $item->polygon;
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->click('[data-shape="A-101"] polygon')
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
@@ -49,7 +55,7 @@ it('moves a shape with the keyboard and undoes it', function () {
 it('puts units on other floors', function () {
     $this->as($this->admin);
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->click('Add a floor')
         ->click('Ground floor')
         ->click('[data-shape="A-101"] polygon')
@@ -68,7 +74,7 @@ it('redoes what was undone', function () {
     $item = PlanItem::whereNotNull('unit_id')->sole();
     $before = $item->polygon;
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->click('[data-shape="A-101"] polygon')
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
@@ -82,7 +88,7 @@ it('redoes what was undone', function () {
 it('duplicates a shape, and never a unit', function () {
     $this->as($this->admin);
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->click('[data-shape="A-101"] polygon')
         ->assertNotPresent(button('Duplicate'))
         ->select('[aria-label="Shape to add"]', 'green')
@@ -99,7 +105,7 @@ it('removes a corner of the boundary', function () {
     $this->as($this->admin);
     $corners = count($this->project->plan->polygon);
 
-    visit(route('manage.plan.edit', $this->project))
+    editPlan($this)
         ->click('Edit the boundary')
         ->click('.plan-vertex >> nth=0')
         ->click('Remove the corner')

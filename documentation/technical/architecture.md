@@ -12,11 +12,12 @@ explains the shape so the code reads quickly.
 | Platform console | `/admin/…` | superadmins | `Http/Controllers/Platform`, `pages/Platform` |
 
 A project has one set of pages, the same for everyone. Admins see their tools on them:
-the events, families, people and lottery pages give admins creating, editing and removing
-(in dialogs, which a link opens with `?new=1`) and running the lottery. What admins do is
-sent to the admin routes under `manage/`, gated as a whole. Pages with no counterpart for
-members sit under `manage/` too (`pages/Manage`): the setup overview, unit types, units
-and the plan editor, invitations and the project's settings.
+the units, events, families, people and lottery pages give admins creating, editing and
+removing (in dialogs, which a link opens with `?new=1`, `?new_type=1` or `?new_unit=1`),
+drawing the plan in place, and running the lottery. What admins do is sent to the admin
+routes under `manage/`, gated as a whole. The few pages with no counterpart for members
+sit under `manage/` too (`pages/Manage`): the setup overview, invitations and the
+project's settings.
 
 Outside the areas: accounts (sign-up, login, password, email confirmation), settings,
 notifications, the list of one's projects, and invitation links.

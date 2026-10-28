@@ -13,7 +13,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The project's units, by type.
+ * The project's units, by type, and where they are on the plan; admins add, change and
+ * remove types and units, and draw the plan, on these same pages.
  */
 class UnitController extends Controller
 {
@@ -30,8 +31,14 @@ class UnitController extends Controller
         ]);
     }
 
-    public function show(Project $project, Unit $unit): Response
+    public function show(Request $request, Project $project, Unit $unit): Response
     {
-        return inertia('Member/Units/Show', ['unit' => UnitResource::make($unit->load('type', 'family'))]);
+        return inertia('Member/Units/Show', [
+            'unit' => UnitResource::make($unit->load('type', 'family')),
+            // For admins, who edit units here
+            'unitTypes' => $request->user()->can('update', $project)
+                ? UnitTypeResource::collection($project->unitTypes()->alphabetically()->get())
+                : null,
+        ]);
     }
 }

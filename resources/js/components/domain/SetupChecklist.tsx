@@ -17,9 +17,9 @@ export function SetupChecklist({ setup }: { setup: Setup }) {
     {
       done: setup.unit_types,
       label: _('Add the unit types'),
-      href: route('manage.unit_types.index'),
+      href: route('units.index', { new_type: 1 }),
     },
-    { done: setup.units, label: _('Add the units'), href: route('manage.units.index') },
+    { done: setup.units, label: _('Add the units'), href: route('units.index', { new_unit: 1 }) },
     {
       done: setup.families,
       label: _('Register the families'),

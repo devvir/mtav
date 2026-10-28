@@ -16,13 +16,13 @@ beforeEach(function () {
 it('manages unit types, refusing duplicates and removing only unused ones', function () {
     aUnitType($this->project, ['name' => 'Studio']);
 
-    visit(route('manage.unit_types.create', $this->project))
+    visit(route('units.index', [$this->project, 'new_type' => 1]))
         ->fill('name', 'Studio')
-        ->click('Add the unit type')
+        ->click(inDialog('Add the unit type'))
         ->assertSee('The name has already been taken.')
         ->fill('name', '2 bedrooms')
         ->fill('description', 'Two bedroom apartment')
-        ->click('Add the unit type')
+        ->click(inDialog('Add the unit type'))
         ->assertSee('The unit type was added.')
         ->click('[aria-label="Remove Studio"]')
         ->click(inDialog('Remove'))
@@ -36,13 +36,13 @@ it('does not offer to remove a unit type in use', function () {
     $type = aUnitType($this->project, ['name' => 'Studio']);
     aFamily($this->project, $type);
 
-    $page = visit(route('manage.unit_types.index', $this->project));
+    $page = visit(route('units.index', $this->project))->assertSee('Studio');
 
     expect($page->script('document.querySelector(\'[aria-label="Remove Studio"]\').disabled'))->toBeTrue();
 });
 
 it('adds units one after another, creating a type on the way', function () {
-    visit(route('manage.units.create', $this->project))
+    visit(route('units.index', [$this->project, 'new_unit' => 1]))
         ->fill('identifier', 'A-101')
         ->fill('[name="new_unit_type[name]"]', 'Penthouse')
         ->click('Add and continue with another')
@@ -52,7 +52,7 @@ it('adds units one after another, creating a type on the way', function () {
         // Saved once the form is cleared for the next one
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-101')
-        ->click('Add the unit')
+        ->click(inDialog('Add the unit'))
         ->assertSee('The identifier has already been taken.')
         ->assertNoSmoke();
 
@@ -64,13 +64,14 @@ it('adds units one after another, creating a type on the way', function () {
 it('switches between an existing type and a new one while adding a unit', function () {
     $studio = aUnitType($this->project, ['name' => 'Studio']);
 
-    visit(route('manage.units.create', $this->project))
+    visit(route('units.index', $this->project))
+        ->click('Add units')
         ->click('Or create a new type')
         ->fill('[name="new_unit_type[name]"]', 'Loft')
         ->click('Use an existing type')
         ->assertNotPresent('[name="new_unit_type[name]"]')
         ->fill('identifier', 'C-301')
-        ->click('Add the unit')
+        ->click(inDialog('Add the unit'))
         ->assertSee('The unit was added.');
 
     expect(Unit::firstWhere('identifier', 'C-301')->unit_type_id)->toBe($studio->id)
@@ -78,9 +79,9 @@ it('switches between an existing type and a new one while adding a unit', functi
 });
 
 it('starts empty lists from their first item', function () {
-    visit(route('manage.unit_types.index', $this->project))
-        ->click('Add the first one')
-        ->assertPathIs(route('manage.unit_types.create', $this->project, absolute: false));
+    visit(route('units.index', $this->project))
+        ->click('Add the first unit type')
+        ->assertPresent('[role="dialog"] [name="name"]');
 
     aUnitType($this->project);
 
@@ -94,17 +95,21 @@ it('edits and removes units, but not one already given to a family', function ()
     $free = aUnit($type, ['identifier' => 'A-101']);
     aUnit($type, ['identifier' => 'A-102', 'family_id' => aFamily($this->project, $type)->id]);
 
-    $page = visit(route('manage.units.edit', [$this->project, $free]))
+    visit(route('units.show', [$this->project, $free]))
+        ->click('Edit')
         ->fill('identifier', 'B-101')
-        ->click('Save')
+        ->click(inDialog('Save'))
         ->assertSee('The unit was saved.')
-        ->assertSee('B-101');
-
-    expect($page->script('document.querySelector(\'[aria-label="Remove A-102"]\').disabled'))->toBeTrue();
-
-    $page->click('[aria-label="Remove B-101"]')
+        ->assertSee('B-101')
+        ->click(button('Remove'))
         ->click(inDialog('Remove'))
-        ->assertSee('The unit was removed.');
+        ->assertSee('The unit was removed.')
+        ->assertPathIs(route('units.index', $this->project, absolute: false));
+
+    $given = visit(route('units.show', [$this->project, Unit::firstWhere('identifier', 'A-102')]))
+        ->assertSee('A-102');
+
+    expect($given->script("[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Remove').disabled"))->toBeTrue();
 
     expect(Unit::pluck('identifier')->all())->toBe(['A-102']);
 });
@@ -144,7 +149,7 @@ it('walks the admin from an empty project to the lottery', function () {
     visit(route('manage.overview', $this->project))
         ->assertSee('Getting to the lottery')
         ->click('Add the unit types')
-        ->assertSee('No unit types yet');
+        ->assertPresent('[role="dialog"] [name="name"]');
 });
 
 it('opens unit types, units and families for editing from their lists', function () {
@@ -152,13 +157,15 @@ it('opens unit types, units and families for editing from their lists', function
     $unit = aUnit($type, ['identifier' => 'A-101']);
     $family = aFamily($this->project, $type, ['name' => 'García']);
 
-    visit(route('manage.unit_types.index', $this->project))
+    visit(route('units.index', $this->project))
         ->click('[aria-label="Edit Studio"]')
-        ->assertPathIs(route('manage.unit_types.edit', [$this->project, $type], absolute: false))
-        ->navigate(route('manage.units.index', $this->project))
-        ->click('[aria-label="Edit A-101"]')
-        ->assertPathIs(route('manage.units.edit', [$this->project, $unit], absolute: false))
-        ->navigate(route('families.show', [$this->project, $family]))
+        ->assertValue('[role="dialog"] [name="name"]', 'Studio');
+
+    visit(route('units.show', [$this->project, $unit]))
+        ->click('Edit')
+        ->assertValue('[role="dialog"] [name="identifier"]', 'A-101');
+
+    visit(route('families.show', [$this->project, $family]))
         ->click('Edit')
         ->assertValue('[role="dialog"] [name="name"]', 'García');
 });
@@ -167,7 +174,7 @@ it('leads an unapproved project\'s admins to what the limits are', function () {
     $project = anUnapprovedProject();
     $this->as(anAdminOf($project));
 
-    visit(route('manage.units.index', $project))
+    visit(route('units.index', $project))
         ->assertSee('This project is awaiting approval: some limits apply.')
         ->click('.shell-banner >> text=Details')
         ->assertPathIs(route('manage.overview', $project, absolute: false));

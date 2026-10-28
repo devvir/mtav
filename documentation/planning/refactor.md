@@ -140,21 +140,19 @@ decision taken on the way is listed below for review.
    home (the lottery, what is coming, recent files, the families and people), the admin
    overview (setup progress, what needs attention, limits), the platform console (projects
    awaiting approval, activity).
-10. **Units, types and the plan as one page** (the author's idea): "Units" holds the
-    types, the units and the plan together, and the plan is the units' visual aid, never
-    a drawing apart. A unit added anywhere appears on the plan (beside the canvas, waiting
-    to be placed); a unit added on the plan asks for its type and identifier. Each type
-    may carry a base shape and size, so a new unit of that type starts as that shape
-    (plain squares when none is set). Floors: the floors just below and above show
-    faintly behind the current one (onion skinning), and a unit's edges snap to those of
-    the units under it. One plan, in one place: the plan people see is the one admins edit,
-    switching it to editing in place (admins only), never a separate page to find. Look for
-    an established editor or library before building more by hand. The plan tells people what is what and where, because they choose by it
-    (near the playground, the parking, the common spaces; far from the street): besides
-    the boundary, streets, green areas and common spaces it has entrances, parking and
-    playgrounds; parks are drawn with trees (more as they grow); common spaces look
-    clearly unpickable; housing units carry a subtle house mark, recognisable at first
-    sight. Attractive and legible first, then precise.
+10. **The plan, richer** (the author's ideas; units, types and the plan already share one
+    page, where admins edit the plan in place). A unit added anywhere appears on the plan,
+    waiting beside the canvas to be placed. Each type may carry a base shape and size, so
+    a new unit of that type starts as that shape (plain squares when none is set). Floors:
+    the floors just below and above show faintly behind the current one (onion skinning),
+    and a unit's edges snap to those of the units under it. Look for an established editor
+    or library before building more by hand. The plan tells people what is what and where,
+    because they choose by it (near the playground, the parking, the common spaces; far
+    from the street): besides the boundary, streets, green areas and common spaces it has
+    entrances, parking and playgrounds; parks are drawn with trees (more as they grow);
+    common spaces look clearly unpickable; housing units carry a subtle house mark,
+    recognisable at first sight. The plan views fit what is drawn (no empty canvas
+    around it). Attractive and legible first, then precise.
 11. **Visual design pass**, last — once everything works. A modern look across every
     theme: glossy, semi-transparent cards; sticky bars with backdrop blur; soft light on
     what is interactive; plenty of icons; badges with a status dot; motion for what comes

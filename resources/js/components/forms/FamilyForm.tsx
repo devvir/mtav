@@ -48,7 +48,7 @@ export function FamilyForm({
       {!unitTypes.length ? (
         <Text className="ds-caption">
           {_('There are no unit types yet.')}{' '}
-          <Anchor component={Link} href={route('manage.unit_types.create')} fw={600}>
+          <Anchor component={Link} href={route('units.index', { new_type: 1 })} fw={600}>
             {_('Add one first')}
           </Anchor>
         </Text>

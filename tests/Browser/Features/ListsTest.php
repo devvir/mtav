@@ -78,7 +78,7 @@ it('splits what is shared into media and files', function () {
         ->assertDontSee('Building site');
 });
 
-it('lets admins find people, and units by type', function () {
+it('finds people, and shows units by type', function () {
     $loft = aUnitType($this->project, ['name' => 'Loft']);
     aUnit($this->type, ['identifier' => 'A-101']);
     aUnit($loft, ['identifier' => 'L-201']);
@@ -89,10 +89,9 @@ it('lets admins find people, and units by type', function () {
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García');
 
-    visit(route('manage.units.index', $this->project))
-        ->select('[aria-label="Unit type"]', (string) $loft->id)
-        ->assertSee('L-201')
-        ->assertDontSee('A-101');
+    visit(route('units.index', $this->project))
+        ->assertSeeIn('.ds-panel:has-text("Loft")', 'L-201')
+        ->assertDontSeeIn('.ds-panel:has-text("Loft")', 'A-101');
 });
 
 it('shows superadmins the projects awaiting approval apart', function () {

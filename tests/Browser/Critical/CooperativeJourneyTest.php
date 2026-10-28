@@ -45,19 +45,19 @@ it('takes a cooperative from sign-up to its lottery', function () {
     $project = Project::firstWhere('name', 'Cooperativa Las Acacias');
 
     // Unit types, units and families
-    visit(route('manage.unit_types.create', $project))
+    visit(route('units.index', $project))
+        ->click('Add the first unit type')
         ->fill('name', '2 bedrooms')
-        ->click('Add the unit type')
-        ->assertSee('2 bedrooms');
-
-    visit(route('manage.units.create', $project))
+        ->click(inDialog('Add the unit type'))
+        ->assertSee('The unit type was added.')
+        ->click('Add the first unit')
         ->fill('identifier', 'A-101')
         ->click('Add and continue with another')
         ->assertSee('The unit was added.')
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-102')
-        ->click('Add the unit')
-        ->assertSee('A-102');
+        ->click(inDialog('Add the unit'))
+        ->assertSeeIn('.ds-panel', 'A-102');
 
     foreach (['García', 'Pérez'] as $name) {
         visit(route('families.index', [$project, 'new' => 1]))

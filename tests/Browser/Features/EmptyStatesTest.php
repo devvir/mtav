@@ -17,10 +17,11 @@ it('walks admins from the home page to their first unit type', function () {
         ->assertSee('Getting to the lottery')
         ->assertSee('No events coming up')
         ->assertSee('Nothing shared yet')
-        ->assertNotPresent('.ds-stat')
-        ->navigate(route('units.index', $this->project))
+        ->assertNotPresent('.ds-stat');
+
+    visit(route('units.index', $this->project))
         ->click('Add the first unit type')
-        ->assertPathIs(route('manage.unit_types.create', $this->project, absolute: false));
+        ->assertPresent('[role="dialog"] [name="name"]');
 });
 
 it('tells members their project is getting ready', function () {

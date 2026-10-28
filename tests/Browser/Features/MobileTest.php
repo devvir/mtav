@@ -24,15 +24,15 @@ it('moves around the member app with the bottom tabs and the drawer', function (
         ->assertNoSmoke();
 });
 
-it('opens the admin area\'s navigation in the drawer', function () {
+it('opens the administration group of the sidebar in the drawer', function () {
     $this->as($this->admin);
 
     visit(route('manage.overview', $this->project))
         ->on()->mobile()
         ->click('[aria-label="Menu"]')
-        ->click('[role="dialog"] >> text=Unit types')
-        ->assertPathIs("/projects/{$this->project->id}/manage/unit_types")
-        ->assertSee('Add a unit type')
+        ->click('[role="dialog"] >> text=Invitations')
+        ->assertPathIs("/projects/{$this->project->id}/manage/invitations")
+        ->assertSee('Invite someone')
         ->assertNoSmoke();
 });
 

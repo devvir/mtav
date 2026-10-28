@@ -21,9 +21,10 @@ use App\Http\Middleware\ResolveProject;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Three areas share these routes (see documentation/planning/refactor.md):
- *  - the member app, /projects/{project}/…            what people do in a project
- *  - the project admin area, /projects/{project}/manage/…   configuring a project
+ * The routes (see documentation/technical/architecture.md):
+ *  - a project's pages, /projects/{project}/…          the same for everyone
+ *  - admin tools, /projects/{project}/manage/…         what admins do on them, and the
+ *    few pages only admins have
  *  - the platform console, /admin/…                    superadmins only
  */
 
@@ -151,10 +152,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
                 Route::resource('families', Manage\FamilyController::class)->only('store', 'update', 'destroy');
                 Route::resource('unit_types', Manage\UnitTypeController::class)
-                    ->except('show')
+                    ->only('store', 'update', 'destroy')
                     ->parameters(['unit_types' => 'unitType']);
-                Route::resource('units', Manage\UnitController::class)->except('show');
-                Route::get('plan', [Manage\PlanController::class, 'edit'])->name('plan.edit');
+                Route::resource('units', Manage\UnitController::class)->only('store', 'update', 'destroy');
                 Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
                 Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy');
 
