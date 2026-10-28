@@ -114,7 +114,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
     $project->lottery->update(['start_date' => now()->subMinute()]);
     $this->as(User::firstWhere('email', 'laura@example.com'));
 
-    visit(route('manage.lottery.show', $project))
+    visit(route('lottery.show', $project))
         ->click('Run the lottery')
         ->fill('[role="dialog"] input', 'RUN')
         ->keys('[role="dialog"] input', 'Enter')

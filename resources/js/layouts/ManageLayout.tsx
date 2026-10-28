@@ -32,9 +32,9 @@ export function ManageLayout({ children }: { children: ReactNode }) {
     },
     {
       label: _('Lottery'),
-      href: route('manage.lottery.show'),
+      href: route('lottery.show'),
       icon: IconDice5,
-      active: routeIs('manage.lottery.*'),
+      active: routeIs('lottery.*'),
     },
     {
       label: _('Unit types'),

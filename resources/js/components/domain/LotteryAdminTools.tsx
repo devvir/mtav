@@ -1,7 +1,6 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { Form } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Panel, Status, type Tone } from '@/design';
 import { confirm as ask, prompt } from '@/lib/dialogs';
 import { field } from '@/lib/forms';
@@ -10,7 +9,17 @@ import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { LotteryRun, ProjectEvent } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
-import { Alert, Button, Group, Loader, Stack, Text, TextInput, Textarea } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  TextInput,
+  Textarea,
+  Title,
+} from '@mantine/core';
 import {
   IconAlertCircle,
   IconArrowBackUp,
@@ -22,12 +31,16 @@ import {
 } from '@tabler/icons-react';
 import { useEffect } from 'react';
 
-interface Props {
-  lottery: ProjectEvent;
-  status: 'running' | 'completed' | null;
+/** What admins get on the lottery page besides what everyone sees */
+export interface LotteryAdmin {
   readiness: { id: number; name: string; units_count: number; families_count: number }[];
   runs: LotteryRun[];
   confirm: { option: string; message: string } | null;
+}
+
+interface Props extends LotteryAdmin {
+  lottery: ProjectEvent;
+  status: 'running' | 'completed' | null;
 }
 
 const local = (iso: string | null) => {
@@ -44,20 +57,20 @@ const TONES: Record<LotteryRun['status'], Tone> = {
 };
 
 /**
- * Running the lottery: schedule, readiness per unit type, the run, and every run's record
- * (including invalidations, which everyone in the project reads).
+ * Running the lottery, for admins on the lottery page: schedule, readiness per unit type,
+ * the run, and every run's record (including invalidations, which everyone reads).
  */
-export default function ManageLottery({ lottery, status, readiness, runs, confirm }: Props) {
+export function LotteryAdminTools({ lottery, status, readiness, runs, confirm }: Props) {
   const schedule = useForm({
     description: lottery.description,
     start_date: local(lottery.start_date),
   });
 
   useProjectChanges({
-    lottery_runs: ['status', 'runs'],
-    units: ['readiness'],
-    families: ['readiness'],
-    unit_types: ['readiness'],
+    lottery_runs: ['status', 'admin'],
+    units: ['admin'],
+    families: ['admin'],
+    unit_types: ['admin'],
   });
 
   const saveSchedule = () => {
@@ -129,17 +142,17 @@ export default function ManageLottery({ lottery, status, readiness, runs, confir
   };
 
   return (
-    <>
-      <PageHeader
-        title={_('Lottery')}
-        help={
-          <InfoTip title={_('Running the lottery')} tour="manage.lottery">
-            {_(
-              'Once its date arrives, you run the lottery and every family receives a unit from its ranking, fairly and in one go. The result is final, and recorded.',
-            )}
-          </InfoTip>
-        }
-      />
+    <section style={{ marginBottom: 32 }} aria-label={_('Running the lottery')}>
+      <Group gap={6} mb="sm">
+        <Title order={2} fz="lg">
+          {_('Running the lottery')}
+        </Title>
+        <InfoTip title={_('Running the lottery')} tour="manage.lottery">
+          {_(
+            'Once its date arrives, you run the lottery and every family receives a unit from its ranking, fairly and in one go. The result is final, and recorded.',
+          )}
+        </InfoTip>
+      </Group>
       <div className="two-columns">
         <Panel title={_('When and what')} icon={IconCalendarEvent} data-tour="lottery.schedule">
           <Form onSubmit={saveSchedule}>
@@ -280,6 +293,6 @@ export default function ManageLottery({ lottery, status, readiness, runs, confir
           </Panel>
         </div>
       ) : null}
-    </>
+    </section>
   );
 }

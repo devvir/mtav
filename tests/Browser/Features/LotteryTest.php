@@ -24,7 +24,7 @@ function lotteryDue($test): void
 
 function runFromUi($test)
 {
-    return visit(route('manage.lottery.show', $test->project))
+    return visit(route('lottery.show', $test->project))
         ->click('Run the lottery')
         ->fill('[role="dialog"] input', 'RUN')
         ->keys('[role="dialog"] input', 'Enter');
@@ -117,7 +117,7 @@ it('cannot run before its date', function () {
     $this->project->lottery->update(['start_date' => now()->addWeek()]);
     $this->as($this->admin);
 
-    $page = visit(route('manage.lottery.show', $this->project))->assertSee('It can run once its date arrives.');
+    $page = visit(route('lottery.show', $this->project))->assertSee('It can run once its date arrives.');
 
     expect($page->script('[...document.querySelectorAll("button")].find((b) => b.textContent.includes("Run the lottery")).disabled'))->toBeTrue();
 });

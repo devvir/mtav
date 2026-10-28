@@ -54,6 +54,15 @@ class LotteryController extends Controller
                     ->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'unit' => $f->unit?->only('id', 'identifier')])
                 : null,
             'canRank' => $user->can('rankUnits', $project) && ! $activeRun,
+            // Admins run it from here: its readiness, every run's record, the server's questions
+            'admin' => $user->can('update', $project) ? [
+                'readiness' => $project->unitTypes()->withCount('units', 'families')->alphabetically()->get()
+                    ->map(fn ($type) => $type->only('id', 'name', 'units_count', 'families_count')),
+                'runs' => LotteryRunResource::collection(
+                    $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
+                ),
+                'confirm' => $request->session()->get('confirm'),
+            ] : null,
         ]);
     }
 

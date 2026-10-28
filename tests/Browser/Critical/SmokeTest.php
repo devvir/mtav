@@ -60,7 +60,7 @@ it('renders the project admin area', function () {
         route('manage.units.edit', [$this->project, $this->unit])      => 'A-101',
         route('manage.plan.edit', $this->project)                      => 'Save the plan',
         route('manage.invitations.index', $this->project)              => 'Invite someone',
-        route('manage.lottery.show', $this->project)                   => 'Readiness',
+        route('lottery.show', $this->project)                          => 'Readiness',
         route('manage.settings.edit', $this->project)                  => 'Delete the project',
     ];
 

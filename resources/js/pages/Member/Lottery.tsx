@@ -1,4 +1,5 @@
 import { FloorPlan } from '@/components/domain/FloorPlan';
+import { LotteryAdminTools, type LotteryAdmin } from '@/components/domain/LotteryAdminTools';
 import { RankingList } from '@/components/domain/RankingList';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
@@ -32,11 +33,13 @@ interface Props {
   assignment:
     { id: number; name: string; unit: { id: number; identifier: string } | null }[] | null;
   canRank: boolean;
+  /** For admins: what running the lottery takes */
+  admin: LotteryAdmin | null;
 }
 
 /**
  * The lottery as people live it: when it happens, the family's ranking (saved as it
- * changes), the outcome, and every invalidation with its reason.
+ * changes), the outcome, and every invalidation with its reason; admins also run it here.
  */
 export default function Lottery({
   lottery,
@@ -47,6 +50,7 @@ export default function Lottery({
   assignment,
   canRank,
   plan,
+  admin,
 }: Props) {
   const [ranking, setRanking] = useState<Unit[]>(given ?? []);
   const [saving, setSaving] = useState(false);
@@ -146,6 +150,8 @@ export default function Lottery({
           </Group>
         )}
       </Card>
+
+      {admin ? <LotteryAdminTools lottery={lottery} status={status} {...admin} /> : null}
 
       {/* Invalidations are always visible: everyone must know a draw was undone, and why */}
       {invalidations.length ? (

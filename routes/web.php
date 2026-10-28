@@ -158,7 +158,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
                 Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy');
 
-                Route::get('lottery', [Manage\LotteryController::class, 'show'])->name('lottery.show');
                 Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
                 Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');
                 Route::post('lottery/runs/{lotteryRun}/invalidation', [Manage\LotteryController::class, 'invalidate'])

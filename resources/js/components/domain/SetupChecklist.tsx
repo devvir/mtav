@@ -33,14 +33,14 @@ export function SetupChecklist({ setup }: { setup: Setup }) {
     {
       done: setup.balanced,
       label: _('Have as many units as families of each type'),
-      href: route('manage.lottery.show'),
+      href: route('lottery.show'),
     },
     {
       done: setup.scheduled,
       label: _('Schedule the lottery'),
-      href: route('manage.lottery.show'),
+      href: route('lottery.show'),
     },
-    { done: setup.lottery, label: _('Run the lottery'), href: route('manage.lottery.show') },
+    { done: setup.lottery, label: _('Run the lottery'), href: route('lottery.show') },
   ];
   const done = steps.filter((step) => step.done).length;
 

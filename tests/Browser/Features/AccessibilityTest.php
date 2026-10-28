@@ -24,7 +24,7 @@ it('has an accessible admin area', function () {
     $project = aProject();
     $this->as(anAdminOf($project));
 
-    foreach (['manage.overview', 'manage.units.create', 'manage.invitations.index', 'manage.lottery.show'] as $route) {
+    foreach (['manage.overview', 'manage.units.create', 'manage.invitations.index', 'lottery.show'] as $route) {
         visit(route($route, $project))->assertNoAccessibilityIssues();
     }
 });

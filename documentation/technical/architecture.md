@@ -3,20 +3,23 @@
 How the application is put together. The code is the source of truth; this guide
 explains the shape so the code reads quickly.
 
-## Three areas, one domain
+## One project UI, a platform console
 
 | Area | URLs | For | Controllers / pages |
 |------|------|-----|---------------------|
-| Member app | `/projects/{project}/…` | everyone taking part in a project | `Http/Controllers/Member`, `pages/Member` |
-| Project admin | `/projects/{project}/manage/…` | the project's admins (and superadmins) | `Http/Controllers/Manage`, `pages/Manage` |
+| Project | `/projects/{project}/…` | everyone taking part in a project | `Http/Controllers/Member`, `pages/Member` |
+| Admin tools | `/projects/{project}/manage/…` | the project's admins (and superadmins) | `Http/Controllers/Manage` |
 | Platform console | `/admin/…` | superadmins | `Http/Controllers/Platform`, `pages/Platform` |
+
+A project has one set of pages, the same for everyone. Admins see their tools on them:
+the events, families, people and lottery pages give admins creating, editing and removing
+(in dialogs, which a link opens with `?new=1`) and running the lottery. What admins do is
+sent to the admin routes under `manage/`, gated as a whole. Pages with no counterpart for
+members sit under `manage/` too (`pages/Manage`): the setup overview, unit types, units
+and the plan editor, invitations and the project's settings.
 
 Outside the areas: accounts (sign-up, login, password, email confirmation), settings,
 notifications, the list of one's projects, and invitation links.
-
-All three areas share the models, services and policies. They differ in routes,
-controllers, layouts and pages, each shaped for its audience: the member app shows
-units, families and the plan read-only; the admin area edits them.
 
 ## People and roles
 
@@ -37,7 +40,7 @@ user's memberships load once per request.
   `{project}` of every URL generated during the request (frontend included, via Ziggy).
 - Child models resolve through the project (`scopeBindings()`): a family id of another
   project does not exist under this one.
-- The admin area is gated as a whole (`can:update,project`); policies check the rest,
+- The admin routes are gated as a whole (`can:update,project`); policies check the rest,
   always against the model's project. Superadmins pass every check
   (`AppServiceProvider`), except the personal ones that need a family (ranking units,
   answering an event).

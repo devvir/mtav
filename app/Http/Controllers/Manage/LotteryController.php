@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Manage;
 
 use App\Enums\LotteryRunStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\EventResource;
-use App\Http\Resources\LotteryRunResource;
 use App\Models\LotteryRun;
 use App\Models\Project;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
@@ -13,7 +11,6 @@ use App\Services\Lottery\Exceptions\LotteryRequiresConfirmationException;
 use App\Services\LotteryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Response;
 
 /**
  * Running the lottery: schedule it, check readiness, run it, and (exceptionally)
@@ -23,23 +20,6 @@ class LotteryController extends Controller
 {
     public function __construct(private LotteryService $lottery)
     {
-    }
-
-    public function show(Request $request, Project $project): Response
-    {
-        $activeRun = $project->activeLotteryRun;
-
-        return inertia('Manage/Lottery', [
-            'lottery'   => EventResource::make($project->lottery),
-            'status'    => $activeRun?->status->value,
-            'readiness' => $project->unitTypes()->withCount('units', 'families')->alphabetically()->get()
-                ->map(fn ($type) => $type->only('id', 'name', 'units_count', 'families_count')),
-            'runs' => LotteryRunResource::collection(
-                $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
-            ),
-            'audits'  => fn () => $activeRun?->audits()->get(['id', 'type', 'audit', 'created_at']),
-            'confirm' => $request->session()->get('confirm'),
-        ]);
     }
 
     /**
