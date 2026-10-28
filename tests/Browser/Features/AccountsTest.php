@@ -157,6 +157,19 @@ it('moves between the profile\'s sections', function () {
         ->assertQueryStringMissing('section');
 });
 
+it('shares the email with the people of the projects only when asked', function () {
+    $user = aUser();
+    $this->as($user);
+
+    visit(route('profile.edit'))
+        ->assertNotChecked('email_public')
+        ->check('email_public')
+        ->click('Save')
+        ->assertSee('Your profile was saved.');
+
+    expect($user->fresh())->email_public->toBeTrue()->phone_public->toBeFalse();
+});
+
 it('changes the profile picture', function () {
     $user = aUser(['firstname' => 'Ana']);
     $this->as($user);

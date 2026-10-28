@@ -3,15 +3,18 @@ import { PasswordForm } from '@/components/account/PasswordForm';
 import { Form, FormActions } from '@/components/forms/Form';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
-import { field } from '@/lib/forms';
+import { checkbox, field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { router, useForm, usePage } from '@inertiajs/react';
 import {
   Button,
+  Fieldset,
   FileButton,
   Group,
   SimpleGrid,
+  Stack,
+  Switch,
   Tabs,
   Text,
   TextInput,
@@ -36,6 +39,8 @@ interface Props {
     email: string;
     new_email: string | null;
     phone: string | null;
+    email_public: boolean;
+    phone_public: boolean;
     legal_id: string | null;
     about: string | null;
   };
@@ -49,6 +54,8 @@ export default function Profile({ profile }: Props) {
     lastname: profile.lastname ?? '',
     email: profile.email,
     phone: profile.phone ?? '',
+    email_public: profile.email_public,
+    phone_public: profile.phone_public,
     legal_id: profile.legal_id ?? '',
     about: profile.about ?? '',
   });
@@ -146,6 +153,22 @@ export default function Profile({ profile }: Props) {
                 {...field(form, 'legal_id')}
               />
             </SimpleGrid>
+            {/* Who sees how to reach them: their own choice (admins always see both) */}
+            <Fieldset legend={_('Who sees your email and phone')} variant="unstyled">
+              <Stack gap="xs">
+                <Text className="ds-caption">
+                  {_('The admins of your projects always do. Everyone else, if you share them.')}
+                </Text>
+                <Switch
+                  label={_('Show my email to the people in my projects')}
+                  {...checkbox(form, 'email_public')}
+                />
+                <Switch
+                  label={_('Show my phone to the people in my projects')}
+                  {...checkbox(form, 'phone_public')}
+                />
+              </Stack>
+            </Fieldset>
             <Textarea label={_('About you')} autosize minRows={3} {...field(form, 'about')} />
             <FormActions submit={_('Save')} processing={form.processing} />
           </Form>

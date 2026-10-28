@@ -15,17 +15,22 @@ class FamilyController extends Controller
 {
     public function index(Request $request, Project $project): Response
     {
-        $families = $project->families()
-            ->with('unitType:id,name', 'unit:id,family_id,identifier', 'members')
-            ->withCount('members')
-            ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->alphabetically()
-            ->paginate(30)
-            ->withQueryString();
+        [$families, $whole] = $this->wholeOrPaged(
+            $project->families()
+                ->with('unitType:id,name', 'unit:id,family_id,identifier', 'members')
+                ->withCount('members')
+                ->alphabetically(),
+            fn ($query) => $query
+                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project)))
+                ->when($request->integer('unit_type'), fn ($q, $typeId) => $q->where('unit_type_id', $typeId)),
+            30,
+        );
 
         return inertia('Member/Families/Index', [
             'families'  => FamilyResource::collection($families),
-            'filters'   => ['q' => $request->q],
+            'whole'     => $whole,
+            'filters'   => ['q' => $request->q, 'unit_type' => $request->integer('unit_type') ?: null],
+            'types'     => $project->unitTypes()->alphabetically()->get(['id', 'name']),
             'unitTypes' => $this->unitTypesFor($request, $project),
             // A family's details, shown over the list (?family=12)
             'family' => fn () => ($family = $project->families()->find($request->integer('family')))

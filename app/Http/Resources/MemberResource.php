@@ -20,7 +20,8 @@ class MemberResource extends JsonResource
         $viewer = $request->user();
         $project = currentProject();
         $membership = $project ? $this->membershipIn($project) : null;
-        $showContact = $viewer && ($viewer->is($this->resource) || ($project && $viewer->manages($project)));
+        // Admins (and the person) see both; everyone else what the person shares
+        $seesAll = $viewer && ($viewer->is($this->resource) || ($project && $viewer->manages($project)));
 
         return [
             'id'        => $this->id,
@@ -32,8 +33,8 @@ class MemberResource extends JsonResource
             'is_admin'  => (bool) $membership?->is_admin,
             'family'    => $membership?->family ? ['id' => $membership->family->id, 'name' => $membership->family->name] : null,
             'joined_at' => $membership?->created_at,
-            'email'     => $this->when($showContact, $this->email),
-            'phone'     => $this->when($showContact, $this->phone),
+            'email'     => $this->when($seesAll || $this->email_public, $this->email),
+            'phone'     => $this->when($seesAll || $this->phone_public, $this->phone),
         ];
     }
 }

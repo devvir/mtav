@@ -81,6 +81,35 @@ decision taken on the way is listed below for review.
   documentation and tools are assembled from the modules a project has, like everything
   else white-label. The model is a setting, chosen by measured answers on real
   questions; it runs on an API key with a spending cap, the documentation cached.
+- **Contact details, shared by choice.** Each person decides, beside their email and
+  their phone in the profile, whether the people of their projects see it. Shared, it
+  shows on their card and searches find it; not shared (the default), only admins see it
+  and find people by it.
+- **Projects are archived, not lost.** An admin deleting a project with meaningful
+  activity (people invited, the lottery run, …) archives it: to them it is gone, but it
+  stays for audit. A fresh project with no activity is deleted outright. Superadmins see
+  archived projects and delete them for good, after confirming a summary of what goes
+  (members, families, units, files, how long it was active, its lottery).
+- **Granting the superadmin role is rare.** It has a place of its own in the platform
+  console, never a button offered on every account.
+- **Demo data covers every kind of file**: the seeder shares photos, videos, audio and
+  documents, so every viewer and list can be tried without uploading.
+- **Quick actions**: a "+" menu in the top bar with what the person may do (invite,
+  share files, create an event, …), as a shortcut: every action stays where it lives.
+- **Institution line**: a line under the brand naming the institution ("FING ≒ UDELAR"),
+  set per deployment.
+- **Local first.** A project's data, as its members see it, is small (rarely more than a
+  couple of hundred people), so the app keeps it on the device and works from there:
+  - lists of up to 200 items come whole and are searched, filtered and sorted in the
+    browser, with no request per keystroke (past 200, the server pages and searches, as
+    before);
+  - a project snapshot (everything the person may see, with its version) is fetched once
+    and kept on the device (IndexedDB, per account and project, cleared on signing out);
+  - pages render from it at once and ask the server in the background: offline, the
+    local data stays (and the failure is logged); unchanged, nothing happens; changed,
+    the screen and the local copy update;
+  - the live change events (Reverb) update the local copy as they arrive;
+  - it only ever holds what that person may see; a change of their role rebuilds it.
 - **Thesis parked.** The tutor already reviewed the published draft. It is updated at
   the very end, from the tutor's review, with notes marking each change.
 

@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'firstname',
         'lastname',
         'phone',
+        'email_public',
+        'phone_public',
         'legal_id',
         'about',
         'avatar',
@@ -46,6 +48,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $casts = [
         'is_superadmin'     => 'boolean',
+        'email_public'      => 'boolean',
+        'phone_public'      => 'boolean',
         'password'          => 'hashed',
         'email_verified_at' => 'datetime',
     ];
@@ -121,11 +125,18 @@ class User extends Authenticatable implements MustVerifyEmail
         $query->orderBy('firstname')->orderBy('lastname');
     }
 
-    public function scopeSearch(Builder $query, string $q): void
+    /**
+     * By name, and by email where the person shares it; by every email for whoever sees
+     * them all (admins of the project, superadmins). A search never tells who has an
+     * address they keep private.
+     */
+    public function scopeSearch(Builder $query, string $q, bool $byEmail = false): void
     {
         $query->where(fn (Builder $query) => $query
             ->whereRaw("CONCAT_WS(' ', firstname, lastname) LIKE ?", ["%{$q}%"])
-            ->orWhere('email', 'like', "%{$q}%"));
+            ->orWhere(fn (Builder $query) => $query
+                ->where('email', 'like', "%{$q}%")
+                ->unless($byEmail, fn (Builder $query) => $query->where('email_public', true))));
     }
 
     public function sendEmailVerificationNotification(): void

@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request): Response
     {
         $users = User::withCount('memberships')
-            ->when($request->q, fn ($q, $search) => $q->search($search))
+            ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: true))
             ->when($request->boolean('superadmins'), fn ($q) => $q->where('is_superadmin', true))
             ->alphabetically()
             ->paginate(40)

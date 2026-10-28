@@ -70,10 +70,11 @@ class Family extends Model
         $query->orderBy('name');
     }
 
-    public function scopeSearch(Builder $query, string $q): void
+    /** By its name or its members' (their emails too, for whoever may see them) */
+    public function scopeSearch(Builder $query, string $q, bool $byEmail = false): void
     {
         $query->where(fn (Builder $query) => $query
             ->whereLike('name', "%{$q}%")
-            ->orWhereHas('members', fn (Builder $query) => $query->search($q)));
+            ->orWhereHas('members', fn (Builder $query) => $query->search($q, $byEmail)));
     }
 }

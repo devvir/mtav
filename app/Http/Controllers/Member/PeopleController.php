@@ -19,16 +19,28 @@ class PeopleController extends Controller
 {
     public function index(Request $request, Project $project): Response
     {
-        $people = $project->members()
-            ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')])
-            ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->alphabetically()
-            ->paginate(40)
-            ->withQueryString();
+        $manages = $request->user()->can('update', $project);
+
+        [$people, $whole] = $this->wholeOrPaged(
+            $project->members()
+                ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')])
+                ->alphabetically(),
+            fn ($query) => $query
+                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $manages))
+                ->when($request->integer('family'), fn ($q, $familyId) => $q->where('memberships.family_id', $familyId))
+                ->when($request->boolean('admins'), fn ($q) => $q->where('memberships.is_admin', true)),
+            40,
+        );
 
         return inertia('Member/People/Index', [
             'people'  => MemberResource::collection($people),
-            'filters' => ['q' => $request->q],
+            'whole'   => $whole,
+            'filters' => [
+                'q'      => $request->q,
+                'family' => $request->integer('family') ?: null,
+                'admins' => $request->boolean('admins'),
+            ],
+            'families' => $project->families()->alphabetically()->get(['id', 'name']),
             // Someone's details, shown over the list (?person=19)
             'person' => fn () => $request->integer('person')
                 ? $this->details($request, $project, $request->integer('person'))

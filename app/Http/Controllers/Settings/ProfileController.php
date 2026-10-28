@@ -16,7 +16,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         return inertia('Settings/Profile', [
-            'profile' => $user->only('firstname', 'lastname', 'email', 'new_email', 'phone', 'legal_id', 'about'),
+            'profile' => $user->only('firstname', 'lastname', 'email', 'new_email', 'phone', 'email_public', 'phone_public', 'legal_id', 'about'),
         ]);
     }
 
@@ -32,8 +32,11 @@ class ProfileController extends Controller
             'lastname'  => ['nullable', 'string', 'between:2,80'],
             'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'phone'     => ['nullable', 'string', 'between:4,30'],
-            'legal_id'  => ['nullable', 'string', 'between:2,30'],
-            'about'     => ['nullable', 'string', 'max:1000'],
+            // Whether the people of their projects see them (admins always do)
+            'email_public' => ['boolean'],
+            'phone_public' => ['boolean'],
+            'legal_id'     => ['nullable', 'string', 'between:2,30'],
+            'about'        => ['nullable', 'string', 'max:1000'],
         ]);
 
         $newEmail = strtolower($data['email']);

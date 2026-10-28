@@ -4,17 +4,22 @@ import { router } from '@inertiajs/react';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { useState } from 'react';
 
-/** Filters the current page by a query (?q=…) as one types */
+/**
+ * Filters the current page by a query (?q=…) as one types: asking the server, or, given
+ * `onSearch`, narrowing a list the page holds whole, at once.
+ */
 export function QuerySearch({
   value,
   placeholder,
   param = 'q',
   maw = 360,
+  onSearch,
 }: {
   value?: string | null;
   placeholder?: string;
   param?: string;
   maw?: number;
+  onSearch?: (query: string) => void;
 }) {
   const [text, setText] = useState(value ?? '');
 
@@ -37,7 +42,8 @@ export function QuerySearch({
       value={text}
       onChange={(event) => {
         setText(event.currentTarget.value);
-        search(event.currentTarget.value);
+        if (onSearch) onSearch(event.currentTarget.value);
+        else search(event.currentTarget.value);
       }}
       maw={maw}
       w="100%"

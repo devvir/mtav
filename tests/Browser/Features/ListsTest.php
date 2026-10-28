@@ -42,6 +42,21 @@ it('finds people by name', function () {
         ->assertDontSee('Ana García');
 });
 
+it('narrows people to a family, or to the admins', function () {
+    $this->as($this->ana);
+
+    visit(route('people.index', $this->project))
+        ->select('[aria-label="Family"]', (string) $this->perez->id)
+        ->assertSee('Bruno Pérez')
+        ->assertDontSee('Ana García')
+        ->assertQueryStringHas('family', (string) $this->perez->id);
+
+    visit(route('people.index', $this->project))
+        ->check('admins')
+        ->assertQueryStringHas('admins', '1')
+        ->assertDontSee('Bruno Pérez');
+});
+
 it('splits events into upcoming and past', function () {
     anEvent($this->project, ['title' => 'Next assembly', 'start_date' => now()->addWeek()]);
     anEvent($this->project, ['title' => 'Last assembly', 'start_date' => now()->subWeek()]);
@@ -85,7 +100,7 @@ it('finds people, and shows units by type', function () {
     $this->as($this->admin);
 
     visit(route('people.index', $this->project))
-        ->type('[aria-label="Search by name"]', 'Bruno')
+        ->type('[aria-label="Search by name or email"]', 'Bruno')
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García');
 
