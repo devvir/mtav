@@ -1,4 +1,4 @@
-import { _, _n, setLocale } from '@/lib/translations';
+import { _, _n, loadLocale, setLocale } from '@/lib/translations';
 
 describe('the words', () => {
   afterEach(() => setLocale('en'));
@@ -7,11 +7,11 @@ describe('the words', () => {
     expect(_('Step {n} of {total}', { n: 2, total: 5 })).toBe('Step 2 of 5');
   });
 
-  it('count in the language’s own plural forms', () => {
+  it('count in the language’s own plural forms', async () => {
     expect(_n('{count} family', '{count} families', 1)).toBe('1 family');
     expect(_n('{count} family', '{count} families', 0)).toBe('0 families');
 
-    setLocale('es_UY');
+    await loadLocale('es_UY');
     expect(_n('{count} family', '{count} families', 1)).toBe('1 familia');
     expect(_n('{count} family', '{count} families', 3)).toBe('3 familias');
   });

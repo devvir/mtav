@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
  * A person with an account. What they may do in a project depends on their
  * Membership there; superadmins manage the whole platform.
  */
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     use HasFactory;
     use Notifiable;
@@ -33,6 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone_public',
         'legal_id',
         'about',
+        'locale',
         'avatar',
         'email_verified_at',
     ];
@@ -79,6 +81,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Event::class, 'event_rsvps')
             ->withPivot('attending')
             ->withTimestamps();
+    }
+
+    /** The language mail and notifications reach them in (null: the platform's) */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
     }
 
     public function isSuperadmin(): bool

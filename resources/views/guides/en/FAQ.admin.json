@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "Why are there limits in my project?",
-      "answer": "New projects work within limits until a superadmin approves them, to prevent abuse. Ask for approval from the Overview."
+      "answer": "New projects work within limits until a superadmin approves them, to prevent abuse. Ask for approval from Setup."
     },
     {
       "question": "What is a unit type?",

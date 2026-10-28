@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'greeting'      => 'Bonjour !',
+    'greeting_name' => 'Bonjour :name !',
+
+    'invitation_subject'      => 'Vous êtes invité à :project',
+    'invitation_family'       => ':inviter vous invite à rejoindre la famille :family dans :project.',
+    'invitation_admin'        => ':inviter vous invite à aider à gérer :project.',
+    'invitation_admin_family' => ':inviter vous invite à aider à gérer :project, comme membre de la famille :family.',
+    'invitation_action'       => 'Accepter l’invitation',
+    'invitation_expiry'       => 'L’invitation est valable jusqu’au :date.',
+    'invitation_ignore'       => 'Si vous ne vous y attendiez pas, vous pouvez ignorer cet e-mail.',
+
+    'reset_password_subject' => 'Choisissez un nouveau mot de passe',
+    'reset_password_intro'   => 'Quelqu’un a demandé à réinitialiser le mot de passe de votre compte.',
+    'reset_password_action'  => 'Choisir un nouveau mot de passe',
+    'reset_password_expiry'  => 'Le lien est valable :minutes minutes.',
+    'reset_password_ignore'  => 'Si ce n’était pas vous, votre mot de passe reste tel quel : ignorez cet e-mail.',
+
+    'verify_email_subject'   => 'Confirmez votre adresse e-mail',
+    'verify_email_intro'     => 'Merci de confirmer que c’est bien votre adresse e-mail.',
+    'verify_new_email_intro' => 'Merci de confirmer que c’est bien votre nouvelle adresse e-mail. Votre compte garde l’ancienne jusque-là.',
+    'verify_email_action'    => 'Confirmer mon e-mail',
+    'verify_email_ignore'    => 'Si vous n’avez pas créé de compte, ignorez cet e-mail.',
+];

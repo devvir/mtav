@@ -1,0 +1,39 @@
+{
+  "title": "Domande frequenti",
+  "description": "Risposte rapide per le persone di un progetto",
+  "guideText": "Leggi la guida completa",
+  "questions": [
+    {
+      "question": "Come entro in un progetto?",
+      "answer": "Con l’invito che ricevi via email, da un admin o da qualcuno della tua famiglia. Senza account scegli una password; con un account accedi e accetti. Gli inviti in sospeso compaiono anche in I tuoi progetti."
+    },
+    {
+      "question": "Chi vede la classifica della mia famiglia?",
+      "answer": "Solo la tua famiglia. Le altre famiglie non la vedono mai, né prima né dopo il sorteggio."
+    },
+    {
+      "question": "Devo mettere in ordine tutte le unità?",
+      "answer": "No. Sposta quelle che ti interessano; le altre tengono un loro posto in fondo alla classifica."
+    },
+    {
+      "question": "Possiamo cambiare la classifica in due?",
+      "answer": "Sì: è un’unica classifica per tutta la famiglia, e ogni membro può cambiarla fino al sorteggio. Conta l’ultima modifica."
+    },
+    {
+      "question": "Come decide il sorteggio?",
+      "answer": "Prima rende la famiglia che starebbe peggio il più soddisfatta possibile, poi tutto il progetto il più soddisfatto possibile. Solo i pareggi si decidono a caso."
+    },
+    {
+      "question": "Il risultato può cambiare?",
+      "answer": "È definitivo. Solo in casi eccezionali un admin può annullare un sorteggio; allora tutti vedono chi l’ha fatto, quando e perché, e il sorteggio si rifà."
+    },
+    {
+      "question": "Chi vede i file che condivido?",
+      "answer": "Tutti nel progetto, e nessuno al di fuori. Puoi modificare la descrizione o togliere ciò che hai condiviso."
+    },
+    {
+      "question": "Ho cambiato email e non è successo niente.",
+      "answer": "Abbiamo inviato un link di conferma al nuovo indirizzo. Il tuo account tiene quello vecchio finché non lo apri."
+    }
+  ]
+}

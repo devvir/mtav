@@ -1,4 +1,5 @@
 import { AppearanceSettings } from '@/components/account/AppearanceSettings';
+import { LanguageSettings } from '@/components/account/LanguageSettings';
 import { PasswordForm } from '@/components/account/PasswordForm';
 import { Form, FormActions } from '@/components/forms/Form';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -23,7 +24,7 @@ import {
 import { IconCamera, IconKey, IconPalette, IconUser } from '@tabler/icons-react';
 import { useState } from 'react';
 
-const SECTIONS = ['about', 'password', 'appearance'] as const;
+const SECTIONS = ['about', 'password', 'preferences'] as const;
 type Section = (typeof SECTIONS)[number];
 
 /** The section the address names (?section=password), so that a link or a reload opens it */
@@ -44,9 +45,11 @@ interface Props {
     legal_id: string | null;
     about: string | null;
   };
+  /** The languages to pick from, each named in itself */
+  languages: Record<string, string>;
 }
 
-export default function Profile({ profile }: Props) {
+export default function Profile({ profile, languages }: Props) {
   const { auth, errors } = usePage().props;
   const user = auth.user!;
   const form = useForm({
@@ -83,7 +86,7 @@ export default function Profile({ profile }: Props) {
       <PageHeader
         title={_('Profile')}
         description={_(
-          'Everything about you: how people see you, how you sign in, how the app looks.',
+          'Everything about you: how people see you, how you sign in, your language and how the app looks.',
         )}
       />
       <Tabs value={section} onChange={open} maw={760}>
@@ -94,8 +97,8 @@ export default function Profile({ profile }: Props) {
           <Tabs.Tab value="password" leftSection={<IconKey size={18} />}>
             {_('Password')}
           </Tabs.Tab>
-          <Tabs.Tab value="appearance" leftSection={<IconPalette size={18} />}>
-            {_('Appearance')}
+          <Tabs.Tab value="preferences" leftSection={<IconPalette size={18} />}>
+            {_('Preferences')}
           </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="about" className="ds-surface profile-section">
@@ -176,8 +179,12 @@ export default function Profile({ profile }: Props) {
         <Tabs.Panel value="password" className="ds-surface profile-section">
           <PasswordForm />
         </Tabs.Panel>
-        <Tabs.Panel value="appearance" className="ds-surface profile-section">
-          <Text c="dimmed" size="sm" mb="lg">
+        <Tabs.Panel value="preferences" className="ds-surface profile-section">
+          <LanguageSettings languages={languages} />
+          <Text fw={650} mt="xl" mb={4}>
+            {_('Appearance')}
+          </Text>
+          <Text className="ds-caption" mb="md">
             {_('Only on this device.')}
           </Text>
           <AppearanceSettings />

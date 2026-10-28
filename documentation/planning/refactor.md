@@ -108,6 +108,10 @@ decision taken on the way is listed below for review.
   (members, families, units, files, how long it was active, its lottery).
 - **Granting the superadmin role is rare.** It has a place of its own in the platform
   console, never a button offered on every account.
+- **Languages**: each person picks theirs (Preferences), for the app and its mail; without
+  a choice, the platform's. English, Spanish, French, Portuguese (Brazil) and Italian,
+  each written natively. Adding one is its line in `config/app.php` with its words and
+  guides; tests refuse a language with a word, a blank or a guide missing.
 - **Demo data covers every kind of file**: the seeder shares photos, videos, audio and
   documents, so every viewer and list can be tried without uploading.
 - **Quick actions**: a "+" menu in the top bar with what the person may do (invite,
@@ -214,7 +218,11 @@ decision taken on the way is listed below for review.
     entrances, parking and playgrounds; parks are drawn with trees (more as they grow);
     common spaces look clearly unpickable; housing units carry a subtle house mark,
     recognisable at first sight. The plan views fit what is drawn (no empty canvas
-    around it). Attractive and legible first, then precise.
+    around it). Attractive and legible first, then precise. It has depth, never a flat
+    sketch: buildings and units with shadow and light (gradients, a raised edge), green
+    areas filled with trees on a transparent ground rather than plain shapes, streets
+    with a paving texture and markings, each kind of item recognisable by its look. The
+    tutor values the plan most: it is where the app should overdeliver.
 11. **Visual design pass**, last — once everything works. A modern look across every
     theme: glossy, semi-transparent cards; sticky bars with backdrop blur; soft light on
     what is interactive; plenty of icons; badges with a status dot; motion for what comes
@@ -233,3 +241,7 @@ decision taken on the way is listed below for review.
 13. **Full browser coverage** (see the decision): every button, form and edge case.
 14. **Assistant** (see the decision), after the queue above: agent documentation, the
     chat, its tools, a measured model choice.
+15. **Illustrated manuals**, one per role (member, admin, superadmin): every place and
+    action shown in a picture of the real app, cut to what matters and marked (where to
+    click, what changes), next to short steps. A complete set first; afterwards they
+    follow considerable UI changes, not every small one.

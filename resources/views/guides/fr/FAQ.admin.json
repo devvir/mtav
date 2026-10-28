@@ -1,0 +1,39 @@
+{
+  "title": "Questions fréquentes",
+  "description": "Réponses rapides pour les admins",
+  "guideText": "Lire le guide des admins",
+  "questions": [
+    {
+      "question": "Pourquoi mon projet a-t-il des limites ?",
+      "answer": "Les nouveaux projets fonctionnent avec des limites jusqu’à ce qu’un superadmin les approuve, pour éviter les abus. Demandez l’approbation depuis Mise en place."
+    },
+    {
+      "question": "Qu’est-ce qu’un type de logement ?",
+      "answer": "Un groupe de logements équivalents, comme 2 chambres. Chaque famille a un type et ne concourt que pour les logements de ce type."
+    },
+    {
+      "question": "Et s’il y a plus de logements que de familles ?",
+      "answer": "Vous pouvez quand même réaliser le tirage : on vous demande de confirmer, et des logements restent sans famille (ou des familles sans logement, dans l’autre sens)."
+    },
+    {
+      "question": "Comment ajouter beaucoup de logements ?",
+      "answer": "Utilisez Ajouter et continuer : le formulaire reste prêt pour le logement suivant, du même type."
+    },
+    {
+      "question": "Un admin peut-il aussi faire partie d’une famille ?",
+      "answer": "Oui. Invitez-le comme admin et dans une famille, ou changez son rôle et sa famille dans Personnes."
+    },
+    {
+      "question": "Quelqu’un a perdu son invitation.",
+      "answer": "Retirez-la dans Invitations et envoyez-en une nouvelle ; l’ancien lien cesse de fonctionner."
+    },
+    {
+      "question": "Puis-je défaire le tirage ?",
+      "answer": "Seulement en l’annulant, avec une raison que tout le monde dans le projet lit. Le tirage reste dans les archives, et il peut être refait."
+    },
+    {
+      "question": "Qui voit les brouillons ?",
+      "answer": "Seulement les admins, jusqu’à ce que vous les publiiez."
+    }
+  ]
+}

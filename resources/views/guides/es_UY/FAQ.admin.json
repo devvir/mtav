@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "¿Por qué mi proyecto tiene límites?",
-      "answer": "Los proyectos nuevos funcionan con límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde el Resumen."
+      "answer": "Los proyectos nuevos funcionan con límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde Puesta en marcha."
     },
     {
       "question": "¿Qué es un tipo de vivienda?",

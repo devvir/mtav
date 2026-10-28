@@ -1,21 +1,27 @@
-import en from '@lang/en.json';
-import esUY from '@lang/es_UY.json';
-
 /**
  * The app's words: `_('English text')` everywhere, the other languages keyed by the English
- * (lang/es_UY.json; en.json is empty on purpose). The locale is set once, when the app
- * starts, from the platform's.
+ * (lang/<locale>.json; en.json is empty on purpose). The locale is set once, when the app
+ * starts (the person's, else the platform's); only that language's words are downloaded.
  */
 type Replacements = Record<string, string | number>;
+type Words = Record<string, string>;
 
-const LOCALES: Record<string, Record<string, string>> = { en, es_UY: esUY };
+const LANGUAGES = import.meta.glob<Words>('/lang/*.json', { import: 'default' });
 
 let locale = 'en';
-let words: Record<string, string> = {};
+let words: Words = {};
 
-export function setLocale(next: string) {
+export function setLocale(next: string, dictionary: Words = {}) {
   locale = next.replace('-', '_');
-  words = LOCALES[locale] ?? {};
+  words = dictionary;
+}
+
+/** Switches to a language, once its words are here */
+export async function loadLocale(next: string) {
+  const name = next.replace('-', '_');
+  const load = name === 'en' ? undefined : LANGUAGES[`/lang/${name}.json`];
+
+  setLocale(name, load ? await load() : {});
 }
 
 export const getLocale = () => locale;

@@ -184,10 +184,24 @@ it('switches to dark mode and high contrast', function () {
     $this->as(aUser());
 
     // Kept for the next visit, and drawn before the page's scripts run
-    $page = visit(route('profile.edit'))->click('Appearance')->click('Dark')->click('High contrast')->refresh();
+    $page = visit(route('profile.edit'))->click('Preferences')->click('Dark')->click('High contrast')->refresh();
 
     $page->assertScript("document.documentElement.getAttribute('data-mantine-color-scheme')", 'dark')
         ->assertScript("document.documentElement.hasAttribute('data-high-contrast')", true);
+});
+
+it('speaks the language one picks, on every page and from then on', function () {
+    $user = aUser();
+    $this->as($user);
+
+    visit(route('profile.edit', ['section' => 'preferences']))
+        ->click('Español')
+        ->assertSee('Idioma')
+        ->assertSee('Preferencias')
+        ->assertNoSmoke();
+
+    expect($user->fresh()->locale)->toBe('es_UY');
+    visit(route('notifications.index'))->assertSee('Notificaciones');
 });
 
 it('signs out', function () {
@@ -199,4 +213,18 @@ it('signs out', function () {
         ->assertSee('Sign in');
 
     $this->assertGuest();
+});
+
+it('speaks every language it offers, guides included', function () {
+    $project = aProject();
+    $member = aMemberOf(aFamily($project, aUnitType($project)));
+
+    foreach (['fr' => ['Préférences', 'Guide des participants'], 'pt_BR' => ['Preferências', 'Guia das pessoas do projeto'], 'it' => ['Preferenze', 'Guida per le persone del progetto']] as $locale => [$preferences, $guide]) {
+        $member->update(['locale' => $locale]);
+        $this->as($member->fresh());
+
+        visit(route('profile.edit'))->assertSee($preferences)->assertNoSmoke();
+        visit(route('lottery.show', $project))->assertDontSee('Your preferences')->assertNoSmoke();
+        visit(route('documentation.guide'))->assertSee($guide);
+    }
 });

@@ -93,6 +93,18 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    /*
+    | The languages people may pick, each named in itself. Adding one: its line here, its
+    | words (lang/<locale>.json, lang/<locale>/) and its guides (resources/views/guides)
+    */
+    'locales' => [
+        'en'    => 'English',
+        'es_UY' => 'Español',
+        'fr'    => 'Français',
+        'pt_BR' => 'Português',
+        'it'    => 'Italiano',
+    ],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

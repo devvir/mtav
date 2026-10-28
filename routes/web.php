@@ -76,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('settings', '/settings/profile');
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('settings/language', [ProfileController::class, 'language'])->name('profile.language');
     Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 

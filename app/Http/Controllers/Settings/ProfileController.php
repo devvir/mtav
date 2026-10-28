@@ -17,7 +17,20 @@ class ProfileController extends Controller
 
         return inertia('Settings/Profile', [
             'profile' => $user->only('firstname', 'lastname', 'email', 'new_email', 'phone', 'email_public', 'phone_public', 'legal_id', 'about'),
+            // The languages to pick from, each named in itself; theirs (null: the platform's)
+            'languages' => config('app.locales'),
+            'language'  => $user->locale,
         ]);
+    }
+
+    /** The language they read the app (and its mail) in: one of the platform's, or its own */
+    public function language(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['locale' => ['nullable', Rule::in(array_keys(config('app.locales')))]]);
+
+        $request->user()->update(['locale' => $data['locale'] ?? null]);
+
+        return to_route('profile.edit', ['section' => 'preferences']);
     }
 
     /**

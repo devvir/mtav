@@ -11,7 +11,7 @@ import './tours';
 import { Appearance } from '@/design';
 import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
-import { setLocale } from '@/lib/translations';
+import { loadLocale } from '@/lib/translations';
 import { createInertiaApp } from '@inertiajs/react';
 import { Notifications } from '@mantine/notifications';
 import type { ComponentType, ReactNode } from 'react';
@@ -51,15 +51,17 @@ createInertiaApp({
     return page;
   },
   setup({ el, App, props }) {
-    setLocale(props.initialPage.props.locale as string);
     setRoutes(props.initialPage.props.routes, props.initialPage.props.ziggy);
     connectRealtime(props.initialPage.props.realtime);
 
-    createRoot(el).render(
-      <Appearance>
-        <Notifications position="bottom-right" limit={4} />
-        <App {...props} />
-      </Appearance>,
+    // The first render waits for the words of the language in use (one small file, cached)
+    void loadLocale(props.initialPage.props.locale as string).then(() =>
+      createRoot(el).render(
+        <Appearance>
+          <Notifications position="bottom-right" limit={4} />
+          <App {...props} />
+        </Appearance>,
+      ),
     );
   },
   // The bar starts with the click: the sidebar lights the place at once, the bar says it is

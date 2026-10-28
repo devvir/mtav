@@ -1,0 +1,39 @@
+{
+  "title": "Perguntas frequentes",
+  "description": "Respostas rápidas para os admins",
+  "guideText": "Ler o guia dos admins",
+  "questions": [
+    {
+      "question": "Por que meu projeto tem limites?",
+      "answer": "Os projetos novos funcionam com limites até que um superadmin os aprove, para evitar abusos. Peça a aprovação em Implantação."
+    },
+    {
+      "question": "O que é um tipo de unidade?",
+      "answer": "Um grupo de unidades equivalentes, como 2 quartos. Cada família tem um tipo e só concorre às unidades desse tipo."
+    },
+    {
+      "question": "E se houver mais unidades que famílias?",
+      "answer": "Você ainda pode realizar o sorteio: será preciso confirmar, e algumas unidades ficam sem família (ou famílias sem unidade, no caso contrário)."
+    },
+    {
+      "question": "Como adiciono muitas unidades?",
+      "answer": "Use Adicionar e continuar: o formulário fica pronto para a próxima unidade, do mesmo tipo."
+    },
+    {
+      "question": "Um admin também pode estar numa família?",
+      "answer": "Sim. Convide a pessoa como admin e para uma família, ou mude o papel e a família dela em Pessoas."
+    },
+    {
+      "question": "Alguém perdeu o convite.",
+      "answer": "Retire-o em Convites e envie um novo; o link antigo deixa de funcionar."
+    },
+    {
+      "question": "Posso desfazer o sorteio?",
+      "answer": "Só anulando-o, com um motivo que todos no projeto leem. O sorteio fica registrado, e pode ser feito de novo."
+    },
+    {
+      "question": "Quem vê os rascunhos?",
+      "answer": "Só os admins, até você publicá-los."
+    }
+  ]
+}

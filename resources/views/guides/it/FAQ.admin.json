@@ -1,0 +1,39 @@
+{
+  "title": "Domande frequenti",
+  "description": "Risposte rapide per gli admin",
+  "guideText": "Leggi la guida degli admin",
+  "questions": [
+    {
+      "question": "Perché il mio progetto ha dei limiti?",
+      "answer": "I nuovi progetti funzionano con dei limiti finché un superadmin non li approva, per evitare abusi. Chiedi l’approvazione da Avvio."
+    },
+    {
+      "question": "Cos’è un tipo di unità?",
+      "answer": "Un gruppo di unità equivalenti, come 2 camere. Ogni famiglia ha un tipo e concorre solo per le unità di quel tipo."
+    },
+    {
+      "question": "E se ci sono più unità che famiglie?",
+      "answer": "Puoi comunque eseguire il sorteggio: ti viene chiesto di confermare, e alcune unità restano senza famiglia (o famiglie senza unità, nel caso opposto)."
+    },
+    {
+      "question": "Come aggiungo molte unità?",
+      "answer": "Usa Aggiungi e continua: il modulo resta pronto per l’unità successiva, dello stesso tipo."
+    },
+    {
+      "question": "Un admin può far parte anche di una famiglia?",
+      "answer": "Sì. Invitalo come admin e in una famiglia, oppure cambia il suo ruolo e la sua famiglia in Persone."
+    },
+    {
+      "question": "Qualcuno ha perso il suo invito.",
+      "answer": "Ritiralo in Inviti e inviane uno nuovo; il vecchio link smette di funzionare."
+    },
+    {
+      "question": "Posso disfare il sorteggio?",
+      "answer": "Solo annullandolo, con un motivo che tutti nel progetto leggono. Il sorteggio resta registrato, e si può rifare."
+    },
+    {
+      "question": "Chi vede le bozze?",
+      "answer": "Solo gli admin, finché non le pubblichi."
+    }
+  ]
+}
