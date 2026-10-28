@@ -5,6 +5,31 @@ import type { Plan, PlanItem, Point } from '@/types/models';
 const points = (polygon: Point[]) => polygon.map(([x, y]) => `${x},${y}`).join(' ');
 
 /**
+ * The part of the canvas worth showing: every shape on every floor (switching floors keeps
+ * the frame), and the boundary unless it is only the canvas's edge, with a little room.
+ */
+export const frame = (plan: Plan) => {
+  const whole = `0 0 ${plan.width} ${plan.height}`;
+  const edge = bounds(plan.polygon);
+  const boundaryIsCanvas =
+    edge.minX <= 0 && edge.minY <= 0 && edge.maxX >= plan.width && edge.maxY >= plan.height;
+  const drawn = [
+    ...plan.items.flatMap((item) => item.polygon),
+    ...(boundaryIsCanvas ? [] : plan.polygon),
+  ];
+  if (!drawn.length) return whole;
+
+  const box = bounds(drawn);
+  const room = Math.max(plan.width, plan.height) * 0.04;
+  const x = Math.max(0, box.minX - room);
+  const y = Math.max(0, box.minY - room);
+  const width = Math.min(plan.width, box.maxX + room) - x;
+  const height = Math.min(plan.height, box.maxY + room) - y;
+
+  return `${x} ${y} ${width} ${height}`;
+};
+
+/**
  * The project plan, read-only: the boundary and every shape, units labelled. Units of the
  * viewer's type stand out; the viewer's own unit most. Given a ranking, each of its units
  * shows its place in it.
@@ -33,7 +58,7 @@ export function PlanView({
 
   return (
     <svg
-      viewBox={`0 0 ${plan.width} ${plan.height}`}
+      viewBox={frame(plan)}
       className="plan-canvas ds-surface"
       role="img"
       aria-label={_('Project plan')}
