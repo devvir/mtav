@@ -66,6 +66,15 @@ function inDialog(string $text): string
 }
 
 /**
+ * Selector of a form field in the dialog on top, by its name: never the same field of a
+ * dialog still closing underneath (adding a family, then editing it at once)
+ */
+function inDialogField(string $name): string
+{
+    return "[role=\"dialog\"] >> nth=-1 >> [name=\"{$name}\"]";
+}
+
+/**
  * Puts a file in a file input, as if the person had picked it.
  *
  * The browser runs as a server that refuses local paths, so the file travels inside
