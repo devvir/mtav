@@ -4,7 +4,7 @@ import { _, languageTag } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
 import { Anchor, Badge, Button, Card, Group, Stack } from '@mantine/core';
-import { IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
+import { IconCalendarQuestion, IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
 
 /** An event in a list: when, where, and one-tap attendance when it asks for it */
 export function EventCard({ event, href }: { event: ProjectEvent; href?: string }) {
@@ -28,7 +28,7 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
               <span className="event-day">{date.getDate()}</span>
             </>
           ) : (
-            <span className="event-month">{_('TBD')}</span>
+            <IconCalendarQuestion size={26} stroke={1.6} className="event-undated" />
           )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -47,7 +47,11 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
             {event.status === 'completed' ? <Badge color="gray">{_('Past')}</Badge> : null}
           </Group>
           <Group gap="md" mt={4} className="ds-caption">
-            {event.start_date ? <DateTime value={event.start_date} /> : null}
+            {event.start_date ? (
+              <DateTime value={event.start_date} />
+            ) : (
+              <span>{_('No date yet')}</span>
+            )}
             {event.location ? (
               <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
                 {event.type === 'online' ? <IconVideo size={16} /> : <IconMapPin size={16} />}

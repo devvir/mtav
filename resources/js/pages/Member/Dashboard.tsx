@@ -1,17 +1,19 @@
 import { EventCard } from '@/components/domain/EventCard';
 import { MediaGrid } from '@/components/domain/MediaGrid';
+import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Glyph, Panel, Stat } from '@/design';
+import { EmptyState, Glyph, Panel, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media, ProjectEvent } from '@/types/models';
 import { Deferred, Link, usePage } from '@inertiajs/react';
-import { Anchor, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 import {
   IconCalendarEvent,
   IconDice5,
+  IconHomeHeart,
   IconLayoutGrid,
   IconPhoto,
   IconUsers,
@@ -31,45 +33,67 @@ interface Props {
     status: string | null;
     unit: { id: number; identifier: string } | null;
   };
+  /** For admins: what is left to set up */
+  setup: Setup | null;
   events?: ProjectEvent[];
   media?: Media[];
 }
 
-export default function Dashboard({ overview, lottery, events, media }: Props) {
+export default function Dashboard({ overview, lottery, setup, events, media }: Props) {
   const project = usePage().props.project!;
+  // No units yet: nothing to choose from, no figures worth showing, only what comes next
+  const empty = !overview.units_count;
   useProjectChanges({
     events: ['events'],
     media: ['media'],
     lottery_runs: ['lottery'],
-    families: ['overview'],
-    people: ['overview'],
+    families: ['overview', 'setup'],
+    people: ['overview', 'setup'],
+    units: ['overview', 'setup'],
+    unit_types: ['setup'],
   });
 
   return (
     <>
       <PageHeader title={project.name} description={overview.description} />
 
-      <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg">
-        <Link href={route('families.index')} className="stat-link">
-          <Stat
-            label={_('Families')}
-            value={overview.families_count}
-            icon={IconUsersGroup}
-            tone="brand"
-          />
-        </Link>
-        <Link href={route('people.index')} className="stat-link">
-          <Stat label={_('People')} value={overview.members_count} icon={IconUsers} tone="info" />
-        </Link>
-        <Link href={route('units.index')} className="stat-link">
-          <Stat
-            label={_('Units')}
-            value={overview.units_count}
-            icon={IconLayoutGrid}
-            tone="accent"
-          />
-        </Link>
-      </SimpleGrid>
+      {setup && !isSetUp(setup) ? (
+        <div style={{ marginBottom: 24 }}>
+          <SetupChecklist setup={setup} />
+        </div>
+      ) : null}
+
+      {!empty ? (
+        <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg">
+          <Link href={route('families.index')} className="stat-link">
+            <Stat
+              label={_('Families')}
+              value={overview.families_count}
+              icon={IconUsersGroup}
+              tone="brand"
+            />
+          </Link>
+          <Link href={route('people.index')} className="stat-link">
+            <Stat label={_('People')} value={overview.members_count} icon={IconUsers} tone="info" />
+          </Link>
+          <Link href={route('units.index')} className="stat-link">
+            <Stat
+              label={_('Units')}
+              value={overview.units_count}
+              icon={IconLayoutGrid}
+              tone="accent"
+            />
+          </Link>
+        </SimpleGrid>
+      ) : !setup ? (
+        <div style={{ marginBottom: 24 }}>
+          <EmptyState icon={IconHomeHeart} title={_('Your project is getting ready')}>
+            {_(
+              'The admins are adding the units and registering the families: everything shows up here as they do.',
+            )}
+          </EmptyState>
+        </div>
+      ) : null}
 
       <div className="dashboard-top">
         {/* The lottery, the heart of the project */}
@@ -130,9 +154,20 @@ export default function Dashboard({ overview, lottery, events, media }: Props) {
                 ))}
               </Stack>
             ) : (
-              <Text c="dimmed" ta="center" py="md">
-                {_('No upcoming events.')}
-              </Text>
+              <EmptyState
+                inset
+                icon={IconCalendarEvent}
+                title={_('No events coming up')}
+                action={
+                  project.can.manage ? (
+                    <Button component={Link} href={route('manage.events.create')} variant="light">
+                      {_('Create an event')}
+                    </Button>
+                  ) : null
+                }
+              >
+                {_('Assemblies, work days and meetings show up here.')}
+              </EmptyState>
             )}
           </Deferred>
         </Panel>
@@ -153,9 +188,20 @@ export default function Dashboard({ overview, lottery, events, media }: Props) {
           {media?.length ? (
             <MediaGrid media={media} />
           ) : (
-            <Text c="dimmed" ta="center" py="md">
-              {_('Nothing shared yet.')}
-            </Text>
+            <EmptyState
+              inset
+              icon={IconPhoto}
+              title={_('Nothing shared yet')}
+              action={
+                project.can.upload ? (
+                  <Button component={Link} href={route('media.create')} variant="light">
+                    {_('Share something')}
+                  </Button>
+                ) : null
+              }
+            >
+              {_('Photos of the works, plans and documents, for everyone in the project.')}
+            </EmptyState>
           )}
         </Deferred>
       </Panel>

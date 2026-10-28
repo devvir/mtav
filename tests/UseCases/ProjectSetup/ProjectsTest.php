@@ -119,6 +119,20 @@ describe('An admin', function () {
         $this->admin = anAdminOf($this->project);
     });
 
+    it('sees on the project\'s home what is left to set up, step by step', function () {
+        $setup = fn () => $this->as($this->admin, $this->project)
+            ->get(route('projects.show', $this->project))
+            ->inertiaProps('setup');
+
+        expect($setup())->toMatchArray(['unit_types' => false, 'units' => false, 'balanced' => false]);
+
+        $type = aUnitType($this->project);
+        aUnit($type);
+        aFamily($this->project, $type);
+
+        expect($setup())->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true, 'balanced' => true]);
+    });
+
     it('changes the details of a project they manage', function () {
         $this->as($this->admin, $this->project)
             ->put(route('manage.settings.update'), projectData(['name' => 'Renamed']))
@@ -154,6 +168,13 @@ describe('An admin', function () {
 });
 
 describe('A member', function () {
+    it('is not shown the setup of the project', function () {
+        $project = aProject();
+        $member = aMemberOf(aFamily($project));
+
+        expect($this->as($member, $project)->get(route('projects.show', $project))->inertiaProps('setup'))->toBeNull();
+    });
+
     it('cannot change the project', function () {
         $project = aProject(['name' => 'Original']);
         $member = aMemberOf(aFamily($project));

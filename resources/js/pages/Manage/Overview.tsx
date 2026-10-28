@@ -1,18 +1,16 @@
+import { SetupChecklist, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Glyph, Panel, Stat } from '@/design';
+import { Glyph, Stat } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Link, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Button, Card, Group, Progress, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import {
-  IconCircle,
-  IconCircleCheckFilled,
   IconLayoutGrid,
-  IconListCheck,
   IconMail,
   IconPhoto,
   IconShieldCheck,
@@ -25,10 +23,7 @@ type Key = 'unit_types' | 'units' | 'families' | 'people' | 'invitations' | 'med
 
 interface Props {
   counts: Record<Key, number>;
-  checklist: Record<
-    'unit_types' | 'units' | 'families' | 'members' | 'balanced' | 'scheduled' | 'lottery',
-    boolean
-  >;
+  checklist: Setup;
   approval: {
     approved: boolean;
     requested_at: string | null;
@@ -48,37 +43,6 @@ export default function Overview({ counts, checklist, approval }: Props) {
     invitations: ['counts'],
     lottery_runs: ['checklist'],
   });
-
-  const steps = [
-    {
-      done: checklist.unit_types,
-      label: _('Add the unit types'),
-      href: route('manage.unit_types.index'),
-    },
-    { done: checklist.units, label: _('Add the units'), href: route('manage.units.index') },
-    {
-      done: checklist.families,
-      label: _('Register the families'),
-      href: route('manage.families.index'),
-    },
-    {
-      done: checklist.members,
-      label: _('Invite their members'),
-      href: route('manage.invitations.index'),
-    },
-    {
-      done: checklist.balanced,
-      label: _('Have as many units as families of each type'),
-      href: route('manage.lottery.show'),
-    },
-    {
-      done: checklist.scheduled,
-      label: _('Schedule the lottery'),
-      href: route('manage.lottery.show'),
-    },
-    { done: checklist.lottery, label: _('Run the lottery'), href: route('manage.lottery.show') },
-  ];
-  const done = steps.filter((step) => step.done).length;
 
   const usage =
     approval.limits && approval.usage
@@ -142,39 +106,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
       </SimpleGrid>
 
       <div className="with-aside">
-        <Panel
-          title={_('Getting to the lottery')}
-          icon={IconListCheck}
-          aside={`${done} / ${steps.length}`}
-          data-tour="setup.checklist"
-        >
-          <Progress
-            value={(done / steps.length) * 100}
-            radius="xl"
-            size="sm"
-            mb="md"
-            color="green"
-            aria-label={_('Getting to the lottery')}
-          />
-          <ol className="checklist">
-            {steps.map((step) => (
-              <li key={step.label}>
-                <Link
-                  href={step.href}
-                  className="checklist-step"
-                  data-done={step.done || undefined}
-                >
-                  {step.done ? (
-                    <IconCircleCheckFilled size={22} className="text-positive" />
-                  ) : (
-                    <IconCircle size={22} />
-                  )}
-                  <span>{step.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </Panel>
+        <SetupChecklist setup={checklist} />
 
         {!approval.approved ? (
           <Card p="lg" data-tour="setup.approval" className="approval-card">

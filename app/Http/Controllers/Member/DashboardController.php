@@ -7,16 +7,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Http\Resources\MediaResource;
 use App\Models\Project;
+use App\Services\ProjectService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The project's home in the member app: what is coming up and what was shared.
+ * The project's home: what is coming up and what was shared, and for admins, what is
+ * left to set up.
  */
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, Project $project): Response
+    public function __invoke(Request $request, Project $project, ProjectService $projects): Response
     {
         $user = $request->user();
         $family = $user->familyIn($project);
@@ -30,6 +32,8 @@ class DashboardController extends Controller
                 'members_count'  => $project->memberships()->count(),
                 'units_count'    => $project->units()->count(),
             ],
+            // Admins see what is left to set up, until the lottery has run
+            'setup'   => $user->can('update', $project) ? $projects->setupChecklist($project) : null,
             'lottery' => [
                 'start_date' => $project->lottery->start_date,
                 'status'     => $run?->status->value,

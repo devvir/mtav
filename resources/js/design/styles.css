@@ -516,6 +516,10 @@ body {
   border-radius: var(--mtav-radius-card);
   background: var(--mtav-surface);
 }
+.ds-empty[data-inset] {
+  border: 0;
+  padding: 20px 12px;
+}
 .ds-empty-title {
   margin: 8px 0 0;
   font-weight: 700;

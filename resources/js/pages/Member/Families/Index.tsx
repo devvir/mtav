@@ -2,14 +2,14 @@ import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { FamilyMark } from '@/design';
+import { EmptyState, FamilyMark } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Family, Paginated } from '@/types/models';
 import { Link, usePage } from '@inertiajs/react';
-import { Badge, Card, Group, SimpleGrid, Text } from '@mantine/core';
-import { IconHome } from '@tabler/icons-react';
+import { Badge, Button, Card, Group, SimpleGrid, Text } from '@mantine/core';
+import { IconHome, IconUsersGroup } from '@tabler/icons-react';
 
 export default function FamiliesIndex({
   families,
@@ -18,7 +18,10 @@ export default function FamiliesIndex({
   families: Paginated<Family>;
   filters: { q: string | null };
 }) {
-  const own = usePage().props.project?.family?.id;
+  const project = usePage().props.project!;
+  const own = project.family?.id;
+  const canManage = project.can.manage;
+  const nothingYet = !families.data.length && !filters.q;
   useProjectChanges({ families: ['families'], people: ['families'], lottery_runs: ['families'] });
 
   return (
@@ -34,9 +37,27 @@ export default function FamiliesIndex({
           </InfoTip>
         }
       />
-      <div style={{ marginBottom: 16 }}>
-        <QuerySearch value={filters.q} placeholder={_('Search families or people')} maw={440} />
-      </div>
+      {nothingYet ? (
+        <EmptyState
+          icon={IconUsersGroup}
+          title={_('No families yet')}
+          action={
+            canManage ? (
+              <Button component={Link} href={route('manage.families.create')}>
+                {_('Register the first family')}
+              </Button>
+            ) : null
+          }
+        >
+          {canManage
+            ? _('Register each family with its unit type, then invite its members.')
+            : _('Families show up here as the admins register them.')}
+        </EmptyState>
+      ) : (
+        <div style={{ marginBottom: 16 }}>
+          <QuerySearch value={filters.q} placeholder={_('Search families or people')} maw={440} />
+        </div>
+      )}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {families.data.map((family) => (
           <Card
@@ -73,9 +94,9 @@ export default function FamiliesIndex({
           </Card>
         ))}
       </SimpleGrid>
-      {!families.data.length ? (
+      {!families.data.length && filters.q ? (
         <Text ta="center" c="dimmed" py="xl">
-          {_('No families yet.')}
+          {_('No family or person matches “{q}”.', { q: filters.q })}
         </Text>
       ) : null}
       <Pagination page={families} />

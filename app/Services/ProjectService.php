@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\EventType;
+use App\Enums\LotteryRunStatus;
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use App\Models\Event;
@@ -95,5 +96,32 @@ class ProjectService
             trigger: $superadmin,
             targetId: $project->id,
         );
+    }
+
+    /**
+     * How far the project is from its lottery: each step of the setup, done or not.
+     *
+     * @return array{unit_types: bool, units: bool, families: bool, members: bool, balanced: bool, scheduled: bool, lottery: bool}
+     */
+    public function setupChecklist(Project $project): array
+    {
+        return [
+            'unit_types' => $project->unitTypes()->exists(),
+            'units'      => $project->units()->exists(),
+            'families'   => $project->families()->exists(),
+            'members'    => $project->memberships()->whereNotNull('family_id')->exists(),
+            'balanced'   => $this->balanced($project),
+            'scheduled'  => (bool) $project->lottery->start_date,
+            'lottery'    => $project->activeLotteryRun?->status === LotteryRunStatus::COMPLETED,
+        ];
+    }
+
+    /** Every type has as many units as families (and there is at least one type) */
+    private function balanced(Project $project): bool
+    {
+        $types = $project->unitTypes()->withCount('units', 'families')->get();
+
+        return $types->isNotEmpty()
+            && $types->every(fn ($type) => $type->units_count === $type->families_count);
     }
 }
