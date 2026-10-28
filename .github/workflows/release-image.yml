@@ -69,5 +69,7 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # The build cache lives beside the images (any branch reads it; only publishing
+          # builds write it): uploading to GitHub's Actions cache took longer than the build
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          cache-to: ${{ inputs.publish && format('type=registry,ref={0}:buildcache,mode=max', env.IMAGE) || '' }}
