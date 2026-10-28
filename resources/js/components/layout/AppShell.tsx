@@ -19,6 +19,7 @@ import {
 } from '@tabler/icons-react';
 import { forwardRef, useEffect, type ComponentProps, type ReactNode } from 'react';
 import { NotificationsMenu } from './NotificationsMenu';
+import { QuickActions } from './QuickActions';
 import { useCurrentPage, useFlashToasts } from './page';
 
 export interface NavEntry {
@@ -156,6 +157,7 @@ export function AppShell({
           )}
 
           <div className="shell-bar-end">
+            <QuickActions />
             <NotificationsMenu />
 
             <Menu position="bottom-end" width={260}>

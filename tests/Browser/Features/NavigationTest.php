@@ -89,3 +89,20 @@ it('links someone\'s details to their family\'s', function () {
         ->assertQueryStringHas('family', (string) $family->id)
         ->assertSeeIn('[role="dialog"]', $family->name);
 });
+
+it('offers quick actions, each what the person may do, as a shortcut to its page', function () {
+    $this->as($this->member);
+    visit(route('projects.show', $this->project))
+        ->click('[aria-label="Quick actions"]')
+        ->assertSeeIn('[role="menu"]', 'Share photos or files')
+        ->assertDontSeeIn('[role="menu"]', 'Create an event')
+        ->click('[role="menu"] >> text=Share photos or files')
+        ->assertPathIs(pathOf('media.create', $this->project));
+
+    $this->as(anAdminOf($this->project));
+    visit(route('projects.show', $this->project))
+        ->click('[aria-label="Quick actions"]')
+        ->click('[role="menu"] >> text=Create an event')
+        ->assertPathIs(pathOf('events.index', $this->project))
+        ->assertPresent('[role="dialog"] [name="title"]');
+});
