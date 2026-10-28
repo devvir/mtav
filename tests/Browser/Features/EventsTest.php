@@ -16,13 +16,15 @@ beforeEach(function () {
 it('keeps a draft from members until it is published', function () {
     $this->as($this->admin);
 
-    visit(route('manage.events.create', $this->project))
+    visit(route('events.index', $this->project))
+        ->click('Create an event')
         ->fill('title', 'General assembly')
         ->fill('description', 'Yearly assembly')
         ->fill('location', 'Community hall')
         ->uncheck('is_published')
-        ->click('Create the event')
+        ->click(inDialog('Create the event'))
         ->assertSee('The event was created.')
+        ->navigate(route('events.index', $this->project))
         ->assertSee('Draft');
 
     $event = Event::firstWhere('title', 'General assembly');
@@ -31,24 +33,37 @@ it('keeps a draft from members until it is published', function () {
     visit(route('events.index', $this->project))->assertDontSee('General assembly');
 
     $this->as($this->admin);
-    visit(route('manage.events.edit', [$this->project, $event]))
+    visit(route('events.show', [$this->project, $event]))
+        ->click('Edit')
         ->check('is_published')
-        ->click('Save')
+        ->click(inDialog('Save'))
         ->assertSee('The event was saved.');
 
     $this->as($this->member);
     visit(route('events.index', $this->project))->assertSee('General assembly')->assertNoSmoke();
 });
 
+it('shows members no tools to create or change events', function () {
+    $event = anEvent($this->project, ['title' => 'Assembly']);
+    $this->as($this->member);
+
+    visit(route('events.index', [$this->project, 'new' => 1]))
+        ->assertDontSee('Create an event')
+        ->assertNotPresent('[role="dialog"]')
+        ->navigate(route('events.show', [$this->project, $event]))
+        ->assertSee('Assembly')
+        ->assertDontSee('Cancel the event');
+});
+
 it('asks for a link for online events', function () {
     $this->as($this->admin);
 
-    visit(route('manage.events.create', $this->project))
+    visit(route('events.index', [$this->project, 'new' => 1]))
         ->click('Online')
         ->fill('title', 'Video call')
         ->fill('description', 'Monthly call')
         ->fill('location', 'not a link')
-        ->click('Create the event')
+        ->click(inDialog('Create the event'))
         ->assertSee('The location field must be a valid URL.');
 });
 
@@ -72,7 +87,7 @@ it('cancels an event', function () {
     $event = anEvent($this->project, ['title' => 'Picnic']);
     $this->as($this->admin);
 
-    visit(route('manage.events.edit', [$this->project, $event]))
+    visit(route('events.show', [$this->project, $event]))
         ->click('Cancel the event')
         ->click(inDialog('Cancel the event'))
         ->assertSee('The event was cancelled.');
@@ -83,12 +98,13 @@ it('cancels an event', function () {
 it('asks members whether they go only when the event says so', function () {
     $this->as($this->admin);
 
-    visit(route('manage.events.create', $this->project))
+    visit(route('events.index', $this->project))
+        ->click('Create an event')
         ->fill('title', 'Work day')
         ->fill('description', 'Painting the fences')
         ->fill('location', 'The site')
         ->click('Ask people whether they will go')
-        ->click('Create the event')
+        ->click(inDialog('Create the event'))
         ->assertSee('The event was created.');
 
     anEvent($this->project, ['title' => 'Open day']);

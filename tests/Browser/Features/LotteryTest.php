@@ -63,7 +63,10 @@ it('reorders the ranking with the keyboard', function () {
     visit(route('lottery.show', $this->project))
         ->keys($grip, 'Space')
         ->assertAttribute($grip, 'aria-pressed', 'true')
-        ->keys($grip, 'ArrowDown')
+        // The arrows are listened to a moment after the pick-up; with two units, a second
+        // press cannot move it past the end
+        ->wait(0.5)
+        ->keys($grip, ['ArrowDown', 'ArrowDown'])
         // Dropped once the move registered (announced to screen readers)
         ->assertScript(
             "[...document.querySelectorAll('[id^=DndLiveRegion]')].some((region) => region.textContent.includes('goes to number 2'))",

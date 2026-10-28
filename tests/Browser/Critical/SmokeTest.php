@@ -64,9 +64,6 @@ it('renders the project admin area', function () {
         route('manage.families.edit', [$this->project, $this->family]) => 'García Pérez',
         route('manage.people.index', $this->project)                   => 'Ana',
         route('manage.invitations.index', $this->project)              => 'Invite someone',
-        route('manage.events.index', $this->project)                   => 'General assembly',
-        route('manage.events.create', $this->project)                  => 'Create an event',
-        route('manage.events.edit', [$this->project, $this->event])    => 'General assembly',
         route('manage.lottery.show', $this->project)                   => 'Readiness',
         route('manage.settings.edit', $this->project)                  => 'Delete the project',
     ];

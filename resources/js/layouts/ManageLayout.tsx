@@ -74,9 +74,9 @@ export function ManageLayout({ children }: { children: ReactNode }) {
     },
     {
       label: _('Events'),
-      href: route('manage.events.index'),
+      href: route('events.index'),
       icon: IconCalendarEvent,
-      active: routeIs('manage.events.*'),
+      active: routeIs('events.*'),
     },
     {
       label: _('Settings'),

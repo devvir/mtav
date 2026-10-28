@@ -157,7 +157,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::resource('units', Manage\UnitController::class)->except('show');
                 Route::get('plan', [Manage\PlanController::class, 'edit'])->name('plan.edit');
                 Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
-                Route::resource('events', Manage\EventController::class)->except('show');
+                Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy');
 
                 Route::get('lottery', [Manage\LotteryController::class, 'show'])->name('lottery.show');
                 Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');

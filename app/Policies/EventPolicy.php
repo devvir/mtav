@@ -19,6 +19,16 @@ class EventPolicy extends ProjectResourcePolicy
     }
 
     /**
+     * The lottery event is scheduled on the lottery page, not edited as an event.
+     *
+     * @param Event $model
+     */
+    public function update(User $user, Model $model): bool
+    {
+        return ! $model->isLottery() && parent::update($user, $model);
+    }
+
+    /**
      * The lottery event exists as long as its project does.
      *
      * @param Event $model

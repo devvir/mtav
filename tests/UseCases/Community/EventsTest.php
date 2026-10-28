@@ -57,7 +57,14 @@ describe('An admin', function () {
 
         expect($this->as($this->member, $this->project)->get(route('events.show', $draft)))->toBeDenied();
 
-        expect(listedEventIds($this->as($this->admin, $this->project)->get(route('manage.events.index'))))->toContain($draft->id);
+        // Admins see drafts on the same list, to publish them when ready
+        expect(listedEventIds($this->as($this->admin, $this->project)->get(route('events.index'))))->toContain($draft->id);
+    });
+
+    it('cannot edit the lottery event as an event (it is scheduled with the lottery)', function () {
+        expect($this->as($this->admin, $this->project)
+            ->put(route('manage.events.update', $this->project->lottery), eventData()))
+            ->toBeDenied();
     });
 
     it('changes and cancels an event', function () {

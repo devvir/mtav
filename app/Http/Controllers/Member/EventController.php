@@ -11,15 +11,18 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 /**
- * Published events, and answering whether one attends.
+ * The project's events (admins also see drafts, and create, edit and cancel them from
+ * here), and answering whether one attends.
  */
 class EventController extends Controller
 {
     public function index(Request $request, Project $project): Response
     {
         $past = $request->query('when') === 'past';
+        $manages = $request->user()->can('update', $project);
 
-        $events = $project->events()->published()
+        $events = $project->events()
+            ->when(! $manages, fn ($q) => $q->published())
             ->when($request->q, fn ($q, $search) => $q->search($search))
             ->when($past, fn ($q) => $q->where('start_date', '<', now()), fn ($q) => $q->upcoming())
             ->with('rsvps')

@@ -160,7 +160,11 @@ export default function Dashboard({ overview, lottery, setup, events, media }: P
                 title={_('No events coming up')}
                 action={
                   project.can.manage ? (
-                    <Button component={Link} href={route('manage.events.create')} variant="light">
+                    <Button
+                      component={Link}
+                      href={route('events.index', { new: 1 })}
+                      variant="light"
+                    >
                       {_('Create an event')}
                     </Button>
                   ) : null
