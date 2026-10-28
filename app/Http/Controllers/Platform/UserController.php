@@ -38,6 +38,27 @@ class UserController extends Controller
         ]);
     }
 
+    /** Who manages the whole platform: a page of its own, for a rare decision */
+    public function superadmins(): Response
+    {
+        return inertia('Platform/Superadmins', [
+            'superadmins' => User::where('is_superadmin', true)->alphabetically()->get()
+                ->map(fn (User $user) => $user->only('id', 'name', 'email')),
+        ]);
+    }
+
+    /** Giving the role to an account named by its exact email */
+    public function grant(Request $request): RedirectResponse
+    {
+        $email = $request->validate(['email' => ['required', 'email']])['email'];
+        $user = User::where('email', $email)->first()
+            ?? throw ValidationException::withMessages(['email' => __('validation.no_account_with_email')]);
+
+        $user->forceFill(['is_superadmin' => true])->save();
+
+        return back()->with('success', __('flash.superadmin_granted', ['name' => $user->name]));
+    }
+
     public function superadmin(Request $request, User $user): RedirectResponse
     {
         $grant = $request->validate(['grant' => ['required', 'boolean']])['grant'];

@@ -222,6 +222,7 @@ return [
 
     'already_in_project'        => 'This person already takes part in the project in that role.',
     'cannot_revoke_self'        => 'You cannot remove your own superadmin role.',
+    'no_account_with_email'     => 'There is no account with this email.',
     'email_taken'               => 'Another account already uses this email.',
     'family_has_unit'           => 'This family already received a unit in the lottery: it cannot be removed.',
     'last_admin'                => 'A project needs at least one admin.',

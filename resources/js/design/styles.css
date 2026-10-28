@@ -456,11 +456,23 @@ body {
     inset 0 1px 0 rgb(255 255 255 / 30%),
     0 6px 16px -6px var(--mantine-color-brand-6);
 }
+.ds-logo-words {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
 .ds-logo-name {
   font-family: var(--mantine-font-family-headings);
   font-weight: 800;
   font-size: 20px;
   letter-spacing: -0.02em;
+}
+.ds-logo-institution {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mtav-muted);
 }
 
 .ds-family-mark {

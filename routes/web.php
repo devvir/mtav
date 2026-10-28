@@ -173,6 +173,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('projects/{project}/approval', [Platform\ProjectController::class, 'approve'])->name('projects.approve');
         Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
         Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
+        Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
+        Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
     });
 });

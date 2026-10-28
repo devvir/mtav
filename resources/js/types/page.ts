@@ -13,6 +13,8 @@ export interface RealtimeServer {
  */
 export interface SharedProps {
   name: string;
+  /** The institution behind this deployment, under the brand ("FING ≒ UDELAR") */
+  institution: string | null;
   locale: string;
   auth: {
     user: {

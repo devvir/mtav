@@ -16,6 +16,11 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | The institution behind this deployment, shown under the brand (empty: none)
+    */
+    'institution' => env('APP_INSTITUTION', ''),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

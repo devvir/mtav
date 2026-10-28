@@ -2,7 +2,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { IconFlask, IconFolders, IconUser } from '@tabler/icons-react';
+import { IconFlask, IconFolders, IconShieldCheck, IconUser } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 
 /** The platform console: superadmins only */
@@ -27,6 +27,12 @@ export function PlatformLayout({ children }: { children: ReactNode }) {
               href: route('admin.users.index'),
               icon: IconUser,
               active: routeIs('admin.users.*'),
+            },
+            {
+              label: _('Superadmins'),
+              href: route('admin.superadmins.index'),
+              icon: IconShieldCheck,
+              active: routeIs('admin.superadmins.*'),
             },
             {
               label: _('UI Lab'),

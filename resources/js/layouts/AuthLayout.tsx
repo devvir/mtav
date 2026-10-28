@@ -13,7 +13,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="auth">
       <Link href={route('home')} className="auth-logo">
-        <Logo name={props.name} size={42} />
+        <Logo name={props.name} institution={props.institution} size={42} />
       </Link>
       <main className="auth-card ds-surface">{children}</main>
       <DialogHost />

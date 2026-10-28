@@ -222,6 +222,7 @@ return [
 
     'already_in_project'        => 'Esta persona ya participa del proyecto con ese rol.',
     'cannot_revoke_self'        => 'No puedes quitarte tu propio rol de superadministrador.',
+    'no_account_with_email'     => 'No hay ninguna cuenta con este email.',
     'email_taken'               => 'Otra cuenta ya usa este email.',
     'family_has_unit'           => 'Esta familia ya recibió una vivienda en el sorteo: no se puede quitar.',
     'last_admin'                => 'Un proyecto necesita al menos un administrador.',

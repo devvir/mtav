@@ -108,7 +108,7 @@ export function AppShell({
     <div className="shell">
       <aside className="shell-sidebar">
         <Link href={route('home')} className="shell-logo">
-          <Logo name={props.name} />
+          <Logo name={props.name} institution={props.institution} />
         </Link>
         {navigation}
       </aside>

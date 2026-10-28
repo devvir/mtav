@@ -11,20 +11,27 @@ beforeEach(function () {
     $this->as($this->superadmin);
 });
 
-it('makes someone a superadmin, and takes the role back', function () {
-    $ana = aUser(['firstname' => 'Ana', 'lastname' => 'García']);
+it('gives the superadmin role from its own page, by exact email, and takes it back', function () {
+    $ana = aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
 
+    // Never offered on the accounts themselves
     visit(route('admin.users.index'))
-        ->click('.row:has-text("Ana García") >> text=Make superadmin')
-        ->click(inDialog('Make superadmin'))
-        ->assertSeeIn('.row:has-text("Ana García")', 'Remove superadmin');
+        ->assertSee('Ana García')
+        ->assertDontSee('Make superadmin');
+
+    visit(route('admin.superadmins.index'))
+        ->fill('email', 'ana@example.com')
+        ->click('Give the superadmin role')
+        ->fill('[role="dialog"] input', 'ana@example.com')
+        ->click(inDialog('Give the role'))
+        ->assertSee('Ana García');
 
     expect($ana->fresh()->isSuperadmin())->toBeTrue();
 
-    visit(route('admin.users.index'))
-        ->click('.row:has-text("Ana García") >> text=Remove superadmin')
+    visit(route('admin.superadmins.index'))
+        ->click('.row:has-text("Ana García") >> text=Remove the role')
         ->click(inDialog('Remove the role'))
-        ->assertSeeIn('.row:has-text("Ana García")', 'Make superadmin');
+        ->assertDontSee('ana@example.com');
 
     expect($ana->fresh()->isSuperadmin())->toBeFalse();
 });
