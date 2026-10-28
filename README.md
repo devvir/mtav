@@ -36,7 +36,8 @@ That's it! You're ready to develop.
 
 The essentials for day-to-day work. Run `./mtav help` for the full list, or see
 the **[Docker & Environments guide](docker/README.md)** for everything the CLI
-can do (all environments, `staging`, `prod`, `update`, `rebuild`, `compose`, …).
+can do (all environments, `release`, `update`, `rebuild`, `compose`, …). Releases and
+deploys: **[documentation/technical/delivery.md](documentation/technical/delivery.md)**.
 
 ```bash
 # Environment lifecycle

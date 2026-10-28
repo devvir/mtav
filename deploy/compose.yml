@@ -1,0 +1,87 @@
+# One MTAV environment (staging, production…) on a host: the app's roles, all from the
+# same image, and its database. Run as the compose project mtav-<environment> from the
+# environment's directory, whose .env holds its settings and secrets (deploy/env.example).
+#
+# The host's proxy (deploy/edge) reaches the web server and the websocket server over the
+# shared network mtav-edge, by the aliases <environment>-app and <environment>-reverb.
+
+x-app: &app
+  image: ${MTAV_IMAGE:?the release to run, set by the deploy}
+  env_file: .env
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '5'
+
+services:
+  app:
+    <<: *app
+    volumes:
+      - files:/app/storage/app
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8080/up']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      default:
+      edge:
+        aliases: ['${MTAV_ENV:?}-app']
+
+  reverb:
+    <<: *app
+    command: ['php', 'artisan', 'reverb:start', '--host=0.0.0.0', '--port=8080']
+    healthcheck:
+      test: ['CMD', 'php', '-r', 'exit(@fsockopen("127.0.0.1", 8080) ? 0 : 1);']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      default:
+      edge:
+        aliases: ['${MTAV_ENV:?}-reverb']
+
+  worker:
+    <<: *app
+    command: ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+    # Nothing to probe: a worker that dies is restarted
+    healthcheck:
+      disable: true
+    volumes:
+      - files:/app/storage/app
+
+  db:
+    image: mariadb:12.3
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:?}
+      MARIADB_USER: ${DB_USERNAME:?}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?}
+      MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+      start_interval: 2s
+    logging: *logging
+
+volumes:
+  # Uploaded files (media, documents, avatars) and the database: what a release never replaces
+  files:
+  database:
+
+networks:
+  edge:
+    name: mtav-edge
+    external: true

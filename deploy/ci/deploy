@@ -1,0 +1,31 @@
+#!/bin/bash
+# The pipeline's side of a deploy: hands the host's gate (deploy/host/gate) a release and
+# this commit's deploy bundle, over SSH.
+#
+#   deploy <environment> <image>       deploys
+#   deploy --release-of <environment>  prints the image the environment runs
+#
+# Needs SSH_KEY (the pipeline's private key), KNOWN_HOSTS (the host's key line) and TARGET
+# (user@host), from the deploying environment's secrets.
+set -euo pipefail
+
+: "${SSH_KEY:?}" "${KNOWN_HOSTS:?}" "${TARGET:?}"
+
+secrets="$(mktemp -d)"
+trap 'rm -rf "$secrets"' EXIT
+printf '%s\n' "$SSH_KEY" > "$secrets/key"
+printf '%s\n' "$KNOWN_HOSTS" > "$secrets/known_hosts"
+chmod 600 "$secrets/key"
+
+host() {
+    ssh -i "$secrets/key" -o IdentitiesOnly=yes -o UserKnownHostsFile="$secrets/known_hosts" \
+        -o StrictHostKeyChecking=yes -o BatchMode=yes "$TARGET" "$@"
+}
+
+if [[ "${1:-}" == "--release-of" ]]; then
+    host release "$2"
+    exit
+fi
+
+cd "$(dirname "$0")/.."
+tar -czf - compose.yml edge host | host deploy "$1" "$2"

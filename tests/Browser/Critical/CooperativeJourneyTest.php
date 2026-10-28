@@ -54,6 +54,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('identifier', 'A-101')
         ->click('Add and continue with another')
         ->assertSee('The unit was added.')
+        ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-102')
         ->click('Add the unit')
         ->assertSee('A-102');
@@ -102,6 +103,12 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->wait(2);
 
     expect($garcia->preferences()->first()?->id)->toBe($second->id);
+
+    // The other family wants the other unit most (default rankings differ per family, and two
+    // families wanting the same unit would leave the outcome to chance)
+    $perez = Family::firstWhere('name', 'Pérez');
+    $others = app(PreferencesService::class)->ranking($perez)->reject(fn ($unit) => $unit->is($second));
+    app(PreferencesService::class)->rank($perez, [...$others->pluck('id'), $second->id]);
 
     // The admin runs the lottery
     $project->lottery->update(['start_date' => now()->subMinute()]);

@@ -1,7 +1,7 @@
 # MariaDB base service definition.
 #
 # Extend this to pick a storage strategy:
-#   compose.yml       — named volume (persistent; dev/staging/prod)
+#   compose.yml       — named volume (persistent; dev)
 #   tmpfs (testing)   — the testing composition adds tmpfs:/var/lib/mysql
 services:
   mysql:

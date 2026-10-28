@@ -1,0 +1,76 @@
+#!/bin/bash
+# Deploys a release to an environment on this host. Run by the gate, from the release's
+# own bundle (deploy/ of the commit being deployed):
+#
+#   deploy <environment> <image> <bundle directory>
+#
+# 1. the host's proxy, from the bundle's edge/ (started, or its configuration reloaded);
+# 2. the new image pulled, the database up;
+# 3. a dump of the database, before anything touches it (the last 20 are kept);
+# 4. migrations, run by the new image;
+# 5. every role on the new image, waiting until they report healthy;
+# 6. if they do not: back to the previous image (migrations stay: restoring the dump
+#    from step 3 is a decision for a person, see documentation/technical/delivery.md).
+set -euo pipefail
+
+environment="$1"
+image="$2"
+bundle="$3"
+home="${MTAV_DELIVERY_HOME:-$HOME/delivery}"
+dir="$home/$environment"
+
+say() { echo "[$(date -u +%H:%M:%S)] $*"; }
+
+compose() {
+    local release="$1"
+    shift
+    MTAV_ENV="$environment" MTAV_IMAGE="$release" \
+        docker compose --project-directory "$dir" -f "$dir/compose.yml" -p "mtav-$environment" "$@"
+}
+
+previous="$(cat "$dir/release" 2>/dev/null || true)"
+say "Deploying $image to $environment (running: ${previous:-nothing yet})"
+
+say "The host's proxy"
+mkdir -p "$home/edge"
+cp "$bundle/edge/compose.yml" "$bundle/edge/Caddyfile" "$home/edge/"
+docker compose -f "$home/edge/compose.yml" -p mtav-edge up -d --wait
+docker compose -f "$home/edge/compose.yml" -p mtav-edge exec -T caddy \
+    caddy reload --config /etc/caddy/Caddyfile --force
+
+cp "$bundle/compose.yml" "$dir/compose.yml"
+
+say "Pulling the release"
+compose "$image" pull --quiet app
+
+say "The database"
+compose "$image" up -d --wait db
+
+if [[ -n "$previous" ]]; then
+    mkdir -p "$dir/backups"
+    dump="$dir/backups/$(date -u +%Y%m%dT%H%M%SZ)-before-${image##*:}.sql.gz"
+    say "Dumping the database to $dump"
+    compose "$image" exec -T db sh -c \
+        'mariadb-dump --single-transaction -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"' \
+        | gzip > "$dump"
+    ls -1t "$dir"/backups/*.sql.gz | tail -n +21 | xargs -r rm --
+fi
+
+say "Migrating"
+compose "$image" run --rm --no-deps app php artisan migrate --force
+
+say "Starting the release"
+if ! compose "$image" up -d --wait --wait-timeout 180 --remove-orphans; then
+    say "The release did not come up healthy"
+    compose "$image" ps
+    compose "$image" logs --tail 80 app reverb worker || true
+    if [[ -n "$previous" ]]; then
+        say "Back to $previous"
+        compose "$previous" up -d --wait --wait-timeout 180 --remove-orphans
+    fi
+    exit 1
+fi
+
+echo "$image" > "$dir/release"
+docker image prune -f > /dev/null
+say "Done: $environment runs $image"

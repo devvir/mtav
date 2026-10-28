@@ -9,11 +9,10 @@ import './design/styles.css';
 import './tours';
 
 import { Appearance } from '@/design';
-import { realtimeEnabled } from '@/lib/realtime';
+import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
 import { setLocale } from '@/lib/translations';
 import { createInertiaApp } from '@inertiajs/react';
-import { configureEcho } from '@laravel/echo-react';
 import { Notifications } from '@mantine/notifications';
 import type { ComponentType, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -36,18 +35,6 @@ const LAYOUTS: [string, Layout][] = [
   ['Platform/', PlatformLayout],
 ];
 
-if (realtimeEnabled()) {
-  configureEcho({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT,
-    wssPort: import.meta.env.VITE_REVERB_PORT,
-    forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
-    enabledTransports: ['ws', 'wss'],
-  });
-}
-
 createInertiaApp({
   title: (title) => (title ? `${title} · ${appName}` : appName),
   resolve: async (name) => {
@@ -64,6 +51,7 @@ createInertiaApp({
   setup({ el, App, props }) {
     setLocale(props.initialPage.props.locale as string);
     setRoutes(props.initialPage.props.routes, props.initialPage.props.ziggy);
+    connectRealtime(props.initialPage.props.realtime);
 
     createRoot(el).render(
       <Appearance>

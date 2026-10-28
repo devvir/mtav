@@ -3,8 +3,8 @@
 # Stages:
 #   base   — php-fpm + extensions + composer (shared foundation)
 #   dev    — base + xdebug + node/pnpm + host user mapping (code bind-mounted)
-#   prod   — base + vendored app code, optimized (self-contained image)
-#   queue  — prod + supervisord running queue workers
+#
+# Releases are built apart, by deploy/Dockerfile.
 #
 # Build context is the repository root.
 
@@ -71,47 +71,3 @@ RUN addgroup -g ${PGID} hostuser \
     && adduser -D -u ${PUID} -G hostuser hostuser
 
 USER hostuser
-
-# ============================================================================
-FROM base AS prod
-
-COPY docker/services/php/prod.ini /usr/local/etc/php/conf.d/99-custom.ini
-
-# Install PHP dependencies first (better layer caching)
-COPY composer.json composer.lock artisan ./
-COPY packages/ packages/
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-COPY app/ app/
-COPY bootstrap/ bootstrap/
-COPY config/ config/
-COPY database/ database/
-COPY lang/ lang/
-COPY resources/views/ resources/views/
-COPY routes/ routes/
-COPY public/index.php public/robots.txt public/
-
-# Storage skeleton + vite manifest symlink (manifest arrives via shared volume,
-# published by the assets container at startup)
-RUN mkdir -p \
-        storage/app/public \
-        storage/framework/cache/data \
-        storage/framework/sessions \
-        storage/framework/views \
-        storage/logs \
-        public/build \
-    && ln -sf /var/www/html/vite_manifest/manifest.json public/build/ \
-    && chown -R www-data:www-data .
-
-CMD ["sh", "-c", "php artisan optimize && exec php-fpm"]
-
-# ============================================================================
-FROM prod AS queue
-
-RUN apk add --no-cache supervisor \
-    && mkdir -p /var/log/supervisor \
-    && chown -R www-data:www-data /var/log/supervisor
-
-COPY docker/services/queue/supervisord.conf /etc/supervisord.conf
-
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]

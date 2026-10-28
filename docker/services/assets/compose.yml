@@ -11,9 +11,13 @@ services:
       context: ../../..
       dockerfile: docker/services/assets/dev.Dockerfile
     restart: unless-stopped
+    # As the host user, so that node_modules belongs to whoever owns the checkout
+    user: "${PUID:-1000}:${PGID:-1000}"
     ports:
       - "${VITE_PORT:-}:5173"
     volumes:
       - ../../..:/var/www/html:cached
     environment:
       CHOKIDAR_USEPOLLING: "true"
+      # A user without a home in the image: pnpm and corepack keep their files here
+      HOME: /tmp

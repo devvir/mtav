@@ -1,5 +1,13 @@
 import type { Id } from './models';
 
+/** The websocket server, as browsers reach it */
+export interface RealtimeServer {
+  key: string;
+  host: string;
+  port: number;
+  scheme: 'http' | 'https';
+}
+
 /**
  * Props shared with every page (app/Http/Middleware/HandleInertiaRequests.php).
  */
@@ -37,6 +45,8 @@ export interface SharedProps {
   errors: Record<string, string>;
   /** The route list, sent once and remembered */
   routes: Record<string, unknown>;
+  /** Where browsers reach the websocket server; null when there are no live updates */
+  realtime: RealtimeServer | null;
   ziggy: {
     defaults: Record<string, unknown>;
     location: { host: string; pathname: string; search: string };

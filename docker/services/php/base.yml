@@ -1,7 +1,7 @@
 # PHP-FPM base service definition.
 #
 # Extend this to create PHP-based services: the fpm app server (compose.yml),
-# reverb, queue workers, one-shot migrations. Holds what extends cleanly across
+# reverb. Holds what extends cleanly across
 # all variants; volumes/ports/commands belong to the extending file.
 services:
   php:

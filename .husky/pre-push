@@ -1,1 +1,2 @@
-php artisan insights -v
+# Runs in the dev container, on the project's PHP (start dev first: ./mtav dev)
+./mtav artisan insights --no-interaction

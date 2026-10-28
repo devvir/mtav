@@ -51,7 +51,9 @@ class HandleInertiaRequests extends Middleware
              * the defaults (the project being browsed) and where one is
              */
             'routes' => Inertia::once(fn () => (new Ziggy())->toArray()),
-            'ziggy'  => fn () => [
+            /** Where browsers reach the websocket server (null: no live updates) */
+            'realtime' => Inertia::once(fn () => $this->realtime()),
+            'ziggy'    => fn () => [
                 'defaults' => url()->getDefaultParameters(),
                 'location' => [
                     'host'     => $request->getHttpHost(),
@@ -111,5 +113,22 @@ class HandleInertiaRequests extends Middleware
                 'approve' => $user->can('approve', $project),
             ],
         ];
+    }
+
+    /**
+     * The websocket server as browsers reach it, known at run time: one build of the app
+     * serves every environment.
+     *
+     * @return array{key: string, host: string, port: int, scheme: string}|null
+     */
+    private function realtime(): ?array
+    {
+        $reverb = config('broadcasting.connections.reverb');
+
+        if (config('broadcasting.default') !== 'reverb' || ! $reverb['key']) {
+            return null;
+        }
+
+        return ['key' => $reverb['key'], ...$reverb['browser']];
     }
 }

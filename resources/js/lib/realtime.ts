@@ -1,10 +1,28 @@
+import type { RealtimeServer } from '@/types/page';
 import { router, usePage } from '@inertiajs/react';
-import { echo } from '@laravel/echo-react';
+import { configureEcho, echo } from '@laravel/echo-react';
 import { useEffect, useEffectEvent } from 'react';
 import { toast } from './toasts';
 
-/** Live updates are on when a websocket server is configured (see app.tsx) */
-export const realtimeEnabled = (): boolean => Boolean(import.meta.env.VITE_REVERB_APP_KEY);
+let server: RealtimeServer | null = null;
+
+/** Connects to the websocket server the app was given, if any (live updates are off without) */
+export function connectRealtime(given: RealtimeServer | null) {
+  server = given;
+  if (!server) return;
+  configureEcho({
+    broadcaster: 'reverb',
+    key: server.key,
+    wsHost: server.host,
+    wsPort: server.port,
+    wssPort: server.port,
+    forceTLS: server.scheme === 'https',
+    enabledTransports: ['ws', 'wss'],
+  });
+}
+
+/** Live updates are on when a websocket server is configured */
+export const realtimeEnabled = (): boolean => server !== null;
 
 export interface ProjectChange {
   resource: string;

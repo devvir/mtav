@@ -1,0 +1,38 @@
+# Production is deployed by hand: "Run workflow" here, then the production environment's
+# reviewer approves. It deploys the release staging runs, unless another one is named.
+name: production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Release to deploy (ghcr.io/devvir/mtav:sha-…); empty for the one staging runs
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://mtav.uy
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Deploy
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TARGET: ${{ secrets.DEPLOY_TARGET }}
+          REQUESTED: ${{ inputs.image }}
+        run: |
+          image="${REQUESTED:-$(deploy/ci/deploy --release-of staging)}"
+          [ -n "$image" ] || { echo "Staging runs no release yet: name one"; exit 1; }
+          deploy/ci/deploy production "$image"

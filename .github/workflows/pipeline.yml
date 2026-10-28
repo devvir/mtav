@@ -1,0 +1,176 @@
+# MTAV's pipeline (documentation/technical/delivery.md):
+#
+#   every push and pull request   checks, tests, browser suite, the release image built
+#   main, once all of that passes the image published, staging deployed
+#
+# Production is deployed by hand (production.yml), from what staging runs.
+name: pipeline
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the release image (main always does)
+        type: boolean
+        default: false
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  # A newer push supersedes a run in progress, except on main, where every commit is released
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/devvir/mtav
+
+jobs:
+  # Pushes to this repository run on push; pull requests run only when they come from forks
+  # (their branches' pushes already ran here)
+  checks:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    name: Style, lint and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install
+        run: |
+          composer install --no-interaction --no-progress --no-scripts --prefer-dist
+          pnpm install --frozen-lockfile
+
+      - name: PHP style
+        run: vendor/bin/pint --test
+
+      - name: Frontend lint
+        run: pnpm run lint:check
+
+      - name: Frontend formatting
+        run: pnpm run format:check
+
+      - name: Frontend types
+        run: pnpm run typecheck
+
+  tests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The same isolated environment as on a developer's machine (docker/testing)
+      - name: Business rules and lottery (Pest)
+        run: ./mtav pest
+
+      - name: Frontend logic (Vitest)
+        run: ./mtav vitest
+
+      - name: Logs
+        if: failure()
+        run: ./mtav compose testing logs --no-color --tail 300 > testing-logs.txt || true
+
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: testing-logs
+          path: testing-logs.txt
+
+  browser:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    name: Browser suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Every page, form and journey in a real browser (docker/e2e)
+        run: ./mtav e2e
+
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: browser-screenshots
+          path: tests/Browser/Screenshots
+
+  image:
+    needs: [checks, tests, browser]
+    name: Release image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.release.outputs.image }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Publish?
+        id: release
+        run: |
+          echo "image=$IMAGE:sha-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          publish=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' || inputs.publish == true }}
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        if: steps.release.outputs.publish == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile
+          push: ${{ steps.release.outputs.publish == 'true' }}
+          tags: |
+            ${{ steps.release.outputs.image }}
+            ${{ github.ref == 'refs/heads/main' && format('{0}:main', env.IMAGE) || '' }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  staging:
+    needs: image
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    # The environment's rules decide when this runs (a required reviewer, while there is one)
+    environment:
+      name: staging
+      url: https://stg.mtav.uy
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Deploy
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TARGET: ${{ secrets.DEPLOY_TARGET }}
+        run: deploy/ci/deploy staging "${{ needs.image.outputs.image }}"

@@ -18,7 +18,7 @@ cd "$(dirname "$0")"
 
 DOCKER_DIR="docker"
 FIRST_RUN_WITNESS="$DOCKER_DIR/.first-run"
-ENVIRONMENTS=(dev testing staging prod e2e)
+ENVIRONMENTS=(dev testing e2e)
 
 # Colors for output
 RED='\033[0;31m'
@@ -87,8 +87,8 @@ env_setup() {
         app_key="base64:$(openssl rand -base64 32)"
         sed -i "s|^APP_KEY=.*|APP_KEY=$app_key|" .env
 
-        sed -i "s/^PUID=.*/PUID=$host_uid/" .env
-        sed -i "s/^PGID=.*/PGID=$host_gid/" .env
+        set_env PUID "$host_uid"
+        set_env PGID "$host_gid"
 
         echo -e "${GREEN}✅ .env created (APP_KEY set, UID:$host_uid GID:$host_gid)${NC}"
         echo "   Please review and adjust other settings as needed."
@@ -111,9 +111,19 @@ env_setup() {
         done
     fi
 
-    # Keep PUID/PGID in sync with the host user
-    sed -i "s/^PUID=[0-9]*/PUID=$host_uid/" .env 2>/dev/null || true
-    sed -i "s/^PGID=[0-9]*/PGID=$host_gid/" .env 2>/dev/null || true
+    # Keep PUID/PGID in sync with the host user (containers write to the bind mount as them)
+    set_env PUID "$host_uid"
+    set_env PGID "$host_gid"
+}
+
+# Sets KEY=value in .env, adding the line when it is missing (or only commented out)
+set_env() {
+    if grep -q "^$1=" .env; then
+        sed -i "s|^$1=.*|$1=$2|" .env
+    else
+        [ -n "$(tail -c 1 .env)" ] && echo >> .env
+        echo "$1=$2" >> .env
+    fi
 }
 
 init_submodules() {
@@ -255,62 +265,6 @@ rebuild() {
         compose dev up --detach "$service"
         echo -e "${GREEN}✅ $service rebuilt and restarted${NC}"
     fi
-}
-
-# ============================================================================
-# Staging (built assets, no HMR — shares dev ports, stop dev first)
-# ============================================================================
-
-staging() {
-    echo -e "${BLUE}🚀 Setting up staging environment...${NC}"
-    env_setup
-
-    echo -e "${BLUE}🐳 Starting containers...${NC}"
-    compose staging up --build --detach --wait --wait-timeout 120
-
-    echo -e "${BLUE}📦 Building frontend assets...${NC}"
-    # -T: no TTY — a scripted build step must never hang on an interactive prompt
-    compose staging run --rm -T assets sh -c "pnpm install && pnpm run build"
-
-    if [ -f public/build/manifest.json ]; then
-        echo -e "${GREEN}✅ Assets built successfully${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Warning: Asset build may have failed${NC}"
-    fi
-
-    echo -e "${BLUE}🧹 Removing Vite hot file (forces built assets)...${NC}"
-    rm -f public/hot
-
-    echo -e "${BLUE}📦 Installing PHP dependencies...${NC}"
-    cexec staging php composer install --no-interaction --optimize-autoloader
-
-    # Staging has its own database (unlike the old setup, which reused dev's):
-    # migrate always, seed only on a fresh volume
-    local fresh_db=false
-    cexec staging php php artisan migrate:status > /dev/null 2>&1 || fresh_db=true
-
-    echo -e "${BLUE}🗄️  Running database migrations...${NC}"
-    cexec staging php php artisan migrate --force --no-interaction
-
-    if [ "$fresh_db" = true ]; then
-        echo -e "${BLUE}🌱 Seeding fresh staging database...${NC}"
-        cexec staging php php artisan db:seed --force --no-interaction
-    fi
-
-    echo -e "${BLUE}🔗 Creating storage symlink...${NC}"
-    cexec staging php php artisan storage:link --relative --no-interaction --force
-
-    echo -e "${BLUE}⚡ Optimizing application...${NC}"
-    cexec staging php php artisan config:cache
-    cexec staging php php artisan route:cache
-    cexec staging php php artisan view:cache
-
-    echo ""
-    echo -e "${GREEN}✅ Staging environment ready!${NC}"
-    echo -e "${YELLOW}⚠️  Cached config/routes/views live in the shared bind mount.${NC}"
-    echo -e "${YELLOW}   Before returning to dev: mtav artisan optimize:clear && rm -rf public/build${NC}"
-    echo ""
-    status staging
 }
 
 # ============================================================================
@@ -553,43 +507,12 @@ run_tests() {
 }
 
 # ============================================================================
-# Production (local preview — self-contained images)
+# Release image (what the pipeline builds and deploys: documentation/technical/delivery.md)
 # ============================================================================
 
-prod() {
-    # Bare "mtav prod" starts the environment, mirroring "mtav dev"/"mtav staging"
-    local action="${1:-up}"
-    shift 2>/dev/null || true
-
-    case $action in
-        build)
-            echo -e "${BLUE}🏗️  Building production images...${NC}"
-            env_setup
-            compose prod build "$@"
-            ;;
-        up)
-            # No --build: prod is frozen — it runs the existing images as-is
-            # (compose only builds if an image doesn't exist yet).
-            # Bake new images explicitly with 'mtav prod build'.
-            echo -e "${BLUE}🚀 Starting production environment...${NC}"
-            env_setup
-            compose prod up --detach --wait --wait-timeout 300 "$@"
-            status prod
-            ;;
-        down)
-            compose prod down "$@"
-            ;;
-        logs)
-            compose prod logs -f "$@"
-            ;;
-        ps | status)
-            status prod
-            ;;
-        *)
-            echo "Usage: mtav prod [build|up|down|logs|status]   (default: up)"
-            exit 1
-            ;;
-    esac
+release() {
+    echo -e "${BLUE}🏗️  Building the release image (mtav-release:local)...${NC}"
+    docker build -f deploy/Dockerfile -t mtav-release:local "$@" .
 }
 
 # ============================================================================
@@ -601,8 +524,6 @@ print_help() {
     echo ""
     echo -e "${GREEN}Environments:${NC}"
     echo -e "  ${YELLOW}mtav dev${NC}               # Start dev: live code + HMR (alias: mtav up)"
-    echo -e "  ${YELLOW}mtav staging${NC}           # Start staging: current code, built assets, no HMR"
-    echo -e "  ${YELLOW}mtav prod${NC}              # Start prod: frozen pre-built images (bake: mtav prod build)"
     echo ""
     echo -e "${GREEN}Simple Commands:${NC}"
     echo -e "  ${YELLOW}mtav up [env]${NC}          # Start environment (default: dev; builds everything on first run)"
@@ -631,12 +552,11 @@ print_help() {
     echo -e "  ${YELLOW}mtav stats${NC}             # Analyze ALL benchmark CSV files at once"
     echo ""
     echo -e "${GREEN}Production:${NC}"
-    echo -e "  ${YELLOW}mtav prod build${NC}        # Bake self-contained production images from current code"
-    echo -e "  ${YELLOW}mtav prod [up]|down${NC}    # Start/stop the frozen production composition"
+    echo -e "  ${YELLOW}mtav release${NC}           # Build the release image, as the pipeline does"
     echo ""
     echo -e "${GREEN}Advanced:${NC}"
     echo -e "  ${YELLOW}mtav compose <env> <args>${NC}  # Raw docker compose against an environment"
-    echo -e "  Environments: ${YELLOW}dev testing e2e staging prod${NC} — each an isolated compose project"
+    echo -e "  Environments: ${YELLOW}dev testing e2e${NC} — each an isolated compose project"
     echo -e "  Env layering: .env → docker/<env>/.env → docker/<env>/.env.local (gitignored)"
     echo ""
     echo -e "${GREEN}New Developer Quick Start:${NC}"
@@ -681,10 +601,6 @@ case $COMMAND in
 
     fresh)
         fresh
-        ;;
-
-    staging)
-        staging
         ;;
 
     status)
@@ -757,8 +673,8 @@ case $COMMAND in
         run_tests precommit "$@"
         ;;
 
-    prod)
-        prod "$@"
+    release)
+        release "$@"
         ;;
 
     compose)

@@ -14,15 +14,6 @@ include:
   - ../services/nginx/compose.yml
 
 services:
-  # Reverb touches the database at boot, so it needs mysql up before starting
-  reverb:
-    extends:
-      file: ../services/reverb/compose.yml
-      service: reverb
-    depends_on:
-      mysql:
-        condition: service_healthy
-
   # Node toolbox, not a dev server: tests never use HMR (vitest runs headless,
   # E2E uses built assets), so the container idles and the test runner execs
   # pnpm install/test/build explicitly — no race against a boot-time install.

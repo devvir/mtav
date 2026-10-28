@@ -11,7 +11,8 @@ Developer-facing references for working with the codebase.
 
 All infrastructure documentation lives with the infrastructure itself:
 **[docker/README.md](../../docker/README.md)** — environments (dev, testing,
-staging, prod), the `mtav` CLI, full technical specification, and gotchas.
+e2e), the `mtav` CLI, full technical specification, and gotchas. How releases are
+built and deployed: **[delivery.md](delivery.md)**.
 
 ## 📝 Notes
 

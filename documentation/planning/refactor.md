@@ -65,6 +65,22 @@ decision taken on the way is listed below for review.
 - **Latest everything.** Every dependency moves to its latest major: PHP 8.5, Laravel 13,
   Inertia 3, Pest 5, Vite 8, Node 26, MariaDB 12.3 (LTS), nginx 1.30, pnpm 12, Mailpit
   in place of the abandoned MailHog. TypeScript waits at 6 until vue-tsc supports 7 (moot once the frontend is React).
+- **Delivery from scratch.** Building, testing and deploying are designed anew; nothing
+  of the earlier deployment (its scripts, images or host setup) is kept by default. Every
+  push and pull request runs the whole test suite on GitHub Actions; a green `main`
+  publishes versioned images and deploys staging; production takes the same images,
+  deployed only by hand, with the author's approval. The author is present for the
+  first staging deploy. Design in `documentation/technical/delivery.md`.
+- **Full browser coverage.** The browser suite covers every button, every form and every
+  edge case; anything later judged too slow or costly for every run moves to an
+  on-demand run, by decision.
+- **Assistant (optional module).** A chat in the app that guides people: it explains
+  how to do things and MTAV's rules from documentation written for it, and acts in the
+  page through tools (start a guided tour, go to a page, later more), run by the browser
+  as the signed-in user, so it can never do what that person could not. Its
+  documentation and tools are assembled from the modules a project has, like everything
+  else white-label. The model is a setting, chosen by measured answers on real
+  questions; it runs on an API key with a spending cap, the documentation cached.
 - **Thesis parked.** The tutor already reviewed the published draft. It is updated at
   the very end, from the tutor's review, with notes marking each change.
 
@@ -115,8 +131,8 @@ decision taken on the way is listed below for review.
 5. **Plan editor**: multiple floors, resizing, polygons, non-unit items.
 6. **Guided help**: info icons (?) explaining concepts where needed, ending, where it
    fits, with "Show me how", which starts a guided tour of that spot.
-7. **Polish**: containers and deployment, documentation rewritten against the code, E2E
-   journeys rewritten.
+7. **Polish**: containers, documentation rewritten against the code, E2E journeys
+   rewritten.
 8. **Parity check** against the pre-refactor app (`452ca64~1`, still running at
    stg.mtav.uy with the same demo logins), page by page: nothing it did is lost without a
    decision.
@@ -152,3 +168,8 @@ decision taken on the way is listed below for review.
     Lab** page (superadmins, in the platform console) shows each component in every
     state and variant (base, hover, pressed, keyboard focus, disabled), switchable across
     themes and modes.
+12. **Delivery** (see *Delivery from scratch*): the pipeline, its documentation, the
+    staging deploy (first run with the author), the approval-gated production deploy.
+13. **Full browser coverage** (see the decision): every button, form and edge case.
+14. **Assistant** (see the decision), after the queue above: agent documentation, the
+    chat, its tools, a measured model choice.

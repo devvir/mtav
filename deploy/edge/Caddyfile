@@ -1,0 +1,17 @@
+# Each domain to its environment: the websocket server under /app (where browsers
+# connect), the web server for the rest.
+
+(environment) {
+	encode zstd gzip
+	@websocket path /app/*
+	reverse_proxy @websocket {args[0]}-reverb:8080
+	reverse_proxy {args[0]}-app:8080
+}
+
+stg.mtav.uy {
+	import environment staging
+}
+
+mtav.uy {
+	import environment production
+}

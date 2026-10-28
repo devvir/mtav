@@ -49,6 +49,8 @@ it('adds units one after another, creating a type on the way', function () {
         ->assertSee('The unit was added.')
         ->fill('identifier', 'A-102')
         ->click('Add and continue with another')
+        // Saved once the form is cleared for the next one
+        ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-101')
         ->click('Add the unit')
         ->assertSee('The identifier has already been taken.')
