@@ -90,7 +90,7 @@ export default function FamilyShow({
           <Card
             key={person.id}
             component={Link}
-            href={route('people.show', person.id)}
+            href={route('people.index', { person: person.id })}
             p="sm"
             className="ds-interactive"
           >

@@ -29,20 +29,35 @@ class PeopleController extends Controller
         return inertia('Member/People/Index', [
             'people'  => MemberResource::collection($people),
             'filters' => ['q' => $request->q],
+            // Someone's details, shown over the list (?person=19)
+            'person' => fn () => $request->integer('person')
+                ? $this->details($request, $project, $request->integer('person'))
+                : null,
         ]);
     }
 
-    public function show(Request $request, Project $project, User $member): Response
+    /** People's details open over the list: their address leads there */
+    public function show(Project $project, User $member): RedirectResponse
     {
-        $member->load(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family')]);
+        return to_route('people.index', ['person' => $member->id]);
+    }
 
-        return inertia('Member/People/Show', [
+    /**
+     * @return array{person: MemberResource, families: mixed}|null
+     */
+    private function details(Request $request, Project $project, int $id): ?array
+    {
+        $member = $project->members()
+            ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family')])
+            ->find($id);
+
+        return $member ? [
             'person' => MemberResource::make($member),
             // For admins, who change people's role and family here
             'families' => $request->user()->can('update', $project)
                 ? $project->families()->alphabetically()->get(['id', 'name'])
                 : null,
-        ]);
+        ] : null;
     }
 
     /**

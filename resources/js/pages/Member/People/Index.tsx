@@ -1,23 +1,29 @@
+import { PersonDetails } from '@/components/domain/PersonDetails';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Paginated, Person } from '@/types/models';
+import type { Paginated, Person, Ref } from '@/types/models';
 import { Link, usePage } from '@inertiajs/react';
-import { Badge, Button, Card, Group, SimpleGrid, Text } from '@mantine/core';
+import { Badge, Button, Card, Group, Modal, SimpleGrid, Text } from '@mantine/core';
 import { IconMail } from '@tabler/icons-react';
 
 export default function PeopleIndex({
   people,
   filters,
+  person: shown,
 }: {
   people: Paginated<Person>;
   filters: { q: string | null };
+  /** Someone's details, shown over the list (?person=19) */
+  person: { person: Person; families: Ref[] | null } | null;
 }) {
-  useProjectChanges({ people: ['people'] });
+  const details = useDetailsInAddress('person');
+  useProjectChanges({ people: ['people', 'person'] });
   const canManage = usePage().props.project!.can.manage;
 
   return (
@@ -45,7 +51,13 @@ export default function PeopleIndex({
           <Card
             key={person.id}
             component={Link}
-            href={route('people.show', person.id)}
+            href={route('people.index', {
+              ...(filters.q ? { q: filters.q } : {}),
+              person: person.id,
+            })}
+            only={['person']}
+            preserveState
+            preserveScroll
             p="sm"
             className="ds-interactive"
           >
@@ -70,6 +82,10 @@ export default function PeopleIndex({
         </Text>
       ) : null}
       <Pagination page={people} />
+
+      <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.person.name} size="lg">
+        {shown ? <PersonDetails person={shown.person} families={shown.families} /> : null}
+      </Modal>
     </>
   );
 }

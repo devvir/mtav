@@ -62,9 +62,20 @@ it('lists only the project\'s own members', function () {
 it('keeps contact details from fellow members, but shows them to admins', function () {
     $neighbour = aMemberOf(aFamily($this->project), ['email' => 'neighbour@example.com']);
 
-    $asMember = $this->as($this->member, $this->project)->get(route('people.show', $neighbour))->inertiaProps('person');
-    $asAdmin = $this->as($this->admin, $this->project)->get(route('people.show', $neighbour))->inertiaProps('person');
+    $details = route('people.index', [$this->project, 'person' => $neighbour->id]);
+    $asMember = $this->as($this->member, $this->project)->get($details)->inertiaProps('person.person');
+    $asAdmin = $this->as($this->admin, $this->project)->get($details)->inertiaProps('person.person');
 
     expect($asMember)->not->toHaveKey('email')
         ->and($asAdmin['email'])->toBe('neighbour@example.com');
+});
+
+it('opens someone\'s details over the people list, where their address leads', function () {
+    $this->as($this->member, $this->project)
+        ->get(route('people.show', $this->member))
+        ->assertRedirect(route('people.index', ['person' => $this->member->id]));
+
+    expect($this->as($this->member, $this->project)
+        ->get(route('people.index', ['person' => $this->otherMember->id]))
+        ->inertiaProps('person'))->toBeNull();
 });

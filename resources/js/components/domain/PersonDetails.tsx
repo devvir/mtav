@@ -1,17 +1,21 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { MembershipForm } from '@/components/forms/MembershipForm';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Anchor, Badge, Button, Card, Divider, Group, Modal, Stack, Text } from '@mantine/core';
+import { Anchor, Badge, Button, Divider, Group, Modal, Stack, Text } from '@mantine/core';
 import { IconLogout, IconMail, IconPhone, IconUserCog, IconUserMinus } from '@tabler/icons-react';
 import { useState } from 'react';
 
-export default function PersonShow({
+/**
+ * Someone in the project: their family and role, about them, how to reach them. Their own
+ * details lead to their profile or out of the project; admins change their role or family,
+ * or remove them.
+ */
+export function PersonDetails({
   person,
   families,
 }: {
@@ -46,35 +50,7 @@ export default function PersonShow({
 
   return (
     <>
-      <PageHeader
-        title={person.name}
-        back={{ href: route('people.index'), label: _('People') }}
-        actions={
-          families ? (
-            <Group gap="sm">
-              <Button
-                variant="default"
-                leftSection={<IconUserCog size={18} />}
-                onClick={() => setEditing(true)}
-              >
-                {_('Change role or family')}
-              </Button>
-              {!isMe ? (
-                <Button
-                  variant="default"
-                  color="red"
-                  c="red"
-                  leftSection={<IconUserMinus size={18} />}
-                  onClick={remove}
-                >
-                  {_('Remove from the project')}
-                </Button>
-              ) : null}
-            </Group>
-          ) : null
-        }
-      />
-      <Card p="xl" maw={720}>
+      <div>
         <Group gap="lg">
           <PersonAvatar name={person.name} src={person.avatar} size={72} />
           <Stack gap={4}>
@@ -135,12 +111,34 @@ export default function PersonShow({
             </Group>
           </>
         ) : null}
-      </Card>
-
+      </div>
       {families ? (
-        <Modal opened={editing} onClose={() => setEditing(false)} title={person.name}>
-          <MembershipForm person={person} families={families} onDone={() => setEditing(false)} />
-        </Modal>
+        <>
+          <Divider my="lg" />
+          <Group gap="sm">
+            <Button
+              variant="default"
+              leftSection={<IconUserCog size={18} />}
+              onClick={() => setEditing(true)}
+            >
+              {_('Change role or family')}
+            </Button>
+            {!isMe ? (
+              <Button
+                variant="default"
+                color="red"
+                c="red"
+                leftSection={<IconUserMinus size={18} />}
+                onClick={remove}
+              >
+                {_('Remove from the project')}
+              </Button>
+            ) : null}
+          </Group>
+          <Modal opened={editing} onClose={() => setEditing(false)} title={person.name}>
+            <MembershipForm person={person} families={families} onDone={() => setEditing(false)} />
+          </Modal>
+        </>
       ) : null}
     </>
   );

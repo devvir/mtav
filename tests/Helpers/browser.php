@@ -56,11 +56,12 @@ function emailConfirmationLinkFor(User $user, ?string $email = null): string
 }
 
 /**
- * Selector of a button inside the open dialog (never a page button with the same text).
+ * Selector of a button in an open dialog, by its exact text (never a page button, nor one
+ * whose text only starts the same: "Remove" is not "Remove from the project").
  */
 function inDialog(string $text): string
 {
-    return "[role=\"dialog\"] button:has-text(\"{$text}\")";
+    return "[role=\"dialog\"] button >> text=\"{$text}\"";
 }
 
 /**
