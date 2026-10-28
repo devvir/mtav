@@ -31,7 +31,7 @@ jobs:
   checks:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     name: Style, lint and types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
 
@@ -41,13 +41,13 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6.1.0
         with:
           version: 12.15.0
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 26
+          node-version: 26.12.0
           cache: pnpm
 
       - name: Install
@@ -70,7 +70,7 @@ jobs:
   tests:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
 
@@ -94,7 +94,7 @@ jobs:
   browser:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     name: Browser suite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
@@ -123,7 +123,7 @@ jobs:
     needs: image
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Deploy to staging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: staging
       url: https://stg.mtav.uy

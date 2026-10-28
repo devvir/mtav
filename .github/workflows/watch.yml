@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   sites:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CERTIFICATES: mtav.uy www.mtav.uy stg.mtav.uy dev.mtav.uy
       # The sites a release runs on (each answers /up)

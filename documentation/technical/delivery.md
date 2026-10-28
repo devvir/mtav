@@ -38,6 +38,9 @@ code: hosts pull it without credentials. Nothing is ever built on a host.
 On start, every role builds Laravel's caches from its environment
 (`deploy/entrypoint.sh`), then runs its command.
 
+Every image, here and in development and tests, names an exact version (and CI an exact
+runner), so what staging tried is what production runs; versions change only by commit.
+
 ## An environment
 
 An environment is two compose files over one directory of settings:

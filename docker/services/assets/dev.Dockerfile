@@ -1,5 +1,5 @@
 # Development container for Node.js and Vite (pnpm)
-FROM node:26-alpine
+FROM node:26.12.0-alpine
 
 # Standalone pnpm binary — version-pinned, no npm involved
 ARG PNPM_VERSION=12.15.0

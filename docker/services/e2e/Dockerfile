@@ -32,7 +32,7 @@ RUN apt-get update \
         unzip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
 
 # Standalone pnpm binary — same pinning discipline as the other images
 ARG PNPM_VERSION=12.15.0

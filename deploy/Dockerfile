@@ -9,7 +9,7 @@
 
 # ---------------------------------------------------------------------------------------
 # The frontend, built once
-FROM node:26-alpine AS assets
+FROM node:26.12.0-alpine AS assets
 
 ARG PNPM_VERSION=12.15.0
 RUN arch=$(case "$(uname -m)" in x86_64) echo x64;; aarch64) echo arm64;; esac) \
@@ -34,7 +34,7 @@ FROM dunglas/frankenphp:1.13.4-php8.5.12-alpine AS app
 RUN apk add --no-cache ffmpeg glpk \
     && install-php-extensions bcmath exif gd intl opcache pcntl pdo_mysql sockets zip
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
 COPY deploy/php.ini $PHP_INI_DIR/conf.d/99-mtav.ini
 
 WORKDIR /app
@@ -67,8 +67,10 @@ COPY deploy/switch/ deploy/switch/
 COPY deploy/host/deploy deploy/host/
 
 # Unprivileged: the web server listens on 8080, behind the environment's switch
+# (and Tinker, for people on the host, keeps its settings in /config/psysh)
 RUN adduser -D -u 1000 mtav \
-    && chown -R mtav:mtav storage bootstrap/cache /data/caddy /config/caddy
+    && mkdir -p /config/psysh \
+    && chown -R mtav:mtav storage bootstrap/cache /data/caddy /config/caddy /config/psysh
 USER mtav
 
 ENV SERVER_NAME=:8080 \

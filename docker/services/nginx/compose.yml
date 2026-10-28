@@ -4,7 +4,7 @@
 # NGINX_PORT empty ⇒ random host port.
 services:
   nginx:
-    image: nginx:1.30-alpine
+    image: nginx:1.30.6-alpine
     restart: unless-stopped
     ports:
       - "${NGINX_PORT:-}:80"

@@ -162,7 +162,7 @@ docker/
 
 | Stage | Adds | Used by |
 |---|---|---|
-| `base` | php:8.5-fpm-alpine, extensions (pdo_mysql, gd, intl, zip, sockets, bcmath, exif, pcntl), ffmpeg, glpk, composer | — |
+| `base` | php:8.5.12-fpm-alpine, extensions (pdo_mysql, gd, intl, zip, sockets, bcmath, exif, pcntl), ffmpeg, glpk, composer | — |
 | `dev` | xdebug (off by default, `XDEBUG_MODE=coverage` to enable), node + standalone pnpm, `hostuser` mapped to host UID/GID (`PUID`/`PGID` build args) | dev/testing php, reverb |
 
 Compose files: `base.yml` (build def + `APP_ENV`/`DB_HOST`/`VITE_FORCE_BUILD`
@@ -174,7 +174,7 @@ locally (minutes, once — layer-cached afterwards, shared across all targets).
 
 ### nginx
 
-- **dev** (`compose.yml`): stock `nginx:1.30-alpine`, serves the bind-mounted
+- **dev** (`compose.yml`): stock `nginx:1.30.6-alpine`, serves the bind-mounted
   `public/`, fastcgi to `php:9000` (`dev.conf`: generous timeouts/buffers).
 
 ### mysql
@@ -189,7 +189,7 @@ speed trick and the reason tests never need cleanup.
 
 ### assets
 
-- **dev** (`compose.yml` + `dev.Dockerfile`): node:26-alpine + standalone
+- **dev** (`compose.yml` + `dev.Dockerfile`): node:26.12.0-alpine + standalone
   pnpm binary, `CMD pnpm install && pnpm run dev --host 0.0.0.0` — Vite with
   HMR on `VITE_PORT`. Chokidar polling (inotify is unreliable across the
   bind mount).

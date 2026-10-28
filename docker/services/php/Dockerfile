@@ -9,7 +9,7 @@
 # Build context is the repository root.
 
 # ============================================================================
-FROM php:8.5-fpm-alpine AS base
+FROM php:8.5.12-fpm-alpine AS base
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD php -r "echo 'OK';" || exit 1
@@ -45,7 +45,7 @@ RUN apk add --no-cache --virtual .build-deps linux-headers \
         sockets \
     && apk del .build-deps
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
 
 # ============================================================================
 FROM base AS dev

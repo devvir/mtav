@@ -26,7 +26,7 @@ jobs:
   dev:
     needs: image
     name: Deploy to dev
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: dev
       url: https://dev.mtav.uy
