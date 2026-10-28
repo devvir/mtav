@@ -23,10 +23,10 @@ class HybridDistribution extends TaskRunner
         $iterations = (int) ceil(log($spec->familyCount(), 2)) + 1;
         $stepTimeout = 2 * $timeout / $iterations;
 
+        $startTime = microtime(true);
+
         $generator = $this->binarySearchGenerator($spec);
         $taskResults = $this->searchBestDistribution($generator, $spec, $stepTimeout);
-
-        $startTime = microtime(true);
 
         if (empty($taskResults)) {
             throw (new GlpkInfeasibleException(

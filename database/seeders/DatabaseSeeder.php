@@ -12,9 +12,11 @@ use App\Services\Lottery\PreferencesService;
 use App\Services\PlanService;
 use App\Services\ProjectService;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 /**
- * A demo platform for development: every account's password is "password".
+ * A demo platform: every account's password is "password", or DEMO_PASSWORD where set
+ * (always, on a public site: there it refuses to seed without one).
  *
  *  - superadmin@example.com   platform superadmin
  *  - admin@example.com        admin of both projects (and in a family of the first)
@@ -24,6 +26,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(ProjectService $projects, PlanService $plans, PreferencesService $preferences): void
     {
+        if (app()->isProduction() && ! config('app.demo_password')) {
+            throw new RuntimeException('Set DEMO_PASSWORD: a public site never seeds demo accounts with "password".');
+        }
+
         $superadmin = User::factory()->superadmin()->create([
             'email' => 'superadmin@example.com', 'firstname' => 'Sofía', 'lastname' => 'Superadmin',
         ]);

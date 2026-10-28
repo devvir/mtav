@@ -21,6 +21,12 @@ return [
     'institution' => env('APP_INSTITUTION', ''),
 
     /*
+    | The demo accounts' password (database/seeders): "password" where none is set, which a
+    | public site never seeds with
+    */
+    'demo_password' => env('DEMO_PASSWORD'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

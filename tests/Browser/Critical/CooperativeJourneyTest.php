@@ -98,7 +98,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
     $second = app(PreferencesService::class)->ranking($garcia)[1];
 
     visit(route('lottery.show', $project))
-        ->assertSee('Your family\'s ranking')
+        ->assertSee('Your preferences')
         ->click("[aria-label=\"Move {$second->identifier} up\"]")
         ->wait(2);
 

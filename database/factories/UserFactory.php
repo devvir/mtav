@@ -18,7 +18,7 @@ class UserFactory extends Factory
             'firstname'         => fake()->firstName(),
             'lastname'          => fake()->lastName(),
             'phone'             => fake()->optional()->phoneNumber(),
-            'password'          => 'password',
+            'password'          => config('app.demo_password') ?? 'password',
             'email_verified_at' => now(),
             'remember_token'    => Str::random(10),
         ];
