@@ -56,9 +56,9 @@ export function ManageLayout({ children }: { children: ReactNode }) {
     },
     {
       label: _('Families'),
-      href: route('manage.families.index'),
+      href: route('families.index'),
       icon: IconUsersGroup,
-      active: routeIs('manage.families.*'),
+      active: routeIs('families.*'),
     },
     {
       label: _('People'),

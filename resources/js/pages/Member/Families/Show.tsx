@@ -1,14 +1,34 @@
+import { FamilyForm } from '@/components/forms/FamilyForm';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { FamilyMark, PersonAvatar } from '@/design';
+import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Family } from '@/types/models';
-import { Link, usePage } from '@inertiajs/react';
-import { Alert, Button, Card, Group, SimpleGrid, Text } from '@mantine/core';
-import { IconHome, IconUserPlus } from '@tabler/icons-react';
+import type { Family, UnitType } from '@/types/models';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Alert, Button, Card, Group, Modal, SimpleGrid, Text, Tooltip } from '@mantine/core';
+import { IconHome, IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { useState } from 'react';
 
-export default function FamilyShow({ family }: { family: Family }) {
+export default function FamilyShow({
+  family,
+  unitTypes,
+}: {
+  family: Family;
+  /** For admins, who edit families here */
+  unitTypes: UnitType[] | null;
+}) {
   const isOwn = usePage().props.project?.family?.id === family.id;
+  const [editing, setEditing] = useState(false);
+  const remove = async () => {
+    const ok = await confirm({
+      title: _('Remove the {name} family?', { name: family.name }),
+      message: _('Its members leave the project (admins stay admins). This cannot be undone.'),
+      confirmLabel: _('Remove'),
+      danger: true,
+    });
+    if (ok) router.delete(route('manage.families.destroy', family.id));
+  };
 
   return (
     <>
@@ -17,15 +37,44 @@ export default function FamilyShow({ family }: { family: Family }) {
         description={family.unit_type?.name}
         back={{ href: route('families.index'), label: _('Families') }}
         actions={
-          isOwn ? (
-            <Button
-              component={Link}
-              href={route('invitations.index')}
-              leftSection={<IconUserPlus size={18} />}
-            >
-              {_('Invite someone')}
-            </Button>
-          ) : null
+          <Group gap="sm">
+            {isOwn ? (
+              <Button
+                component={Link}
+                href={route('invitations.index')}
+                leftSection={<IconUserPlus size={18} />}
+              >
+                {_('Invite someone')}
+              </Button>
+            ) : null}
+            {unitTypes ? (
+              <>
+                <Button
+                  variant="default"
+                  leftSection={<IconPencil size={18} />}
+                  onClick={() => setEditing(true)}
+                >
+                  {_('Edit')}
+                </Button>
+                <Tooltip
+                  label={_('It already received a unit')}
+                  disabled={!family.unit}
+                  withinPortal
+                >
+                  <Button
+                    variant="default"
+                    color="red"
+                    c={family.unit ? undefined : 'red'}
+                    leftSection={<IconTrash size={18} />}
+                    disabled={Boolean(family.unit)}
+                    onClick={remove}
+                  >
+                    {_('Remove')}
+                  </Button>
+                </Tooltip>
+              </>
+            ) : null}
+          </Group>
         }
       />
       <Group mb="lg">
@@ -56,6 +105,12 @@ export default function FamilyShow({ family }: { family: Family }) {
         <Text ta="center" c="dimmed" py="xl">
           {_('Nobody has joined this family yet.')}
         </Text>
+      ) : null}
+
+      {unitTypes ? (
+        <Modal opened={editing} onClose={() => setEditing(false)} title={family.name}>
+          <FamilyForm family={family} unitTypes={unitTypes} onDone={() => setEditing(false)} />
+        </Modal>
       ) : null}
     </>
   );

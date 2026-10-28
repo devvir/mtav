@@ -84,9 +84,9 @@ it('starts empty lists from their first item', function () {
 
     aUnitType($this->project);
 
-    visit(route('manage.families.index', $this->project))
-        ->click('Add the first one')
-        ->assertPathIs(route('manage.families.create', $this->project, absolute: false));
+    visit(route('families.index', $this->project))
+        ->click('Register the first family')
+        ->assertPresent('[role="dialog"] [name="name"]');
 });
 
 it('edits and removes units, but not one already given to a family', function () {
@@ -113,16 +113,18 @@ it('registers, edits and removes families', function () {
     aUnitType($this->project, ['name' => '2 bedrooms']);
     aUnitType($this->project, ['name' => '3 bedrooms']);
 
-    visit(route('manage.families.create', $this->project))
+    visit(route('families.index', $this->project))
+        ->click('Register the first family')
         ->fill('name', 'García')
-        ->click('Add the family')
+        ->click(inDialog('Add the family'))
         ->assertSee('The family was added.')
-        ->click('[aria-label="Edit García"]')
+        ->click('Edit')
         ->select('unit_type_id', (string) UnitType::firstWhere('name', '3 bedrooms')->id)
         ->fill('name', 'García Pérez')
-        ->click('Save')
+        ->click(inDialog('Save'))
         ->assertSee('The family was saved.')
-        ->click('[aria-label="Remove García Pérez"]')
+        ->assertSee('García Pérez')
+        ->click(button('Remove'))
         ->assertSee('Its members leave the project')
         ->click(inDialog('Remove'))
         ->assertSee('The family was removed.')
@@ -132,7 +134,7 @@ it('registers, edits and removes families', function () {
 });
 
 it('guides to unit types before families', function () {
-    visit(route('manage.families.create', $this->project))
+    visit(route('families.index', [$this->project, 'new' => 1]))
         ->assertSee('There are no unit types yet.')
         ->click('Add one first')
         ->assertSee('Add a unit type');
@@ -156,9 +158,9 @@ it('opens unit types, units and families for editing from their lists', function
         ->navigate(route('manage.units.index', $this->project))
         ->click('[aria-label="Edit A-101"]')
         ->assertPathIs(route('manage.units.edit', [$this->project, $unit], absolute: false))
-        ->navigate(route('manage.families.index', $this->project))
-        ->click('[aria-label="Edit García"]')
-        ->assertPathIs(route('manage.families.edit', [$this->project, $family], absolute: false));
+        ->navigate(route('families.show', [$this->project, $family]))
+        ->click('Edit')
+        ->assertValue('[role="dialog"] [name="name"]', 'García');
 });
 
 it('leads an unapproved project\'s admins to what the limits are', function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FamilyResource;
+use App\Http\Resources\UnitTypeResource;
 use App\Models\Family;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -22,15 +23,25 @@ class FamilyController extends Controller
             ->withQueryString();
 
         return inertia('Member/Families/Index', [
-            'families' => FamilyResource::collection($families),
-            'filters'  => ['q' => $request->q],
+            'families'  => FamilyResource::collection($families),
+            'filters'   => ['q' => $request->q],
+            'unitTypes' => $this->unitTypesFor($request, $project),
         ]);
     }
 
-    public function show(Project $project, Family $family): Response
+    public function show(Request $request, Project $project, Family $family): Response
     {
         return inertia('Member/Families/Show', [
-            'family' => FamilyResource::make($family->load('unitType', 'unit', 'members')),
+            'family'    => FamilyResource::make($family->load('unitType', 'unit', 'members')),
+            'unitTypes' => $this->unitTypesFor($request, $project),
         ]);
+    }
+
+    /** For admins, who register and edit families here: the types a family can have */
+    private function unitTypesFor(Request $request, Project $project)
+    {
+        return $request->user()->can('update', $project)
+            ? UnitTypeResource::collection($project->unitTypes()->alphabetically()->get())
+            : null;
     }
 }

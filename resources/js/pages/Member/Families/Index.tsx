@@ -1,33 +1,46 @@
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
+import { FamilyForm } from '@/components/forms/FamilyForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, FamilyMark } from '@/design';
+import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
-import type { Family, Paginated } from '@/types/models';
+import type { Family, Paginated, UnitType } from '@/types/models';
 import { Link, usePage } from '@inertiajs/react';
-import { Badge, Button, Card, Group, SimpleGrid, Text } from '@mantine/core';
-import { IconHome, IconUsersGroup } from '@tabler/icons-react';
+import { Badge, Button, Card, Group, Modal, SimpleGrid, Text } from '@mantine/core';
+import { IconHome, IconPlus, IconUsersGroup } from '@tabler/icons-react';
 
 export default function FamiliesIndex({
   families,
   filters,
+  unitTypes,
 }: {
   families: Paginated<Family>;
   filters: { q: string | null };
+  /** For admins, who register families here */
+  unitTypes: UnitType[] | null;
 }) {
   const project = usePage().props.project!;
   const own = project.family?.id;
   const canManage = project.can.manage;
   const nothingYet = !families.data.length && !filters.q;
+  const adding = useAddressedDialog('new', canManage);
   useProjectChanges({ families: ['families'], people: ['families'], lottery_runs: ['families'] });
 
   return (
     <>
       <PageHeader
         title={_('Families')}
+        actions={
+          canManage && !nothingYet ? (
+            <Button leftSection={<IconPlus size={18} />} onClick={adding.open}>
+              {_('Add a family')}
+            </Button>
+          ) : null
+        }
         description={_('Each family ranks the units of its type and receives one in the lottery.')}
         help={
           <InfoTip title={_('What is a family?')}>
@@ -43,9 +56,7 @@ export default function FamiliesIndex({
           title={_('No families yet')}
           action={
             canManage ? (
-              <Button component={Link} href={route('manage.families.create')}>
-                {_('Register the first family')}
-              </Button>
+              <Button onClick={adding.open}>{_('Register the first family')}</Button>
             ) : null
           }
         >
@@ -100,6 +111,12 @@ export default function FamiliesIndex({
         </Text>
       ) : null}
       <Pagination page={families} />
+
+      {unitTypes ? (
+        <Modal opened={adding.opened} onClose={adding.close} title={_('Add a family')}>
+          <FamilyForm unitTypes={unitTypes} onDone={adding.close} />
+        </Modal>
+      ) : null}
     </>
   );
 }

@@ -150,7 +150,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::delete('invitations/{invitation}', [Manage\InvitationController::class, 'destroy'])
                     ->name('invitations.destroy');
 
-                Route::resource('families', Manage\FamilyController::class)->except('show');
+                Route::resource('families', Manage\FamilyController::class)->only('store', 'update', 'destroy');
                 Route::resource('unit_types', Manage\UnitTypeController::class)
                     ->except('show')
                     ->parameters(['unit_types' => 'unitType']);

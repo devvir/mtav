@@ -23,7 +23,7 @@ export function SetupChecklist({ setup }: { setup: Setup }) {
     {
       done: setup.families,
       label: _('Register the families'),
-      href: route('manage.families.index'),
+      href: route('families.index'),
     },
     {
       done: setup.members,

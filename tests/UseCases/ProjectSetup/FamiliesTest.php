@@ -28,7 +28,7 @@ describe('An admin', function () {
     it('sees a newly registered family in the families list, before it has members', function () {
         $family = aFamily($this->project, $this->type);
 
-        $listed = $this->as($this->admin, $this->project)->get(route('manage.families.index'))->inertiaProps('families.data');
+        $listed = $this->as($this->admin, $this->project)->get(route('families.index'))->inertiaProps('families.data');
 
         expect(collect($listed)->pluck('id'))->toContain($family->id);
     });

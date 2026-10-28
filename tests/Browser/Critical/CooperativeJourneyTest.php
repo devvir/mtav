@@ -60,10 +60,10 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->assertSee('A-102');
 
     foreach (['García', 'Pérez'] as $name) {
-        visit(route('manage.families.create', $project))
+        visit(route('families.index', [$project, 'new' => 1]))
             ->fill('name', $name)
-            ->click('Add the family')
-            ->assertSee($name);
+            ->click(inDialog('Add the family'))
+            ->assertSee('The family was added.');
     }
 
     // Invite a member into the García family

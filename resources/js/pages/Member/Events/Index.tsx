@@ -6,6 +6,7 @@ import { EventForm } from '@/components/forms/EventForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
+import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -13,28 +14,16 @@ import type { Paginated, ProjectEvent } from '@/types/models';
 import { usePage } from '@inertiajs/react';
 import { Button, Group, Modal, Stack } from '@mantine/core';
 import { IconCalendarOff, IconPlus } from '@tabler/icons-react';
-import { useState } from 'react';
 
 interface Props {
   events: Paginated<ProjectEvent>;
   filters: { q: string | null; when: 'upcoming' | 'past' };
 }
 
-/** Whether the address asks for the new event's form (?new=1, as links to "create" do) */
-const askedForNew = () => new URLSearchParams(window.location.search).has('new');
-
 export default function EventsIndex({ events, filters }: Props) {
   useProjectChanges({ events: ['events'] });
   const canManage = usePage().props.project!.can.manage;
-  const [creating, setCreating] = useState(() => canManage && askedForNew());
-  const close = () => {
-    setCreating(false);
-    if (askedForNew()) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('new');
-      window.history.replaceState(window.history.state, '', url);
-    }
-  };
+  const creating = useAddressedDialog('new', canManage);
 
   return (
     <>
@@ -42,7 +31,7 @@ export default function EventsIndex({ events, filters }: Props) {
         title={_('Events')}
         actions={
           canManage ? (
-            <Button leftSection={<IconPlus size={18} />} onClick={() => setCreating(true)}>
+            <Button leftSection={<IconPlus size={18} />} onClick={creating.open}>
               {_('Create an event')}
             </Button>
           ) : null
@@ -87,8 +76,13 @@ export default function EventsIndex({ events, filters }: Props) {
       )}
       <Pagination page={events} />
 
-      <Modal opened={creating} onClose={close} title={_('Create an event')} size="lg">
-        <EventForm onDone={close} />
+      <Modal
+        opened={creating.opened}
+        onClose={creating.close}
+        title={_('Create an event')}
+        size="lg"
+      >
+        <EventForm onDone={creating.close} />
       </Modal>
     </>
   );
