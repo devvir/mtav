@@ -4,7 +4,7 @@ import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { IconBell, IconFolders, IconUser } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { memberPlaces } from './MemberLayout';
+import { projectNav } from './ProjectLayout';
 
 /**
  * Pages about the person rather than a project: notifications, profile. Someone in a single
@@ -16,7 +16,7 @@ export function AccountLayout({ children }: { children: ReactNode }) {
   const only = projects.length === 1 ? projects[0]! : null;
 
   const nav: NavGroup[] = [
-    ...(only ? [{ label: only.name, items: memberPlaces(only) }] : []),
+    ...(only ? projectNav(only, only.is_admin) : []),
     {
       label: _('Your account'),
       items: [

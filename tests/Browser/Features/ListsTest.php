@@ -24,9 +24,11 @@ it('finds families by their name or their people\'s', function () {
     visit(route('families.index', $this->project))
         ->type('[aria-label="Search families or people"]', 'Pér')
         ->assertSee('Pérez')
-        ->assertDontSee('García')
-        ->clear('[aria-label="Search families or people"]')
+        ->assertDontSee('García');
+
+    visit(route('families.index', $this->project))
         ->type('[aria-label="Search families or people"]', 'Ana')
+        ->assertQueryStringHas('q', 'Ana')
         ->assertSee('García')
         ->assertDontSee('Pérez');
 });

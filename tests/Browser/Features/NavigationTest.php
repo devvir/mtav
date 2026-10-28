@@ -63,8 +63,9 @@ it('leads from home to every event and every file', function () {
 
     visit(route('projects.show', $this->project))
         ->click('All events')
-        ->assertPathIs(pathOf('events.index', $this->project))
-        ->navigate(route('projects.show', $this->project))
+        ->assertPathIs(pathOf('events.index', $this->project));
+
+    visit(route('projects.show', $this->project))
         ->click('All files')
         ->assertPathIs(pathOf('media.index', $this->project));
 });

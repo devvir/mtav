@@ -53,7 +53,6 @@ export function AppShell({
   heading,
   nav,
   tabs,
-  switchTo,
   banner,
   children,
 }: {
@@ -62,8 +61,6 @@ export function AppShell({
   nav: NavGroup[];
   /** Phone bottom tabs: the member app's main places */
   tabs?: NavEntry[];
-  /** A link to the sibling area (member app ⇄ admin area) */
-  switchTo?: { label: string; href: string; icon: Icon } | null;
   banner?: ReactNode;
   children: ReactNode;
 }) {
@@ -104,15 +101,6 @@ export function AppShell({
           );
         })}
       </nav>
-      {switchTo ? (
-        <NavItem
-          as={PrefetchLink}
-          href={switchTo.href}
-          icon={switchTo.icon}
-          label={switchTo.label}
-          className="ds-nav-item shell-switch"
-        />
-      ) : null}
     </>
   );
 

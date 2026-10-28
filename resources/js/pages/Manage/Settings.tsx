@@ -10,7 +10,8 @@ import { router, useForm } from '@inertiajs/react';
 import { Button, Card, Group, Text, TextInput, Textarea, Title } from '@mantine/core';
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 
-export default function Settings({ project }: { project: Project }) {
+/** The project's details, and deleting it (its page prop is `settings`: `project` is shared) */
+export default function Settings({ settings: project }: { settings: Project }) {
   const form = useForm({
     name: project.name,
     description: project.description,

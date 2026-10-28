@@ -1,6 +1,6 @@
 import { AccountLayout } from '@/layouts/AccountLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
-import { MemberLayout } from '@/layouts/MemberLayout';
+import { ProjectLayout } from '@/layouts/ProjectLayout';
 import { _ } from '@/lib/translations';
 import { Head, usePage } from '@inertiajs/react';
 import { Button, Stack, Text, Title } from '@mantine/core';
@@ -46,7 +46,7 @@ export default function Error({ status }: { status: number }) {
 /** Inside a project, its member app; otherwise the account area, or the sign-in card */
 function ErrorLayout({ children }: { children: ReactNode }) {
   const { props } = usePage();
-  const Layout = props.project ? MemberLayout : props.auth.user ? AccountLayout : AuthLayout;
+  const Layout = props.project ? ProjectLayout : props.auth.user ? AccountLayout : AuthLayout;
 
   return <Layout>{children}</Layout>;
 }

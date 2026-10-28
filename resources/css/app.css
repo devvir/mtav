@@ -70,10 +70,6 @@
 .ds-nav-item[data-action]:hover {
   background: color-mix(in srgb, var(--mtav-brand) 16%, transparent);
 }
-.shell-switch {
-  margin-top: 8px;
-  border: 1px solid var(--mtav-border);
-}
 
 .shell-bar {
   display: flex;

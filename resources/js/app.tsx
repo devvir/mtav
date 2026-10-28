@@ -18,9 +18,8 @@ import type { ComponentType, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AccountLayout } from './layouts/AccountLayout';
 import { AuthLayout } from './layouts/AuthLayout';
-import { ManageLayout } from './layouts/ManageLayout';
-import { MemberLayout } from './layouts/MemberLayout';
 import { PlatformLayout } from './layouts/PlatformLayout';
+import { ProjectLayout } from './layouts/ProjectLayout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MTAV';
 
@@ -30,8 +29,8 @@ type Page = ComponentType & { layout?: (page: ReactNode) => ReactNode };
 /** Each area has its layout, chosen by the page's folder (a page may set its own) */
 const LAYOUTS: [string, Layout][] = [
   ['Auth/', AuthLayout],
-  ['Member/', MemberLayout],
-  ['Manage/', ManageLayout],
+  ['Member/', ProjectLayout],
+  ['Manage/', ProjectLayout],
   ['Platform/', PlatformLayout],
 ];
 

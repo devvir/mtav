@@ -108,10 +108,11 @@ Tabler icons and dnd-kit for dragging.
   4.6:1 or more in every palette, light or dark, standard or high contrast. `Appearance`
   keeps the palette, scheme and contrast in cookies, read before the first paint. The UI
   Lab (`/admin/lab`, `resources/js/lab`) shows every component in its states.
-- **Layouts** follow the areas (`layouts/`): a page's folder picks its layout
-  (`Member/…`, `Manage/…`, `Platform/…`, `Auth/…`, the rest is the account area).
-  `AppShell` is the frame: top bar with the notifications bell, sidebar in groups (drawer
-  on phones), bottom tabs in the member app.
+- **Layouts** (`layouts/`): a page's folder picks its layout. `Member/…` and `Manage/…`
+  pages share `ProjectLayout` (the project's places, plus an "Administration" group for
+  admins), `Platform/…` the console's, `Auth/…` the sign-in one; the rest is the account
+  area. `AppShell` is the frame: top bar with the notifications bell, sidebar in groups
+  (drawer on phones), bottom tabs on a project's pages.
 - **Forms** are hand-written per entity (`components/forms`) on Mantine inputs, wired to
   Inertia's `useForm` by `lib/forms.ts`. A field's short hint sits beside its label, so
   fields side by side stay in line; required fields carry an asterisk, and `FormActions`

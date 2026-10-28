@@ -15,7 +15,7 @@ class SettingsController extends Controller
 {
     public function edit(Project $project): Response
     {
-        return inertia('Manage/Settings', ['project' => ProjectResource::make($project)]);
+        return inertia('Manage/Settings', ['settings' => ProjectResource::make($project)]);
     }
 
     public function update(ProjectRequest $request, Project $project): RedirectResponse
