@@ -69,4 +69,5 @@ return [
     'deploy_production' => 'Se está desplegando producción: espera la aprobación en GitHub.',
     'deploy_rollback'   => ':environment vuelve a la versión anterior.',
     'deploy_refused'    => 'GitHub no lo inició (:status). Revisa el token de despliegue.',
+    'upload_too_large'  => 'Era demasiado para enviar de una vez: comparte menos archivos, o más livianos.',
 ];

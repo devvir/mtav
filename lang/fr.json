@@ -649,5 +649,6 @@
   "New units of this type start this size on the plan; empty, a plain square.": "Les nouveaux logements de ce type commencent à cette taille sur le plan ; vide, un simple carré.",
   "Units to place": "Logements à placer",
   "To place": "À placer",
-  "Place {unit} on the plan": "Placer {unit} sur le plan"
+  "Place {unit} on the plan": "Placer {unit} sur le plan",
+  "Together they weigh {size}: up to {limit} can go at once.": "Ensemble, ils pèsent {size} : on peut envoyer jusqu’à {limit} d’un coup."
 }

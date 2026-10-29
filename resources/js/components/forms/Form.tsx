@@ -42,12 +42,15 @@ export function RequiredNote() {
 export function FormActions({
   submit,
   processing,
+  disabled,
   cancelHref,
   requiredNote = true,
   children,
 }: {
   submit: ReactNode;
   processing?: boolean;
+  /** Not to be sent as it is (the form says why) */
+  disabled?: boolean;
   cancelHref?: string;
   requiredNote?: boolean;
   children?: ReactNode;
@@ -61,7 +64,7 @@ export function FormActions({
           {_('Cancel')}
         </Button>
       ) : null}
-      <Button type="submit" loading={processing}>
+      <Button type="submit" loading={processing} disabled={disabled}>
         {submit}
       </Button>
     </Group>

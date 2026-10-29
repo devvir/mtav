@@ -47,9 +47,26 @@ class MediaService
     /**
      * The largest file a project accepts, in kilobytes.
      */
+    /** The largest file a project takes: its limit, within what PHP accepts at all */
     public static function maxFileKb(Project $project): int
     {
-        return 1024 * ($project->limit('media_file_mb') ?? config('limits.media_file_max_mb'));
+        $limit = 1024 * ($project->limit('media_file_mb') ?? config('limits.media_file_max_mb'));
+
+        return (int) min($limit, UploadedFile::getMaxFilesize() / 1024);
+    }
+
+    /** The most one share may carry, all its files together (PHP's request limit, less room for the rest) */
+    public static function maxBatchKb(): int
+    {
+        $post = (string) ini_get('post_max_size');
+        $bytes = (int) $post * match (strtoupper(substr($post, -1))) {
+            'G'     => 1024 ** 3,
+            'M'     => 1024 ** 2,
+            'K'     => 1024,
+            default => 1,
+        };
+
+        return (int) max(1024, $bytes / 1024 - 1024);
     }
 
     /**

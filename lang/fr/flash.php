@@ -69,4 +69,5 @@ return [
     'deploy_production' => 'La production est en cours de déploiement : elle attend l’approbation sur GitHub.',
     'deploy_rollback'   => ':environment revient à la version précédente.',
     'deploy_refused'    => 'GitHub ne l’a pas lancé (:status). Vérifiez le jeton de déploiement.',
+    'upload_too_large'  => 'C’était trop à envoyer d’un coup : partagez moins de fichiers, ou des plus légers.',
 ];

@@ -69,4 +69,5 @@ return [
     'deploy_production' => 'A produção está sendo implantada: aguarda a aprovação no GitHub.',
     'deploy_rollback'   => ':environment volta para a versão anterior.',
     'deploy_refused'    => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
+    'upload_too_large'  => 'Era demais para enviar de uma vez: compartilhe menos arquivos, ou menores.',
 ];

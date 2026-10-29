@@ -162,3 +162,11 @@ it('moves from photo to photo past the page they are listed on', function () {
 
     expect($carousel)->toBe(['position' => 24, 'count' => 30, 'previous' => $photos[22]->id, 'next' => $photos[24]->id]);
 });
+
+it('says so when a share is more than one request may carry', function () {
+    $this->as($this->member, $this->project)
+        ->from(route('media.index'))
+        ->call('POST', route('media.store'), server: ['CONTENT_LENGTH' => 10 ** 12])
+        ->assertRedirect(route('media.index'))
+        ->assertSessionHas('error', __('flash.upload_too_large'));
+});

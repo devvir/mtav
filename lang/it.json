@@ -649,5 +649,6 @@
   "New units of this type start this size on the plan; empty, a plain square.": "Le nuove unità di questo tipo partono da questa misura nella planimetria; vuoto, un quadrato semplice.",
   "Units to place": "Unità da collocare",
   "To place": "Da collocare",
-  "Place {unit} on the plan": "Colloca {unit} nella planimetria"
+  "Place {unit} on the plan": "Colloca {unit} nella planimetria",
+  "Together they weigh {size}: up to {limit} can go at once.": "Insieme pesano {size}: si possono inviare fino a {limit} in una volta."
 }

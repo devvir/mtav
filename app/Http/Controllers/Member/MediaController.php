@@ -41,9 +41,10 @@ class MediaController extends Controller
             'storage'  => $this->storage($project),
             // What may be shared, for the share dialog (?share=1) of those who may share
             'upload' => fn () => $request->user()->can('create', [Media::class, $project]) ? [
-                'accept'    => MediaService::MIME_TYPES,
-                'maxFileKb' => MediaService::maxFileKb($project),
-                'maxFiles'  => MediaRequest::MAX_FILES,
+                'accept'     => MediaService::MIME_TYPES,
+                'maxFileKb'  => MediaService::maxFileKb($project),
+                'maxBatchKb' => MediaService::maxBatchKb(),
+                'maxFiles'   => MediaRequest::MAX_FILES,
             ] : null,
             // A file's details, shown over the page (?file=12)
             'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))

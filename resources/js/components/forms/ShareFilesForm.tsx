@@ -10,6 +10,8 @@ import { Button, Input, Progress, Text, TextInput } from '@mantine/core';
 export interface UploadLimits {
   accept: Record<string, string[]>;
   maxFileKb: number;
+  /** All the files of one share together */
+  maxBatchKb: number;
   maxFiles: number;
 }
 
@@ -24,10 +26,22 @@ export function ShareFilesForm({
   onDone: () => void;
 }) {
   const form = useForm<{ description: string; files: File[] }>({ description: '', files: [] });
-  const fileErrors = Object.entries(form.errors as Record<string, string>)
-    .filter(([key]) => key.startsWith('files'))
-    .map(([, message]) => message)
-    .join(' ');
+  // All together, the files must fit in one request: said before sending, not after
+  const total = form.data.files.reduce((sum, file) => sum + file.size, 0);
+  const tooMuch = total > limits.maxBatchKb * 1024;
+  const fileErrors = [
+    ...Object.entries(form.errors as Record<string, string>)
+      .filter(([key]) => key.startsWith('files'))
+      .map(([, message]) => message),
+    ...(tooMuch
+      ? [
+          _('Together they weigh {size}: up to {limit} can go at once.', {
+            size: fileSize(total),
+            limit: fileSize(limits.maxBatchKb * 1024),
+          }),
+        ]
+      : []),
+  ].join(' ');
 
   return (
     <Form
@@ -85,7 +99,7 @@ export function ShareFilesForm({
           aria-label={_('Uploading')}
         />
       ) : null}
-      <FormActions submit={_('Share')} processing={form.processing}>
+      <FormActions submit={_('Share')} processing={form.processing} disabled={tooMuch}>
         <Button variant="default" onClick={onDone}>
           {_('Cancel')}
         </Button>

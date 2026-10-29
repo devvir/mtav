@@ -69,4 +69,5 @@ return [
     'deploy_production' => 'La produzione è in fase di rilascio: attende l’approvazione su GitHub.',
     'deploy_rollback'   => ':environment torna alla versione precedente.',
     'deploy_refused'    => 'GitHub non l’ha avviato (:status). Controlla il token di rilascio.',
+    'upload_too_large'  => 'Era troppo da inviare in una volta: condividi meno file, o più leggeri.',
 ];

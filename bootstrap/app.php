@@ -52,6 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function (Response $response, Throwable $_, Request $request) {
             $status = $response->getStatusCode();
 
+            // More than a request may carry (a share of too many large files): said on the page
+            if ($status === 413 && ! $request->expectsJson()) {
+                return back()->with('error', __('flash.upload_too_large'));
+            }
+
             if ($request->expectsJson() || ! in_array($status, [403, 404, 500, 503])) {
                 return $response;
             }
