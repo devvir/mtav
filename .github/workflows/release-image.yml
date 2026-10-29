@@ -69,7 +69,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          # The build cache lives beside the images (any branch reads it; only publishing
-          # builds write it): uploading to GitHub's Actions cache took longer than the build
+          # The build cache lives beside the images (uploading to GitHub's Actions cache took
+          # longer than the build). Any branch reads it; only main's publishing builds write
+          # it, so a branch can never plant layers that main's releases then reuse
           cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
-          cache-to: ${{ inputs.publish && format('type=registry,ref={0}:buildcache,mode=max', env.IMAGE) || '' }}
+          cache-to: ${{ inputs.publish && github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache,mode=max', env.IMAGE) || '' }}
