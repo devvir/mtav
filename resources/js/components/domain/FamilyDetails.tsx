@@ -1,8 +1,9 @@
 import { FamilyForm } from '@/components/forms/FamilyForm';
+import { FamilyInvitationForm } from '@/components/forms/FamilyInvitationForm';
 import { FamilyMark, PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _n } from '@/lib/translations';
 import type { Family, UnitType } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Alert, Button, Card, Divider, Group, SimpleGrid, Text, Tooltip } from '@mantine/core';
@@ -10,8 +11,8 @@ import { IconHome, IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-rea
 import { useState } from 'react';
 
 /**
- * A family: its type, the unit it received, its members. One's own family offers inviting
- * someone; admins edit or remove it.
+ * A family: its unit type, the unit it received, its members. Its own members and admins
+ * invite more people into it; admins edit or remove it.
  */
 export function FamilyDetails({
   family,
@@ -21,8 +22,11 @@ export function FamilyDetails({
   /** For admins, who edit families here */
   unitTypes: UnitType[] | null;
 }) {
-  const isOwn = usePage().props.project?.family?.id === family.id;
+  const project = usePage().props.project;
+  const isOwn = project?.family?.id === family.id;
+  const canInvite = isOwn || Boolean(project?.can.manage);
   const [editing, setEditing] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const remove = async () => {
     const ok = await confirm({
       title: _('Remove the {name} family?', { name: family.name }),
@@ -36,12 +40,20 @@ export function FamilyDetails({
   // Editing replaces the details in the same dialog (one dialog at a time)
   if (editing && unitTypes)
     return <FamilyForm family={family} unitTypes={unitTypes} onDone={() => setEditing(false)} />;
+  if (inviting) return <FamilyInvitationForm family={family} onDone={() => setInviting(false)} />;
 
   return (
     <>
       <Group mb="lg">
         <FamilyMark name={family.name} size={64} />
-        {family.unit_type ? <Text c="dimmed">{family.unit_type.name}</Text> : null}
+        <div>
+          {family.unit_type ? (
+            <Text fw={650}>{_('Unit type: {type}', { type: family.unit_type.name })}</Text>
+          ) : null}
+          <Text className="ds-caption">
+            {_n('{count} person', '{count} people', family.members?.length ?? 0)}
+          </Text>
+        </div>
       </Group>
       {family.unit ? (
         <Alert color="green" radius="lg" icon={<IconHome size={20} />} mb="lg">
@@ -70,17 +82,13 @@ export function FamilyDetails({
         </Text>
       ) : null}
 
-      {isOwn || unitTypes ? (
+      {canInvite || unitTypes ? (
         <>
           <Divider my="lg" />
           <Group gap="sm">
-            {isOwn ? (
-              <Button
-                component={Link}
-                href={route('invitations.index')}
-                leftSection={<IconUserPlus size={18} />}
-              >
-                {_('Invite someone')}
+            {canInvite ? (
+              <Button leftSection={<IconUserPlus size={18} />} onClick={() => setInviting(true)}>
+                {_('Invite a family member')}
               </Button>
             ) : null}
             {unitTypes ? (

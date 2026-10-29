@@ -30,6 +30,31 @@ it('invites a fellow admin, without a family', function () {
     expect(Invitation::sole())->is_admin->toBeTrue()->family_id->toBeNull();
 });
 
+it('invites into a family from its details, as one of its members and as an admin', function () {
+    $this->as(aMemberOf($this->family));
+
+    visit(route('families.index', [$this->project, 'family' => $this->family->id]))
+        ->assertSee('Unit type:')
+        ->click(inDialog('Invite a family member'))
+        ->assertValue(inDialogField('email'), '')
+        ->fill(inDialogField('email'), 'ana@example.com')
+        ->click(inDialog('Send the invitation'))
+        ->assertSee('Invitation sent to ana@example.com.')
+        ->assertSee('Invite a family member');
+
+    $other = aFamily($this->project, null, ['name' => 'Pérez']);
+    $this->as($this->admin);
+
+    visit(route('families.index', [$this->project, 'family' => $other->id]))
+        ->click(inDialog('Invite a family member'))
+        ->fill(inDialogField('email'), 'luis@example.com')
+        ->click(inDialog('Send the invitation'))
+        ->assertSee('Invitation sent to luis@example.com.');
+
+    expect(Invitation::orderBy('id')->pluck('family_id', 'email')->all())
+        ->toBe(['ana@example.com' => $this->family->id, 'luis@example.com' => $other->id]);
+});
+
 it('withdraws an invitation, whose link then explains it is no longer valid', function () {
     $this->as($this->admin);
 
@@ -57,7 +82,8 @@ it('lets someone with an account join after signing in', function () {
     visit(route('manage.invitations.index', $this->project))
         ->fill('email', 'ana@example.com')
         ->select('family_id', (string) $this->family->id)
-        ->click('Send the invitation');
+        ->click('Send the invitation')
+        ->assertSee('Invitation sent to ana@example.com.');
 
     $link = invitationLinkFor('ana@example.com');
     auth()->logout();

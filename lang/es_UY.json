@@ -579,5 +579,6 @@
   "{type} units, most wanted first. Changes are saved as you make them, for the whole family.": "Viviendas {type}, de la más deseada a la menos. Los cambios se guardan al hacerlos, para toda la familia.",
   "{unit} goes to number {position}": "{unit} pasa al número {position}",
   "{unit} is now number {position}": "{unit} ahora es la número {position}",
-  "{unit} stays where it was": "{unit} queda donde estaba"
+  "{unit} stays where it was": "{unit} queda donde estaba",
+  "Unit type: {type}": "Tipo de vivienda: {type}"
 }

@@ -579,5 +579,6 @@
   "{type} units, most wanted first. Changes are saved as you make them, for the whole family.": "Unità {type}, dalla più desiderata alla meno. Le modifiche si salvano subito, per tutta la famiglia.",
   "{unit} goes to number {position}": "{unit} passa al numero {position}",
   "{unit} is now number {position}": "{unit} ora è la numero {position}",
-  "{unit} stays where it was": "{unit} resta dov’era"
+  "{unit} stays where it was": "{unit} resta dov’era",
+  "Unit type: {type}": "Tipo di unità: {type}"
 }

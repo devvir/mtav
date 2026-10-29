@@ -74,7 +74,6 @@ export default function FamiliesIndex({
             </Button>
           ) : null
         }
-        description={_('Each family ranks the units of its type and receives one in the lottery.')}
         help={
           <InfoTip title={_('What is a family?')}>
             {_(
@@ -144,7 +143,6 @@ export default function FamiliesIndex({
                   {family.id === own ? <Badge color="green">{_('your family')}</Badge> : null}
                 </Group>
                 <Text className="ds-caption">
-                  {family.unit_type?.name} ·{' '}
                   {_n('{count} person', '{count} people', family.members_count ?? 0)}
                 </Text>
                 {family.members?.length ? (
