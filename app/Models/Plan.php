@@ -29,8 +29,9 @@ class Plan extends Model
         return $this->belongsTo(Project::class);
     }
 
+    /** Its shapes, in their stack's order (the first drawn underneath) */
     public function items(): HasMany
     {
-        return $this->hasMany(PlanItem::class);
+        return $this->hasMany(PlanItem::class)->orderBy('position')->orderBy('id');
     }
 }

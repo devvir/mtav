@@ -25,8 +25,8 @@ it('adds a named green area that members then see', function () {
     editPlan($this)
         ->click('.plan-palette >> ' . button('Green area'))
         ->fill('shape_name', 'Central park')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.')
+        ->click('Done editing')
+        ->assertSee('Edit the plan')
         ->assertNoSmoke();
 
     expect(PlanItem::where('type', 'green')->sole()->name)->toBe('Central park');
@@ -45,8 +45,8 @@ it('moves a shape with the keyboard and undoes it', function () {
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
         ->keys('[aria-label="Plan editor"]', 'ArrowDown')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     expect($item->fresh()->polygon[0])->toBe([$before[0][0], $before[0][1] + 5]);
 });
@@ -59,8 +59,8 @@ it('puts units on other floors', function () {
         ->click('Ground floor')
         ->click('[data-shape="A-101"] .plan-top')
         ->select('shape_floor', '1')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     expect(PlanItem::whereNotNull('unit_id')->sole()->floor)->toBe(1);
 
@@ -78,8 +78,8 @@ it('redoes what was undone', function () {
         ->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->click('[aria-label="Undo"]')
         ->click('[aria-label="Redo"]')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     expect($item->fresh()->polygon[0])->toBe([$before[0][0] + 5, $before[0][1]]);
 });
@@ -93,8 +93,8 @@ it('duplicates a shape, and never a unit', function () {
         ->click('.plan-palette >> ' . button('Green area'))
         ->fill('shape_name', 'Park')
         ->click('Duplicate')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     expect(PlanItem::where('type', 'green')->pluck('name')->all())->toBe(['Park', 'Park']);
 });
@@ -107,8 +107,8 @@ it('removes a corner of the boundary', function () {
         ->click('Edit the boundary')
         ->click('.plan-vertex >> nth=0')
         ->click('Remove the corner')
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     expect($this->project->plan->fresh()->polygon)->toHaveCount($corners - 1);
 });
@@ -119,8 +119,8 @@ it('adds each kind from the palette in its starting shape, a street long and nar
     editPlan($this)
         ->click('.plan-palette >> ' . button('Street'))
         ->click('.plan-palette >> ' . button('Entrance'))
-        ->click('Save the plan')
-        ->assertSee('The plan was saved.');
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
 
     $street = bounds(PlanItem::where('type', 'street')->sole()->polygon);
     expect($street['width'])->toBeGreaterThan($street['height'] * 4);
@@ -149,7 +149,8 @@ it('widens a shape by dragging one of its edges, and turns it with R', function 
             fire(svg, 'pointerup', to);
         }
         JS);
-    $page->keys('[aria-label="Plan editor"]', 'r')->click('Save the plan')->assertSee('The plan was saved.');
+    $page->keys('[aria-label="Plan editor"]', 'r')->click('Done editing')
+        ->assertSee('Edit the plan');
 
     $polygon = PlanItem::where('type', 'street')->sole()->polygon;
     $box = bounds($polygon);
@@ -166,3 +167,49 @@ function bounds(array $polygon): array
 
     return ['width' => max($xs) - min($xs), 'height' => max($ys) - min($ys)];
 }
+
+it('saves by itself a moment after a change', function () {
+    $this->as($this->admin);
+
+    editPlan($this)->click('.plan-palette >> ' . button('Green area'))->wait(1.5)->assertSee('Saved');
+
+    expect(PlanItem::where('type', 'green')->exists())->toBeTrue();
+});
+
+it('still undoes after a reload', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'))->wait(1.5)->assertSee('Saved');
+    expect(PlanItem::where('type', 'green')->exists())->toBeTrue();
+
+    $page->refresh()
+        ->click('Edit the plan')
+        ->assertPresent('[aria-label="Plan editor"]')
+        ->keys('[aria-label="Plan editor"]', 'Control+z')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    expect(PlanItem::where('type', 'green')->exists())->toBeFalse();
+});
+
+it('keeps a shape brought to the front, and pastes copies', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)
+        ->click('.plan-palette >> ' . button('Building'))
+        ->click('.plan-palette >> ' . button('Green area'))
+        ->keys('[aria-label="Plan editor"]', ['Control+c'])
+        ->keys('[aria-label="Plan editor"]', ['Control+v']);
+    $page->script(<<<'JS'
+            () => {
+                const shape = document.querySelector('.plan-item[data-kind="building"] .plan-top');
+                const box = shape.getBoundingClientRect();
+                shape.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: box.x + 5, clientY: box.y + 5 }));
+            }
+            JS);
+    $page->click('Bring to front')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    expect($this->project->plan->items()->whereNull('unit_id')->pluck('type')->all())->toBe(['green', 'green', 'building']);
+});

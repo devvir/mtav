@@ -85,11 +85,13 @@ class HandleInertiaRequests extends Middleware
      */
     private function projects(User $user): array
     {
-        return $user->projects()->orderBy('name')->get(['projects.id', 'projects.name'])
+        $managed = $user->memberships->where('is_admin', true)->pluck('project_id');
+
+        return $user->reachableProjects()->orderBy('name')->get(['id', 'name'])
             ->map(fn (Project $project) => [
                 'id'       => $project->id,
                 'name'     => $project->name,
-                'is_admin' => (bool) $project->pivot->is_admin,
+                'is_admin' => $user->isSuperadmin() || $managed->contains($project->id),
             ])
             ->all();
     }

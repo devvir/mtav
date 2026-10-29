@@ -71,6 +71,24 @@ export function PlanView({
     >
       <PlanDefs id={id} />
       <PlanGround id={id} polygon={plan.polygon} />
+      {/* The floors beneath this one, faintly: what it stands on */}
+      {floor > 0 ? (
+        <g className="plan-beneath" aria-hidden>
+          {plan.items
+            .filter((item) => item.floor < floor)
+            .map((item) => (
+              <g key={item.id} data-depth={Math.min(floor - item.floor, 3)}>
+                <PlanShape
+                  id={id}
+                  seed={String(item.id)}
+                  kind={item.type as Kind}
+                  polygon={item.polygon}
+                  color={tint(item)}
+                />
+              </g>
+            ))}
+        </g>
+      ) : null}
       {plan.items
         .filter((item) => item.floor === floor)
         .map((item) => {

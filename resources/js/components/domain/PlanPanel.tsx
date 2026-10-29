@@ -9,7 +9,11 @@ import type { Plan } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Button, Group } from '@mantine/core';
 import { IconMap, IconPencil } from '@tabler/icons-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+/** Laravel's CSRF token, as its cookie carries it */
+const xsrfToken = () =>
+  decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1] ?? '');
 
 /**
  * The plan: where each unit is, and what surrounds it. Admins switch it to editing in place
@@ -28,23 +32,32 @@ export function PlanPanel({
   ownUnit?: number | null;
   aside?: string;
 }) {
-  const [editing, setEditing] = useState(false);
+  // The plan as it was when editing began: a reload meanwhile never resets the editor
+  const [editing, setEditing] = useState<Plan | null>(null);
   const editor = useRef<PlanEditorHandle>(null);
-  const [processing, setProcessing] = useState(false);
 
-  const save = (payload: PlanPayload) => {
-    setProcessing(true);
-    router.put(route('manage.plan.update'), payload as never, {
-      preserveScroll: true,
-      preserveState: true,
-      onSuccess: () => editor.current?.markSaved(),
-      onFinish: () => setProcessing(false),
+  // Saved as JSON, the page staying as it is: the server answers the ids of new shapes
+  const save = useCallback(async (payload: PlanPayload) => {
+    const response = await fetch(route('manage.plan.update'), {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-XSRF-TOKEN': xsrfToken(),
+      },
+      body: JSON.stringify(payload),
     });
-  };
+    if (!response.ok) throw new Error(`The plan was not saved (${response.status})`);
+    return ((await response.json()) as { ids: Record<string, number> }).ids;
+  }, []);
 
   const done = async () => {
+    // What is pending goes first; only what could not be saved asks
+    const saved = (await editor.current?.flush()) ?? true;
     if (
-      editor.current?.dirty() &&
+      !saved &&
       !(await confirm({
         title: _('Leave without saving the plan?'),
         confirmLabel: _('Leave'),
@@ -53,7 +66,9 @@ export function PlanPanel({
       }))
     )
       return;
-    setEditing(false);
+    setEditing(null);
+    // The pages that show the plan read it again, as saved
+    router.reload({ only: ['plan'] });
   };
 
   useEffect(() => {
@@ -98,7 +113,7 @@ export function PlanPanel({
               variant="light"
               size="sm"
               leftSection={<IconPencil size={16} />}
-              onClick={() => setEditing(true)}
+              onClick={() => setEditing(plan)}
             >
               {_('Edit the plan')}
             </Button>
@@ -107,7 +122,7 @@ export function PlanPanel({
       }
     >
       {editing ? (
-        <PlanEditor ref={editor} plan={plan} processing={processing} onSave={save} onDone={done} />
+        <PlanEditor ref={editor} plan={editing} save={save} onDone={done} />
       ) : (
         <FloorPlan plan={plan} highlightType={highlightType} ownUnit={ownUnit} />
       )}

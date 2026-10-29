@@ -209,8 +209,16 @@ decision taken on the way is listed below for review.
 10. **The plan, richer** (the author's ideas; units, types and the plan already share one
     page, where admins edit the plan in place). Kinds are added from a palette that shows
     each one's look, each in a starting shape of its own (a street long and narrow, an
-    entrance a triangle pointing in); a shape's side moves by dragging its edge, and the
-    shape turns from a handle above it (or R). A unit added anywhere appears on the plan,
+    entrance a gate pointing in, moved, resized and turned but never reshaped); a shape's
+    side moves by dragging its edge, and the shape turns from a handle above it (or R).
+    The plan saves itself a moment after each change, and its undo history outlives a
+    reload. Shapes have a context menu (name, turn, bring to front, send to back,
+    duplicate, copy, paste, remove), a double-click names them, Ctrl+C / Ctrl+V / Ctrl+D
+    and Ctrl + drag copy them. Upper floors show the floors beneath, faintly, in the
+    editor and wherever people read the plan. Still to come: guides and snapping when a
+    side is straight or lines up with another shape (here and on the floors beneath),
+    labels on hover, units added from the plan's palette (placed, then their details
+    asked), and the units list as a compact, collapsible card above the plan. A unit added anywhere appears on the plan,
     waiting beside the canvas to be placed. Each type may carry a base shape and size, so
     a new unit of that type starts as that shape (plain squares when none is set). Floors:
     the floors just below and above show faintly behind the current one (onion skinning),
@@ -244,7 +252,13 @@ decision taken on the way is listed below for review.
 13. **Full browser coverage** (see the decision): every button, form and edge case.
 14. **Assistant** (see the decision), after the queue above: agent documentation, the
     chat, its tools, a measured model choice.
-15. **Illustrated manuals**, one per role (member, admin, superadmin): every place and
+15. **A landing page** that invites people in: what MTAV is and who it is for, photos of
+    people building their homes (Uruguayan cooperatives where possible, each used under
+    its licence and credited), "Sign in" as the main call to action, signing in and up
+    in a dialog over it (not a page of their own), a language switch whose choice the
+    account keeps on signing in, and signing in with Google (the client is set up by the
+    author).
+16. **Illustrated manuals**, one per role (member, admin, superadmin): every place and
     action shown in a picture of the real app, cut to what matters and marked (where to
     click, what changes), next to short steps. A complete set first; afterwards they
     follow considerable UI changes, not every small one.

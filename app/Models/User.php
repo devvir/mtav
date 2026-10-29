@@ -83,6 +83,17 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             ->withTimestamps();
     }
 
+    /**
+     * The projects that are theirs to open: those they take part in, or every one for a
+     * superadmin, who oversees them all (archived ones are gone either way)
+     */
+    public function reachableProjects(): Builder
+    {
+        return $this->isSuperadmin()
+            ? Project::query()
+            : Project::whereHas('memberships', fn (Builder $query) => $query->where('user_id', $this->id));
+    }
+
     /** The language mail and notifications reach them in (null: the platform's) */
     public function preferredLocale(): ?string
     {

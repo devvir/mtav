@@ -29,6 +29,7 @@ class PlanRequest extends FormRequest
             'polygon.*.*'         => ['required', 'numeric'],
             'items'               => ['present', 'array', 'max:2000'],
             'items.*.id'          => ['nullable', 'integer', Rule::exists('plan_items', 'id')->where('plan_id', $project->plan->id)],
+            'items.*.key'         => ['nullable', 'string', 'max:40'],
             'items.*.type'        => ['required', Rule::in(self::ITEM_TYPES)],
             'items.*.floor'       => ['required', 'integer', 'between:-5,100'],
             'items.*.name'        => ['nullable', 'string', 'max:80'],

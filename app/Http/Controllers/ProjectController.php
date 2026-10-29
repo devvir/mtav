@@ -22,7 +22,7 @@ class ProjectController extends Controller
 
         return inertia('Projects/Index', [
             'projects' => ProjectResource::collection(
-                $user->projects()->withCount('members', 'families')->orderBy('name')->get()
+                $user->reachableProjects()->withCount('members', 'families')->orderBy('name')->get()
             ),
             'invitations' => Invitation::pending()->where('email', $user->email)
                 ->with('project:id,name', 'family:id,name', 'inviter')->get()

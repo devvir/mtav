@@ -187,7 +187,7 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--mtav-muted);
   text-decoration: none;
@@ -610,12 +610,24 @@
 .plan-editor {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   align-items: start;
+}
+/* The rail at the left of the canvas; the selected shape's details at its right */
+@media (min-width: 62em) {
+  .plan-editor {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .plan-editor > :last-child {
+    grid-column: 1 / -1;
+  }
 }
 @media (min-width: 88em) {
   .plan-editor {
-    grid-template-columns: minmax(0, 1fr) 18rem;
+    grid-template-columns: auto minmax(0, 1fr) 17rem;
+  }
+  .plan-editor > :last-child {
+    grid-column: auto;
   }
 }
 .plan-canvas {
@@ -720,9 +732,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-width: 72px;
-  padding: 6px 8px;
+  gap: 2px;
+  min-width: 66px;
+  padding: 4px 6px;
   border: 1px solid transparent;
   border-radius: var(--mantine-radius-md);
   font-size: 12px;
@@ -740,6 +752,49 @@
 }
 .plan-tool svg {
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
+}
+/* The editor's rail (a row on small screens), and its quiet tools above the canvas */
+.plan-palette {
+  flex-direction: row;
+  padding: 6px;
+}
+@media (min-width: 62em) {
+  .plan-palette {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: start;
+  }
+}
+/* Only where the shape's details have a column of their own does the rail stay in view */
+@media (min-width: 88em) {
+  .plan-palette {
+    position: sticky;
+    top: 80px;
+  }
+}
+.plan-snap .mantine-Switch-label {
+  color: var(--mtav-muted);
+  transition: color 150ms;
+}
+.plan-snap[data-on] .mantine-Switch-label {
+  color: var(--mtav-text);
+}
+/* The floors beneath the one drawn: what it stands on, seen through */
+.plan-beneath {
+  pointer-events: none;
+}
+.plan-beneath [data-depth='1'] {
+  opacity: 0.32;
+}
+.plan-beneath [data-depth='2'] {
+  opacity: 0.16;
+}
+.plan-beneath [data-depth='3'] {
+  opacity: 0.08;
+}
+.plan-beneath .plan-label,
+.plan-beneath .plan-house {
+  display: none;
 }
 .plan-rotate {
   cursor: grab;
@@ -796,6 +851,33 @@
   stroke-width: 3px;
   stroke-linejoin: round;
   pointer-events: none;
+}
+/* An entrance: a gate and its arrow; its triangle shows only while it is selected */
+.plan-item[data-kind='entrance'] .plan-light,
+.plan-item[data-kind='entrance']:not([data-selected]) .plan-outline {
+  display: none;
+}
+.plan-item[data-kind='entrance'] .plan-top {
+  fill: transparent;
+}
+.plan-gate-post {
+  fill: #44403c;
+}
+.plan-gate-bar {
+  fill: none;
+  stroke: var(--mtav-brand);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.plan-gate-arrow {
+  fill: none;
+  stroke: var(--mtav-brand);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+[data-mantine-color-scheme='dark'] .plan-gate-post {
+  fill: #d6d3d1;
 }
 .plan-house {
   fill: #1c1917;

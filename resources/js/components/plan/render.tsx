@@ -278,6 +278,53 @@ export const kindLabel = (kind: Kind) =>
     other: null,
   })[kind];
 
+/**
+ * An entrance: a gate between two posts, and an arrow through it pointing in. Its shape is
+ * a triangle whose first corner is its tip (so it is made, and moving, resizing and turning
+ * keep it): the gate stands on the side opposite, the arrow points to the tip.
+ */
+function Gate({ polygon }: { polygon: Point[] }) {
+  if (polygon.length < 3) return null;
+  const tip = polygon[0]!;
+  const base = [polygon[1]!, polygon[polygon.length - 1]!];
+  const [bx, by] = [(base[0]![0] + base[1]![0]) / 2, (base[0]![1] + base[1]![1]) / 2];
+  const width = Math.hypot(base[0]![0] - base[1]![0], base[0]![1] - base[1]![1]);
+  const depth = Math.hypot(tip[0] - bx, tip[1] - by);
+  // Drawn upright (pointing up, -y), then turned to face the tip
+  const angle = (Math.atan2(tip[1] - by, tip[0] - bx) * 180) / Math.PI + 90;
+  const half = width / 2;
+  const post = Math.max(2.5, width * 0.09);
+
+  return (
+    <g transform={`translate(${bx} ${by}) rotate(${angle})`} className="plan-gate" aria-hidden>
+      <rect
+        x={-half}
+        y={-post * 2.6}
+        width={post}
+        height={post * 2.6}
+        rx={post / 3}
+        className="plan-gate-post"
+      />
+      <rect
+        x={half - post}
+        y={-post * 2.6}
+        width={post}
+        height={post * 2.6}
+        rx={post / 3}
+        className="plan-gate-post"
+      />
+      <path
+        d={`M${-half + post} ${-post * 1.6} Q0 ${-post * 3.4} ${half - post} ${-post * 1.6}`}
+        className="plan-gate-bar"
+      />
+      <path
+        d={`M0 ${-post * 0.8} V${-depth + post * 1.2} M${-post * 1.2} ${-depth + post * 2.4} L0 ${-depth + post * 1.1} L${post * 1.2} ${-depth + post * 2.4}`}
+        className="plan-gate-arrow"
+      />
+    </g>
+  );
+}
+
 /** A street's centre line, dashed, along its length */
 function CentreLine({ id, polygon, clip }: { id: string; polygon: Point[]; clip: string }) {
   const box = bounds(polygon);
@@ -340,7 +387,7 @@ export function PlanShape({
       common: color ?? '#fcd34d',
       parking: `url(#${id}-asphalt)`,
       playground: `url(#${id}-play)`,
-      entrance: color ?? '#a5b4fc',
+      entrance: 'transparent',
     }[kind];
   const [cx, cy] = centre(polygon);
 
@@ -386,6 +433,7 @@ export function PlanShape({
       />
       <polygon points={shape} className="plan-outline" fill="none" />
       {kind === 'unit' ? <HouseMark polygon={polygon} /> : null}
+      {kind === 'entrance' ? <Gate polygon={polygon} /> : null}
 
       {(label ?? kindLabel(kind)) ? (
         <text x={cx} y={cy} className="plan-label" textAnchor="middle" dominantBaseline="middle">

@@ -83,6 +83,16 @@ describe('Someone who signed up', function () {
 });
 
 describe('A superadmin', function () {
+    it('finds every project among their own, and in the switcher, as one who manages it', function () {
+        $first = aProject(['name' => 'Cooperativa Uno']);
+        $second = aProject(['name' => 'Cooperativa Dos']);
+        $page = $this->as(aSuperadmin())->get(route('projects.index'));
+
+        expect(collect($page->inertiaProps('projects'))->pluck('name')->all())->toContain('Cooperativa Uno', 'Cooperativa Dos');
+        expect(collect($page->inertiaProps('projects'))->pluck('id')->all())->toContain($first->id, $second->id);
+        expect(collect($this->as(aSuperadmin())->get(route('projects.show', $first))->inertiaProps('projects'))->every('is_admin'))->toBeTrue();
+    });
+
     beforeEach(fn () => $this->superadmin = aSuperadmin());
 
     it('starts an approved project', function () {

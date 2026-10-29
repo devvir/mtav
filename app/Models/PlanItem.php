@@ -14,6 +14,7 @@ class PlanItem extends Model
         'unit_id',
         'type',
         'floor',
+        'position',
         'polygon',
         'name',
         'metadata',

@@ -199,9 +199,9 @@ defineTour('manage.plan', () => [
   },
   {
     target: 'plan.save',
-    title: _('Save'),
+    title: _('Saved as you go'),
     body: _(
-      'Nothing is shared until you save. Undo and redo are right there, and Ctrl+Z works too.',
+      'Changes save by themselves a moment after you make them. Undo and redo are above the canvas, and Ctrl+Z works too, even after a reload.',
     ),
   },
 ]);

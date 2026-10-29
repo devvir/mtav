@@ -45,34 +45,50 @@ class PlanService
     }
 
     /**
-     * Save the plan as drawn: boundary, size, and every shape (new ones created,
-     * missing non-unit ones removed).
+     * Save the plan as drawn: boundary, size, and every shape in its stack's order (new ones
+     * created, missing non-unit ones removed). The ids new shapes got, by the key the editor
+     * gave them.
      *
      * @param array{width: float, height: float, polygon: array, items: array} $data
+     *
+     * @return array<string, int>
      */
-    public function update(Plan $plan, array $data): void
+    public function update(Plan $plan, array $data): array
     {
-        DB::transaction(function () use ($plan, $data) {
+        return DB::transaction(function () use ($plan, $data) {
             $plan->update(collect($data)->only('width', 'height', 'polygon')->all());
 
             $kept = [];
+            $created = [];
 
-            foreach ($data['items'] as $item) {
+            foreach (array_values($data['items']) as $position => $item) {
                 $attributes = [
                     'floor'    => $item['floor'],
+                    'position' => $position,
                     'polygon'  => $item['polygon'],
                     'name'     => $item['name'] ?? null,
                     'metadata' => isset($item['color']) ? ['color' => $item['color']] : null,
                 ];
 
-                $kept[] = isset($item['id'])
-                    ? tap($plan->items()->whereKey($item['id'])->first())->update($attributes)->id
-                    : $plan->items()->create([...$attributes, 'type' => $item['type']])->id;
+                if (isset($item['id'])) {
+                    $existing = $plan->items()->whereKey($item['id'])->first();
+                    // A unit stays a unit; any other shape may change its kind
+                    $existing->update($existing->unit_id ? $attributes : [...$attributes, 'type' => $item['type']]);
+                    $kept[] = $existing->id;
+                } else {
+                    $new = $plan->items()->create([...$attributes, 'type' => $item['type']]);
+                    $kept[] = $new->id;
+                    if (isset($item['key'])) {
+                        $created[$item['key']] = $new->id;
+                    }
+                }
             }
 
             $plan->items()->whereNull('unit_id')->whereNotIn('id', $kept)->delete();
 
             DB::afterCommit(fn () => rescue(fn () => ProjectChanged::dispatch($plan->project_id, 'plan', 'updated', $plan->id, Auth::id())));
+
+            return $created;
         });
     }
 }

@@ -53,8 +53,27 @@ const STARTS: Record<ShapeType, { width: number; height: number; triangle?: bool
   other: { width: 0.12, height: 0.1 },
 };
 
-let counter = 0;
-const newKey = () => `new-${++counter}`;
+/** A key no other shape has, even one drawn before a reload */
+const newKey = () => `new-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
+/**
+ * What a state holds, whatever keys its shapes have: the canvas and each shape by its id
+ * (one without an id is unsaved, so the state cannot match the server's)
+ */
+const signature = (state: string) => {
+  const { canvas, items } = JSON.parse(state) as { canvas: unknown; items: EditableItem[] };
+  return JSON.stringify({
+    canvas,
+    items: items.map(({ id, type, floor, name, color, polygon }) => ({
+      id,
+      type,
+      floor,
+      name,
+      color,
+      polygon,
+    })),
+  });
+};
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
@@ -95,6 +114,13 @@ export class PlanModel {
   private past: string[] = [];
   private future: string[] = [];
   private current: string;
+  /** The state last saved: unsaved is anything else */
+  private saved: string;
+  /** The ids the server gave shapes drawn here, by their key (kept across undo) */
+  private ids = new Map<string, number>();
+  /** A shape copied (Ctrl+C), to paste as often as wanted */
+  private clipboard: EditableItem | null = null;
+  private planId: number;
   private listeners = new Set<() => void>();
   /** Grows on every change: what React compares */
   version = 0;
@@ -114,7 +140,10 @@ export class PlanModel {
       polygon: clone(item.polygon),
       unit: item.unit,
     }));
+    this.planId = plan.id;
     this.current = this.snapshot();
+    this.saved = this.current;
+    this.recall();
   }
 
   subscribe = (listener: () => void) => {
@@ -166,7 +195,7 @@ export class PlanModel {
   }
 
   get dirty() {
-    return this.past.length > 0;
+    return this.current !== this.saved;
   }
 
   round = (value: number) =>
@@ -182,6 +211,28 @@ export class PlanModel {
     if (this.editingBoundary) this.canvas.polygon = polygon;
     else if (this.selectedItem) this.selectedItem.polygon = polygon;
     this.changed();
+  }
+
+  /** Pick one of the active polygon's corners */
+  selectVertex(index: number | null) {
+    this.selectedVertex = index;
+    this.changed();
+  }
+
+  /** Change the selected shape as one types (kept in the history on commit) */
+  edit(changes: Partial<Pick<EditableItem, 'name' | 'color'>>) {
+    const item = this.selectedItem;
+    if (!item) return;
+    Object.assign(item, changes);
+    this.changed();
+  }
+
+  /** Name a shape (what people read on it) */
+  rename(key: string, name: string) {
+    const item = this.items.find((one) => one.key === key);
+    if (!item) return;
+    item.name = name;
+    this.commit();
   }
 
   /** Change the selected shape (its kind, name, colour, floor) */
@@ -223,6 +274,7 @@ export class PlanModel {
       if (this.past.length > 100) this.past.shift();
       this.future = [];
       this.current = next;
+      this.remember();
     }
     this.changed();
   }
@@ -230,7 +282,11 @@ export class PlanModel {
   private restore(state: string) {
     const parsed = JSON.parse(state);
     this.canvas = parsed.canvas;
-    this.items = parsed.items;
+    // A shape saved since that state keeps the id it got
+    this.items = parsed.items.map((item: EditableItem) => ({
+      ...item,
+      id: item.id ?? this.ids.get(item.key) ?? null,
+    }));
     this.current = state;
     if (this.selected !== 'boundary' && !this.items.some((item) => item.key === this.selected)) {
       this.selected = null;
@@ -243,6 +299,7 @@ export class PlanModel {
     if (previous === undefined) return;
     this.future.push(this.current);
     this.restore(previous);
+    this.remember();
   }
 
   redo() {
@@ -250,13 +307,120 @@ export class PlanModel {
     if (next === undefined) return;
     this.past.push(this.current);
     this.restore(next);
+    this.remember();
   }
 
-  markSaved() {
-    this.past = [];
-    this.future = [];
+  /**
+   * What was saved is now the plan: the ids its new shapes got (by key), kept for undo.
+   * `state` is what was sent (changes since then stay unsaved).
+   */
+  markSaved(state: string = this.current, ids: Record<string, number> = {}) {
+    Object.entries(ids).forEach(([key, id]) => {
+      this.ids.set(key, id);
+      const item = this.items.find((one) => one.key === key);
+      if (item) item.id = id;
+    });
+    this.saved = state === this.current ? this.snapshot() : state;
     this.current = this.snapshot();
+    this.remember();
     this.changed();
+  }
+
+  /** The state as it is now, to send and to mark saved once sent */
+  get state() {
+    return this.current;
+  }
+
+  /**
+   * The history kept in the browser, so undo survives a reload: taken back only when what
+   * it last saved is still the plan as the server has it (else someone changed it since)
+   */
+  private get storageKey() {
+    return `mtav.plan-history.${this.planId}`;
+  }
+
+  private remember() {
+    try {
+      localStorage.setItem(
+        this.storageKey,
+        JSON.stringify({
+          saved: signature(this.saved),
+          current: this.current,
+          past: this.past.slice(-40),
+          future: this.future.slice(-40),
+          ids: [...this.ids],
+        }),
+      );
+    } catch {
+      // No room, or no storage: undo lasts until the page closes
+    }
+  }
+
+  private recall() {
+    try {
+      const kept = JSON.parse(localStorage.getItem(this.storageKey) ?? 'null');
+      if (!kept || kept.saved !== signature(this.current) || signature(kept.current) !== kept.saved)
+        return;
+      this.ids = new Map(kept.ids);
+      this.past = kept.past;
+      this.future = kept.future;
+      this.restore(kept.current);
+      this.saved = this.current;
+    } catch {
+      // Unreadable: start afresh
+    }
+  }
+
+  /** Bring the selected shape to the front of the stack, or send it to the back */
+  restack(where: 'front' | 'back') {
+    const item = this.selectedItem;
+    if (!item) return;
+    this.items = this.items.filter((one) => one !== item);
+    if (where === 'front') this.items.push(item);
+    else this.items.unshift(item);
+    this.commit();
+  }
+
+  /** A copy of the selected shape right on top of it, selected (Ctrl+drag takes it away) */
+  cloneInPlace() {
+    const item = this.selectedItem;
+    if (!item || item.unit) return false;
+    const copy = { ...clone(item), key: newKey(), id: null };
+    this.items.push(copy);
+    this.selected = copy.key;
+    this.changed();
+    return true;
+  }
+
+  /** What lies beneath the floor shown, nearest first: seen faintly, to build on */
+  get beneath() {
+    return this.items.filter((item) => item.floor < this.floor);
+  }
+
+  /** Copy the selected shape (never a unit: a unit is one of a kind) */
+  copy() {
+    const item = this.selectedItem;
+    if (item && !item.unit) this.clipboard = clone(item);
+  }
+
+  get canPaste() {
+    return this.clipboard !== null;
+  }
+
+  /** A copy of what was copied, a little aside, on the floor shown */
+  paste() {
+    if (!this.clipboard) return;
+    const copy = {
+      ...clone(this.clipboard),
+      key: newKey(),
+      id: null,
+      floor: this.floor,
+      polygon: this.translate(this.clipboard.polygon, GRID * 4, GRID * 4),
+    };
+    this.clipboard = copy;
+    this.items.push(copy);
+    this.selected = copy.key;
+    this.commit();
   }
 
   /** Geometry */
@@ -408,6 +572,7 @@ export class PlanModel {
       polygon: this.canvas.polygon,
       items: this.items.map((item) => ({
         id: item.id,
+        key: item.key,
         type: item.type,
         floor: item.floor,
         name: item.name || null,
