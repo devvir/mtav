@@ -27,6 +27,16 @@ return [
     'demo_password' => env('DEMO_PASSWORD'),
 
     /*
+    | The deployment's owner, its first superadmin: created from these while there is no
+    | account at all (without them, the site shows only that it is under construction)
+    */
+    'owner' => [
+        'email'    => env('OWNER_EMAIL'),
+        'password' => env('OWNER_PASSWORD'),
+        'name'     => env('OWNER_NAME'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

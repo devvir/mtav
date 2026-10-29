@@ -65,9 +65,10 @@ return [
 
     'notifications_read' => 'Todas as notificações foram marcadas como lidas.',
 
-    'deploy_dev'        => 'O dev está sendo implantado a partir de :branch. Acompanhe abaixo.',
-    'deploy_production' => 'A produção está sendo implantada: aguarda a aprovação no GitHub.',
-    'deploy_rollback'   => ':environment volta para a versão anterior.',
-    'deploy_refused'    => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
-    'upload_too_large'  => 'Era demais para enviar de uma vez: compartilhe menos arquivos, ou menores.',
+    'deploy_dev'              => 'O dev está sendo implantado a partir de :branch. Acompanhe abaixo.',
+    'deploy_production'       => 'A produção está sendo implantada: aguarda a aprovação no GitHub.',
+    'deploy_rollback'         => ':environment volta para a versão anterior.',
+    'deploy_refused'          => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
+    'upload_too_large'        => 'Era demais para enviar de uma vez: compartilhe menos arquivos, ou menores.',
+    'platform_settings_saved' => 'As configurações da plataforma foram salvas.',
 ];

@@ -51,6 +51,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
 
     protected $casts = [
         'is_superadmin'     => 'boolean',
+        'is_owner'          => 'boolean',
         'email_public'      => 'boolean',
         'phone_public'      => 'boolean',
         'password'          => 'hashed',

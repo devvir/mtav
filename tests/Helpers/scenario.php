@@ -122,5 +122,21 @@ function aLotteryInProgress(Project $project): LotteryRun
         'status'     => LotteryRunStatus::RUNNING,
         'solver'     => 'test',
         'started_at' => now(),
+        'reveal_at'  => now()->addMinutes(5),
     ]);
+}
+
+/**
+ * A PNG that is a few bytes yet claims to be enormous (what opening it would cost): a
+ * real header, no picture behind it
+ */
+function aPixelBomb(string $name = 'bomb.png', int $side = 20000): Illuminate\Http\UploadedFile
+{
+    $chunk = fn (string $type, string $data) => pack('N', strlen($data)) . $type . $data . pack('N', crc32($type . $data));
+    $png = "\x89PNG\r\n\x1a\n"
+        . $chunk('IHDR', pack('NNCCCCC', $side, $side, 8, 2, 0, 0, 0))
+        . $chunk('IDAT', gzcompress(''))
+        . $chunk('IEND', '');
+
+    return Illuminate\Http\UploadedFile::fake()->createWithContent($name, $png);
 }

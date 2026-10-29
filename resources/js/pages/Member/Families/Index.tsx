@@ -1,4 +1,5 @@
 import { FamilyDetails } from '@/components/domain/FamilyDetails';
+import { PeopleViews } from '@/components/domain/PeopleViews';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { FamilyForm } from '@/components/forms/FamilyForm';
@@ -66,7 +67,7 @@ export default function FamiliesIndex({
   return (
     <>
       <PageHeader
-        title={_('Families')}
+        title={_('People')}
         actions={
           canManage && !nothingYet ? (
             <Button leftSection={<IconPlus size={18} />} onClick={adding.open}>
@@ -82,6 +83,7 @@ export default function FamiliesIndex({
           </InfoTip>
         }
       />
+      <PeopleViews />
       {nothingYet ? (
         <EmptyState
           icon={IconUsersGroup}

@@ -14,7 +14,9 @@ it('explains the lottery and walks a member through their ranking', function () 
 
     $this->as($member);
 
+    // Once the page is whole (its plan arrives after it)
     visit(route('lottery.show', $project))
+        ->assertPresent('[aria-label="Project plan"]')
         ->click('[aria-label="About: How the lottery works"]')
         ->assertSee('only ties are drawn at random')
         ->click('Show me how')
@@ -31,7 +33,9 @@ it('closes an explanation once read', function () {
     $project = aProject();
     $this->as(aMemberOf(aFamily($project, aUnitType($project))));
 
+    // Once the page is whole (its plan arrives after it)
     visit(route('lottery.show', $project))
+        ->assertPresent('[aria-label="Project plan"]')
         ->click('[aria-label="About: How the lottery works"]')
         ->assertSee('only ties are drawn at random')
         ->click('Got it')
@@ -44,7 +48,9 @@ it('goes back and forth through a tour, and ends it at any step', function () {
     aUnit($type, ['identifier' => 'A-101']);
     $this->as(aMemberOf(aFamily($project, $type)));
 
+    // Once the page is whole (its plan arrives after it)
     visit(route('lottery.show', $project))
+        ->assertPresent('[aria-label="Project plan"]')
         ->click('[aria-label="About: How the lottery works"]')
         ->click('Show me how')
         ->click('Next')
@@ -61,7 +67,9 @@ it('finishes a tour on its last step', function () {
     aUnit($type, ['identifier' => 'A-101']);
     $this->as(aMemberOf(aFamily($project, $type)));
 
+    // Once the page is whole (its plan arrives after it)
     visit(route('lottery.show', $project))
+        ->assertPresent('[aria-label="Project plan"]')
         ->click('[aria-label="About: How the lottery works"]')
         ->click('Show me how')
         ->click('Next')

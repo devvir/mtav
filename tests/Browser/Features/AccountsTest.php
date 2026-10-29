@@ -177,7 +177,10 @@ it('changes the profile picture', function () {
     // The upload done first: the picture follows it
     attachFile(visit(route('profile.edit')), 'input[type="file"]', pngFile('me.png'))
         ->assertSee('Your picture was changed.')
-        ->assertPresent('.shell-account img');
+        ->assertPresent('.shell-account img')
+        // Clicked, it opens large
+        ->click('[aria-label^="See the photo of"]')
+        ->assertPresent('[role="dialog"] .avatar-large');
 
     expect($user->fresh()->avatar)->not->toBeNull();
 });

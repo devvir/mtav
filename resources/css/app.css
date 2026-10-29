@@ -96,6 +96,27 @@
   gap: 6px;
   margin-left: auto;
 }
+/* Quick actions: quiet, in words, with room before the bell */
+.shell-quick {
+  margin-right: 10px;
+  color: var(--mtav-muted);
+  font-weight: 600;
+}
+.shell-quick:hover {
+  color: var(--mtav-text);
+}
+@media (max-width: 36em) {
+  .shell-quick {
+    margin-right: 2px;
+    padding-inline: 10px;
+  }
+  .shell-quick .mantine-Button-section {
+    margin: 0;
+  }
+  .shell-quick-label {
+    display: none;
+  }
+}
 
 .shell-switcher {
   display: inline-flex;
@@ -831,21 +852,22 @@
   gap: 12px;
   align-items: start;
 }
-/* The rail at the left of the canvas; the selected shape's details at its right */
+/* The rail at the left of the canvas; the selected shape's details at its right, only where
+   they fit beside it (else the shape's menu holds all they do) */
 @media (min-width: 62em) {
   .plan-editor {
     grid-template-columns: auto minmax(0, 1fr);
   }
-  .plan-editor > :last-child {
-    grid-column: 1 / -1;
-  }
+}
+.plan-details {
+  display: none;
 }
 @media (min-width: 88em) {
   .plan-editor {
     grid-template-columns: auto minmax(0, 1fr) 17rem;
   }
-  .plan-editor > :last-child {
-    grid-column: auto;
+  .plan-details {
+    display: block;
   }
 }
 .plan-canvas {
@@ -854,6 +876,117 @@
   height: auto;
   touch-action: none;
   user-select: none;
+}
+/* Read, a plan zooms and moves as a map does: one finger still scrolls the page. Never
+   taller than most of the window, however small the site (it zooms; full screen has room) */
+.plan-view .plan-canvas {
+  max-height: 70vh;
+  touch-action: pan-x pan-y;
+}
+.plan-view .plan-canvas[data-zoomed] {
+  cursor: grab;
+}
+.plan-view .plan-canvas[data-zoomed]:active {
+  cursor: grabbing;
+}
+.plan-zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.plan-zoom-hint {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 4;
+  padding: 8px 14px;
+  border-radius: var(--mantine-radius-md);
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition:
+    opacity 250ms,
+    transform 250ms;
+}
+.plan-zoom-hint[data-shown] {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+/* The canvas's bottom edge, to drag it taller or shorter */
+.plan-grip {
+  height: 12px;
+  margin-top: -6px;
+  position: relative;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.plan-grip::after {
+  content: '';
+  position: absolute;
+  inset: 4px 50% auto;
+  width: 44px;
+  height: 4px;
+  margin-left: -22px;
+  border-radius: 2px;
+  background: var(--mtav-border-strong);
+  transition: background-color 150ms;
+}
+.plan-grip:hover::after,
+.plan-grip:active::after {
+  background: var(--mtav-brand);
+}
+/* Naming a shape where it stands */
+.plan-name-field {
+  position: absolute;
+  z-index: 6;
+  width: 180px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  border-radius: var(--mantine-radius-sm);
+  animation: plan-hint-in 200ms ease-out;
+}
+/* A shape's colours at hand, in its menu */
+.plan-swatches {
+  display: grid;
+  grid-template-columns: repeat(9, 20px);
+  gap: 6px;
+  padding: 8px 12px;
+}
+.plan-swatches [aria-pressed='true'] {
+  outline: 2px solid var(--mtav-brand);
+  outline-offset: 2px;
+}
+/* A plan's panel over the whole window */
+.plan-panel[data-full] {
+  position: fixed;
+  inset: 12px;
+  z-index: 150;
+  overflow: auto;
+  background: var(--mtav-surface-solid);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.55);
+  animation: plan-full-in 220ms ease-out;
+}
+.plan-panel[data-full] .plan-view .plan-canvas {
+  max-height: calc(100dvh - 150px);
+}
+.plan-panel[data-full] .plan-palette {
+  top: 0;
+}
+html[data-plan-full] {
+  overflow: hidden;
+}
+@keyframes plan-full-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 /* A dragged shape lined up with another: thin, dashed, in the accent */
 .plan-guide {
@@ -1169,8 +1302,14 @@
   pointer-events: none;
 }
 /* High contrast: plain fills and strong lines, no texture, light or depth */
+.plan-play-shade {
+  fill: #1c1917;
+  opacity: 0.25;
+  transform: translate(1.5px, 2px);
+}
 [data-high-contrast] .plan-canvas .plan-light,
-[data-high-contrast] .plan-canvas .plan-trees {
+[data-high-contrast] .plan-canvas .plan-trees,
+[data-high-contrast] .plan-canvas .plan-play-shade {
   display: none;
 }
 [data-high-contrast] .plan-canvas * {
@@ -1212,4 +1351,175 @@
 .profile-section {
   padding: 20px;
   border-radius: var(--mtav-radius-card);
+}
+
+/* A person's photo, opened large */
+.avatar-expand {
+  border-radius: 50%;
+  cursor: zoom-in;
+  transition: transform 150ms;
+}
+.avatar-expand:hover {
+  transform: scale(1.04);
+}
+.avatar-large {
+  display: block;
+  width: min(80vw, 560px);
+  max-height: 75dvh;
+  object-fit: contain;
+}
+
+/* A deployment not open yet */
+.under-construction {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+/* The lottery's plan and ranking, lighting each other up */
+.plan-view [data-press] {
+  cursor: grab;
+}
+.plan-view [data-focused] .plan-outline {
+  stroke: var(--mtav-brand);
+  stroke-opacity: 1;
+  stroke-width: 3.5;
+  animation: plan-focus 1s ease-in-out infinite alternate;
+}
+@keyframes plan-focus {
+  to {
+    stroke-width: 1.5;
+  }
+}
+.rank-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.rank-slots-hint {
+  grid-column: 1 / -1;
+}
+.rank-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--mtav-border-strong);
+  border-radius: var(--mantine-radius-md);
+  font-weight: 650;
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    transform 150ms;
+}
+.rank-slot[data-focused] {
+  border-style: solid;
+  border-color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+}
+.rank-slot[data-over] {
+  border-style: solid;
+  border-color: var(--mtav-brand);
+  background: var(--mtav-brand-soft);
+  transform: scale(1.04);
+}
+.rank-slot-position {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--mantine-color-brand-filled);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+.rank-carried {
+  position: fixed;
+  z-index: 400;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--mantine-color-brand-filled);
+  color: #fff;
+  font-weight: 700;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.3);
+}
+html[data-carrying],
+html[data-carrying] * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+.ranking-item[data-flash] {
+  animation: rank-flash 1600ms ease-out;
+}
+@keyframes rank-flash {
+  0%,
+  30% {
+    border-color: var(--mtav-brand);
+    background: var(--mtav-brand-soft);
+    box-shadow: 0 0 0 3px var(--mtav-brand-soft);
+  }
+}
+
+/* A lottery under way, step by step */
+.lottery-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lottery-steps li {
+  color: var(--mtav-muted);
+  transition: color 250ms;
+}
+.lottery-steps li[data-current],
+.lottery-steps li[data-done] {
+  color: var(--mtav-text);
+}
+.lottery-step-dot {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+}
+.lottery-step-dot::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mtav-border-strong);
+}
+
+/* People, by family or everyone */
+.people-views {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.people-views a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The illustrated manuals: pictures of the real app, marked */
+.guide figure {
+  margin: 16px 0 24px;
+}
+.guide figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--mtav-border);
+  border-radius: var(--mantine-radius-md);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+}
+.guide figcaption {
+  margin-top: 8px;
+  color: var(--mtav-muted);
+  font-size: 14px;
 }

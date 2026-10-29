@@ -5,22 +5,44 @@ import type { ProjectEvent } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
 import { Anchor, Badge, Button, Card, Group, Stack } from '@mantine/core';
 import { IconCalendarQuestion, IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
+import { useState } from 'react';
 
-/** An event in a list: when, where, and one-tap attendance when it asks for it */
 /** The current query (the tab, a search), with this event's details */
 const detailsQuery = (id: number) => ({
   ...Object.fromEntries(new URLSearchParams(window.location.search)),
   event: id,
 });
 
+/**
+ * An event in a list: when, where, and one-tap attendance when it asks for it (shown at
+ * once, back as it was should the server refuse it)
+ */
 export function EventCard({ event, href }: { event: ProjectEvent; href?: string }) {
   const detailsHere = routeIs('events.index');
-  const rsvp = (attending: boolean) =>
+  const [attending, setAttending] = useState(event.attending);
+  const [given, setGiven] = useState(event.attending);
+  if (given !== event.attending) {
+    setGiven(event.attending);
+    setAttending(event.attending);
+  }
+  const rsvp = (going: boolean) => {
+    const before = attending;
+    let done = false;
+    setAttending(going);
     router.put(
       route('events.rsvp', event.id),
-      { attending },
-      { preserveScroll: true, only: ['events', 'event', 'flash'] },
+      { attending: going },
+      {
+        preserveScroll: true,
+        only: ['events', 'event', 'flash'],
+        // Refused, cut off or cancelled: back as it was
+        onSuccess: () => {
+          done = true;
+        },
+        onFinish: () => !done && setAttending(before),
+      },
     );
+  };
   const date = event.start_date ? new Date(event.start_date) : null;
 
   return (
@@ -80,8 +102,8 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
           <Stack gap={6}>
             <Button
               size="xs"
-              variant={event.attending === true ? 'filled' : 'default'}
-              aria-pressed={event.attending === true}
+              variant={attending === true ? 'filled' : 'default'}
+              aria-pressed={attending === true}
               leftSection={<IconCheck size={14} />}
               onClick={() => rsvp(true)}
             >
@@ -89,9 +111,9 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
             </Button>
             <Button
               size="xs"
-              variant={event.attending === false ? 'light' : 'default'}
-              color={event.attending === false ? 'gray' : undefined}
-              aria-pressed={event.attending === false}
+              variant={attending === false ? 'light' : 'default'}
+              color={attending === false ? 'gray' : undefined}
+              aria-pressed={attending === false}
               leftSection={<IconX size={14} />}
               onClick={() => rsvp(false)}
             >

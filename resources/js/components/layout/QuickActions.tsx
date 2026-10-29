@@ -1,7 +1,7 @@
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { Link, usePage } from '@inertiajs/react';
-import { ActionIcon, Menu, Tooltip } from '@mantine/core';
+import { Button, Menu } from '@mantine/core';
 import {
   IconCalendarPlus,
   IconHomePlus,
@@ -79,17 +79,17 @@ export function QuickActions() {
   return (
     <Menu position="bottom-end" width={250} opened={opened} onChange={setOpened}>
       <Menu.Target>
-        <Tooltip label={_('Quick actions')} disabled={opened}>
-          <ActionIcon
-            size="xl"
-            radius="xl"
-            variant="subtle"
-            color="gray"
-            aria-label={_('Quick actions')}
-          >
-            <IconPlus size={22} stroke={1.8} />
-          </ActionIcon>
-        </Tooltip>
+        {/* Said in words where there is room; on phones, its sign alone */}
+        <Button
+          variant="subtle"
+          color="gray"
+          radius="xl"
+          className="shell-quick"
+          aria-label={_('Quick actions')}
+          leftSection={<IconPlus size={18} stroke={1.8} />}
+        >
+          <span className="shell-quick-label">{_('Quick actions')}</span>
+        </Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>{_('Quick actions')}</Menu.Label>

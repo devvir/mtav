@@ -1,4 +1,4 @@
-import { PlanModel } from '@/components/plan/model';
+import { floorsBeneath, layered, PlanModel } from '@/components/plan/model';
 import type { Plan } from '@/types/models';
 
 const plan = (): Plan => ({
@@ -175,5 +175,68 @@ describe('the plan editor', () => {
       [null, 'street'],
     ]);
     expect(payload.width).toBe(800);
+  });
+
+  it('draws units over every other shape, each layer in its own order', () => {
+    const editor = new PlanModel(plan());
+    editor.add('green');
+    editor.add('street');
+
+    expect(editor.visible.map((item) => item.type)).toEqual(['green', 'street', 'unit']);
+
+    // Sent to the back, the street goes behind the green area, never behind nothing else
+    editor.restack('back');
+    expect(editor.visible.map((item) => item.type)).toEqual(['street', 'green', 'unit']);
+    expect(layered([{ type: 'unit' }, { type: 'green' }])).toEqual([
+      { type: 'green' },
+      { type: 'unit' },
+    ]);
+  });
+
+  it('moves a shape a floor up or down, and shows that floor', () => {
+    const editor = new PlanModel(plan());
+    editor.select('item-10');
+
+    editor.moveFloor(1);
+    expect([editor.selectedItem?.floor, editor.floor]).toEqual([1, 1]);
+
+    editor.moveFloor(-1);
+    editor.moveFloor(-1);
+    expect([editor.selectedItem?.floor, editor.allFloors]).toEqual([-1, [-1, 0]]);
+  });
+
+  it('groups the floors beneath one, lowest first', () => {
+    const items = [
+      { type: 'unit', floor: 1 },
+      { type: 'green', floor: 0 },
+      { type: 'street', floor: 1 },
+      { type: 'unit', floor: 2 },
+    ];
+
+    expect(floorsBeneath(items, 2)).toEqual([
+      { floor: 0, items: [{ type: 'green', floor: 0 }] },
+      {
+        floor: 1,
+        items: [
+          { type: 'street', floor: 1 },
+          { type: 'unit', floor: 1 },
+        ],
+      },
+    ]);
+  });
+
+  it('makes the canvas taller or shorter, never shorter than what is drawn on it', () => {
+    const editor = new PlanModel(plan());
+
+    editor.setCanvasHeight(902);
+    expect(editor.canvas.height).toBe(900);
+    // The boundary was the canvas's edge: it follows
+    expect(editor.canvas.polygon).toContainEqual([800, 900]);
+
+    editor.setCanvasHeight(10);
+    expect(editor.canvas.height).toBe(100);
+    editor.commit();
+    editor.undo();
+    expect(editor.canvas.height).toBe(600);
   });
 });

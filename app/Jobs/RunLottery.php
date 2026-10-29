@@ -48,7 +48,7 @@ class RunLottery implements ShouldQueue
             $result = app(LotteryOrchestrator::class, ['solver' => $this->solver($run)])
                 ->execute($lottery->manifest($run));
 
-            $lottery->complete($run, $result);
+            $lottery->solved($run, $result);
         } catch (Throwable $e) {
             report($e);
 

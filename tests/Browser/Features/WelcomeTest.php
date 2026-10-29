@@ -44,3 +44,13 @@ it('speaks the language a guest picks, and their account keeps it', function () 
 
     expect($user->fresh()->locale)->toBe('es_UY');
 });
+
+it('shows every photo it names, families building among them', function () {
+    $page = visit(route('home'))->assertSee('Families building their homes, by mutual aid');
+
+    // Brought into view, so that the lazy ones load too
+    $page->script("() => document.querySelectorAll('.welcome-photo img').forEach((img) => { img.loading = 'eager'; })");
+    $page->wait(1);
+
+    expect($page->script("() => [...document.querySelectorAll('.welcome-photo img')].filter((img) => !img.naturalWidth).map((img) => img.src)"))->toBe([]);
+});

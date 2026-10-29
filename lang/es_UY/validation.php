@@ -238,4 +238,5 @@ return [
     'limit_members'     => 'Los proyectos sin aprobar pueden tener hasta :max personas.',
     'limit_invitations' => 'Los proyectos sin aprobar pueden enviar hasta :max invitaciones por día.',
     'limit_storage'     => 'Los proyectos sin aprobar pueden guardar hasta :max MB de archivos.',
+    'image_too_large'   => 'Se pueden compartir imágenes de hasta :max megapíxeles; esta tiene más.',
 ];

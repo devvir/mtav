@@ -22,6 +22,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { ActionIcon, VisuallyHidden } from '@mantine/core';
 import { IconArrowDown, IconArrowUp, IconGripVertical } from '@tabler/icons-react';
 import {
+  useEffect,
+  useRef,
   useState,
   type KeyboardEventHandler,
   type MouseEventHandler,
@@ -35,16 +37,22 @@ export const moved = (units: Unit[], from: number, to: number): Unit[] =>
 /**
  * A family's ranking, most wanted first. Reordered by dragging a row (a short press on touch screens),
  * with the keyboard (Space picks a row up, the arrows move it, Space drops it), or with the
- * arrow buttons; every move is announced.
+ * arrow buttons; every move is announced. The unit being moved or pointed at is told
+ * (`onFocus`, for the plan beside it to light it up); `flash` lights one up a moment,
+ * brought into view (one picked on the plan).
  */
 export function RankingList({
   units,
   onChange,
   disabled,
+  onFocus,
+  flash,
 }: {
   units: Unit[];
   onChange: (units: Unit[]) => void;
   disabled?: boolean;
+  onFocus?: (unitId: number | null) => void;
+  flash?: { unit: number; at: number } | null;
 }) {
   const [announcement, setAnnouncement] = useState('');
   const sensors = useSensors(
@@ -100,7 +108,12 @@ export function RankingList({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
+      onDragStart={({ active }) => onFocus?.(Number(active.id))}
+      onDragCancel={() => onFocus?.(null)}
+      onDragEnd={(event) => {
+        onFocus?.(null);
+        onDragEnd(event);
+      }}
       accessibility={{
         announcements,
         screenReaderInstructions: {
@@ -124,6 +137,8 @@ export function RankingList({
               last={index === units.length - 1}
               disabled={disabled}
               onMove={move}
+              onFocus={onFocus}
+              flash={flash?.unit === unit.id ? flash.at : null}
             />
           ))}
         </ol>
@@ -141,12 +156,17 @@ function RankingItem({
   last,
   disabled,
   onMove,
+  onFocus,
+  flash,
 }: {
   unit: Unit;
   index: number;
   last: boolean;
   disabled?: boolean;
   onMove: (from: number, to: number) => void;
+  onFocus?: (unitId: number | null) => void;
+  /** When it was picked elsewhere: lit up a moment, brought into view */
+  flash: number | null;
 }) {
   const {
     attributes,
@@ -161,10 +181,22 @@ function RankingItem({
     disabled,
   });
 
+  const row = useRef<HTMLLIElement | null>(null);
+  useEffect(() => {
+    if (flash) row.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [flash]);
+
   // The whole row follows the pointer; the keyboard picks it up from its grip, a button of its own
   return (
     <li
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node);
+        row.current = node;
+      }}
+      key={flash ?? undefined}
+      data-flash={flash ? true : undefined}
+      onMouseEnter={() => onFocus?.(unit.id)}
+      onMouseLeave={() => onFocus?.(null)}
       className="ranking-item ds-surface"
       data-first={index === 0 || undefined}
       data-dragging={isDragging || undefined}

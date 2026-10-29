@@ -1,8 +1,9 @@
-import { bounds, DEFAULT_COLORS } from '@/components/plan/model';
+import { bounds, DEFAULT_COLORS, floorsBeneath, layered } from '@/components/plan/model';
 import { PlanDefs, PlanGround, PlanHint, PlanShape, type Kind } from '@/components/plan/render';
+import { usePanZoom, ZoomControls } from '@/components/plan/zoom';
 import { _ } from '@/lib/translations';
 import type { Plan, PlanItem } from '@/types/models';
-import { useId, useRef } from 'react';
+import { useId, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 
 /**
  * The part of the canvas worth showing: every shape on every floor (switching floors keeps
@@ -30,7 +31,8 @@ export const frame = (plan: Plan) => {
 /**
  * The project plan, read-only: the boundary and every shape, units labelled. Units of the
  * viewer's type stand out; the viewer's own unit most. Given a ranking, each of its units
- * shows its place in it.
+ * shows its place in it. It zooms and moves as a map does. `focused` lights a unit up (the
+ * one a ranking is moving); `onUnitPress` hears a press on a unit `pressable` allows.
  */
 export function PlanView({
   plan,
@@ -38,6 +40,9 @@ export function PlanView({
   highlightType,
   ownUnit,
   ranks,
+  focused,
+  pressable,
+  onUnitPress,
 }: {
   plan: Plan;
   floor?: number;
@@ -45,11 +50,17 @@ export function PlanView({
   ownUnit?: number | null;
   /** A unit's place in the family's ranking, by unit id */
   ranks?: Map<number, number>;
+  focused?: number | null;
+  pressable?: (unitId: number) => boolean;
+  onUnitPress?: (unitId: number, event: ReactPointerEvent) => void;
 }) {
   const id = `plan${useId().replace(/:/g, '')}`;
   const frameRef = useRef<HTMLDivElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+  const zoom = usePanZoom(svg, frame(plan));
   // A unit waiting to be placed is not on the plan yet
-  const onFloor = plan.items.filter((item) => item.placed !== false && item.floor === floor);
+  const placed = plan.items.filter((item) => item.placed !== false);
+  const onFloor = layered(placed.filter((item) => item.floor === floor));
   // A colour its admins chose (a kind's own default is its material, not a choice)
   const tint = (item: PlanItem) => {
     const color = item.metadata?.color as string | undefined;
@@ -64,78 +75,91 @@ export function PlanView({
   };
 
   return (
-    <div className="plan-frame" ref={frameRef}>
+    <div className="plan-frame plan-view" ref={frameRef}>
       <svg
-        viewBox={frame(plan)}
+        ref={svg}
+        viewBox={zoom.viewBox}
         className="plan-canvas ds-surface"
+        data-zoomed={zoom.zoomed || undefined}
         role="img"
         aria-label={_('Project plan')}
       >
         <PlanDefs id={id} />
         <PlanGround id={id} polygon={plan.polygon} />
-        {/* The floors beneath this one, faintly: what it stands on */}
+        {/* The floors beneath this one, faintly, each seen as it looks (its shapes one image) */}
         {floor > 0 ? (
           <g className="plan-beneath" aria-hidden>
-            {plan.items
-              .filter((item) => item.placed !== false && item.floor < floor)
-              .map((item) => (
-                <g key={item.id} data-depth={Math.min(floor - item.floor, 3)}>
+            {floorsBeneath(placed, floor).map((below) => (
+              <g key={below.floor} data-depth={Math.min(floor - below.floor, 3)}>
+                {below.items.map((item) => (
                   <PlanShape
+                    key={item.id}
                     id={id}
                     seed={String(item.id)}
                     kind={item.type as Kind}
                     polygon={item.polygon}
                     color={tint(item)}
                   />
-                </g>
-              ))}
+                ))}
+              </g>
+            ))}
           </g>
         ) : null}
         {onFloor.map((item, index) => {
           const rank = item.unit ? ranks?.get(item.unit.id) : undefined;
           const box = bounds(item.polygon);
+          const unitId = item.unit?.id;
+          const presses = unitId !== undefined && Boolean(onUnitPress && pressable?.(unitId));
           return (
-            <PlanShape
+            <g
               key={item.id}
-              id={id}
-              seed={String(item.id)}
-              kind={item.type as Kind}
-              polygon={item.polygon}
-              color={tint(item)}
-              fill={fill(item)}
-              label={item.unit?.identifier ?? item.name}
-              covers={onFloor.slice(index + 1).map((above) => above.polygon)}
-              hint={
-                item.unit
-                  ? [
-                      item.unit.identifier,
-                      rank ? _('number {position} in your ranking', { position: rank }) : null,
-                      item.unit.family?.name,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')
-                  : undefined
-              }
+              data-unit={unitId}
+              data-focused={(unitId !== undefined && unitId === focused) || undefined}
+              data-press={presses || undefined}
+              onPointerDown={presses ? (event) => onUnitPress!(unitId!, event) : undefined}
             >
-              {rank ? (
-                <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
-                  <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
-                  <text
-                    x={box.minX + 9}
-                    y={box.minY + 9}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={10}
-                    fontWeight={800}
-                  >
-                    {rank}
-                  </text>
-                </g>
-              ) : null}
-            </PlanShape>
+              <PlanShape
+                id={id}
+                seed={String(item.id)}
+                kind={item.type as Kind}
+                polygon={item.polygon}
+                color={tint(item)}
+                fill={fill(item)}
+                label={item.unit?.identifier ?? item.name}
+                covers={onFloor.slice(index + 1).map((above) => above.polygon)}
+                hint={
+                  item.unit
+                    ? [
+                        item.unit.identifier,
+                        rank ? _('number {position} in your ranking', { position: rank }) : null,
+                        item.unit.family?.name,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : undefined
+                }
+              >
+                {rank ? (
+                  <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
+                    <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
+                    <text
+                      x={box.minX + 9}
+                      y={box.minY + 9}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={10}
+                      fontWeight={800}
+                    >
+                      {rank}
+                    </text>
+                  </g>
+                ) : null}
+              </PlanShape>
+            </g>
           );
         })}
       </svg>
+      <ZoomControls zoom={zoom} />
       <PlanHint host={frameRef} />
     </div>
   );

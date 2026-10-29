@@ -1,10 +1,13 @@
-# Dev is deployed by hand, from any branch: "Run workflow", then pick the branch (and
-# whether to start from fresh demo data). The branch's release image is built if it is
-# not published yet; no tests gate it: dev is where branches are tried.
+# Dev runs the `dev` branch: every push to it deploys it. By hand, any other branch:
+# "Run workflow", then pick the branch (and whether to start from fresh demo data). The
+# branch's release image is built if it is not published yet; no tests gate it: dev is
+# where branches are tried.
 name: dev
 run-name: Deploy dev from ${{ github.ref_name }}
 
 on:
+  push:
+    branches: [dev]
   workflow_dispatch:
     inputs:
       fresh:

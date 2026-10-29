@@ -1,5 +1,7 @@
-import { FloorPlan } from '@/components/domain/FloorPlan';
 import { LotteryAdminTools, type LotteryAdmin } from '@/components/domain/LotteryAdminTools';
+import { LotteryPlan } from '@/components/domain/LotteryPlan';
+import { LotteryProgress } from '@/components/domain/LotteryProgress';
+import { usePlanFullScreen } from '@/components/domain/PlanFullScreen';
 import { RankingList } from '@/components/domain/RankingList';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
@@ -10,7 +12,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { LotteryRun, Plan as PlanData, ProjectEvent, Unit } from '@/types/models';
 import { Deferred, router } from '@inertiajs/react';
-import { Alert, Badge, Card, Group, Loader, Skeleton, Stack, Text, Title } from '@mantine/core';
+import { Alert, Badge, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
 import { useDebouncedCallback } from '@mantine/hooks';
 import {
   IconAlertTriangle,
@@ -26,6 +28,8 @@ import { useState } from 'react';
 interface Props {
   lottery: ProjectEvent;
   status: 'running' | 'completed' | null;
+  /** A run under way: when it began and when it ends */
+  pace: { started_at: string; reveal_at: string | null } | null;
   runs: LotteryRun[];
   family: { id: number; name: string; unit_type: string; unit_type_id: number } | null;
   plan?: PlanData;
@@ -44,6 +48,7 @@ interface Props {
 export default function Lottery({
   lottery,
   status,
+  pace,
   runs,
   family,
   ranking: given,
@@ -54,6 +59,11 @@ export default function Lottery({
 }: Props) {
   const [ranking, setRanking] = useState<Unit[]>(given ?? []);
   const [saving, setSaving] = useState(false);
+  const planFull = usePlanFullScreen();
+  // The unit being moved or pointed at (lit up on the plan); one picked on the plan (lit up
+  // a moment in the ranking)
+  const [focused, setFocused] = useState<number | null>(null);
+  const [flash, setFlash] = useState<{ unit: number; at: number } | null>(null);
 
   // A fresh ranking from the server (someone else in the family changed it) replaces ours
   const [previous, setPrevious] = useState(given);
@@ -63,7 +73,7 @@ export default function Lottery({
   }
 
   useProjectChanges({
-    lottery_runs: ['status', 'runs', 'assignment', 'canRank'],
+    lottery_runs: ['status', 'pace', 'runs', 'assignment', 'canRank'],
     units: ['ranking'],
     unit_types: ['ranking'],
     families: ['family', 'ranking'],
@@ -123,13 +133,8 @@ export default function Lottery({
               ) : null}
             </div>
           </Group>
-        ) : status === 'running' ? (
-          <Group wrap="nowrap">
-            <Loader size="lg" />
-            <Text fw={700} fz="lg">
-              {_('The lottery is running. The results appear here in a moment.')}
-            </Text>
-          </Group>
+        ) : status === 'running' && pace ? (
+          <LotteryProgress startedAt={pace.started_at} revealAt={pace.reveal_at} />
         ) : (
           <Group align="flex-start" wrap="nowrap">
             <Glyph icon={IconClock} size={48} />
@@ -169,7 +174,41 @@ export default function Lottery({
         </Stack>
       ) : null}
 
-      <div className="two-columns">
+      {/* The plan across the page: there is too much in it for a column */}
+      {family ? (
+        <Panel
+          title={_('Project plan')}
+          icon={IconMap}
+          className="plan-panel"
+          {...planFull.panel}
+          actions={planFull.button}
+          tone="accent"
+          aside={_('{type} units are highlighted, with their place in your ranking.', {
+            type: family.unit_type,
+          })}
+        >
+          <Deferred data="plan" fallback={<Skeleton h={260} radius="lg" />}>
+            {plan ? (
+              <LotteryPlan
+                plan={plan}
+                ranking={ranking}
+                highlightType={family.unit_type_id}
+                ownUnit={ownUnit?.id ?? null}
+                canRank={canRank}
+                focused={focused}
+                onFocus={setFocused}
+                onPick={(unit) => setFlash({ unit, at: Date.now() })}
+                onChange={(units) => {
+                  setRanking(units);
+                  save(units);
+                }}
+              />
+            ) : null}
+          </Deferred>
+        </Panel>
+      ) : null}
+
+      <div className="two-columns" style={{ marginTop: 24 }}>
         {family && ranking.length ? (
           <Panel
             data-tour="ranking.list"
@@ -194,6 +233,8 @@ export default function Lottery({
             <RankingList
               units={ranking}
               disabled={!canRank}
+              onFocus={setFocused}
+              flash={flash}
               onChange={(units) => {
                 setRanking(units);
                 save(units);
@@ -222,29 +263,6 @@ export default function Lottery({
                 </Badge>
               </Group>
             ))}
-          </Panel>
-        ) : null}
-
-        {family ? (
-          <Panel
-            title={_('Project plan')}
-            icon={IconMap}
-            className="stays-in-view"
-            tone="accent"
-            aside={_('{type} units are highlighted, with their place in your ranking.', {
-              type: family.unit_type,
-            })}
-          >
-            <Deferred data="plan" fallback={<Skeleton h={260} radius="lg" />}>
-              {plan ? (
-                <FloorPlan
-                  plan={plan}
-                  highlightType={family.unit_type_id}
-                  ownUnit={ownUnit?.id ?? null}
-                  ranks={new Map(ranking.map((unit, index) => [unit.id, index + 1]))}
-                />
-              ) : null}
-            </Deferred>
           </Panel>
         ) : null}
       </div>

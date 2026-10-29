@@ -170,6 +170,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     ->parameters(['unit_types' => 'unitType']);
                 Route::resource('units', Manage\UnitController::class)->only('store', 'update', 'destroy');
                 Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
+                Route::post('plan/editor', [Manage\PlanController::class, 'lock'])->name('plan.lock');
+                Route::delete('plan/editor', [Manage\PlanController::class, 'unlock'])->name('plan.unlock');
                 Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy');
 
                 Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
@@ -194,6 +196,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
         Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
+        Route::get('settings', [Platform\SettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [Platform\SettingsController::class, 'update'])->name('settings.update');
 
         Route::middleware('can:deploy')->prefix('deployments')->name('deployments.')->group(function () {
             Route::get('/', [Platform\DeploymentController::class, 'index'])->name('index');

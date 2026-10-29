@@ -170,3 +170,9 @@ it('says so when a share is more than one request may carry', function () {
         ->assertRedirect(route('media.index'))
         ->assertSessionHas('error', __('flash.upload_too_large'));
 });
+
+it('refuses an image of more pixels than can be opened, small as its file is', function () {
+    upload($this, $this->member, aPixelBomb())->assertSessionHasErrors('files.0');
+
+    expect(Media::count())->toBe(0);
+});

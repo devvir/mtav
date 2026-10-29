@@ -10,15 +10,16 @@ On GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `pipeline.yml` | every push | style, lint and types; tests (Pest, Vitest); the browser suite; the release image |
-| | `main`, once all of that passes | the image published, and staging deployed |
-| `dev.yml` | by hand, from any branch | the branch's image (built if not yet published), deployed to dev; optionally from fresh demo data |
+| | `staging`, once all of that passes | the image published, and staging deployed |
+| | `main`, once all of that passes | the image published (and tagged `main`) |
+| `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev; by hand, optionally from fresh demo data |
 | `production.yml` | by hand, from `main` | the release staging runs (or a commit on `main`), deployed to production |
 | `rollback.yml` | by hand | an environment back on the release before |
 | `watch.yml` | every morning | every site answers, and every certificate has three weeks left |
 
 Pushes to this repository run on push; pull requests from forks run on the pull request.
-A newer push to a branch cancels its run in progress; on `main` every commit runs to the
-end. Deploys to one environment queue, never overlap.
+A newer push to a branch cancels its run in progress; on `staging` and `main` every commit
+runs to the end. Deploys to one environment queue, never overlap.
 
 A failed `watch` run is GitHub's mail to the repository's owner. Certificates renew by
 themselves; the watch says when that did not happen.
@@ -117,7 +118,11 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    loopback by default, renews the certificates and reloads nginx after every renewal,
    and creates `mtav-deploy` with the gate. Every step can run again.
 2. **Each environment**: `/mtav/<environment>/.env`, written from `deploy/env.example`
-   (its ports, a new `APP_KEY`, database password and Reverb keys). Signing in with
+   (its ports, a new `APP_KEY`, database password and Reverb keys). An environment
+   without demo data needs its owner, its first superadmin: `OWNER_EMAIL` and
+   `OWNER_PASSWORD` (and `OWNER_NAME`), taken while it has no account at all; until
+   then the site shows only that it is under construction. Where demo data is seeded,
+   its first account is the owner. Signing in with
    Google needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google Cloud OAuth
    client (Web application) whose authorised redirect URI is
    `<APP_URL>/auth/google/callback`; without them the option is not offered. The
@@ -135,9 +140,15 @@ The first deploy creates the switch, the volumes and the database.
 
 ## Who decides what runs
 
-- **Staging** deploys every green `main`, by itself.
-- **Dev** deploys whatever branch someone picks, by hand.
+Each environment follows a branch of its own: deploying is pushing.
+
+- **Dev** deploys every push to `dev`, by itself, untested (dev is where things are
+  tried); by hand, any other branch.
+- **Staging** deploys every green push to `staging`, by itself.
 - **Production** deploys only by hand, from `main`: by default the release staging runs.
+
+Commits move up by fast-forward only: `staging` to `main` always (so production runs the
+commit, and the image, staging ran), `dev` to `staging` as fits.
 
 The platform console's Deployments page starts these same workflows through GitHub's API
 (dev from a branch, production from `main`, a rollback of any environment) and shows

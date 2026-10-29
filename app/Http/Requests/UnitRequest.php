@@ -40,7 +40,7 @@ class UnitRequest extends FormRequest
             'polygon'     => ['nullable', 'array', 'min:3', 'max:64'],
             'polygon.*'   => ['array', 'size:2'],
             'polygon.*.*' => ['numeric'],
-            'floor'       => ['nullable', 'integer', 'between:0,50'],
+            'floor'       => ['nullable', 'integer', 'between:-5,100'],
         ];
     }
 

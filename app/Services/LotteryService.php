@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Enums\LotteryRunStatus;
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
+use App\Jobs\PublishLotteryRun;
 use App\Jobs\RunLottery;
 use App\Models\Event;
 use App\Models\LotteryRun;
+use App\Models\PlatformSetting;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\User;
@@ -71,6 +73,8 @@ class LotteryService
                 'options'    => $options,
                 'started_by' => $admin->id,
                 'started_at' => now(),
+                // People see it take a while: a lottery over in an instant feels like nothing
+                'reveal_at' => now()->addSeconds((int) PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS)),
             ]);
 
             $this->audits->record($run->id, LotteryAuditType::INIT, [
@@ -104,6 +108,22 @@ class LotteryService
             ->all();
 
         return new LotteryManifest($run->uuid, $project->id, $run->id, $data, $run->options ?? []);
+    }
+
+    /**
+     * The assignment found: written now if the run is due to end, else held until it is
+     * (until then everyone sees the lottery running)
+     */
+    public function solved(LotteryRun $run, ExecutionResult $result): void
+    {
+        if (! $run->reveal_at || $run->reveal_at->isPast()) {
+            $this->complete($run, $result);
+
+            return;
+        }
+
+        $run->update(['result' => ['picks' => $result->picks, 'orphans' => $result->orphans]]);
+        PublishLotteryRun::dispatch($run)->delay($run->reveal_at);
     }
 
     /**

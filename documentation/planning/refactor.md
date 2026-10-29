@@ -69,13 +69,19 @@ decision taken on the way is listed below for review.
   of the earlier deployment (its scripts, images or host setup) is kept by default. Every
   push and pull request runs the whole test suite on GitHub Actions and builds one image
   per commit (GitHub's registry); every environment runs those images, nothing is built
-  on a host. A green `main` deploys staging by itself; dev is deployed by hand from any
-  branch (optionally from fresh demo data); production by hand, from `main` only, with
-  the image staging already ran. Deploys are triggered on GitHub (its "Run workflow"
-  dialog, the command line, or the console below); only the step that reaches a host is
-  specific to today's single server, so moving to a cloud provider replaces that step
-  alone. The author is present for the first staging deploy. Design in
-  `documentation/technical/delivery.md`.
+  on a host. Deploying is pushing: each environment follows a branch of its own, `dev` →
+  dev, `staging` → stg, `main` → www, and a green push deploys it by itself. Commits
+  move up by fast-forward only (`staging` to `main` always, `dev` to `staging` as fits),
+  so production runs the very commit, and image, staging ran; `main` takes no commit of
+  its own. The tools to deploy otherwise stay (another branch on dev, an earlier image,
+  a rollback), triggered on GitHub (its "Run workflow" dialog, the command line, or the
+  console below); only the step that reaches a host is specific to today's single
+  server, so moving to a cloud provider replaces that step alone. Each environment has
+  a deploy key of its own, its secrets limited to its branch, and the host's gate
+  takes an image only for the environment of its branch. First dev and staging by
+  pushing; production follows once the app is more polished. Still open, to settle with
+  the author near the end: how rollbacks stay safe with branches that only move forward
+  (a deployment concern, perhaps). Design in `documentation/technical/delivery.md`.
 - **Deployment tools in the console** (built). The platform console has a Deployments page: what
   each environment runs against `main`, deploying dev from a branch, production from
   `main`, and an earlier image again. It is shown only to superadmins whose email is
@@ -130,6 +136,22 @@ decision taken on the way is listed below for review.
     the screen and the local copy update;
   - the live change events (Reverb) update the local copy as they arrive;
   - it only ever holds what that person may see; a change of their role rebuilds it.
+- **An owner per deployment.** A deployment is used only once it has an owner, its first
+  superadmin: while it has no account at all, `OWNER_EMAIL` / `OWNER_PASSWORD` (and
+  `OWNER_NAME`) create it; without them the site shows only that it is under
+  construction. Where demo data is seeded, its first account is the owner. For now an
+  owner is a superadmin like any other (`users.is_owner` keeps the door open).
+- **The lottery takes its time.** Solving stays as fast as it is; people see the
+  lottery work, step by step (reading the preferences, weighing each type, finding the
+  assignment, checking it), for at least the time superadmins set in the platform
+  console (20 seconds unless set, up to 5 minutes). The assignment found is held on the
+  run and written when that time is up, so every page shows the lottery running until
+  then, and its result everywhere at once.
+- **Uploads.** Files are checked by content, never by name; SVG is refused; images are
+  refused past 50 megapixels (a small file can claim more than can be opened); files
+  are served to the project only, with `nosniff`, inline only what cannot run in the
+  page. A person's picture is drawn anew, 512 px at most, as WebP: light wherever it
+  shows, nothing of the original's metadata (where a photo was taken) kept.
 - **Thesis parked.** The tutor already reviewed the published draft. It is updated at
   the very end, from the tutor's review, with notes marking each change.
 
@@ -163,6 +185,11 @@ decision taken on the way is listed below for review.
 - **Modals:** our own `Modal` (Reka's Dialog primitive; a bottom sheet on phones) and
   `confirm()` / `prompt()` dialogs called from code.
 - **Live updates are best effort:** a websocket server that is down never fails an action.
+- **Families and people, one place.** The navigation has one place for the
+  cooperative's people ("People"; "Cooperativistas" in Spanish, "Coopérateurs",
+  "Soci", "Cooperados"), seen by family or everyone; each view keeps its own address,
+  search and details. Names are tailored to housing cooperatives now; white-labelling
+  would rename them. It frees a phone tab: Home, Lottery, People, Units.
 - **Google sign-in** finds the account linked to the Google account, else the one with
   its email, else opens a new one (email already confirmed); an email Google has not
   verified never opens or links an account.
@@ -206,19 +233,35 @@ decision taken on the way is listed below for review.
      from the guide, since the code is published with the thesis.
    Still to compare: each page's details, page by page, for admins.
 9. **Dashboards**, at least as rich as the old one, shaped per audience: the project's
-   home (the lottery, what is coming, recent files, the families and people, and for
-   admins the setup checklist until done), the setup overview (progress, what needs
+   home, in the order people look for things (its figures, recently shared files, the
+   lottery and what is coming, its people, its units by type, and for admins the path
+   to the lottery until done; that path comes first while the project is still empty),
+   painted at once with each part a skeleton until its data arrives; the setup overview (progress, what needs
    attention, limits), the platform console (projects awaiting approval, activity).
 10. **The plan, richer** (the author's ideas; units, types and the plan already share one
     page, where admins edit the plan in place). Kinds are added from a palette that shows
     each one's look, each in a starting shape of its own (a street long and narrow, an
-    entrance a gate pointing in, moved, resized and turned but never reshaped); a shape's
-    side moves by dragging its edge, and the shape turns from a handle above it (or R).
-    The plan saves itself a moment after each change, and its undo history outlives a
-    reload. Shapes have a context menu (name, turn, bring to front, send to back,
-    duplicate, copy, paste, remove), a double-click names them, Ctrl+C / Ctrl+V / Ctrl+D
-    and Ctrl + drag copy them. Upper floors show the floors beneath, faintly, in the
-    editor and wherever people read the plan. Dragging a shape, a corner or a side snaps
+    entrance a gate pointing in, moved, resized and rotated but never reshaped); a shape's
+    side moves by dragging its edge, and the shape rotates from a handle above it (or R).
+    A shape's kind is never changed: it is removed and the right one added. The plan saves
+    itself a moment after each change (the state and "Done editing" in the panel's title,
+    where "Edit the plan" was), and its undo history outlives a reload. Shapes have a
+    context menu that holds all they need (name, rotate, colour, one floor up or down,
+    bring to front, send to back, duplicate, copy, paste, remove; a corner's menu removes
+    it), a double-click names a shape in a small field where it stands, Ctrl+C / Ctrl+V /
+    Ctrl+D and Ctrl + drag copy them, Page Up / Page Down move them between floors. The
+    selected shape's details sit beside the canvas only where they fit (full desktop);
+    elsewhere the menu does it all. Units are a layer of their own on each floor, over
+    every other shape: bringing to front or sending back orders a unit among units, any
+    other shape among the others, and nothing ever covers a unit. The canvas fits its
+    container's width; dragging its bottom edge makes it taller or shorter (never past
+    what is drawn). Upper floors show the floors beneath, faintly, each as it looks (its
+    shapes one image, not each one through the others), in the editor and wherever people
+    read the plan. The plan's panel opens over the whole window, to draw or to look. Read,
+    the plan zooms and moves as a map does: Ctrl (⌘) + scroll or a pinch zooms where the
+    pointer is, dragging moves once zoomed (two fingers on a touch screen), buttons zoom
+    and go back to the whole plan, and a plain scroll stays the page's, only saying how
+    to zoom. Dragging a shape, a corner or a side snaps
     it to what it lines up with (other shapes, the floors beneath, the boundary, its own
     corners: a side ends up straight), with a dashed guide; a shape's name shows on hover
     and keeps clear of shapes drawn over it. Units are added from the palette too (their
@@ -238,6 +281,20 @@ decision taken on the way is listed below for review.
     areas filled with trees on a transparent ground rather than plain shapes, streets
     with a paving texture and markings, each kind of item recognisable by its look. The
     tutor values the plan most: it is where the app should overdeliver.
+    A new shape is named as its kind is ("Green area"), a name that may be cleared (then
+    nothing shows; hovering still says what it is). Playgrounds show play equipment (a
+    swing, a slide, a sandpit, a roundabout), as green areas show trees. Drawing takes a
+    large screen and a precise pointer; phones read the plan, full screen and zoomed.
+    One admin draws at a time: the editor holds the plan while open (renewed every half
+    minute, let go when done, by itself soon after a window closes or loses its
+    connection, and after ten minutes alone with a warning first, two more to answer it,
+    its drawing saved), and anyone else is told who is drawing; a save over someone
+    else's hold is refused. On the lottery page the plan spans the page, the family's
+    ranking under it as numbered places: a unit dragged off the plan (mouse or pen) onto
+    a place takes it, a unit clicked on the plan lights up in the ranking, and the unit
+    being moved or pointed at in the ranking lights up on the plan.
+    *Nice to have*: a real scale, so whoever draws from a sketch places things in metres,
+    not in the canvas's units (how is not decided).
 11. **Visual design pass**, last — once everything works. A modern look across every
     theme: glossy, semi-transparent cards; sticky bars with backdrop blur; soft light on
     what is interactive; plenty of icons; badges with a status dot; motion for what comes
@@ -260,11 +317,14 @@ decision taken on the way is listed below for review.
     and who it is for, "Sign in" as the main call to action, signing in and up in a dialog
     over it (`/login` and `/register` open it), a language switch whose choice the account
     keeps on signing in, and signing in with Google once its client is set up (see
-    technical/delivery.md). Its photos are Uruguayan housing cooperatives from Wikimedia
-    Commons (CC BY-SA 4.0, credited on the page). Commons has no licensed photos of
-    families building their homes: those are still wanted, from FUCVAM or the
-    cooperatives themselves.
-16. **Illustrated manuals**, one per role (member, admin, superadmin): every place and
-    action shown in a picture of the real app, cut to what matters and marked (where to
-    click, what changes), next to short steps. A complete set first; afterwards they
+    technical/delivery.md). Its photos are Uruguayan housing cooperatives: families
+    building by mutual aid, from the cooperatives themselves (the first version's), and
+    finished cooperatives from Wikimedia Commons (CC BY-SA 4.0, credited on the page).
+    More of the cooperatives' own are welcome.
+16. **Illustrated manuals**, one per role (member, admin, superadmin), in every language:
+    every place and action shown in a picture of the real app, cut to what matters and
+    marked (where to click, numbered as the text refers to it), next to short steps. The
+    pictures are taken by `scripts/guide-shots` from the demo data, per language; they
     follow considerable UI changes, not every small one.
+17. **Later, low priority**: notifications stored as structured data, translated for each
+    reader.

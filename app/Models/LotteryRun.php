@@ -23,6 +23,8 @@ class LotteryRun extends Model
         'options',
         'started_by',
         'started_at',
+        'reveal_at',
+        'result',
         'finished_at',
         'failure',
         'invalidated_by',
@@ -33,6 +35,8 @@ class LotteryRun extends Model
     protected $casts = [
         'status'         => LotteryRunStatus::class,
         'options'        => 'array',
+        'result'         => 'array',
+        'reveal_at'      => 'datetime',
         'started_at'     => 'datetime',
         'finished_at'    => 'datetime',
         'invalidated_at' => 'datetime',

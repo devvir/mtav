@@ -238,4 +238,5 @@ return [
     'limit_members'     => 'Projects awaiting approval can have up to :max people.',
     'limit_invitations' => 'Projects awaiting approval can send up to :max invitations a day.',
     'limit_storage'     => 'Projects awaiting approval can store up to :max MB of files.',
+    'image_too_large'   => 'Images up to :max megapixels can be shared; this one has more.',
 ];

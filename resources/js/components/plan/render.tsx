@@ -155,6 +155,36 @@ function treesOf(polygon: Point[], seed: string) {
   return trees.slice(0, 60);
 }
 
+/**
+ * What a playground holds, scattered over it as trees are over a green area: fewer, apart,
+ * each turned its own way (never outside it)
+ */
+function playOf(polygon: Point[], seed: string) {
+  const box = bounds(polygon);
+  const size = Math.sqrt(area(polygon));
+  const half = Math.max(8, Math.min(16, size / 6));
+  const step = half * 3;
+  const next = random(`${seed}-play`);
+  const items: { x: number; y: number; r: number; kind: number; turn: number }[] = [];
+  for (let y = box.minY + half * 1.3; y <= box.maxY - half; y += step) {
+    for (let x = box.minX + half * 1.3; x <= box.maxX - half; x += step) {
+      const spot: Point = [x + (next() - 0.5) * half, y + (next() - 0.5) * half];
+      if (next() < 0.15 || !inside(spot, polygon)) continue;
+      items.push({
+        x: spot[0],
+        y: spot[1],
+        r: half * (0.85 + next() * 0.3),
+        kind: Math.floor(next() * PLAY.length),
+        turn: Math.round(next() * 4) * 90 + Math.round((next() - 0.5) * 20),
+      });
+    }
+  }
+  return items.slice(0, 16);
+}
+
+/** Play equipment seen from above, each in a 20 × 20 box: a swing, a slide, a sandpit, a roundabout */
+const PLAY = ['swing', 'slide', 'sandpit', 'roundabout'] as const;
+
 /** Canopies seen from above: crowns as [x, y, radius] in a 20 × 20 box */
 const TREES: [number, number, number][][] = [
   [
@@ -249,6 +279,49 @@ export function PlanDefs({ id }: { id: string }) {
         <circle cx="4" cy="4" r="1.6" fill="#fdba74" />
         <circle cx="11" cy="10" r="1.3" fill="#fed7aa" />
       </pattern>
+      {/* Play equipment from above, in bright paint, with a little shade */}
+      <symbol id={`${id}-play-swing`} viewBox="-10 -10 20 20" overflow="visible">
+        <g className="plan-play-shade">
+          <rect x="-8.5" y="-1" width="17" height="2.4" rx="1" />
+        </g>
+        <rect x="-9" y="-1.6" width="18" height="2.2" rx="1" fill="#475569" />
+        <circle cx="-9" cy="-0.5" r="1.6" fill="#334155" />
+        <circle cx="9" cy="-0.5" r="1.6" fill="#334155" />
+        <path d="M-4.5 0.6 V5.5 M4.5 0.6 V5.5" stroke="#64748b" strokeWidth="0.6" />
+        <rect x="-6" y="5" width="3" height="2.2" rx="0.6" fill="#ef4444" />
+        <rect x="3" y="5" width="3" height="2.2" rx="0.6" fill="#3b82f6" />
+      </symbol>
+      <symbol id={`${id}-play-slide`} viewBox="-10 -10 20 20" overflow="visible">
+        <g className="plan-play-shade">
+          <rect x="-3" y="-8" width="7" height="18" rx="2.5" />
+        </g>
+        <rect x="-4" y="-9" width="8" height="6" rx="1" fill="#f59e0b" />
+        <path d="M-3 -8 H3 M-3 -6 H3 M-3 -4 H3" stroke="#b45309" strokeWidth="0.6" />
+        <rect x="-2.6" y="-3.4" width="5.2" height="12" rx="2.6" fill="#22c55e" />
+        <rect x="-1.4" y="-2.6" width="2.8" height="10.6" rx="1.4" fill="#86efac" />
+      </symbol>
+      <symbol id={`${id}-play-sandpit`} viewBox="-10 -10 20 20" overflow="visible">
+        <g className="plan-play-shade">
+          <rect x="-7" y="-6" width="15" height="15" rx="3" />
+        </g>
+        <rect x="-8" y="-8" width="16" height="16" rx="3" fill="#a16207" />
+        <rect x="-6.4" y="-6.4" width="12.8" height="12.8" rx="2" fill="#fde68a" />
+        <circle cx="-2" cy="-1.5" r="1.4" fill="#fcd34d" />
+        <circle cx="2.5" cy="2" r="1" fill="#fbbf24" />
+        <path d="M1 -4 l2.6 1.5" stroke="#dc2626" strokeWidth="1" strokeLinecap="round" />
+      </symbol>
+      <symbol id={`${id}-play-roundabout`} viewBox="-10 -10 20 20" overflow="visible">
+        <g className="plan-play-shade">
+          <circle cx="1.5" cy="2" r="8" />
+        </g>
+        <circle r="8" fill="#8b5cf6" />
+        <path
+          d="M0 -8 V8 M-8 0 H8 M-5.7 -5.7 L5.7 5.7 M-5.7 5.7 L5.7 -5.7"
+          stroke="#ede9fe"
+          strokeWidth="0.9"
+        />
+        <circle r="2" fill="#facc15" />
+      </symbol>
       {/* A tree from above: its shade on the ground, then a canopy of a few crowns */}
       {TREES.map((crowns, kind) => (
         <symbol key={kind} id={`${id}-tree${kind}`} viewBox="-10 -10 20 20" overflow="visible">
@@ -342,7 +415,7 @@ function Bays({ id, polygon, clip }: { id: string; polygon: Point[]; clip: strin
   );
 }
 
-/** What a shape is, when it has no name of its own (a unit always has its identifier) */
+/** What a shape is: a new one's name, and what hovering one without a name says */
 export const kindLabel = (kind: Kind) =>
   ({
     unit: null,
@@ -473,7 +546,8 @@ export function PlanShape({
       playground: `url(#${id}-play)`,
       entrance: 'transparent',
     }[kind];
-  const name = label ?? kindLabel(kind);
+  // A name left empty shows nothing (hovering still says what it is)
+  const name = label || null;
   const spot = name ? labelSpot(polygon, name, covers ?? []) : null;
 
   return (
@@ -481,7 +555,7 @@ export function PlanShape({
       className="plan-item"
       data-kind={kind}
       data-selected={selected || undefined}
-      data-hint={hint ?? label ?? kindLabel(kind) ?? undefined}
+      data-hint={hint ?? (label || kindLabel(kind)) ?? undefined}
     >
       <clipPath id={`${id}-${clip}`}>
         <polygon points={shape} />
@@ -500,6 +574,21 @@ export function PlanShape({
       {kind === 'common' ? <polygon points={shape} fill={`url(#${id}-stripes)`} /> : null}
       {kind === 'street' ? <CentreLine id={id} polygon={polygon} clip={clip} /> : null}
       {kind === 'parking' ? <Bays id={id} polygon={polygon} clip={clip} /> : null}
+      {kind === 'playground' ? (
+        <g clipPath={`url(#${id}-${clip})`} pointerEvents="none" className="plan-play">
+          {playOf(polygon, seed).map((item, index) => (
+            <use
+              key={index}
+              href={`#${id}-play-${PLAY[item.kind]}`}
+              x={item.x - item.r}
+              y={item.y - item.r}
+              width={item.r * 2}
+              height={item.r * 2}
+              transform={`rotate(${item.turn} ${item.x} ${item.y})`}
+            />
+          ))}
+        </g>
+      ) : null}
       {kind === 'green' ? (
         <g clipPath={`url(#${id}-${clip})`} pointerEvents="none" className="plan-trees">
           {treesOf(polygon, seed).map((tree, index) => (

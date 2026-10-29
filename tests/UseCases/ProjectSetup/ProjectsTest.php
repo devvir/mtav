@@ -130,9 +130,10 @@ describe('An admin', function () {
     });
 
     it('sees on the project\'s home what is left to set up, step by step', function () {
-        $setup = fn () => $this->as($this->admin, $this->project)
-            ->get(route('projects.show', $this->project))
-            ->inertiaProps('setup');
+        $setup = fn () => deferredProp(
+            $this->as($this->admin, $this->project)->get(route('projects.show', $this->project)),
+            'setup',
+        );
 
         expect($setup())->toMatchArray(['unit_types' => false, 'units' => false, 'balanced' => false]);
 
@@ -210,4 +211,15 @@ it('keeps the message of an action through the landing redirect', function () {
         ->assertRedirect(route('projects.index'));
 
     $this->as($person)->get(route('projects.index'))->assertSessionHas('success', 'Welcome!');
+});
+
+it('paints the project\'s home at once, its parts following', function () {
+    $project = aProject();
+    $admin = anAdminOf($project);
+    aUnit(aUnitType($project), ['identifier' => 'A-101']);
+
+    $home = $this->as($admin, $project)->get(route('projects.show', $project));
+
+    expect(inertiaProps($home))->not->toHaveKeys(['setup', 'events', 'media', 'community', 'units'])
+        ->and(deferredProp($home, 'units')[0]['units'][0]['identifier'])->toBe('A-101');
 });

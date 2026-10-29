@@ -40,6 +40,11 @@ class MediaThumbnailService
 
     private function fromImage(string $source, string $target): bool
     {
+        // Never opened when it would not fit in memory (refused on upload; this is the guard)
+        if (MediaService::tooManyPixels($source)) {
+            return false;
+        }
+
         $image = @imagecreatefromstring(file_get_contents($source));
 
         if (! $image) {

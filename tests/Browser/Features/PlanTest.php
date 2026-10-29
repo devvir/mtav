@@ -12,6 +12,20 @@ function editPlan($test): object
     return visit(route('units.index', $test->project))->click('Edit the plan')->assertPresent('[aria-label="Plan editor"]');
 }
 
+/** An item of the menu open on the plan */
+function menuItem(string $text): string
+{
+    return "[role=\"menuitem\"]:has-text(\"{$text}\")";
+}
+
+/** A shape named where it stands: double-clicked, its name typed, Enter */
+function nameShape(object $page, string $shape, string $name): object
+{
+    $page->script("() => document.querySelector('{$shape}').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))");
+
+    return $page->fill('shape_name', $name)->keys('[name="shape_name"]', 'Enter');
+}
+
 beforeEach(function () {
     $this->project = aProject();
     $this->type = aUnitType($this->project);
@@ -22,9 +36,9 @@ beforeEach(function () {
 it('adds a named green area that members then see', function () {
     $this->as($this->admin);
 
-    editPlan($this)
-        ->click('.plan-palette >> ' . button('Green area'))
-        ->fill('shape_name', 'Central park')
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'));
+    nameShape($page, '.plan-item[data-kind="green"] .plan-top', 'Central park')
+        ->assertNotPresent('.plan-name-field')
         ->click('Done editing')
         ->assertSee('Edit the plan')
         ->assertNoSmoke();
@@ -55,10 +69,9 @@ it('puts units on other floors', function () {
     $this->as($this->admin);
 
     editPlan($this)
-        ->click('Add a floor')
-        ->click('Ground floor')
-        ->click('[data-shape="A-101"] .plan-top')
-        ->select('shape_floor', '1')
+        ->rightClick('[data-shape="A-101"] .plan-top')
+        ->click(menuItem('One floor up'))
+        ->assertPresent('[role="tab"][aria-selected="true"]:has-text("Floor 1")')
         ->click('Done editing')
         ->assertSee('Edit the plan');
 
@@ -87,12 +100,15 @@ it('redoes what was undone', function () {
 it('duplicates a shape, and never a unit', function () {
     $this->as($this->admin);
 
-    editPlan($this)
-        ->click('[data-shape="A-101"] .plan-top')
-        ->assertNotPresent(button('Duplicate'))
-        ->click('.plan-palette >> ' . button('Green area'))
-        ->fill('shape_name', 'Park')
-        ->click('Duplicate')
+    $page = editPlan($this)
+        ->rightClick('[data-shape="A-101"] .plan-top')
+        ->assertPresent(menuItem('Rotate'))
+        ->assertNotPresent(menuItem('Duplicate'))
+        ->keys('[aria-label="Plan editor"]', 'Escape')
+        ->click('.plan-palette >> ' . button('Green area'));
+    nameShape($page, '.plan-item[data-kind="green"] .plan-top', 'Park')
+        ->rightClick('.plan-item[data-kind="green"] .plan-top')
+        ->click(menuItem('Duplicate'))
         ->click('Done editing')
         ->assertSee('Edit the plan');
 
@@ -105,8 +121,8 @@ it('removes a corner of the boundary', function () {
 
     editPlan($this)
         ->click('Edit the boundary')
-        ->click('.plan-vertex >> nth=0')
-        ->click('Remove the corner')
+        ->rightClick('.plan-vertex >> nth=0')
+        ->click(menuItem('Remove the corner'))
         ->click('Done editing')
         ->assertSee('Edit the plan');
 
@@ -127,7 +143,7 @@ it('adds each kind from the palette in its starting shape, a street long and nar
     expect(PlanItem::where('type', 'entrance')->sole()->polygon)->toHaveCount(3);
 });
 
-it('widens a shape by dragging one of its edges, and turns it with R', function () {
+it('widens a shape by dragging one of its edges, and rotates it with R', function () {
     $this->as($this->admin);
 
     $page = editPlan($this)->click('.plan-palette >> ' . button('Street'));
@@ -182,7 +198,9 @@ it('still undoes after a reload', function () {
     $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'))->wait(1.5)->assertSee('Saved');
     expect(PlanItem::where('type', 'green')->exists())->toBeTrue();
 
+    // The page loaded anew before reaching for it
     $page->refresh()
+        ->assertPresent('[aria-label="Project plan"]')
         ->click('Edit the plan')
         ->assertPresent('[aria-label="Plan editor"]')
         ->keys('[aria-label="Plan editor"]', 'Control+z')
@@ -264,4 +282,95 @@ it('puts a unit added elsewhere on the plan from where it waits, and only then s
         ->assertSee('Edit the plan');
 
     expect(PlanItem::whereHas('unit', fn ($unit) => $unit->where('identifier', 'W-1'))->sole()->placed)->toBeTrue();
+});
+
+it('keeps units over every other shape, whatever is brought to the front', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'));
+    $page->script(<<<'JS'
+            () => {
+                const shape = document.querySelector('.plan-item[data-kind="green"] .plan-top');
+                const box = shape.getBoundingClientRect();
+                shape.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: box.x + 5, clientY: box.y + 5 }));
+            }
+            JS);
+    $page->click('Bring to front');
+
+    $drawn = $page->script("() => [...document.querySelectorAll('[aria-label=\"Plan editor\"] > .plan-shape')].map((shape) => shape.querySelector('.plan-item').dataset.kind)");
+    expect($drawn)->toBe(['green', 'unit']);
+});
+
+it('makes the canvas taller from its bottom edge', function () {
+    $this->as($this->admin);
+    $height = $this->project->plan->height;
+
+    $page = editPlan($this);
+    $page->script(<<<'JS'
+        () => {
+            const grip = document.querySelector('.plan-grip');
+            const box = grip.getBoundingClientRect();
+            const fire = (type, y) => grip.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: box.x + box.width / 2, clientY: y, pointerId: 1 }));
+            fire('pointerdown', box.y);
+            fire('pointermove', box.y + 120);
+            fire('pointerup', box.y + 120);
+        }
+        JS);
+    $page->click('Done editing')->assertSee('Edit the plan');
+
+    expect($this->project->plan->fresh()->height)->toBeGreaterThan($height);
+});
+
+it('zooms the plan people read, and says how to zoom with the wheel', function () {
+    $this->as(aMemberOf(aFamily($this->project, $this->type)));
+    $page = visit(route('units.index', $this->project));
+    $whole = $page->script("() => document.querySelector('[aria-label=\"Project plan\"]').getAttribute('viewBox')");
+
+    $page->click('[aria-label="Zoom in"]');
+    $zoomed = $page->script("() => document.querySelector('[aria-label=\"Project plan\"]').getAttribute('viewBox')");
+    expect(explode(' ', $zoomed)[2])->toBeLessThan(explode(' ', $whole)[2]);
+
+    $page->script("() => document.querySelector('[aria-label=\"Project plan\"]').dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 100 }))");
+    $page->assertSee('scroll to zoom the plan')
+        ->click('[aria-label="The whole plan"]')
+        ->assertNoSmoke();
+    expect($page->script("() => document.querySelector('[aria-label=\"Project plan\"]').getAttribute('viewBox')"))->toBe($whole);
+});
+
+it('shows the plan over the whole window, and back with Escape', function () {
+    $this->as(aMemberOf(aFamily($this->project, $this->type)));
+
+    visit(route('units.index', $this->project))
+        ->click('[aria-label="Full screen"]')
+        ->assertPresent('.plan-panel[data-full]')
+        ->keys('.plan-panel', 'Escape')
+        ->assertNotPresent('.plan-panel[data-full]')
+        ->assertNoSmoke();
+});
+
+it('names a new shape after its kind, a name that may be cleared', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)
+        ->click('.plan-palette >> ' . button('Green area'))
+        ->assertSeeIn('[aria-label="Plan editor"]', 'Green area');
+    nameShape($page, '.plan-item[data-kind="green"] .plan-top', '')
+        ->assertDontSeeIn('[aria-label="Plan editor"] .plan-label', 'Green area')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    expect(PlanItem::where('type', 'green')->sole()->name)->toBeNull();
+});
+
+it('tells a second admin who is drawing the plan, and leaves them reading it', function () {
+    $other = anAdminOf($this->project);
+    $other->update(['firstname' => 'Ana', 'lastname' => 'Pérez']);
+    app(App\Services\Plan\EditingLock::class)->take($this->project->plan, $other);
+    $this->as($this->admin);
+
+    visit(route('units.index', $this->project))
+        ->click('Edit the plan')
+        ->assertSee('Ana Pérez is drawing the plan right now')
+        ->assertNotPresent('[aria-label="Plan editor"]')
+        ->assertPresent('[aria-label="Project plan"]');
 });

@@ -56,7 +56,12 @@ export function PersonDetails({
     <>
       <div>
         <Group gap="lg">
-          <PersonAvatar name={person.name} src={person.avatar} size={72} />
+          <PersonAvatar
+            name={person.name}
+            src={person.avatar}
+            size={72}
+            expandable={_('See the photo of {name}', { name: person.name })}
+          />
           <Stack gap={4}>
             <Group gap="xs">
               {person.family ? (

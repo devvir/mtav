@@ -80,6 +80,27 @@ const signature = (state: string) => {
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
+/**
+ * In the order they are drawn: units on a layer of their own, over every other shape (a
+ * unit is what people choose by: nothing ever covers it); each layer keeps its own order
+ */
+export const layered = <T extends { type: string }>(items: T[]) => [
+  ...items.filter((item) => item.type !== 'unit'),
+  ...items.filter((item) => item.type === 'unit'),
+];
+
+/** The floors beneath one, lowest first, each with its shapes in the order they are drawn */
+export const floorsBeneath = <T extends { type: string; floor: number }>(
+  items: T[],
+  floor: number,
+) =>
+  [...new Set(items.filter((item) => item.floor < floor).map((item) => item.floor))]
+    .sort((a, b) => a - b)
+    .map((below) => ({
+      floor: below,
+      items: layered(items.filter((item) => item.floor === below)),
+    }));
+
 /** The box around a polygon */
 export const bounds = (polygon: Point[]) => {
   const xs = polygon.map(([x]) => x);
@@ -187,7 +208,7 @@ export class PlanModel {
   }
 
   get visible() {
-    return this.items.filter((item) => item.placed && item.floor === this.floor);
+    return layered(this.items.filter((item) => item.placed && item.floor === this.floor));
   }
 
   /** Units added elsewhere, waiting beside the canvas */
@@ -261,8 +282,8 @@ export class PlanModel {
     this.commit();
   }
 
-  /** Change the selected shape (its kind, name, colour, floor) */
-  update(changes: Partial<Pick<EditableItem, 'type' | 'name' | 'color' | 'floor'>>) {
+  /** Change the selected shape (its name, colour, floor: the floor shown follows it) */
+  update(changes: Partial<Pick<EditableItem, 'name' | 'color' | 'floor'>>) {
     const item = this.selectedItem;
     if (!item) return;
     Object.assign(item, changes);
@@ -270,10 +291,36 @@ export class PlanModel {
     this.commit();
   }
 
-  setCanvasSize(width: number, height: number) {
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.commit();
+  /** The selected shape a floor up (1) or down (-1), followed there */
+  moveFloor(by: 1 | -1) {
+    const item = this.selectedItem;
+    if (item) this.update({ floor: item.floor + by });
+  }
+
+  /** The canvas no shorter than what is drawn on it (a boundary that is its edge follows it) */
+  get minHeight() {
+    const drawn = this.items.filter((item) => item.placed).flatMap((item) => item.polygon);
+    const edge = this.boundaryIsCanvas ? [] : this.canvas.polygon;
+    return Math.max(100, Math.ceil(Math.max(0, ...[...drawn, ...edge].map(([, y]) => y))));
+  }
+
+  /** Whether the boundary is still just the canvas's edge */
+  private get boundaryIsCanvas() {
+    const { width, height, polygon } = this.canvas;
+    return polygon.every(([x, y]) => (x === 0 || x === width) && (y === 0 || y === height));
+  }
+
+  /** The canvas taller or shorter, as it is dragged (kept in the history on commit) */
+  setCanvasHeight(height: number) {
+    const next = Math.min(10000, Math.max(this.minHeight, Math.round(height / GRID) * GRID));
+    if (next === this.canvas.height) return;
+    if (this.boundaryIsCanvas)
+      this.canvas.polygon = this.canvas.polygon.map(([x, y]): Point => [
+        x,
+        y === this.canvas.height ? next : y,
+      ]);
+    this.canvas.height = next;
+    this.changed();
   }
 
   showFloor(floor: number) {
@@ -398,7 +445,7 @@ export class PlanModel {
     }
   }
 
-  /** Bring the selected shape to the front of the stack, or send it to the back */
+  /** Bring the selected shape to the front of its layer, or send it to the back */
   restack(where: 'front' | 'back') {
     const item = this.selectedItem;
     if (!item) return;
@@ -424,7 +471,7 @@ export class PlanModel {
     return this.items.filter((item) => item.placed && item.floor === this.floor + 1);
   }
 
-  /** What lies beneath the floor shown, nearest first: seen faintly, to build on */
+  /** What lies beneath the floor shown: seen faintly, to build on */
   get beneath() {
     return this.items.filter((item) => item.placed && item.floor < this.floor);
   }
@@ -519,14 +566,14 @@ export class PlanModel {
     return [...polygon.slice(0, edge + 1), point, ...polygon.slice(edge + 1)];
   }
 
-  /** Shapes */
-  add(type: ShapeType) {
+  /** Shapes: a new one named as its kind is (`name`), a name that may be cleared */
+  add(type: ShapeType, name = '') {
     const item: EditableItem = {
       key: newKey(),
       id: null,
       type,
       floor: this.floor,
-      name: '',
+      name,
       color: DEFAULT_COLORS[type],
       polygon: this.startOf(type),
       unit: null,
@@ -603,7 +650,6 @@ export class PlanModel {
     this.commit();
   }
 
-  /** Remove the selected corner, or the selected shape (never a unit) */
   /** Removes the selected corner (of a shape or the boundary; three always stay), else the shape */
   remove() {
     const polygon = this.activePolygon;

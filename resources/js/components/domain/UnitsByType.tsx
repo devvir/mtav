@@ -16,10 +16,13 @@ import { IconChevronDown, IconLayoutGrid, IconPencil, IconTrash } from '@tabler/
 export function UnitsByType({
   unitTypes,
   onEditType,
+  away,
 }: {
   unitTypes: UnitType[];
   /** For admins */
   onEditType?: (type: UnitType) => void;
+  /** Shown away from the units page: a unit opens there */
+  away?: boolean;
 }) {
   const [open, setOpen] = useLocalStorage({ key: 'mtav.units-by-type.open', defaultValue: true });
   const total = unitTypes.reduce((sum, type) => sum + (type.units?.length ?? 0), 0);
@@ -111,9 +114,9 @@ export function UnitsByType({
                     <Link
                       key={unit.id}
                       href={route('units.index', { unit: unit.id })}
-                      only={['unit']}
-                      preserveState
-                      preserveScroll
+                      only={away ? undefined : ['unit']}
+                      preserveState={!away}
+                      preserveScroll={!away}
                       className="unit-chip"
                       data-given={unit.family ? true : undefined}
                     >

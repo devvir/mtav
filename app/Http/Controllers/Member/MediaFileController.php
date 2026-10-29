@@ -32,8 +32,9 @@ class MediaFileController extends Controller
         abort_unless($media->thumbnail, 404);
 
         return Storage::disk(Media::DISK)->response($media->thumbnail, null, [
-            'Content-Type'  => 'image/jpeg',
-            'Cache-Control' => 'private, max-age=604800',
+            'Content-Type'           => 'image/jpeg',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control'          => 'private, max-age=604800',
         ]);
     }
 

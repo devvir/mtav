@@ -1,9 +1,10 @@
 # MTAV's pipeline (documentation/technical/delivery.md):
 #
 #   every push and pull request   checks, tests, browser suite, the release image built
-#   main, once all of that passes the image published, staging deployed
+#   staging, once all that passes the image published, staging deployed
+#   main, once all that passes    the image published (production is deployed by hand)
 #
-# Dev (dev.yml, any branch) and production (production.yml, main) are deployed by hand.
+# Dev deploys from its own branch (dev.yml), and by hand from any other.
 name: pipeline
 
 on:
@@ -13,14 +14,14 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the release image (main always does)
+        description: Publish the release image (main and staging always do)
         type: boolean
         default: false
 
 concurrency:
   group: pipeline-${{ github.ref }}
-  # A newer push supersedes a run in progress, except on main, where every commit is released
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  # A newer push supersedes a run in progress, except where every commit is released
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging' }}
 
 permissions:
   contents: read
@@ -115,13 +116,13 @@ jobs:
       packages: write
     uses: ./.github/workflows/release-image.yml
     with:
-      publish: ${{ (github.ref == 'refs/heads/main' && github.event_name == 'push') || inputs.publish == true }}
+      publish: ${{ (github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/staging"]'), github.ref)) || inputs.publish == true }}
       latest: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
-  # Every green main goes to staging, by itself
+  # Every green push to staging goes there, by itself
   staging:
     needs: image
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
     name: Deploy to staging
     runs-on: ubuntu-24.04
     environment:

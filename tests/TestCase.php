@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Http\Middleware\RequireOwner;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +17,13 @@ use Illuminate\Support\Facades\URL;
 abstract class TestCase extends BaseTestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // The suite's deployment has its owner; the tests about owners start without one
+        RequireOwner::$owned = true;
+    }
 
     /**
      * Act as the given user (as the session guard would load them), optionally within

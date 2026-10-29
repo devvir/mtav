@@ -35,7 +35,11 @@ class LotteryController extends Controller
         return inertia('Member/Lottery', [
             'lottery' => EventResource::make($project->lottery),
             'status'  => $activeRun?->status->value,
-            'runs'    => LotteryRunResource::collection(
+            /** A run under way: when it began and when it ends, for its progress */
+            'pace' => $activeRun?->status === LotteryRunStatus::RUNNING
+                ? ['started_at' => $activeRun->started_at, 'reveal_at' => $activeRun->reveal_at]
+                : null,
+            'runs' => LotteryRunResource::collection(
                 $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
             ),
             /** Families see only their own ranking */

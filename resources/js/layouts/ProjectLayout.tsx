@@ -14,7 +14,6 @@ import {
   IconPhoto,
   IconSettings,
   IconUserPlus,
-  IconUsers,
   IconUsersGroup,
 } from '@tabler/icons-react';
 import { useMemo, type ReactNode } from 'react';
@@ -39,17 +38,12 @@ export function projectPlaces(project: { id: number; family?: unknown }): NavEnt
       icon: IconDice5,
       active: routeIs('lottery.*'),
     },
-    {
-      label: _('Families'),
-      href: route('families.index', at),
-      icon: IconUsersGroup,
-      active: routeIs('families.*'),
-    },
+    // Families and everyone in them: one place, two views of it
     {
       label: _('People'),
-      href: route('people.index', at),
-      icon: IconUsers,
-      active: routeIs('people.*'),
+      href: route('families.index', at),
+      icon: IconUsersGroup,
+      active: routeIs('families.*', 'people.*'),
     },
     {
       label: _('Units'),

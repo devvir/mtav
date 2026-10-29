@@ -103,7 +103,12 @@ export default function Profile({ profile, languages }: Props) {
         </Tabs.List>
         <Tabs.Panel value="about" className="ds-surface profile-section">
           <Group mb="lg" gap="md">
-            <PersonAvatar name={user.name} src={user.avatar} size={64} />
+            <PersonAvatar
+              name={user.name}
+              src={user.avatar}
+              size={64}
+              expandable={_('See the photo of {name}', { name: user.name })}
+            />
             <FileButton onChange={uploadAvatar} accept="image/jpeg,image/png,image/webp">
               {(props) => (
                 <Button variant="default" leftSection={<IconCamera size={18} />} {...props}>

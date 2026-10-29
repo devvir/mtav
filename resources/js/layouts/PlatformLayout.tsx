@@ -2,7 +2,14 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { IconFlask, IconFolders, IconRocket, IconShieldCheck, IconUser } from '@tabler/icons-react';
+import {
+  IconAdjustments,
+  IconFlask,
+  IconFolders,
+  IconRocket,
+  IconShieldCheck,
+  IconUser,
+} from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 
 /** The platform console: superadmins only */
@@ -34,6 +41,12 @@ export function PlatformLayout({ children }: { children: ReactNode }) {
               href: route('admin.superadmins.index'),
               icon: IconShieldCheck,
               active: routeIs('admin.superadmins.*'),
+            },
+            {
+              label: _('Settings'),
+              href: route('admin.settings.edit'),
+              icon: IconAdjustments,
+              active: routeIs('admin.settings.*'),
             },
             ...(canDeploy
               ? [

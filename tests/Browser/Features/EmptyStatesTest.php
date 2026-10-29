@@ -55,3 +55,14 @@ it('says when a search finds nothing', function () {
         ->assertSee('No family or person matches “Zubizarreta”.')
         ->assertPresent('[aria-label="Search families or people"]');
 });
+
+it('shows the families on the home page as soon as there are any, units or not, people or not', function () {
+    aFamily($this->project, aUnitType($this->project), ['name' => 'F01']);
+    $this->as($this->admin);
+
+    visit(route('projects.show', $this->project))
+        ->assertPresent('.ds-stat')
+        ->assertSeeIn('.stat-link:first-child', '1')
+        ->assertSee('F01')
+        ->assertNoSmoke();
+});

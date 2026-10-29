@@ -2,13 +2,14 @@ import { CommunityPanel, type Community } from '@/components/domain/CommunityPan
 import { EventCard } from '@/components/domain/EventCard';
 import { MediaGrid } from '@/components/domain/MediaGrid';
 import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
+import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph, Panel, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Media, ProjectEvent } from '@/types/models';
+import type { Media, ProjectEvent, UnitType } from '@/types/models';
 import { Deferred, Link, usePage } from '@inertiajs/react';
 import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 import {
@@ -34,36 +35,60 @@ interface Props {
     status: string | null;
     unit: { id: number; identifier: string } | null;
   };
-  /** For admins: what is left to set up */
-  setup: Setup | null;
+  /** For admins: what is left to set up (it follows the page) */
+  setup?: Setup | null;
   events?: ProjectEvent[];
+  units?: UnitType[];
   media?: Media[];
   community?: Community;
 }
 
-export default function Dashboard({ overview, lottery, setup, events, media, community }: Props) {
+/**
+ * The project's home, in the order people look for things: its figures, what was shared,
+ * the lottery and what is coming up, its people, its units, and for admins the path to the
+ * lottery (first while the project is still empty, when it is all there is to do). The
+ * page paints at once; each part shows a skeleton until its data arrives.
+ */
+export default function Dashboard({
+  overview,
+  lottery,
+  setup,
+  events,
+  media,
+  community,
+  units,
+}: Props) {
   const project = usePage().props.project!;
-  // No units yet: nothing to choose from, no figures worth showing, only what comes next
-  const empty = !overview.units_count;
+  // Nothing registered yet (no units, no families): no figures worth showing, only what comes next
+  const empty = !overview.units_count && !overview.families_count;
   useProjectChanges({
     events: ['events'],
     media: ['media'],
     lottery_runs: ['lottery'],
-    families: ['overview', 'setup', 'community'],
+    families: ['overview', 'setup', 'community', 'units'],
     people: ['overview', 'setup', 'community'],
-    units: ['overview', 'setup'],
-    unit_types: ['setup'],
+    units: ['overview', 'setup', 'units'],
+    unit_types: ['setup', 'units'],
   });
+
+  // Admins only: what is left to set up, until it is all done
+  const checklist = project.can.manage ? (
+    <Deferred data="setup" fallback={<Skeleton h={300} radius="lg" mt={24} />}>
+      {setup && !isSetUp(setup) ? (
+        <div style={{ marginTop: 24 }}>
+          <SetupChecklist setup={setup} />
+        </div>
+      ) : (
+        <></>
+      )}
+    </Deferred>
+  ) : null;
 
   return (
     <>
       <PageHeader title={project.name} description={overview.description} />
 
-      {setup && !isSetUp(setup) ? (
-        <div style={{ marginBottom: 24 }}>
-          <SetupChecklist setup={setup} />
-        </div>
-      ) : null}
+      {empty ? checklist : null}
 
       {!empty ? (
         <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg">
@@ -87,7 +112,9 @@ export default function Dashboard({ overview, lottery, setup, events, media, com
             />
           </Link>
         </SimpleGrid>
-      ) : !setup ? (
+      ) : null}
+      {/* Members, until there are units to choose from: what is under way */}
+      {!overview.units_count && !project.can.manage ? (
         <div style={{ marginBottom: 24 }}>
           <EmptyState icon={IconHomeHeart} title={_('Your project is getting ready')}>
             {_(
@@ -97,6 +124,42 @@ export default function Dashboard({ overview, lottery, setup, events, media, com
         </div>
       ) : null}
 
+      <Panel
+        title={_('Recently shared')}
+        icon={IconPhoto}
+        tone="accent"
+        style={{ marginBottom: 24 }}
+        actions={
+          <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
+            {_('All files')}
+          </Anchor>
+        }
+      >
+        <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
+          {media?.length ? (
+            <MediaGrid media={media} />
+          ) : (
+            <EmptyState
+              inset
+              icon={IconPhoto}
+              title={_('Nothing shared yet')}
+              action={
+                project.can.upload ? (
+                  <Button
+                    component={Link}
+                    href={route('media.index', { share: 1 })}
+                    variant="light"
+                  >
+                    {_('Share something')}
+                  </Button>
+                ) : null
+              }
+            >
+              {_('Photos of the works, plans and documents, for everyone in the project.')}
+            </EmptyState>
+          )}
+        </Deferred>
+      </Panel>
       <div className="dashboard-top">
         {/* The lottery, the heart of the project */}
         <Card
@@ -187,42 +250,15 @@ export default function Dashboard({ overview, lottery, setup, events, media, com
         </div>
       ) : null}
 
-      <Panel
-        title={_('Recently shared')}
-        icon={IconPhoto}
-        tone="accent"
-        style={{ marginTop: 24 }}
-        actions={
-          <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
-            {_('All files')}
-          </Anchor>
-        }
-      >
-        <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
-          {media?.length ? (
-            <MediaGrid media={media} />
-          ) : (
-            <EmptyState
-              inset
-              icon={IconPhoto}
-              title={_('Nothing shared yet')}
-              action={
-                project.can.upload ? (
-                  <Button
-                    component={Link}
-                    href={route('media.index', { share: 1 })}
-                    variant="light"
-                  >
-                    {_('Share something')}
-                  </Button>
-                ) : null
-              }
-            >
-              {_('Photos of the works, plans and documents, for everyone in the project.')}
-            </EmptyState>
-          )}
-        </Deferred>
-      </Panel>
+      {!empty ? (
+        <div style={{ marginTop: 24 }}>
+          <Deferred data="units" fallback={<Skeleton h={160} radius="lg" />}>
+            {units ? <UnitsByType unitTypes={units} away /> : <></>}
+          </Deferred>
+        </div>
+      ) : null}
+
+      {!empty ? checklist : null}
     </>
   );
 }

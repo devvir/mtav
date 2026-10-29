@@ -30,30 +30,18 @@ interface Props {
 }
 
 /** The photos shown, each credited as its licence asks (all resized from the originals) */
-const PHOTOS = {
+/** The pictures, with their credit when they came from a public collection */
+const PHOTOS: Record<string, { src: string; author?: string; source?: string }> = {
   mesa1: {
     src: '/images/welcome/mesa-1.webp',
     author: 'MaGaRicard',
     source:
       'https://commons.wikimedia.org/wiki/File:Complejo_cooperativo_de_vivienda_Mesa_1_Uruguay.jpg',
   },
-  covife: {
-    src: '/images/welcome/covife.webp',
-    author: 'Intendencia de Montevideo',
-    source:
-      'https://commons.wikimedia.org/wiki/File:Entrega_de_bolsones_en_cooperativa_COVIFE_imf3409.jpg',
-  },
-  building: {
-    src: '/images/welcome/building.webp',
-    author: 'Verónica Caballero, Intendencia de Montevideo',
-    source:
-      'https://commons.wikimedia.org/wiki/File:Intendenta_Carolina_Cosse_participa_de_la_entrega_de_24_llaves_en_el_marco_del_programa_de_Vivienda_Sindical_-_20210529dicmouyvc0007.jpg',
-  },
-  mesa2: {
-    src: '/images/welcome/mesa-2.webp',
-    author: 'Adrian Manera',
-    source: 'https://commons.wikimedia.org/wiki/File:Marcas_de_la_Memoria_-_FUCVAM_Mesa_2.jpg',
-  },
+  // From the cooperatives themselves, as the first version of the app showed them
+  mutualAid: { src: '/images/welcome/mutual-aid.webp' },
+  workDay: { src: '/images/welcome/work-day.webp' },
+  frayBentos: { src: '/images/welcome/fray-bentos.webp' },
   brazos: {
     src: '/images/welcome/brazos-unidos.webp',
     author: 'Artigas Pessio, Intendencia de Montevideo',
@@ -83,11 +71,12 @@ export default function Welcome({ dialog, google, locales }: Props) {
     addressFor(next);
   };
 
-  const captions: Record<keyof typeof PHOTOS, string> = {
+  const credited = Object.entries(PHOTOS).filter(([, photo]) => photo.source);
+  const captions: Record<string, string> = {
     mesa1: _('Mesa 1, mutual-aid housing cooperatives in Montevideo'),
-    covife: _('COVIFE, a housing cooperative in Montevideo'),
-    building: _('Homes going up, Montevideo'),
-    mesa2: _('The common green of Mesa 2'),
+    mutualAid: _('Families building their homes, by mutual aid'),
+    workDay: _('A work day on the site'),
+    frayBentos: _('COVISIN Fray Bentos II, a housing cooperative'),
     brazos: _('Brazos Unidos, homes built in Montevideo'),
   };
 
@@ -194,7 +183,7 @@ export default function Welcome({ dialog, google, locales }: Props) {
         </section>
 
         <section className="welcome-photos" aria-label={_('Housing cooperatives in Uruguay')}>
-          {(['covife', 'building', 'mesa2'] as const).map((photo) => (
+          {(['mutualAid', 'workDay', 'frayBentos'] as const).map((photo) => (
             <Photo key={photo} photo={photo} caption={captions[photo]} />
           ))}
         </section>
@@ -235,8 +224,8 @@ export default function Welcome({ dialog, google, locales }: Props) {
         {props.institution ? <Text fw={650}>{props.institution}</Text> : null}
         <Text className="ds-caption">
           {_('Photos')}:{' '}
-          {Object.entries(PHOTOS).map(([key, photo], index) => (
-            <Credit key={key} photo={photo} last={index === Object.keys(PHOTOS).length - 1} />
+          {credited.map(([key, photo], index) => (
+            <Credit key={key} photo={photo} last={index === credited.length - 1} />
           ))}
         </Text>
       </footer>
@@ -288,14 +277,14 @@ function Photo({
   className,
   eager,
 }: {
-  photo: keyof typeof PHOTOS;
+  photo: string;
   caption: string;
   className?: string;
   eager?: boolean;
 }) {
   return (
     <figure className={className ? `welcome-photo ${className}` : 'welcome-photo'}>
-      <img src={PHOTOS[photo].src} alt={caption} loading={eager ? 'eager' : 'lazy'} />
+      <img src={PHOTOS[photo]!.src} alt={caption} loading={eager ? 'eager' : 'lazy'} />
       <figcaption>{caption}</figcaption>
     </figure>
   );

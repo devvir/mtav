@@ -18,7 +18,7 @@ use RuntimeException;
  * A demo platform: every account's password is "password", or DEMO_PASSWORD where set
  * (always, on a public site: there it refuses to seed without one).
  *
- *  - superadmin@example.com   platform superadmin
+ *  - superadmin@example.com   platform superadmin, the deployment's owner
  *  - admin@example.com        admin of both projects (and in a family of the first)
  *  - member@example.com       member of a family of the first project
  *
@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         $superadmin = User::factory()->superadmin()->create([
             'email' => 'superadmin@example.com', 'firstname' => 'Sofía', 'lastname' => 'Superadmin',
         ]);
+        $superadmin->forceFill(['is_owner' => true])->save();
         $admin = User::factory()->create(['email' => 'admin@example.com', 'firstname' => 'Andrés', 'lastname' => 'Admin']);
         $member = User::factory()->create(['email' => 'member@example.com', 'firstname' => 'María', 'lastname' => 'Member']);
 

@@ -80,3 +80,47 @@ it('makes no shape a unit unless it is one', function () {
     savePlan($this, [['id' => $green->id, 'type' => 'unit', 'floor' => 0, 'polygon' => [[0, 0], [9, 0], [9, 9]]]])
         ->assertJsonValidationErrors('items');
 });
+
+describe('One person drawing it at a time', function () {
+    beforeEach(function () {
+        $this->other = anAdminOf($this->project);
+        $this->other->update(['firstname' => 'Ana', 'lastname' => 'Pérez']);
+    });
+
+    it('tells a second admin who is drawing, and keeps their save from writing over it', function () {
+        $this->as($this->other, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+
+        $this->as($this->admin, $this->project)->postJson(route('manage.plan.lock'))
+            ->assertStatus(423)->assertJson(['editor' => 'Ana Pérez']);
+        $this->as($this->admin, $this->project)->putJson(route('manage.plan.update'), [
+            'width' => 800, 'height' => 600, 'polygon' => [[0, 0], [800, 0], [800, 600], [0, 600]],
+            'items' => [['type' => 'green', 'floor' => 0, 'polygon' => [[0, 0], [50, 0], [50, 50]]]],
+        ])->assertStatus(423);
+
+        expect($this->project->plan->items()->where('type', 'green')->exists())->toBeFalse();
+    });
+
+    it('lets the next one draw once the first is done', function () {
+        $this->as($this->other, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+        $this->as($this->other, $this->project)->deleteJson(route('manage.plan.unlock'))->assertOk();
+
+        $this->as($this->admin, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+    });
+
+    it('lets go by itself of a plan left open in a window closed or cut off', function () {
+        $this->as($this->other, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+
+        $this->travel(App\Services\Plan\EditingLock::SECONDS + 1)->seconds();
+
+        $this->as($this->admin, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+    });
+
+    it('keeps the plan for whoever is still drawing it, as their editor renews it', function () {
+        $this->as($this->other, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+        $this->travel(60)->seconds();
+        $this->as($this->other, $this->project)->postJson(route('manage.plan.lock'))->assertOk();
+        $this->travel(60)->seconds();
+
+        $this->as($this->admin, $this->project)->postJson(route('manage.plan.lock'))->assertStatus(423);
+    });
+});

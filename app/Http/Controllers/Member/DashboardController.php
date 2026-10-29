@@ -8,6 +8,7 @@ use App\Http\Resources\EventResource;
 use App\Http\Resources\FamilyResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\MemberResource;
+use App\Http\Resources\UnitTypeResource;
 use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\Request;
@@ -15,8 +16,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The project's home: what is coming up and what was shared, and for admins, what is
- * left to set up.
+ * The project's home: its figures, what was shared, what is coming up, its people and
+ * units, and for admins what is left to set up. Painted at once: all but the figures
+ * follow, each part on its own.
  */
 class DashboardController extends Controller
 {
@@ -35,7 +37,9 @@ class DashboardController extends Controller
                 'units_count'    => $project->units()->count(),
             ],
             // Admins see what is left to set up, until the lottery has run
-            'setup'   => $user->can('update', $project) ? $projects->setupChecklist($project) : null,
+            'setup' => $user->can('update', $project)
+                ? Inertia::defer(fn () => $projects->setupChecklist($project), 'setup')
+                : null,
             'lottery' => [
                 'start_date' => $project->lottery->start_date,
                 'status'     => $run?->status->value,
@@ -44,12 +48,16 @@ class DashboardController extends Controller
             'events' => Inertia::defer(fn () => EventResource::collection(
                 $project->events()->published()->where('type', '!=', 'lottery')->upcoming()
                     ->with('rsvps')->orderBy('start_date')->limit(3)->get()
-            )),
+            ), 'events'),
             // Who the project is: a few families, its admins, who joined last
-            'community' => Inertia::defer(fn () => $this->community($project)),
+            'community' => Inertia::defer(fn () => $this->community($project), 'community'),
             'media'     => Inertia::defer(fn () => MediaResource::collection(
                 $project->media()->category(MediaCategory::MEDIA)->with('owner')->latest()->limit(8)->get()
-            )),
+            ), 'media'),
+            'units' => Inertia::defer(fn () => UnitTypeResource::collection(
+                $project->unitTypes()->with(['units' => fn ($q) => $q->alphabetically()->with('family:id,name')])
+                    ->withCount('families')->alphabetically()->get()
+            ), 'units'),
         ]);
     }
 

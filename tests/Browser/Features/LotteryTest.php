@@ -108,7 +108,8 @@ it('locks the ranking while the lottery runs', function () {
     $this->as($this->member);
 
     visit(route('lottery.show', $this->project))
-        ->assertSee('The lottery is running.')
+        ->assertSee('The lottery is running')
+        ->assertSee("Reading every family's preferences")
         ->assertDontSee('Move A-101 up')
         ->assertNoSmoke();
 });
@@ -170,4 +171,48 @@ it('shows every family which unit it received', function () {
     visit(route('projects.show', $this->project))
         ->assertSee('Your family received')
         ->assertSee($this->family->fresh()->unit->identifier);
+});
+
+/** A unit of the plan, dragged by the pointer onto a place of the ranking under it */
+function dragFromPlan(object $page, string $unit, int $place): void
+{
+    $page->script(<<<JS
+        () => {
+            const unit = [...document.querySelectorAll('[aria-label="Project plan"] [data-unit]')]
+                .find((shape) => shape.querySelector('.plan-label')?.textContent === '{$unit}');
+            const slot = document.querySelector('[data-slot="{$place}"]');
+            // Where a person would drag: the place in view, the plan above it
+            slot.scrollIntoView({ block: 'center' });
+            const from = unit.getBoundingClientRect();
+            const to = slot.getBoundingClientRect();
+            const at = (box) => ({ clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 });
+            const fire = (target, type, box) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, button: 0, pointerId: 1, pointerType: 'mouse', ...at(box) }));
+            fire(unit.querySelector('.plan-top'), 'pointerdown', from);
+            fire(window, 'pointermove', { x: to.x - 20, y: to.y, width: to.width, height: to.height });
+            fire(window, 'pointermove', to);
+            fire(window, 'pointerup', to);
+        }
+        JS);
+}
+
+it('ranks a unit by dragging it from the plan onto a place under it', function () {
+    $last = app(PreferencesService::class)->ranking($this->family)[1];
+    $this->as($this->member);
+
+    $page = visit(route('lottery.show', $this->project))->assertPresent('[data-slot="0"]');
+    dragFromPlan($page, $last->identifier, 0);
+    $page->assertSeeIn('[data-slot="0"]', $last->identifier)
+        ->assertSeeIn('ol li:first-child', $last->identifier)
+        ->wait(2);
+
+    expect(app(PreferencesService::class)->ranking($this->family)[0]->id)->toBe($last->id);
+});
+
+it('lights up in the ranking a unit clicked on the plan', function () {
+    $this->as($this->member);
+
+    visit(route('lottery.show', $this->project))
+        ->assertPresent('[aria-label="Project plan"] [data-unit]')
+        ->click('[aria-label="Project plan"] [data-press] .plan-top >> nth=0')
+        ->assertPresent('.ranking-item[data-flash]');
 });

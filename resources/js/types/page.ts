@@ -31,6 +31,7 @@ export interface SharedProps {
     } | null;
   };
   projects: { id: Id; name: string; is_admin: boolean }[];
+  lastProject: Id | null;
   project: {
     id: Id;
     name: string;

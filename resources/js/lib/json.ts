@@ -4,11 +4,17 @@ const xsrfToken = () =>
 
 /**
  * A request answered in JSON, the page staying as it is (for work that must not reload
- * the page, like the plan editor's)
+ * the page, like the plan editor's). `keepalive`, it is sent even as the page closes.
  */
-export const sendJson = (method: 'POST' | 'PUT', url: string, body: unknown) =>
+export const sendJson = (
+  method: 'POST' | 'PUT' | 'DELETE',
+  url: string,
+  body: unknown,
+  { keepalive = false } = {},
+) =>
   fetch(url, {
     method,
+    keepalive,
     credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',

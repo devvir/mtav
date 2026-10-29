@@ -128,3 +128,15 @@ it('lets members join an online event from its page', function () {
     visit(route('events.show', [$this->project, $event]))
         ->assertAttribute('a:has-text("Join online")', 'href', 'https://meet.example.com/mtav');
 });
+
+it('says at once from the list that a member goes, and keeps it', function () {
+    $event = anEvent($this->project, ['title' => 'Work day', 'allows_rsvp' => true]);
+    $this->as($this->member);
+
+    visit(route('events.index', $this->project))
+        ->click('.event-card button:has-text("I\'ll go")')
+        ->assertPresent('.event-card button[aria-pressed="true"]:has-text("I\'ll go")')
+        ->wait(1);
+
+    expect($event->rsvps()->first()?->pivot->attending)->toBe(1);
+});

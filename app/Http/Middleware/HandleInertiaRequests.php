@@ -30,12 +30,14 @@ class HandleInertiaRequests extends Middleware
         /** Closures resolve at render time: the project is known only after routing */
         return [
             ...parent::share($request),
-            'name'          => config('app.name'),
-            'institution'   => config('app.institution') ?: null,
-            'locale'        => app()->getLocale(),
-            'auth'          => ['user' => $user ? $this->user($user) : null],
-            'projects'      => fn () => $user ? $this->projects($user) : [],
-            'project'       => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
+            'name'        => config('app.name'),
+            'institution' => config('app.institution') ?: null,
+            'locale'      => app()->getLocale(),
+            'auth'        => ['user' => $user ? $this->user($user) : null],
+            'projects'    => fn () => $user ? $this->projects($user) : [],
+            'project'     => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
+            /** The project last browsed: the person's own pages stay in its frame */
+            'lastProject'   => fn () => $request->session()->get('last_project'),
             'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
             /** The latest few, for the bell's menu: sent only when it asks (a partial reload) */
             'recentNotifications' => Inertia::optional(fn () => $user

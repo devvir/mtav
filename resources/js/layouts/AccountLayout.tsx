@@ -4,19 +4,20 @@ import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { IconBell, IconFolders, IconUser } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { projectNav } from './ProjectLayout';
+import { projectNav, projectPlaces } from './ProjectLayout';
 
 /**
- * Pages about the person rather than a project: notifications, profile. Someone in a single
- * project keeps its places above (they never choose among projects); someone in several
- * gets their projects instead.
+ * Pages about the person rather than a project: notifications, profile. They stay in the
+ * frame of the project last browsed (going to one's profile is not leaving it), or of the
+ * only one; someone in several also finds all their projects here.
  */
 export function AccountLayout({ children }: { children: ReactNode }) {
-  const { projects } = useCurrentPage().props;
+  const { projects, lastProject } = useCurrentPage().props;
   const only = projects.length === 1 ? projects[0]! : null;
+  const within = projects.find((project) => project.id === lastProject) ?? only;
 
   const nav: NavGroup[] = [
-    ...(only ? projectNav(only, only.is_admin) : []),
+    ...(within ? projectNav(within, within.is_admin) : []),
     {
       label: _('Your account'),
       items: [
@@ -47,7 +48,17 @@ export function AccountLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <AppShell heading={_('Your account')} nav={nav}>
+    <AppShell
+      heading={_('Your account')}
+      nav={nav}
+      tabs={
+        within
+          ? projectPlaces(within)
+              .filter((item) => !item.action)
+              .slice(0, 4)
+          : undefined
+      }
+    >
       {children}
     </AppShell>
   );

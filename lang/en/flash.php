@@ -65,9 +65,10 @@ return [
 
     'notifications_read' => 'All notifications are marked as read.',
 
-    'deploy_dev'        => 'Dev is being deployed from :branch. Follow it below.',
-    'deploy_production' => 'Production is being deployed: it waits for approval on GitHub.',
-    'deploy_rollback'   => ':environment is going back to the release before.',
-    'deploy_refused'    => 'GitHub did not start it (:status). Check the deploy token.',
-    'upload_too_large'  => 'That was too much to send at once: share fewer files, or smaller ones.',
+    'deploy_dev'              => 'Dev is being deployed from :branch. Follow it below.',
+    'deploy_production'       => 'Production is being deployed: it waits for approval on GitHub.',
+    'deploy_rollback'         => ':environment is going back to the release before.',
+    'deploy_refused'          => 'GitHub did not start it (:status). Check the deploy token.',
+    'upload_too_large'        => 'That was too much to send at once: share fewer files, or smaller ones.',
+    'platform_settings_saved' => 'The platform settings were saved.',
 ];

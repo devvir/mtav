@@ -40,13 +40,24 @@ class MediaService
         ],
     ];
 
+    /**
+     * The most pixels an image may have: a small file can claim many more, and opening it
+     * (its preview) would take more memory than the server has
+     */
+    public const MAX_MEGAPIXELS = 50;
+
     public function __construct(private MediaThumbnailService $thumbnails)
     {
     }
 
-    /**
-     * The largest file a project accepts, in kilobytes.
-     */
+    /** Whether a file is an image of more pixels than can be opened (unknown: not one) */
+    public static function tooManyPixels(string $path): bool
+    {
+        $size = @getimagesize($path);
+
+        return $size && $size[0] * $size[1] > self::MAX_MEGAPIXELS * 1_000_000;
+    }
+
     /** The largest file a project takes: its limit, within what PHP accepts at all */
     public static function maxFileKb(Project $project): int
     {

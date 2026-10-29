@@ -1,3 +1,4 @@
+import { PeopleViews } from '@/components/domain/PeopleViews';
 import { PersonDetails } from '@/components/domain/PersonDetails';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
@@ -60,7 +61,6 @@ export default function PeopleIndex({
     <>
       <PageHeader
         title={_('People')}
-        description={_('Everyone taking part in the project.')}
         actions={
           canManage ? (
             <Button
@@ -73,6 +73,7 @@ export default function PeopleIndex({
           ) : null
         }
       />
+      <PeopleViews />
       <Group mb="md" gap="sm" align="center">
         <QuerySearch
           value={filters.q}

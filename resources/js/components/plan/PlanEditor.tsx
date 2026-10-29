@@ -6,13 +6,13 @@ import {
   Button,
   Card,
   ColorInput,
+  ColorSwatch,
   Group,
   Kbd,
   Loader,
   Menu,
   Modal,
   NativeSelect,
-  SimpleGrid,
   Stack,
   Switch,
   Text,
@@ -23,8 +23,9 @@ import {
 } from '@mantine/core';
 import {
   IconArrowBackUp,
+  IconArrowDown,
   IconArrowForwardUp,
-  IconCheck,
+  IconArrowUp,
   IconClipboard,
   IconClipboardCopy,
   IconCloudCheck,
@@ -51,7 +52,7 @@ import {
 } from 'react';
 import { align, type Guide } from './align';
 import { floorLabel } from './floors';
-import { bounds, centre, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
+import { bounds, centre, DEFAULT_COLORS, floorsBeneath, PlanModel, type ShapeType } from './model';
 import { kindLabel, PlanDefs, PlanGround, PlanHint, PlanShape } from './render';
 
 export type PlanPayload = ReturnType<PlanModel['payload']>;
@@ -62,7 +63,7 @@ export interface PlanEditorHandle {
   dirty: () => boolean;
 }
 
-type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'failed';
+export type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'failed';
 
 /** How long after the last change the plan saves itself (changes made meanwhile go along) */
 const AUTOSAVE_MS = 1200;
@@ -80,6 +81,19 @@ type Drag =
 /** Kinds whose colour is a choice (the others are their material: grass, asphalt…) */
 const TINTED: ShapeType[] = ['unit', 'building', 'common', 'entrance', 'other'];
 
+/** The colours offered at hand (the shape's details offer any) */
+const SWATCHES = [
+  '#93c5fd',
+  '#a5b4fc',
+  '#e9d5ff',
+  '#f9a8d4',
+  '#fca5a5',
+  '#fdba74',
+  '#fcd34d',
+  '#86efac',
+  '#d6d3d1',
+];
+
 /** The angle, in degrees, from a shape's middle to a point */
 const angleTo = (polygon: Point[], [x, y]: Point) => {
   const [cx, cy] = centre(polygon);
@@ -93,49 +107,8 @@ const CORNERS: [number, number][] = [
   [0, 1],
 ];
 
-/**
- * A size of the canvas, taken once typed (on Enter or on leaving the field): changing it
- * as each digit is typed would move the canvas, and this field with it
- */
-function SizeInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  const [draft, setDraft] = useState(String(value));
-  const [shown, setShown] = useState(value);
-  // Changed elsewhere (undo): the field follows
-  if (shown !== value) {
-    setShown(value);
-    setDraft(String(value));
-  }
-  const apply = () => {
-    const size = Math.min(10000, Math.max(100, Math.round(Number(draft) || value)));
-    setDraft(String(size));
-    if (size !== value) onChange(size);
-  };
-
-  return (
-    <TextInput
-      size="xs"
-      label={label}
-      type="number"
-      min={100}
-      max={10000}
-      value={draft}
-      onChange={(event) => setDraft(event.currentTarget.value)}
-      onBlur={apply}
-      onKeyDown={(event) => event.key === 'Enter' && apply()}
-    />
-  );
-}
-
 /** Where saving is: quiet when all is saved, a retry when it could not be */
-function SaveState({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
+export function SaveState({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
   if (status === 'failed')
     return (
       <Group gap={6} c="var(--mtav-warning)" fz="sm" fw={600} role="status">
@@ -155,68 +128,58 @@ function SaveState({ status, onRetry }: { status: SaveStatus; onRetry: () => voi
   );
 }
 
-/** Naming a shape: what people read on it (its kind's name when it has none) */
-function RenameShape({
+/**
+ * Naming a shape where it stands: a small field over it, taken on Enter or on leaving it,
+ * left as it was on Escape. `at` is where, within the plan's frame.
+ */
+function NameField({
   item,
-  onClose,
-  onSave,
-}: {
-  item: { key: string; name: string; type: ShapeType } | null;
-  onClose: () => void;
-  onSave: (name: string) => void;
-}) {
-  return (
-    <Modal opened={Boolean(item)} onClose={onClose} title={_('Name it')} size="sm">
-      {item ? <RenameForm key={item.key} item={item} onClose={onClose} onSave={onSave} /> : null}
-    </Modal>
-  );
-}
-
-function RenameForm({
-  item,
+  at,
   onClose,
   onSave,
 }: {
   item: { name: string; type: ShapeType };
+  at: { x: number; y: number };
   onClose: () => void;
   onSave: (name: string) => void;
 }) {
   const [name, setName] = useState(item.name);
+  const left = useRef(false);
+  const finish = (save: boolean) => {
+    if (left.current) return;
+    left.current = true;
+    if (save) onSave(name.trim());
+    else onClose();
+  };
 
   return (
-    <form
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSave(name.trim());
-      }}
-    >
-      <Stack gap="md">
-        <TextInput
-          label={_('Name')}
-          placeholder={kindLabel(item.type) ?? ''}
-          value={name}
-          onChange={(event) => setName(event.currentTarget.value)}
-          data-autofocus
-          maxLength={80}
-        />
-        <Group justify="flex-end">
-          <Button variant="default" onClick={onClose}>
-            {_('Cancel')}
-          </Button>
-          <Button type="submit">{_('Save')}</Button>
-        </Group>
-      </Stack>
-    </form>
+    <div className="plan-name-field" style={{ left: at.x, top: at.y }}>
+      <TextInput
+        size="xs"
+        name="shape_name"
+        aria-label={_('Name')}
+        value={name}
+        maxLength={80}
+        autoFocus
+        onFocus={(event) => event.currentTarget.select()}
+        onChange={(event) => setName(event.currentTarget.value)}
+        onBlur={() => finish(true)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') finish(true);
+          else if (event.key === 'Escape') finish(false);
+        }}
+      />
+    </div>
   );
 }
 
 /**
  * Draw the project plan: move shapes, resize them from their corners, move one side (drag
- * an edge), turn them (the handle above, or R), edit their corners (drag; double-click an
- * edge to add one; Delete removes the selected one), add buildings, streets, green areas…
- * from the palette, spread them over floors, and edit the project's boundary. Arrow keys
- * nudge the selection; Ctrl+Z / Ctrl+Shift+Z undo and redo.
+ * an edge), rotate them (the handle above, or R), edit their corners (drag; double-click an
+ * edge to add one; Delete removes the selected one), add units, streets, green areas… from
+ * the palette, spread them over floors (Page Up / Page Down), and edit the project's
+ * boundary; the canvas grows or shrinks from its bottom edge. Arrow keys nudge the
+ * selection; Ctrl+Z / Ctrl+Shift+Z undo and redo.
  */
 export const PlanEditor = forwardRef<
   PlanEditorHandle,
@@ -224,14 +187,14 @@ export const PlanEditor = forwardRef<
     plan: Plan;
     /** Sends the plan; the ids the server gave new shapes, by their key */
     save: (payload: PlanPayload) => Promise<Record<string, number>>;
-    /** Leaving the editor (the panel asks about unsaved changes) */
-    onDone?: () => void;
+    /** Where saving is, for the panel to show */
+    onStatus?: (status: SaveStatus) => void;
     /** The project's unit types: given, units are added here, drawn where they go */
     unitTypes?: UnitType[];
     /** A unit was added on the plan (the units listed elsewhere follow) */
     onUnitAdded?: () => void;
   }
->(function PlanEditor({ plan, save, onDone, unitTypes, onUnitAdded }, ref) {
+>(function PlanEditor({ plan, save, onStatus, unitTypes, onUnitAdded }, ref) {
   // One per editing session (the panel hands the plan as it was when editing began)
   const model = useMemo(() => new PlanModel(plan), [plan]);
   const version = useSyncExternalStore(model.subscribe, model.getVersion);
@@ -270,10 +233,11 @@ export const PlanEditor = forwardRef<
   }, [version, flush, failed, model]);
 
   useImperativeHandle(ref, () => ({ flush, dirty: () => model.dirty }), [model, flush]);
+  useEffect(() => onStatus?.(status), [onStatus, status]);
 
-  // The shape a menu was opened on (right-click), where; the one being renamed
+  // The shape a menu was opened on (right-click), where; the one being named
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
-  const [renaming, setRenaming] = useState<string | null>(null);
+  const [naming, setNaming] = useState<{ key: string; at: { x: number; y: number } } | null>(null);
 
   const svg = useRef<SVGSVGElement>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -285,8 +249,9 @@ export const PlanEditor = forwardRef<
   // A unit being added: where it starts, while its details are asked
   const [newUnit, setNewUnit] = useState<{ polygon: Point[]; floor: number } | null>(null);
 
-  const shapeTypes: { value: ShapeType; label: string }[] = [
-    { value: 'building', label: _('Building') },
+  // What is added from the palette: a unit asks its details first
+  const palette: { value: ShapeType; label: string }[] = [
+    ...(unitTypes ? [{ value: 'unit' as const, label: _('Unit') }] : []),
     { value: 'street', label: _('Street') },
     { value: 'green', label: _('Green area') },
     { value: 'common', label: _('Common space') },
@@ -294,12 +259,6 @@ export const PlanEditor = forwardRef<
     { value: 'playground', label: _('Playground') },
     { value: 'entrance', label: _('Entrance') },
     { value: 'other', label: _('Other') },
-  ];
-
-  // What is added from the palette: a unit (with its details) rather than a bare building
-  const palette: { value: ShapeType; label: string }[] = [
-    ...(unitTypes ? [{ value: 'unit' as const, label: _('Unit') }] : []),
-    ...shapeTypes.filter((type) => type.value !== 'building'),
   ];
 
   /** What a kind looks like, small, in the palette */
@@ -324,10 +283,19 @@ export const PlanEditor = forwardRef<
     return [point.x, point.y];
   };
 
-  /** The drag follows the pointer off the canvas (one not pressed, as a script's, cannot be held) */
+  // A press that may become a drag: the pointer is held only once it moves a little, so that
+  // a double-click still reaches the shape clicked
+  const pressed = useRef<{ id: number; x: number; y: number } | null>(null);
   const capture = (event: ReactPointerEvent) => {
+    pressed.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  };
+  /** The drag follows the pointer off the canvas (one not pressed, as a script's, cannot be held) */
+  const hold = (event: ReactPointerEvent) => {
+    const press = pressed.current;
+    if (!press || Math.hypot(event.clientX - press.x, event.clientY - press.y) < 3) return;
+    pressed.current = null;
     try {
-      svg.current?.setPointerCapture(event.pointerId);
+      svg.current?.setPointerCapture(press.id);
     } catch {
       // Dragging still works within the canvas
     }
@@ -350,6 +318,8 @@ export const PlanEditor = forwardRef<
 
   const startVertex = (event: ReactPointerEvent, index: number) => {
     event.stopPropagation();
+    // A right-click opens the menu, never a drag
+    if (event.button === 2) return;
     model.selectVertex(index);
     drag.current = { kind: 'vertex', index };
     capture(event);
@@ -357,6 +327,8 @@ export const PlanEditor = forwardRef<
 
   const startEdge = (event: ReactPointerEvent, index: number) => {
     event.stopPropagation();
+    // A right-click opens the menu, never a drag
+    if (event.button === 2) return;
     drag.current = {
       kind: 'edge',
       index,
@@ -368,6 +340,7 @@ export const PlanEditor = forwardRef<
 
   const startRotate = (event: ReactPointerEvent) => {
     event.stopPropagation();
+    if (event.button === 2) return;
     const original = structuredClone(model.activePolygon!);
     drag.current = { kind: 'rotate', from: angleTo(original, toPlan(event)), original };
     capture(event);
@@ -375,6 +348,8 @@ export const PlanEditor = forwardRef<
 
   const startResize = (event: ReactPointerEvent, corner: [number, number]) => {
     event.stopPropagation();
+    // A right-click opens the menu, never a drag
+    if (event.button === 2) return;
     const box = bounds(model.activePolygon!);
     const from: Point = [corner[0] ? box.maxX : box.minX, corner[1] ? box.maxY : box.minY];
     const anchor: Point = [corner[0] ? box.minX : box.maxX, corner[1] ? box.minY : box.maxY];
@@ -415,6 +390,7 @@ export const PlanEditor = forwardRef<
     const current = drag.current;
     const polygon = model.activePolygon;
     if (!current || !polygon) return;
+    hold(event);
     const at = toPlan(event);
     const shift = (points: Point[], dx: number, dy: number) =>
       points.map(([x, y]): Point => [x + dx, y + dy]);
@@ -485,7 +461,41 @@ export const PlanEditor = forwardRef<
   const onPointerUp = () => {
     if (drag.current) model.commit();
     drag.current = null;
+    pressed.current = null;
     showGuides([]);
+  };
+
+  /** The canvas's bottom edge, dragged: the canvas taller or shorter (never past the drawing) */
+  const startGrow = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const grip = event.currentTarget;
+    const [from, height] = [event.clientY, canvas.height];
+    const perPixel = 1 / (svg.current?.getScreenCTM()?.a || 1);
+    try {
+      grip.setPointerCapture(event.pointerId);
+    } catch {
+      // The drag still works over the grip
+    }
+    const move = (moved: PointerEvent) =>
+      model.setCanvasHeight(height + (moved.clientY - from) * perPixel);
+    const end = () => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      model.commit();
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  };
+
+  /** Where a shape's name field goes: over its middle, within the frame */
+  const nameSpot = (polygon: Point[]) => {
+    const matrix = svg.current?.getScreenCTM();
+    const box = frame.current?.getBoundingClientRect();
+    if (!matrix || !box) return { x: 0, y: 0 };
+    const [x, y] = centre(polygon);
+    const point = new DOMPoint(x, y).matrixTransform(matrix);
+    return { x: point.x - box.left, y: point.y - box.top };
   };
 
   /** Keyboard: nudge, delete, undo and redo */
@@ -533,7 +543,12 @@ export const PlanEditor = forwardRef<
         event.preventDefault();
         model.setActivePolygon(model.rotate(model.activePolygon!, event.shiftKey ? -15 : 15));
         model.commit();
-      } else if (event.key === 'Escape') {
+      } else if ((event.key === 'PageUp' || event.key === 'PageDown') && model.selectedItem) {
+        event.preventDefault();
+        model.moveFloor(event.key === 'PageUp' ? 1 : -1);
+      } else if (event.key === 'Escape' && model.selected) {
+        // Used: what else listens (a full screen) leaves it be
+        event.preventDefault();
         setMenu(null);
         model.select(null);
       }
@@ -551,6 +566,9 @@ export const PlanEditor = forwardRef<
     model.setActivePolygon(model.rotate(model.activePolygon, degrees));
     model.commit();
   };
+  const named = model.items.find((item) => item.key === naming?.key) ?? null;
+  const name = (item: { key: string; polygon: Point[] }) =>
+    setNaming({ key: item.key, at: nameSpot(item.polygon) });
 
   return (
     <>
@@ -568,7 +586,7 @@ export const PlanEditor = forwardRef<
               onClick={() =>
                 type.value === 'unit'
                   ? setNewUnit({ polygon: model.startOf('unit'), floor: model.floor })
-                  : model.add(type.value)
+                  : model.add(type.value, kindLabel(type.value) ?? '')
               }
             >
               <svg viewBox="0 0 28 18" width={28} height={18} aria-hidden>
@@ -718,17 +736,21 @@ export const PlanEditor = forwardRef<
                 onPointerDown={(event) => model.editingBoundary && startMove(event, 'boundary')}
               />
 
+              {/* Each floor beneath seen as it looks: its shapes one faint image */}
               {model.beneath.length ? (
                 <g className="plan-beneath" aria-hidden>
-                  {model.beneath.map((item) => (
-                    <g key={item.key} data-depth={Math.min(model.floor - item.floor, 3)}>
-                      <PlanShape
-                        id={look}
-                        seed={item.id ? String(item.id) : item.key}
-                        kind={item.type}
-                        polygon={item.polygon}
-                        color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
-                      />
+                  {floorsBeneath(model.beneath, model.floor).map((below) => (
+                    <g key={below.floor} data-depth={Math.min(model.floor - below.floor, 3)}>
+                      {below.items.map((item) => (
+                        <PlanShape
+                          key={item.key}
+                          id={look}
+                          seed={item.id ? String(item.id) : item.key}
+                          kind={item.type}
+                          polygon={item.polygon}
+                          color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
+                        />
+                      ))}
                     </g>
                   ))}
                 </g>
@@ -745,7 +767,7 @@ export const PlanEditor = forwardRef<
                     model.select(item.key);
                     setMenu({ x: event.clientX, y: event.clientY });
                   }}
-                  onDoubleClick={() => !item.unit && setRenaming(item.key)}
+                  onDoubleClick={() => !item.unit && name(item)}
                 >
                   <PlanShape
                     id={look}
@@ -845,7 +867,7 @@ export const PlanEditor = forwardRef<
                         stroke="var(--mtav-brand)"
                         strokeWidth={1.5}
                       >
-                        <title>{_('Turn it (R)')}</title>
+                        <title>{_('Rotate (R)')}</title>
                       </circle>
                     </g>
                   ) : null}
@@ -878,33 +900,50 @@ export const PlanEditor = forwardRef<
                       strokeWidth={1.5}
                       className="plan-vertex"
                       onPointerDown={(event) => startVertex(event, index)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        model.selectVertex(index);
+                        setMenu({ x: event.clientX, y: event.clientY });
+                      }}
                     />
                   ))}
                 </g>
               ) : null}
             </svg>
+            {/* The canvas's bottom edge: dragged, the canvas grows or shrinks */}
+            <Tooltip label={_('Drag to make the canvas taller or shorter')} position="bottom">
+              <div
+                className="plan-grip"
+                role="separator"
+                aria-orientation="horizontal"
+                aria-label={_('Canvas height')}
+                onPointerDown={startGrow}
+              />
+            </Tooltip>
+            {named ? (
+              <NameField
+                key={named.key}
+                item={named}
+                at={naming!.at}
+                onClose={() => setNaming(null)}
+                onSave={(name) => {
+                  model.rename(named.key, name);
+                  setNaming(null);
+                }}
+              />
+            ) : null}
             <PlanHint host={frame} />
           </div>
-          {/* What to know, and the way out */}
-          <Group justify="space-between" align="flex-end" gap="sm" wrap="wrap">
-            <Text className="ds-caption" style={{ flex: '1 1 320px' }}>
-              {_(
-                'Drag to move, or drag an edge to move that side; Ctrl + drag takes a copy. Corners resize; round handles move a corner (double-click an edge to add one). The handle above turns it, and so does R. Double-click a shape to name it; right-click for more.',
-              )}
-            </Text>
-            <Group gap="md" data-tour="plan.save">
-              <SaveState status={status} onRetry={() => void flush()} />
-              {onDone ? (
-                <Button variant="default" leftSection={<IconCheck size={16} />} onClick={onDone}>
-                  {_('Done editing')}
-                </Button>
-              ) : null}
-            </Group>
-          </Group>
+          {/* What to know */}
+          <Text className="ds-caption">
+            {_(
+              'Drag to move, or drag an edge to move that side; Ctrl + drag takes a copy. Corners resize; round handles move a corner (double-click an edge to add one). The handle above rotates it, and so does R. Double-click a shape to name it; right-click for more.',
+            )}
+          </Text>
         </Stack>
 
-        {/* The selected shape */}
-        <Card p="sm" h="fit-content">
+        {/* The selected shape, where there is room beside the canvas (else its menu has it all) */}
+        <Card p="sm" h="fit-content" className="plan-details">
           {selectedItem ? (
             <Stack gap="sm">
               <Title order={2} fz="md">
@@ -913,26 +952,15 @@ export const PlanEditor = forwardRef<
                   : _('Shape')}
               </Title>
               {!selectedItem.unit ? (
-                <>
-                  <NativeSelect
-                    label={_('Kind')}
-                    name="shape_type"
-                    value={selectedItem.type}
-                    onChange={(event) =>
-                      model.update({ type: event.currentTarget.value as ShapeType })
-                    }
-                    data={shapeTypes}
-                  />
-                  <TextInput
-                    label={_('Name')}
-                    name="shape_name"
-                    value={selectedItem.name}
-                    onChange={(event) => {
-                      model.edit({ name: event.currentTarget.value });
-                    }}
-                    onBlur={() => model.commit()}
-                  />
-                </>
+                <TextInput
+                  label={_('Name')}
+                  name="shape_details_name"
+                  value={selectedItem.name}
+                  onChange={(event) => {
+                    model.edit({ name: event.currentTarget.value });
+                  }}
+                  onBlur={() => model.commit()}
+                />
               ) : null}
               {TINTED.includes(selectedItem.type) ? (
                 <ColorInput
@@ -1006,31 +1034,14 @@ export const PlanEditor = forwardRef<
               ) : null}
             </Stack>
           ) : (
-            <Stack gap="sm">
-              <Title order={2} fz="sm">
-                {_('Canvas')}
-              </Title>
-              <SimpleGrid cols={2} spacing="xs">
-                <SizeInput
-                  label={_('Width')}
-                  value={canvas.width}
-                  onChange={(width) => model.setCanvasSize(width, canvas.height)}
-                />
-                <SizeInput
-                  label={_('Height')}
-                  value={canvas.height}
-                  onChange={(height) => model.setCanvasSize(canvas.width, height)}
-                />
-              </SimpleGrid>
-              <Text className="ds-caption">{_('Select a shape to change it.')}</Text>
-            </Stack>
+            <Text className="ds-caption">{_('Select a shape to change it.')}</Text>
           )}
         </Card>
       </div>
 
-      {/* Right-click on a shape */}
+      {/* Right-click on a shape (or on a corner): all it takes, wherever its details are */}
       <Menu
-        opened={Boolean(menu && selectedItem)}
+        opened={Boolean(menu && (selectedItem || model.editingBoundary))}
         onChange={(open) => !open && setMenu(null)}
         withinPortal
       >
@@ -1046,68 +1057,121 @@ export const PlanEditor = forwardRef<
           />
         </Menu.Target>
         <Menu.Dropdown>
-          {selectedItem && !selectedItem.unit ? (
+          {model.selectedVertex !== null ? (
             <Menu.Item
-              leftSection={<IconPencil size={16} />}
-              onClick={() => setRenaming(selectedItem.key)}
+              color="red"
+              leftSection={<IconTrash size={16} />}
+              rightSection={<Kbd size="xs">Del</Kbd>}
+              disabled={(model.activePolygon?.length ?? 0) <= 3}
+              onClick={() => model.remove()}
             >
-              {_('Name it')}
+              {_('Remove the corner')}
             </Menu.Item>
-          ) : null}
-          <Menu.Item leftSection={<IconRotateClockwise size={16} />} onClick={() => turn(15)}>
-            {_('Turn it')}
-          </Menu.Item>
-          <Menu.Divider />
-          <Menu.Item
-            leftSection={<IconStackFront size={16} />}
-            onClick={() => model.restack('front')}
-          >
-            {_('Bring to front')}
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<IconStackBack size={16} />}
-            onClick={() => model.restack('back')}
-          >
-            {_('Send to back')}
-          </Menu.Item>
-          {selectedItem && !selectedItem.unit ? (
+          ) : selectedItem ? (
             <>
+              {!selectedItem.unit ? (
+                <Menu.Item
+                  leftSection={<IconPencil size={16} />}
+                  onClick={() => name(selectedItem)}
+                >
+                  {_('Name it')}
+                </Menu.Item>
+              ) : null}
+              <Menu.Item
+                leftSection={<IconRotateClockwise size={16} />}
+                rightSection={<Kbd size="xs">R</Kbd>}
+                onClick={() => turn(15)}
+              >
+                {_('Rotate')}
+              </Menu.Item>
+              {TINTED.includes(selectedItem.type) ? (
+                <div className="plan-swatches" role="group" aria-label={_('Colour')}>
+                  {SWATCHES.map((color) => (
+                    <ColorSwatch
+                      key={color}
+                      component="button"
+                      type="button"
+                      color={color}
+                      size={20}
+                      aria-label={color}
+                      aria-pressed={selectedItem.color === color}
+                      onClick={() => {
+                        model.update({ color });
+                        setMenu(null);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <Menu.Divider />
               <Menu.Item
-                leftSection={<IconCopy size={16} />}
-                rightSection={<Kbd size="xs">Ctrl D</Kbd>}
-                onClick={() => model.duplicate()}
+                leftSection={<IconArrowUp size={16} />}
+                rightSection={<Kbd size="xs">PgUp</Kbd>}
+                onClick={() => model.moveFloor(1)}
               >
-                {_('Duplicate')}
+                {_('One floor up')}
               </Menu.Item>
               <Menu.Item
-                leftSection={<IconClipboardCopy size={16} />}
-                rightSection={<Kbd size="xs">Ctrl C</Kbd>}
-                onClick={() => model.copy()}
+                leftSection={<IconArrowDown size={16} />}
+                rightSection={<Kbd size="xs">PgDn</Kbd>}
+                onClick={() => model.moveFloor(-1)}
               >
-                {_('Copy')}
+                {_('One floor down')}
               </Menu.Item>
-            </>
-          ) : null}
-          {model.canPaste ? (
-            <Menu.Item
-              leftSection={<IconClipboard size={16} />}
-              rightSection={<Kbd size="xs">Ctrl V</Kbd>}
-              onClick={() => model.paste()}
-            >
-              {_('Paste')}
-            </Menu.Item>
-          ) : null}
-          {selectedItem && !selectedItem.unit ? (
-            <>
               <Menu.Divider />
               <Menu.Item
-                color="red"
-                leftSection={<IconTrash size={16} />}
-                onClick={() => model.remove()}
+                leftSection={<IconStackFront size={16} />}
+                onClick={() => model.restack('front')}
               >
-                {_('Remove')}
+                {_('Bring to front')}
               </Menu.Item>
+              <Menu.Item
+                leftSection={<IconStackBack size={16} />}
+                onClick={() => model.restack('back')}
+              >
+                {_('Send to back')}
+              </Menu.Item>
+              {!selectedItem.unit ? (
+                <>
+                  <Menu.Divider />
+                  <Menu.Item
+                    leftSection={<IconCopy size={16} />}
+                    rightSection={<Kbd size="xs">Ctrl D</Kbd>}
+                    onClick={() => model.duplicate()}
+                  >
+                    {_('Duplicate')}
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconClipboardCopy size={16} />}
+                    rightSection={<Kbd size="xs">Ctrl C</Kbd>}
+                    onClick={() => model.copy()}
+                  >
+                    {_('Copy')}
+                  </Menu.Item>
+                </>
+              ) : null}
+              {model.canPaste ? (
+                <Menu.Item
+                  leftSection={<IconClipboard size={16} />}
+                  rightSection={<Kbd size="xs">Ctrl V</Kbd>}
+                  onClick={() => model.paste()}
+                >
+                  {_('Paste')}
+                </Menu.Item>
+              ) : null}
+              {!selectedItem.unit ? (
+                <>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconTrash size={16} />}
+                    rightSection={<Kbd size="xs">Del</Kbd>}
+                    onClick={() => model.remove()}
+                  >
+                    {_('Remove')}
+                  </Menu.Item>
+                </>
+              ) : null}
             </>
           ) : null}
         </Menu.Dropdown>
@@ -1131,15 +1195,6 @@ export const PlanEditor = forwardRef<
           ) : null}
         </Modal>
       ) : null}
-
-      <RenameShape
-        item={model.items.find((item) => item.key === renaming) ?? null}
-        onClose={() => setRenaming(null)}
-        onSave={(name) => {
-          if (renaming) model.rename(renaming, name);
-          setRenaming(null);
-        }}
-      />
     </>
   );
 });

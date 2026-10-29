@@ -238,4 +238,5 @@ return [
     'limit_members'     => 'Les projets en attente d’approbation peuvent avoir jusqu’à :max personnes.',
     'limit_invitations' => 'Les projets en attente d’approbation peuvent envoyer jusqu’à :max invitations par jour.',
     'limit_storage'     => 'Les projets en attente d’approbation peuvent stocker jusqu’à :max Mo de fichiers.',
+    'image_too_large'   => 'Les images peuvent avoir jusqu’à :max mégapixels ; celle-ci en a davantage.',
 ];

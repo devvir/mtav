@@ -46,3 +46,16 @@ expect()->intercept('toHaveProp', TestResponse::class, function (mixed $prop, mi
 
     $this->value->assertInertia(fn (Assert $page) => $page->$assertion($prop, $propValue));
 });
+
+/** A prop the page loads once painted (deferred), as the page's own reload asks for it */
+function deferredProp(TestResponse $response, string $key): mixed
+{
+    $page = $response->viewData('page');
+
+    return test()->get($page['url'], [
+        'X-Inertia'                   => 'true',
+        'X-Inertia-Version'           => $page['version'],
+        'X-Inertia-Partial-Component' => $page['component'],
+        'X-Inertia-Partial-Data'      => $key,
+    ])->json("props.{$key}");
+}

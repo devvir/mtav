@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,
+            \App\Http\Middleware\RequireOwner::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

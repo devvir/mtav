@@ -12,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * For routes under /projects/{project}: only people taking part in the project get
  * in (others see a 404, as if it did not exist). The project becomes the default
- * {project} parameter for every URL generated during the request, frontend included.
+ * {project} parameter for every URL generated during the request, frontend included,
+ * and the one the person's own pages (profile, notifications) keep in their frame.
  */
 class ResolveProject
 {
@@ -25,6 +26,7 @@ class ResolveProject
 
         Context::addHidden('project', $project);
         URL::defaults(['project' => $project->id]);
+        $request->session()->put('last_project', $project->id);
 
         return $next($request);
     }

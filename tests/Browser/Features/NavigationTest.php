@@ -107,3 +107,16 @@ it('offers quick actions, each what the person may do, as a shortcut to its page
         ->assertPathIs(pathOf('events.index', $this->project))
         ->assertPresent('[role="dialog"] [name="title"]');
 });
+
+it('keeps the project being browsed around one\'s profile, with its places to go back to', function () {
+    $other = aProject(['name' => 'Cooperativa Dos']);
+    $this->as(anAdminOf($this->project, $other));
+
+    visit(route('projects.show', $other))
+        ->click('[aria-label="Your account"]')
+        ->click('[role="menu"] >> text=Profile')
+        ->assertPathIs(pathOf('profile.edit'))
+        ->assertSeeIn('.shell-sidebar', 'Cooperativa Dos')
+        ->click('.shell-sidebar >> text=Lottery')
+        ->assertPathIs(pathOf('lottery.show', $other));
+});

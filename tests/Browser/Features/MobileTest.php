@@ -15,7 +15,7 @@ it('moves around the member app with the bottom tabs and the drawer', function (
 
     visit(route('projects.show', $this->project))
         ->on()->mobile()
-        ->click('nav[aria-label="Main"] >> text=Families')
+        ->click('nav[aria-label="Main"] >> text=People')
         ->assertPathIs("/projects/{$this->project->id}/families")
         ->assertSee('García')
         ->click('[aria-label="Menu"]')
@@ -45,4 +45,18 @@ it('opens modals as sheets that fit the screen', function () {
         ->assertSee('Their role and family in this project.');
 
     expect($page->script('Math.round(document.querySelector(\'[role="dialog"]\').getBoundingClientRect().width) <= window.innerWidth'))->toBeTrue();
+});
+
+it('reads the plan on a phone, full screen and zoomed, but leaves drawing it to larger screens', function () {
+    aUnit(aUnitType($this->project), ['identifier' => 'A-101']);
+    $this->as($this->admin);
+
+    visit(route('units.index', $this->project))
+        ->on()->mobile()
+        ->assertPresent('[aria-label="Project plan"]')
+        ->assertNotPresent(button('Edit the plan'))
+        ->click('[aria-label="Full screen"]')
+        ->click('[aria-label="Zoom in"]')
+        ->assertPresent('.plan-panel[data-full] [aria-label="Project plan"][data-zoomed]')
+        ->assertNoSmoke();
 });

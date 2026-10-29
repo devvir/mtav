@@ -229,3 +229,21 @@ it('leads someone from their own person page to their profile', function () {
         ->click('Edit your profile')
         ->assertPathIs(route('profile.edit', absolute: false));
 });
+
+it('shows the cooperative\'s people in one place, by family or everyone', function () {
+    $project = aProject();
+    $family = aFamily($project, null, ['name' => 'Rodríguez']);
+    $member = aMemberOf($family, ['firstname' => 'Lucía', 'lastname' => 'Rodríguez']);
+    $this->as($member);
+
+    visit(route('projects.show', $project))
+        ->click('.shell-sidebar >> text=People')
+        ->assertPathIs("/projects/{$project->id}/families")
+        ->assertSee('Rodríguez')
+        ->click('.people-views >> text=Everyone')
+        ->assertPathIs("/projects/{$project->id}/people")
+        ->assertSee('Lucía Rodríguez')
+        ->assertPresent('.shell-sidebar a[aria-current="page"], .shell-sidebar [data-active]')
+        ->click('.people-views >> text=Families')
+        ->assertPathIs("/projects/{$project->id}/families");
+});
