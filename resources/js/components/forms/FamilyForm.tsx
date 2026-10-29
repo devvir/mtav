@@ -37,7 +37,7 @@ export function FamilyForm({
       />
       <NativeSelect
         label={_('Unit type')}
-        description={_('It competes for these units only')}
+        description={_('It receives a unit of this type')}
         withAsterisk
         data={[
           { value: '', label: _('Choose a type'), disabled: true },

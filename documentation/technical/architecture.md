@@ -160,5 +160,6 @@ Tabler icons and dnd-kit for dragging.
   English (`lang/<locale>.json`, the English file empty on purpose), only the one in use
   downloaded. Server-side words live in `lang/<locale>/*.php`, the guides in
   `resources/views/guides/<locale>/`. The language is the person's choice (`users.locale`,
-  `SetLocale`), else the platform's; the list people pick from is `config/app.php`
-  `locales`.
+  `SetLocale`), else their browser's when the platform has it (by language: es-AR finds
+  Spanish), else English; someone signed in keeps the one found, for their mail. The list
+  people pick from is `config/app.php` `locales`.

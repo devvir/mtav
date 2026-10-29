@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A group of equivalent units: families compete only for units of their own type.
+ * A group of equivalent units: each family receives a unit of its own type.
  */
 class UnitType extends Model
 {

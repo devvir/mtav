@@ -1,10 +1,8 @@
 <?php
 
 /**
- * The whole UI speaks Spanish when the platform does.
+ * The whole UI speaks Spanish when the browser does.
  */
-
-beforeEach(fn () => config()->set('app.locale', 'es_UY'));
 
 it('speaks Spanish in the member app', function () {
     $project = aProject();
@@ -12,7 +10,7 @@ it('speaks Spanish in the member app', function () {
     aUnit($type);
     $this->as(aMemberOf(aFamily($project, $type)));
 
-    visit(route('lottery.show', $project))
+    visit(route('lottery.show', $project))->withLocale('es-UY')
         ->assertSee('Sorteo')
         ->assertSee('Tus preferencias')
         ->assertSee('Viviendas')
@@ -24,7 +22,7 @@ it('speaks Spanish in the admin area and in confirmations', function () {
     $project = aProject();
     $this->as(anAdminOf($project));
 
-    visit(route('manage.settings.edit', $project))
+    visit(route('manage.settings.edit', $project))->withLocale('es-UY')
         ->assertSee('Configuración')
         ->click(button('Eliminar el proyecto'))
         ->assertSee('Escribe')
@@ -33,5 +31,5 @@ it('speaks Spanish in the admin area and in confirmations', function () {
 });
 
 it('speaks Spanish when signing in', function () {
-    visit(route('login'))->assertSee('Entrar')->assertSee('¿Olvidaste tu contraseña?');
+    visit(route('login'))->withLocale('es-UY')->assertSee('Entrar')->assertSee('¿Olvidaste tu contraseña?');
 });

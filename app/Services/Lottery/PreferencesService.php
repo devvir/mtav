@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * A family's ranking of the units it competes for (those of its type).
+ * A family's ranking of the units it may receive (those of its type).
  *
  * Families rank as many units as they like; the rest follow in an order that is
  * random but fixed for each family, so that families who do not rank are not all

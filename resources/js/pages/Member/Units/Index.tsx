@@ -81,16 +81,14 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
     <>
       <PageHeader
         title={_('Units')}
-        description={_(
-          "The project's dwellings, by type. Families compete only for units of their own type.",
-        )}
+        description={_("The project's dwellings, by type.")}
         help={
           <InfoTip
             title={_('What is a unit type?')}
             tour={canManage ? 'manage.unit_types' : undefined}
           >
             {_(
-              "A group of equivalent units, like '2 bedrooms'. Each family has one type, and competes only for units of that type: each type is, in fact, its own lottery.",
+              "A group of equivalent units, like '2 bedrooms'. Each family has one type, and receives a unit of that type: each type has, in fact, its own lottery.",
             )}
           </InfoTip>
         }

@@ -66,7 +66,7 @@ class LotteryOrchestrator
     }
 
     /**
-     * Families and units left over by unbalanced types compete together, every
+     * Families and units left over by unbalanced types are matched together, every
      * leftover unit being equally acceptable to every leftover family.
      *
      * @param Collection<ExecutionResult> $firstPass

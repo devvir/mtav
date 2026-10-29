@@ -12,7 +12,7 @@ defineTour('member.ranking', () => [
     target: 'ranking.list',
     title: _('Your preferences'),
     body: _(
-      'These are the units your family competes for, most wanted first. The lottery tries to give every family a unit as high in its ranking as possible.',
+      "These are the units of your family's type, most wanted first. The lottery gives every family a unit as high in its ranking as possible.",
     ),
   },
   {
@@ -85,7 +85,7 @@ defineTour('manage.unit_types', () => [
     target: 'unit_types.add',
     title: _('Start with the types'),
     body: _(
-      'A unit type groups equivalent units, like "2 bedrooms". Families compete only for units of their own type.',
+      'A unit type groups equivalent units, like "2 bedrooms". Each family receives a unit of its own type.',
     ),
   },
   {

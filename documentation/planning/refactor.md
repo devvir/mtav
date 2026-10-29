@@ -109,7 +109,7 @@ decision taken on the way is listed below for review.
 - **Granting the superadmin role is rare.** It has a place of its own in the platform
   console, never a button offered on every account.
 - **Languages**: each person picks theirs (Preferences), for the app and its mail; without
-  a choice, the platform's. English, Spanish, French, Portuguese (Brazil) and Italian,
+  a choice, their browser's when the platform has it, else English. English, Spanish, French, Portuguese (Brazil) and Italian,
   each written natively. Adding one is its line in `config/app.php` with its words and
   guides; tests refuse a language with a word, a blank or a guide missing.
 - **Demo data covers every kind of file**: the seeder shares photos, videos, audio and
