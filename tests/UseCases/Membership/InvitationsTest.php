@@ -197,6 +197,18 @@ describe('An invited person', function () {
     });
 });
 
+it('never moves someone already in a family into another one', function () {
+    $other = aFamily($this->project);
+    invite($this, $this->admin, ['family_id' => $other->id]);
+    $link = invitationLink();
+    // Meanwhile, they joined the first family through another invitation
+    $person = aMemberOf($this->family, ['email' => 'new.person@example.com']);
+
+    $this->as($person)->post($link);
+
+    expect($person->fresh()->familyIn($this->project)?->id)->toBe($this->family->id);
+});
+
 describe('An unapproved project', function () {
     it('invites only a limited number of people a day', function () {
         config()->set('limits.unapproved.invitations_per_day', 2);

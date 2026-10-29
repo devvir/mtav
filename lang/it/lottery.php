@@ -4,7 +4,9 @@ return [
     'title'               => 'Sorteggio',
     'default_description' => 'Il sorteggio che dà un’unità a ogni famiglia, a partire dalle classifiche fatte dalle famiglie.',
 
-    'locked'                => 'Il sorteggio è già stato eseguito (o è in corso): non si può più cambiare.',
+    'locked' => 'Il sorteggio è già stato eseguito (o è in corso): non si può più cambiare.',
+
+    'running'               => 'Il sorteggio è in corso: unità e famiglie possono cambiare quando finisce.',
     'execution_failed'      => 'Qualcosa è andato storto durante il sorteggio. Puoi riprovare; se continua a non riuscire, contatta il team della piattaforma.',
     'requires_confirmation' => 'Conferma prima di eseguire il sorteggio.',
 

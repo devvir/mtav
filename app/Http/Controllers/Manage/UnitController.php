@@ -25,6 +25,8 @@ class UnitController extends Controller
      */
     public function store(UnitRequest $request, Project $project, PlanService $plans): RedirectResponse|JsonResponse
     {
+        $project->ensureLotteryNotRunning();
+
         $item = DB::transaction(function () use ($request, $project, $plans) {
             $typeId = $request->validated('new_unit_type')
                 ? $project->unitTypes()->create($request->validated('new_unit_type'))->id
@@ -60,6 +62,8 @@ class UnitController extends Controller
 
     public function destroy(Project $project, Unit $unit): RedirectResponse
     {
+        $project->ensureLotteryNotRunning();
+
         if ($unit->family_id) {
             throw ValidationException::withMessages(['unit' => __('validation.unit_assigned')]);
         }

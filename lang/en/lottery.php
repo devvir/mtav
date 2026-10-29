@@ -4,7 +4,9 @@ return [
     'title'               => 'Lottery',
     'default_description' => 'The draw that gives each family a unit, from the rankings the families made.',
 
-    'locked'                => 'The lottery already ran (or is running): this can no longer change.',
+    'locked' => 'The lottery already ran (or is running): this can no longer change.',
+
+    'running'               => 'The lottery is running: units and families change once it ends.',
     'execution_failed'      => 'Something went wrong while running the lottery. You can try again; if it keeps failing, contact the platform team.',
     'requires_confirmation' => 'Please confirm before running the lottery.',
 

@@ -238,6 +238,20 @@ describe('An admin', function () {
         runLottery()->assertSessionHasNoErrors();
     });
 
+    it('holds units and families still while a run is being solved', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        test()->project->lotteryRuns()->create([
+            'uuid' => (string) Str::uuid(), 'status' => LotteryRunStatus::RUNNING, 'solver' => config('lottery.default'), 'started_at' => now(),
+        ]);
+        $this->as($this->admin, $this->project);
+
+        $this->delete(route('manage.units.destroy', $units[0]))->assertSessionHasErrors('lottery');
+        $this->post(route('manage.units.store'), ['identifier' => 'Z-1', 'unit_type_id' => $this->type->id])->assertSessionHasErrors('lottery');
+        $this->delete(route('manage.families.destroy', $families[0]))->assertSessionHasErrors('lottery');
+
+        expect($units[0]->fresh())->not->toBeNull()->and($families[0]->fresh())->not->toBeNull();
+    });
+
     it('leaves a run that finished as it is, whatever fails after it', function () {
         familiesRanking([[0, 1], [1, 0]]);
         lotteryIsDue();

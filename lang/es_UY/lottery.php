@@ -4,7 +4,9 @@ return [
     'title'               => 'Sorteo',
     'default_description' => 'El sorteo que le da a cada familia una vivienda, a partir del orden de preferencias que eligieron.',
 
-    'locked'                => 'El sorteo ya se realizó (o se está realizando): esto ya no puede cambiar.',
+    'locked' => 'El sorteo ya se realizó (o se está realizando): esto ya no puede cambiar.',
+
+    'running'               => 'El sorteo está en curso: las viviendas y familias pueden cambiar cuando termine.',
     'execution_failed'      => 'Algo salió mal al realizar el sorteo. Puedes volver a intentarlo; si sigue fallando, contacta al equipo de la plataforma.',
     'requires_confirmation' => 'Confirma antes de realizar el sorteo.',
 

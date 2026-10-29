@@ -7,8 +7,9 @@ use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Enums\LotteryAuditType;
 
 /**
- * Writes the permanent audit trail of lottery runs. Audits are never deleted:
- * re-running a lottery after an invalidation adds a new run with its own trail.
+ * Writes the audit trail of lottery runs, kept as long as the project is (deleting it
+ * for good takes them along): re-running a lottery after an invalidation adds a new run
+ * with its own trail.
  */
 class AuditService
 {

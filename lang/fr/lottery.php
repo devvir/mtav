@@ -4,7 +4,9 @@ return [
     'title'               => 'Tirage',
     'default_description' => 'Le tirage qui donne un logement à chaque famille, à partir des classements établis par les familles.',
 
-    'locked'                => 'Le tirage a déjà eu lieu (ou est en cours) : cela ne peut plus changer.',
+    'locked' => 'Le tirage a déjà eu lieu (ou est en cours) : cela ne peut plus changer.',
+
+    'running'               => 'Le tirage est en cours : logements et familles pourront changer quand il sera terminé.',
     'execution_failed'      => 'Un problème est survenu pendant le tirage. Vous pouvez réessayer ; si l’échec persiste, contactez l’équipe de la plateforme.',
     'requires_confirmation' => 'Veuillez confirmer avant de réaliser le tirage.',
 

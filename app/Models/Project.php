@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Validation\ValidationException;
 use App\Enums\EventType;
 use App\Enums\LotteryRunStatus;
 use Illuminate\Database\Eloquent\Builder;
@@ -155,6 +156,19 @@ class Project extends Model
     /**
      * Whether preferences are locked: a lottery run is running or decided the assignment.
      */
+    /**
+     * A run is being solved: who takes part, and what is given out, holds still until it
+     * ends (what it decides from is what its audit recorded).
+     *
+     * @throws ValidationException
+     */
+    public function ensureLotteryNotRunning(): void
+    {
+        if ($this->lotteryRuns()->where('status', LotteryRunStatus::RUNNING)->exists()) {
+            throw ValidationException::withMessages(['lottery' => __('lottery.running')]);
+        }
+    }
+
     public function lotteryLocked(): bool
     {
         return $this->activeLotteryRun()->exists();

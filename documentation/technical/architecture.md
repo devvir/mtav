@@ -94,7 +94,8 @@ Signed-in people also answer pending invitations from their projects page.
 - An admin may **invalidate** a completed run, giving a reason: assignments are cleared,
   the run becomes `invalidated` (who, when, why — shown to everyone in the project) and
   the lottery can run again.
-- Every step is kept in `lottery_audits`, never deleted.
+- Every step is kept in `lottery_audits` for as long as the project exists (deleting a
+  project for good takes its audits with it).
 
 The solvers (`Services/Lottery/Solvers`) work on plain data (`LotteryManifest`,
 `LotterySpec`), never on models.

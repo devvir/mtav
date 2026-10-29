@@ -4,7 +4,9 @@ return [
     'title'               => 'Sorteio',
     'default_description' => 'O sorteio que dá uma unidade a cada família, a partir das classificações feitas pelas famílias.',
 
-    'locked'                => 'O sorteio já foi feito (ou está em andamento): isto não pode mais mudar.',
+    'locked' => 'O sorteio já foi feito (ou está em andamento): isto não pode mais mudar.',
+
+    'running'               => 'O sorteio está em andamento: unidades e famílias podem mudar quando ele terminar.',
     'execution_failed'      => 'Algo deu errado durante o sorteio. Você pode tentar de novo; se continuar falhando, fale com a equipe da plataforma.',
     'requires_confirmation' => 'Confirme antes de realizar o sorteio.',
 

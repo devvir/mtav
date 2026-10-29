@@ -18,6 +18,8 @@ class FamilyController extends Controller
 {
     public function store(FamilyRequest $request, Project $project): RedirectResponse
     {
+        $project->ensureLotteryNotRunning();
+
         $family = $project->families()->create($request->validated());
 
         return to_route('families.index', ['family' => $family->id])->with('success', __('flash.family_created'));
@@ -39,6 +41,8 @@ class FamilyController extends Controller
      */
     public function destroy(Project $project, Family $family): RedirectResponse
     {
+        $project->ensureLotteryNotRunning();
+
         if ($family->unit()->exists()) {
             throw ValidationException::withMessages(['family' => __('validation.family_has_unit')]);
         }
