@@ -36,3 +36,28 @@ it('keeps the language found for someone who never picked one, for their mail to
 
     expect($user->fresh()->locale)->toBe('pt_BR');
 });
+
+it('speaks what a guest picked for the rest of the visit', function () {
+    $this->put(route('language'), ['locale' => 'it'])->assertSessionHasNoErrors();
+
+    expect($this->get(route('home'), ['Accept-Language' => 'fr-FR'])->inertiaProps('locale'))->toBe('it');
+});
+
+it('gives the account a guest signs in to the language they picked', function () {
+    $user = aUser(['email' => 'ana@example.com', 'password' => 'the-Right-pass-1', 'locale' => 'en']);
+
+    $this->put(route('language'), ['locale' => 'pt_BR']);
+    $this->post(route('login'), ['email' => 'ana@example.com', 'password' => 'the-Right-pass-1']);
+    $this->get(route('profile.edit'));
+
+    expect($user->fresh()->locale)->toBe('pt_BR');
+});
+
+it('changes the language of someone signed in, and refuses one it does not have', function () {
+    $user = aUser(['locale' => 'en']);
+
+    $this->as($user)->put(route('language'), ['locale' => 'fr'])->assertSessionHasNoErrors();
+    $this->as($user)->put(route('language'), ['locale' => 'de'])->assertSessionHasErrors('locale');
+
+    expect($user->fresh()->locale)->toBe('fr');
+});

@@ -15,7 +15,7 @@ export function LanguageSettings({ languages }: { languages: Record<string, stri
   const pick = (locale: string) =>
     locale !== current &&
     router.put(
-      route('profile.language'),
+      route('language'),
       { locale },
       {
         onStart: () => setSaving(locale),

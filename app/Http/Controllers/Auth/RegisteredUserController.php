@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,8 @@ class RegisteredUserController extends Controller
 {
     public function create(): Response
     {
-        return inertia('Auth/Register');
+        // Over the landing page
+        return HomeController::welcome('register');
     }
 
     public function store(Request $request): RedirectResponse

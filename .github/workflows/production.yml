@@ -1,6 +1,7 @@
 # Production is deployed by hand, from main only: "Run workflow" on main. It deploys the
 # release staging runs (already tried there), or a commit named, which must be on main.
 name: production
+run-name: Deploy production${{ inputs.commit && format(' at {0}', inputs.commit) || '' }}
 
 on:
   workflow_dispatch:

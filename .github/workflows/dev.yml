@@ -2,6 +2,7 @@
 # whether to start from fresh demo data). The branch's release image is built if it is
 # not published yet; no tests gate it: dev is where branches are tried.
 name: dev
+run-name: Deploy dev from ${{ github.ref_name }}
 
 on:
   workflow_dispatch:

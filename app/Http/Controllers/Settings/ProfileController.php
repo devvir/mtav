@@ -23,16 +23,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /** The language they read the app (and its mail) in: one of the platform's, or its own */
-    public function language(Request $request): RedirectResponse
-    {
-        $data = $request->validate(['locale' => ['nullable', Rule::in(array_keys(config('app.locales')))]]);
-
-        $request->user()->update(['locale' => $data['locale'] ?? null]);
-
-        return to_route('profile.edit', ['section' => 'preferences']);
-    }
-
     /**
      * A new email address replaces the current one once confirmed from the new inbox.
      */

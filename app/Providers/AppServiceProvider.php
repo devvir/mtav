@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\Delivery\GitHub;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -12,10 +13,10 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Abilities that need a personal stake in the project (a family, a membership),
-     * which superadmins do not get by default.
+     * Abilities superadmins do not get by default: those that need a personal stake in
+     * the project (a family, a membership), and deploying (its own list of people).
      */
-    private const PERSONAL_ABILITIES = ['rankUnits', 'rsvp'];
+    private const PERSONAL_ABILITIES = ['rankUnits', 'rsvp', 'deploy'];
 
     public function boot(): void
     {
@@ -26,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::before(fn (User $user, string $ability) => $user->isSuperadmin()
             && ! in_array($ability, self::PERSONAL_ABILITIES) ?: null);
+
+        // Superadmins listed as deployers, where GitHub is set up to deploy
+        Gate::define('deploy', fn (User $user) => $user->isSuperadmin()
+            && GitHub::configured()
+            && in_array(strtolower($user->email), config('delivery.deployers'), true));
     }
 
     protected function configureVite(): void

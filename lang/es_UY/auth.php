@@ -17,4 +17,7 @@ return [
     'password' => 'La contraseña que ingresaste es incorrecta.',
     'throttle' => 'Demasiados intentos. Intenta de nuevo en :seconds segundos.',
 
+    'google_failed'     => 'No se pudo entrar con Google. Prueba otra vez, o usa tu email.',
+    'google_unverified' => 'Google todavía no verificó ese email, así que no puede abrir una cuenta aquí.',
+
 ];

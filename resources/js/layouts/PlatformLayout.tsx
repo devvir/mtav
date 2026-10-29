@@ -2,12 +2,13 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { IconFlask, IconFolders, IconShieldCheck, IconUser } from '@tabler/icons-react';
+import { IconFlask, IconFolders, IconRocket, IconShieldCheck, IconUser } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 
 /** The platform console: superadmins only */
 export function PlatformLayout({ children }: { children: ReactNode }) {
-  useCurrentPage();
+  const { props } = useCurrentPage();
+  const canDeploy = Boolean(props.auth.user?.can_deploy);
 
   return (
     <AppShell
@@ -34,6 +35,16 @@ export function PlatformLayout({ children }: { children: ReactNode }) {
               icon: IconShieldCheck,
               active: routeIs('admin.superadmins.*'),
             },
+            ...(canDeploy
+              ? [
+                  {
+                    label: _('Deployments'),
+                    href: route('admin.deployments.index'),
+                    icon: IconRocket,
+                    active: routeIs('admin.deployments.*'),
+                  },
+                ]
+              : []),
             {
               label: _('UI Lab'),
               href: route('admin.lab'),

@@ -7,9 +7,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Each request in the language its person picked; else their browser's, when the platform
- * has it (es-AR finds Spanish, pt-PT Portuguese); else English. Someone signed in without
- * a choice keeps the one found, so their mail speaks it too.
+ * Each request in the language its person picked (a guest's pick lasts the visit, and
+ * becomes their account's once they sign in); else their browser's, when the platform has
+ * it (es-AR finds Spanish, pt-PT Portuguese); else English. Someone signed in without a
+ * choice keeps the one found, so their mail speaks it too.
  */
 class SetLocale
 {
@@ -17,7 +18,15 @@ class SetLocale
     {
         $locales = array_keys(config('app.locales'));
         $user = $request->user();
+        $picked = $request->hasSession() ? $request->session()->get('locale') : null;
+
+        if ($user && in_array($picked, $locales, true)) {
+            $user->forceFill(['locale' => $picked])->saveQuietly();
+            $request->session()->forget('locale');
+        }
+
         $locale = in_array($user?->locale, $locales, true) ? $user->locale : null;
+        $locale ??= ! $user && in_array($picked, $locales, true) ? $picked : null;
 
         if (! $locale) {
             $locale = $this->fromBrowser($request, $locales) ?? 'en';

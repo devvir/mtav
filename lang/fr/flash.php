@@ -64,4 +64,9 @@ return [
     'lottery_invalidated' => 'Le tirage a été annulé. Tout le monde dans le projet peut lire pourquoi.',
 
     'notifications_read' => 'Toutes les notifications sont marquées comme lues.',
+
+    'deploy_dev'        => 'Dev est en cours de déploiement depuis :branch. Suivez-le ci-dessous.',
+    'deploy_production' => 'La production est en cours de déploiement : elle attend l’approbation sur GitHub.',
+    'deploy_rollback'   => ':environment revient à la version précédente.',
+    'deploy_refused'    => 'GitHub ne l’a pas lancé (:status). Vérifiez le jeton de déploiement.',
 ];

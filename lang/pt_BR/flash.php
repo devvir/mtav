@@ -64,4 +64,9 @@ return [
     'lottery_invalidated' => 'O sorteio foi anulado. Todos no projeto podem ler por quê.',
 
     'notifications_read' => 'Todas as notificações foram marcadas como lidas.',
+
+    'deploy_dev'        => 'O dev está sendo implantado a partir de :branch. Acompanhe abaixo.',
+    'deploy_production' => 'A produção está sendo implantada: aguarda a aprovação no GitHub.',
+    'deploy_rollback'   => ':environment volta para a versão anterior.',
+    'deploy_refused'    => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
 ];

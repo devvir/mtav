@@ -76,7 +76,7 @@ decision taken on the way is listed below for review.
   specific to today's single server, so moving to a cloud provider replaces that step
   alone. The author is present for the first staging deploy. Design in
   `documentation/technical/delivery.md`.
-- **Deployment tools in the console.** The platform console gets a Deployments page: what
+- **Deployment tools in the console** (built). The platform console has a Deployments page: what
   each environment runs against `main`, deploying dev from a branch, production from
   `main`, and an earlier image again. It is shown only to superadmins whose email is
   listed in the environment's settings (`DEPLOYERS`), so granting superadmin never
@@ -163,6 +163,9 @@ decision taken on the way is listed below for review.
 - **Modals:** our own `Modal` (Reka's Dialog primitive; a bottom sheet on phones) and
   `confirm()` / `prompt()` dialogs called from code.
 - **Live updates are best effort:** a websocket server that is down never fails an action.
+- **Google sign-in** finds the account linked to the Google account, else the one with
+  its email, else opens a new one (email already confirmed); an email Google has not
+  verified never opens or links an account.
 
 ## Work order
 
@@ -252,12 +255,14 @@ decision taken on the way is listed below for review.
 13. **Full browser coverage** (see the decision): every button, form and edge case.
 14. **Assistant** (see the decision), after the queue above: agent documentation, the
     chat, its tools, a measured model choice.
-15. **A landing page** that invites people in: what MTAV is and who it is for, photos of
-    people building their homes (Uruguayan cooperatives where possible, each used under
-    its licence and credited), "Sign in" as the main call to action, signing in and up
-    in a dialog over it (not a page of their own), a language switch whose choice the
-    account keeps on signing in, and signing in with Google (the client is set up by the
-    author).
+15. **A landing page** that invites people in (built: `pages/Welcome.tsx`): what MTAV is
+    and who it is for, "Sign in" as the main call to action, signing in and up in a dialog
+    over it (`/login` and `/register` open it), a language switch whose choice the account
+    keeps on signing in, and signing in with Google once its client is set up (see
+    technical/delivery.md). Its photos are Uruguayan housing cooperatives from Wikimedia
+    Commons (CC BY-SA 4.0, credited on the page). Commons has no licensed photos of
+    families building their homes: those are still wanted, from FUCVAM or the
+    cooperatives themselves.
 16. **Illustrated manuals**, one per role (member, admin, superadmin): every place and
     action shown in a picture of the real app, cut to what matters and marked (where to
     click, what changes), next to short steps. A complete set first; afterwards they

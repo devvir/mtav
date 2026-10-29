@@ -76,6 +76,7 @@ class HandleInertiaRequests extends Middleware
             'email'         => $user->email,
             'avatar'        => $user->avatar ? Storage::disk('public')->url($user->avatar) : null,
             'is_superadmin' => $user->isSuperadmin(),
+            'can_deploy'    => $user->can('deploy'),
             'verified'      => $user->hasVerifiedEmail(),
         ];
     }

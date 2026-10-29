@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Manage;
 use App\Http\Controllers\Member;
 use App\Http\Controllers\NotificationController;
@@ -46,7 +48,18 @@ Route::middleware('guest')->group(function () {
         ->name('password.email');
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+
+    Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+    Route::get('auth/google/callback', [GoogleController::class, 'callback'])
+        ->middleware('throttle:10,1')
+        ->name('google.callback');
 });
+
+/** The landing page for guests; everyone else goes on to their projects */
+Route::get('/', HomeController::class)->name('home');
+
+/** The language picked, before signing in too (it then becomes the account's) */
+Route::put('language', LanguageController::class)->middleware('throttle:20,1')->name('language');
 
 /** Invitation links work for guests and signed-in people alike */
 Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('invitation.show');
@@ -70,13 +83,10 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', HomeController::class)->name('home');
-
     /** Settings */
     Route::redirect('settings', '/settings/profile');
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('settings/language', [ProfileController::class, 'language'])->name('profile.language');
     Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
@@ -181,6 +191,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
         Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
+
+        Route::middleware('can:deploy')->prefix('deployments')->name('deployments.')->group(function () {
+            Route::get('/', [Platform\DeploymentController::class, 'index'])->name('index');
+            Route::middleware('throttle:6,1')->group(function () {
+                Route::post('dev', [Platform\DeploymentController::class, 'dev'])->name('dev');
+                Route::post('production', [Platform\DeploymentController::class, 'production'])->name('production');
+                Route::post('rollback', [Platform\DeploymentController::class, 'rollback'])->name('rollback');
+            });
+        });
     });
 });
 

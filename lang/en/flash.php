@@ -64,4 +64,9 @@ return [
     'lottery_invalidated' => 'The lottery was invalidated. Everyone in the project can read why.',
 
     'notifications_read' => 'All notifications are marked as read.',
+
+    'deploy_dev'        => 'Dev is being deployed from :branch. Follow it below.',
+    'deploy_production' => 'Production is being deployed: it waits for approval on GitHub.',
+    'deploy_rollback'   => ':environment is going back to the release before.',
+    'deploy_refused'    => 'GitHub did not start it (:status). Check the deploy token.',
 ];

@@ -17,4 +17,7 @@ return [
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
 
+    'google_failed'     => 'Signing in with Google did not work. Try again, or use your email.',
+    'google_unverified' => 'Google has not verified that email address yet, so it cannot open an account here.',
+
 ];

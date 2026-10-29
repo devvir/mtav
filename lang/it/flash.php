@@ -64,4 +64,9 @@ return [
     'lottery_invalidated' => 'Il sorteggio è stato annullato. Tutti nel progetto possono leggere perché.',
 
     'notifications_read' => 'Tutte le notifiche sono segnate come lette.',
+
+    'deploy_dev'        => 'Dev è in fase di rilascio da :branch. Seguilo qui sotto.',
+    'deploy_production' => 'La produzione è in fase di rilascio: attende l’approvazione su GitHub.',
+    'deploy_rollback'   => ':environment torna alla versione precedente.',
+    'deploy_refused'    => 'GitHub non l’ha avviato (:status). Controlla il token di rilascio.',
 ];

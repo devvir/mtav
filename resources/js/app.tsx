@@ -11,7 +11,7 @@ import './tours';
 import { Appearance } from '@/design';
 import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
-import { loadLocale } from '@/lib/translations';
+import { _, loadLocale } from '@/lib/translations';
 import { createInertiaApp } from '@inertiajs/react';
 import { Notifications } from '@mantine/notifications';
 import type { ComponentType, ReactNode } from 'react';
@@ -57,7 +57,7 @@ createInertiaApp({
     // The first render waits for the words of the language in use (one small file, cached)
     void loadLocale(props.initialPage.props.locale as string).then(() =>
       createRoot(el).render(
-        <Appearance>
+        <Appearance closeLabel={_('Close')}>
           <Notifications position="bottom-right" limit={4} />
           <App {...props} />
         </Appearance>,

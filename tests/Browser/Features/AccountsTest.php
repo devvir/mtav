@@ -174,7 +174,9 @@ it('changes the profile picture', function () {
     $user = aUser(['firstname' => 'Ana']);
     $this->as($user);
 
+    // The upload done first: the picture follows it
     attachFile(visit(route('profile.edit')), 'input[type="file"]', pngFile('me.png'))
+        ->assertSee('Your picture was changed.')
         ->assertPresent('.shell-account img');
 
     expect($user->fresh()->avatar)->not->toBeNull();

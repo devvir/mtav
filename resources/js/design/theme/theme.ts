@@ -29,7 +29,11 @@ const DIALOG_TITLE = {
 /** Behind a dialog or a drawer the page stays in view, blurred */
 const OVERLAY = { blur: 6, backgroundOpacity: 0.55 };
 
-export const themeFor = (palette: Palette): MantineThemeOverride =>
+/** `labels`: words the theme gives components (a dialog's close button), in the app's language */
+export const themeFor = (
+  palette: Palette,
+  labels: { close: string } = { close: 'Close' },
+): MantineThemeOverride =>
   createTheme({
     primaryColor: 'brand',
     primaryShade: { light: 7, dark: 5 },
@@ -81,17 +85,24 @@ export const themeFor = (palette: Palette): MantineThemeOverride =>
         classNames: { root: 'ds-surface' },
       },
       Paper: { defaultProps: { radius: 'lg' } },
+      // Links in the brand's text shade: the one measured to read on the page
+      Anchor: { styles: { root: { color: 'var(--mtav-brand)' } } },
       Modal: {
         defaultProps: {
           radius: 'lg',
           centered: true,
           overlayProps: OVERLAY,
           removeScrollProps: { removeScrollBar: false },
+          closeButtonProps: { 'aria-label': labels.close },
         },
         styles: { title: DIALOG_TITLE, header: DIALOG_HEADER },
       },
       Drawer: {
-        defaultProps: { overlayProps: OVERLAY, removeScrollProps: { removeScrollBar: false } },
+        defaultProps: {
+          overlayProps: OVERLAY,
+          removeScrollProps: { removeScrollBar: false },
+          closeButtonProps: { 'aria-label': labels.close },
+        },
         styles: { title: DIALOG_TITLE, header: DIALOG_HEADER },
       },
       // A field's hint beside its label, never under it: fields side by side stay in line

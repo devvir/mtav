@@ -117,7 +117,14 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    loopback by default, renews the certificates and reloads nginx after every renewal,
    and creates `mtav-deploy` with the gate. Every step can run again.
 2. **Each environment**: `/mtav/<environment>/.env`, written from `deploy/env.example`
-   (its ports, a new `APP_KEY`, database password and Reverb keys).
+   (its ports, a new `APP_KEY`, database password and Reverb keys). Signing in with
+   Google needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google Cloud OAuth
+   client (Web application) whose authorised redirect URI is
+   `<APP_URL>/auth/google/callback`; without them the option is not offered. The
+   console's Deployments page needs `DEPLOYERS` (the superadmins who may deploy, by
+   email) and `GITHUB_DEPLOY_TOKEN` (a fine-grained token for this repository only:
+   Actions read and write; Deployments, Contents and Metadata read); without either,
+   the page is hidden.
 3. **The proxy in front**: each domain to its environment's ports, the websocket path
    (`/app`) to `MTAV_WS_PORT`, the rest to `MTAV_WEB_PORT`.
 4. **GitHub**: the repository's secrets `DEPLOY_SSH_KEY` (the private half),
@@ -132,4 +139,7 @@ The first deploy creates the switch, the volumes and the database.
 - **Dev** deploys whatever branch someone picks, by hand.
 - **Production** deploys only by hand, from `main`: by default the release staging runs.
 
-The deployment tools in the platform console (planned) will start these same workflows.
+The platform console's Deployments page starts these same workflows through GitHub's API
+(dev from a branch, production from `main`, a rollback of any environment) and shows
+what each environment runs: GitHub's deployment records, replayed in order (a rollback
+swaps the live release with the one before), against the latest `main`.

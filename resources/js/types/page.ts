@@ -25,6 +25,8 @@ export interface SharedProps {
       email: string;
       avatar: string | null;
       is_superadmin: boolean;
+      /** A superadmin listed as a deployer */
+      can_deploy: boolean;
       verified: boolean;
     } | null;
   };

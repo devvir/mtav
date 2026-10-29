@@ -47,12 +47,19 @@ const Context = createContext<AppearanceContext>({
 /** The palette and contrast, and how to change them (the scheme: Mantine's useMantineColorScheme) */
 export const useAppearance = () => useContext(Context);
 
-export function Appearance({ children }: { children: ReactNode }) {
+/** `closeLabel`: what a dialog's close button is called, in the app's language */
+export function Appearance({
+  closeLabel = 'Close',
+  children,
+}: {
+  closeLabel?: string;
+  children: ReactNode;
+}) {
   const [palette, setPaletteState] = useState(() => paletteOf(readCookie('palette')).id);
   const [highContrast, setHighContrastState] = useState(() => readCookie('contrast') === 'high');
 
   const chosen = paletteOf(palette);
-  const theme = useMemo(() => themeFor(chosen), [chosen]);
+  const theme = useMemo(() => themeFor(chosen, { close: closeLabel }), [chosen, closeLabel]);
   const tokens = useMemo(() => tokensFor(chosen, highContrast), [chosen, highContrast]);
 
   const setPalette = (id: string) => {
