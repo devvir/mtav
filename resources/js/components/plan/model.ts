@@ -431,7 +431,6 @@ export class PlanModel {
     return polygon.map(([x, y]) => [x + sx, y + sy]);
   }
 
-  /** Scale a polygon so that its box spans from `anchor` to `to` */
   /**
    * An edge moved straight out or in, its two corners together, so a street widens or
    * narrows and a rectangle stays one
@@ -462,8 +461,9 @@ export class PlanModel {
     ]);
   }
 
-  resize(polygon: Point[], anchor: Point, from: Point, to: Point): Point[] {
-    const target: Point = [this.round(to[0]), this.round(to[1])];
+  /** Scaled so that the corner at `from` goes `to` (taken as it is when `exact`: lined up) */
+  resize(polygon: Point[], anchor: Point, from: Point, to: Point, exact = false): Point[] {
+    const target: Point = exact ? to : [this.round(to[0]), this.round(to[1])];
     const sx =
       Math.abs(from[0] - anchor[0]) < 1e-6 ? 1 : (target[0] - anchor[0]) / (from[0] - anchor[0]);
     const sy =

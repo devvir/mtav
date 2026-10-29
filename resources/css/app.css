@@ -637,6 +637,13 @@
   touch-action: none;
   user-select: none;
 }
+/* A dragged shape lined up with another: thin, dashed, in the accent */
+.plan-guide {
+  stroke: var(--mantine-primary-color-filled);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
 /* Around a plan: what its hover label is placed in */
 .plan-frame {
   position: relative;

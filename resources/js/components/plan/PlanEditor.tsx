@@ -48,6 +48,7 @@ import {
   useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { align, type Guide } from './align';
 import { floorLabel } from './floors';
 import { bounds, centre, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
 import { kindLabel, PlanDefs, PlanGround, PlanHint, PlanShape } from './render';
@@ -64,6 +65,9 @@ type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'failed';
 
 /** How long after the last change the plan saves itself (changes made meanwhile go along) */
 const AUTOSAVE_MS = 1200;
+
+/** Closer than this, two corners are level (or plumb) */
+const SAME_LINE = 0.01;
 
 type Drag =
   | { kind: 'move'; start: Point; original: Point[] }
@@ -270,6 +274,8 @@ export const PlanEditor = forwardRef<
   const frame = useRef<HTMLDivElement>(null);
   const look = `plan${useId().replace(/:/g, '')}`;
   const drag = useRef<Drag | null>(null);
+  // What the shape being dragged lines up with, shown while it does
+  const [guides, setGuides] = useState<Guide[]>([]);
 
   const shapeTypes: { value: ShapeType; label: string }[] = [
     { value: 'building', label: _('Building') },
@@ -367,22 +373,78 @@ export const PlanEditor = forwardRef<
     capture(event);
   };
 
+  /**
+   * The corners a drag lines up with: the other shapes on this floor and beneath, the
+   * boundary, the canvas; `own` adds the dragged shape's corners that stay where they are
+   */
+  const anchors = (own: Point[] = []): Point[] => {
+    const { width, height } = canvas;
+    const others = [...model.visible, ...model.beneath].filter(
+      (item) => item.key !== model.selected,
+    );
+    return [
+      ...others.flatMap((item) => item.polygon),
+      ...(model.editingBoundary ? [] : canvas.polygon),
+      [0, 0],
+      [width, 0],
+      [0, height],
+      [width, height],
+      ...own,
+    ];
+  };
+  /** A few pixels on screen, in plan units: how near counts as lined up */
+  const reach = () => 6 / (svg.current?.getScreenCTM()?.a || 1);
+  const showGuides = (next: Guide[]) =>
+    setGuides((shown) => (shown.length || next.length ? next : shown));
+
   const onPointerMove = (event: ReactPointerEvent) => {
     const current = drag.current;
     const polygon = model.activePolygon;
     if (!current || !polygon) return;
     const at = toPlan(event);
+    const shift = (points: Point[], dx: number, dy: number) =>
+      points.map(([x, y]): Point => [x + dx, y + dy]);
 
     if (current.kind === 'move') {
-      model.setActivePolygon(
-        model.translate(current.original, at[0] - current.start[0], at[1] - current.start[1]),
+      const moved = model.translate(
+        current.original,
+        at[0] - current.start[0],
+        at[1] - current.start[1],
       );
+      const lined = align(moved, anchors(), reach());
+      model.setActivePolygon(shift(moved, lined.dx, lined.dy));
+      showGuides(lined.guides);
     } else if (current.kind === 'vertex') {
       const next = [...polygon];
-      next[current.index] = [model.round(at[0]), model.round(at[1])];
+      const point: Point = [model.round(at[0]), model.round(at[1])];
+      // Lined up with its own neighbours too: that is how a side ends up straight
+      const lined = align(
+        [point],
+        anchors(polygon.filter((_, index) => index !== current.index)),
+        reach(),
+      );
+      next[current.index] = [point[0] + lined.dx, point[1] + lined.dy];
       model.setActivePolygon(next);
+      showGuides(lined.guides);
     } else if (current.kind === 'edge') {
-      model.setActivePolygon(model.moveEdge(current.original, current.index, current.start, at));
+      const next = model.moveEdge(current.original, current.index, current.start, at);
+      const ends = [current.index, (current.index + 1) % next.length];
+      const [a, b] = [next[ends[0]!]!, next[ends[1]!]!];
+      // A straight side moves square to itself: it lines up along that one direction
+      const across = Math.abs(a[0] - b[0]) < SAME_LINE;
+      const down = Math.abs(a[1] - b[1]) < SAME_LINE;
+      const lined = align(
+        [a, b],
+        anchors(next.filter((_, index) => !ends.includes(index))),
+        reach(),
+        { x: across, y: down },
+      );
+      ends.forEach((index) => {
+        const [x, y] = next[index]!;
+        next[index] = [x + lined.dx, y + lined.dy];
+      });
+      model.setActivePolygon(next);
+      showGuides(lined.guides);
     } else if (current.kind === 'rotate') {
       // Free with the grid off; in 5° steps with it on, 15° with Shift
       const turn = angleTo(current.original, at) - current.from;
@@ -391,13 +453,25 @@ export const PlanEditor = forwardRef<
         model.rotate(current.original, step ? Math.round(turn / step) * step : turn),
       );
     } else {
-      model.setActivePolygon(model.resize(current.original, current.anchor, current.from, at));
+      const corner: Point = [model.round(at[0]), model.round(at[1])];
+      const lined = align([corner], anchors(), reach());
+      model.setActivePolygon(
+        model.resize(
+          current.original,
+          current.anchor,
+          current.from,
+          [corner[0] + lined.dx, corner[1] + lined.dy],
+          true,
+        ),
+      );
+      showGuides(lined.guides);
     }
   };
 
   const onPointerUp = () => {
     if (drag.current) model.commit();
     drag.current = null;
+    showGuides([]);
   };
 
   /** Keyboard: nudge, delete, undo and redo */
@@ -652,6 +726,27 @@ export const PlanEditor = forwardRef<
                   />
                 </g>
               ))}
+
+              {/* What the dragged shape lines up with */}
+              {guides.map((guide) => {
+                const reachOut = handle * 3;
+                const [x1, y1, x2, y2] =
+                  guide.axis === 'x'
+                    ? [guide.at, guide.from - reachOut, guide.at, guide.to + reachOut]
+                    : [guide.from - reachOut, guide.at, guide.to + reachOut, guide.at];
+                return (
+                  <line
+                    key={`${guide.axis}${guide.at}`}
+                    className="plan-guide"
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    vectorEffect="non-scaling-stroke"
+                    aria-hidden
+                  />
+                );
+              })}
 
               {/* The selected shape's handles */}
               {active && box ? (
