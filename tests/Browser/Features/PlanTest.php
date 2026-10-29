@@ -246,3 +246,22 @@ it('adds no unit when its details are left', function () {
 
     expect(PlanItem::whereNotNull('unit_id')->count())->toBe(1);
 });
+
+it('puts a unit added elsewhere on the plan from where it waits, and only then shows it', function () {
+    // Added once the site is drawn: it waits
+    $this->project->plan->items()->create(['type' => 'green', 'floor' => 0, 'polygon' => [[0, 0], [80, 0], [80, 80], [0, 80]]]);
+    aUnit($this->type, ['identifier' => 'W-1']);
+
+    $this->as(aMemberOf(aFamily($this->project, $this->type)));
+    visit(route('units.index', $this->project))->assertDontSeeIn('.plan-canvas', 'W-1');
+
+    $this->as($this->admin);
+    editPlan($this)
+        ->click('[aria-label="Place W-1 on the plan"]')
+        ->assertPresent('[data-shape="W-1"]')
+        ->assertNotPresent('.plan-waiting')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    expect(PlanItem::whereHas('unit', fn ($unit) => $unit->where('identifier', 'W-1'))->sole()->placed)->toBeTrue();
+});

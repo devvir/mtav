@@ -32,6 +32,7 @@ class PlanRequest extends FormRequest
             'items.*.key'         => ['nullable', 'string', 'max:40'],
             'items.*.type'        => ['required', Rule::in(self::ITEM_TYPES)],
             'items.*.floor'       => ['required', 'integer', 'between:-5,100'],
+            'items.*.placed'      => ['boolean'],
             'items.*.name'        => ['nullable', 'string', 'max:80'],
             'items.*.color'       => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'items.*.polygon'     => ['required', 'array', 'min:3', 'max:200'],

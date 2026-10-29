@@ -53,6 +53,26 @@ describe('An admin', function () {
         ])->assertJsonValidationErrors('polygon');
     });
 
+    it('lets a unit added here wait beside a drawn plan, rather than land on the drawing', function () {
+        $this->project->plan->items()->create(['type' => 'green', 'floor' => 0, 'polygon' => [[0, 0], [50, 0], [50, 50]]]);
+
+        $this->as($this->admin, $this->project)->post(route('manage.units.store'), [
+            'identifier'   => 'Ap. 401',
+            'unit_type_id' => $this->type->id,
+        ]);
+
+        expect($this->project->units()->firstWhere('identifier', 'Ap. 401')->planItem->placed)->toBeFalse();
+    });
+
+    it('places a unit added here at once while nothing is drawn', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.units.store'), [
+            'identifier'   => 'Ap. 402',
+            'unit_type_id' => $this->type->id,
+        ]);
+
+        expect($this->project->units()->firstWhere('identifier', 'Ap. 402')->planItem->placed)->toBeTrue();
+    });
+
     it('creates a unit together with a new unit type', function () {
         $this->as($this->admin, $this->project)->post(route('manage.units.store'), [
             'identifier'    => 'Ap. 201',

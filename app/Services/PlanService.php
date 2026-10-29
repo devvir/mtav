@@ -31,8 +31,10 @@ class PlanService
     }
 
     /**
-     * Put a new unit on the plan: where it was drawn, else next to the units placed before
-     * it (its type's size, or a plain square). On top of what is already there.
+     * Put a new unit on the plan: where it was drawn; else next to the units before it (its
+     * type's size, or a plain square). Once the site is drawn, such a unit waits beside the
+     * canvas for an admin to place it, rather than land on the drawing. On top of what is
+     * already there.
      *
      * @param array<int, array{0: float, 1: float}>|null $polygon
      */
@@ -45,6 +47,7 @@ class PlanService
             'type'     => 'unit',
             'floor'    => $floor,
             'position' => ($plan->items()->max('position') ?? -1) + 1,
+            'placed'   => $polygon !== null || ! $plan->items()->whereNull('unit_id')->exists(),
             'polygon'  => $polygon ?? $this->defaults->getNextAvailablePosition($plan, $unit->type->plan_width
                 ? [$unit->type->plan_width, $unit->type->plan_height]
                 : null),
@@ -72,6 +75,7 @@ class PlanService
                 $attributes = [
                     'floor'    => $item['floor'],
                     'position' => $position,
+                    'placed'   => (bool) ($item['placed'] ?? true),
                     'polygon'  => $item['polygon'],
                     'name'     => $item['name'] ?? null,
                     'metadata' => isset($item['color']) ? ['color' => $item['color']] : null,

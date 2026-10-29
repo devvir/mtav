@@ -1003,6 +1003,31 @@
 .plan-tool svg {
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
 }
+/* Units added elsewhere, waiting in the rail to be put on the plan */
+.plan-waiting {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 66px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--mtav-border);
+  animation: plan-hint-in 200ms ease-out;
+}
+.plan-waiting .unit-chip {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.plan-waiting-title {
+  width: 100%;
+  color: var(--mtav-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 /* The editor's rail (a row on small screens), and its quiet tools above the canvas */
 .plan-palette {
   flex-direction: row;

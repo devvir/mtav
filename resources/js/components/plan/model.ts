@@ -20,6 +20,8 @@ export interface EditableItem {
   color: string;
   polygon: Point[];
   unit: PlanItem['unit'];
+  /** On the plan; false: a unit waiting beside the canvas to be placed */
+  placed: boolean;
 }
 
 export const DEFAULT_COLORS: Record<ShapeType, string> = {
@@ -64,13 +66,14 @@ const signature = (state: string) => {
   const { canvas, items } = JSON.parse(state) as { canvas: unknown; items: EditableItem[] };
   return JSON.stringify({
     canvas,
-    items: items.map(({ id, type, floor, name, color, polygon }) => ({
+    items: items.map(({ id, type, floor, name, color, polygon, placed }) => ({
       id,
       type,
       floor,
       name,
       color,
       polygon,
+      placed: placed ?? true,
     })),
   });
 };
@@ -139,6 +142,7 @@ export class PlanModel {
         DEFAULT_COLORS.other,
       polygon: clone(item.polygon),
       unit: item.unit,
+      placed: item.placed ?? true,
     }));
     this.planId = plan.id;
     this.current = this.snapshot();
@@ -183,7 +187,29 @@ export class PlanModel {
   }
 
   get visible() {
-    return this.items.filter((item) => item.floor === this.floor);
+    return this.items.filter((item) => item.placed && item.floor === this.floor);
+  }
+
+  /** Units added elsewhere, waiting beside the canvas */
+  get waiting() {
+    return this.items.filter((item) => !item.placed);
+  }
+
+  /** A waiting unit onto the floor shown, in the middle of the canvas, selected */
+  place(key: string) {
+    const item = this.items.find((one) => one.key === key);
+    if (!item || item.placed) return;
+    const box = bounds(item.polygon);
+    item.placed = true;
+    item.floor = this.floor;
+    item.polygon = this.translate(
+      item.polygon,
+      this.canvas.width / 2 - (box.minX + box.maxX) / 2,
+      this.canvas.height / 2 - (box.minY + box.maxY) / 2,
+    );
+    this.selected = item.key;
+    this.selectedVertex = null;
+    this.commit();
   }
 
   get canUndo() {
@@ -394,12 +420,12 @@ export class PlanModel {
 
   /** The floor just above the one shown: outlined, to line up with */
   get above() {
-    return this.items.filter((item) => item.floor === this.floor + 1);
+    return this.items.filter((item) => item.placed && item.floor === this.floor + 1);
   }
 
   /** What lies beneath the floor shown, nearest first: seen faintly, to build on */
   get beneath() {
-    return this.items.filter((item) => item.floor < this.floor);
+    return this.items.filter((item) => item.placed && item.floor < this.floor);
   }
 
   /** Copy the selected shape (never a unit: a unit is one of a kind) */
@@ -503,6 +529,7 @@ export class PlanModel {
       color: DEFAULT_COLORS[type],
       polygon: this.startOf(type),
       unit: null,
+      placed: true,
     };
     this.items.push(item);
     this.selected = item.key;
@@ -523,6 +550,7 @@ export class PlanModel {
       color: DEFAULT_COLORS.unit,
       polygon: clone(saved.polygon),
       unit: saved.unit,
+      placed: true,
     };
     const withIt = (state: string) => {
       const parsed = JSON.parse(state);
@@ -618,6 +646,7 @@ export class PlanModel {
         name: item.name || null,
         color: item.color,
         polygon: item.polygon,
+        placed: item.placed,
       })),
     };
   }

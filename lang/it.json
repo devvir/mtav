@@ -646,5 +646,8 @@
   "No runs yet.": "Ancora nessuna esecuzione.",
   "Width on the plan": "Larghezza nella planimetria",
   "Height on the plan": "Altezza nella planimetria",
-  "New units of this type start this size on the plan; empty, a plain square.": "Le nuove unità di questo tipo partono da questa misura nella planimetria; vuoto, un quadrato semplice."
+  "New units of this type start this size on the plan; empty, a plain square.": "Le nuove unità di questo tipo partono da questa misura nella planimetria; vuoto, un quadrato semplice.",
+  "Units to place": "Unità da collocare",
+  "To place": "Da collocare",
+  "Place {unit} on the plan": "Colloca {unit} nella planimetria"
 }

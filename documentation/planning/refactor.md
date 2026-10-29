@@ -225,8 +225,9 @@ decision taken on the way is listed below for review.
     details asked first, then placed where drawn), and the units page lists them by type
     as small chips in a card that folds away. A type may carry a size on the plan: its new
     units start that size (plain squares when none is set). The editor outlines the floor
-    just above, and drags line up with it too. Still to come: a unit added elsewhere waits
-    beside the canvas to be placed. The plan tells people what is what and where,
+    just above, and drags line up with it too. Once the site is drawn, a unit added from the
+    units page waits in the editor's rail ("To place") instead of landing on the drawing;
+    a click puts it on the floor being edited. The plan tells people what is what and where,
     because they choose by it (near the playground, the parking, the common spaces; far
     from the street): besides the boundary, streets, green areas and common spaces it has
     entrances, parking and playgrounds; parks are drawn with trees (more as they grow);

@@ -155,6 +155,8 @@ export interface PlanItem {
   name: string | null;
   metadata: Record<string, unknown> | null;
   unit: { id: Id; identifier: string; unit_type_id: Id; family: Ref | null } | null;
+  /** On the plan; false: a unit waiting beside the canvas for an admin to place it */
+  placed?: boolean;
 }
 
 export interface Plan {

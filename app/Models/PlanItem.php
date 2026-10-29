@@ -15,6 +15,7 @@ class PlanItem extends Model
         'type',
         'floor',
         'position',
+        'placed',
         'polygon',
         'name',
         'metadata',
@@ -24,6 +25,7 @@ class PlanItem extends Model
         'polygon'  => 'array',
         'metadata' => 'array',
         'floor'    => 'integer',
+        'placed'   => 'boolean',
     ];
 
     public function plan(): BelongsTo

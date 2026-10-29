@@ -581,6 +581,22 @@ export const PlanEditor = forwardRef<
               <span>{type.label}</span>
             </UnstyledButton>
           ))}
+          {/* Units added elsewhere, waiting to be put on the plan */}
+          {model.waiting.length ? (
+            <div className="plan-waiting" role="group" aria-label={_('Units to place')}>
+              <span className="plan-waiting-title">{_('To place')}</span>
+              {model.waiting.map((item) => (
+                <UnstyledButton
+                  key={item.key}
+                  className="unit-chip"
+                  aria-label={_('Place {unit} on the plan', { unit: item.unit?.identifier ?? '' })}
+                  onClick={() => model.place(item.key)}
+                >
+                  {item.unit?.identifier}
+                </UnstyledButton>
+              ))}
+            </div>
+          ) : null}
         </nav>
 
         <Stack gap="xs" style={{ minWidth: 0 }}>

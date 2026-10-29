@@ -33,6 +33,7 @@ class PlanResource extends JsonResource
             'id'       => $item->id,
             'type'     => $item->type,
             'floor'    => $item->floor,
+            'placed'   => $item->placed,
             'polygon'  => $item->polygon,
             'name'     => $item->name,
             'metadata' => $item->metadata,

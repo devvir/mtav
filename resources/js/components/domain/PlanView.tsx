@@ -14,7 +14,7 @@ export const frame = (plan: Plan) => {
   const boundaryIsCanvas =
     edge.minX <= 0 && edge.minY <= 0 && edge.maxX >= plan.width && edge.maxY >= plan.height;
   const drawn = [
-    ...plan.items.flatMap((item) => item.polygon),
+    ...plan.items.filter((item) => item.placed !== false).flatMap((item) => item.polygon),
     ...(boundaryIsCanvas ? [] : plan.polygon),
   ];
   if (!drawn.length) return whole;
@@ -48,7 +48,8 @@ export function PlanView({
 }) {
   const id = `plan${useId().replace(/:/g, '')}`;
   const frameRef = useRef<HTMLDivElement>(null);
-  const onFloor = plan.items.filter((item) => item.floor === floor);
+  // A unit waiting to be placed is not on the plan yet
+  const onFloor = plan.items.filter((item) => item.placed !== false && item.floor === floor);
   // A colour its admins chose (a kind's own default is its material, not a choice)
   const tint = (item: PlanItem) => {
     const color = item.metadata?.color as string | undefined;
@@ -76,7 +77,7 @@ export function PlanView({
         {floor > 0 ? (
           <g className="plan-beneath" aria-hidden>
             {plan.items
-              .filter((item) => item.floor < floor)
+              .filter((item) => item.placed !== false && item.floor < floor)
               .map((item) => (
                 <g key={item.id} data-depth={Math.min(floor - item.floor, 3)}>
                   <PlanShape
