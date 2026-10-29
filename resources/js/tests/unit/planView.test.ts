@@ -40,4 +40,8 @@ describe('framing a plan', () => {
     ];
     expect(frame(plan([square(100, 100)], boundary))).toBe('10 10 730 430');
   });
+
+  it('leaves room past the canvas edge around what is drawn against it', () => {
+    expect(frame(plan([square(0, 0)], canvasEdge))).toBe('-40 -40 130 130');
+  });
 });

@@ -6,7 +6,7 @@ import { useId, useRef } from 'react';
 
 /**
  * The part of the canvas worth showing: every shape on every floor (switching floors keeps
- * the frame), and the boundary unless it is only the canvas's edge, with a little room.
+ * the frame), and the boundary unless it is only the canvas's edge, with a little room around.
  */
 export const frame = (plan: Plan) => {
   const whole = `0 0 ${plan.width} ${plan.height}`;
@@ -19,14 +19,12 @@ export const frame = (plan: Plan) => {
   ];
   if (!drawn.length) return whole;
 
+  // The room goes past the canvas's edge too: what is drawn against it (a gate, its name)
+  // reaches beyond its corners
   const box = bounds(drawn);
   const room = Math.max(plan.width, plan.height) * 0.04;
-  const x = Math.max(0, box.minX - room);
-  const y = Math.max(0, box.minY - room);
-  const width = Math.min(plan.width, box.maxX + room) - x;
-  const height = Math.min(plan.height, box.maxY + room) - y;
 
-  return `${x} ${y} ${width} ${height}`;
+  return `${box.minX - room} ${box.minY - room} ${box.maxX - box.minX + room * 2} ${box.maxY - box.minY + room * 2}`;
 };
 
 /**
