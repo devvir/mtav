@@ -19,9 +19,14 @@ class Defaults
      * - Cx = HG + HI * (2x + 1)                        // Centroid at multiple of 5
      * - Top-left = Centroid - IS/2
      *
+     * A size given (a unit type's), the unit is that rectangle instead, centred on the same
+     * spot.
+     *
+     * @param array{0: float, 1: float}|null $size
+     *
      * @return array<array{0: float, 1: float}>
      */
-    public function getNextAvailablePosition(Plan $plan): array
+    public function getNextAvailablePosition(Plan $plan, ?array $size = null): array
     {
         // Assumes all existing units have default positioning
         // Once an admin starts adding units, they're responsible for positioning them
@@ -52,15 +57,17 @@ class Defaults
         // Item Width / Height (these are squares)
         $itemSide = 2 * ($halfItemSpace - self::HALF_GAP);
 
+        [$width, $height] = $size ?? [$itemSide, $itemSide];
+
         // Calculate top-left from centroid
-        $x = 5 * round($centroidX / 5) - $itemSide / 2;
-        $y = 5 * round($centroidY / 5) - $itemSide / 2;
+        $x = 5 * round($centroidX / 5) - $width / 2;
+        $y = 5 * round($centroidY / 5) - $height / 2;
 
         return [
-            [$x, $y],                                      // Top-left
-            [$x + $itemSide, $y],                         // Top-right
-            [$x + $itemSide, $y + $itemSide],           // Bottom-right
-            [$x, $y + $itemSide],                        // Bottom-left
+            [$x, $y],                        // Top-left
+            [$x + $width, $y],               // Top-right
+            [$x + $width, $y + $height],     // Bottom-right
+            [$x, $y + $height],              // Bottom-left
         ];
     }
 }

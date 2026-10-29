@@ -22,6 +22,9 @@ class UnitTypeRequest extends FormRequest
                 Rule::unique('unit_types', 'name')->where('project_id', $project->id)->ignore($unitType),
             ],
             'description' => ['nullable', 'string', 'max:500'],
+            // The size its units start at on the plan: both, or neither
+            'plan_width'  => ['nullable', 'required_with:plan_height', 'numeric', 'between:2,2000'],
+            'plan_height' => ['nullable', 'required_with:plan_width', 'numeric', 'between:2,2000'],
         ];
     }
 }

@@ -223,10 +223,10 @@ decision taken on the way is listed below for review.
     corners: a side ends up straight), with a dashed guide; a shape's name shows on hover
     and keeps clear of shapes drawn over it. Units are added from the palette too (their
     details asked first, then placed where drawn), and the units page lists them by type
-    as small chips in a card that folds away. Still to come: a unit added elsewhere waits
-    beside the canvas to be placed; each type may carry a base shape and size, so a new
-    unit of that type starts as that shape (plain squares when none is set); the floor
-    just above shows faintly too (onion skinning). The plan tells people what is what and where,
+    as small chips in a card that folds away. A type may carry a size on the plan: its new
+    units start that size (plain squares when none is set). The editor outlines the floor
+    just above, and drags line up with it too. Still to come: a unit added elsewhere waits
+    beside the canvas to be placed. The plan tells people what is what and where,
     because they choose by it (near the playground, the parking, the common spaces; far
     from the street): besides the boundary, streets, green areas and common spaces it has
     entrances, parking and playgrounds; parks are drawn with trees (more as they grow);

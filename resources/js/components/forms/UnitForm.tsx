@@ -8,6 +8,22 @@ import { Button, Card, Fieldset, NativeSelect, Stack, TextInput } from '@mantine
 import { useState } from 'react';
 import { Form, FormActions } from './Form';
 
+/** A rectangle of a size, centred where a polygon is */
+const sized = (polygon: Point[], [width, height]: [number, number]): Point[] => {
+  const xs = polygon.map(([x]) => x);
+  const ys = polygon.map(([, y]) => y);
+  const [cx, cy] = [
+    (Math.min(...xs) + Math.max(...xs)) / 2,
+    (Math.min(...ys) + Math.max(...ys)) / 2,
+  ];
+  return [
+    [cx - width / 2, cy - height / 2],
+    [cx + width / 2, cy - height / 2],
+    [cx + width / 2, cy + height / 2],
+    [cx - width / 2, cy + height / 2],
+  ];
+};
+
 /**
  * A unit, of an existing type or of a new one created on the way (in a dialog; `onDone`
  * closes it). "Add and continue with another" keeps the dialog open, with the same type,
@@ -70,7 +86,12 @@ export function UnitForm({
     );
   };
 
-  const placeOnPlan = async ({ polygon, floor, onPlaced }: NonNullable<typeof place>) => {
+  const placeOnPlan = async ({ polygon: start, floor, onPlaced }: NonNullable<typeof place>) => {
+    // A type with a size of its own: the unit starts that size, where it was going
+    const size = creatingType
+      ? null
+      : unitTypes.find((type) => String(type.id) === form.data.unit_type_id)?.plan_size;
+    const polygon = size ? sized(start, size) : start;
     setPlacing(true);
     form.clearErrors();
     try {

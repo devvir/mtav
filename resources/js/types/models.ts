@@ -54,6 +54,8 @@ export interface UnitType {
   id: Id;
   name: string;
   description: string | null;
+  /** The size its units start at on the plan (null: a plain square) */
+  plan_size?: [number, number] | null;
   units_count?: number;
   families_count?: number;
   units?: Unit[];

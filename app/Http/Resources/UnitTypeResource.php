@@ -17,6 +17,7 @@ class UnitTypeResource extends JsonResource
             'id'             => $this->id,
             'name'           => $this->name,
             'description'    => $this->description,
+            'plan_size'      => $this->plan_width ? [$this->plan_width, $this->plan_height] : null,
             'units_count'    => $this->whenCounted('units'),
             'families_count' => $this->whenCounted('families'),
             'units'          => UnitResource::collection($this->whenLoaded('units')),

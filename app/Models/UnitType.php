@@ -18,6 +18,8 @@ class UnitType extends Model
         'project_id',
         'name',
         'description',
+        'plan_width',
+        'plan_height',
     ];
 
     public function project(): BelongsTo

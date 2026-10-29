@@ -643,5 +643,8 @@
   "The one staging runs": "Celle de staging",
   "It waits for approval on GitHub.": "Elle attend l’approbation sur GitHub.",
   "Latest runs": "Dernières exécutions",
-  "No runs yet.": "Aucune exécution pour l’instant."
+  "No runs yet.": "Aucune exécution pour l’instant.",
+  "Width on the plan": "Largeur sur le plan",
+  "Height on the plan": "Hauteur sur le plan",
+  "New units of this type start this size on the plan; empty, a plain square.": "Les nouveaux logements de ce type commencent à cette taille sur le plan ; vide, un simple carré."
 }

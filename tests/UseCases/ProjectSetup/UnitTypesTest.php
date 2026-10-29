@@ -4,7 +4,8 @@ use App\Models\UnitType;
 
 /**
  * Admins define the unit types of the projects they manage. A unit type partitions
- * the lottery: families compete only for units of their own type.
+ * the lottery: each family receives a unit of its own type. A type may carry the size its
+ * units start at on the plan.
  */
 
 beforeEach(function () {
@@ -20,6 +21,29 @@ describe('An admin', function () {
         ])->assertSessionHasNoErrors();
 
         expect($this->project->unitTypes()->where('name', '2 Bedrooms')->exists())->toBeTrue();
+    });
+
+    it('gives a type the size its new units start at on the plan', function () {
+        $type = aUnitType($this->project);
+
+        $this->as($this->admin, $this->project)->put(route('manage.unit_types.update', $type), [
+            'name'        => $type->name,
+            'plan_width'  => 40,
+            'plan_height' => 25,
+        ])->assertSessionHasNoErrors();
+        $this->post(route('manage.units.store'), ['identifier' => 'C-1', 'unit_type_id' => $type->id]);
+
+        $box = $this->project->units()->firstWhere('identifier', 'C-1')->planItem->polygon;
+        expect($box[1][0] - $box[0][0])->toEqual(40)->and($box[2][1] - $box[1][1])->toEqual(25);
+    });
+
+    it('takes a size on the plan whole, or none', function () {
+        $type = aUnitType($this->project);
+
+        $this->as($this->admin, $this->project)->put(route('manage.unit_types.update', $type), [
+            'name'       => $type->name,
+            'plan_width' => 40,
+        ])->assertSessionHasErrors('plan_height');
     });
 
     it('renames a unit type', function () {

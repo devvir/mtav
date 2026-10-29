@@ -31,8 +31,8 @@ class PlanService
     }
 
     /**
-     * Put a new unit on the plan: where it was drawn, else in a square next to the units
-     * placed before it. On top of what is already there.
+     * Put a new unit on the plan: where it was drawn, else next to the units placed before
+     * it (its type's size, or a plain square). On top of what is already there.
      *
      * @param array<int, array{0: float, 1: float}>|null $polygon
      */
@@ -45,7 +45,9 @@ class PlanService
             'type'     => 'unit',
             'floor'    => $floor,
             'position' => ($plan->items()->max('position') ?? -1) + 1,
-            'polygon'  => $polygon ?? $this->defaults->getNextAvailablePosition($plan),
+            'polygon'  => $polygon ?? $this->defaults->getNextAvailablePosition($plan, $unit->type->plan_width
+                ? [$unit->type->plan_width, $unit->type->plan_height]
+                : null),
         ]);
     }
 
