@@ -103,7 +103,8 @@ class DatabaseSeeder extends Seeder
             ['parking', 'Estacionamiento', $rect(70, 318, 196, 120)],
             ['playground', 'Juegos', $rect(546, 300, 136, 84)],
             ['green', null, $rect(546, 400, 190, 70)],
-            ['entrance', 'Entrada', $rect(372, 452, 56, 40)],
+            // Pointing in from the street
+            ['entrance', 'Entrada', [[400, 446], [430, 492], [370, 492]]],
             ['street', 'Av. Italia', $rect(40, 494, 720, 56)],
         ] as [$type, $name, $polygon]) {
             $plan->items()->create(['type' => $type, 'name' => $name, 'floor' => 0, 'polygon' => $polygon]);

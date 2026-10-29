@@ -207,7 +207,10 @@ decision taken on the way is listed below for review.
    admins the setup checklist until done), the setup overview (progress, what needs
    attention, limits), the platform console (projects awaiting approval, activity).
 10. **The plan, richer** (the author's ideas; units, types and the plan already share one
-    page, where admins edit the plan in place). A unit added anywhere appears on the plan,
+    page, where admins edit the plan in place). Kinds are added from a palette that shows
+    each one's look, each in a starting shape of its own (a street long and narrow, an
+    entrance a triangle pointing in); a shape's side moves by dragging its edge, and the
+    shape turns from a handle above it (or R). A unit added anywhere appears on the plan,
     waiting beside the canvas to be placed. Each type may carry a base shape and size, so
     a new unit of that type starts as that shape (plain squares when none is set). Floors:
     the floors just below and above show faintly behind the current one (onion skinning),

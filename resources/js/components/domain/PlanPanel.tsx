@@ -8,7 +8,7 @@ import { _ } from '@/lib/translations';
 import type { Plan } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Button, Group } from '@mantine/core';
-import { IconCheck, IconMap, IconPencil } from '@tabler/icons-react';
+import { IconMap, IconPencil } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
 /**
@@ -92,14 +92,6 @@ export function PlanPanel({
                   'Show people where each unit is, and what surrounds it: buildings, streets, green areas, on as many floors as needed.',
                 )}
               </InfoTip>
-              <Button
-                variant="default"
-                size="sm"
-                leftSection={<IconCheck size={16} />}
-                onClick={done}
-              >
-                {_('Done editing')}
-              </Button>
             </Group>
           ) : (
             <Button
@@ -115,7 +107,7 @@ export function PlanPanel({
       }
     >
       {editing ? (
-        <PlanEditor ref={editor} plan={plan} processing={processing} onSave={save} />
+        <PlanEditor ref={editor} plan={plan} processing={processing} onSave={save} onDone={done} />
       ) : (
         <FloorPlan plan={plan} highlightType={highlightType} ownUnit={ownUnit} />
       )}

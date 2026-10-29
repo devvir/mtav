@@ -15,13 +15,14 @@ import {
   TextInput,
   Title,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core';
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
+  IconCheck,
   IconCopy,
   IconDeviceFloppy,
-  IconPlus,
   IconStack2,
   IconTrash,
 } from '@tabler/icons-react';
@@ -32,12 +33,11 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
   useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { floorLabel } from './floors';
-import { bounds, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
+import { bounds, centre, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
 import { PlanDefs, PlanGround, PlanShape } from './render';
 
 export type PlanPayload = ReturnType<PlanModel['payload']>;
@@ -50,7 +50,18 @@ export interface PlanEditorHandle {
 type Drag =
   | { kind: 'move'; start: Point; original: Point[] }
   | { kind: 'vertex'; index: number }
+  | { kind: 'edge'; index: number; start: Point; original: Point[] }
+  | { kind: 'rotate'; from: number; original: Point[] }
   | { kind: 'resize'; anchor: Point; from: Point; original: Point[] };
+
+/** Kinds whose colour is a choice (the others are their material: grass, asphalt…) */
+const TINTED: ShapeType[] = ['unit', 'building', 'common', 'entrance', 'other'];
+
+/** The angle, in degrees, from a shape's middle to a point */
+const angleTo = (polygon: Point[], [x, y]: Point) => {
+  const [cx, cy] = centre(polygon);
+  return (Math.atan2(y - cy, x - cx) * 180) / Math.PI;
+};
 
 const CORNERS: [number, number][] = [
   [0, 0],
@@ -60,15 +71,22 @@ const CORNERS: [number, number][] = [
 ];
 
 /**
- * Draw the project plan: move shapes, resize them from their corners, edit their corners
- * (drag; double-click an edge to add one; Delete removes the selected one), add buildings,
- * streets, green areas…, spread them over floors, and edit the project's boundary. Arrow
- * keys nudge the selection; Ctrl+Z / Ctrl+Shift+Z undo and redo.
+ * Draw the project plan: move shapes, resize them from their corners, move one side (drag
+ * an edge), turn them (the handle above, or R), edit their corners (drag; double-click an
+ * edge to add one; Delete removes the selected one), add buildings, streets, green areas…
+ * from the palette, spread them over floors, and edit the project's boundary. Arrow keys
+ * nudge the selection; Ctrl+Z / Ctrl+Shift+Z undo and redo.
  */
 export const PlanEditor = forwardRef<
   PlanEditorHandle,
-  { plan: Plan; processing?: boolean; onSave: (payload: PlanPayload) => void }
->(function PlanEditor({ plan, processing, onSave }, ref) {
+  {
+    plan: Plan;
+    processing?: boolean;
+    onSave: (payload: PlanPayload) => void;
+    /** Leaving the editor (the panel asks about unsaved changes) */
+    onDone?: () => void;
+  }
+>(function PlanEditor({ plan, processing, onSave, onDone }, ref) {
   const model = useMemo(() => new PlanModel(plan), [plan]);
   useSyncExternalStore(model.subscribe, model.getVersion);
 
@@ -81,7 +99,6 @@ export const PlanEditor = forwardRef<
   const svg = useRef<SVGSVGElement>(null);
   const look = `plan${useId().replace(/:/g, '')}`;
   const drag = useRef<Drag | null>(null);
-  const [newShape, setNewShape] = useState<ShapeType>('building');
 
   const shapeTypes: { value: ShapeType; label: string }[] = [
     { value: 'building', label: _('Building') },
@@ -93,6 +110,15 @@ export const PlanEditor = forwardRef<
     { value: 'entrance', label: _('Entrance') },
     { value: 'other', label: _('Other') },
   ];
+
+  /** What a kind looks like, small, in the palette */
+  const swatch = (type: ShapeType) =>
+    ({
+      street: `url(#${look}-asphalt)`,
+      parking: `url(#${look}-asphalt)`,
+      green: `url(#${look}-grass)`,
+      playground: `url(#${look}-play)`,
+    })[type as string] ?? DEFAULT_COLORS[type];
 
   const { canvas } = model;
   const active = model.activePolygon;
@@ -107,7 +133,14 @@ export const PlanEditor = forwardRef<
     return [point.x, point.y];
   };
 
-  const capture = (event: ReactPointerEvent) => svg.current?.setPointerCapture(event.pointerId);
+  /** The drag follows the pointer off the canvas (one not pressed, as a script's, cannot be held) */
+  const capture = (event: ReactPointerEvent) => {
+    try {
+      svg.current?.setPointerCapture(event.pointerId);
+    } catch {
+      // Dragging still works within the canvas
+    }
+  };
 
   const startMove = (event: ReactPointerEvent, key: string) => {
     event.stopPropagation();
@@ -125,6 +158,24 @@ export const PlanEditor = forwardRef<
     model.selectedVertex = index;
     model.changed();
     drag.current = { kind: 'vertex', index };
+    capture(event);
+  };
+
+  const startEdge = (event: ReactPointerEvent, index: number) => {
+    event.stopPropagation();
+    drag.current = {
+      kind: 'edge',
+      index,
+      start: toPlan(event),
+      original: structuredClone(model.activePolygon!),
+    };
+    capture(event);
+  };
+
+  const startRotate = (event: ReactPointerEvent) => {
+    event.stopPropagation();
+    const original = structuredClone(model.activePolygon!);
+    drag.current = { kind: 'rotate', from: angleTo(original, toPlan(event)), original };
     capture(event);
   };
 
@@ -156,6 +207,15 @@ export const PlanEditor = forwardRef<
       const next = [...polygon];
       next[current.index] = [model.round(at[0]), model.round(at[1])];
       model.setActivePolygon(next);
+    } else if (current.kind === 'edge') {
+      model.setActivePolygon(model.moveEdge(current.original, current.index, current.start, at));
+    } else if (current.kind === 'rotate') {
+      // Free with the grid off; in 5° steps with it on, 15° with Shift
+      const turn = angleTo(current.original, at) - current.from;
+      const step = event.shiftKey ? 15 : model.snap ? 5 : 0;
+      model.setActivePolygon(
+        model.rotate(current.original, step ? Math.round(turn / step) * step : turn),
+      );
     } else {
       model.setActivePolygon(model.resize(current.original, current.anchor, current.from, at));
     }
@@ -199,6 +259,10 @@ export const PlanEditor = forwardRef<
       ) {
         event.preventDefault();
         model.remove();
+      } else if (event.key.toLowerCase() === 'r' && model.selectedItem) {
+        event.preventDefault();
+        model.setActivePolygon(model.rotate(model.activePolygon!, event.shiftKey ? -15 : 15));
+        model.commit();
       } else if (event.key === 'Escape') {
         model.select(null);
       }
@@ -215,63 +279,62 @@ export const PlanEditor = forwardRef<
       <Stack gap="sm" style={{ minWidth: 0 }}>
         {/* Toolbar */}
         <Card p="xs" data-tour="plan.toolbar">
-          <Group gap="xs">
-            <NativeSelect
-              aria-label={_('Shape to add')}
-              value={newShape}
-              onChange={(event) => setNewShape(event.currentTarget.value as ShapeType)}
-              data={shapeTypes}
-              w={170}
-            />
-            <Button
-              variant="default"
-              leftSection={<IconPlus size={16} />}
-              onClick={() => model.add(newShape)}
-            >
-              {_('Add')}
-            </Button>
-            <Divider orientation="vertical" />
-            <Tooltip label={_('Undo')}>
-              <ActionIcon
-                size="lg"
-                disabled={!model.canUndo}
-                aria-label={_('Undo')}
-                onClick={() => model.undo()}
+          {/* What to add, then what to do with it */}
+          <Stack gap={6}>
+            <div className="plan-palette" role="group" aria-label={_('Add shapes')}>
+              {shapeTypes.map((type) => (
+                <UnstyledButton
+                  key={type.value}
+                  className="plan-tool"
+                  onClick={() => model.add(type.value)}
+                >
+                  <svg viewBox="0 0 28 18" width={28} height={18} aria-hidden>
+                    {type.value === 'entrance' ? (
+                      <polygon points="14,1 24,17 4,17" fill={swatch(type.value)} />
+                    ) : (
+                      <rect x={1} y={1} width={26} height={16} rx={3} fill={swatch(type.value)} />
+                    )}
+                  </svg>
+                  <span>{type.label}</span>
+                </UnstyledButton>
+              ))}
+            </div>
+            <Divider />
+            <Group gap="xs">
+              <Tooltip label={_('Undo')}>
+                <ActionIcon
+                  size="lg"
+                  disabled={!model.canUndo}
+                  aria-label={_('Undo')}
+                  onClick={() => model.undo()}
+                >
+                  <IconArrowBackUp size={20} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={_('Redo')}>
+                <ActionIcon
+                  size="lg"
+                  disabled={!model.canRedo}
+                  aria-label={_('Redo')}
+                  onClick={() => model.redo()}
+                >
+                  <IconArrowForwardUp size={20} />
+                </ActionIcon>
+              </Tooltip>
+              <Button
+                variant={model.editingBoundary ? 'light' : 'subtle'}
+                aria-pressed={model.editingBoundary}
+                onClick={() => model.select(model.editingBoundary ? null : 'boundary')}
               >
-                <IconArrowBackUp size={20} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label={_('Redo')}>
-              <ActionIcon
-                size="lg"
-                disabled={!model.canRedo}
-                aria-label={_('Redo')}
-                onClick={() => model.redo()}
-              >
-                <IconArrowForwardUp size={20} />
-              </ActionIcon>
-            </Tooltip>
-            <Button
-              variant={model.editingBoundary ? 'light' : 'subtle'}
-              aria-pressed={model.editingBoundary}
-              onClick={() => model.select(model.editingBoundary ? null : 'boundary')}
-            >
-              {_('Edit the boundary')}
-            </Button>
-            <Switch
-              label={_('Snap to grid')}
-              checked={model.snap}
-              onChange={(event) => model.setSnap(event.currentTarget.checked)}
-            />
-            <Button
-              ml="auto"
-              loading={processing}
-              leftSection={<IconDeviceFloppy size={18} data-tour="plan.save" />}
-              onClick={() => onSave(model.payload())}
-            >
-              {_('Save the plan')}
-            </Button>
-          </Group>
+                {_('Edit the boundary')}
+              </Button>
+              <Switch
+                label={_('Snap to grid')}
+                checked={model.snap}
+                onChange={(event) => model.setSnap(event.currentTarget.checked)}
+              />
+            </Group>
+          </Stack>
         </Card>
 
         {/* Floors */}
@@ -380,6 +443,14 @@ export const PlanEditor = forwardRef<
                     stroke="transparent"
                     strokeWidth={handle * 2}
                     className="plan-edge"
+                    // Lengthwise along the edge, the pointer says which way it moves
+                    style={{
+                      cursor:
+                        Math.abs(next[0] - point[0]) >= Math.abs(next[1] - point[1])
+                          ? 'ns-resize'
+                          : 'ew-resize',
+                    }}
+                    onPointerDown={(event) => startEdge(event, index)}
                     onDoubleClick={(event) => {
                       event.stopPropagation();
                       model.setActivePolygon(model.insertVertex(active, index, toPlan(event)));
@@ -388,6 +459,28 @@ export const PlanEditor = forwardRef<
                   />
                 );
               })}
+              {selectedItem ? (
+                <g className="plan-rotate" onPointerDown={startRotate}>
+                  <line
+                    x1={(box.minX + box.maxX) / 2}
+                    y1={box.minY}
+                    x2={(box.minX + box.maxX) / 2}
+                    y2={box.minY - handle * 4}
+                    stroke="var(--mtav-brand)"
+                    strokeWidth={1.2}
+                  />
+                  <circle
+                    cx={(box.minX + box.maxX) / 2}
+                    cy={box.minY - handle * 4}
+                    r={handle}
+                    fill="var(--mtav-surface-solid)"
+                    stroke="var(--mtav-brand)"
+                    strokeWidth={1.5}
+                  >
+                    <title>{_('Turn it (R)')}</title>
+                  </circle>
+                </g>
+              ) : null}
               {CORNERS.map((corner) => (
                 <rect
                   key={`corner-${corner.join()}`}
@@ -422,11 +515,28 @@ export const PlanEditor = forwardRef<
             </g>
           ) : null}
         </svg>
-        <Text className="ds-caption">
-          {_(
-            'Drag to move. Corners resize. Round handles move a corner of the shape; double-click an edge to add one, Delete removes it.',
-          )}
-        </Text>
+        {/* What to know, and the way out */}
+        <Group justify="space-between" align="flex-end" gap="sm" wrap="wrap">
+          <Text className="ds-caption" style={{ flex: '1 1 320px' }}>
+            {_(
+              'Drag to move, or drag an edge to move that side. Corners resize; round handles move a corner (double-click an edge to add one, Delete removes it). The handle above turns it, and so does R.',
+            )}
+          </Text>
+          <Group gap="xs">
+            {onDone ? (
+              <Button variant="subtle" leftSection={<IconCheck size={16} />} onClick={onDone}>
+                {_('Done editing')}
+              </Button>
+            ) : null}
+            <Button
+              loading={processing}
+              leftSection={<IconDeviceFloppy size={18} data-tour="plan.save" />}
+              onClick={() => onSave(model.payload())}
+            >
+              {_('Save the plan')}
+            </Button>
+          </Group>
+        </Group>
       </Stack>
 
       {/* The selected shape */}
@@ -461,17 +571,19 @@ export const PlanEditor = forwardRef<
                 />
               </>
             ) : null}
-            <ColorInput
-              label={_('Colour')}
-              name="shape_color"
-              value={selectedItem.color}
-              onChange={(color) => {
-                selectedItem.color = color;
-                model.changed();
-              }}
-              onChangeEnd={() => model.commit()}
-              format="hex"
-            />
+            {TINTED.includes(selectedItem.type) ? (
+              <ColorInput
+                label={_('Colour')}
+                name="shape_color"
+                value={selectedItem.color}
+                onChange={(color) => {
+                  selectedItem.color = color;
+                  model.changed();
+                }}
+                onChangeEnd={() => model.commit()}
+                format="hex"
+              />
+            ) : null}
             <NativeSelect
               label={_('Floor')}
               name="shape_floor"

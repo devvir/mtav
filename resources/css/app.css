@@ -710,6 +710,44 @@
   border-top: 1px solid var(--mtav-border);
 }
 
+/* The editor's palette: each kind of shape, as it looks, added with one click */
+.plan-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.plan-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 72px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mtav-muted);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms;
+}
+.plan-tool:hover {
+  border-color: var(--mtav-border);
+  background: var(--mtav-surface-2);
+  color: var(--mtav-text);
+}
+.plan-tool svg {
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
+}
+.plan-rotate {
+  cursor: grab;
+}
+.plan-rotate:active {
+  cursor: grabbing;
+}
+
 /* The plan's materials (components/plan/render.tsx): the ground, units, outlines, labels */
 .plan-canvas {
   --plan-land: #f1ece2;
@@ -721,9 +759,22 @@
   --plan-land-grain: #3a342e;
   --plan-unit: #a8a29e;
 }
-.plan-side-shade {
-  fill: #000;
-  opacity: 0.28;
+.plan-shade {
+  flood-color: #1c1917;
+  flood-opacity: 0.3;
+}
+.plan-shade-low {
+  flood-color: #1c1917;
+  flood-opacity: 0.22;
+}
+/* On dark ground a shade needs more weight to be seen */
+[data-mantine-color-scheme='dark'] .plan-shade {
+  flood-color: #000;
+  flood-opacity: 0.7;
+}
+[data-mantine-color-scheme='dark'] .plan-shade-low {
+  flood-color: #000;
+  flood-opacity: 0.5;
 }
 .plan-outline {
   stroke: #1c1917;
@@ -746,23 +797,13 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
-.plan-door {
-  fill: #fff;
-  opacity: 0.85;
-  pointer-events: none;
-}
-.plan-item[data-kind='entrance'] .plan-label {
-  dominant-baseline: hanging;
-}
 .plan-house {
-  fill: #fff;
-  opacity: 0.75;
+  fill: #1c1917;
+  opacity: 0.3;
   pointer-events: none;
 }
 /* High contrast: plain fills and strong lines, no texture, light or depth */
 [data-high-contrast] .plan-canvas .plan-light,
-[data-high-contrast] .plan-canvas .plan-side,
-[data-high-contrast] .plan-canvas .plan-side-shade,
 [data-high-contrast] .plan-canvas .plan-trees {
   display: none;
 }

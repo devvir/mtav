@@ -36,6 +36,23 @@ export const DEFAULT_COLORS: Record<ShapeType, string> = {
 
 const GRID = 5;
 
+/**
+ * How each kind starts, as a share of the canvas's shorter side: a street long and narrow,
+ * parking and green areas wider than tall, an entrance a small triangle pointing in (up,
+ * from a street below; rotate it to face its street)
+ */
+const STARTS: Record<ShapeType, { width: number; height: number; triangle?: boolean }> = {
+  unit: { width: 0.12, height: 0.1 },
+  building: { width: 0.18, height: 0.12 },
+  street: { width: 0.6, height: 0.08 },
+  green: { width: 0.28, height: 0.2 },
+  common: { width: 0.2, height: 0.15 },
+  parking: { width: 0.26, height: 0.18 },
+  playground: { width: 0.18, height: 0.13 },
+  entrance: { width: 0.07, height: 0.06, triangle: true },
+  other: { width: 0.12, height: 0.1 },
+};
+
 let counter = 0;
 const newKey = () => `new-${++counter}`;
 
@@ -251,6 +268,36 @@ export class PlanModel {
   }
 
   /** Scale a polygon so that its box spans from `anchor` to `to` */
+  /**
+   * An edge moved straight out or in, its two corners together, so a street widens or
+   * narrows and a rectangle stays one
+   */
+  moveEdge(polygon: Point[], index: number, start: Point, at: Point): Point[] {
+    const a = polygon[index]!;
+    const b = polygon[(index + 1) % polygon.length]!;
+    const length = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const normal: Point = [-(b[1] - a[1]) / length, (b[0] - a[0]) / length];
+    const distance = (at[0] - start[0]) * normal[0] + (at[1] - start[1]) * normal[1];
+    const step = this.snap ? Math.round(distance / GRID) * GRID : Math.round(distance);
+    const shift = ([x, y]: Point): Point => [x + normal[0] * step, y + normal[1] * step];
+    const next = [...polygon];
+    next[index] = shift(a);
+    next[(index + 1) % polygon.length] = shift(b);
+    return next;
+  }
+
+  /** Turned around its middle by an angle in degrees (a tenth of a unit is precise enough) */
+  rotate(polygon: Point[], degrees: number): Point[] {
+    const [cx, cy] = centre(polygon);
+    const angle = (degrees * Math.PI) / 180;
+    const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+    const tenth = (value: number) => Math.round(value * 10) / 10;
+    return polygon.map(([x, y]) => [
+      tenth(cx + (x - cx) * cos - (y - cy) * sin),
+      tenth(cy + (x - cx) * sin + (y - cy) * cos),
+    ]);
+  }
+
   resize(polygon: Point[], anchor: Point, from: Point, to: Point): Point[] {
     const target: Point = [this.round(to[0]), this.round(to[1])];
     const sx =
@@ -278,10 +325,10 @@ export class PlanModel {
 
   /** Shapes */
   add(type: ShapeType) {
-    const side = Math.max(
-      20,
-      Math.round(Math.min(this.canvas.width, this.canvas.height) / 10 / GRID) * GRID,
-    );
+    const unit = Math.min(this.canvas.width, this.canvas.height);
+    const start = STARTS[type];
+    const size = (share: number) => Math.max(20, Math.round((unit * share) / GRID) * GRID);
+    const [w, h] = [size(start.width), size(start.height)];
     const [cx, cy] = [this.round(this.canvas.width / 2), this.round(this.canvas.height / 2)];
     const item: EditableItem = {
       key: newKey(),
@@ -290,12 +337,18 @@ export class PlanModel {
       floor: this.floor,
       name: '',
       color: DEFAULT_COLORS[type],
-      polygon: [
-        [cx - side / 2, cy - side / 2],
-        [cx + side / 2, cy - side / 2],
-        [cx + side / 2, cy + side / 2],
-        [cx - side / 2, cy + side / 2],
-      ],
+      polygon: start.triangle
+        ? [
+            [cx, cy - h / 2],
+            [cx + w / 2, cy + h / 2],
+            [cx - w / 2, cy + h / 2],
+          ]
+        : [
+            [cx - w / 2, cy - h / 2],
+            [cx + w / 2, cy - h / 2],
+            [cx + w / 2, cy + h / 2],
+            [cx - w / 2, cy + h / 2],
+          ],
       unit: null,
     };
     this.items.push(item);

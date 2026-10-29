@@ -1,3 +1,4 @@
+import { _ } from '@/lib/translations';
 import type { Point } from '@/types/models';
 import type { ReactNode } from 'react';
 import { bounds, centre } from './model';
@@ -103,8 +104,12 @@ const TREES: [number, number, number][][] = [
 export function PlanDefs({ id }: { id: string }) {
   return (
     <defs>
-      <filter id={`${id}-shadow`} x="-20%" y="-20%" width="140%" height="150%">
-        <feDropShadow dx="1.5" dy="3" stdDeviation="2.2" floodColor="#1c1917" floodOpacity="0.28" />
+      {/* Light from the top left: what stands casts its shade to the bottom right */}
+      <filter id={`${id}-shadow`} x="-25%" y="-25%" width="160%" height="160%">
+        <feDropShadow className="plan-shade" dx="3" dy="4" stdDeviation="3" />
+      </filter>
+      <filter id={`${id}-ground-shadow`} x="-15%" y="-15%" width="130%" height="140%">
+        <feDropShadow className="plan-shade-low" dx="1" dy="1.5" stdDeviation="1.5" />
       </filter>
       <filter id={`${id}-soft`} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="1.2" />
@@ -259,17 +264,19 @@ function Bays({ id, polygon, clip }: { id: string; polygon: Point[]; clip: strin
   );
 }
 
-/** A door, over an entrance's name */
-function DoorMark({ polygon }: { polygon: Point[] }) {
-  const [cx, cy] = centre(polygon);
-  return (
-    <path
-      className="plan-door"
-      d={`M${cx - 4} ${cy - 3} V${cy - 12} a4 4 0 0 1 8 0 V${cy - 3} Z`}
-      aria-hidden
-    />
-  );
-}
+/** What a shape is, when it has no name of its own (a unit always has its identifier) */
+export const kindLabel = (kind: Kind) =>
+  ({
+    unit: null,
+    building: _('Building'),
+    street: _('Street'),
+    green: _('Green area'),
+    common: _('Common space'),
+    parking: _('Parking'),
+    playground: _('Playground'),
+    entrance: _('Entrance'),
+    other: null,
+  })[kind];
 
 /** A street's centre line, dashed, along its length */
 function CentreLine({ id, polygon, clip }: { id: string; polygon: Point[]; clip: string }) {
@@ -318,20 +325,10 @@ export function PlanShape({
   selected?: boolean;
   children?: ReactNode;
 }) {
-  const box = bounds(polygon);
   const shape = points(polygon);
   const clip = `clip-${seed.replace(/[^a-z0-9-]/gi, '')}`;
-  const raised = kind === 'unit' || kind === 'building' || kind === 'other';
-  // Higher for buildings than for units; never more than a sliver of the shape
-  const depth = raised
-    ? Math.max(
-        2,
-        Math.min(
-          kind === 'building' ? 8 : 5,
-          Math.min(box.maxX - box.minX, box.maxY - box.minY) * 0.1,
-        ),
-      )
-    : 0;
+  // Standing shapes cast a longer shadow than what lies on the ground
+  const raised = kind === 'unit' || kind === 'building' || kind === 'other' || kind === 'common';
   const base =
     fill ??
     {
@@ -353,25 +350,15 @@ export function PlanShape({
         <polygon points={shape} />
       </clipPath>
 
-      {raised ? (
-        <>
-          {/* Its sides, seen from a little to the south */}
-          <polygon
-            points={shape}
-            transform={`translate(0 ${depth})`}
-            fill={base}
-            className="plan-side"
-            filter={`url(#${id}-shadow)`}
-          />
-          <polygon points={shape} transform={`translate(0 ${depth})`} className="plan-side-shade" />
-        </>
-      ) : null}
-
+      {/* Its edge drawn in its own colour, a little wide and round: corners eased */}
       <polygon
         points={shape}
         fill={base}
+        stroke={raised ? base : undefined}
+        strokeWidth={raised ? 3 : undefined}
+        strokeLinejoin="round"
         className="plan-top"
-        filter={raised ? undefined : `url(#${id}-shadow)`}
+        filter={`url(#${id}-${raised ? 'shadow' : 'ground-shadow'})`}
       />
       {kind === 'common' ? <polygon points={shape} fill={`url(#${id}-stripes)`} /> : null}
       {kind === 'street' ? <CentreLine id={id} polygon={polygon} clip={clip} /> : null}
@@ -399,11 +386,10 @@ export function PlanShape({
       />
       <polygon points={shape} className="plan-outline" fill="none" />
       {kind === 'unit' ? <HouseMark polygon={polygon} /> : null}
-      {kind === 'entrance' ? <DoorMark polygon={polygon} /> : null}
 
-      {label ? (
+      {(label ?? kindLabel(kind)) ? (
         <text x={cx} y={cy} className="plan-label" textAnchor="middle" dominantBaseline="middle">
-          {label}
+          {label ?? kindLabel(kind)}
         </text>
       ) : null}
       {children}
