@@ -43,6 +43,56 @@ const inside = ([x, y]: Point, polygon: Point[]) => {
   return crosses;
 };
 
+/** The room a name takes on the plan (its letters are 12 units high) */
+const LABEL_HEIGHT = 14;
+const labelWidth = (text: string) => text.length * 7 + 6;
+
+/**
+ * Where a shape's name is seen whole: its middle, unless shapes drawn over it hide that, then
+ * the clear spot nearest the middle; nowhere when no clear spot is large enough (hovering
+ * still names it)
+ */
+export function labelSpot(polygon: Point[], text: string, covers: Point[][]): Point | null {
+  const [w, h] = [labelWidth(text) / 2, LABEL_HEIGHT / 2];
+  const box = bounds(polygon);
+  // Only what reaches into this shape can hide its name
+  const over = covers.filter((cover) => {
+    const other = bounds(cover);
+    return (
+      other.minX < box.maxX &&
+      other.maxX > box.minX &&
+      other.minY < box.maxY &&
+      other.maxY > box.minY
+    );
+  });
+  const clear = ([x, y]: Point) => {
+    const probes: Point[] = [-1, 0, 1].flatMap((i) =>
+      [-1, 0, 1].map((j): Point => [x + i * w, y + j * h]),
+    );
+    return (
+      probes.every((probe) => inside(probe, polygon)) &&
+      over.every(
+        (cover) =>
+          probes.every((probe) => !inside(probe, cover)) &&
+          cover.every(([cx, cy]) => Math.abs(cx - x) >= w || Math.abs(cy - y) >= h),
+      )
+    );
+  };
+
+  const middle = centre(polygon);
+  if (!over.length || clear(middle)) return middle;
+  const steps = 16;
+  const spots: Point[] = [];
+  for (let i = 0; i <= steps; i++)
+    for (let j = 0; j <= steps; j++)
+      spots.push([
+        box.minX + ((box.maxX - box.minX) * i) / steps,
+        box.minY + ((box.maxY - box.minY) * j) / steps,
+      ]);
+  const near = ([x, y]: Point) => Math.hypot(x - middle[0], y - middle[1]);
+  return spots.sort((a, b) => near(a) - near(b)).find(clear) ?? null;
+}
+
 /** A repeatable sequence of numbers between 0 and 1, from a seed (the shape's identity) */
 const random = (seed: string) => {
   let state = [...seed].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7);
@@ -386,6 +436,7 @@ export function PlanShape({
   fill,
   label,
   hint,
+  covers,
   selected,
   children,
 }: {
@@ -400,6 +451,8 @@ export function PlanShape({
   label?: string | null;
   /** What hovering it says (its label, else its kind) */
   hint?: string;
+  /** The shapes drawn over it, that its name keeps clear of */
+  covers?: Point[][];
   selected?: boolean;
   children?: ReactNode;
 }) {
@@ -420,7 +473,8 @@ export function PlanShape({
       playground: `url(#${id}-play)`,
       entrance: 'transparent',
     }[kind];
-  const [cx, cy] = centre(polygon);
+  const name = label ?? kindLabel(kind);
+  const spot = name ? labelSpot(polygon, name, covers ?? []) : null;
 
   return (
     <g
@@ -471,9 +525,15 @@ export function PlanShape({
       {kind === 'unit' ? <HouseMark polygon={polygon} /> : null}
       {kind === 'entrance' ? <Gate polygon={polygon} /> : null}
 
-      {(label ?? kindLabel(kind)) ? (
-        <text x={cx} y={cy} className="plan-label" textAnchor="middle" dominantBaseline="middle">
-          {label ?? kindLabel(kind)}
+      {spot && name ? (
+        <text
+          x={spot[0]}
+          y={spot[1]}
+          className="plan-label"
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
+          {name}
         </text>
       ) : null}
       {children}

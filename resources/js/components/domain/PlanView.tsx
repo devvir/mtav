@@ -48,6 +48,7 @@ export function PlanView({
 }) {
   const id = `plan${useId().replace(/:/g, '')}`;
   const frameRef = useRef<HTMLDivElement>(null);
+  const onFloor = plan.items.filter((item) => item.floor === floor);
   // A colour its admins chose (a kind's own default is its material, not a choice)
   const tint = (item: PlanItem) => {
     const color = item.metadata?.color as string | undefined;
@@ -89,51 +90,50 @@ export function PlanView({
               ))}
           </g>
         ) : null}
-        {plan.items
-          .filter((item) => item.floor === floor)
-          .map((item) => {
-            const rank = item.unit ? ranks?.get(item.unit.id) : undefined;
-            const box = bounds(item.polygon);
-            return (
-              <PlanShape
-                key={item.id}
-                id={id}
-                seed={String(item.id)}
-                kind={item.type as Kind}
-                polygon={item.polygon}
-                color={tint(item)}
-                fill={fill(item)}
-                label={item.unit?.identifier ?? item.name}
-                hint={
-                  item.unit
-                    ? [
-                        item.unit.identifier,
-                        rank ? _('number {position} in your ranking', { position: rank }) : null,
-                        item.unit.family?.name,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')
-                    : undefined
-                }
-              >
-                {rank ? (
-                  <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
-                    <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
-                    <text
-                      x={box.minX + 9}
-                      y={box.minY + 9}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fontSize={10}
-                      fontWeight={800}
-                    >
-                      {rank}
-                    </text>
-                  </g>
-                ) : null}
-              </PlanShape>
-            );
-          })}
+        {onFloor.map((item, index) => {
+          const rank = item.unit ? ranks?.get(item.unit.id) : undefined;
+          const box = bounds(item.polygon);
+          return (
+            <PlanShape
+              key={item.id}
+              id={id}
+              seed={String(item.id)}
+              kind={item.type as Kind}
+              polygon={item.polygon}
+              color={tint(item)}
+              fill={fill(item)}
+              label={item.unit?.identifier ?? item.name}
+              covers={onFloor.slice(index + 1).map((above) => above.polygon)}
+              hint={
+                item.unit
+                  ? [
+                      item.unit.identifier,
+                      rank ? _('number {position} in your ranking', { position: rank }) : null,
+                      item.unit.family?.name,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  : undefined
+              }
+            >
+              {rank ? (
+                <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
+                  <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
+                  <text
+                    x={box.minX + 9}
+                    y={box.minY + 9}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize={10}
+                    fontWeight={800}
+                  >
+                    {rank}
+                  </text>
+                </g>
+              ) : null}
+            </PlanShape>
+          );
+        })}
       </svg>
       <PlanHint host={frameRef} />
     </div>

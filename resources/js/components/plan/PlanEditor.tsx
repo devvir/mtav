@@ -700,7 +700,7 @@ export const PlanEditor = forwardRef<
                 </g>
               ) : null}
 
-              {model.visible.map((item) => (
+              {model.visible.map((item, index, shown) => (
                 <g
                   key={item.key}
                   data-shape={item.unit?.identifier ?? item.name}
@@ -722,6 +722,7 @@ export const PlanEditor = forwardRef<
                     // The colour of a kind's own material is not a choice: only tints count
                     color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
                     label={item.unit?.identifier ?? item.name}
+                    covers={shown.slice(index + 1).map((above) => above.polygon)}
                     selected={item.key === model.selected}
                   />
                 </g>
