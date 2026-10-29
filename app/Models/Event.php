@@ -86,9 +86,19 @@ class Event extends Model
         $query->where('is_published', true);
     }
 
+    /** Not over yet: undated, to come, or under way (an event without an end lasts IMPLICIT_DURATION) */
     public function scopeUpcoming(Builder $query): void
     {
-        $query->where(fn (Builder $q) => $q->whereNull('start_date')->orWhere('start_date', '>', now()));
+        $query->where(fn (Builder $q) => $q->whereNull('start_date')
+            ->orWhere('end_date', '>', now())
+            ->orWhere(fn (Builder $q) => $q->whereNull('end_date')->where('start_date', '>', now()->subMinutes(self::IMPLICIT_DURATION))));
+    }
+
+    /** Over: ended, or (without an end) started more than IMPLICIT_DURATION ago */
+    public function scopePast(Builder $query): void
+    {
+        $query->where(fn (Builder $q) => $q->where('end_date', '<=', now())
+            ->orWhere(fn (Builder $q) => $q->whereNull('end_date')->where('start_date', '<=', now()->subMinutes(self::IMPLICIT_DURATION))));
     }
 
     /**

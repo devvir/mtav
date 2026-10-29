@@ -150,3 +150,15 @@ it('limits the file size of an unapproved project', function () {
     upload($this, $project->admins()->first(), UploadedFile::fake()->image('big.jpg')->size(1500))
         ->assertSessionHasErrors('files.0');
 });
+
+it('moves from photo to photo past the page they are listed on', function () {
+    // 30 photos, a minute apart: the list shows 24 a page, newest first
+    $photos = collect(range(1, 30))->map(fn ($minute) => Media::factory()->for($this->project)->create([
+        'owner_id' => $this->member->id, 'created_at' => now()->subMinutes(100 - $minute),
+    ]))->reverse()->values();
+
+    $this->as($this->member, $this->project);
+    $carousel = $this->get(route('media.index', ['file' => $photos[23]->id]))->inertiaProps('carousel');
+
+    expect($carousel)->toBe(['position' => 24, 'count' => 30, 'previous' => $photos[22]->id, 'next' => $photos[24]->id]);
+});

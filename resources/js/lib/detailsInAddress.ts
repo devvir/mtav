@@ -5,7 +5,7 @@ import { router } from '@inertiajs/react';
  * (?person=19): opening and closing are visits that reload only that prop, so a link opens
  * it, and the browser's back button closes it.
  */
-export function useDetailsInAddress(param: string) {
+export function useDetailsInAddress(param: string, alongside: string[] = []) {
   const visit = (id: number | null, replace = false) => {
     const url = new URL(window.location.href);
     if (id === null) url.searchParams.delete(param);
@@ -13,7 +13,7 @@ export function useDetailsInAddress(param: string) {
     router.get(
       url.pathname + url.search,
       {},
-      { preserveState: true, preserveScroll: true, only: [param], replace },
+      { preserveState: true, preserveScroll: true, only: [param, ...alongside], replace },
     );
   };
 

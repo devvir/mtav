@@ -30,7 +30,7 @@ class MediaController extends Controller
             ->category($category)
             ->with('owner:id,firstname,lastname')
             ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->latest()
+            ->latest()->latest('id')
             ->paginate(24)
             ->withQueryString();
 
@@ -48,6 +48,10 @@ class MediaController extends Controller
             // A file's details, shown over the page (?file=12)
             'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))
                 ? MediaResource::make($file->load('owner'))
+                : null,
+            // Where a photo or video stands among them all, past this page too: the carousel
+            'carousel' => fn () => ($file = $project->media()->find($request->integer('file')))
+                ? $this->carousel($project, $file, $request->q)
                 : null,
         ]);
     }
@@ -89,6 +93,35 @@ class MediaController extends Controller
 
         return to_route('media.index', array_filter(['category' => $category]))
             ->with('success', __('flash.media_deleted'));
+    }
+
+    /**
+     * A photo's or video's place among the project's photos and videos, in the list's order
+     * (newest first) and search: its position, how many, and the ones on either side.
+     *
+     * @return array{position: int, count: int, previous: int|null, next: int|null}|null
+     */
+    private function carousel(Project $project, Media $file, ?string $search): ?array
+    {
+        if (! in_array($file->category, [MediaCategory::IMAGE, MediaCategory::VIDEO], true)) {
+            return null;
+        }
+
+        $visual = fn () => $project->media()
+            ->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO])
+            ->when($search, fn ($q, $search) => $q->search($search));
+        // Newer: a later moment, or the same one with a higher id (the list's order)
+        $newer = fn ($q) => $q->where('created_at', '>', $file->created_at)
+            ->orWhere(fn ($q) => $q->where('created_at', $file->created_at)->where('id', '>', $file->id));
+        $older = fn ($q) => $q->where('created_at', '<', $file->created_at)
+            ->orWhere(fn ($q) => $q->where('created_at', $file->created_at)->where('id', '<', $file->id));
+
+        return [
+            'position' => $visual()->where($newer)->count() + 1,
+            'count'    => $visual()->count(),
+            'previous' => $visual()->where($newer)->oldest()->oldest('id')->value('id'),
+            'next'     => $visual()->where($older)->latest()->latest('id')->value('id'),
+        ];
     }
 
     /** The tab a file is listed under (documents apart) */

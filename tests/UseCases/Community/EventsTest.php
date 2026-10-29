@@ -162,6 +162,22 @@ describe('A member', function () {
     });
 });
 
+describe('The events list', function () {
+    it('keeps an event under way among the upcoming ones until it ends', function () {
+        $event = fn (array $dates) => $this->project->events()->create([...eventData(), ...$dates]);
+        $under = $event(['start_date' => now()->subMinutes(10), 'end_date' => now()->addHour()]);
+        $noEnd = $event(['start_date' => now()->subMinutes(10), 'end_date' => null]);
+        $over = $event(['start_date' => now()->subHours(3), 'end_date' => now()->subHour()]);
+
+        $this->as($this->member, $this->project);
+        $upcoming = listedEventIds($this->get(route('events.index')));
+        $past = listedEventIds($this->get(route('events.index', ['when' => 'past'])));
+
+        expect($upcoming)->toContain($under->id, $noEnd->id)->not->toContain($over->id)
+            ->and($past)->toContain($over->id)->not->toContain($under->id, $noEnd->id);
+    });
+});
+
 describe('The lottery event', function () {
     it('exists from the moment the project is created', function () {
         expect($this->project->lottery)->not->toBeNull()

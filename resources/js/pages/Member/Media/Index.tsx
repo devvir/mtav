@@ -27,27 +27,45 @@ interface Props {
   upload: UploadLimits | null;
   /** A file's details, shown over the page (?file=12) */
   file: Media | null;
+  /** Where the photo or video shown stands among all of them (null: not one) */
+  carousel: {
+    position: number;
+    count: number;
+    previous: number | null;
+    next: number | null;
+  } | null;
 }
 
-/** What a carousel goes through: photos and videos */
-const visual = (item: Media) => item.category === 'image' || item.category === 'video';
-
-export default function MediaIndex({ media, category, filters, storage, upload, file }: Props) {
-  const details = useDetailsInAddress('file');
+export default function MediaIndex({
+  media,
+  category,
+  filters,
+  storage,
+  upload,
+  file,
+  carousel,
+}: Props) {
+  const details = useDetailsInAddress('file', ['carousel']);
   const canUpload = usePage().props.project?.can.upload;
   const sharing = useAddressedDialog('share', Boolean(upload));
-  useProjectChanges({ media: ['media', 'storage', 'file'] });
+  useProjectChanges({ media: ['media', 'storage', 'file', 'carousel'] });
 
-  // Moving through photos shows the next one at once, from the list, while the address
-  // follows (until the details shown change: the next one arrived, or others were opened)
+  // Moving through photos shows the next one at once when this page lists it, while the
+  // address follows (until the details shown change: the next one arrived, or others
+  // were opened); one beyond the page comes with the address
   const [moved, setMoved] = useState<{ from: number; to: Media } | null>(null);
   const shown = file && moved?.from === file.id ? moved.to : file;
-  const carousel = shown && visual(shown) ? media.data.filter(visual) : [];
-  const at = carousel.findIndex((item) => item.id === shown?.id);
-  const move = (to: Media) => {
-    if (file) setMoved({ from: file.id, to });
-    details.move(to.id);
-  };
+  const listed = (id: number | null) => media.data.find((item) => item.id === id) ?? null;
+  const move = (id: number | null) =>
+    id
+      ? () => {
+          const next = listed(id);
+          if (file && next) setMoved({ from: file.id, to: next });
+          details.move(id);
+        }
+      : undefined;
+  // The neighbours known are the file's (the server's), not yet the one just moved to
+  const steady = shown?.id === file?.id ? carousel : null;
 
   const tabs = [
     { value: 'media', label: _('Media') },
@@ -119,10 +137,12 @@ export default function MediaIndex({ media, category, filters, storage, upload, 
           <MediaDetails
             key={shown.id}
             media={shown}
-            previous={at > 0 ? carousel[at - 1] : null}
-            next={at >= 0 ? carousel[at + 1] : null}
-            position={at >= 0 ? [at + 1, carousel.length] : undefined}
-            onMove={at >= 0 ? move : undefined}
+            onPrevious={move(steady?.previous ?? null)}
+            onNext={move(steady?.next ?? null)}
+            preload={[listed(steady?.previous ?? null), listed(steady?.next ?? null)].filter(
+              (item): item is Media => item !== null,
+            )}
+            position={steady ? [steady.position, steady.count] : undefined}
           />
         ) : null}
       </Modal>

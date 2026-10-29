@@ -6,12 +6,12 @@
  */
 
 it('shows guests the landing page', function () {
-    $this->get(route('home'))->assertInertia(fn ($page) => $page->component('Welcome')->where('auth', null));
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->component('Welcome')->where('dialog', null));
 });
 
 it('opens signing in, or signing up, over it', function () {
-    $this->get(route('login'))->assertInertia(fn ($page) => $page->component('Welcome')->where('auth', 'login'));
-    $this->get(route('register'))->assertInertia(fn ($page) => $page->component('Welcome')->where('auth', 'register'));
+    $this->get(route('login'))->assertInertia(fn ($page) => $page->component('Welcome')->where('dialog', 'login'));
+    $this->get(route('register'))->assertInertia(fn ($page) => $page->component('Welcome')->where('dialog', 'register'));
 });
 
 it('takes people signed in on to their projects', function () {

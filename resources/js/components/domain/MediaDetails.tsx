@@ -20,42 +20,45 @@ import { useEffect, useRef, useState } from 'react';
  * go one to the next: arrows on the stage, the keyboard's arrows, a swipe. */
 export function MediaDetails({
   media,
-  previous,
-  next,
+  onPrevious,
+  onNext,
+  preload = [],
   position,
-  onMove,
 }: {
   media: Media;
-  previous?: Media | null;
-  next?: Media | null;
+  /** Given, it moves to the one before, or after */
+  onPrevious?: () => void;
+  onNext?: () => void;
+  /** The ones either side, fetched while this one is seen */
+  preload?: Media[];
   /** Where it is among those moved through: [3, 12] */
   position?: [number, number];
-  onMove?: (to: Media) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const swipe = useRef<{ x: number; y: number } | null>(null);
 
   // The keyboard's arrows, unless typing, or a player is being worked
   useEffect(() => {
-    if (!onMove || editing) return undefined;
+    if (editing) return undefined;
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       if (target.closest('input, textarea, select, video, audio, [contenteditable]')) return;
-      const to = event.key === 'ArrowLeft' ? previous : event.key === 'ArrowRight' ? next : null;
-      if (!to) return;
+      const move =
+        event.key === 'ArrowLeft' ? onPrevious : event.key === 'ArrowRight' ? onNext : null;
+      if (!move) return;
       event.preventDefault();
-      onMove(to);
+      move();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onMove, previous, next, editing]);
+  }, [onPrevious, onNext, editing]);
 
   // The next photos come at once: fetched while this one is seen
   useEffect(() => {
-    [previous, next].forEach((neighbour) => {
-      if (neighbour?.category === 'image') new Image().src = neighbour.url;
+    preload.forEach((neighbour) => {
+      if (neighbour.category === 'image') new Image().src = neighbour.url;
     });
-  }, [previous, next]);
+  }, [preload]);
   const remove = async () => {
     if (
       await confirm({
@@ -95,34 +98,33 @@ export function MediaDetails({
         onPointerUp={(event) => {
           const from = swipe.current;
           swipe.current = null;
-          if (!from || !onMove) return;
+          if (!from) return;
           const [dx, dy] = [event.clientX - from.x, event.clientY - from.y];
           if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-          const to = dx < 0 ? next : previous;
-          if (to) onMove(to);
+          (dx < 0 ? onNext : onPrevious)?.();
         }}
         onPointerCancel={() => (swipe.current = null)}
       >
-        {onMove && previous ? (
+        {onPrevious ? (
           <ActionIcon
             className="media-step"
             data-side="previous"
             size="xl"
             radius="xl"
             aria-label={_('Previous')}
-            onClick={() => onMove(previous)}
+            onClick={onPrevious}
           >
             <IconChevronLeft size={24} />
           </ActionIcon>
         ) : null}
-        {onMove && next ? (
+        {onNext ? (
           <ActionIcon
             className="media-step"
             data-side="next"
             size="xl"
             radius="xl"
             aria-label={_('Next')}
-            onClick={() => onMove(next)}
+            onClick={onNext}
           >
             <IconChevronRight size={24} />
           </ActionIcon>

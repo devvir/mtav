@@ -24,7 +24,7 @@ class EventController extends Controller
         $events = $project->events()
             ->when(! $manages, fn ($q) => $q->published())
             ->when($request->q, fn ($q, $search) => $q->search($search))
-            ->when($past, fn ($q) => $q->where('start_date', '<', now()), fn ($q) => $q->upcoming())
+            ->when($past, fn ($q) => $q->past(), fn ($q) => $q->upcoming())
             ->with('rsvps')
             ->sorted($past ? 'desc' : 'asc')
             ->paginate(30)

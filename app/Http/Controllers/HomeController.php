@@ -42,12 +42,13 @@ class HomeController extends Controller
     /**
      * The landing page, with signing in (or up) open over it when asked.
      *
-     * @param 'login'|'register'|null $auth
+     * @param 'login'|'register'|null $dialog
      */
-    public static function welcome(?string $auth = null): Response
+    public static function welcome(?string $dialog = null): Response
     {
         return inertia('Welcome', [
-            'auth'    => $auth,
+            // Not `auth`: that is every page's signed-in person
+            'dialog'  => $dialog,
             'google'  => GoogleController::enabled(),
             'locales' => config('app.locales'),
         ]);

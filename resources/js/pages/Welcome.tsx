@@ -22,7 +22,7 @@ type Auth = 'login' | 'register';
 
 interface Props {
   /** Signing in (or up) open over the page, as /login and /register ask */
-  auth: Auth | null;
+  dialog: Auth | null;
   /** Google sign-in is set up */
   google: boolean;
   /** The languages to pick from, each named in itself */
@@ -74,10 +74,10 @@ const addressFor = (auth: Auth | null) =>
  * What the platform is, for those who arrive: what a cooperative does with it, in pictures
  * of cooperatives that built their homes. Signing in is the way on, over this page.
  */
-export default function Welcome({ auth, google, locales }: Props) {
+export default function Welcome({ dialog, google, locales }: Props) {
   const { props } = useCurrentPage();
   useFlashToasts();
-  const [open, setOpen] = useState<Auth | null>(auth);
+  const [open, setOpen] = useState<Auth | null>(dialog);
   const show = (next: Auth | null) => {
     setOpen(next);
     addressFor(next);
