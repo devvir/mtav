@@ -392,6 +392,11 @@ export class PlanModel {
     return true;
   }
 
+  /** The floor just above the one shown: outlined, to line up with */
+  get above() {
+    return this.items.filter((item) => item.floor === this.floor + 1);
+  }
+
   /** What lies beneath the floor shown, nearest first: seen faintly, to build on */
   get beneath() {
     return this.items.filter((item) => item.floor < this.floor);

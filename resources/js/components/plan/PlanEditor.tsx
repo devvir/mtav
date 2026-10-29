@@ -388,12 +388,12 @@ export const PlanEditor = forwardRef<
   };
 
   /**
-   * The corners a drag lines up with: the other shapes on this floor and beneath, the
+   * The corners a drag lines up with: the other shapes on this floor, beneath and above, the
    * boundary, the canvas; `own` adds the dragged shape's corners that stay where they are
    */
   const anchors = (own: Point[] = []): Point[] => {
     const { width, height } = canvas;
-    const others = [...model.visible, ...model.beneath].filter(
+    const others = [...model.visible, ...model.beneath, ...model.above].filter(
       (item) => item.key !== model.selected,
     );
     return [
@@ -745,6 +745,19 @@ export const PlanEditor = forwardRef<
                   />
                 </g>
               ))}
+
+              {/* The floor just above, outlined over the drawing: what will stand on it */}
+              {model.above.length ? (
+                <g className="plan-above" aria-hidden>
+                  {model.above.map((item) => (
+                    <polygon
+                      key={item.key}
+                      points={item.polygon.map((point) => point.join(',')).join(' ')}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
+                </g>
+              ) : null}
 
               {/* What the dragged shape lines up with */}
               {guides.map((guide) => {

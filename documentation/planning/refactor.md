@@ -218,15 +218,15 @@ decision taken on the way is listed below for review.
     reload. Shapes have a context menu (name, turn, bring to front, send to back,
     duplicate, copy, paste, remove), a double-click names them, Ctrl+C / Ctrl+V / Ctrl+D
     and Ctrl + drag copy them. Upper floors show the floors beneath, faintly, in the
-    editor and wherever people read the plan. Still to come: guides and snapping when a
-    side is straight or lines up with another shape (here and on the floors beneath),
-    labels on hover, units added from the plan's palette (placed, then their details
-    asked), and the units list as a compact, collapsible card above the plan. A unit added anywhere appears on the plan,
-    waiting beside the canvas to be placed. Each type may carry a base shape and size, so
-    a new unit of that type starts as that shape (plain squares when none is set). Floors:
-    the floors just below and above show faintly behind the current one (onion skinning),
-    and a unit's edges snap to those of the units under it. Look for an established editor
-    or library before building more by hand. The plan tells people what is what and where,
+    editor and wherever people read the plan. Dragging a shape, a corner or a side snaps
+    it to what it lines up with (other shapes, the floors beneath, the boundary, its own
+    corners: a side ends up straight), with a dashed guide; a shape's name shows on hover
+    and keeps clear of shapes drawn over it. Units are added from the palette too (their
+    details asked first, then placed where drawn), and the units page lists them by type
+    as small chips in a card that folds away. Still to come: a unit added elsewhere waits
+    beside the canvas to be placed; each type may carry a base shape and size, so a new
+    unit of that type starts as that shape (plain squares when none is set); the floor
+    just above shows faintly too (onion skinning). The plan tells people what is what and where,
     because they choose by it (near the playground, the parking, the common spaces; far
     from the street): besides the boundary, streets, green areas and common spaces it has
     entrances, parking and playgrounds; parks are drawn with trees (more as they grow);

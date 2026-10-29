@@ -1046,6 +1046,15 @@
 .plan-beneath .plan-house {
   display: none;
 }
+/* The floor above, in the editor: dashed outlines over the drawing, never in the way */
+.plan-above polygon {
+  fill: none;
+  stroke: var(--mtav-muted);
+  stroke-width: 1.25;
+  stroke-dasharray: 5 4;
+  opacity: 0.7;
+  pointer-events: none;
+}
 .plan-rotate {
   cursor: grab;
 }
