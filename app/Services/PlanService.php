@@ -81,11 +81,15 @@ class PlanService
                     'metadata' => isset($item['color']) ? ['color' => $item['color']] : null,
                 ];
 
-                if (isset($item['id'])) {
-                    $existing = $plan->items()->whereKey($item['id'])->first();
+                $existing = isset($item['id']) ? $plan->items()->whereKey($item['id'])->first() : null;
+
+                if ($existing) {
                     // A unit stays a unit; any other shape may change its kind
                     $existing->update($existing->unit_id ? $attributes : [...$attributes, 'type' => $item['type']]);
                     $kept[] = $existing->id;
+                } elseif ($item['type'] === 'unit') {
+                    // A unit removed meanwhile: its shape goes with it
+                    continue;
                 } else {
                     $new = $plan->items()->create([...$attributes, 'type' => $item['type']]);
                     $kept[] = $new->id;

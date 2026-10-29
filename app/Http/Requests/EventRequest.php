@@ -14,7 +14,7 @@ class EventRequest extends FormRequest
             'type'         => ['required', Rule::enum(EventType::class)->except(EventType::LOTTERY)],
             'title'        => ['required', 'string', 'between:2,160'],
             'description'  => ['required', 'string', 'between:2,5000'],
-            'location'     => ['nullable', 'string', 'max:255', Rule::when($this->input('type') === EventType::ONLINE->value, 'url')],
+            'location'     => ['nullable', 'string', 'max:255', Rule::when($this->input('type') === EventType::ONLINE->value, 'url:http,https')],
             'start_date'   => ['nullable', 'date'],
             'end_date'     => ['nullable', 'date', 'after:start_date'],
             'is_published' => ['boolean'],

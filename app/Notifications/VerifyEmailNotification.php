@@ -17,6 +17,12 @@ class VerifyEmailNotification extends VerifyEmail
     {
     }
 
+    /** Where the link goes: the address it confirms (User::routeNotificationForMail) */
+    public function address(User $notifiable): string
+    {
+        return $this->newEmail ?? $notifiable->email;
+    }
+
     public function toMail($notifiable): MailMessage
     {
         /** @var User $notifiable */

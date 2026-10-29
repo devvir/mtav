@@ -22,13 +22,15 @@ class PlanRequest extends FormRequest
         $project = $this->route('project');
 
         return [
-            'width'               => ['required', 'numeric', 'between:100,10000'],
-            'height'              => ['required', 'numeric', 'between:100,10000'],
-            'polygon'             => ['required', 'array', 'min:3', 'max:200'],
-            'polygon.*'           => ['required', 'array', 'size:2'],
-            'polygon.*.*'         => ['required', 'numeric'],
-            'items'               => ['present', 'array', 'max:2000'],
-            'items.*.id'          => ['nullable', 'integer', Rule::exists('plan_items', 'id')->where('plan_id', $project->plan->id)],
+            'width'       => ['required', 'numeric', 'between:100,10000'],
+            'height'      => ['required', 'numeric', 'between:100,10000'],
+            'polygon'     => ['required', 'array', 'min:3', 'max:200'],
+            'polygon.*'   => ['required', 'array', 'size:2'],
+            'polygon.*.*' => ['required', 'numeric'],
+            'items'       => ['present', 'array', 'max:2000'],
+            // An id the plan no longer has (a shape removed, then brought back by undo) makes a
+            // new shape: the editor's history must never make the plan unsavable
+            'items.*.id'          => ['nullable', 'integer'],
             'items.*.key'         => ['nullable', 'string', 'max:40'],
             'items.*.type'        => ['required', Rule::in(self::ITEM_TYPES)],
             'items.*.floor'       => ['required', 'integer', 'between:-5,100'],
@@ -47,16 +49,12 @@ class PlanRequest extends FormRequest
             /** @var Project $project */
             $project = $this->route('project');
 
-            $kept = collect($this->input('items'))->pluck('id')->filter();
+            // Units come and go with the units themselves: a shape is a unit only if it is one
+            // already (units the editor left out, added meanwhile, stay as they are)
             $unitItems = $project->plan->items()->whereNotNull('unit_id')->pluck('id');
+            $claimed = collect($this->input('items'))->where('type', 'unit')->pluck('id');
 
-            if ($unitItems->diff($kept)->isNotEmpty()) {
-                $validator->errors()->add('items', __('validation.plan_unit_items'));
-            }
-
-            $newUnits = collect($this->input('items'))->whereNull('id')->where('type', 'unit');
-
-            if ($newUnits->isNotEmpty()) {
+            if ($claimed->contains(fn ($id) => ! $unitItems->contains($id))) {
                 $validator->errors()->add('items', __('validation.plan_unit_items'));
             }
         }];

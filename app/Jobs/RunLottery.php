@@ -23,6 +23,14 @@ class RunLottery implements ShouldQueue
 
     public int $tries = 1;
 
+    /**
+     * Long enough for every type's solve (each bounded by the solver's own timeout); past it,
+     * the run fails rather than stay running. The queue's retry_after is longer still.
+     */
+    public int $timeout = 600;
+
+    public bool $failOnTimeout = true;
+
     public function __construct(public LotteryRun $run)
     {
         $this->afterCommit();
@@ -50,6 +58,18 @@ class RunLottery implements ShouldQueue
                 ['exception' => get_class($e), 'error' => $e->getMessage()],
             );
         }
+    }
+
+    /**
+     * The job died without finishing (timed out, or its worker was stopped): the run fails,
+     * so the lottery can run again instead of staying locked
+     */
+    public function failed(?Throwable $e): void
+    {
+        app(LotteryService::class)->fail($this->run, __('lottery.execution_failed'), [
+            'exception' => $e ? get_class($e) : null,
+            'error'     => $e?->getMessage(),
+        ]);
     }
 
     private function solver(LotteryRun $run): SolverInterface

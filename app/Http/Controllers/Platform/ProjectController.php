@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Inertia\Response;
 
@@ -77,7 +78,7 @@ class ProjectController extends Controller
     /** Deleted for good, once its name is typed */
     public function destroy(Request $request, Project $project, ProjectService $projects): RedirectResponse
     {
-        $request->validate(['confirmation' => ['required', 'in:' . $project->name]]);
+        $request->validate(['confirmation' => ['required', Rule::in([$project->name])]]);
 
         $projects->purge($project);
 

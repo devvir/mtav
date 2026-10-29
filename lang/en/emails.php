@@ -23,4 +23,8 @@ return [
     'verify_new_email_intro' => 'Please confirm this is your new email address. Your account keeps using the old one until you do.',
     'verify_email_action'    => 'Confirm my email',
     'verify_email_ignore'    => 'If you did not create an account, ignore this email.',
+
+    'email_change_subject' => 'Your account\'s email is changing',
+    'email_change_intro'   => 'Someone asked to change your account\'s email address to :email. It changes once that address confirms it.',
+    'email_change_ignore'  => 'If it was not you, change your password now: your account keeps this address until then.',
 ];

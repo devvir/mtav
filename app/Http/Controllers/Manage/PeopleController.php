@@ -28,7 +28,7 @@ class PeopleController extends Controller
 
         $membership = $member->membershipIn($project);
 
-        if (! $data['is_admin'] && ! $data['family_id']) {
+        if (! $data['is_admin'] && ! ($data['family_id'] ?? null)) {
             throw ValidationException::withMessages(['family_id' => __('validation.member_needs_family')]);
         }
 

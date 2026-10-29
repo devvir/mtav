@@ -34,6 +34,16 @@ it('deletes for good a project its creator only set up', function () {
     expect(Project::withTrashed()->find($project->id))->toBeNull();
 });
 
+it('deletes a project whose name has a comma or quotes in it', function () {
+    $creator = aUser();
+    $project = anUnapprovedProject($creator);
+    $project->update(['name' => 'Cooperativa "Mesa 1", Montevideo']);
+
+    deleteAsAdmin($this, $creator, $project->fresh())->assertSessionHasNoErrors();
+
+    expect(Project::withTrashed()->find($project->id))->toBeNull();
+});
+
 it('archives a project others took part in, which then is gone for them', function () {
     $project = aProject();
     $admin = anAdminOf($project);

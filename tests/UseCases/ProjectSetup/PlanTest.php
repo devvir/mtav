@@ -42,3 +42,41 @@ it('lets only admins draw it', function () {
     expect(drawPlan($this, $member, ['green']))->toBeDenied();
     expect($this->project->plan->items()->count())->toBe(0);
 });
+
+/** The plan saved as the editor sends it: these shapes, as given */
+function savePlan($test, array $items)
+{
+    return $test->as($test->admin, $test->project)->putJson(route('manage.plan.update'), [
+        'width'   => 800,
+        'height'  => 600,
+        'polygon' => [[0, 0], [800, 0], [800, 600], [0, 600]],
+        'items'   => $items,
+    ]);
+}
+
+it('saves a shape brought back after its removal was saved, as a new one', function () {
+    $square = [[10, 10], [60, 10], [60, 60], [10, 60]];
+    $green = $this->project->plan->items()->create(['type' => 'green', 'floor' => 0, 'polygon' => $square]);
+    $id = $green->id;
+    $green->delete();
+
+    $ids = savePlan($this, [['id' => $id, 'key' => "item-{$id}", 'type' => 'green', 'floor' => 0, 'polygon' => $square]])
+        ->assertOk()->json('ids');
+
+    expect($this->project->plan->items()->where('type', 'green')->pluck('id')->all())->toBe([$ids["item-{$id}"]]);
+});
+
+it('keeps the units an editor left out: added meanwhile, elsewhere', function () {
+    $unit = aUnit(aUnitType($this->project));
+
+    savePlan($this, [])->assertOk();
+
+    expect($unit->planItem()->exists())->toBeTrue();
+});
+
+it('makes no shape a unit unless it is one', function () {
+    $green = $this->project->plan->items()->create(['type' => 'green', 'floor' => 0, 'polygon' => [[0, 0], [9, 0], [9, 9]]]);
+
+    savePlan($this, [['id' => $green->id, 'type' => 'unit', 'floor' => 0, 'polygon' => [[0, 0], [9, 0], [9, 9]]]])
+        ->assertJsonValidationErrors('items');
+});

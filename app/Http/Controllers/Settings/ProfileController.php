@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Notifications\EmailChangeNotice;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,9 @@ class ProfileController extends Controller
 
         if ($newEmail !== $user->email && $newEmail !== $user->new_email) {
             $user->update(['new_email' => $newEmail]);
-            $user->notify((new VerifyEmailNotification($newEmail)));
+            // The link to the new address (owning it is what it proves); word of it to the old
+            $user->notify(new VerifyEmailNotification($newEmail));
+            $user->notify(new EmailChangeNotice($newEmail));
 
             return back()->with('info', __('flash.email_verification_sent', ['email' => $newEmail]));
         }

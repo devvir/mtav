@@ -131,10 +131,15 @@ class LotteryService
     }
 
     /**
-     * Close a run that could not finish; the lottery can be run again.
+     * Close a run that could not finish; the lottery can be run again. A run that already
+     * finished stays as it is (what failed came after it).
      */
     public function fail(LotteryRun $run, string $userMessage, array $debug = []): void
     {
+        if ($run->fresh()?->status !== LotteryRunStatus::RUNNING) {
+            return;
+        }
+
         $run->update([
             'status'      => LotteryRunStatus::FAILED,
             'finished_at' => now(),

@@ -229,7 +229,7 @@ return [
     'member_needs_family'       => 'Une personne qui n’est pas admin doit faire partie d’une famille.',
     'preferences_foreign_units' => 'Vous ne pouvez classer que des logements du type de votre famille.',
     'unit_assigned'             => 'Ce logement a déjà été attribué à une famille lors du tirage : il ne peut pas être retiré.',
-    'plan_unit_items'           => 'Les formes des logements restent sur le plan tant que leur logement existe ; ajoutez les logements depuis la page des logements.',
+    'plan_unit_items'           => 'Seule la forme d’un logement est un logement : ajoutez des logements depuis la palette du plan ou la page des logements.',
     'unit_type_in_use'          => 'Des familles ou des logements utilisent encore ce type de logement.',
 
     /** Limits of projects awaiting approval */

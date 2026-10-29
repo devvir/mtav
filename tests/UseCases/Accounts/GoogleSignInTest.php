@@ -36,6 +36,18 @@ it('signs in the account with that email, and links it', function () {
     expect($ana->fresh()->google_id)->toBe('g-1');
 });
 
+it('takes back an account someone opened with that email and never confirmed', function () {
+    $squatted = aUser(['email' => 'ana@example.com', 'password' => 'Known-to-them-1', 'email_verified_at' => null]);
+    googleSays(['sub' => 'g-9', 'email' => 'ana@example.com', 'email_verified' => true]);
+
+    $this->get(route('google.callback'));
+    auth()->logout();
+
+    $squatted->refresh();
+    expect($squatted->hasVerifiedEmail())->toBeTrue()->and($squatted->google_id)->toBe('g-9');
+    $this->post(route('login'), ['email' => 'ana@example.com', 'password' => 'Known-to-them-1'])->assertSessionHasErrors('email');
+});
+
 it('opens a new account, its email already confirmed', function () {
     googleSays(['sub' => 'g-2', 'email' => 'luis@example.com', 'email_verified' => true, 'given_name' => 'Luis', 'family_name' => 'Pérez']);
 

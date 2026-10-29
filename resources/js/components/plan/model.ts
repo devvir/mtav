@@ -308,10 +308,11 @@ export class PlanModel {
   private restore(state: string) {
     const parsed = JSON.parse(state);
     this.canvas = parsed.canvas;
-    // A shape saved since that state keeps the id it got
+    // A shape saved since that state keeps the id it got (one brought back by undo, the id
+    // the server gave it anew)
     this.items = parsed.items.map((item: EditableItem) => ({
       ...item,
-      id: item.id ?? this.ids.get(item.key) ?? null,
+      id: this.ids.get(item.key) ?? item.id ?? null,
     }));
     this.current = state;
     if (this.selected !== 'boundary' && !this.items.some((item) => item.key === this.selected)) {

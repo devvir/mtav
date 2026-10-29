@@ -7,13 +7,15 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 
 /**
  * Signing in with Google: the account linked to that Google account, else the one with
- * its email (Google vouches for it), else a new one. Offered only where Google is set up.
+ * its email (Google vouches for it; one never confirmed is taken back from whoever opened
+ * it), else a new one. Offered only where Google is set up.
  */
 class GoogleController extends Controller
 {
@@ -44,11 +46,19 @@ class GoogleController extends Controller
         $user = User::firstWhere('google_id', $google->getId())
             ?? User::firstWhere('email', $google->getEmail());
 
-        if ($user) {
+        if ($user && ! $user->hasVerifiedEmail()) {
+            // Never confirmed: whoever opened it may not own the address. Google says this
+            // person does, so the account becomes theirs alone: a new password nobody knows,
+            // and every other way in closed
             $user->forceFill([
                 'google_id'         => $google->getId(),
-                'email_verified_at' => $user->email_verified_at ?? now(),
+                'email_verified_at' => now(),
+                'password'          => Str::password(40),
+                'remember_token'    => Str::random(60),
             ])->save();
+            DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+        } elseif ($user) {
+            $user->forceFill(['google_id' => $google->getId()])->save();
         } else {
             $user = User::create([
                 'email'     => $google->getEmail(),

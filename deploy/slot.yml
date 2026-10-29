@@ -53,6 +53,8 @@ services:
   worker:
     <<: *app
     command: ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+    # Stopped (a deploy), it finishes the job in hand first: a lottery run, mail
+    stop_grace_period: 2m
     # Nothing to probe: a worker that dies is restarted
     healthcheck:
       disable: true

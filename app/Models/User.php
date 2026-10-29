@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 
 /**
  * A person with an account. What they may do in a project depends on their
@@ -98,6 +99,15 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function preferredLocale(): ?string
     {
         return $this->locale;
+    }
+
+    /**
+     * Mail goes to the account's address; a link confirming a new one goes to that one,
+     * since receiving it is what proves owning it.
+     */
+    public function routeNotificationForMail(?Notification $notification = null): string
+    {
+        return $notification instanceof VerifyEmailNotification ? $notification->address($this) : $this->email;
     }
 
     public function isSuperadmin(): bool

@@ -98,6 +98,11 @@ describe('An admin', function () {
             'type'     => EventType::ONLINE->value,
             'location' => 'not a link',
         ]))->assertSessionHasErrors('location');
+        // A web link only: never a file or script address
+        $this->as($this->admin, $this->project)->post(route('manage.events.store'), eventData([
+            'type'     => EventType::ONLINE->value,
+            'location' => 'file:///etc/passwd',
+        ]))->assertSessionHasErrors('location');
     });
 
     it('asks members to confirm attendance', function () {

@@ -229,7 +229,7 @@ return [
     'member_needs_family'       => 'Chi non è admin deve appartenere a una famiglia.',
     'preferences_foreign_units' => 'Puoi mettere in ordine solo unità del tipo della tua famiglia.',
     'unit_assigned'             => 'Questa unità è già stata assegnata a una famiglia nel sorteggio: non si può togliere.',
-    'plan_unit_items'           => 'Le forme delle unità restano sulla planimetria finché esiste la loro unità; aggiungi unità dalla pagina delle unità.',
+    'plan_unit_items'           => 'Solo la forma di un’unità è un’unità: aggiungi le unità dalla tavolozza della planimetria o dalla pagina delle unità.',
     'unit_type_in_use'          => 'Famiglie o unità usano ancora questo tipo di unità.',
 
     /** Limits of projects awaiting approval */

@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 class SettingsController extends Controller
@@ -32,7 +33,7 @@ class SettingsController extends Controller
     {
         $this->authorize('delete', $project);
 
-        $request->validate(['confirmation' => ['required', 'in:' . $project->name]]);
+        $request->validate(['confirmation' => ['required', Rule::in([$project->name])]]);
 
         // Archived or deleted for good, it is gone for them either way
         $projects->remove($project, $request->user());

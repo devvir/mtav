@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\RunLottery;
 use App\Enums\LotteryRunStatus;
 use App\Models\Event;
 use App\Models\Notification;
@@ -7,6 +8,7 @@ use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
+use Illuminate\Support\Str;
 
 /**
  * Once the lottery is due, an admin runs it: each family gets one unit of its type,
@@ -221,6 +223,30 @@ describe('An admin', function () {
         runLottery()->assertSessionHasNoErrors();
 
         expect(assignment($families))->not->toContain(null);
+    });
+
+    it('closes a run whose job died (timed out, or its worker stopped), so the lottery can run again', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        $run = test()->project->lotteryRuns()->create([
+            'uuid' => (string) Str::uuid(), 'status' => LotteryRunStatus::RUNNING, 'solver' => config('lottery.default'), 'started_by' => test()->admin->id, 'started_at' => now(),
+        ]);
+
+        (new RunLottery($run))->failed(new RuntimeException('Timed out'));
+
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::FAILED);
+        runLottery()->assertSessionHasNoErrors();
+    });
+
+    it('leaves a run that finished as it is, whatever fails after it', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = test()->project->lotteryRuns()->latest('id')->first();
+
+        (new RunLottery($run))->failed(new RuntimeException('Mail down'));
+
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED);
     });
 });
 

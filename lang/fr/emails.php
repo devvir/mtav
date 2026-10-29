@@ -23,4 +23,8 @@ return [
     'verify_new_email_intro' => 'Merci de confirmer que c’est bien votre nouvelle adresse e-mail. Votre compte garde l’ancienne jusque-là.',
     'verify_email_action'    => 'Confirmer mon e-mail',
     'verify_email_ignore'    => 'Si vous n’avez pas créé de compte, ignorez cet e-mail.',
+
+    'email_change_subject' => 'L’e-mail de votre compte va changer',
+    'email_change_intro'   => 'Quelqu’un a demandé de remplacer l’e-mail de votre compte par :email. Il change une fois cette adresse confirmée.',
+    'email_change_ignore'  => 'Si ce n’était pas vous, changez votre mot de passe maintenant : votre compte garde cette adresse d’ici là.',
 ];
