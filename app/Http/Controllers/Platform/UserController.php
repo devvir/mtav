@@ -50,7 +50,8 @@ class UserController extends Controller
     /** Giving the role to an account named by its exact email */
     public function grant(Request $request): RedirectResponse
     {
-        $email = $request->validate(['email' => ['required', 'email']])['email'];
+        // Emails are kept in lower case
+        $email = strtolower($request->validate(['email' => ['required', 'email']])['email']);
         $user = User::where('email', $email)->first()
             ?? throw ValidationException::withMessages(['email' => __('validation.no_account_with_email')]);
 

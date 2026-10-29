@@ -16,8 +16,8 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 /** A shared file: seen or played where the browser can, downloaded otherwise; its owner
- * (and admins) edit its description or remove it. Given its neighbours, photos and videos
- * go one to the next: arrows on the stage, the keyboard's arrows, a swipe. */
+ * edits its description, and the owner or an admin removes it. Given its neighbours,
+ * photos and videos go one to the next: arrows on the stage, the keyboard's arrows, a swipe. */
 export function MediaDetails({
   media,
   onPrevious,

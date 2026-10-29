@@ -149,7 +149,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('settings', [Manage\SettingsController::class, 'edit'])->name('settings.edit');
                 Route::put('settings', [Manage\SettingsController::class, 'update'])->name('settings.update');
                 Route::delete('settings', [Manage\SettingsController::class, 'destroy'])->name('settings.destroy');
-                Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])->name('approval.request');
+                // Each request tells every superadmin: a few a day are plenty
+                Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])
+                    ->middleware('throttle:3,60')
+                    ->name('approval.request');
 
                 Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
                 Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
