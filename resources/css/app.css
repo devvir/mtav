@@ -637,6 +637,31 @@
   touch-action: none;
   user-select: none;
 }
+/* Around a plan: what its hover label is placed in */
+.plan-frame {
+  position: relative;
+}
+.plan-hint {
+  position: absolute;
+  z-index: 5;
+  max-width: 260px;
+  padding: 4px 9px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-dark-7);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  animation: plan-hint-in 160ms ease-out;
+}
+@keyframes plan-hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
 .plan-shape {
   cursor: move;
 }

@@ -1,8 +1,8 @@
 import { bounds, DEFAULT_COLORS } from '@/components/plan/model';
-import { PlanDefs, PlanGround, PlanShape, type Kind } from '@/components/plan/render';
+import { PlanDefs, PlanGround, PlanHint, PlanShape, type Kind } from '@/components/plan/render';
 import { _ } from '@/lib/translations';
 import type { Plan, PlanItem } from '@/types/models';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 
 /**
  * The part of the canvas worth showing: every shape on every floor (switching floors keeps
@@ -49,6 +49,7 @@ export function PlanView({
   ranks?: Map<number, number>;
 }) {
   const id = `plan${useId().replace(/:/g, '')}`;
+  const frameRef = useRef<HTMLDivElement>(null);
   // A colour its admins chose (a kind's own default is its material, not a choice)
   const tint = (item: PlanItem) => {
     const color = item.metadata?.color as string | undefined;
@@ -63,77 +64,80 @@ export function PlanView({
   };
 
   return (
-    <svg
-      viewBox={frame(plan)}
-      className="plan-canvas ds-surface"
-      role="img"
-      aria-label={_('Project plan')}
-    >
-      <PlanDefs id={id} />
-      <PlanGround id={id} polygon={plan.polygon} />
-      {/* The floors beneath this one, faintly: what it stands on */}
-      {floor > 0 ? (
-        <g className="plan-beneath" aria-hidden>
-          {plan.items
-            .filter((item) => item.floor < floor)
-            .map((item) => (
-              <g key={item.id} data-depth={Math.min(floor - item.floor, 3)}>
-                <PlanShape
-                  id={id}
-                  seed={String(item.id)}
-                  kind={item.type as Kind}
-                  polygon={item.polygon}
-                  color={tint(item)}
-                />
-              </g>
-            ))}
-        </g>
-      ) : null}
-      {plan.items
-        .filter((item) => item.floor === floor)
-        .map((item) => {
-          const rank = item.unit ? ranks?.get(item.unit.id) : undefined;
-          const box = bounds(item.polygon);
-          return (
-            <PlanShape
-              key={item.id}
-              id={id}
-              seed={String(item.id)}
-              kind={item.type as Kind}
-              polygon={item.polygon}
-              color={tint(item)}
-              fill={fill(item)}
-              label={item.unit?.identifier ?? item.name}
-            >
-              {rank ? (
-                <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
-                  <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
-                  <text
-                    x={box.minX + 9}
-                    y={box.minY + 9}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={10}
-                    fontWeight={800}
-                  >
-                    {rank}
-                  </text>
+    <div className="plan-frame" ref={frameRef}>
+      <svg
+        viewBox={frame(plan)}
+        className="plan-canvas ds-surface"
+        role="img"
+        aria-label={_('Project plan')}
+      >
+        <PlanDefs id={id} />
+        <PlanGround id={id} polygon={plan.polygon} />
+        {/* The floors beneath this one, faintly: what it stands on */}
+        {floor > 0 ? (
+          <g className="plan-beneath" aria-hidden>
+            {plan.items
+              .filter((item) => item.floor < floor)
+              .map((item) => (
+                <g key={item.id} data-depth={Math.min(floor - item.floor, 3)}>
+                  <PlanShape
+                    id={id}
+                    seed={String(item.id)}
+                    kind={item.type as Kind}
+                    polygon={item.polygon}
+                    color={tint(item)}
+                  />
                 </g>
-              ) : null}
-              <title>
-                {item.unit
-                  ? [
-                      item.unit.identifier,
-                      rank ? _('number {position} in your ranking', { position: rank }) : null,
-                      item.unit.family?.name,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')
-                  : (item.name ?? '')}
-              </title>
-            </PlanShape>
-          );
-        })}
-    </svg>
+              ))}
+          </g>
+        ) : null}
+        {plan.items
+          .filter((item) => item.floor === floor)
+          .map((item) => {
+            const rank = item.unit ? ranks?.get(item.unit.id) : undefined;
+            const box = bounds(item.polygon);
+            return (
+              <PlanShape
+                key={item.id}
+                id={id}
+                seed={String(item.id)}
+                kind={item.type as Kind}
+                polygon={item.polygon}
+                color={tint(item)}
+                fill={fill(item)}
+                label={item.unit?.identifier ?? item.name}
+                hint={
+                  item.unit
+                    ? [
+                        item.unit.identifier,
+                        rank ? _('number {position} in your ranking', { position: rank }) : null,
+                        item.unit.family?.name,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : undefined
+                }
+              >
+                {rank ? (
+                  <g className="plan-rank" data-first={rank === 1 || undefined} aria-hidden>
+                    <circle cx={box.minX + 9} cy={box.minY + 9} r={8} />
+                    <text
+                      x={box.minX + 9}
+                      y={box.minY + 9}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={10}
+                      fontWeight={800}
+                    >
+                      {rank}
+                    </text>
+                  </g>
+                ) : null}
+              </PlanShape>
+            );
+          })}
+      </svg>
+      <PlanHint host={frameRef} />
+    </div>
   );
 }

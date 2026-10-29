@@ -1,6 +1,6 @@
 import { _ } from '@/lib/translations';
 import type { Point } from '@/types/models';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { bounds, centre } from './model';
 
 /**
@@ -50,6 +50,34 @@ const random = (seed: string) => {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 2 ** 32;
   };
+};
+
+/**
+ * The polygon moved in by `by` on every side: stroked round with twice that width, it covers
+ * exactly the shape's footprint with eased corners (so shapes still meet edge to edge)
+ */
+const inset = (polygon: Point[], by: number): Point[] => {
+  const box = bounds(polygon);
+  if (box.maxX - box.minX < by * 4 || box.maxY - box.minY < by * 4) return polygon;
+  const [cx, cy] = centre(polygon);
+  const count = polygon.length;
+  const lines = polygon.map((a, index) => {
+    const b = polygon[(index + 1) % count]!;
+    const length = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    let [nx, ny] = [-(b[1] - a[1]) / length, (b[0] - a[0]) / length];
+    // Inward: towards the shape's middle
+    if ((cx - (a[0] + b[0]) / 2) * nx + (cy - (a[1] + b[1]) / 2) * ny < 0) [nx, ny] = [-nx, -ny];
+    return { at: [a[0] + nx * by, a[1] + ny * by] as Point, along: [b[0] - a[0], b[1] - a[1]] };
+  });
+  return polygon.map((_, index) => {
+    const one = lines[(index - 1 + count) % count]!;
+    const two = lines[index]!;
+    const cross = one.along[0]! * two.along[1]! - one.along[1]! * two.along[0]!;
+    if (Math.abs(cross) < 1e-9) return two.at;
+    const t =
+      ((two.at[0] - one.at[0]) * two.along[1]! - (two.at[1] - one.at[1]) * two.along[0]!) / cross;
+    return [one.at[0] + one.along[0]! * t, one.at[1] + one.along[1]! * t];
+  });
 };
 
 /** Where the trees of a green area stand: scattered, never outside it, more as it grows */
@@ -357,6 +385,7 @@ export function PlanShape({
   color,
   fill,
   label,
+  hint,
   selected,
   children,
 }: {
@@ -369,6 +398,8 @@ export function PlanShape({
   color?: string;
   fill?: string;
   label?: string | null;
+  /** What hovering it says (its label, else its kind) */
+  hint?: string;
   selected?: boolean;
   children?: ReactNode;
 }) {
@@ -392,14 +423,19 @@ export function PlanShape({
   const [cx, cy] = centre(polygon);
 
   return (
-    <g className="plan-item" data-kind={kind} data-selected={selected || undefined}>
+    <g
+      className="plan-item"
+      data-kind={kind}
+      data-selected={selected || undefined}
+      data-hint={hint ?? label ?? kindLabel(kind) ?? undefined}
+    >
       <clipPath id={`${id}-${clip}`}>
         <polygon points={shape} />
       </clipPath>
 
-      {/* Its edge drawn in its own colour, a little wide and round: corners eased */}
+      {/* Drawn a little within its edge, then stroked round: corners eased, footprint exact */}
       <polygon
-        points={shape}
+        points={raised ? points(inset(polygon, 1.5)) : shape}
         fill={base}
         stroke={raised ? base : undefined}
         strokeWidth={raised ? 3 : undefined}
@@ -443,4 +479,51 @@ export function PlanShape({
       {children}
     </g>
   );
+}
+
+/**
+ * What a shape is, said by hovering it a moment (its label, or more): only this redraws as
+ * the pointer moves, never the plan. `host` is the element around the plan.
+ */
+export function PlanHint({ host }: { host: RefObject<HTMLElement | null> }) {
+  const [hint, setHint] = useState<{ text: string; x: number; y: number } | null>(null);
+  const shown = useRef<string | null>(null);
+
+  useEffect(() => {
+    const element = host.current;
+    if (!element) return undefined;
+    let timer = 0;
+    const hide = () => {
+      window.clearTimeout(timer);
+      shown.current = null;
+      setHint(null);
+    };
+    const move = (event: PointerEvent) => {
+      const text = (event.target as Element).closest('[data-hint]')?.getAttribute('data-hint');
+      if (!text || event.buttons) return hide();
+      const box = element.getBoundingClientRect();
+      const at = { text, x: event.clientX - box.left, y: event.clientY - box.top };
+      if (shown.current === text) return setHint(at);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        shown.current = text;
+        setHint(at);
+      }, 200);
+    };
+    element.addEventListener('pointermove', move);
+    element.addEventListener('pointerleave', hide);
+    element.addEventListener('pointerdown', hide);
+    return () => {
+      hide();
+      element.removeEventListener('pointermove', move);
+      element.removeEventListener('pointerleave', hide);
+      element.removeEventListener('pointerdown', hide);
+    };
+  }, [host]);
+
+  return hint ? (
+    <div className="plan-hint" style={{ left: hint.x + 14, top: hint.y + 16 }} role="tooltip">
+      {hint.text}
+    </div>
+  ) : null;
 }

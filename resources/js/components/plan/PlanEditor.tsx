@@ -50,7 +50,7 @@ import {
 } from 'react';
 import { floorLabel } from './floors';
 import { bounds, centre, DEFAULT_COLORS, PlanModel, type ShapeType } from './model';
-import { kindLabel, PlanDefs, PlanGround, PlanShape } from './render';
+import { kindLabel, PlanDefs, PlanGround, PlanHint, PlanShape } from './render';
 
 export type PlanPayload = ReturnType<PlanModel['payload']>;
 
@@ -87,6 +87,47 @@ const CORNERS: [number, number][] = [
   [1, 1],
   [0, 1],
 ];
+
+/**
+ * A size of the canvas, taken once typed (on Enter or on leaving the field): changing it
+ * as each digit is typed would move the canvas, and this field with it
+ */
+function SizeInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  const [shown, setShown] = useState(value);
+  // Changed elsewhere (undo): the field follows
+  if (shown !== value) {
+    setShown(value);
+    setDraft(String(value));
+  }
+  const apply = () => {
+    const size = Math.min(10000, Math.max(100, Math.round(Number(draft) || value)));
+    setDraft(String(size));
+    if (size !== value) onChange(size);
+  };
+
+  return (
+    <TextInput
+      size="xs"
+      label={label}
+      type="number"
+      min={100}
+      max={10000}
+      value={draft}
+      onChange={(event) => setDraft(event.currentTarget.value)}
+      onBlur={apply}
+      onKeyDown={(event) => event.key === 'Enter' && apply()}
+    />
+  );
+}
 
 /** Where saving is: quiet when all is saved, a retry when it could not be */
 function SaveState({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
@@ -226,6 +267,7 @@ export const PlanEditor = forwardRef<
   const [renaming, setRenaming] = useState<string | null>(null);
 
   const svg = useRef<SVGSVGElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
   const look = `plan${useId().replace(/:/g, '')}`;
   const drag = useRef<Drag | null>(null);
 
@@ -521,182 +563,185 @@ export const PlanEditor = forwardRef<
           </Group>
 
           {/* Canvas */}
-          <svg
-            ref={svg}
-            data-tour="plan.canvas"
-            // A margin around the plan, so that handles on its edge can be grabbed whole
-            viewBox={`${-margin} ${-margin} ${canvas.width + margin * 2} ${canvas.height + margin * 2}`}
-            className="plan-canvas ds-surface"
-            role="application"
-            aria-label={_('Plan editor')}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            onPointerDown={(event) => {
-              const target = event.target as SVGElement;
-              if (target === svg.current || target.dataset.background !== undefined)
-                model.select(null);
-            }}
-          >
-            <PlanDefs id={look} />
-            <defs>
-              <pattern id="plan-grid" width={25} height={25} patternUnits="userSpaceOnUse">
-                <path
-                  d="M 25 0 L 0 0 0 25"
-                  fill="none"
-                  stroke="var(--mtav-border)"
-                  strokeWidth={0.5}
-                />
-              </pattern>
-            </defs>
-            <rect
-              width={canvas.width}
-              height={canvas.height}
-              fill="url(#plan-grid)"
-              data-background
-            />
+          <div className="plan-frame" ref={frame}>
+            <svg
+              ref={svg}
+              data-tour="plan.canvas"
+              // A margin around the plan, so that handles on its edge can be grabbed whole
+              viewBox={`${-margin} ${-margin} ${canvas.width + margin * 2} ${canvas.height + margin * 2}`}
+              className="plan-canvas ds-surface"
+              role="application"
+              aria-label={_('Plan editor')}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              onPointerDown={(event) => {
+                const target = event.target as SVGElement;
+                if (target === svg.current || target.dataset.background !== undefined)
+                  model.select(null);
+              }}
+            >
+              <PlanDefs id={look} />
+              <defs>
+                <pattern id="plan-grid" width={25} height={25} patternUnits="userSpaceOnUse">
+                  <path
+                    d="M 25 0 L 0 0 0 25"
+                    fill="none"
+                    stroke="var(--mtav-border)"
+                    strokeWidth={0.5}
+                  />
+                </pattern>
+              </defs>
+              <rect
+                width={canvas.width}
+                height={canvas.height}
+                fill="url(#plan-grid)"
+                data-background
+              />
 
-            <PlanGround
-              id={look}
-              polygon={canvas.polygon}
-              // The grid shows through a little: what the drawing aligns to
-              fillOpacity={0.82}
-              strokeWidth={model.editingBoundary ? 3 : 2}
-              stroke={model.editingBoundary ? 'var(--mtav-brand)' : 'var(--mtav-border-strong)'}
-              data-background
-              onPointerDown={(event) => model.editingBoundary && startMove(event, 'boundary')}
-            />
+              <PlanGround
+                id={look}
+                polygon={canvas.polygon}
+                // The grid shows through a little: what the drawing aligns to
+                fillOpacity={0.82}
+                strokeWidth={model.editingBoundary ? 3 : 2}
+                stroke={model.editingBoundary ? 'var(--mtav-brand)' : 'var(--mtav-border-strong)'}
+                data-background
+                onPointerDown={(event) => model.editingBoundary && startMove(event, 'boundary')}
+              />
 
-            {model.beneath.length ? (
-              <g className="plan-beneath" aria-hidden>
-                {model.beneath.map((item) => (
-                  <g key={item.key} data-depth={Math.min(model.floor - item.floor, 3)}>
-                    <PlanShape
-                      id={look}
-                      seed={item.id ? String(item.id) : item.key}
-                      kind={item.type}
-                      polygon={item.polygon}
-                      color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
-                    />
-                  </g>
-                ))}
-              </g>
-            ) : null}
+              {model.beneath.length ? (
+                <g className="plan-beneath" aria-hidden>
+                  {model.beneath.map((item) => (
+                    <g key={item.key} data-depth={Math.min(model.floor - item.floor, 3)}>
+                      <PlanShape
+                        id={look}
+                        seed={item.id ? String(item.id) : item.key}
+                        kind={item.type}
+                        polygon={item.polygon}
+                        color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
+                      />
+                    </g>
+                  ))}
+                </g>
+              ) : null}
 
-            {model.visible.map((item) => (
-              <g
-                key={item.key}
-                data-shape={item.unit?.identifier ?? item.name}
-                className="plan-shape"
-                onPointerDown={(event) => startMove(event, item.key)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  model.select(item.key);
-                  setMenu({ x: event.clientX, y: event.clientY });
-                }}
-                onDoubleClick={() => !item.unit && setRenaming(item.key)}
-              >
-                <PlanShape
-                  id={look}
-                  // The same trees as where people read the plan
-                  seed={item.id ? String(item.id) : item.key}
-                  kind={item.type}
-                  polygon={item.polygon}
-                  // The colour of a kind's own material is not a choice: only tints count
-                  color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
-                  label={item.unit?.identifier ?? item.name}
-                  selected={item.key === model.selected}
-                />
-              </g>
-            ))}
+              {model.visible.map((item) => (
+                <g
+                  key={item.key}
+                  data-shape={item.unit?.identifier ?? item.name}
+                  className="plan-shape"
+                  onPointerDown={(event) => startMove(event, item.key)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    model.select(item.key);
+                    setMenu({ x: event.clientX, y: event.clientY });
+                  }}
+                  onDoubleClick={() => !item.unit && setRenaming(item.key)}
+                >
+                  <PlanShape
+                    id={look}
+                    // The same trees as where people read the plan
+                    seed={item.id ? String(item.id) : item.key}
+                    kind={item.type}
+                    polygon={item.polygon}
+                    // The colour of a kind's own material is not a choice: only tints count
+                    color={item.color === DEFAULT_COLORS[item.type] ? undefined : item.color}
+                    label={item.unit?.identifier ?? item.name}
+                    selected={item.key === model.selected}
+                  />
+                </g>
+              ))}
 
-            {/* The selected shape's handles */}
-            {active && box ? (
-              <g>
-                {(reshapable ? active : []).map((point, index) => {
-                  const next = active[(index + 1) % active.length]!;
-                  return (
-                    <line
-                      key={`edge-${index}`}
-                      x1={point[0]}
-                      y1={point[1]}
-                      x2={next[0]}
-                      y2={next[1]}
-                      stroke="transparent"
-                      strokeWidth={handle * 2}
-                      className="plan-edge"
-                      // Lengthwise along the edge, the pointer says which way it moves
-                      style={{
-                        cursor:
-                          Math.abs(next[0] - point[0]) >= Math.abs(next[1] - point[1])
-                            ? 'ns-resize'
-                            : 'ew-resize',
-                      }}
-                      onPointerDown={(event) => startEdge(event, index)}
-                      onDoubleClick={(event) => {
-                        event.stopPropagation();
-                        model.setActivePolygon(model.insertVertex(active, index, toPlan(event)));
-                        model.commit();
-                      }}
-                    />
-                  );
-                })}
-                {selectedItem ? (
-                  <g className="plan-rotate" onPointerDown={startRotate}>
-                    <line
-                      x1={(box.minX + box.maxX) / 2}
-                      y1={box.minY}
-                      x2={(box.minX + box.maxX) / 2}
-                      y2={box.minY - handle * 4}
-                      stroke="var(--mtav-brand)"
-                      strokeWidth={1.2}
-                    />
-                    <circle
-                      cx={(box.minX + box.maxX) / 2}
-                      cy={box.minY - handle * 4}
-                      r={handle}
+              {/* The selected shape's handles */}
+              {active && box ? (
+                <g>
+                  {(reshapable ? active : []).map((point, index) => {
+                    const next = active[(index + 1) % active.length]!;
+                    return (
+                      <line
+                        key={`edge-${index}`}
+                        x1={point[0]}
+                        y1={point[1]}
+                        x2={next[0]}
+                        y2={next[1]}
+                        stroke="transparent"
+                        strokeWidth={handle * 2}
+                        className="plan-edge"
+                        // Lengthwise along the edge, the pointer says which way it moves
+                        style={{
+                          cursor:
+                            Math.abs(next[0] - point[0]) >= Math.abs(next[1] - point[1])
+                              ? 'ns-resize'
+                              : 'ew-resize',
+                        }}
+                        onPointerDown={(event) => startEdge(event, index)}
+                        onDoubleClick={(event) => {
+                          event.stopPropagation();
+                          model.setActivePolygon(model.insertVertex(active, index, toPlan(event)));
+                          model.commit();
+                        }}
+                      />
+                    );
+                  })}
+                  {selectedItem ? (
+                    <g className="plan-rotate" onPointerDown={startRotate}>
+                      <line
+                        x1={(box.minX + box.maxX) / 2}
+                        y1={box.minY}
+                        x2={(box.minX + box.maxX) / 2}
+                        y2={box.minY - handle * 4}
+                        stroke="var(--mtav-brand)"
+                        strokeWidth={1.2}
+                      />
+                      <circle
+                        cx={(box.minX + box.maxX) / 2}
+                        cy={box.minY - handle * 4}
+                        r={handle}
+                        fill="var(--mtav-surface-solid)"
+                        stroke="var(--mtav-brand)"
+                        strokeWidth={1.5}
+                      >
+                        <title>{_('Turn it (R)')}</title>
+                      </circle>
+                    </g>
+                  ) : null}
+                  {CORNERS.map((corner) => (
+                    <rect
+                      key={`corner-${corner.join()}`}
+                      x={(corner[0] ? box.maxX : box.minX) - handle}
+                      y={(corner[1] ? box.maxY : box.minY) - handle}
+                      width={handle * 2}
+                      height={handle * 2}
                       fill="var(--mtav-surface-solid)"
                       stroke="var(--mtav-brand)"
                       strokeWidth={1.5}
-                    >
-                      <title>{_('Turn it (R)')}</title>
-                    </circle>
-                  </g>
-                ) : null}
-                {CORNERS.map((corner) => (
-                  <rect
-                    key={`corner-${corner.join()}`}
-                    x={(corner[0] ? box.maxX : box.minX) - handle}
-                    y={(corner[1] ? box.maxY : box.minY) - handle}
-                    width={handle * 2}
-                    height={handle * 2}
-                    fill="var(--mtav-surface-solid)"
-                    stroke="var(--mtav-brand)"
-                    strokeWidth={1.5}
-                    className={corner[0] === corner[1] ? 'plan-resize-nwse' : 'plan-resize-nesw'}
-                    onPointerDown={(event) => startResize(event, corner)}
-                  />
-                ))}
-                {(reshapable ? active : []).map((point, index) => (
-                  <circle
-                    key={`vertex-${index}`}
-                    cx={point[0]}
-                    cy={point[1]}
-                    r={handle * 0.8}
-                    fill={
-                      model.selectedVertex === index
-                        ? 'var(--mtav-brand)'
-                        : 'var(--mtav-surface-solid)'
-                    }
-                    stroke="var(--mtav-brand)"
-                    strokeWidth={1.5}
-                    className="plan-vertex"
-                    onPointerDown={(event) => startVertex(event, index)}
-                  />
-                ))}
-              </g>
-            ) : null}
-          </svg>
+                      className={corner[0] === corner[1] ? 'plan-resize-nwse' : 'plan-resize-nesw'}
+                      onPointerDown={(event) => startResize(event, corner)}
+                    />
+                  ))}
+                  {(reshapable ? active : []).map((point, index) => (
+                    <circle
+                      key={`vertex-${index}`}
+                      cx={point[0]}
+                      cy={point[1]}
+                      r={handle * 0.8}
+                      fill={
+                        model.selectedVertex === index
+                          ? 'var(--mtav-brand)'
+                          : 'var(--mtav-surface-solid)'
+                      }
+                      stroke="var(--mtav-brand)"
+                      strokeWidth={1.5}
+                      className="plan-vertex"
+                      onPointerDown={(event) => startVertex(event, index)}
+                    />
+                  ))}
+                </g>
+              ) : null}
+            </svg>
+            <PlanHint host={frame} />
+          </div>
           {/* What to know, and the way out */}
           <Group justify="space-between" align="flex-end" gap="sm" wrap="wrap">
             <Text className="ds-caption" style={{ flex: '1 1 320px' }}>
@@ -823,27 +868,15 @@ export const PlanEditor = forwardRef<
                 {_('Canvas')}
               </Title>
               <SimpleGrid cols={2} spacing="xs">
-                <TextInput
-                  size="xs"
+                <SizeInput
                   label={_('Width')}
-                  type="number"
-                  min={100}
-                  max={10000}
                   value={canvas.width}
-                  onChange={(event) =>
-                    model.setCanvasSize(Number(event.currentTarget.value), canvas.height)
-                  }
+                  onChange={(width) => model.setCanvasSize(width, canvas.height)}
                 />
-                <TextInput
-                  size="xs"
+                <SizeInput
                   label={_('Height')}
-                  type="number"
-                  min={100}
-                  max={10000}
                   value={canvas.height}
-                  onChange={(event) =>
-                    model.setCanvasSize(canvas.width, Number(event.currentTarget.value))
-                  }
+                  onChange={(height) => model.setCanvasSize(canvas.width, height)}
                 />
               </SimpleGrid>
               <Text className="ds-caption">{_('Select a shape to change it.')}</Text>
