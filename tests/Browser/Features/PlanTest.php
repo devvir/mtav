@@ -196,13 +196,13 @@ it('keeps a shape brought to the front, and pastes copies', function () {
     $this->as($this->admin);
 
     $page = editPlan($this)
-        ->click('.plan-palette >> ' . button('Building'))
+        ->click('.plan-palette >> ' . button('Other'))
         ->click('.plan-palette >> ' . button('Green area'))
         ->keys('[aria-label="Plan editor"]', ['Control+c'])
         ->keys('[aria-label="Plan editor"]', ['Control+v']);
     $page->script(<<<'JS'
             () => {
-                const shape = document.querySelector('.plan-item[data-kind="building"] .plan-top');
+                const shape = document.querySelector('.plan-item[data-kind="other"] .plan-top');
                 const box = shape.getBoundingClientRect();
                 shape.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: box.x + 5, clientY: box.y + 5 }));
             }
@@ -211,5 +211,38 @@ it('keeps a shape brought to the front, and pastes copies', function () {
         ->click('Done editing')
         ->assertSee('Edit the plan');
 
-    expect($this->project->plan->items()->whereNull('unit_id')->pluck('type')->all())->toBe(['green', 'green', 'building']);
+    expect($this->project->plan->items()->whereNull('unit_id')->pluck('type')->all())->toBe(['green', 'green', 'other']);
+});
+
+it('adds a unit from the palette: its details first, then it stands where it was drawn', function () {
+    $this->as($this->admin);
+
+    editPlan($this)
+        ->click('Add a floor')
+        ->click('.plan-palette >> ' . button('Unit'))
+        ->fill(inDialogField('identifier'), 'A-201')
+        ->click(inDialog('Add the unit'))
+        ->assertPresent('[data-shape="A-201"]')
+        ->assertSee('A-201')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    $item = PlanItem::whereHas('unit', fn ($unit) => $unit->where('identifier', 'A-201'))->sole();
+    expect($item->floor)->toBe(1)
+        ->and($item->unit->unit_type_id)->toBe($this->type->id)
+        ->and(PlanItem::whereNotNull('unit_id')->count())->toBe(2);
+});
+
+it('adds no unit when its details are left', function () {
+    $this->as($this->admin);
+
+    editPlan($this)
+        ->click('.plan-palette >> ' . button('Unit'))
+        ->assertPresent(inDialogField('identifier'))
+        ->click(inDialog('Cancel'))
+        ->assertNotPresent('[role="dialog"]')
+        ->click('Done editing')
+        ->assertSee('Edit the plan');
+
+    expect(PlanItem::whereNotNull('unit_id')->count())->toBe(1);
 });

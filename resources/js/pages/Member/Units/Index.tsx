@@ -140,6 +140,7 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
               <PlanPanel
                 plan={plan}
                 canEdit={canManage}
+                unitTypes={canManage ? unitTypes : undefined}
                 highlightType={family?.unit_type_id}
                 ownUnit={ownUnit}
                 aside={family ? _("Units of your family's type are highlighted.") : undefined}

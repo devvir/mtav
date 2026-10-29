@@ -489,11 +489,6 @@ export class PlanModel {
 
   /** Shapes */
   add(type: ShapeType) {
-    const unit = Math.min(this.canvas.width, this.canvas.height);
-    const start = STARTS[type];
-    const size = (share: number) => Math.max(20, Math.round((unit * share) / GRID) * GRID);
-    const [w, h] = [size(start.width), size(start.height)];
-    const [cx, cy] = [this.round(this.canvas.width / 2), this.round(this.canvas.height / 2)];
     const item: EditableItem = {
       key: newKey(),
       id: null,
@@ -501,23 +496,63 @@ export class PlanModel {
       floor: this.floor,
       name: '',
       color: DEFAULT_COLORS[type],
-      polygon: start.triangle
-        ? [
-            [cx, cy - h / 2],
-            [cx + w / 2, cy + h / 2],
-            [cx - w / 2, cy + h / 2],
-          ]
-        : [
-            [cx - w / 2, cy - h / 2],
-            [cx + w / 2, cy - h / 2],
-            [cx + w / 2, cy + h / 2],
-            [cx - w / 2, cy + h / 2],
-          ],
+      polygon: this.startOf(type),
       unit: null,
     };
     this.items.push(item);
     this.selected = item.key;
     this.commit();
+  }
+
+  /**
+   * A unit the server just created where it was drawn: on top, selected, and in every state
+   * of the history (undoing past it never takes it off the plan, which holds it anyway)
+   */
+  adopt(saved: PlanItem) {
+    const item: EditableItem = {
+      key: `item-${saved.id}`,
+      id: saved.id,
+      type: saved.type as ShapeType,
+      floor: saved.floor,
+      name: saved.name ?? '',
+      color: DEFAULT_COLORS.unit,
+      polygon: clone(saved.polygon),
+      unit: saved.unit,
+    };
+    const withIt = (state: string) => {
+      const parsed = JSON.parse(state);
+      parsed.items.push(item);
+      return JSON.stringify(parsed);
+    };
+    this.past = this.past.map(withIt);
+    this.future = this.future.map(withIt);
+    this.saved = withIt(this.saved);
+    this.items.push(item);
+    this.current = this.snapshot();
+    this.selected = item.key;
+    this.remember();
+    this.changed();
+  }
+
+  /** Where a new shape of a kind starts: in the middle of the canvas, in its kind's shape */
+  startOf(type: ShapeType): Point[] {
+    const unit = Math.min(this.canvas.width, this.canvas.height);
+    const start = STARTS[type];
+    const size = (share: number) => Math.max(20, Math.round((unit * share) / GRID) * GRID);
+    const [w, h] = [size(start.width), size(start.height)];
+    const [cx, cy] = [this.round(this.canvas.width / 2), this.round(this.canvas.height / 2)];
+    return start.triangle
+      ? [
+          [cx, cy - h / 2],
+          [cx + w / 2, cy + h / 2],
+          [cx - w / 2, cy + h / 2],
+        ]
+      : [
+          [cx - w / 2, cy - h / 2],
+          [cx + w / 2, cy - h / 2],
+          [cx + w / 2, cy + h / 2],
+          [cx - w / 2, cy + h / 2],
+        ];
   }
 
   duplicate() {

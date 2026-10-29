@@ -28,6 +28,31 @@ describe('An admin', function () {
             ->and($unit->planItem->plan_id)->toBe($this->project->plan->id);
     });
 
+    it('creates a unit where it was drawn on the plan, on top, answering its shape', function () {
+        $polygon = [[100, 100], [160, 100], [160, 150], [100, 150]];
+
+        $response = $this->as($this->admin, $this->project)->postJson(route('manage.units.store'), [
+            'identifier'   => 'Ap. 301',
+            'unit_type_id' => $this->type->id,
+            'polygon'      => $polygon,
+            'floor'        => 1,
+        ])->assertCreated();
+
+        $item = $this->project->units()->firstWhere('identifier', 'Ap. 301')->planItem;
+
+        expect($item)->polygon->toEqual($polygon)->floor->toBe(1)
+            ->position->toBe($this->project->plan->items()->max('position'))
+            ->and($response->json('item'))->id->toBe($item->id)->unit->identifier->toBe('Ap. 301');
+    });
+
+    it('refuses a drawn unit with too few corners', function () {
+        $this->as($this->admin, $this->project)->postJson(route('manage.units.store'), [
+            'identifier'   => 'Ap. 302',
+            'unit_type_id' => $this->type->id,
+            'polygon'      => [[0, 0], [10, 0]],
+        ])->assertJsonValidationErrors('polygon');
+    });
+
     it('creates a unit together with a new unit type', function () {
         $this->as($this->admin, $this->project)->post(route('manage.units.store'), [
             'identifier'    => 'Ap. 201',

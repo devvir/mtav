@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Manage;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UnitRequest;
+use App\Http\Resources\PlanResource;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\PlanService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,9 +19,13 @@ use Illuminate\Validation\ValidationException;
  */
 class UnitController extends Controller
 {
-    public function store(UnitRequest $request, Project $project, PlanService $plans): RedirectResponse
+    /**
+     * A new unit, on the plan where it was drawn (answered with its shape, to the plan
+     * editor), else next to the others.
+     */
+    public function store(UnitRequest $request, Project $project, PlanService $plans): RedirectResponse|JsonResponse
     {
-        DB::transaction(function () use ($request, $project, $plans) {
+        $item = DB::transaction(function () use ($request, $project, $plans) {
             $typeId = $request->validated('new_unit_type')
                 ? $project->unitTypes()->create($request->validated('new_unit_type'))->id
                 : $request->validated('unit_type_id');
@@ -29,8 +35,12 @@ class UnitController extends Controller
                 'unit_type_id' => $typeId,
             ]);
 
-            $plans->place($unit);
+            return $plans->place($unit, $request->validated('polygon'), (int) $request->validated('floor'));
         });
+
+        if ($request->wantsJson()) {
+            return response()->json(['item' => PlanResource::item($item->load('unit.family'))], 201);
+        }
 
         return to_route('units.index')->with('success', __('flash.unit_created'));
     }

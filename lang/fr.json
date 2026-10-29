@@ -580,5 +580,8 @@
   "{unit} goes to number {position}": "{unit} passe au numéro {position}",
   "{unit} is now number {position}": "{unit} est maintenant numéro {position}",
   "{unit} stays where it was": "{unit} reste à sa place",
-  "Unit type: {type}": "Type de logement : {type}"
+  "Unit type: {type}": "Type de logement : {type}",
+  "Unit": "Logement",
+  "Add a unit": "Ajouter un logement",
+  "The unit was not added. Try again.": "Le logement n’a pas pu être ajouté. Réessayez."
 }

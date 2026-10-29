@@ -1,5 +1,6 @@
+import { UnitForm } from '@/components/forms/UnitForm';
 import { _ } from '@/lib/translations';
-import type { Plan, Point } from '@/types/models';
+import type { Plan, Point, UnitType } from '@/types/models';
 import {
   ActionIcon,
   Button,
@@ -225,8 +226,12 @@ export const PlanEditor = forwardRef<
     save: (payload: PlanPayload) => Promise<Record<string, number>>;
     /** Leaving the editor (the panel asks about unsaved changes) */
     onDone?: () => void;
+    /** The project's unit types: given, units are added here, drawn where they go */
+    unitTypes?: UnitType[];
+    /** A unit was added on the plan (the units listed elsewhere follow) */
+    onUnitAdded?: () => void;
   }
->(function PlanEditor({ plan, save, onDone }, ref) {
+>(function PlanEditor({ plan, save, onDone, unitTypes, onUnitAdded }, ref) {
   // One per editing session (the panel hands the plan as it was when editing began)
   const model = useMemo(() => new PlanModel(plan), [plan]);
   const version = useSyncExternalStore(model.subscribe, model.getVersion);
@@ -277,6 +282,9 @@ export const PlanEditor = forwardRef<
   // What the shape being dragged lines up with, shown while it does
   const [guides, setGuides] = useState<Guide[]>([]);
 
+  // A unit being added: where it starts, while its details are asked
+  const [newUnit, setNewUnit] = useState<{ polygon: Point[]; floor: number } | null>(null);
+
   const shapeTypes: { value: ShapeType; label: string }[] = [
     { value: 'building', label: _('Building') },
     { value: 'street', label: _('Street') },
@@ -286,6 +294,12 @@ export const PlanEditor = forwardRef<
     { value: 'playground', label: _('Playground') },
     { value: 'entrance', label: _('Entrance') },
     { value: 'other', label: _('Other') },
+  ];
+
+  // What is added from the palette: a unit (with its details) rather than a bare building
+  const palette: { value: ShapeType; label: string }[] = [
+    ...(unitTypes ? [{ value: 'unit' as const, label: _('Unit') }] : []),
+    ...shapeTypes.filter((type) => type.value !== 'building'),
   ];
 
   /** What a kind looks like, small, in the palette */
@@ -547,11 +561,15 @@ export const PlanEditor = forwardRef<
           data-tour="plan.toolbar"
           aria-label={_('Add shapes')}
         >
-          {shapeTypes.map((type) => (
+          {palette.map((type) => (
             <UnstyledButton
               key={type.value}
               className="plan-tool"
-              onClick={() => model.add(type.value)}
+              onClick={() =>
+                type.value === 'unit'
+                  ? setNewUnit({ polygon: model.startOf('unit'), floor: model.floor })
+                  : model.add(type.value)
+              }
             >
               <svg viewBox="0 0 28 18" width={28} height={18} aria-hidden>
                 {type.value === 'entrance' ? (
@@ -1065,6 +1083,25 @@ export const PlanEditor = forwardRef<
           ) : null}
         </Menu.Dropdown>
       </Menu>
+
+      {unitTypes ? (
+        <Modal opened={Boolean(newUnit)} onClose={() => setNewUnit(null)} title={_('Add a unit')}>
+          {newUnit ? (
+            <UnitForm
+              unitTypes={unitTypes}
+              place={{
+                ...newUnit,
+                onPlaced: (item) => {
+                  model.adopt(item);
+                  setNewUnit(null);
+                  onUnitAdded?.();
+                },
+              }}
+              onDone={() => setNewUnit(null)}
+            />
+          ) : null}
+        </Modal>
+      ) : null}
 
       <RenameShape
         item={model.items.find((item) => item.key === renaming) ?? null}

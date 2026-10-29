@@ -580,5 +580,8 @@
   "{unit} goes to number {position}": "{unit} passa al numero {position}",
   "{unit} is now number {position}": "{unit} ora è la numero {position}",
   "{unit} stays where it was": "{unit} resta dov’era",
-  "Unit type: {type}": "Tipo di unità: {type}"
+  "Unit type: {type}": "Tipo di unità: {type}",
+  "Unit": "Unità",
+  "Add a unit": "Aggiungi un’unità",
+  "The unit was not added. Try again.": "Non è stato possibile aggiungere l’unità. Riprova."
 }

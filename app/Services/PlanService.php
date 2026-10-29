@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\ProjectChanged;
 use App\Models\Plan;
+use App\Models\PlanItem;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\Plan\Defaults;
@@ -30,17 +31,21 @@ class PlanService
     }
 
     /**
-     * Give a new unit a square on the plan, next to the units placed before it.
+     * Put a new unit on the plan: where it was drawn, else in a square next to the units
+     * placed before it. On top of what is already there.
+     *
+     * @param array<int, array{0: float, 1: float}>|null $polygon
      */
-    public function place(Unit $unit): void
+    public function place(Unit $unit, ?array $polygon = null, int $floor = 0): PlanItem
     {
         $plan = $unit->project->plan;
 
-        $plan->items()->create([
-            'unit_id' => $unit->id,
-            'type'    => 'unit',
-            'floor'   => 0,
-            'polygon' => $this->defaults->getNextAvailablePosition($plan),
+        return $plan->items()->create([
+            'unit_id'  => $unit->id,
+            'type'     => 'unit',
+            'floor'    => $floor,
+            'position' => ($plan->items()->max('position') ?? -1) + 1,
+            'polygon'  => $polygon ?? $this->defaults->getNextAvailablePosition($plan),
         ]);
     }
 

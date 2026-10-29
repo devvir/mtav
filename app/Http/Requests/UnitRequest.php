@@ -36,6 +36,11 @@ class UnitRequest extends FormRequest
                 Rule::unique('unit_types', 'name')->where('project_id', $project->id),
             ],
             'new_unit_type.description' => ['nullable', 'string', 'max:500'],
+            // Where it was drawn, when added on the plan
+            'polygon'     => ['nullable', 'array', 'min:3', 'max:64'],
+            'polygon.*'   => ['array', 'size:2'],
+            'polygon.*.*' => ['numeric'],
+            'floor'       => ['nullable', 'integer', 'between:0,50'],
         ];
     }
 

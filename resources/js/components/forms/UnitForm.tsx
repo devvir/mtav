@@ -1,7 +1,8 @@
 import { field, nativeSelect } from '@/lib/forms';
+import { fieldErrors, sendJson } from '@/lib/json';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Unit, UnitType } from '@/types/models';
+import type { PlanItem, Point, Unit, UnitType } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { Button, Card, Fieldset, NativeSelect, Stack, TextInput } from '@mantine/core';
 import { useState } from 'react';
@@ -10,20 +11,24 @@ import { Form, FormActions } from './Form';
 /**
  * A unit, of an existing type or of a new one created on the way (in a dialog; `onDone`
  * closes it). "Add and continue with another" keeps the dialog open, with the same type,
- * for loading many units quickly.
+ * for loading many units quickly. Given `place`, the unit goes where it was drawn on the plan,
+ * and the editor gets its shape back (the page stays as it is).
  */
 export function UnitForm({
   unit,
   unitTypes,
   unitType,
+  place,
   onDone,
 }: {
   unit?: Unit;
   unitTypes: UnitType[];
   unitType?: number | null;
+  place?: { polygon: Point[]; floor: number; onPlaced: (item: PlanItem) => void };
   onDone: () => void;
 }) {
   const [creatingType, setCreatingType] = useState(!unit && !unitTypes.length);
+  const [placing, setPlacing] = useState(false);
   const form = useForm({
     identifier: unit?.identifier ?? '',
     unit_type_id: String(unit?.type?.id ?? unitType ?? unitTypes[0]?.id ?? ''),
@@ -40,6 +45,7 @@ export function UnitForm({
       new_unit_type: creatingType ? data.new_unit_type : null,
     }));
     const newTypeName = form.data.new_unit_type.name;
+    if (place) return void placeOnPlan(place);
     form[unit ? 'put' : 'post'](
       unit ? route('manage.units.update', unit.id) : route('manage.units.store'),
       {
@@ -62,6 +68,25 @@ export function UnitForm({
         },
       },
     );
+  };
+
+  const placeOnPlan = async ({ polygon, floor, onPlaced }: NonNullable<typeof place>) => {
+    setPlacing(true);
+    form.clearErrors();
+    try {
+      const response = await sendJson('POST', route('manage.units.store'), {
+        identifier: form.data.identifier,
+        unit_type_id: creatingType ? null : form.data.unit_type_id,
+        new_unit_type: creatingType ? form.data.new_unit_type : null,
+        polygon,
+        floor,
+      });
+      if (response.status === 422) return form.setError(await fieldErrors(response));
+      if (!response.ok) return form.setError('identifier', _('The unit was not added. Try again.'));
+      onPlaced(((await response.json()) as { item: PlanItem }).item);
+    } finally {
+      setPlacing(false);
+    }
   };
 
   const setNewType = (key: 'name' | 'description', value: string) =>
@@ -130,11 +155,14 @@ export function UnitForm({
           </Card>
         )}
       </Fieldset>
-      <FormActions submit={unit ? _('Save') : _('Add the unit')} processing={form.processing}>
+      <FormActions
+        submit={unit ? _('Save') : _('Add the unit')}
+        processing={form.processing || placing}
+      >
         <Button variant="default" onClick={onDone}>
           {_('Cancel')}
         </Button>
-        {!unit ? (
+        {!unit && !place ? (
           <Button
             data-tour="units.another"
             variant="default"
