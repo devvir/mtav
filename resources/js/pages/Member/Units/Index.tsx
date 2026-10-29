@@ -1,38 +1,19 @@
 import { PlanPanel } from '@/components/domain/PlanPanel';
 import { UnitDetails } from '@/components/domain/UnitDetails';
+import { UnitsByType } from '@/components/domain/UnitsByType';
 import { UnitForm } from '@/components/forms/UnitForm';
 import { UnitTypeForm } from '@/components/forms/UnitTypeForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { EmptyState, Panel } from '@/design';
+import { EmptyState } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
-import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
-import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _ } from '@/lib/translations';
 import type { Plan, Unit, UnitType } from '@/types/models';
-import { Deferred, Link, router, usePage } from '@inertiajs/react';
-import {
-  ActionIcon,
-  Button,
-  Card,
-  Group,
-  Modal,
-  SimpleGrid,
-  Skeleton,
-  Stack,
-  Text,
-  Tooltip,
-} from '@mantine/core';
-import {
-  IconBuildingCommunity,
-  IconLayoutGrid,
-  IconPencil,
-  IconPlus,
-  IconStack2,
-  IconTrash,
-} from '@tabler/icons-react';
+import { Deferred, usePage } from '@inertiajs/react';
+import { Button, Group, Modal, Skeleton, Stack } from '@mantine/core';
+import { IconBuildingCommunity, IconPlus, IconStack2 } from '@tabler/icons-react';
 import { useState } from 'react';
 
 interface Props {
@@ -64,18 +45,6 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
   });
   const ownUnit =
     plan?.items.find((item) => item.unit?.family?.id === family?.id)?.unit?.id ?? null;
-
-  const inUse = (type: UnitType) => Boolean(type.units?.length || type.families_count);
-  const removeType = async (type: UnitType) => {
-    if (
-      await confirm({
-        title: _('Remove {name}?', { name: type.name }),
-        confirmLabel: _('Remove'),
-        danger: true,
-      })
-    )
-      router.delete(route('manage.unit_types.destroy', type.id), { preserveScroll: true });
-  };
 
   return (
     <>
@@ -133,6 +102,10 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
           </EmptyState>
         ) : null}
 
+        {unitTypes.length ? (
+          <UnitsByType unitTypes={unitTypes} onEditType={canManage ? setEditingType : undefined} />
+        ) : null}
+
         {/* Admins may draw the plan before any unit exists */}
         {!noUnits || canManage ? (
           <Deferred data="plan" fallback={<Skeleton h={260} radius="lg" />}>
@@ -148,81 +121,6 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
             ) : null}
           </Deferred>
         ) : null}
-
-        <Stack gap="lg" data-tour="unit_types.list">
-          {unitTypes.map((type) => (
-            <Panel
-              key={type.id}
-              title={type.name}
-              icon={IconLayoutGrid}
-              aside={[
-                type.description,
-                [
-                  _n('{count} unit', '{count} units', type.units?.length ?? 0),
-                  _n('{count} family', '{count} families', type.families_count ?? 0),
-                ].join(', '),
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-              actions={
-                canManage ? (
-                  <Group gap={4}>
-                    <ActionIcon
-                      aria-label={_('Edit {name}', { name: type.name })}
-                      onClick={() => setEditingType(type)}
-                    >
-                      <IconPencil size={18} />
-                    </ActionIcon>
-                    <Tooltip
-                      label={_('In use by units or families')}
-                      disabled={!inUse(type)}
-                      withinPortal
-                    >
-                      <ActionIcon
-                        color="red"
-                        aria-label={_('Remove {name}', { name: type.name })}
-                        disabled={inUse(type)}
-                        onClick={() => removeType(type)}
-                      >
-                        <IconTrash size={18} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-                ) : null
-              }
-            >
-              {type.units?.length ? (
-                <SimpleGrid cols={{ base: 2, sm: 3, lg: 5 }}>
-                  {type.units.map((unit) => (
-                    <Card
-                      key={unit.id}
-                      component={Link}
-                      href={route('units.index', { unit: unit.id })}
-                      only={['unit']}
-                      preserveState
-                      preserveScroll
-                      p="sm"
-                      className="ds-interactive"
-                    >
-                      <Text fw={700}>{unit.identifier}</Text>
-                      <Text
-                        size="sm"
-                        className="ds-truncate"
-                        c={unit.family ? 'var(--mtav-positive)' : 'dimmed'}
-                      >
-                        {unit.family?.name ?? _('Unassigned')}
-                      </Text>
-                    </Card>
-                  ))}
-                </SimpleGrid>
-              ) : (
-                <Text c="dimmed" size="sm">
-                  {_('No units of this type yet.')}
-                </Text>
-              )}
-            </Panel>
-          ))}
-        </Stack>
       </Stack>
 
       {canManage ? (

@@ -3,31 +3,51 @@ import { MediaGrid } from '@/components/domain/MediaGrid';
 import { FilterTabs } from '@/components/feedback/FilterTabs';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
+import { ShareFilesForm, type UploadLimits } from '@/components/forms/ShareFilesForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
+import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media, Paginated } from '@/types/models';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Button, Group, Modal, Progress, Text } from '@mantine/core';
 import { IconPhoto, IconPhotoPlus } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface Props {
   media: Paginated<Media>;
   category: 'media' | 'document';
   filters: { q: string | null };
   storage: { used_mb: number; limit_mb: number } | null;
+  /** What may be shared, for those who may (the share dialog, ?share=1) */
+  upload: UploadLimits | null;
   /** A file's details, shown over the page (?file=12) */
   file: Media | null;
 }
 
-export default function MediaIndex({ media, category, filters, storage, file }: Props) {
+/** What a carousel goes through: photos and videos */
+const visual = (item: Media) => item.category === 'image' || item.category === 'video';
+
+export default function MediaIndex({ media, category, filters, storage, upload, file }: Props) {
   const details = useDetailsInAddress('file');
   const canUpload = usePage().props.project?.can.upload;
+  const sharing = useAddressedDialog('share', Boolean(upload));
   useProjectChanges({ media: ['media', 'storage', 'file'] });
+
+  // Moving through photos shows the next one at once, from the list, while the address
+  // follows (until the details shown change: the next one arrived, or others were opened)
+  const [moved, setMoved] = useState<{ from: number; to: Media } | null>(null);
+  const shown = file && moved?.from === file.id ? moved.to : file;
+  const carousel = shown && visual(shown) ? media.data.filter(visual) : [];
+  const at = carousel.findIndex((item) => item.id === shown?.id);
+  const move = (to: Media) => {
+    if (file) setMoved({ from: file.id, to });
+    details.move(to.id);
+  };
 
   const tabs = [
     { value: 'media', label: _('Media') },
@@ -50,10 +70,7 @@ export default function MediaIndex({ media, category, filters, storage, file }: 
           canUpload ? (
             <Button
               data-tour="files.share"
-              component={Link}
-              href={route('media.create', {
-                category: category === 'media' ? undefined : category,
-              })}
+              onClick={sharing.open}
               leftSection={<IconPhotoPlus size={18} />}
             >
               {_('Share files')}
@@ -97,9 +114,24 @@ export default function MediaIndex({ media, category, filters, storage, file }: 
         </div>
       ) : null}
 
-      <Modal opened={Boolean(file)} onClose={details.close} title={file?.description} size="xl">
-        {file ? <MediaDetails media={file} /> : null}
+      <Modal opened={Boolean(file)} onClose={details.close} title={shown?.description} size="xl">
+        {shown ? (
+          <MediaDetails
+            key={shown.id}
+            media={shown}
+            previous={at > 0 ? carousel[at - 1] : null}
+            next={at >= 0 ? carousel[at + 1] : null}
+            position={at >= 0 ? [at + 1, carousel.length] : undefined}
+            onMove={at >= 0 ? move : undefined}
+          />
+        ) : null}
       </Modal>
+
+      {upload ? (
+        <Modal opened={sharing.opened} onClose={sharing.close} title={_('Share files')} size="lg">
+          <ShareFilesForm limits={upload} storage={storage} onDone={sharing.close} />
+        </Modal>
+      ) : null}
     </>
   );
 }

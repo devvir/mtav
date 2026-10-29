@@ -97,7 +97,8 @@ it('offers quick actions, each what the person may do, as a shortcut to its page
         ->assertSeeIn('[role="menu"]', 'Share photos or files')
         ->assertDontSeeIn('[role="menu"]', 'Create an event')
         ->click('[role="menu"] >> text=Share photos or files')
-        ->assertPathIs(pathOf('media.create', $this->project));
+        ->assertPathIs(pathOf('media.index', $this->project))
+        ->assertSeeIn('[role="dialog"]', 'Choose files or drop them here');
 
     $this->as(anAdminOf($this->project));
     visit(route('projects.show', $this->project))

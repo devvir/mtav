@@ -39,6 +39,12 @@ class MediaController extends Controller
             'category' => $category->value,
             'filters'  => ['q' => $request->q],
             'storage'  => $this->storage($project),
+            // What may be shared, for the share dialog (?share=1) of those who may share
+            'upload' => fn () => $request->user()->can('create', [Media::class, $project]) ? [
+                'accept'    => MediaService::MIME_TYPES,
+                'maxFileKb' => MediaService::maxFileKb($project),
+                'maxFiles'  => MediaRequest::MAX_FILES,
+            ] : null,
             // A file's details, shown over the page (?file=12)
             'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))
                 ? MediaResource::make($file->load('owner'))
@@ -50,19 +56,6 @@ class MediaController extends Controller
     public function show(Project $project, Media $media): RedirectResponse
     {
         return to_route('media.index', [...$this->tab($media), 'file' => $media->id]);
-    }
-
-    public function create(Request $request, Project $project): Response
-    {
-        $this->authorize('create', [Media::class, $project]);
-
-        return inertia('Member/Media/Create', [
-            'category'  => $request->query('category'),
-            'accept'    => MediaService::MIME_TYPES,
-            'maxFileKb' => MediaService::maxFileKb($project),
-            'maxFiles'  => MediaRequest::MAX_FILES,
-            'storage'   => $this->storage($project),
-        ]);
     }
 
     public function store(MediaRequest $request, Project $project): RedirectResponse

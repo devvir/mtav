@@ -5,14 +5,57 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media } from '@/types/models';
 import { router } from '@inertiajs/react';
-import { Button, Card, Group, Text } from '@mantine/core';
-import { IconDownload, IconPencil, IconTrash } from '@tabler/icons-react';
-import { useState } from 'react';
+import { ActionIcon, Button, Card, Group, Text } from '@mantine/core';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconDownload,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react';
+import { useEffect, useRef, useState } from 'react';
 
 /** A shared file: seen or played where the browser can, downloaded otherwise; its owner
- * (and admins) edit its description or remove it */
-export function MediaDetails({ media }: { media: Media }) {
+ * (and admins) edit its description or remove it. Given its neighbours, photos and videos
+ * go one to the next: arrows on the stage, the keyboard's arrows, a swipe. */
+export function MediaDetails({
+  media,
+  previous,
+  next,
+  position,
+  onMove,
+}: {
+  media: Media;
+  previous?: Media | null;
+  next?: Media | null;
+  /** Where it is among those moved through: [3, 12] */
+  position?: [number, number];
+  onMove?: (to: Media) => void;
+}) {
   const [editing, setEditing] = useState(false);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+
+  // The keyboard's arrows, unless typing, or a player is being worked
+  useEffect(() => {
+    if (!onMove || editing) return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest('input, textarea, select, video, audio, [contenteditable]')) return;
+      const to = event.key === 'ArrowLeft' ? previous : event.key === 'ArrowRight' ? next : null;
+      if (!to) return;
+      event.preventDefault();
+      onMove(to);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onMove, previous, next, editing]);
+
+  // The next photos come at once: fetched while this one is seen
+  useEffect(() => {
+    [previous, next].forEach((neighbour) => {
+      if (neighbour?.category === 'image') new Image().src = neighbour.url;
+    });
+  }, [previous, next]);
   const remove = async () => {
     if (
       await confirm({
@@ -42,7 +85,48 @@ export function MediaDetails({ media }: { media: Media }) {
 
   return (
     <>
-      <Card p={0} className="media-stage">
+      <Card
+        p={0}
+        className="media-stage"
+        // A sideways swipe (a finger or a pen: a mouse uses the arrows)
+        onPointerDown={(event) => {
+          if (event.pointerType !== 'mouse') swipe.current = { x: event.clientX, y: event.clientY };
+        }}
+        onPointerUp={(event) => {
+          const from = swipe.current;
+          swipe.current = null;
+          if (!from || !onMove) return;
+          const [dx, dy] = [event.clientX - from.x, event.clientY - from.y];
+          if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+          const to = dx < 0 ? next : previous;
+          if (to) onMove(to);
+        }}
+        onPointerCancel={() => (swipe.current = null)}
+      >
+        {onMove && previous ? (
+          <ActionIcon
+            className="media-step"
+            data-side="previous"
+            size="xl"
+            radius="xl"
+            aria-label={_('Previous')}
+            onClick={() => onMove(previous)}
+          >
+            <IconChevronLeft size={24} />
+          </ActionIcon>
+        ) : null}
+        {onMove && next ? (
+          <ActionIcon
+            className="media-step"
+            data-side="next"
+            size="xl"
+            radius="xl"
+            aria-label={_('Next')}
+            onClick={() => onMove(next)}
+          >
+            <IconChevronRight size={24} />
+          </ActionIcon>
+        ) : null}
         {media.category === 'image' ? (
           <img src={media.url} alt={media.alt_text ?? media.description} />
         ) : media.category === 'video' ? (
@@ -67,6 +151,9 @@ export function MediaDetails({ media }: { media: Media }) {
         )}
       </Card>
       <Text className="ds-caption" mt="sm">
+        {position && position[1] > 1
+          ? `${_('{position} of {count}', { position: position[0], count: position[1] })} · `
+          : null}
         {media.owner ? `${_('Shared by {name}', { name: media.owner.name })} · ` : null}
         <DateTime value={media.created_at} />
       </Text>

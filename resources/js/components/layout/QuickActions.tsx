@@ -35,7 +35,7 @@ export function QuickActions() {
       ? [
           {
             label: _('Share photos or files'),
-            href: route('media.create', at),
+            href: route('media.index', { ...at, share: 1 }),
             icon: IconPhotoPlus,
           },
         ]

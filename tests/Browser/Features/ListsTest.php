@@ -105,8 +105,8 @@ it('finds people, and shows units by type', function () {
         ->assertDontSee('Ana García');
 
     visit(route('units.index', $this->project))
-        ->assertSeeIn('.ds-panel:has-text("Loft")', 'L-201')
-        ->assertDontSeeIn('.ds-panel:has-text("Loft")', 'A-101');
+        ->assertSeeIn('.units-by-type-row:has-text("Loft")', 'L-201')
+        ->assertDontSeeIn('.units-by-type-row:has-text("Loft")', 'A-101');
 });
 
 it('shows superadmins the projects awaiting approval apart', function () {

@@ -208,7 +208,11 @@ export default function Dashboard({ overview, lottery, setup, events, media, com
               title={_('Nothing shared yet')}
               action={
                 project.can.upload ? (
-                  <Button component={Link} href={route('media.create')} variant="light">
+                  <Button
+                    component={Link}
+                    href={route('media.index', { share: 1 })}
+                    variant="light"
+                  >
                     {_('Share something')}
                   </Button>
                 ) : null

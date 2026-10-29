@@ -583,5 +583,10 @@
   "Unit type: {type}": "Type de logement : {type}",
   "Unit": "Logement",
   "Add a unit": "Ajouter un logement",
-  "The unit was not added. Try again.": "Le logement n’a pas pu être ajouté. Réessayez."
+  "The unit was not added. Try again.": "Le logement n’a pas pu être ajouté. Réessayez.",
+  "Units by type": "Logements par type",
+  "Fold the list": "Replier la liste",
+  "Unfold the list": "Déplier la liste",
+  "Previous": "Précédent",
+  "{position} of {count}": "{position} sur {count}"
 }

@@ -31,7 +31,7 @@ it('renders the member app', function () {
         route('events.index', $this->project)                   => 'General assembly',
         route('events.show', [$this->project, $this->event])    => 'General assembly',
         route('media.index', $this->project)                    => 'Media',
-        route('media.create', $this->project)                   => 'Share files',
+        route('media.index', [$this->project, 'share' => 1])    => 'Choose files or drop them here',
         route('lottery.show', $this->project)                   => 'A-101',
         route('families.index', $this->project)                 => 'García Pérez',
         route('families.show', [$this->project, $this->family]) => 'Ana',

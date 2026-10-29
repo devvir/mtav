@@ -583,5 +583,10 @@
   "Unit type: {type}": "Tipo de vivienda: {type}",
   "Unit": "Vivienda",
   "Add a unit": "Agregar una vivienda",
-  "The unit was not added. Try again.": "No se pudo agregar la vivienda. Prueba otra vez."
+  "The unit was not added. Try again.": "No se pudo agregar la vivienda. Prueba otra vez.",
+  "Units by type": "Viviendas por tipo",
+  "Fold the list": "Plegar la lista",
+  "Unfold the list": "Desplegar la lista",
+  "Previous": "Anterior",
+  "{position} of {count}": "{position} de {count}"
 }

@@ -583,5 +583,10 @@
   "Unit type: {type}": "Tipo de unidade: {type}",
   "Unit": "Unidade",
   "Add a unit": "Adicionar uma unidade",
-  "The unit was not added. Try again.": "Não foi possível adicionar a unidade. Tente de novo."
+  "The unit was not added. Try again.": "Não foi possível adicionar a unidade. Tente de novo.",
+  "Units by type": "Unidades por tipo",
+  "Fold the list": "Recolher a lista",
+  "Unfold the list": "Expandir a lista",
+  "Previous": "Anterior",
+  "{position} of {count}": "{position} de {count}"
 }
