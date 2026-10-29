@@ -52,3 +52,12 @@ it('says on the server everything English says, in every language', function () 
         }
     }
 });
+
+it('shows in every guide only pictures it has', function () {
+    foreach (glob(resource_path('views/guides/*/guide.*.html')) as $guide) {
+        preg_match_all('/<img src="([^"]+)"/', file_get_contents($guide), $found);
+        foreach ($found[1] as $src) {
+            expect(public_path(ltrim($src, '/')))->toBeFile(basename(dirname($guide)) . '/' . basename($guide));
+        }
+    }
+});

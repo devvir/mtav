@@ -7,7 +7,7 @@ export default function Guide({ content }: { content: string; userRole: string }
   return (
     <>
       <PageHeader title={_('Guide')} />
-      <Card p="xl" maw={860}>
+      <Card p="xl" maw={860} className="guide">
         <Typography>
           <div dangerouslySetInnerHTML={{ __html: content }} />
         </Typography>
