@@ -34,6 +34,9 @@ class InvitationController extends Controller
     {
         $family = $request->user()->familyIn($project);
 
+        // From the member app, always into one's own family (an admin with none invites from
+        // the admin area, choosing the family): never someone with no family nor role
+        abort_unless($family, 403);
         $this->authorize('invite', [$project, $family]);
 
         $person = $request->validate([

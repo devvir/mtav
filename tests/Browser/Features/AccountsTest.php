@@ -224,7 +224,7 @@ it('speaks every language it offers, guides included', function () {
     $project = aProject();
     $member = aMemberOf(aFamily($project, aUnitType($project)));
 
-    foreach (['fr' => ['Préférences', 'Guide des participants'], 'pt_BR' => ['Preferências', 'Guia das pessoas do projeto'], 'it' => ['Preferenze', 'Guida per le persone del progetto']] as $locale => [$preferences, $guide]) {
+    foreach (['fr' => ['Préférences', 'Guide des coopérateurs'], 'pt_BR' => ['Preferências', 'Guia dos cooperados'], 'it' => ['Preferenze', 'Guida per i soci']] as $locale => [$preferences, $guide]) {
         $member->update(['locale' => $locale]);
         $this->as($member->fresh());
 

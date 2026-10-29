@@ -59,8 +59,12 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->click('Add the first unit')
         ->fill('identifier', 'U-1')
         ->click('Add and continue with another')
+        ->assertSee('The unit was added.')
+        ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'U-2')
         ->click('Add and continue with another')
+        ->assertSeeIn('.ds-panel', 'U-2')
+        ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'U-3')
         ->click(inDialog('Add the unit'))
         ->assertSeeIn('.ds-panel', 'U-3');

@@ -31,6 +31,8 @@ class LotteryController extends Controller
         $user = $request->user();
         $family = $user->familyIn($project);
         $activeRun = $project->activeLotteryRun;
+        // Every run's record, for everyone (invalidations are public) and for admins' tools alike
+        $runs = LotteryRunResource::collection($project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get());
 
         return inertia('Member/Lottery', [
             'lottery' => EventResource::make($project->lottery),
@@ -39,9 +41,7 @@ class LotteryController extends Controller
             'pace' => $activeRun?->status === LotteryRunStatus::RUNNING
                 ? ['started_at' => $activeRun->started_at, 'reveal_at' => $activeRun->reveal_at]
                 : null,
-            'runs' => LotteryRunResource::collection(
-                $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
-            ),
+            'runs' => $runs,
             /** Families see only their own ranking */
             'family' => $family ? [
                 'id'           => $family->id,
@@ -62,9 +62,7 @@ class LotteryController extends Controller
             'admin' => $user->can('update', $project) ? [
                 'readiness' => $project->unitTypes()->withCount('units', 'families')->alphabetically()->get()
                     ->map(fn ($type) => $type->only('id', 'name', 'units_count', 'families_count')),
-                'runs' => LotteryRunResource::collection(
-                    $project->lotteryRuns()->with('starter', 'invalidator')->latest('id')->get()
-                ),
+                'runs'    => $runs,
                 'confirm' => $request->session()->get('confirm'),
             ] : null,
         ]);

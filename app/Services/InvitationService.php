@@ -17,7 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * People join a project by invitation: an emailed link, valid for a few days, that
- * creates their account (or adds the project to an existing one).
+ * creates their account (or adds the project to an existing one). Someone who already has
+ * an account also finds it in the app, under its bell, leading to where they join.
  */
 class InvitationService
 {
@@ -56,6 +57,20 @@ class InvitationService
         });
 
         Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
+
+        if ($invitee = User::firstWhere('email', $email)) {
+            // In their own language: it is theirs alone
+            $locale = $invitee->locale ?? config('app.locale');
+            $this->notifications->send(
+                NotificationTarget::PRIVATE,
+                NotificationType::INVITATION_RECEIVED,
+                title: __('notifications.invitation_received_title', [], $locale),
+                message: __('notifications.invitation_received_message', ['name' => $inviter->name, 'project' => $project->name], $locale),
+                url: route('projects.index'),
+                trigger: $inviter,
+                targetId: $invitee->id,
+            );
+        }
 
         return $invitation;
     }

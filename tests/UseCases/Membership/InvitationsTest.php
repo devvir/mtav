@@ -226,3 +226,26 @@ describe('An unapproved project', function () {
         expect($project->invitations()->count())->toBe(2);
     });
 });
+
+it('tells someone who already has an account, in the app and in their language, where to join', function () {
+    $existing = aUser(['email' => 'new.person@example.com', 'locale' => 'es_UY']);
+
+    invite($this, $this->admin, ['is_admin' => true, 'family_id' => null])->assertSessionHasNoErrors();
+
+    $notice = App\Models\Notification::for($existing)->sole()->data;
+    expect($notice['title'])->toBe('Te invitaron a un proyecto')
+        ->and($notice['message'])->toContain($this->project->name)
+        ->and($notice['url'])->toBe(route('projects.index', absolute: false));
+});
+
+it('tells no one in the app when the person has no account yet (the email is theirs)', function () {
+    invite($this, $this->admin, ['family_id' => $this->family->id])->assertSessionHasNoErrors();
+
+    expect(App\Models\Notification::where('type', 'invitation_received')->count())->toBe(0);
+});
+
+it('never invites from the member app someone into no family', function () {
+    $this->as($this->admin, $this->project)->post(route('invitations.store'), ['email' => 'new.person@example.com']);
+
+    expect(Invitation::count())->toBe(0);
+});

@@ -17,6 +17,9 @@ return [
     'member_joined_message'        => ':name a rejoint le projet.',
     'member_joined_family_message' => ':name a rejoint la famille :family.',
 
+    'invitation_received_title'   => 'Vous êtes invité à un projet',
+    'invitation_received_message' => ':name vous invite à rejoindre :project.',
+
     'lottery_completed_title'   => 'Le tirage est fait',
     'lottery_completed_message' => 'Chaque famille a son logement. Voir les résultats.',
 

@@ -17,6 +17,9 @@ return [
     'member_joined_message'        => ':name joined the project.',
     'member_joined_family_message' => ':name joined the :family family.',
 
+    'invitation_received_title'   => 'You are invited to a project',
+    'invitation_received_message' => ':name invites you to join :project.',
+
     'lottery_completed_title'   => 'The lottery is done',
     'lottery_completed_message' => 'Every family has its unit. See the results.',
 

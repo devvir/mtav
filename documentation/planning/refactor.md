@@ -169,7 +169,9 @@ decision taken on the way is listed below for review.
   membership explicitly — no global project scopes, no call-stack inspection.
 - **Invitations are records** (`invitations`: project, family?, admin flag, email,
   hashed token, inviter, expiry, acceptance). Accepting one creates the account or, for
-  an existing account, adds the membership. The token is no longer the password.
+  an existing account, adds the membership. The token is no longer the password. An
+  existing account also finds the invitation under its bell, in its own language,
+  leading to where it joins.
 - **Sign-up** with email verification. A user with no projects lands on a "your
   projects" page: pending invitations, and creating a project.
 - **Lottery runs.** Each execution is a `lottery_runs` record (running, completed,
