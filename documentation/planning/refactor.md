@@ -232,7 +232,8 @@ decision taken on the way is listed below for review.
    fits, with "Show me how", which starts a guided tour of that spot.
 7. **Polish**: containers, documentation rewritten against the code, E2E journeys
    rewritten.
-8. **Parity with the pre-refactor app** (`452ca64~1`, at stg.mtav.uy with the same demo
+8. **Parity with the pre-refactor app** (behaviour and rules compared in
+   [behaviour-changes.md](behaviour-changes.md); `452ca64~1`, at stg.mtav.uy with the same demo
    logins): what it had that the new app lacks, each to keep or drop by decision. Seen
    so far (home pages as member and admin, menus):
    - **Home**: counts of units, families, members, admins, media, documents and events;
