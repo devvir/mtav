@@ -10,7 +10,7 @@
 return [
     'unapproved' => [
         /** Media */
-        'media_storage_mb' => (int) env('LIMIT_MEDIA_STORAGE_MB', 1024),
+        'media_storage_mb' => (int) env('LIMIT_MEDIA_STORAGE_MB', 500),
         'media_file_mb'    => (int) env('LIMIT_MEDIA_FILE_MB', 25),
 
         /** People */

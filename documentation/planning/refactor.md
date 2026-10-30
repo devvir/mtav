@@ -31,7 +31,7 @@ decision taken on the way is listed below for review.
   Projects created by a superadmin start approved. Every limit is configurable; nothing
   is removed, only bounded. The limits keep abuse in check, never push anyone to ask: by
   default 200 people, 50 families and 50 units, 150 invitations a day, files of 25 MB
-  and 1 GB in all (asking for unlimited is free and easy) (`config/limits.php`).
+  and 500 MB in all (asking for unlimited is free and easy) (`config/limits.php`).
   - **As people read it**: "approved" and "superadmin" stay internal (the console). A
     project is *Limited* ("Limitado") or *Unlimited* ("Ilimitado"), a fact either way;
     whoever runs the platform is "the {app} team" ("el equipo de MTAV"), named after the
