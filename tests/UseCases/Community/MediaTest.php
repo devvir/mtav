@@ -195,3 +195,19 @@ it('refuses an image of more pixels than can be opened, small as its file is', f
 
     expect(Media::count())->toBe(0);
 });
+
+it('gives each stored file its own address, never one a cache could answer with another file of that number', function () {
+    $media = Media::factory()->create(['project_id' => $this->project->id, 'thumbnail' => 'projects/0/a.thumb.jpg']);
+    $before = (new App\Http\Resources\MediaResource($media))->resolve();
+
+    // Data started over: the same number, another file
+    $media->update(['path' => 'projects/0/another.jpg', 'thumbnail' => 'projects/0/another.thumb.jpg']);
+    $after = (new App\Http\Resources\MediaResource($media->fresh()))->resolve();
+
+    expect($after['url'])->not->toBe($before['url'])
+        ->and($after['thumbnail'])->not->toBe($before['thumbnail']);
+
+    // Either address still serves the file
+    Storage::disk(Media::DISK)->put('projects/0/another.jpg', 'jpeg');
+    $this->as($this->member, $this->project)->get($after['url'])->assertOk();
+});

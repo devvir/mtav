@@ -58,7 +58,9 @@ class DemoMedia
 
         foreach ($files as $index => [$name, $make, $description]) {
             $path = "{$this->dir}/{$name}";
-            if ($make($path) === false || ! is_file($path)) {
+            // A file that cannot be made here (no encoder, a slow machine) is left out, never
+            // the whole demo
+            if (! rescue(fn () => $make($path) !== false, false, report: false) || ! is_file($path)) {
                 continue;
             }
             $file = new UploadedFile($path, $name, mime_content_type($path) ?: null, null, true);
@@ -94,11 +96,12 @@ class DemoMedia
 
     private function video(string $path): bool
     {
-        return Process::run([
+        // Small and quick to encode: a server's CPU makes it in seconds
+        return Process::timeout(180)->run([
             'ffmpeg', '-v', 'error', '-y',
-            '-f', 'lavfi', '-i', 'gradients=s=960x540:d=6:speed=0.03:rate=24',
+            '-f', 'lavfi', '-i', 'gradients=s=640x360:d=6:speed=0.03:rate=24',
             '-f', 'lavfi', '-i', 'sine=frequency=330:duration=6',
-            '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', $path,
+            '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', $path,
         ])->successful();
     }
 

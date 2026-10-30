@@ -13,7 +13,9 @@ class MediaResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $params = ['project' => $this->project_id, 'media' => $this->id];
+        // Versioned by the stored file: its address never serves, from a cache, another file
+        // that once had its number (data started over)
+        $params = ['project' => $this->project_id, 'media' => $this->id, 'v' => substr(md5($this->path), 0, 10)];
 
         return [
             'id'          => $this->id,

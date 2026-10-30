@@ -137,7 +137,7 @@ it('stops every tour from any tour, until Preferences turns them back on', funct
     $page->navigate(route('events.index', $project))->wait(2)->assertDontSee('Step 1 of');
 
     $page->navigate(route('profile.edit', ['section' => 'preferences']))
-        ->click('Guided tours')
+        ->click('label:has-text("Guided tours")')
         ->navigate(route('lottery.show', $project))
         ->assertSee('Step 1 of');
 });
