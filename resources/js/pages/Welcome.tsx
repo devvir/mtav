@@ -173,7 +173,7 @@ export default function Welcome({ dialog, google, locales }: Props) {
               {_('Invited by your cooperative? Open the link in your email.')}
             </Text>
           </div>
-          <HeroPhotos photos={['mesa1', 'vicman']} captions={captions} />
+          <HeroPhotos photos={['vicman', 'mesa1']} captions={captions} />
         </section>
 
         <section className="welcome-section">

@@ -10,16 +10,16 @@
 return [
     'unapproved' => [
         /** Media */
-        'media_storage_mb' => (int) env('LIMIT_MEDIA_STORAGE_MB', 2048),
+        'media_storage_mb' => (int) env('LIMIT_MEDIA_STORAGE_MB', 1024),
         'media_file_mb'    => (int) env('LIMIT_MEDIA_FILE_MB', 25),
 
         /** People */
-        'members'             => (int) env('LIMIT_MEMBERS', 500),
+        'members'             => (int) env('LIMIT_MEMBERS', 200),
         'invitations_per_day' => (int) env('LIMIT_INVITATIONS_PER_DAY', 150),
 
         /** Structure */
-        'units'    => (int) env('LIMIT_UNITS', 300),
-        'families' => (int) env('LIMIT_FAMILIES', 300),
+        'units'    => (int) env('LIMIT_UNITS', 50),
+        'families' => (int) env('LIMIT_FAMILIES', 50),
     ],
 
     /**

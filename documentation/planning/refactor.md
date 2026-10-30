@@ -30,8 +30,8 @@ decision taken on the way is listed below for review.
   statement of trust in the project's managers, which they request — lifts the limits.
   Projects created by a superadmin start approved. Every limit is configurable; nothing
   is removed, only bounded. The limits keep abuse in check, never push anyone to ask: by
-  default 500 people, 300 families and 300 units, 150 invitations a day, files of 25 MB
-  and 2 GB in all (`config/limits.php`).
+  default 200 people, 50 families and 50 units, 150 invitations a day, files of 25 MB
+  and 1 GB in all (asking for unlimited is free and easy) (`config/limits.php`).
   - **As people read it**: "approved" and "superadmin" stay internal (the console). A
     project is *Limited* ("Limitado") or *Unlimited* ("Ilimitado"), a fact either way;
     whoever runs the platform is "the {app} team" ("el equipo de MTAV"), named after the
@@ -344,7 +344,7 @@ decision taken on the way is listed below for review.
     building by mutual aid, from the cooperatives themselves (the first version's), and
     finished cooperatives from Wikimedia Commons (CC BY-SA 4.0, credited on the page).
     More of the cooperatives' own are welcome. Its first picture moves on by itself
-    (Mesa 1, VICMAN, the first housing cooperative in Uruguay; still for whoever asks for
+    (VICMAN, the first housing cooperative in Uruguay, then Mesa 1; still for whoever asks for
     less motion), the others stay still; it leads to the member manual.
 16. **Illustrated manuals**, one per role (member, admin, superadmin), in every language:
     every place and action shown in a picture of the real app, cut to what matters and
@@ -356,5 +356,21 @@ decision taken on the way is listed below for review.
 17. **Branches and their deploys, with the author**: `main`, `staging`, `dev` (work
     happens on `dev`); the first pushes to `dev` and `staging` deployed, then `main`; the
     per-environment deploy keys set up on the host (see *Delivery from scratch*).
-18. **Later, low priority**: notifications stored as structured data, translated for each
+18. **The author's queue of 2026-10-30**:
+    - The demo seed a plan worth showing: a realistic, non-rectangular site, much green,
+      houses set out as they would be, buildings of one, two and three floors (some units
+      on two floors, some buildings a unit per floor), playground, parking, inner streets.
+    - Units drawn as a very light, much simplified house plan (rooms, kitchen, bathroom),
+      recognisable as one, never fighting the name.
+    - Every page a (?) by its title: the page's core in a short paragraph and its tour.
+      For new people tours run as they arrive at each page, easily dismissed; dismissing
+      one offers once to show no more (the (?) still has them). The tour blurs the rest of
+      the page a little; a subtler outline.
+    - Agreed ideas: an app manifest (installable on phones, needed for push on iPhone);
+      production database backups pulled to the author's machine by a cron job there (its
+      address changes, so the host cannot push); people deleting their own account;
+      CSV export of families and units for admins; free error monitoring; every relevant
+      event recorded (changes, signing in and out…) for superadmins to review, to make
+      everything auditable, never to watch people.
+19. **Later, low priority**: notifications stored as structured data, translated for each
     reader.

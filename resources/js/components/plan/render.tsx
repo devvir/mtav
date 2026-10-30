@@ -405,24 +405,50 @@ export function PlanGround({
 }
 
 /**
- * A hint of a unit's rooms: a wall across it and one splitting its far side, faint, never
- * fighting its name; along the unit's own sides, so it turns with it (four-sided units)
+ * A unit's house plan, much simplified and faint (living room, kitchen and bathroom, two
+ * bedrooms with their beds), never fighting its name; laid along the unit's own sides, so
+ * it turns with it (four-sided units). Its fixtures only where there is room for them.
  */
 function Rooms({ polygon }: { polygon: Point[] }) {
   if (polygon.length !== 4) return null;
-  const [a, b, c, d] = polygon as [Point, Point, Point, Point];
-  const along = (from: Point, to: Point, t: number): Point => [
-    from[0] + (to[0] - from[0]) * t,
-    from[1] + (to[1] - from[1]) * t,
-  ];
-  const [top, bottom] = [along(a, b, 0.56), along(d, c, 0.56)];
-  const [side, middle] = [along(b, c, 0.5), along(top, bottom, 0.5)];
+  const [a, b, , d] = polygon as [Point, Point, Point, Point];
+  // A point of the unit, as a share of its width (u) and depth (v)
+  const at = (u: number, v: number): string =>
+    `${a[0] + (b[0] - a[0]) * u + (d[0] - a[0]) * v} ${a[1] + (b[1] - a[1]) * u + (d[1] - a[1]) * v}`;
+  const line = (u1: number, v1: number, u2: number, v2: number) => `M${at(u1, v1)} L${at(u2, v2)}`;
+  const box = (u1: number, v1: number, u2: number, v2: number) =>
+    `M${at(u1, v1)} L${at(u2, v1)} L${at(u2, v2)} L${at(u1, v2)} Z`;
+  const width = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const depth = Math.hypot(d[0] - a[0], d[1] - a[1]);
+  const roomy = Math.min(width, depth) >= 44;
+
   return (
-    <path
-      className="plan-rooms"
-      d={`M${top.join(' ')} L${bottom.join(' ')} M${middle.join(' ')} L${side.join(' ')}`}
-      aria-hidden
-    />
+    <g aria-hidden>
+      <path
+        className="plan-rooms"
+        d={[
+          // Living room and the bedrooms; kitchen and bathroom below the living room
+          line(0.56, 0, 0.56, 0.42),
+          line(0.56, 0.58, 0.56, 1),
+          line(0.56, 0.5, 1, 0.5),
+          line(0, 0.64, 0.2, 0.64),
+          line(0.32, 0.64, 0.56, 0.64),
+          line(0.3, 0.64, 0.3, 1),
+        ].join(' ')}
+      />
+      {roomy ? (
+        <path
+          className="plan-fixtures"
+          d={[
+            // Beds, a kitchen counter, a shower
+            box(0.66, 0.08, 0.86, 0.36),
+            box(0.66, 0.6, 0.86, 0.88),
+            box(0.04, 0.9, 0.26, 0.96),
+            box(0.4, 0.78, 0.52, 0.94),
+          ].join(' ')}
+        />
+      ) : null}
+    </g>
   );
 }
 

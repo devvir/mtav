@@ -57,7 +57,7 @@ it('shows every photo it names, families building among them', function () {
 
 it('shows its first pictures one after another, VICMAN among them', function () {
     visit(route('home'))
-        ->click('.welcome-hero-dots button >> nth=1')
+        ->click('.welcome-hero-dots button >> nth=0')
         ->assertSeeIn('.welcome-hero-slides figcaption', 'VICMAN, the first housing cooperative in Uruguay')
         ->assertPresent('.welcome-hero-frame img[data-shown][src*="vicman"]');
 });

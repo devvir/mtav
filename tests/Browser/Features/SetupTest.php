@@ -179,7 +179,7 @@ it('shows a project\'s admins its room on asking, never a warning on every page'
         ->assertDontSee('What the project has room for:')
         ->click('button[aria-expanded]:has-text("Limited")')
         ->assertSee('What the project has room for:')
-        ->assertSee('/ 300');
+        ->assertSee('/ 50');
 });
 
 it('marks an unlimited project as such, with no room to count', function () {

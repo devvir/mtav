@@ -1252,7 +1252,8 @@ html[data-plan-full] {
 }
 .plan-beneath .plan-label,
 .plan-beneath .plan-house,
-.plan-beneath .plan-rooms {
+.plan-beneath .plan-rooms,
+.plan-beneath .plan-fixtures {
   display: none;
 }
 /* A unit's rooms, a hint only; a common space's hall, under its name */
@@ -1265,6 +1266,13 @@ html[data-plan-full] {
 }
 .plan-commons {
   opacity: 0.85;
+}
+.plan-fixtures {
+  fill: none;
+  stroke: #1c1917;
+  stroke-opacity: 0.09;
+  stroke-width: 0.7;
+  pointer-events: none;
 }
 /* The floor above, in the editor: dashed outlines over the drawing, never in the way */
 .plan-above polygon {
@@ -1373,6 +1381,7 @@ html[data-plan-full] {
 [data-high-contrast] .plan-canvas .plan-trees,
 [data-high-contrast] .plan-canvas .plan-commons,
 [data-high-contrast] .plan-canvas .plan-rooms,
+[data-high-contrast] .plan-canvas .plan-fixtures,
 [data-high-contrast] .plan-canvas .plan-play-shade {
   display: none;
 }
