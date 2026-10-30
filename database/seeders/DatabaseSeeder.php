@@ -85,28 +85,42 @@ class DatabaseSeeder extends Seeder
      */
     private function site(Project $project): void
     {
+        // A real site: not a rectangle, the avenue along its south side, an inner street
         $plan = $project->plan;
-        $plan->update(['polygon' => [[30, 30], [770, 42], [762, 562], [38, 570]]]);
+        $plan->update([
+            'width'   => 1000,
+            'height'  => 720,
+            'polygon' => [[40, 70], [610, 30], [960, 120], [945, 600], [520, 650], [55, 600]],
+        ]);
         $rect = fn ($x, $y, $w, $h) => [[$x, $y], [$x + $w, $y], [$x + $w, $y + $h], [$x, $y + $h]];
 
-        // Block A (2 bedrooms) to the west, block B (3 bedrooms) to the east
+        // Block A (2 bedrooms): a building of three floors, two units on each; block B (3
+        // bedrooms): two floors, one unit on each
         foreach ($plan->items()->with('unit')->where('type', 'unit')->get() as $item) {
             [$block, $number] = explode('-', $item->unit->identifier);
             $n = (int) $number - 101;
-            $item->update(['polygon' => $block === 'A'
-                ? $rect(70 + ($n % 3) * 78, 80 + intdiv($n, 3) * 74, 70, 64)
-                : $rect(560 + ($n % 2) * 92, 80 + intdiv($n, 2) * 84, 84, 74)]);
+            [$polygon, $floor] = $block === 'A'
+                ? [$rect(110 + ($n % 2) * 96, 130, 92, 84), intdiv($n, 2)]
+                : [$rect(660 + ($n % 2) * 104, 150, 100, 92), intdiv($n, 2)];
+            $item->update(['polygon' => $polygon, 'floor' => $floor]);
         }
 
         foreach ([
-            ['green', 'Plaza', [[310, 92], [505, 82], [522, 248], [318, 268]]],
-            ['common', 'Salón comunal', $rect(330, 318, 150, 98)],
-            ['parking', 'Estacionamiento', $rect(70, 318, 196, 120)],
-            ['playground', 'Juegos', $rect(546, 300, 136, 84)],
-            ['green', null, $rect(546, 400, 190, 70)],
-            // Pointing in from the street
-            ['entrance', 'Entrada', [[400, 446], [430, 492], [370, 492]]],
-            ['street', 'Av. Italia', $rect(40, 494, 720, 56)],
+            ['green', 'Plaza', [[360, 95], [560, 80], [585, 270], [372, 292]]],
+            ['green', null, [[90, 410], [440, 395], [455, 575], [100, 565]]],
+            ['green', null, [[790, 400], [930, 395], [925, 560], [800, 575]]],
+            // Green on both sides of the street's north, and around the blocks
+            ['green', null, [[70, 240], [340, 232], [345, 318], [72, 322]]],
+            ['green', null, [[620, 262], [925, 252], [928, 318], [624, 322]]],
+            ['green', null, [[70, 100], [100, 98], [104, 230], [74, 232]]],
+            ['playground', 'Juegos', $rect(250, 440, 140, 92)],
+            ['common', 'Salón comunal', $rect(810, 425, 100, 110)],
+            ['parking', 'Estacionamiento', $rect(560, 405, 200, 120)],
+            ['street', null, [[60, 330], [940, 330], [940, 372], [60, 372]]],
+            ['street', null, $rect(478, 372, 44, 270)],
+            // Pointing in from the avenue
+            ['entrance', 'Entrada', [[500, 598], [530, 642], [470, 642]]],
+            ['street', 'Av. Italia', [[20, 650], [980, 600], [985, 652], [25, 702]]],
         ] as [$type, $name, $polygon]) {
             $plan->items()->create(['type' => $type, 'name' => $name, 'floor' => 0, 'polygon' => $polygon]);
         }
