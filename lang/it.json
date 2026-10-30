@@ -896,5 +896,9 @@
   "{count} invitation pending": "{count} invito in attesa",
   "{count} invitations pending": "{count} inviti in attesa",
   "Not set": "Non fissata",
-  "They stay as they were once the lottery ran.": "Restano invariate una volta svolto il sorteggio."
+  "They stay as they were once the lottery ran.": "Restano invariate una volta svolto il sorteggio.",
+  "Text size": "Dimensione del testo",
+  "Small": "Piccola",
+  "Medium": "Media",
+  "Large": "Grande"
 }

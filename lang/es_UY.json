@@ -896,5 +896,9 @@
   "{count} invitation pending": "{count} invitación sin responder",
   "{count} invitations pending": "{count} invitaciones sin responder",
   "Not set": "Sin fijar",
-  "They stay as they were once the lottery ran.": "Quedan fijas una vez realizado el sorteo."
+  "They stay as they were once the lottery ran.": "Quedan fijas una vez realizado el sorteo.",
+  "Text size": "Tamaño del texto",
+  "Small": "Chico",
+  "Medium": "Mediano",
+  "Large": "Grande"
 }

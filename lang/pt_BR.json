@@ -896,5 +896,9 @@
   "{count} invitation pending": "{count} convite sem resposta",
   "{count} invitations pending": "{count} convites sem resposta",
   "Not set": "Sem data",
-  "They stay as they were once the lottery ran.": "Ficam como estavam depois de realizado o sorteio."
+  "They stay as they were once the lottery ran.": "Ficam como estavam depois de realizado o sorteio.",
+  "Text size": "Tamanho do texto",
+  "Small": "Pequeno",
+  "Medium": "Médio",
+  "Large": "Grande"
 }

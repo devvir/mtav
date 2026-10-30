@@ -105,6 +105,10 @@ is notified to the project, a reply to whoever wrote in the topic before.
 - **Offline**: the service worker (`public/sw.js`) keeps each page as last loaded and
   answers with it when the server cannot be reached; the page says so and holds every
   change (`lib/offline.ts`). The app installs on devices (`/manifest.webmanifest`).
+- **Sizes**: everything is sized from the root's font size (`rem`, Mantine's too), which
+  the person's text size sets (`data-text-size` on `<html>`, from the `text` cookie,
+  before the first paint): Medium, the default, is 120% of the browser's, Small 100%,
+  Large 140%. Only the plan's drawing keeps its own units.
 - **Help**: a (?) by every page's title (`InfoTip`) says what the page is for and offers
   "Tell me more", a tour of it (`tours/index.ts`, `lib/tour.ts`). For new people, each
   page's tour plays once by itself; any tour stops them all ("No more tours"), and

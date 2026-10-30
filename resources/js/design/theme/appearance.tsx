@@ -8,8 +8,8 @@ import { paletteOf } from './palettes';
 import { themeFor, tokensFor } from './theme';
 
 /**
- * A person's appearance: a palette, a colour scheme (light, dark, or the device's) and
- * whether contrast is high. Kept in cookies, so the page is drawn right before any script
+ * A person's appearance: a palette, a colour scheme (light, dark, or the device's),
+ * whether contrast is high, and the text size (everything is sized from it). Kept in cookies, so the page is drawn right before any script
  * runs (resources/views/app.blade.php reads them too). Changing one redraws at once.
  */
 const YEAR = 365 * 24 * 60 * 60;
@@ -30,11 +30,16 @@ const schemes: MantineColorSchemeManager = {
   clear: () => writeCookie('scheme', 'auto'),
 };
 
+/** The text size: medium (the default) is a fifth larger than the browser's own */
+export type TextSize = 'small' | 'medium' | 'large';
+
 interface AppearanceContext {
   palette: string;
   setPalette: (id: string) => void;
   highContrast: boolean;
   setHighContrast: (on: boolean) => void;
+  textSize: TextSize;
+  setTextSize: (size: TextSize) => void;
 }
 
 const Context = createContext<AppearanceContext>({
@@ -42,7 +47,12 @@ const Context = createContext<AppearanceContext>({
   setPalette: () => undefined,
   highContrast: false,
   setHighContrast: () => undefined,
+  textSize: 'medium',
+  setTextSize: () => undefined,
 });
+
+const textSizeOf = (value: string | null): TextSize =>
+  value === 'small' || value === 'large' ? value : 'medium';
 
 /** The palette and contrast, and how to change them (the scheme: Mantine's useMantineColorScheme) */
 export const useAppearance = () => useContext(Context);
@@ -57,6 +67,7 @@ export function Appearance({
 }) {
   const [palette, setPaletteState] = useState(() => paletteOf(readCookie('palette')).id);
   const [highContrast, setHighContrastState] = useState(() => readCookie('contrast') === 'high');
+  const [textSize, setTextSizeState] = useState(() => textSizeOf(readCookie('text')));
 
   const chosen = paletteOf(palette);
   const theme = useMemo(() => themeFor(chosen, { close: closeLabel }), [chosen, closeLabel]);
@@ -73,8 +84,17 @@ export function Appearance({
     document.documentElement.toggleAttribute('data-high-contrast', on);
   };
 
+  const setTextSize = (size: TextSize) => {
+    setTextSizeState(size);
+    writeCookie('text', size);
+    if (size === 'medium') document.documentElement.removeAttribute('data-text-size');
+    else document.documentElement.setAttribute('data-text-size', size);
+  };
+
   return (
-    <Context.Provider value={{ palette, setPalette, highContrast, setHighContrast }}>
+    <Context.Provider
+      value={{ palette, setPalette, highContrast, setHighContrast, textSize, setTextSize }}
+    >
       <MantineProvider
         theme={theme}
         cssVariablesResolver={tokens}

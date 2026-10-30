@@ -55,3 +55,20 @@ it('has accessible components in every palette, scheme and contrast', function (
         assertAccessible($page->click(".lab-nav button:has-text(\"{$section}\")"), seconds: 30);
     }
 })->with(['terracotta', 'indigo', 'forest', 'ocean'])->with(['light', 'dark'])->with(['standard', 'high']);
+
+it('sizes everything from the text size each person picks, a fifth larger than the browser by default', function () {
+    $this->as(aUser());
+    $root = fn ($page) => $page->script('() => getComputedStyle(document.documentElement).fontSize');
+
+    $page = visit(route('profile.edit', ['section' => 'preferences']));
+    expect($root($page))->toBe('19.2px');
+
+    $page->click('Large');
+    expect($root($page))->toBe('22.4px');
+
+    // Kept on the device, there from the first paint
+    expect($root($page->refresh()))->toBe('22.4px');
+
+    $page->click('Small');
+    expect($root($page))->toBe('16px');
+});

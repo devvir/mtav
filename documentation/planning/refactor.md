@@ -131,6 +131,10 @@ decision taken on the way is listed below for review.
   its units, its lottery run, being set up), with sites drawn floor by floor, families
   of Uruguayan names, events people answered, forum topics, pending invitations, and
   files of every kind, so nothing needs creating first.
+- **Text size**: each person picks Small, Medium or Large (Preferences, kept on the
+  device, there from the first paint); everything is sized from it (the root's font size,
+  sizes in rem). Medium, the default, is a fifth larger than the browser's own: many
+  people of a cooperative read the app without glasses or a large screen.
 - **Media**: the gallery holds photos and videos; recordings sit with the documents, in
   Files, as the project's records (minutes read aloud, a committee's message), each
   playing in its row (pause, position, speed) without opening it.

@@ -1,4 +1,4 @@
-export { Appearance, useAppearance } from './theme/appearance';
+export { Appearance, useAppearance, type TextSize } from './theme/appearance';
 export { contrast, mix } from './theme/contrast';
 export { PALETTES, paletteOf, type Palette } from './theme/palettes';
 export { themeFor, tokensFor } from './theme/theme';
