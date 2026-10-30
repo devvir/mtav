@@ -233,10 +233,10 @@ return [
     'unit_type_in_use'          => 'Des familles ou des logements utilisent encore ce type de logement.',
 
     /** Limits of projects awaiting approval */
-    'limit_families'    => 'Les projets en attente d’approbation peuvent avoir jusqu’à :max familles.',
-    'limit_units'       => 'Les projets en attente d’approbation peuvent avoir jusqu’à :max logements.',
-    'limit_members'     => 'Les projets en attente d’approbation peuvent avoir jusqu’à :max personnes.',
-    'limit_invitations' => 'Les projets en attente d’approbation peuvent envoyer jusqu’à :max invitations par jour.',
-    'limit_storage'     => 'Les projets en attente d’approbation peuvent stocker jusqu’à :max Mo de fichiers.',
+    'limit_families'    => 'Pour l’instant, ce projet peut accueillir jusqu’à :max familles : demandez l’illimité pour lever la limite.',
+    'limit_units'       => 'Pour l’instant, ce projet peut accueillir jusqu’à :max logements : demandez l’illimité pour lever la limite.',
+    'limit_members'     => 'Pour l’instant, ce projet peut accueillir jusqu’à :max personnes : demandez l’illimité pour lever la limite.',
+    'limit_invitations' => 'Pour l’instant, ce projet peut envoyer jusqu’à :max invitations par jour : demandez l’illimité pour lever la limite.',
+    'limit_storage'     => 'Pour l’instant, ce projet peut accueillir :max Mo de fichiers : demandez l’illimité pour lever la limite.',
     'image_too_large'   => 'Les images peuvent avoir jusqu’à :max mégapixels ; celle-ci en a davantage.',
 ];

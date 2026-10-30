@@ -1,10 +1,9 @@
 import { AppShell, type NavEntry, type NavGroup } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
+import { keepPlaces } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Link } from '@inertiajs/react';
 import {
-  IconAlertTriangle,
   IconCalendarEvent,
   IconDice5,
   IconGauge,
@@ -16,7 +15,7 @@ import {
   IconUserPlus,
   IconUsersGroup,
 } from '@tabler/icons-react';
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 
 /**
  * A project's places, the lottery first after home: the shell's main group, here and on
@@ -114,6 +113,12 @@ export function projectNav(
   ];
 }
 
+/** Once the page has settled: the background loading never competes with it */
+const KEEP_PLACES_AFTER_MS = 4000;
+
+/** The places kept on the device: a project's every place but its actions */
+const tabsOf = (id: number) => projectPlaces({ id }).filter((item) => !item.action);
+
 /** A project's pages, the same for everyone; admins find their tools on them */
 export function ProjectLayout({ children }: { children: ReactNode }) {
   const { props } = useCurrentPage();
@@ -135,24 +140,21 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [id, project?.name, manages, hasFamily, props.ziggy.name, props.locale],
   );
+  // Its main places, kept on the device in the background: there offline, even unvisited
+  useEffect(() => {
+    if (!id) return undefined;
+    const later = window.setTimeout(
+      () => keepPlaces(tabsOf(id).map((item) => item.href)),
+      KEEP_PLACES_AFTER_MS,
+    );
+    return () => window.clearTimeout(later);
+  }, [id]);
+
   // Leaving a project that is gone (deleted, or left): the next page brings its own frame
   if (!project) return children;
 
-  const banner =
-    project.can.manage && !project.is_approved ? (
-      <div className="shell-banner" role="status">
-        <IconAlertTriangle size={20} />
-        <p>
-          {project.approval_requested_at
-            ? _('Approval requested: limits apply until a superadmin approves the project.')
-            : _('This project is awaiting approval: some limits apply.')}
-        </p>
-        <Link href={route('manage.overview')}>{_('Details')}</Link>
-      </div>
-    ) : null;
-
   return (
-    <AppShell heading={project.name} nav={nav} tabs={tabs} banner={banner}>
+    <AppShell heading={project.name} nav={nav} tabs={tabs}>
       {children}
     </AppShell>
   );

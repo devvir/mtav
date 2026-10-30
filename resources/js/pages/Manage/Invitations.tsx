@@ -106,13 +106,10 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
             />
             {limits ? (
               <Text className="ds-caption">
-                {_(
-                  'Until the project is approved: up to {members} people, {day} invitations a day.',
-                  {
-                    members: limits.members,
-                    day: limits.invitations_per_day,
-                  },
-                )}
+                {_('This project has room for {members} people, and {day} invitations a day.', {
+                  members: limits.members,
+                  day: limits.invitations_per_day,
+                })}
               </Text>
             ) : null}
             <Group justify="flex-end" className="form-actions">

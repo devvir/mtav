@@ -112,7 +112,9 @@ own: the image, the roles and the slots stay as they are.
 Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
 
 1. **The host**: copy `deploy/host/setup`, `deploy/host/gate` and the pipeline's public
-   key to it, then `sudo bash setup <key>.pub`. It installs security updates (and
+   keys (one per environment) to it, then
+   `sudo bash setup dev=dev.pub staging=staging.pub production=production.pub`: each key
+   runs the gate for its own environment only. It installs security updates (and
    unattended ones from then on), stops services nothing uses, limits nginx to TLS 1.2
    and 1.3 (no version shown, uploads up to 105 MB), makes Docker publish on the
    loopback by default, renews the certificates and reloads nginx after every renewal,
@@ -132,9 +134,11 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    the page is hidden.
 3. **The proxy in front**: each domain to its environment's ports, the websocket path
    (`/app`) to `MTAV_WS_PORT`, the rest to `MTAV_WEB_PORT`.
-4. **GitHub**: the repository's secrets `DEPLOY_SSH_KEY` (the private half),
-   `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) and `DEPLOY_TARGET` (`mtav-deploy@<host>`);
-   the environments `staging`, `dev` and `production`, production limited to `main`.
+4. **GitHub**: the repository's secrets `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) and
+   `DEPLOY_TARGET` (`mtav-deploy@<host>`); the environments `dev`, `staging` and
+   `production`, each with its own `DEPLOY_SSH_KEY` (the private half of its key) and
+   its branches: staging only from `staging`, production only from `main`, dev from any
+   (by hand). A workflow of any other branch never sees a key that could reach them.
 
 The first deploy creates the switch, the volumes and the database.
 
@@ -148,7 +152,8 @@ Each environment follows a branch of its own: deploying is pushing.
 - **Production** deploys only by hand, from `main`: by default the release staging runs.
 
 Commits move up by fast-forward only: `staging` to `main` always (so production runs the
-commit, and the image, staging ran), `dev` to `staging` as fits.
+commit, and the image, staging ran), `dev` to `staging` as fits. A push to `main` of a
+commit `staging` never had fails the pipeline, and production refuses it.
 
 The platform console's Deployments page starts these same workflows through GitHub's API
 (dev from a branch, production from `main`, a rollback of any environment) and shows

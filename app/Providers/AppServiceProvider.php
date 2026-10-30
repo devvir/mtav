@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Queue\Workers;
+use Illuminate\Support\Facades\Queue;
 use App\Models\User;
 use App\Services\Delivery\GitHub;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureModels();
 
         JsonResource::withoutWrapping();
+
+        // Workers say they are alive as they loop: what waits on them knows (Workers::running)
+        Queue::looping(fn () => Workers::mark());
 
         Gate::before(fn (User $user, string $ability) => $user->isSuperadmin()
             && ! in_array($ability, self::PERSONAL_ABILITIES) ?: null);

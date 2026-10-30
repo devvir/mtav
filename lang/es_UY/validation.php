@@ -233,10 +233,10 @@ return [
     'unit_type_in_use'          => 'Todavía hay familias o viviendas con este tipo.',
 
     /** Límites de los proyectos sin aprobar */
-    'limit_families'    => 'Los proyectos sin aprobar pueden tener hasta :max familias.',
-    'limit_units'       => 'Los proyectos sin aprobar pueden tener hasta :max viviendas.',
-    'limit_members'     => 'Los proyectos sin aprobar pueden tener hasta :max personas.',
-    'limit_invitations' => 'Los proyectos sin aprobar pueden enviar hasta :max invitaciones por día.',
-    'limit_storage'     => 'Los proyectos sin aprobar pueden guardar hasta :max MB de archivos.',
+    'limit_families'    => 'Por ahora este proyecto tiene lugar para hasta :max familias: pide ilimitado para quitar el límite.',
+    'limit_units'       => 'Por ahora este proyecto tiene lugar para hasta :max viviendas: pide ilimitado para quitar el límite.',
+    'limit_members'     => 'Por ahora este proyecto tiene lugar para hasta :max personas: pide ilimitado para quitar el límite.',
+    'limit_invitations' => 'Por ahora este proyecto puede enviar hasta :max invitaciones por día: pide ilimitado para quitar el límite.',
+    'limit_storage'     => 'Por ahora este proyecto tiene lugar para :max MB de archivos: pide ilimitado para quitar el límite.',
     'image_too_large'   => 'Se pueden compartir imágenes de hasta :max megapíxeles; esta tiene más.',
 ];

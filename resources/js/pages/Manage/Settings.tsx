@@ -1,4 +1,5 @@
 import { Form, FormActions } from '@/components/forms/Form';
+import { OrganizationField } from '@/components/forms/OrganizationField';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
 import { confirm } from '@/lib/dialogs';
@@ -45,7 +46,11 @@ export default function Settings({ settings: project }: { settings: Project }) {
             minRows={3}
             {...field(form, 'description')}
           />
-          <TextInput label={_('Organization')} {...field(form, 'organization')} />
+          <OrganizationField
+            value={form.data.organization}
+            onChange={(organization) => form.setData('organization', organization)}
+            error={form.errors.organization}
+          />
           <FormActions submit={_('Save')} processing={form.processing} />
         </Form>
       </Card>

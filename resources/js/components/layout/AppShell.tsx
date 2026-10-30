@@ -1,4 +1,5 @@
 import { TourHost } from '@/components/help/TourHost';
+import { OfflineStatus } from '@/components/layout/OfflineStatus';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Logo, NavItem, PersonAvatar } from '@/design';
 import { useLiveNotifications } from '@/lib/realtime';
@@ -249,6 +250,7 @@ export function AppShell({
           )}
 
           <div className="shell-bar-end">
+            <OfflineStatus />
             <QuickActions />
             <NotificationsMenu />
 

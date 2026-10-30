@@ -54,3 +54,10 @@ it('shows every photo it names, families building among them', function () {
 
     expect($page->script("() => [...document.querySelectorAll('.welcome-photo img')].filter((img) => !img.naturalWidth).map((img) => img.src)"))->toBe([]);
 });
+
+it('shows its first pictures one after another, VICMAN among them', function () {
+    visit(route('home'))
+        ->click('.welcome-hero-dots button >> nth=1')
+        ->assertSeeIn('.welcome-hero-slides figcaption', 'VICMAN, the first housing cooperative in Uruguay')
+        ->assertPresent('.welcome-hero-frame img[data-shown][src*="vicman"]');
+});

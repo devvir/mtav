@@ -134,3 +134,47 @@ function pngFile(string $name = 'photo.png'): string
 
     return fixtureFile($name, ob_get_clean());
 }
+
+/**
+ * The page has no serious accessibility issue (axe, critical and serious ones), as Pest's
+ * own assertion checks, with room for a loaded development machine (Pest allows 5 s). A
+ * plan is checked as the labelled picture it is, not shape by shape (its shapes are its
+ * drawing: thousands of them, and nothing to read or reach)
+ */
+function assertAccessible(object $page, int $seconds = 15): object
+{
+    $page->assertScript('document.readyState', 'complete');
+    $violations = Pest\Browser\Playwright\Playwright::usingTimeout($seconds * 1000, fn () => $page->script(
+        "async () => { while (window.axe._running) await new Promise((wait) => setTimeout(wait, 100)); return (await window.axe.run({ exclude: [['.plan-canvas > *']] })).violations.filter((issue) => ['critical', 'serious'].includes(issue.impact)).map((issue) => issue.id + ': ' + issue.nodes.map((node) => node.target.join(' ')).join(', ')); }",
+    ));
+
+    expect($violations)->toBe([]);
+
+    return $page;
+}
+
+/**
+ * Opens a help tip and waits until its popover stands still (it moves in, and follows its
+ * place as the page settles): only then can what is in it be clicked
+ */
+function openHelp(object $page, string $topic): object
+{
+    $page->click("[aria-label=\"About: {$topic}\"]");
+    $page->script(<<<'JS'
+        () => new Promise((settled) => {
+            let last = '';
+            let still = 0;
+            const look = () => {
+                const dropdown = document.querySelector('.mantine-Popover-dropdown');
+                const place = dropdown ? JSON.stringify(dropdown.getBoundingClientRect()) : '';
+                still = place && place === last ? still + 1 : 0;
+                last = place;
+                if (still >= 5) settled(true);
+                else requestAnimationFrame(look);
+            };
+            look();
+        })
+        JS);
+
+    return $page;
+}

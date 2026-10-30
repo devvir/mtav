@@ -12,6 +12,7 @@ import {
 import { Panel } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { sendJson } from '@/lib/json';
+import { connection, heldOffline } from '@/lib/offline';
 import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
@@ -74,6 +75,8 @@ export function PlanPanel({
 
   // Saved as JSON, the page staying as it is: the server answers the ids of new shapes
   const save = useCallback(async (payload: PlanPayload) => {
+    // Offline it waits, quietly (the editor says it is not saved yet), for the connection
+    if (!connection.get().online) throw new Error('Offline: the plan waits for the connection');
     const response = await sendJson('PUT', route('manage.plan.update'), payload);
     if (response.status === 423) await taken(response);
     if (!response.ok) throw new Error(`The plan was not saved (${response.status})`);
@@ -81,6 +84,7 @@ export function PlanPanel({
   }, []);
 
   const start = async () => {
+    if (heldOffline()) return;
     const response = await sendJson('POST', route('manage.plan.lock'), {});
     if (response.status === 423) return taken(response);
     setEditing(plan);

@@ -1,6 +1,8 @@
 import { Form, FormActions } from '@/components/forms/Form';
+import { OrganizationField } from '@/components/forms/OrganizationField';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
+import { appName, megabytes } from '@/lib/app';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -38,10 +40,11 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
               placeholder={_('What the project is about, how many dwellings…')}
               {...field(form, 'description')}
             />
-            <TextInput
-              label={_('Organization')}
+            <OrganizationField
               description={_('Federation or institution, if any')}
-              {...field(form, 'organization')}
+              value={form.data.organization}
+              onChange={(organization) => form.setData('organization', organization)}
+              error={form.errors.organization}
             />
             <FormActions
               submit={_('Start the project')}
@@ -54,11 +57,12 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
           <Card p="lg" h="fit-content">
             <Glyph icon={IconInfoCircle} tone="info" />
             <Title order={2} fz="md" mt="sm">
-              {_('Until it is approved')}
+              {_('Room for the project')}
             </Title>
             <Text size="sm" c="dimmed" mt={4}>
               {_(
-                'New projects work within some limits, which a superadmin lifts by approving the project. You can ask for approval from the project at any time.',
+                'Every project starts limited, with room for most cooperatives. The {app} team can make yours unlimited: ask from the project whenever you like.',
+                { app: appName() },
               )}
             </Text>
             <List size="sm" mt="sm" spacing={4}>
@@ -73,9 +77,9 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
                 {_('Up to {count} invitations a day', { count: limits.invitations_per_day })}
               </List.Item>
               <List.Item>
-                {_('Files up to {size} MB, {total} MB in all', {
-                  size: limits.media_file_mb,
-                  total: limits.media_storage_mb,
+                {_('Files up to {size}, {total} in all', {
+                  size: megabytes(limits.media_file_mb),
+                  total: megabytes(limits.media_storage_mb),
                 })}
               </List.Item>
             </List>

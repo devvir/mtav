@@ -170,12 +170,23 @@ it('opens unit types, units and families for editing from their lists', function
         ->assertValue('[role="dialog"] [name="name"]', 'García');
 });
 
-it('leads an unapproved project\'s admins to what the limits are', function () {
+it('shows a project\'s admins its room on asking, never a warning on every page', function () {
     $project = anUnapprovedProject();
     $this->as(anAdminOf($project));
 
-    visit(route('units.index', $project))
-        ->assertSee('This project is awaiting approval: some limits apply.')
-        ->click('.shell-banner >> text=Details')
-        ->assertPathIs(route('manage.overview', $project, absolute: false));
+    visit(route('units.index', $project))->assertNotPresent('.shell-banner');
+    visit(route('manage.overview', $project))
+        ->assertDontSee('What the project has room for:')
+        ->click('button[aria-expanded]:has-text("Limited")')
+        ->assertSee('What the project has room for:')
+        ->assertSee('/ 300');
+});
+
+it('marks an unlimited project as such, with no room to count', function () {
+    $project = aProject();
+    $this->as(anAdminOf($project));
+
+    visit(route('manage.overview', $project))
+        ->assertSee('Unlimited')
+        ->assertNotPresent('button[aria-expanded]:has-text("Limited")');
 });

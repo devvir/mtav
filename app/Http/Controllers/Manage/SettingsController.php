@@ -47,6 +47,6 @@ class SettingsController extends Controller
 
         $projects->requestApproval($project, $request->user());
 
-        return back()->with('success', __('flash.approval_requested'));
+        return back()->with('success', __('flash.approval_requested', ['app' => config('app.name')]));
     }
 }

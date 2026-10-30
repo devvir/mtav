@@ -10,8 +10,8 @@ return [
     'approval_requested_title'   => 'Un proyecto pide aprobación',
     'approval_requested_message' => ':requester te pide que apruebes :name.',
 
-    'project_approved_title'   => 'Tu proyecto está aprobado',
-    'project_approved_message' => ':name está aprobado: ya no tiene límites.',
+    'project_approved_title'   => 'Tu proyecto es ilimitado',
+    'project_approved_message' => ':name ya es ilimitado: no tiene límites.',
 
     'member_joined_title'          => 'Alguien se sumó',
     'member_joined_message'        => ':name se sumó al proyecto.',

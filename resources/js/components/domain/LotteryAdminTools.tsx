@@ -61,7 +61,14 @@ const TONES: Record<LotteryRun['status'], Tone> = {
  * Running the lottery, for admins on the lottery page: schedule, readiness per unit type,
  * the run, and every run's record (including invalidations, which everyone reads).
  */
-export function LotteryAdminTools({ lottery, status, readiness, runs, confirm }: Props) {
+export function LotteryAdminTools({
+  lottery,
+  status,
+  runnable,
+  readiness,
+  runs,
+  confirm,
+}: Props & { runnable: boolean }) {
   const schedule = useForm({
     description: lottery.description,
     start_date: local(lottery.start_date),
@@ -252,7 +259,7 @@ export function LotteryAdminTools({ lottery, status, readiness, runs, confirm }:
                 <Button
                   fullWidth
                   size="md"
-                  disabled={!due || !readiness.length}
+                  disabled={!due || !readiness.length || !runnable}
                   leftSection={<IconDice5 size={20} data-tour="lottery.run" />}
                   onClick={() => run()}
                 >

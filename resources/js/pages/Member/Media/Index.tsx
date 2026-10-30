@@ -8,6 +8,7 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
+import { megabytes } from '@/lib/app';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
@@ -118,9 +119,9 @@ export default function MediaIndex({
       {storage ? (
         <div style={{ marginTop: 24, maxWidth: 420 }}>
           <Text className="ds-caption" mb={6}>
-            {_('Storage used: {used} of {limit} MB (until the project is approved).', {
-              used: storage.used_mb,
-              limit: storage.limit_mb,
+            {_('Storage used: {used} of {limit}.', {
+              used: megabytes(storage.used_mb),
+              limit: megabytes(storage.limit_mb),
             })}
           </Text>
           <Progress

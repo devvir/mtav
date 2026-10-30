@@ -11,10 +11,11 @@ return [
     'requires_confirmation' => 'Veuillez confirmer avant de réaliser le tirage.',
 
     'cannot_run_already_run'      => 'Le tirage a déjà eu lieu.',
+    'cannot_run_no_worker'        => 'Le serveur ne peut pas réaliser le tirage pour l’instant : son travail en arrière-plan est arrêté. C’est en cours de vérification ; réessayez plus tard.',
     'cannot_run_not_scheduled'    => 'Fixez la date du tirage avant de le réaliser.',
     'cannot_run_not_due'          => 'Le tirage ne peut pas avoir lieu avant sa date.',
     'cannot_run_too_few_families' => 'Il faut au moins deux familles pour réaliser le tirage.',
-    'cannot_run_too_large'        => 'Les projets en attente d’approbation peuvent réaliser des tirages d’au plus :max familles. Demandez l’approbation pour lever cette limite.',
+    'cannot_run_too_large'        => 'Pour l’instant, ce projet peut réaliser des tirages d’au plus :max familles. Demandez l’illimité pour lever la limite.',
 
     'unit_family_mismatch_intro'  => 'Le nombre de logements et de familles diffère :',
     'mismatch_excess_units'       => ':unit_type a :units logements pour :families familles',

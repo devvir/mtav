@@ -14,10 +14,8 @@ it('explains the lottery and walks a member through their ranking', function () 
 
     $this->as($member);
 
-    // Once the page is whole (its plan arrives after it)
-    visit(route('lottery.show', $project))
-        ->assertPresent('[aria-label="Project plan"]')
-        ->click('[aria-label="About: How the lottery works"]')
+    // Once the page is whole (its plan arrives after it), the tip standing still
+    openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
         ->assertSee('only ties are drawn at random')
         ->click('Show me how')
         ->assertSee('Step 1 of 4')
@@ -33,10 +31,8 @@ it('closes an explanation once read', function () {
     $project = aProject();
     $this->as(aMemberOf(aFamily($project, aUnitType($project))));
 
-    // Once the page is whole (its plan arrives after it)
-    visit(route('lottery.show', $project))
-        ->assertPresent('[aria-label="Project plan"]')
-        ->click('[aria-label="About: How the lottery works"]')
+    // Once the page is whole (its plan arrives after it), the tip standing still
+    openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
         ->assertSee('only ties are drawn at random')
         ->click('Got it')
         ->assertDontSee('only ties are drawn at random');
@@ -48,12 +44,8 @@ it('goes back and forth through a tour, and ends it at any step', function () {
     aUnit($type, ['identifier' => 'A-101']);
     $this->as(aMemberOf(aFamily($project, $type)));
 
-    // Once the page is whole (its plan arrives after it)
-    visit(route('lottery.show', $project))
-        ->assertPresent('[aria-label="Project plan"]')
-        ->click('[aria-label="About: How the lottery works"]')
-        // Open question: clicked at once, in the suite, it is never reached (by hand it is)
-        ->wait(1)
+    // Once the page is whole (its plan arrives after it), the tip standing still
+    openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
         ->click('Show me how')
         ->click('Next')
         ->assertSee('Step 2 of 4')
@@ -69,12 +61,8 @@ it('finishes a tour on its last step', function () {
     aUnit($type, ['identifier' => 'A-101']);
     $this->as(aMemberOf(aFamily($project, $type)));
 
-    // Once the page is whole (its plan arrives after it)
-    visit(route('lottery.show', $project))
-        ->assertPresent('[aria-label="Project plan"]')
-        ->click('[aria-label="About: How the lottery works"]')
-        // Open question: clicked at once, in the suite, it is never reached (by hand it is)
-        ->wait(1)
+    // Once the page is whole (its plan arrives after it), the tip standing still
+    openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
         ->click('Show me how')
         ->click('Next')
         ->click('Next')

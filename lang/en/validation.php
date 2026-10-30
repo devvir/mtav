@@ -233,10 +233,10 @@ return [
     'unit_type_in_use'          => 'Families or units still use this unit type.',
 
     /** Limits of projects awaiting approval */
-    'limit_families'    => 'Projects awaiting approval can have up to :max families.',
-    'limit_units'       => 'Projects awaiting approval can have up to :max units.',
-    'limit_members'     => 'Projects awaiting approval can have up to :max people.',
-    'limit_invitations' => 'Projects awaiting approval can send up to :max invitations a day.',
-    'limit_storage'     => 'Projects awaiting approval can store up to :max MB of files.',
+    'limit_families'    => 'For now this project has room for up to :max families: ask for unlimited to lift it.',
+    'limit_units'       => 'For now this project has room for up to :max units: ask for unlimited to lift it.',
+    'limit_members'     => 'For now this project has room for up to :max people: ask for unlimited to lift it.',
+    'limit_invitations' => 'For now this project can send up to :max invitations a day: ask for unlimited to lift it.',
+    'limit_storage'     => 'For now this project has room for :max MB of files: ask for unlimited to lift it.',
     'image_too_large'   => 'Images up to :max megapixels can be shared; this one has more.',
 ];

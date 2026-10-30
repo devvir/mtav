@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { heldOffline } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
 import { _, languageTag } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
@@ -26,6 +27,7 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
     setAttending(event.attending);
   }
   const rsvp = (going: boolean) => {
+    if (heldOffline()) return;
     const before = attending;
     let done = false;
     setAttending(going);

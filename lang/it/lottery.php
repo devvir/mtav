@@ -11,10 +11,11 @@ return [
     'requires_confirmation' => 'Conferma prima di eseguire il sorteggio.',
 
     'cannot_run_already_run'      => 'Il sorteggio è già stato eseguito.',
+    'cannot_run_no_worker'        => 'Il server non può eseguire il sorteggio in questo momento: il suo lavoro in background è fermo. Lo stiamo verificando; riprova più tardi.',
     'cannot_run_not_scheduled'    => 'Fissa la data del sorteggio prima di eseguirlo.',
     'cannot_run_not_due'          => 'Il sorteggio non si può eseguire prima della sua data.',
     'cannot_run_too_few_families' => 'Servono almeno due famiglie per eseguire il sorteggio.',
-    'cannot_run_too_large'        => 'I progetti in attesa di approvazione possono eseguire sorteggi fino a :max famiglie. Chiedi l’approvazione per togliere il limite.',
+    'cannot_run_too_large'        => 'Per ora questo progetto ha spazio per sorteggi fino a :max famiglie. Chiedi illimitato per togliere il limite.',
 
     'unit_family_mismatch_intro'  => 'Il numero di unità e quello di famiglie sono diversi:',
     'mismatch_excess_units'       => ':unit_type ha :units unità per :families famiglie',

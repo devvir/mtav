@@ -20,7 +20,7 @@ return [
     'project_updated'    => 'O projeto foi salvo.',
     'project_deleted'    => 'O projeto foi excluído.',
     'project_left'       => 'Você saiu de :project.',
-    'approval_requested' => 'Pedimos à equipe da plataforma que aprove seu projeto. Em breve você terá notícias.',
+    'approval_requested' => 'Pedimos à equipe do :app que torne o seu projeto ilimitado. Em breve você terá notícias.',
     'project_approved'   => ':project foi aprovado: os limites foram retirados.',
     'project_restored'   => ':project voltou, como estava.',
     'project_purged'     => ':project foi excluído definitivamente.',

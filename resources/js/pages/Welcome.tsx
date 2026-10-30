@@ -5,8 +5,19 @@ import { DialogHost } from '@/components/overlays/DialogHost';
 import { Glyph, Logo } from '@/design';
 import { route } from '@/lib/route';
 import { _, getLocale } from '@/lib/translations';
-import { Head, router } from '@inertiajs/react';
-import { Button, Divider, Group, Menu, Modal, SegmentedControl, Text, Title } from '@mantine/core';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+  Anchor,
+  Button,
+  Divider,
+  Group,
+  Menu,
+  Modal,
+  SegmentedControl,
+  Text,
+  Title,
+} from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
 import {
   IconBrandGoogleFilled,
   IconCalendarEvent,
@@ -16,7 +27,7 @@ import {
   IconMap,
   IconUsersGroup,
 } from '@tabler/icons-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 type Auth = 'login' | 'register';
 
@@ -39,6 +50,7 @@ const PHOTOS: Record<string, { src: string; author?: string; source?: string }> 
       'https://commons.wikimedia.org/wiki/File:Complejo_cooperativo_de_vivienda_Mesa_1_Uruguay.jpg',
   },
   // From the cooperatives themselves, as the first version of the app showed them
+  vicman: { src: '/images/welcome/vicman.webp' },
   mutualAid: { src: '/images/welcome/mutual-aid.webp' },
   workDay: { src: '/images/welcome/work-day.webp' },
   frayBentos: { src: '/images/welcome/fray-bentos.webp' },
@@ -74,6 +86,7 @@ export default function Welcome({ dialog, google, locales }: Props) {
   const credited = Object.entries(PHOTOS).filter(([, photo]) => photo.source);
   const captions: Record<string, string> = {
     mesa1: _('Mesa 1, mutual-aid housing cooperatives in Montevideo'),
+    vicman: _('VICMAN, the first housing cooperative in Uruguay'),
     mutualAid: _('Families building their homes, by mutual aid'),
     workDay: _('A work day on the site'),
     frayBentos: _('COVISIN Fray Bentos II, a housing cooperative'),
@@ -160,7 +173,7 @@ export default function Welcome({ dialog, google, locales }: Props) {
               {_('Invited by your cooperative? Open the link in your email.')}
             </Text>
           </div>
-          <Photo photo="mesa1" caption={captions.mesa1} className="welcome-hero-photo" eager />
+          <HeroPhotos photos={['mesa1', 'vicman']} captions={captions} />
         </section>
 
         <section className="welcome-section">
@@ -207,6 +220,9 @@ export default function Welcome({ dialog, google, locales }: Props) {
               </li>
             ))}
           </ol>
+          <Anchor component={Link} href={route('manual')} fw={650} mt="lg" display="inline-block">
+            {_('Read the member guide')}
+          </Anchor>
         </section>
 
         <section className="welcome-closing">
@@ -270,6 +286,64 @@ export default function Welcome({ dialog, google, locales }: Props) {
 
 // Its own frame: the page is the whole window
 Welcome.layout = (page: ReactNode) => page;
+
+/** How long each of the first pictures stays */
+const HERO_MS = 6000;
+
+/**
+ * The first pictures, one after another by themselves (still while pointed at or focused,
+ * and for whoever asks for less motion); a dot for each picks it
+ */
+function HeroPhotos({ photos, captions }: { photos: string[]; captions: Record<string, string> }) {
+  const [shown, setShown] = useState(0);
+  const [held, setHeld] = useState(false);
+  const still = useReducedMotion();
+
+  useEffect(() => {
+    if (held || still || photos.length < 2) return undefined;
+    const timer = window.setTimeout(
+      () => setShown((index) => (index + 1) % photos.length),
+      HERO_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [shown, held, still, photos.length]);
+
+  return (
+    <figure
+      className="welcome-photo welcome-hero-photo welcome-hero-slides"
+      aria-roledescription={_('carousel')}
+      onPointerEnter={() => setHeld(true)}
+      onPointerLeave={() => setHeld(false)}
+      onFocus={() => setHeld(true)}
+      onBlur={() => setHeld(false)}
+    >
+      <div className="welcome-hero-frame">
+        {photos.map((photo, index) => (
+          <img
+            key={photo}
+            src={PHOTOS[photo]!.src}
+            alt={captions[photo]}
+            loading={index ? 'lazy' : 'eager'}
+            data-shown={index === shown || undefined}
+            aria-hidden={index !== shown}
+          />
+        ))}
+      </div>
+      <figcaption aria-live="polite">{captions[photos[shown]!]}</figcaption>
+      <div className="welcome-hero-dots">
+        {photos.map((photo, index) => (
+          <button
+            key={photo}
+            type="button"
+            aria-label={captions[photo]}
+            aria-current={index === shown || undefined}
+            onClick={() => setShown(index)}
+          />
+        ))}
+      </div>
+    </figure>
+  );
+}
 
 function Photo({
   photo,

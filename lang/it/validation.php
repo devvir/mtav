@@ -233,10 +233,10 @@ return [
     'unit_type_in_use'          => 'Famiglie o unità usano ancora questo tipo di unità.',
 
     /** Limits of projects awaiting approval */
-    'limit_families'    => 'I progetti in attesa di approvazione possono avere fino a :max famiglie.',
-    'limit_units'       => 'I progetti in attesa di approvazione possono avere fino a :max unità.',
-    'limit_members'     => 'I progetti in attesa di approvazione possono avere fino a :max persone.',
-    'limit_invitations' => 'I progetti in attesa di approvazione possono inviare fino a :max inviti al giorno.',
-    'limit_storage'     => 'I progetti in attesa di approvazione possono archiviare fino a :max MB di file.',
+    'limit_families'    => 'Per ora questo progetto ha spazio per fino a :max famiglie: chiedi illimitato per togliere il limite.',
+    'limit_units'       => 'Per ora questo progetto ha spazio per fino a :max unità: chiedi illimitato per togliere il limite.',
+    'limit_members'     => 'Per ora questo progetto ha spazio per fino a :max persone: chiedi illimitato per togliere il limite.',
+    'limit_invitations' => 'Per ora questo progetto può inviare fino a :max inviti al giorno: chiedi illimitato per togliere il limite.',
+    'limit_storage'     => 'Per ora questo progetto ha spazio per :max MB di file: chiedi illimitato per togliere il limite.',
     'image_too_large'   => 'Si possono condividere immagini fino a :max megapixel; questa ne ha di più.',
 ];

@@ -374,3 +374,14 @@ it('tells a second admin who is drawing the plan, and leaves them reading it', f
         ->assertNotPresent('[aria-label="Plan editor"]')
         ->assertPresent('[aria-label="Project plan"]');
 });
+
+it('leaves full screen with Escape while drawing, a shape selected or not', function () {
+    $this->as($this->admin);
+
+    editPlan($this)
+        ->click('[aria-label="Full screen"]')
+        ->click('[data-shape="A-101"] .plan-top')
+        ->keys('[aria-label="Plan editor"]', 'Escape')
+        ->assertNotPresent('.plan-panel[data-full]')
+        ->assertPresent('[aria-label="Plan editor"]');
+});

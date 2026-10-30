@@ -5,6 +5,16 @@ use Tests\Browser\Support\ReadUploadsLikePhp;
 use Tests\TestCase;
 
 /**
+ * Tests empty the database they run on: only ever a test environment's own (./mtav pest,
+ * ./mtav e2e, CI), never the one a developer works in, whose container says it is "local"
+ */
+if (getenv('APP_ENV') !== 'testing') {
+    fwrite(STDERR, "Refusing to run: APP_ENV is '" . getenv('APP_ENV') . "', not 'testing'. Use ./mtav pest or ./mtav e2e.\n");
+
+    exit(1);
+}
+
+/**
  * Helpers and expectations: tests/Helpers/*.php (auto-loaded by Pest).
  */
 pest()

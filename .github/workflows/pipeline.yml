@@ -119,6 +119,22 @@ jobs:
       publish: ${{ (github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/staging"]'), github.ref)) || inputs.publish == true }}
       latest: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
+  # main moves only by fast-forward from staging: a commit staging never had is refused here
+  # (and production deploys only commits that are on staging too)
+  main-follows-staging:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: main follows staging
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: The commit is on staging
+        run: |
+          git fetch --quiet origin staging
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/staging \
+            || { echo "::error::main moves only by fast-forward from staging"; exit 1; }
+
   # Every green push to staging goes there, by itself
   staging:
     needs: image

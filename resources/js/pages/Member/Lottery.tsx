@@ -7,6 +7,7 @@ import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph, Panel, Status } from '@/design';
+import { heldOffline } from '@/lib/offline';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -28,6 +29,8 @@ import { useState } from 'react';
 interface Props {
   lottery: ProjectEvent;
   status: 'running' | 'completed' | null;
+  /** Whether the server can run it now (nothing works its queue otherwise) */
+  runnable: boolean;
   /** A run under way: when it began and when it ends */
   pace: { started_at: string; reveal_at: string | null } | null;
   runs: LotteryRun[];
@@ -48,6 +51,7 @@ interface Props {
 export default function Lottery({
   lottery,
   status,
+  runnable,
   pace,
   runs,
   family,
@@ -92,6 +96,13 @@ export default function Lottery({
       },
     );
   }, 600);
+
+  /** A new order, shown and saved; offline, neither (nothing shown that is not saved) */
+  const rank = (units: Unit[]) => {
+    if (heldOffline()) return;
+    setRanking(units);
+    save(units);
+  };
 
   const ownUnit = assignment?.find((row) => row.id === family?.id)?.unit ?? null;
   const invalidations = runs.filter((run) => run.status === 'invalidated');
@@ -156,7 +167,18 @@ export default function Lottery({
         )}
       </Card>
 
-      {admin ? <LotteryAdminTools lottery={lottery} status={status} {...admin} /> : null}
+      {/* Said before anyone tries: the lottery is held until the server can run it */}
+      {!runnable && status !== 'completed' ? (
+        <Alert color="yellow" radius="lg" mb="lg" icon={<IconAlertTriangle size={20} />}>
+          {_(
+            'The server cannot run the lottery right now: its background work has stopped. It is being looked into; try again later.',
+          )}
+        </Alert>
+      ) : null}
+
+      {admin ? (
+        <LotteryAdminTools lottery={lottery} status={status} runnable={runnable} {...admin} />
+      ) : null}
 
       {/* Invalidations are always visible: everyone must know a draw was undone, and why */}
       {invalidations.length ? (
@@ -198,10 +220,7 @@ export default function Lottery({
                 focused={focused}
                 onFocus={setFocused}
                 onPick={(unit) => setFlash({ unit, at: Date.now() })}
-                onChange={(units) => {
-                  setRanking(units);
-                  save(units);
-                }}
+                onChange={rank}
               />
             ) : null}
           </Deferred>
@@ -235,10 +254,7 @@ export default function Lottery({
               disabled={!canRank}
               onFocus={setFocused}
               flash={flash}
-              onChange={(units) => {
-                setRanking(units);
-                save(units);
-              }}
+              onChange={rank}
             />
           </Panel>
         ) : !family ? (

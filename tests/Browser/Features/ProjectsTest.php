@@ -6,20 +6,23 @@ use App\Models\Project;
  * Projects: starting one, approval and its limits, settings, switching between them.
  */
 
-it('starts a project that works within limits, and asks for approval', function () {
+it('starts a project with room for most cooperatives, and asks for more, never pushed to', function () {
     $person = aUser();
     $this->as($person);
 
     visit(route('projects.create'))
-        ->assertSee('Until it is approved')
+        ->assertSee('Room for the project')
+        ->assertDontSee('superadmin')
         ->fill('name', 'Cooperativa Las Acacias')
         ->fill('description', 'Forty dwellings')
         ->click('Start the project')
-        ->assertSee('This project is awaiting approval: some limits apply.')
-        ->click(button('Ask for approval'))
-        ->click(inDialog('Ask for approval'))
-        ->assertSee('We asked the platform team to approve your project.')
-        ->assertSee('Approval requested: limits apply until a superadmin approves the project.')
+        ->assertDontSee('awaiting approval')
+        ->click('button[aria-expanded]:has-text("Limited")')
+        ->assertSee('What the project has room for:')
+        ->click(button('Ask for unlimited'))
+        ->click(inDialog('Ask for unlimited'))
+        ->assertSee('We asked the MTAV team to make your project unlimited.')
+        ->assertSee('Unlimited asked for')
         ->assertNoSmoke();
 
     expect(Project::sole()->approval_requested_at)->not->toBeNull();
@@ -44,8 +47,8 @@ it('lets a superadmin approve a project, whose admins are told', function () {
     $this->as($admin);
 
     visit(route('notifications.index'))
-        ->assertSee('Your project is approved')
-        ->click('Your project is approved')
+        ->assertSee('Your project is unlimited')
+        ->click('Your project is unlimited')
         ->assertSee($project->name);
 });
 
@@ -125,4 +128,20 @@ it('keeps members out of the admin area', function () {
 
     visit(route('projects.show', $project))->assertDontSeeIn('.shell-nav', 'Administration');
     visit(route('manage.overview', $project))->assertSee('Not allowed');
+});
+
+it('suggests the federations for a project\'s organization, and takes any other', function () {
+    $this->as(aUser());
+
+    visit(route('projects.create'))
+        ->fill('organization', 'FU')
+        ->click('[role="option"]:has-text("FUCVAM")')
+        ->assertValue('[name="organization"]', 'FUCVAM')
+        ->fill('organization', 'Cooperativas del Este')
+        ->fill('name', 'Cooperativa Las Acacias')
+        ->fill('description', 'Forty dwellings')
+        ->click('Start the project')
+        ->assertSee('Getting to the lottery');
+
+    expect(App\Models\Project::sole()->organization)->toBe('Cooperativas del Este');
 });

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 /**
  * A plan's panel over the whole window, to draw or look at it comfortably: the same panel,
  * never another copy of it (so the editor keeps all it holds). Escape, or the button, brings
- * it back; Escape first lets go of what the plan itself takes it for (a selection).
+ * it back, as everywhere (what is open over it, a dialog, a menu, closes first).
  */
 export function usePlanFullScreen() {
   const [full, setFull] = useState(false);
@@ -15,9 +15,12 @@ export function usePlanFullScreen() {
     if (!full) return undefined;
     document.documentElement.dataset.planFull = '';
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || (event.target as Element).closest?.('[role="dialog"]')) return;
-      // Once every other listener had its say: the editor marks the Escape it used
-      window.setTimeout(() => !event.defaultPrevented && setFull(false));
+      if (event.key !== 'Escape') return;
+      // What is open over the plan closes first (a dialog, a menu, a field being typed in)
+      const inside = (event.target as Element).closest?.(
+        '[role="dialog"], [role="menu"], [role="listbox"], .mantine-Popover-dropdown, input, textarea, select',
+      );
+      if (!inside) setFull(false);
     };
     window.addEventListener('keydown', onKey);
     return () => {

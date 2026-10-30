@@ -279,6 +279,44 @@ export function PlanDefs({ id }: { id: string }) {
         <circle cx="4" cy="4" r="1.6" fill="#fdba74" />
         <circle cx="11" cy="10" r="1.3" fill="#fed7aa" />
       </pattern>
+      {/* A place for gatherings, from above: a one-floor hall with a hip roof, its garden,
+          trees and benches, a path to its door; drawn once, as large as the space */}
+      <symbol id={`${id}-commons`} viewBox="0 0 100 70" preserveAspectRatio="xMidYMid meet">
+        <rect x="2" y="2" width="96" height="66" rx="6" fill="#86efac" opacity="0.45" />
+        <path d="M34 50 V68" stroke="#e7d9bf" strokeWidth="5" strokeLinecap="round" />
+        <rect
+          x="10"
+          y="12"
+          width="50"
+          height="38"
+          rx="1.5"
+          fill="#1c1917"
+          opacity="0.18"
+          transform="translate(1.6 2)"
+        />
+        <rect x="10" y="12" width="50" height="38" rx="1.5" fill="#e08a5f" />
+        <path
+          d="M10 12 L24 31 L46 31 L60 12 M10 50 L24 31 M60 50 L46 31"
+          stroke="#b45f3c"
+          strokeWidth="1.1"
+          fill="none"
+        />
+        <path d="M10 12 L24 31 L10 50 Z" fill="#c9714a" opacity="0.6" />
+        <path d="M60 12 L46 31 L60 50 Z" fill="#f3a57c" opacity="0.5" />
+        <rect x="31" y="48" width="6" height="3" fill="#7c4a2f" />
+        {[
+          [76, 18, 7],
+          [88, 30, 6],
+          [74, 44, 6.5],
+        ].map(([cx, cy, r], index) => (
+          <g key={index}>
+            <circle cx={cx! + 1.5} cy={cy! + 2} r={r} fill="#1f3d17" opacity="0.25" />
+            <circle cx={cx} cy={cy} r={r} fill={`url(#${id}-canopy${index % 3})`} />
+          </g>
+        ))}
+        <rect x="64" y="56" width="10" height="2.6" rx="1" fill="#8b5e3c" />
+        <rect x="80" y="56" width="10" height="2.6" rx="1" fill="#8b5e3c" />
+      </symbol>
       {/* Play equipment from above, in bright paint, with a little shade */}
       <symbol id={`${id}-play-swing`} viewBox="-10 -10 20 20" overflow="visible">
         <g className="plan-play-shade">
@@ -362,6 +400,28 @@ export function PlanGround({
       strokeWidth={2}
       strokeDasharray="10 5"
       {...rest}
+    />
+  );
+}
+
+/**
+ * A hint of a unit's rooms: a wall across it and one splitting its far side, faint, never
+ * fighting its name; along the unit's own sides, so it turns with it (four-sided units)
+ */
+function Rooms({ polygon }: { polygon: Point[] }) {
+  if (polygon.length !== 4) return null;
+  const [a, b, c, d] = polygon as [Point, Point, Point, Point];
+  const along = (from: Point, to: Point, t: number): Point => [
+    from[0] + (to[0] - from[0]) * t,
+    from[1] + (to[1] - from[1]) * t,
+  ];
+  const [top, bottom] = [along(a, b, 0.56), along(d, c, 0.56)];
+  const [side, middle] = [along(b, c, 0.5), along(top, bottom, 0.5)];
+  return (
+    <path
+      className="plan-rooms"
+      d={`M${top.join(' ')} L${bottom.join(' ')} M${middle.join(' ')} L${side.join(' ')}`}
+      aria-hidden
     />
   );
 }
@@ -476,6 +536,25 @@ function Gate({ polygon }: { polygon: Point[] }) {
   );
 }
 
+/** A common space's hall and garden, as large as the space allows, within it */
+function CommonsDrawing({ id, polygon, clip }: { id: string; polygon: Point[]; clip: string }) {
+  const box = bounds(polygon);
+  const [w, h] = [box.maxX - box.minX, box.maxY - box.minY];
+  if (w < 30 || h < 22) return null;
+  const pad = Math.min(w, h) * 0.08;
+  return (
+    <g clipPath={`url(#${id}-${clip})`} pointerEvents="none" className="plan-commons">
+      <use
+        href={`#${id}-commons`}
+        x={box.minX + pad}
+        y={box.minY + pad}
+        width={w - pad * 2}
+        height={h - pad * 2}
+      />
+    </g>
+  );
+}
+
 /** A street's centre line, dashed, along its length */
 function CentreLine({ id, polygon, clip }: { id: string; polygon: Point[]; clip: string }) {
   const box = bounds(polygon);
@@ -571,7 +650,13 @@ export function PlanShape({
         className="plan-top"
         filter={`url(#${id}-${raised ? 'shadow' : 'ground-shadow'})`}
       />
-      {kind === 'common' ? <polygon points={shape} fill={`url(#${id}-stripes)`} /> : null}
+      {kind === 'common' ? (
+        <>
+          <polygon points={shape} fill={`url(#${id}-stripes)`} />
+          <CommonsDrawing id={id} polygon={polygon} clip={clip} />
+        </>
+      ) : null}
+      {kind === 'unit' ? <Rooms polygon={polygon} /> : null}
       {kind === 'street' ? <CentreLine id={id} polygon={polygon} clip={clip} /> : null}
       {kind === 'parking' ? <Bays id={id} polygon={polygon} clip={clip} /> : null}
       {kind === 'playground' ? (

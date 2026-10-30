@@ -41,6 +41,7 @@ jobs:
           staging="$(deploy/ci/deploy status | sed -nE 's/^staging live=[a-z]+:ghcr\.io\/devvir\/mtav:sha-([0-9a-f]{40}).*/\1/p')"
           commit="$(git rev-parse --verify "${REQUESTED:-${staging:?staging runs no release yet: name a commit}}^{commit}")"
           git merge-base --is-ancestor "$commit" origin/main || { echo "$commit is not on main"; exit 1; }
+          git merge-base --is-ancestor "$commit" origin/staging || { echo "$commit never went through staging"; exit 1; }
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
       - name: Deploy

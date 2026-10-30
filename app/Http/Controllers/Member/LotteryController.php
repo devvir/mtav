@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Services\Queue\Workers;
 use App\Enums\LotteryRunStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
@@ -37,6 +38,8 @@ class LotteryController extends Controller
         return inertia('Member/Lottery', [
             'lottery' => EventResource::make($project->lottery),
             'status'  => $activeRun?->status->value,
+            /** Whether the server can run it now (nothing works its queue: held, and said) */
+            'runnable' => Workers::running(),
             /** A run under way: when it began and when it ends, for its progress */
             'pace' => $activeRun?->status === LotteryRunStatus::RUNNING
                 ? ['started_at' => $activeRun->started_at, 'reveal_at' => $activeRun->reveal_at]

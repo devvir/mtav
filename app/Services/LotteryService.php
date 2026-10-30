@@ -21,6 +21,7 @@ use App\Services\Lottery\Exceptions\CannotExecuteLotteryException;
 use App\Services\Lottery\Exceptions\LotteryLockedException;
 use App\Services\Lottery\Exceptions\UnitFamilyMismatchException;
 use App\Services\Lottery\PreferencesService;
+use App\Services\Queue\Workers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -226,6 +227,7 @@ class LotteryService
 
         match (true) {
             $project->activeLotteryRun()->exists() => throw CannotExecuteLotteryException::because('already_run'),
+            ! Workers::running()                   => throw CannotExecuteLotteryException::because('no_worker'),
             ! $lottery->start_date                 => throw CannotExecuteLotteryException::because('not_scheduled'),
             $lottery->start_date->isFuture()       => throw CannotExecuteLotteryException::because('not_due'),
             $families < 2                          => throw CannotExecuteLotteryException::because('too_few_families'),

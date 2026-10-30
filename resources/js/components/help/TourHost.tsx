@@ -17,9 +17,13 @@ import {
 const PAD = 8;
 const WIDTH = 352;
 
+/** How long a step follows its element as the page scrolls it into view */
+const FOLLOW_MS = 700;
+
 /**
  * Plays the current tour: dims the page, lights up the step's element, and shows the step
- * beside it (at the bottom of the screen on phones). Keyboard: ← → Esc.
+ * beside it (at the bottom of the screen on phones). Keyboard: ← → Esc. The light follows
+ * its element at once, a measure per frame at most, never behind it.
  */
 export function TourHost() {
   const state = useStore(tourState);
@@ -28,20 +32,34 @@ export function TourHost() {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const card = useRef<HTMLDivElement>(null);
 
+  // One measure per frame, however many scroll events come
+  const frame = useRef(0);
   const measure = useCallback(() => {
-    const current = currentStep();
-    setRect((current && findTarget(current.target)?.getBoundingClientRect()) ?? null);
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      const current = currentStep();
+      setRect((current && findTarget(current.target)?.getBoundingClientRect()) ?? null);
+    });
   }, []);
 
   useLayoutEffect(() => {
     if (!step) return undefined;
-    findTarget(step.target)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    const settle = setTimeout(() => {
+    const target = findTarget(step.target);
+    target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    card.current?.focus({ preventScroll: true });
+    // Along with the page as it scrolls the element into view
+    const until = performance.now() + FOLLOW_MS;
+    let follow = 0;
+    const follow_ = () => {
       measure();
-      card.current?.focus();
-    }, 300);
-    return () => clearTimeout(settle);
+      if (performance.now() < until) follow = requestAnimationFrame(follow_);
+    };
+    follow = requestAnimationFrame(follow_);
+    return () => cancelAnimationFrame(follow);
   }, [step, measure]);
+
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   useEffect(() => {
     if (!step) return undefined;
@@ -86,8 +104,7 @@ export function TourHost() {
           <div
             className="tour-spotlight"
             style={{
-              top: rect.top - PAD,
-              left: rect.left - PAD,
+              transform: `translate(${rect.left - PAD}px, ${rect.top - PAD}px)`,
               width: rect.width + PAD * 2,
               height: rect.height + PAD * 2,
             }}

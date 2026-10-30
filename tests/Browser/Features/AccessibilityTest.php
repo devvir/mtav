@@ -5,8 +5,8 @@
  */
 
 it('has accessible pages for people not signed in', function () {
-    visit(route('login'))->assertNoAccessibilityIssues();
-    visit(route('register'))->assertNoAccessibilityIssues();
+    assertAccessible(visit(route('login')));
+    assertAccessible(visit(route('register')));
 });
 
 it('has an accessible member app', function () {
@@ -16,7 +16,7 @@ it('has an accessible member app', function () {
     $this->as(aMemberOf(aFamily($project, $type)));
 
     foreach (['projects.show', 'lottery.show', 'events.index', 'media.index', 'families.index'] as $route) {
-        visit(route($route, $project))->assertNoAccessibilityIssues();
+        assertAccessible(visit(route($route, $project)));
     }
 });
 
@@ -25,7 +25,7 @@ it('has an accessible admin area', function () {
     $this->as(anAdminOf($project));
 
     foreach (['manage.overview', 'units.index', 'manage.invitations.index', 'lottery.show'] as $route) {
-        visit(route($route, $project))->assertNoAccessibilityIssues();
+        assertAccessible(visit(route($route, $project)));
     }
 });
 
@@ -51,6 +51,7 @@ it('has accessible components in every palette, scheme and contrast', function (
         ->assertScript("getComputedStyle(document.documentElement).getPropertyValue('--mantine-color-brand-6').trim()", $brand);
 
     foreach (['Foundations', 'Controls', 'Feedback', 'Surfaces', 'People', 'Navigation'] as $section) {
-        $page->click(".lab-nav button:has-text(\"{$section}\")")->assertNoAccessibilityIssues();
+        // Every component in every state at once: the heaviest page there is
+        assertAccessible($page->click(".lab-nav button:has-text(\"{$section}\")"), seconds: 30);
     }
 })->with(['terracotta', 'indigo', 'forest', 'ocean'])->with(['light', 'dark'])->with(['standard', 'high']);

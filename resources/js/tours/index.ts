@@ -1,3 +1,4 @@
+import { appName } from '@/lib/app';
 import { defineTour } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 
@@ -73,9 +74,10 @@ defineTour('manage.setup', () => [
   },
   {
     target: 'setup.approval',
-    title: _('Limits until approved'),
+    title: _('Room for the project'),
     body: _(
-      'New projects work within some limits. Ask for approval when you are ready: a superadmin reviews the project and lifts them.',
+      'A limited project has room for most cooperatives. Should it need more, ask: the {app} team can make it unlimited.',
+      { app: appName() },
     ),
   },
 ]);

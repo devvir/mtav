@@ -70,6 +70,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
+            // Refused before the shared data was added (a model not found in the address): the
+            // page still gets it, so it shows within the app the person is signed in to
+            Inertia::share(app(HandleInertiaRequests::class)->share($request));
+
             return Inertia::render('Error', ['status' => $status])
                 ->toResponse($request)
                 ->setStatusCode($status);

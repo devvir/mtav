@@ -1,5 +1,6 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { FileDrop, fileSize } from '@/design';
+import { megabytes } from '@/lib/app';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -85,9 +86,9 @@ export function ShareFilesForm({
       />
       {storage ? (
         <Text className="ds-caption">
-          {_('The project uses {used} of its {limit} MB until it is approved.', {
-            used: storage.used_mb,
-            limit: storage.limit_mb,
+          {_('The project uses {used} of its {limit}.', {
+            used: megabytes(storage.used_mb),
+            limit: megabytes(storage.limit_mb),
           })}
         </Text>
       ) : null}

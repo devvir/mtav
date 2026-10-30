@@ -9,6 +9,8 @@ import './design/styles.css';
 import './tours';
 
 import { Appearance } from '@/design';
+import { setAppName } from '@/lib/app';
+import { workOffline } from '@/lib/offline';
 import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
 import { _, loadLocale } from '@/lib/translations';
@@ -53,6 +55,8 @@ createInertiaApp({
   setup({ el, App, props }) {
     setRoutes(props.initialPage.props.routes, props.initialPage.props.ziggy);
     connectRealtime(props.initialPage.props.realtime);
+    workOffline(props.initialPage.props.auth?.user?.id ?? null);
+    setAppName(props.initialPage.props.name as string | undefined);
 
     // The first render waits for the words of the language in use (one small file, cached)
     void loadLocale(props.initialPage.props.locale as string).then(() =>

@@ -2,14 +2,26 @@ import { SetupChecklist, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Glyph, Stat } from '@/design';
+import { Stat } from '@/design';
+import { appName } from '@/lib/app';
 import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { router, usePage } from '@inertiajs/react';
-import { Button, Card, Group, Progress, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import {
+  Badge,
+  Button,
+  Card,
+  Collapse,
+  Group,
+  Progress,
+  SimpleGrid,
+  Stack,
+  Text,
+} from '@mantine/core';
+import {
+  IconGauge,
   IconLayoutGrid,
   IconMail,
   IconPhoto,
@@ -18,6 +30,7 @@ import {
   IconUsers,
   IconUsersGroup,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 
 type Key = 'unit_types' | 'units' | 'families' | 'people' | 'invitations' | 'media';
 
@@ -60,9 +73,11 @@ export default function Overview({ counts, checklist, approval }: Props) {
 
   const requestApproval = async () => {
     const ok = await confirm({
-      title: _('Ask for approval?'),
-      message: _('A superadmin reviews the project; once approved, its limits are lifted.'),
-      confirmLabel: _('Ask for approval'),
+      title: _('Make the project unlimited?'),
+      message: _('The {app} team looks at the project and lifts its limits.', {
+        app: appName(),
+      }),
+      confirmLabel: _('Ask for unlimited'),
     });
     if (ok) router.post(route('manage.approval.request'), {}, { preserveScroll: true });
   };
@@ -108,49 +123,89 @@ export default function Overview({ counts, checklist, approval }: Props) {
       <div className="with-aside">
         <SetupChecklist setup={checklist} />
 
-        {!approval.approved ? (
-          <Card p="lg" data-tour="setup.approval" className="approval-card">
-            <Group gap="sm">
-              <Glyph icon={IconShieldCheck} tone="warning" />
-              <Title order={2} fz="md">
-                {_('Awaiting approval')}
-              </Title>
-            </Group>
-            <Text size="sm" c="dimmed" mt="sm">
-              {_('Until a superadmin approves the project, it works within these limits:')}
-            </Text>
-            <Stack gap="sm" mt="md">
-              {usage.map((item) => (
-                <div key={item.label}>
-                  <Group justify="space-between" fz="sm">
-                    <span>{item.label}</span>
-                    <span className="ds-num" style={{ color: 'var(--mtav-muted)' }}>
-                      {item.used} / {item.limit}
-                    </span>
-                  </Group>
-                  <Progress
-                    value={Math.min(100, (item.used / item.limit) * 100)}
-                    color={item.used / item.limit > 0.85 ? 'yellow' : undefined}
-                    radius="xl"
-                    size="sm"
-                    mt={4}
-                    aria-label={item.label}
-                  />
-                </div>
-              ))}
-            </Stack>
-            {approval.requested_at ? (
-              <Text size="sm" mt="md">
-                {_('Approval requested')} <DateTime value={approval.requested_at} relative />.
-              </Text>
-            ) : (
-              <Button fullWidth mt="md" onClick={requestApproval}>
-                {_('Ask for approval')}
-              </Button>
-            )}
-          </Card>
-        ) : null}
+        <ProjectCapacity approval={approval} usage={usage} onAsk={requestApproval} />
       </div>
     </>
+  );
+}
+
+/**
+ * A limited project's room: quiet, folded behind a button in a corner saying "Limited"
+ * (a fact, never a warning), unfolded the room used and asking for unlimited; an
+ * unlimited project says so in a word
+ */
+function ProjectCapacity({
+  approval,
+  usage,
+  onAsk,
+}: {
+  approval: Props['approval'];
+  usage: { label: string; used: number; limit: number }[];
+  onAsk: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (approval.approved)
+    return (
+      <Group justify="flex-end" data-tour="setup.approval">
+        <Badge variant="light" color="green" leftSection={<IconShieldCheck size={14} />}>
+          {_('Unlimited')}
+        </Badge>
+      </Group>
+    );
+
+  return (
+    <Stack gap="xs" data-tour="setup.approval">
+      <Collapse expanded={open} transitionDuration={220}>
+        <Card p="lg" className="capacity-card">
+          <Text size="sm" c="dimmed">
+            {_('What the project has room for:')}
+          </Text>
+          <Stack gap="sm" mt="md">
+            {usage.map((item) => (
+              <div key={item.label}>
+                <Group justify="space-between" fz="sm">
+                  <span>{item.label}</span>
+                  <span className="ds-num" style={{ color: 'var(--mtav-muted)' }}>
+                    {item.used} / {item.limit}
+                  </span>
+                </Group>
+                <Progress
+                  value={Math.min(100, (item.used / item.limit) * 100)}
+                  color={item.used / item.limit > 0.85 ? 'yellow' : undefined}
+                  radius="xl"
+                  size="sm"
+                  mt={4}
+                  aria-label={item.label}
+                />
+              </div>
+            ))}
+          </Stack>
+          <Group justify="flex-end" mt="md">
+            {approval.requested_at ? (
+              <Text size="sm" c="dimmed">
+                {_('Unlimited asked for')} <DateTime value={approval.requested_at} relative />.
+              </Text>
+            ) : (
+              <Button variant="light" size="xs" onClick={onAsk}>
+                {_('Ask for unlimited')}
+              </Button>
+            )}
+          </Group>
+        </Card>
+      </Collapse>
+      <Group justify="flex-end">
+        <Button
+          variant="subtle"
+          color="gray"
+          size="xs"
+          aria-expanded={open}
+          leftSection={<IconGauge size={14} />}
+          onClick={() => setOpen(!open)}
+        >
+          {_('Limited')}
+        </Button>
+      </Group>
+    </Stack>
   );
 }

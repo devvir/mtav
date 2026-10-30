@@ -29,7 +29,16 @@ decision taken on the way is listed below for review.
   sizes, invitation counts and rate, lottery size, …). A superadmin approval — a
   statement of trust in the project's managers, which they request — lifts the limits.
   Projects created by a superadmin start approved. Every limit is configurable; nothing
-  is removed, only bounded.
+  is removed, only bounded. The limits keep abuse in check, never push anyone to ask: by
+  default 500 people, 300 families and 300 units, 150 invitations a day, files of 25 MB
+  and 2 GB in all (`config/limits.php`).
+  - **As people read it**: "approved" and "superadmin" stay internal (the console). A
+    project is *Limited* ("Limitado") or *Unlimited* ("Ilimitado"), a fact either way;
+    whoever runs the platform is "the {app} team" ("el equipo de MTAV"), named after the
+    deployment. The setup page keeps a limited project's room folded behind a quiet
+    "Limited" button, where it asks for unlimited; no banner on every page.
+  - A project's organization is free text, suggesting the federations of Uruguay's
+    housing cooperatives (FUCVAM, FECOVI); any other name, or none, is as good.
 - **Lottery invalidation** moves to admins, with mandatory visibility: invalidating
   requires a reason, and every member of the project sees that the lottery was
   invalidated, by whom, when and why.
@@ -129,13 +138,19 @@ decision taken on the way is listed below for review.
   - lists of up to 200 items come whole and are searched, filtered and sorted in the
     browser, with no request per keystroke (past 200, the server pages and searches, as
     before);
-  - a project snapshot (everything the person may see, with its version) is fetched once
-    and kept on the device (IndexedDB, per account and project, cleared on signing out);
-  - pages render from it at once and ask the server in the background: offline, the
-    local data stays (and the failure is logged); unchanged, nothing happens; changed,
-    the screen and the local copy update;
-  - the live change events (Reverb) update the local copy as they arrive;
-  - it only ever holds what that person may see; a change of their role rebuilds it.
+  - each page is kept on the device as it was last loaded (by a service worker,
+    `public/sw.js`: the page as the server answers it, never a second copy of the data
+    in another shape), and a project's main places are loaded in the background after
+    arriving: offline they open, even unvisited, and so does a reload; the server
+    answers first whenever it can (it is always the newest), the kept copy when it
+    cannot;
+  - offline, the bar says so, and every change (adding, editing, uploading, removing,
+    ranking, answering an event) is held with a clear message, never shown as done;
+  - what is kept is the person's own: another person signing in on the device starts
+    afresh;
+  - *still open*: pages drawn from the device at once, before the server answers (a store
+    of the project's data that each page reads); measured worth it before built, as it
+    reshapes every page.
 - **An owner per deployment.** A deployment is used only once it has an owner, its first
   superadmin: while it has no account at all, `OWNER_EMAIL` / `OWNER_PASSWORD` (and
   `OWNER_NAME`) create it; without them the site shows only that it is under
@@ -146,7 +161,10 @@ decision taken on the way is listed below for review.
   assignment, checking it), for at least the time superadmins set in the platform
   console (20 seconds unless set, up to 5 minutes). The assignment found is held on the
   run and written when that time is up, so every page shows the lottery running until
-  then, and its result everywhere at once.
+  then, and its result everywhere at once. It runs only while something works the queue
+  (each worker leaves a mark as it loops): while nothing does, the lottery page says so to
+  everyone and running it is refused, before anyone tries; Docker restarts a worker that
+  stops (`restart: unless-stopped`).
 - **Uploads.** Files are checked by content, never by name; SVG is refused; images are
   refused past 50 megapixels (a small file can claim more than can be opened); files
   are served to the project only, with `nosniff`, inline only what cannot run in the
@@ -295,6 +313,9 @@ decision taken on the way is listed below for review.
     ranking under it as numbered places: a unit dragged off the plan (mouse or pen) onto
     a place takes it, a unit clicked on the plan lights up in the ranking, and the unit
     being moved or pointed at in the ranking lights up on the plan.
+    Common spaces show a place for gatherings (a one-floor hall with its garden), one
+    drawing as large as the space; units a faint hint of their rooms, along their own
+    sides, never fighting their name.
     *Nice to have*: a real scale, so whoever draws from a sketch places things in metres,
     not in the canvas's units (how is not decided).
 11. **Visual design pass**, last — once everything works. A modern look across every
@@ -322,11 +343,18 @@ decision taken on the way is listed below for review.
     technical/delivery.md). Its photos are Uruguayan housing cooperatives: families
     building by mutual aid, from the cooperatives themselves (the first version's), and
     finished cooperatives from Wikimedia Commons (CC BY-SA 4.0, credited on the page).
-    More of the cooperatives' own are welcome.
+    More of the cooperatives' own are welcome. Its first picture moves on by itself
+    (Mesa 1, VICMAN, the first housing cooperative in Uruguay; still for whoever asks for
+    less motion), the others stay still; it leads to the member manual.
 16. **Illustrated manuals**, one per role (member, admin, superadmin), in every language:
     every place and action shown in a picture of the real app, cut to what matters and
     marked (where to click, numbered as the text refers to it), next to short steps. The
     pictures are taken by `scripts/guide-shots` from the demo data, per language; they
-    follow considerable UI changes, not every small one.
-17. **Later, low priority**: notifications stored as structured data, translated for each
+    follow considerable UI changes, not every small one. The member manual is public, at
+    `/manual`: the manual alone, the device's theme, the browser's language; the admins'
+    and superadmins' stay in the app.
+17. **Branches and their deploys, with the author**: `main`, `staging`, `dev` (work
+    happens on `dev`); the first pushes to `dev` and `staging` deployed, then `main`; the
+    per-environment deploy keys set up on the host (see *Delivery from scratch*).
+18. **Later, low priority**: notifications stored as structured data, translated for each
     reader.

@@ -56,6 +56,19 @@ class DocumentationController extends Controller
     }
 
     /**
+     * The member manual on its own, for anyone (signed in or not): the manual alone, in the
+     * browser's language (or the one picked), as the device shows things.
+     */
+    public function manual(): Response
+    {
+        $path = resource_path('views/guides/' . app()->getLocale() . '/guide.member.html');
+
+        return inertia('Manual', [
+            'content' => File::get(File::exists($path) ? $path : resource_path('views/guides/en/guide.member.html')),
+        ]);
+    }
+
+    /**
      * Admins of any project (or superadmins) read the admin guide.
      */
     private function role(Request $request): string

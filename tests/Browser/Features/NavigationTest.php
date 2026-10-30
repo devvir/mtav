@@ -120,3 +120,12 @@ it('keeps the project being browsed around one\'s profile, with its places to go
         ->click('.shell-sidebar >> text=Lottery')
         ->assertPathIs(pathOf('lottery.show', $other));
 });
+
+it('says a project that does not exist is not found, within the app one is signed in to', function () {
+    $this->as($this->member);
+
+    visit('/projects/999999/lottery')
+        ->assertSee('Page not found')
+        ->assertPresent('.shell-sidebar')
+        ->assertNoSmoke();
+});

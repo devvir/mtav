@@ -64,7 +64,7 @@ it('shows how much storage an unapproved project uses', function () {
 
     visit(route('media.index', $project))
         ->click('Share files')
-        ->assertSeeIn('[role="dialog"]', 'The project uses 0 of its 200 MB until it is approved.');
+        ->assertSeeIn('[role="dialog"]', 'The project uses 0 MB of its 2 GB.');
 });
 
 it('goes from one photo to the next with the arrows, the keyboard and back', function () {
