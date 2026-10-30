@@ -1,4 +1,4 @@
-/* global process, console, URL -- Node runs it */
+/* global process, console, URL, navigator -- Node runs it; some of it runs in the page */
 // Working offline, checked in a real browser (the browser suite cannot cut the network):
 // signed in, the main places kept in the background; then offline, an unvisited place
 // opens, a reload opens, a change is held with its message, and the status clears back
