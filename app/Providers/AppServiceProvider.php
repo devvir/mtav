@@ -6,7 +6,15 @@ use App\Services\Queue\Workers;
 use Illuminate\Support\Facades\Queue;
 use App\Models\User;
 use App\Services\Delivery\GitHub;
+use App\Services\ActivityLog;
+use App\Services\Push\PushSender;
+use App\Services\Push\WebPushSender;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
@@ -20,8 +28,14 @@ class AppServiceProvider extends ServiceProvider
      */
     private const PERSONAL_ABILITIES = ['rankUnits', 'rsvp', 'deploy'];
 
+    public function register(): void
+    {
+        $this->app->singleton(PushSender::class, WebPushSender::class);
+    }
+
     public function boot(): void
     {
+        $this->recordWaysIn();
         $this->configureVite();
         $this->configureModels();
 
@@ -56,5 +70,19 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::shouldBeStrict(! app()->isProduction());
         Model::automaticallyEagerLoadRelationships();
+    }
+
+    /** Signing in and out, and failing to, are in the activity log (ActivityLog) */
+    private function recordWaysIn(): void
+    {
+        Event::listen(Login::class, fn (Login $event) => ActivityLog::record('signed_in', actor: $event->user));
+        Event::listen(Logout::class, function (Logout $event) {
+            $event->user && ActivityLog::record('signed_out', actor: $event->user);
+        });
+        Event::listen(Failed::class, fn (Failed $event) => ActivityLog::record(
+            'sign_in_failed',
+            changes: ['email' => $event->credentials['email'] ?? null],
+        ));
+        Event::listen(PasswordReset::class, fn (PasswordReset $event) => ActivityLog::record('password_reset', actor: $event->user));
     }
 }

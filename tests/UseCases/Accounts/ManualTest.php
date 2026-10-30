@@ -31,7 +31,7 @@ it('says anyone what is kept about them and whom to write, in their language', f
         ->not->toContain('{contact}');
 
     expect($this->get(route('privacy'), ['Accept-Language' => 'es-UY'])->inertiaProps('content'))
-        ->toContain('Tu cédula es solo para ti');
+        ->toContain('Tu cédula, si la agregas, la ven solo tú y los administradores');
 });
 
 it('has whom to write about data without a contact set: the owner', function () {

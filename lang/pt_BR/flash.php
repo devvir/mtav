@@ -71,4 +71,9 @@ return [
     'deploy_refused'          => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
     'upload_too_large'        => 'Era demais para enviar de uma vez: compartilhe menos arquivos, ou menores.',
     'platform_settings_saved' => 'As configurações da plataforma foram salvas.',
+    'page_expired'            => 'A página ficou aberta por muito tempo: tente de novo.',
+    'account_deleted'         => 'Sua conta foi excluída.',
+    'topic_opened'            => 'Seu tópico está aberto.',
+    'topic_removed'           => 'O tópico foi removido.',
+    'error_solved'            => 'Marcado como resolvido.',
 ];

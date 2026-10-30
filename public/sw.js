@@ -113,3 +113,37 @@ async function networkFirst(request) {
     }
   }
 }
+
+/**
+ * A notification pushed by the server (lib/push.ts subscribed this browser): shown as the
+ * system's own, in the person's language (the server wrote it so). Clicking it opens what
+ * it is about, in a window of the app already open if there is one.
+ */
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? {};
+  event.waitUntil(
+    self.registration.showNotification(data.title ?? 'MTAV', {
+      body: data.message ?? '',
+      icon: '/images/app/icon-192.png',
+      badge: '/images/app/icon-192.png',
+      tag: data.tag,
+      data: { url: data.url ?? '/' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url ?? '/', location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const app = open.find((client) => client.url.startsWith(location.origin));
+      if (app) {
+        await app.focus();
+        return app.navigate(url);
+      }
+      return self.clients.openWindow(url);
+    })(),
+  );
+});

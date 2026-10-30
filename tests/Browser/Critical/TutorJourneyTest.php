@@ -93,10 +93,9 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->wait(2);
     expect($families[0]->preferences()->first()?->id)->toBe($last->id);
 
-    // The admin dates it (now) and runs it: every family gets a unit
+    // The admin dates it (today, at midnight: already due) and runs it: every family gets a unit
     $this->as($tutor);
-    $page = visit(route('lottery.show', $project))
-        ->fill('start_date', now()->subDay()->format('Y-m-d\TH:i'))
+    $page = pickDay(visit(route('lottery.show', $project)), 'start_date', now())
         ->click('[data-tour="lottery.schedule"] button[type="submit"]')
         ->assertSee('The lottery was scheduled');
     runTheLottery($page)->assertSee('The lottery is done: every family has its unit.')->assertNoSmoke();

@@ -1,4 +1,5 @@
-import { FamilyMark, Panel, PersonAvatar } from '@/design';
+import { FoldablePanel } from '@/components/layout/FoldablePanel';
+import { FamilyMark, PersonAvatar } from '@/design';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Family, Person } from '@/types/models';
@@ -37,7 +38,8 @@ function PersonRow({ person, caption }: { person: Person; caption?: string | nul
 /** Who the project is: some of its families, its admins, and who joined last */
 export function CommunityPanel({ community }: { community: Community }) {
   return (
-    <Panel
+    <FoldablePanel
+      name="community"
       title={_('The people of the project')}
       icon={IconUsersGroup}
       tone="brand"
@@ -96,6 +98,6 @@ export function CommunityPanel({ community }: { community: Community }) {
           </div>
         </SimpleGrid>
       </Stack>
-    </Panel>
+    </FoldablePanel>
   );
 }

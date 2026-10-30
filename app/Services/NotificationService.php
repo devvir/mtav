@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use App\Events\NotificationSent;
+use App\Jobs\PushNotification;
+use App\Services\Push\PushService;
 use App\Models\Notification;
 use App\Models\User;
 
@@ -43,6 +45,8 @@ class NotificationService
 
         /** Live delivery is a bonus: a websocket server that is down never fails the action */
         rescue(fn () => NotificationSent::dispatch($notification));
+        // And to people's devices, in the background
+        PushService::enabled() && rescue(fn () => PushNotification::dispatch($notification->id));
 
         return $notification;
     }

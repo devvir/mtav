@@ -27,4 +27,8 @@ return [
     'email_change_subject' => 'L’email del tuo account sta per cambiare',
     'email_change_intro'   => 'Qualcuno ha chiesto di cambiare l’email del tuo account in :email. Cambia quando quell’indirizzo lo conferma.',
     'email_change_ignore'  => 'Se non sei stato tu, cambia subito la password: fino ad allora il tuo account mantiene questo indirizzo.',
+
+    'new_error_subject' => 'Qualcosa non è andato in :app',
+    'new_error_intro'   => 'L’app ha incontrato un errore mai visto prima:',
+    'new_error_action'  => 'Vedi gli errori',
 ];

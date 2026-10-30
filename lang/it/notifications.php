@@ -29,4 +29,9 @@ return [
 
     'lottery_invalidated_title'   => 'Il sorteggio è stato annullato',
     'lottery_invalidated_message' => ':name ha annullato il sorteggio: «:reason». Verrà rifatto.',
+
+    'forum_topic_title'   => 'Nuovo argomento nel forum',
+    'forum_topic_message' => ':name ha aperto «:title».',
+    'forum_reply_title'   => 'Una risposta nel forum',
+    'forum_reply_message' => ':name ha risposto in «:title».',
 ];

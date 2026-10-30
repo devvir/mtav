@@ -1,4 +1,4 @@
-import { checkbox, field } from '@/lib/forms';
+import { checkbox, dateTime, field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
@@ -14,6 +14,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { IconMapPin, IconVideo } from '@tabler/icons-react';
+import { DateTimeField } from './DateTimeField';
 import { Form, FormActions } from './Form';
 
 /** <input type="datetime-local"> wants local time without a zone */
@@ -85,18 +86,16 @@ export function EventForm({ event, onDone }: { event?: ProjectEvent; onDone: () 
         {...field(form, 'location')}
       />
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        <TextInput
+        <DateTimeField
           label={_('Starts')}
           description={_('Empty if not decided')}
-          type="datetime-local"
-          {...field(form, 'start_date')}
+          {...dateTime(form, 'start_date')}
         />
-        <TextInput
+        <DateTimeField
           label={_('Ends')}
           description={_('One hour if empty')}
-          type="datetime-local"
           min={form.data.start_date || undefined}
-          {...field(form, 'end_date')}
+          {...dateTime(form, 'end_date')}
         />
       </SimpleGrid>
       <Stack gap="xs">

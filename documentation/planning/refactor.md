@@ -229,7 +229,7 @@ decision taken on the way is listed below for review.
    dedicated unit type form); pages adapted to the new routes and props.
 5. **Plan editor**: multiple floors, resizing, polygons, non-unit items.
 6. **Guided help**: info icons (?) explaining concepts where needed, ending, where it
-   fits, with "Show me how", which starts a guided tour of that spot.
+   fits, with "Tell me more", which starts a guided tour of that spot.
 7. **Polish**: containers, documentation rewritten against the code, E2E journeys
    rewritten.
 8. **Parity with the pre-refactor app** (behaviour and rules compared in
@@ -367,11 +367,29 @@ decision taken on the way is listed below for review.
       For new people tours run as they arrive at each page, easily dismissed; dismissing
       one offers once to show no more (the (?) still has them). The tour blurs the rest of
       the page a little; a subtler outline.
-    - Agreed ideas: an app manifest (installable on phones, needed for push on iPhone);
-      production database backups pulled to the author's machine by a cron job there (its
-      address changes, so the host cannot push); people deleting their own account;
-      CSV export of families and units for admins; free error monitoring; every relevant
-      event recorded (changes, signing in and out…) for superadmins to review, to make
-      everything auditable, never to watch people.
-19. **Later, low priority**: notifications stored as structured data, translated for each
-    reader.
+    - Agreed ideas, built (see technical/data.md and notifications.md): the app installs
+      on devices; production's database and files pulled every night to the author's
+      machine (its address changes, so the host cannot push); people deleting their own
+      account; people, families and units as spreadsheets for admins; the app keeping its
+      own errors (the owner emailed of new ones); every change and every way in recorded
+      for superadmins, to make everything auditable, never to watch people; a forum.
+19. **The author's review of 2026-10-30 (night)**:
+    - The ID number (cédula), when someone gives it, is seen by them and their projects'
+      admins (legal use); the privacy page says so.
+    - The (?)'s button says "Tell me more" (written natively per language): there is not
+      always something to show.
+    - The project's home: every panel folds (remembered per device); what was shared and
+      what is coming up side by side; the lottery hidden until it has a date, then a wide
+      card up front; once it has run, the road to it is gone.
+    - Quick actions for admins, in this order: invite a member, add a family, set up
+      units, create an event, upload pictures or files (written natively per language).
+    - The lottery page shows ranking only to people in a family; its tour covers both
+      roles (someone in both walks through both).
+    - Dates are picked on a calendar in the person's language (weeks from Monday, 24-hour
+      time), the same in every browser.
+    - A project's admin pages are one "Settings" place at the bottom of the sidebar, set
+      apart: Setup (its families, people and units a click away, and the checklist),
+      Invitations, Project. Figure cards fit their names. An unlimited project shows
+      nothing about room; only "Limited" is ever said.
+    - Notifications reach people's devices (Web Push), each in its reader's language
+      (notifications keep translation keys and values, written out per reader).

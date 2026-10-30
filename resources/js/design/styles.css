@@ -161,6 +161,13 @@ body {
 .ds-panel-body[data-flush] {
   padding: 0;
 }
+/* A panel's padding inside what it holds (a folding panel pads what folds) */
+.ds-panel-pad {
+  padding: 16px;
+}
+.ds-panel[data-folded] .ds-panel-header {
+  border-bottom-color: transparent;
+}
 
 /* A card that opens something: it lifts a little toward the pointer */
 .ds-interactive {
@@ -182,6 +189,14 @@ body {
   position: relative;
   padding: 16px 16px 14px;
   overflow: hidden;
+}
+.ds-stat-label {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ds-stat::before {
   content: '';

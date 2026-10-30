@@ -19,6 +19,16 @@ export function field<T extends Data>(form: InertiaFormProps<T>, name: keyof T &
   };
 }
 
+/** The same, for a DateTimeField (its value is the text itself) */
+export function dateTime<T extends Data>(form: InertiaFormProps<T>, name: keyof T & string) {
+  return {
+    name,
+    value: (form.data[name] ?? '') as string,
+    onChange: (value: string) => form.setData(name as never, value as never),
+    error: (form.errors as Record<string, string | undefined>)[name],
+  };
+}
+
 /** The same, for a checkbox or a switch */
 export function checkbox<T extends Data>(form: InertiaFormProps<T>, name: keyof T & string) {
   return {

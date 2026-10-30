@@ -6,10 +6,9 @@ import { _ } from '@/lib/translations';
 import {
   IconCalendarEvent,
   IconDice5,
-  IconGauge,
   IconHome,
   IconLayoutGrid,
-  IconMail,
+  IconMessages,
   IconPhoto,
   IconSettings,
   IconUserPlus,
@@ -62,6 +61,12 @@ export function projectPlaces(project: { id: number; family?: unknown }): NavEnt
       icon: IconPhoto,
       active: routeIs('media.*'),
     },
+    {
+      label: _('Forum'),
+      href: route('forum.index', at),
+      icon: IconMessages,
+      active: routeIs('forum.*'),
+    },
     ...(project.family
       ? [
           {
@@ -76,40 +81,26 @@ export function projectPlaces(project: { id: number; family?: unknown }): NavEnt
   ];
 }
 
-/** What only admins have a page for: setting the project up and its settings */
+/** What only admins have: the project's settings (setting it up, invitations, the project) */
 export function adminPlaces(project: { id: number }): NavEntry[] {
-  const at = { project: project.id };
-
   return [
     {
-      label: _('Setup'),
-      href: route('manage.overview', at),
-      icon: IconGauge,
-      active: routeIs('manage.overview'),
-    },
-    {
-      label: _('Invitations'),
-      href: route('manage.invitations.index', at),
-      icon: IconMail,
-      active: routeIs('manage.invitations.*'),
-    },
-    {
       label: _('Settings'),
-      href: route('manage.settings.edit', at),
+      href: route('manage.overview', { project: project.id }),
       icon: IconSettings,
-      active: routeIs('manage.settings.*'),
+      active: routeIs('manage.*'),
     },
   ];
 }
 
-/** The sidebar of a project: its places, and for admins what only they have pages for */
+/** The sidebar of a project: its places, and for admins its settings, apart at the bottom */
 export function projectNav(
   project: { id: number; name: string; family?: unknown },
   admin: boolean,
 ): NavGroup[] {
   return [
     { label: project.name, items: projectPlaces(project) },
-    ...(admin ? [{ label: _('Administration'), items: adminPlaces(project) }] : []),
+    ...(admin ? [{ label: _('Settings'), items: adminPlaces(project), apart: true }] : []),
   ];
 }
 

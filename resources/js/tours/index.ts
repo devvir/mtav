@@ -1,14 +1,73 @@
 import { appName } from '@/lib/app';
-import { defineTour } from '@/lib/tour';
+import { defineTour, type TourStep } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 
 /**
  * Every guided tour, by page. Steps point at data-tour="…" marks of the page;
- * InfoTip's "Show me how" starts them.
+ * InfoTip's "Tell me more" starts them.
  */
 
 /** Member app */
-defineTour('member.ranking', () => [
+/**
+ * The lottery page, for everyone: steps for admins and steps for families, each shown
+ * where its part is on the page (someone in both roles walks through both)
+ */
+const lotteryIntro = (): TourStep[] => [
+  {
+    target: 'lottery.status',
+    title: _('Where it stands'),
+    body: _(
+      'When the lottery happens, whether it is running, and once it has, which unit each family received.',
+    ),
+  },
+  {
+    target: 'lottery.status',
+    title: _('How it decides'),
+    body: _(
+      'Each family ranks the units of its type. The lottery first makes the worst-off family as well off as possible, then the whole project as satisfied as possible; only ties are drawn at random.',
+    ),
+  },
+];
+
+const lotteryAdmin = (): TourStep[] => [
+  {
+    target: 'lottery.schedule',
+    title: _('Its date'),
+    body: _(
+      'From this date on, the lottery can be run; until then, families can change their rankings. The description is what everyone reads at the top of this page.',
+    ),
+  },
+  {
+    target: 'lottery.readiness',
+    title: _('Ready, type by type'),
+    body: _(
+      'Each type should have as many units as families. If not, you are asked to confirm: what is left over of each type goes into one last round among everyone left over.',
+    ),
+  },
+  {
+    target: 'lottery.run',
+    title: _('Running it'),
+    body: _(
+      'Once its date arrives. Everyone sees it work, step by step; then each family finds its unit on this page, and everyone is told. The result is final.',
+    ),
+  },
+  {
+    target: 'lottery.runs',
+    title: _('Undoing a run'),
+    body: _(
+      'Only in exceptional cases: invalidating clears every assignment and asks for a reason, which everyone in the project reads.',
+    ),
+  },
+];
+
+const lotteryFamily = (): TourStep[] => [
+  {
+    target: 'lottery.plan',
+    title: _('On the plan'),
+    body: _(
+      'The units of your type stand out, each with its place in your ranking. Drag one from the plan onto your list to place it there.',
+    ),
+  },
   {
     target: 'ranking.list',
     title: _('Your preferences'),
@@ -29,11 +88,16 @@ defineTour('member.ranking', () => [
     body: _('Every change is saved as you make it, until the lottery runs.'),
   },
   {
-    target: 'lottery.status',
-    title: _('When it is decided'),
-    body: _('The lottery runs on its date. Here you will see which unit each family received.'),
+    target: 'lottery.results',
+    title: _('The results'),
+    body: _('Every family and the unit it received, yours marked.'),
   },
-]);
+];
+
+defineTour('lottery', () => [...lotteryIntro(), ...lotteryAdmin(), ...lotteryFamily()]);
+
+/** Its admin part on its own, from the (?) by "Running the lottery" */
+defineTour('manage.lottery', lotteryAdmin);
 
 defineTour('member.files', () => [
   {
@@ -65,6 +129,13 @@ defineTour('member.events', () => [
 
 /** Project admin area */
 defineTour('manage.setup', () => [
+  {
+    target: 'setup.quick',
+    title: _('What a project is made of'),
+    body: _(
+      'Its families, its people and its units, with how far each has come. Each card leads where you add them.',
+    ),
+  },
   {
     target: 'setup.checklist',
     title: _('From empty to the lottery'),
@@ -145,37 +216,6 @@ defineTour('manage.invitations', () => [
     target: 'invite.pending',
     title: _('Waiting for an answer'),
     body: _('Invitations not accepted yet. You can withdraw them; the link then stops working.'),
-  },
-]);
-
-defineTour('manage.lottery', () => [
-  {
-    target: 'lottery.schedule',
-    title: _('Set the date'),
-    body: _(
-      'Families can change their rankings until then. The lottery can run once the date arrives.',
-    ),
-  },
-  {
-    target: 'lottery.readiness',
-    title: _('Check the numbers'),
-    body: _(
-      'Each type should have as many units as families. If not, you will be asked to confirm, and some families or units will be left over.',
-    ),
-  },
-  {
-    target: 'lottery.run',
-    title: _('Run it'),
-    body: _(
-      'The lottery protects the worst-off family first, then satisfies everyone as much as possible. Ties are broken at random. The result is final.',
-    ),
-  },
-  {
-    target: 'lottery.runs',
-    title: _('Undoing a run'),
-    body: _(
-      'Only in exceptional cases: invalidating clears every assignment and asks for a reason, which everyone in the project reads.',
-    ),
   },
 ]);
 
@@ -330,6 +370,11 @@ defineTour('manage.settings', () => [
     body: _('Its name, description and organization appear to everyone in the project.'),
   },
   {
+    target: 'settings.export',
+    title: _('Its lists'),
+    body: _('Its people, families and units, as spreadsheets to keep or share.'),
+  },
+  {
     target: 'settings.delete',
     title: _('Deleting it'),
     body: _(
@@ -411,5 +456,35 @@ defineTour('platform.deployments', () => [
     target: 'deploy.runs',
     title: _('Latest runs'),
     body: _('Every deployment and how it went, linked to GitHub.'),
+  },
+]);
+
+defineTour('platform.activity', () => [
+  {
+    target: 'activity.filters',
+    title: _('Narrow it down'),
+    body: _('By person or name, by project, and by kind: changes, or sign-ins.'),
+  },
+  {
+    target: 'activity.list',
+    title: _('What happened'),
+    body: _(
+      "Each change with what it changed, from what to what; a person's own details only by name. Who did it, when, and from where.",
+    ),
+  },
+]);
+
+defineTour('member.forum', () => [
+  {
+    target: 'forum.open',
+    title: _('Start or join a conversation'),
+    body: _('Open a topic for a question, an idea or news: everyone in the project is told.'),
+  },
+  {
+    target: 'forum.topics',
+    title: _('The topics'),
+    body: _(
+      'Pinned ones first, then those with the latest posts. Whoever wrote in a topic is told of each reply.',
+    ),
   },
 ]);

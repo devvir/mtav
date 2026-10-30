@@ -24,13 +24,15 @@ it('moves around the member app with the bottom tabs and the drawer', function (
         ->assertNoSmoke();
 });
 
-it('opens the administration group of the sidebar in the drawer', function () {
+it('reaches the project\'s settings from the drawer, and their parts by their tabs', function () {
     $this->as($this->admin);
 
-    visit(route('manage.overview', $this->project))
+    visit(route('projects.show', $this->project))
         ->on()->mobile()
         ->click('[aria-label="Menu"]')
-        ->click('[role="dialog"] >> text=Invitations')
+        ->click('[role="dialog"] >> text=Settings')
+        ->assertPathIs("/projects/{$this->project->id}/manage")
+        ->click('.settings-tabs >> text=Invitations')
         ->assertPathIs("/projects/{$this->project->id}/manage/invitations")
         ->assertSee('Invite someone')
         ->assertNoSmoke();

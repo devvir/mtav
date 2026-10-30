@@ -134,6 +134,16 @@ it('shows and finds the email and phone people choose to share, and admins see t
         ->and($found($this->admin, 'closed@'))->toBe([$private->id]);
 });
 
+it('shows an ID number to the project\'s admins and the person, never to other members', function () {
+    $person = aMemberOf(aFamily($this->project), ['legal_id' => '1.234.567-8']);
+    $details = fn (User $viewer) => $this->as($viewer, $this->project)
+        ->get(route('people.index', [$this->project, 'person' => $person->id]))->inertiaProps('person.person');
+
+    expect($details($this->admin))->toMatchArray(['legal_id' => '1.234.567-8'])
+        ->and($details($person))->toMatchArray(['legal_id' => '1.234.567-8'])
+        ->and($details($this->member))->not->toHaveKey('legal_id');
+});
+
 it('sends short lists whole, for the browser to search, without what the person may not see', function () {
     aMemberOf(aFamily($this->project), ['firstname' => 'Private', 'email' => 'closed@example.com']);
 

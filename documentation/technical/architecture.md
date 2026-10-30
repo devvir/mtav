@@ -1,166 +1,114 @@
 # Architecture
 
-How the application is put together. The code is the source of truth; this guide
-explains the shape so the code reads quickly.
+How MTAV is put together: Laravel 13 (PHP 8.5) on MariaDB, and React 19 with Inertia 3 on
+Mantine 9. The code is the source of truth; this guide gives its shape, so it reads
+quickly. The lottery, notifications, data and delivery have guides of their own.
 
-## One project UI, a platform console
+## Areas
 
-| Area | URLs | For | Controllers / pages |
-|------|------|-----|---------------------|
-| Project | `/projects/{project}/…` | everyone taking part in a project | `Http/Controllers/Member`, `pages/Member` |
-| Admin tools | `/projects/{project}/manage/…` | the project's admins (and superadmins) | `Http/Controllers/Manage` |
-| Platform console | `/admin/…` | superadmins | `Http/Controllers/Platform`, `pages/Platform` |
+| Area | Addresses | For | Code |
+|---|---|---|---|
+| Public | `/`, `/manual`, `/privacy`, sign-in and sign-up | anyone | `pages/Welcome`, `pages/PublicDocument`, `pages/Auth` |
+| Account | `/projects`, `/notifications`, `/settings/profile` | anyone signed in | `pages/Projects`, `pages/Notifications`, `pages/Settings` |
+| A project | `/projects/{project}/…` | everyone in it | `Controllers/Member`, `pages/Member` |
+| Its settings | `/projects/{project}/manage/…` | its admins | `Controllers/Manage`, `pages/Manage` |
+| The console | `/admin/…` | the platform's superadmins | `Controllers/Platform`, `pages/Platform` |
 
-A project has one set of pages, the same for everyone. Admins see their tools on them:
-the units, events, families, people and lottery pages give admins creating, editing and
-removing (in dialogs, which a link opens with `?new=1`, `?new_type=1` or `?new_unit=1`),
-drawing the plan in place, and running the lottery. What admins do is sent to the admin
-routes under `manage/`, gated as a whole.
+A project has one set of pages, the same for everyone; admins find their tools on them
+(adding units, families, events; drawing the plan; running the lottery), sent to routes
+under `manage/`, which are gated as a whole. What only admins have a page for (setting the
+project up, invitations, the project's own settings and lists) is its **Settings**,
+three tabs that are pages of their own.
 
-Simple things have no page of their own: a person, a family, a unit, an event or a shared
-file opens in a dialog over its list, with the item in the address (`?person=19`,
-`?family=`, `?unit=`, `?event=`, `?file=`; `lib/detailsInAddress.ts`). Opening and closing are visits that reload only
-that prop, so links open them and the back button closes them; their old addresses
-(`people/19`, …) redirect there, and saving one returns to it. The few pages with no
-counterpart for members
-sit under `manage/` too (`pages/Manage`): the setup overview, invitations and the
-project's settings.
-
-Outside the areas: accounts (sign-up, login, password, email confirmation), settings,
-notifications, the list of one's projects, and invitation links.
+Small things (a person, a family, a unit, an event, a file) open in a dialog over their
+list, with the item in the address (`?person=19`, `?family=`, `?unit=`, `?event=`,
+`?file=`; `lib/detailsInAddress.ts`): links open them, the back button closes them.
+Dialogs that add something open from the address too (`?new=1`; `lib/addressedDialog.ts`).
 
 ## People and roles
 
-- A **user** is one account per person (`users`). `users.is_superadmin` marks the
-  platform's superadmins (`php artisan mtav:superadmin {email}`).
-- A **membership** is a user's part in one project (`memberships`): as an admin
-  (`is_admin`), as a member of a family (`family_id`), or both. One per user and project.
-- A **family** is the lottery participant: it ranks the units of its type and gets one.
+- A **user** is one person's account. `is_superadmin` marks the platform's superadmins;
+  `is_owner` the deployment's owner, its first superadmin (from `OWNER_EMAIL` and
+  `OWNER_PASSWORD` while there is no account at all; until then the site shows only that
+  it is under construction, but for its public documents).
+- A **membership** is a user's part in one project: as an admin, in a family, or both.
+- A **family** is who the lottery gives a unit to: it ranks the units of its type.
 
-`User::canAccess($project)` (taking part, or superadmin), `User::manages($project)`
-(admin, or superadmin) and `User::familyIn($project)` answer every role question; a
-user's memberships load once per request.
+`User::canAccess()`, `manages()` and `familyIn()` answer every role question.
 
 ## Authorization
 
-- `ResolveProject` (routes under `/projects/{project}`) lets in only people taking part
-  in the project — anyone else gets a 404 — and makes the project the default
-  `{project}` of every URL generated during the request (frontend included, via Ziggy).
-- Child models resolve through the project (`scopeBindings()`): a family id of another
-  project does not exist under this one.
-- The admin routes are gated as a whole (`can:update,project`); policies check the rest,
-  always against the model's project. Superadmins pass every check
-  (`AppServiceProvider`), except the personal ones that need a family (ranking units,
-  answering an event).
-- Denials answer 403 (404 outside one's projects). Inertia visits get an error page, or
-  a flash message for a refused form submission (`bootstrap/app.php`).
+- `ResolveProject` lets into `/projects/{project}/…` only people in the project (anyone
+  else gets a 404) and makes it the default `{project}` of every address built during
+  the request, on the server and in the browser.
+- Models inside a project resolve through it (`scopeBindings()`): another project's id
+  does not exist here.
+- Policies check the rest, always against the model's project. Superadmins pass every
+  check but the personal ones (ranking for a family, answering an event).
+- Refusals: an error page, or for a form, a message on the page it came from. A page
+  left open until its form's token expired sends back to it, to try again.
 
-## Projects and approval
+## Projects
 
-Anyone with a verified account starts projects (`ProjectService::create`), becoming
-their first admin. A project starts **unapproved** and works within the limits of
-`config/limits.php` (people, invitations a day, units, families, file sizes, storage,
-lottery size). Its admins ask a superadmin to approve it; approval lifts the limits.
-Projects started by a superadmin are approved at once. `Project::limit($key)` returns a
-limit, or null for approved projects.
+Anyone with a confirmed account starts projects, becoming their first admin. A project
+is **limited** (`config/limits.php`: people, families, units, invitations a day, file
+size, storage) until the platform's team makes it **unlimited**, which its admins ask
+for; projects a superadmin starts are unlimited at once. Only "Limited" is ever shown.
 
-**Deleting** a project (its admins, by typing its name) archives it when it has a history
-(`Project::hasHistory`: other people in it or invited, events besides its lottery's,
-shared files, lottery runs), else deletes it for good (`ProjectService::remove`).
-Archiving is Laravel's soft delete: an archived project is gone for everyone (its pages,
-its invitations, its notifications) but superadmins, who find it under "Archived" in the
-console, restore it, or delete it for good (`ProjectService::purge`: its files and
-notifications too) after a summary of what goes with it and its name typed.
+Deleting a project (its admins, typing its name) archives it when it has a history,
+else deletes it for good. Superadmins restore archived projects, or delete them for good.
 
 ## Invitations
 
-`InvitationService` creates an invitation (`invitations`) and emails a link with a
-random token; only its hash is stored. Invitations expire
-(`limits.invitation_days`). The link creates the account (the person picks a password)
-or, for an existing account, adds the project once they sign in as the invited address.
-Signed-in people also answer pending invitations from their projects page.
+Emailed links with a random token (only its hash is stored) that expire after two
+weeks. The link opens an account, or, for an existing one, joins once signed in as the
+invited address; that person is also told in the app. Admins invite into any family or
+as admins; members, into their own family.
 
-## The lottery
+## The plan
 
-- Each family **ranks** units of its type (`PreferencesService`). Units it does not
-  rank follow in an order random but fixed per family. Reading a ranking never writes.
-- An admin **runs** the lottery once it is due (`LotteryService::run`): this creates a
-  `lottery_runs` row (status `running`), records what the run decides from (the
-  manifest: every family's full ranking per unit type) and dispatches `RunLottery`.
-- `RunLottery` solves it (`LotteryOrchestrator` → the configured solver; GLPK by
-  default) and writes the whole assignment in one transaction (`completed`), or records
-  why it failed (`failed`, the lottery can run again).
-- While a run is running or completed, rankings and the schedule are locked.
-- An admin may **invalidate** a completed run, giving a reason: assignments are cleared,
-  the run becomes `invalidated` (who, when, why — shown to everyone in the project) and
-  the lottery can run again.
-- Every step is kept in `lottery_audits` for as long as the project exists (deleting a
-  project for good takes its audits with it).
+A project's site drawn as shapes on floors (`components/plan`): units, buildings,
+streets, green areas, the commons, a playground. One admin draws at a time
+(`EditingLock`, renewed while the editor is open, let go after a while idle); anyone
+else is told who is drawing. Editing needs a large screen and a pointer; everyone sees
+the plan, and families rank from it.
 
-The solvers (`Services/Lottery/Solvers`) work on plain data (`LotteryManifest`,
-`LotterySpec`), never on models.
+## The forum
 
-## Files
-
-Project files live on the private `media` disk and are served by `media.file` /
-`media.thumbnail`, behind `ResolveProject`. Types are checked by content
-(`MediaService::MIME_TYPES`; no SVG). Avatars are public.
-
-## Notifications
-
-`NotificationService::send` stores a notification for one user (private), a project, or
-the superadmins (global), and broadcasts it (`NotificationSent`) on `users.{id}`,
-`projects.{id}` or `superadmins` (`routes/channels.php`). People see notifications from
-their registration on; read state is per user.
+Topics with posts (`Topic`, `Post`, `ForumService`): anyone in the project opens topics
+and replies; writers edit their posts; admins pin, close and remove topics. A new topic
+is notified to the project, a reply to whoever wrote in the topic before.
 
 ## Frontend
 
-React 19 + Inertia, on Mantine (`@mantine/core`, `dates`, `dropzone`, `notifications`),
-Tabler icons and dnd-kit for dragging.
-
-- **Design system** (`resources/js/design`): the Mantine theme for each palette, MTAV's
-  tokens (`--mtav-*`, classes `ds-*`) and shared components (`Panel`, `Stat`, `Glyph`,
-  `Status`, `EmptyState`, `PersonAvatar`, `FamilyMark`, `FileDrop`…). Colours are chosen
-  by measured contrast (`theme/contrast.ts`): every text and filled background reads at
-  4.6:1 or more in every palette, light or dark, standard or high contrast. `Appearance`
-  keeps the palette, scheme and contrast in cookies, read before the first paint. The UI
-  Lab (`/admin/lab`, `resources/js/lab`) shows every component in its states.
-- **Layouts** (`layouts/`): a page's folder picks its layout. `Member/…` and `Manage/…`
-  pages share `ProjectLayout` (the project's places, plus an "Administration" group for
-  admins), `Platform/…` the console's, `Auth/…` the sign-in one; the rest is the account
-  area. `AppShell` is the frame: top bar with the notifications bell, sidebar in groups
-  (drawer on phones), bottom tabs on a project's pages.
-- **Forms** are hand-written per entity (`components/forms`) on Mantine inputs, wired to
-  Inertia's `useForm` by `lib/forms.ts`. A field's short hint sits beside its label, so
-  fields side by side stay in line; required fields carry an asterisk, and `FormActions`
-  says so beside the buttons. The server validates; forms are `noValidate`, so every
-  error reads the same, in the app's language.
-- **Dialogs**: Mantine modals in pages, and `confirm()` / `prompt()` from
-  `lib/dialogs.ts` for questions asked from code (typed confirmations included),
-  rendered by `DialogHost`.
-- **Routes**: `route()` (`lib/route.ts`) works from the route list sent once per session
-  (the `routes` prop) and each visit's `ziggy` prop, so the current project is the
-  default `{project}`. `routeIs()` compares the current route's name, which the server
-  sends with each visit, never URLs.
-- **Moving between pages**: every page comes with the app (no page waits for its code).
-  A link loads its page once the pointer rests on it (200 ms; passing over others loads
-  nothing). On the click, the sidebar and tabs light the place at once and the top bar
-  starts; the page dims only if the trip lasts more than a blink. Only those three listen
-  to the trip, and the sidebar is built once per place visited, so a visit within a page
-  (details, filters) leaves the frame as it is. In local development, each response's
-  `Server-Timing` header (DevTools) splits its time into starting the app, handling it
-  and the database.
-- **Live updates**: `useProjectChanges({ resource: [props to reload] })` reloads a page's
-  props when someone else changes them; `useLiveNotifications()` (in the shell) shows
-  notifications as toasts. Both need `VITE_REVERB_APP_KEY`.
-- **Guided help**: `InfoTip` (a ? beside what needs explaining) ends, where a tour exists,
-  with "Show me how", which plays a tour (`tours/index.ts`; `lib/tour.ts`): steps point
-  at `data-tour="…"` marks, missing ones are skipped; `TourHost` (in the shell) dims the
-  page and lights up each step's element.
-- **Copy**: `_('English text')` everywhere; each language's words are keyed by the
-  English (`lang/<locale>.json`, the English file empty on purpose), only the one in use
-  downloaded. Server-side words live in `lang/<locale>/*.php`, the guides in
-  `resources/views/guides/<locale>/`. The language is the person's choice (`users.locale`,
-  `SetLocale`), else their browser's when the platform has it (by language: es-AR finds
-  Spanish), else English; someone signed in keeps the one found, for their mail. The list
-  people pick from is `config/app.php` `locales`.
+- **Design system** (`resources/js/design`): the theme for each palette, the tokens
+  (`--mtav-*`, `ds-*` classes) and the shared components (`Panel`, `Stat`, `Glyph`,
+  `Status`, `EmptyState`, `PersonAvatar`…). Colours are chosen by measured contrast: text
+  reads at 4.6:1 or more in every palette, light or dark. The UI Lab (`/admin/lab`)
+  shows every component in its states.
+- **Layouts** (`layouts/`): a page's folder picks its frame. A project's pages share its
+  sidebar, with its Settings apart at the bottom for admins; the console has its own.
+  `AppShell` is the frame: top bar (quick actions, the bell), sidebar (a drawer on
+  phones), bottom tabs on a project's pages.
+- **Forms** (`components/forms`) are Mantine inputs wired to Inertia's `useForm` by
+  `lib/forms.ts`; dates are picked on a calendar in the person's language
+  (`DateTimeField`). The server validates; every error reads the same, in the app's
+  language.
+- **Dialogs**: Mantine modals in pages; `confirm()` and `prompt()` (`lib/dialogs.ts`) for
+  questions asked from code, typed confirmations included.
+- **Addresses**: `route()` and `routeIs()` (`lib/route.ts`) work from the route list sent
+  once, and compare route names, never URLs.
+- **Moving between pages**: a link loads its page once the pointer rests on it; on the
+  click, the sidebar lights the place at once and the page dims only if the trip is long.
+- **Live updates**: `useProjectChanges({ resource: [props] })` reloads what someone else
+  changed (models announce changes with `BroadcastsProjectChanges`).
+- **Offline**: the service worker (`public/sw.js`) keeps each page as last loaded and
+  answers with it when the server cannot be reached; the page says so and holds every
+  change (`lib/offline.ts`). The app installs on devices (`/manifest.webmanifest`).
+- **Help**: a (?) by every page's title (`InfoTip`) says what the page is for and offers
+  "Tell me more", a tour of it (`tours/index.ts`, `lib/tour.ts`). For new people, each
+  page's tour plays once by itself; dismissing one offers, once, to show no more.
+- **Words**: `_('English text')` everywhere; each language's words are keyed by the
+  English (`lang/<locale>.json`), the server's in `lang/<locale>/*.php`, the manuals and
+  the privacy page in `resources/views/`. Other languages are written natively, never
+  translated word for word. The language is the person's choice, else their browser's.

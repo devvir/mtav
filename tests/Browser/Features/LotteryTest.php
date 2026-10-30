@@ -216,3 +216,30 @@ it('lights up in the ranking a unit clicked on the plan', function () {
         ->click('[aria-label="Project plan"] [data-press] .plan-top >> nth=0')
         ->assertPresent('.ranking-item[data-flash]');
 });
+
+it('shows an admin outside every family the lottery tools, and nothing about ranking', function () {
+    $this->as($this->admin);
+
+    visit(route('lottery.show', $this->project))
+        ->assertSee('Run the lottery')
+        ->assertDontSee('Your preferences')
+        ->assertDontSee('Families rank units')
+        ->assertNoSmoke();
+});
+
+it('lets a family check the result: each family\'s place, its own ranking, the fingerprint', function () {
+    lotteryDue($this);
+    $this->as($this->admin);
+    runFromUi($this)->assertSee('The lottery is done');
+
+    $this->as($this->member);
+    visit(route('lottery.show', $this->project))
+        ->click('Check the result')
+        ->assertSee('The lottery’s record')
+        ->assertSee('García')
+        ->assertSee('Pérez')
+        ->assertSee('Your family’s ranking, as recorded')
+        ->assertSee('Fingerprint')
+        ->assertDontSee('Download the full record')
+        ->assertNoSmoke();
+});

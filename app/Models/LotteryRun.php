@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\LotteryRunStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class LotteryRun extends Model
 {
+    use RecordsActivity;
     use BroadcastsProjectChanges;
 
     protected $fillable = [

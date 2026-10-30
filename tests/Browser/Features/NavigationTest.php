@@ -90,13 +90,21 @@ it('links someone\'s details to their family\'s', function () {
         ->assertSeeIn('[role="dialog"]', $family->name);
 });
 
+it('offers admins their quick actions in the order a project is set up', function () {
+    $this->as(anAdminOf($this->project));
+    $page = visit(route('projects.show', $this->project))->click('[aria-label="Quick actions"]');
+
+    expect($page->script("() => [...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim())"))
+        ->toBe(['Invite a member', 'Add a family', 'Set up units', 'Create an event', 'Upload photos or files']);
+});
+
 it('offers quick actions, each what the person may do, as a shortcut to its page', function () {
     $this->as($this->member);
     visit(route('projects.show', $this->project))
         ->click('[aria-label="Quick actions"]')
-        ->assertSeeIn('[role="menu"]', 'Share photos or files')
+        ->assertSeeIn('[role="menu"]', 'Upload photos or files')
         ->assertDontSeeIn('[role="menu"]', 'Create an event')
-        ->click('[role="menu"] >> text=Share photos or files')
+        ->click('[role="menu"] >> text=Upload photos or files')
         ->assertPathIs(pathOf('media.index', $this->project))
         ->assertSeeIn('[role="dialog"]', 'Choose files or drop them here');
 

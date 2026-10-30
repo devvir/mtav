@@ -38,7 +38,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  *   4. If failures persist, investigate GLPK model/data files (logged on error)
  *
  * @see BenchmarkGlpkSolver For generating initial benchmark data
- * @see documentation/ai/lottery/GLPK_BENCHMARKS.md For detailed benchmarking methodology
+ * @see scripts/benchmark_analysis/README.md Analysing what it writes
  */
 class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
 {

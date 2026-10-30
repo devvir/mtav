@@ -2,34 +2,16 @@ import { SetupChecklist, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Stat } from '@/design';
+import { SettingsTabs } from '@/components/layout/SettingsTabs';
+import { Glyph } from '@/design';
 import { appName } from '@/lib/app';
 import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
-import { router, usePage } from '@inertiajs/react';
-import {
-  Badge,
-  Button,
-  Card,
-  Collapse,
-  Group,
-  Progress,
-  SimpleGrid,
-  Stack,
-  Text,
-} from '@mantine/core';
-import {
-  IconGauge,
-  IconLayoutGrid,
-  IconMail,
-  IconPhoto,
-  IconShieldCheck,
-  IconStack2,
-  IconUsers,
-  IconUsersGroup,
-} from '@tabler/icons-react';
+import { _, _n } from '@/lib/translations';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Button, Card, Collapse, Group, Progress, Stack, Text } from '@mantine/core';
+import { IconGauge, IconLayoutGrid, IconUsers, IconUsersGroup } from '@tabler/icons-react';
 import { useState } from 'react';
 
 type Key = 'unit_types' | 'units' | 'families' | 'people' | 'invitations' | 'media';
@@ -82,44 +64,75 @@ export default function Overview({ counts, checklist, approval }: Props) {
     if (ok) router.post(route('manage.approval.request'), {}, { preserveScroll: true });
   };
 
-  const tiles: {
-    key: Key;
-    label: string;
-    icon: typeof IconStack2;
-    tone: 'brand' | 'accent' | 'info' | 'positive' | 'warning' | 'neutral';
-  }[] = [
-    { key: 'unit_types', label: _('Unit types'), icon: IconStack2, tone: 'accent' },
-    { key: 'units', label: _('Units'), icon: IconLayoutGrid, tone: 'brand' },
-    { key: 'families', label: _('Families'), icon: IconUsersGroup, tone: 'brand' },
-    { key: 'people', label: _('People'), icon: IconUsers, tone: 'info' },
-    { key: 'invitations', label: _('Pending invitations'), icon: IconMail, tone: 'warning' },
-    { key: 'media', label: _('Files'), icon: IconPhoto, tone: 'neutral' },
+  // Quick ways to the three things a project is made of, with how far each has come
+  const quick = [
+    {
+      icon: IconUsersGroup,
+      title: _('Families'),
+      count: _n('{count} family', '{count} families', counts.families),
+      action: _('Add a family'),
+      href: route('families.index', { new: 1 }),
+    },
+    {
+      icon: IconUsers,
+      title: _('People'),
+      count: counts.invitations
+        ? _('{people} people, {invitations} invited', {
+            people: counts.people,
+            invitations: counts.invitations,
+          })
+        : _n('{count} person', '{count} people', counts.people),
+      action: _('Invite a member'),
+      href: route('manage.invitations.index'),
+    },
+    {
+      icon: IconLayoutGrid,
+      title: _('Units'),
+      count: _('{units} in {types}', {
+        units: _n('{count} unit', '{count} units', counts.units),
+        types: _n('{count} type', '{count} types', counts.unit_types),
+      }),
+      action: _('Set up units'),
+      href: route('units.index'),
+    },
   ];
 
   return (
     <>
       <PageHeader
         tour="manage.setup"
-        title={_('Overview')}
+        title={_('Settings')}
         description={project.name}
         help={
           <InfoTip title={_('Setting up the project')} tour="manage.setup">
-            {_('The checklist takes you from an empty project to its lottery, one step at a time.')}
+            {_(
+              'Its families, people and units, a click away; and the checklist, from an empty project to its lottery.',
+            )}
           </InfoTip>
         }
       />
+      <SettingsTabs />
 
-      <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} mb="lg">
-        {tiles.map((tile) => (
-          <Stat
-            key={tile.key}
-            label={tile.label}
-            value={counts[tile.key]}
-            icon={tile.icon}
-            tone={tile.tone}
-          />
+      <div className="setup-quick" data-tour="setup.quick">
+        {quick.map((item) => (
+          <Card
+            key={item.href}
+            component={Link}
+            href={item.href}
+            p="md"
+            className="ds-interactive setup-quick-card"
+          >
+            <Glyph icon={item.icon} size={40} />
+            <div style={{ minWidth: 0 }}>
+              <Text fw={700}>{item.title}</Text>
+              <Text className="ds-caption ds-truncate">{item.count}</Text>
+              <Text size="sm" fw={650} c="var(--mtav-brand)" mt={4}>
+                {item.action}
+              </Text>
+            </div>
+          </Card>
         ))}
-      </SimpleGrid>
+      </div>
 
       <div className="with-aside">
         <SetupChecklist setup={checklist} />
@@ -132,8 +145,8 @@ export default function Overview({ counts, checklist, approval }: Props) {
 
 /**
  * A limited project's room: quiet, folded behind a button in a corner saying "Limited"
- * (a fact, never a warning), unfolded the room used and asking for unlimited; an
- * unlimited project says so in a word
+ * (a fact, never a warning), unfolded the room used and asking for unlimited. An
+ * unlimited project shows nothing: there is nothing to know
  */
 function ProjectCapacity({
   approval,
@@ -146,14 +159,7 @@ function ProjectCapacity({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (approval.approved)
-    return (
-      <Group justify="flex-end" data-tour="setup.approval">
-        <Badge variant="light" color="green" leftSection={<IconShieldCheck size={14} />}>
-          {_('Unlimited')}
-        </Badge>
-      </Group>
-    );
+  if (approval.approved) return null;
 
   return (
     <Stack gap="xs" data-tour="setup.approval">

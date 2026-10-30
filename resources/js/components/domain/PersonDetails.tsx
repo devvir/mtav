@@ -7,7 +7,14 @@ import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Anchor, Badge, Button, Divider, Group, Stack, Text } from '@mantine/core';
-import { IconLogout, IconMail, IconPhone, IconUserCog, IconUserMinus } from '@tabler/icons-react';
+import {
+  IconId,
+  IconLogout,
+  IconMail,
+  IconPhone,
+  IconUserCog,
+  IconUserMinus,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 
 /**
@@ -87,7 +94,7 @@ export function PersonDetails({
             {person.about}
           </Text>
         ) : null}
-        {person.email || person.phone ? (
+        {person.email || person.phone || person.legal_id ? (
           <>
             <Divider my="lg" />
             <Stack gap="xs">
@@ -101,6 +108,12 @@ export function PersonDetails({
                 <Group gap="xs">
                   <IconPhone size={18} />
                   <Anchor href={`tel:${person.phone}`}>{person.phone}</Anchor>
+                </Group>
+              ) : null}
+              {person.legal_id ? (
+                <Group gap="xs">
+                  <IconId size={18} aria-label={_('ID number')} />
+                  <Text>{person.legal_id}</Text>
                 </Group>
               ) : null}
             </Stack>

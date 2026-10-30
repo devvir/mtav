@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PlatformSetting extends Model
 {
+    use RecordsActivity;
+
     /** The least a lottery run takes, as people see it, in seconds (the solving is quicker) */
     public const LOTTERY_SECONDS = 'lottery_seconds';
 

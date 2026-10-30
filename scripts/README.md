@@ -1,49 +1,12 @@
-<!-- Copilot - Pending review -->
-# MTAV Utility Scripts
+# Scripts
 
-Collection of utility scripts for development, testing, and analysis.
+Tools run by hand, outside the app.
 
-## Available Tools
+| Script | What it does | How |
+|---|---|---|
+| `guide-shots/shots.mjs` | the pictures of the illustrated manuals, from a seeded app | [guide-shots/README.md](guide-shots/README.md) |
+| `offline-check.mjs` | working offline, checked in a real browser (the browser suite cannot cut the network) | `BASE=http://127.0.0.1:8010 node scripts/offline-check.mjs`, against a seeded app with built assets |
+| `benchmark_analysis/` | statistics and charts of the GLPK benchmarks | [benchmark_analysis/README.md](benchmark_analysis/README.md) |
 
-### benchmark_analysis/
-**Python toolkit for GLPK lottery solver benchmark analysis**
-
-Comprehensive statistical analysis and visualization tools for benchmark CSV files.
-
-**Features**:
-- Statistical analysis (mean, median, std dev, percentiles, outlier detection)
-- Visualizations (histograms, time series, scatter plots, comparisons)
-- Multi-file comparison and size scaling analysis
-- Performance prediction using polynomial regression
-- Timeout pattern analysis
-- CLI and Python API
-
-**Quick Start**:
-```bash
-cd benchmark_analysis
-./setup.sh
-source venv/bin/activate
-python cli.py analyze ../../storage/benchmarks/glpk_random_30.csv
-```
-
-**Documentation**: See `benchmark_analysis/README.md`
-
-### extract_snap_pngs.py
-**Extract PNG images from Pest snapshot files**
-
-Scans `tests/.pest/snapshots` for `.snap` files and extracts embedded PNG images to `tests/Browser/Snapshots/baseline/` for manual review.
-
-**Usage**:
-```bash
-./scripts/extract_snap_pngs.py
-```
-
-## Future Tools
-
-Additional utilities can be added here for:
-- Database migrations and seeding
-- Data export/import
-- Performance profiling
-- Code generation
-- Deployment automation
-
+Backups have their own script, beside the deploy: `deploy/backup/pull`
+([documentation/technical/data.md](../documentation/technical/data.md)).

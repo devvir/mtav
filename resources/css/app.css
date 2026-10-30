@@ -53,6 +53,16 @@
   flex-direction: column;
   gap: 3px;
 }
+/* A project's settings, for its admins: at the bottom, apart, framed (not loud) */
+.shell-apart {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--mtav-border);
+}
+.shell-apart .ds-nav-item:not([data-active]) {
+  background: var(--mtav-surface-2);
+  box-shadow: inset 0 0 0 1px var(--mtav-border);
+}
 /* A call to action among the places: apart from them, tinted in the brand */
 .shell-actions {
   display: flex;
@@ -587,17 +597,6 @@
 
 /* -- the member app ---------------------------------------------------------------------- */
 
-.dashboard-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-@media (min-width: 62em) {
-  .dashboard-top {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  }
-}
 .stat-link {
   color: inherit;
   text-decoration: none;
@@ -611,9 +610,33 @@
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--mtav-brand) 35%, var(--mtav-border));
 }
-.lottery-card {
+/* The lottery on the project's home, once it has a date: a wide card up front */
+.lottery-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-lg);
   color: inherit;
   text-decoration: none;
+  border-color: color-mix(in srgb, var(--mtav-brand) 35%, var(--mtav-border));
+}
+.lottery-banner[data-done] {
+  border-color: color-mix(in srgb, var(--mtav-positive) 35%, var(--mtav-border));
+}
+.lottery-banner-go {
+  color: var(--mtav-muted);
+  flex: none;
+}
+/* What was shared and what is coming up, side by side where there is room */
+.dashboard-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (min-width: 62em) {
+  .dashboard-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .text-positive {
   color: var(--mtav-positive);
@@ -1619,4 +1642,98 @@ html[data-carrying] * {
   margin-bottom: 32px;
   color: inherit;
   text-decoration: none;
+}
+
+/* The project's figures (admins' overview): six in a row only where each has room for its
+   name (the frame is what is measured: a grid cannot be asked its own width) */
+.overview-figures-frame {
+  container-type: inline-size;
+  margin-bottom: var(--mantine-spacing-lg);
+}
+.overview-figures {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@container (min-width: 36rem) {
+  .overview-figures {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (min-width: 88rem) {
+  .overview-figures {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* The parts of a project's settings, as tabs that are links (each part its own page) */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--mtav-border);
+  overflow-x: auto;
+}
+.settings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--mtav-muted);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+.settings-tab:hover {
+  color: var(--mtav-text);
+}
+.settings-tab[aria-current='page'] {
+  color: var(--mtav-text);
+  border-bottom-color: var(--mtav-brand);
+}
+
+/* Quick ways to set a project up: its families, its people, its units */
+.setup-quick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-md);
+  margin-bottom: var(--mantine-spacing-lg);
+}
+@media (min-width: 48em) {
+  .setup-quick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.setup-quick-card {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* A family's ranking as a lottery recorded it: numbered, compact */
+.record-ranking {
+  margin: 0;
+  padding-left: 1.6em;
+  columns: 2;
+  column-gap: 2em;
+}
+.record-ranking li {
+  padding: 2px 0;
+}
+
+/* The platform's activity: one entry a row, what changed under it */
+.activity-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.activity-changes {
+  overflow-wrap: anywhere;
 }

@@ -29,4 +29,9 @@ return [
 
     'lottery_invalidated_title'   => 'Le tirage a été annulé',
     'lottery_invalidated_message' => ':name a annulé le tirage : « :reason ». Il sera refait.',
+
+    'forum_topic_title'   => 'Nouveau sujet dans le forum',
+    'forum_topic_message' => ':name a ouvert « :title ».',
+    'forum_reply_title'   => 'Une réponse dans le forum',
+    'forum_reply_message' => ':name a répondu dans « :title ».',
 ];

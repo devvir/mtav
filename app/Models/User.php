@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -21,6 +22,7 @@ use Illuminate\Notifications\Notification;
  */
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
+    use RecordsActivity;
     use HasFactory;
     use Notifiable;
 
@@ -57,6 +59,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'password'          => 'hashed',
         'email_verified_at' => 'datetime',
     ];
+
+    /** The browsers and devices where they allowed notifications */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 
     public function memberships(): HasMany
     {

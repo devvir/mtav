@@ -37,7 +37,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  *   3. Analyze CSV results to identify patterns in failures or performance issues
  *
  * @see BenchmarkGlpkSolverRetry For retrying specific failures from previous runs
- * @see documentation/ai/lottery/GLPK_BENCHMARKS.md For detailed benchmarking methodology
+ * @see scripts/benchmark_analysis/README.md Analysing what it writes
  */
 class BenchmarkGlpkSolver extends BenchmarkGlpkBase
 {

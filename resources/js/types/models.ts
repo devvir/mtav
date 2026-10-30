@@ -37,6 +37,8 @@ export interface Person {
   joined_at: string | null;
   email?: string;
   phone?: string | null;
+  /** The ID number, for the person and the project's admins */
+  legal_id?: string | null;
 }
 
 export interface Family {

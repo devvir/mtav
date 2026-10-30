@@ -1,4 +1,6 @@
 import { AppearanceSettings } from '@/components/account/AppearanceSettings';
+import { DeleteAccount } from '@/components/account/DeleteAccount';
+import { DeviceNotifications } from '@/components/account/DeviceNotifications';
 import { LanguageSettings } from '@/components/account/LanguageSettings';
 import { PasswordForm } from '@/components/account/PasswordForm';
 import { Form, FormActions } from '@/components/forms/Form';
@@ -48,9 +50,11 @@ interface Props {
   };
   /** The languages to pick from, each named in itself */
   languages: Record<string, string>;
+  /** What a browser needs to receive notifications (null: not set up here) */
+  pushKey: string | null;
 }
 
-export default function Profile({ profile, languages }: Props) {
+export default function Profile({ profile, languages, pushKey }: Props) {
   const { auth, errors } = usePage().props;
   const user = auth.user!;
   const form = useForm({
@@ -187,6 +191,7 @@ export default function Profile({ profile, languages }: Props) {
             <Textarea label={_('About you')} autosize minRows={3} {...field(form, 'about')} />
             <FormActions submit={_('Save')} processing={form.processing} />
           </Form>
+          <DeleteAccount email={profile.email} />
         </Tabs.Panel>
         <Tabs.Panel value="password" className="ds-surface profile-section">
           <PasswordForm />
@@ -200,6 +205,14 @@ export default function Profile({ profile, languages }: Props) {
             {_('Only on this device.')}
           </Text>
           <AppearanceSettings />
+          {pushKey ? (
+            <>
+              <Text fw={650} mt="xl" mb="md">
+                {_('Notifications')}
+              </Text>
+              <DeviceNotifications pushKey={pushKey} />
+            </>
+          ) : null}
         </Tabs.Panel>
       </Tabs>
     </>

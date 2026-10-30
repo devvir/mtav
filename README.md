@@ -1,84 +1,33 @@
-# MTAV Development Environment
+# MTAV
 
-A Laravel + React + Inertia app with a streamlined Docker development setup.
+The web app where housing cooperatives organize their projects, from the first meeting
+to the lottery that gives each family its home: families and their people, the units
+and the site's plan, events, shared files, a forum, and a lottery that first protects
+the worst-off family, then makes everyone as satisfied as possible, with a record anyone
+in the project can check.
 
-## 🚀 Developer Quick Start
+Built for Uruguay's housing cooperatives (FUCVAM's, FECOVI's and others) as a degree project
+at FING, Universidad de la República; in Spanish, English, French, Italian and Portuguese.
 
-1. **Clone the repository**
+## Running it
 
-   ```bash
-   git clone https://github.com/devvir/mtav
-   cd mtav
-   ```
+Docker (with Compose) and Bash are all it needs:
 
-2. **Start development environment**
-
-   ```bash
-   ./mtav up
-   ```
-
-   This command automatically:
-   - Creates your `.env` file
-   - Builds all Docker containers
-   - Installs PHP dependencies (Composer)
-   - Installs JS dependencies (pnpm)
-   - Generates Laravel app key
-   - Runs database migrations + seeding
-   - Initializes git submodules (local packages)
-   - Starts all services
-
-3. **Open the application**
-   - http://localhost:8000
-
-That's it! You're ready to develop.
-
-## 📋 Common Commands
-
-The essentials for day-to-day work. Run `./mtav help` for the full list, or see
-the **[Docker & Environments guide](docker/README.md)** for everything the CLI
-can do (all environments, `release`, `update`, `rebuild`, `compose`, …). Releases and
-deploys: **[documentation/technical/delivery.md](documentation/technical/delivery.md)**.
-
-```bash
-# Environment lifecycle
-./mtav up            # Start dev (first run builds, migrates, and seeds)
-./mtav down          # Stop and remove containers (database volume is kept)
-./mtav restart       # Down, then up
-./mtav fresh         # Rebuild from scratch — WIPES and reseeds the database
-
-# Tests
-./mtav test          # Everything: Pest + Vitest + E2E
-./mtav pest [args]   # Backend tests (Pest)   e.g. ./mtav pest --filter=UserTest
-./mtav vitest [args] # Frontend tests (Vitest)
-./mtav e2e [args]    # Browser journey suite  (see tests/Browser/README.md)
-
-# Everyday shortcuts (run inside the dev containers)
-./mtav artisan <cmd>    # Laravel Artisan   e.g. ./mtav artisan migrate
-./mtav composer <cmd>   # Composer
-./mtav pnpm <cmd>       # pnpm (package manager)
-./mtav shell [service]  # Shell into a container (default: php)
-./mtav logs [service]   # Follow logs
+```sh
+git clone https://github.com/devvir/mtav && cd mtav
+./mtav up
 ```
 
-## 🌐 Application URLs
+Then http://localhost:8000, with the demo data (password `password`), and the mail it
+sends at http://localhost:8025. `./mtav help` lists every command; `./mtav pest` and
+`./mtav e2e` run the tests.
 
-- **Main Application**: http://localhost:8000
-- **Vite Dev Server**: http://localhost:5173 (auto-reloads on changes)
-- **Email Testing (Mailpit)**: http://localhost:8025
-- **Database**: localhost:3307 (user: mtav, password: secret)
+## Made of
 
-### Development Workflow
+Laravel 13 (PHP 8.5) on MariaDB, React 19 with Inertia 3 and Mantine 9, Reverb for live
+updates, GLPK for the lottery. Released as one image on FrankenPHP, deployed blue/green.
 
-- **Code changes**: Auto-reload via Vite HMR
-- **PHP changes**: No restart needed, just refresh browser
-- **Config changes**: May require `./mtav down && ./mtav up`
-- **New dependencies**: Run `./mtav update`
+## Documentation
 
----
-
-## 📚 Documentation
-
-- **[Docker & Environments](docker/README.md)** — The full infrastructure spec: environments, the complete `mtav` command set, gotchas, internals
-- **[Testing & Git Hooks](documentation/technical/testing.md)** — Test workflows and quality checks
-- **[E2E Journey Suite](tests/Browser/README.md)** — What the browser (`mtav e2e`) journeys cover
-- **[Documentation Index](documentation/README.md)** — All developer guides
+[documentation/](documentation/README.md): architecture, the lottery, notifications,
+data and backups, delivery, development and testing; and the thesis.

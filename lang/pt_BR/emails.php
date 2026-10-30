@@ -27,4 +27,8 @@ return [
     'email_change_subject' => 'O e-mail da sua conta vai mudar',
     'email_change_intro'   => 'Alguém pediu para mudar o e-mail da sua conta para :email. Ele muda quando esse endereço confirmar.',
     'email_change_ignore'  => 'Se não foi você, troque sua senha agora: até lá sua conta continua com este endereço.',
+
+    'new_error_subject' => 'Algo deu errado no :app',
+    'new_error_intro'   => 'O app encontrou um erro que não tinha visto antes:',
+    'new_error_action'  => 'Ver os erros',
 ];

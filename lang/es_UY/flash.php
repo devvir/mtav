@@ -71,4 +71,9 @@ return [
     'deploy_refused'          => 'GitHub no lo inició (:status). Revisa el token de despliegue.',
     'upload_too_large'        => 'Era demasiado para enviar de una vez: comparte menos archivos, o más livianos.',
     'platform_settings_saved' => 'Se guardó la configuración de la plataforma.',
+    'page_expired'            => 'La página estuvo abierta mucho tiempo: vuelve a intentarlo.',
+    'account_deleted'         => 'Tu cuenta fue borrada.',
+    'topic_opened'            => 'Tu tema está abierto.',
+    'topic_removed'           => 'Se quitó el tema.',
+    'error_solved'            => 'Marcado como resuelto.',
 ];

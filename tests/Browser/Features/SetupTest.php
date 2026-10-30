@@ -182,11 +182,12 @@ it('shows a project\'s admins its room on asking, never a warning on every page'
         ->assertSee('/ 50');
 });
 
-it('marks an unlimited project as such, with no room to count', function () {
+it('says nothing about room in an unlimited project', function () {
     $project = aProject();
     $this->as(anAdminOf($project));
 
     visit(route('manage.overview', $project))
-        ->assertSee('Unlimited')
+        ->assertSee('Getting to the lottery')
+        ->assertDontSee('Unlimited')
         ->assertNotPresent('button[aria-expanded]:has-text("Limited")');
 });

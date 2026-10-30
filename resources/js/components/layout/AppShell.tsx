@@ -44,6 +44,8 @@ export interface NavEntry {
 export interface NavGroup {
   label: string;
   items: NavEntry[];
+  /** Set apart at the bottom, unnamed: a project's settings, which admins must not miss */
+  apart?: boolean;
 }
 
 /** A link that loads its page as soon as the pointer rests on it, so the click is instant */
@@ -119,7 +121,11 @@ const Navigation = memo(function Navigation({ nav }: { nav: NavGroup[] }) {
       {nav.map((group) => {
         const places = group.items.filter((item) => !item.action);
         const actions = group.items.filter((item) => item.action);
-        return (
+        return group.apart ? (
+          <div key={group.label} className="shell-group shell-apart">
+            {places.map(entry)}
+          </div>
+        ) : (
           <div key={group.label} className="shell-group">
             <Text className="ds-label shell-heading ds-truncate">{group.label}</Text>
             {places.map(entry)}

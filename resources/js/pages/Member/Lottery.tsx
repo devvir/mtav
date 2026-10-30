@@ -6,19 +6,18 @@ import { RankingList } from '@/components/domain/RankingList';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { EmptyState, Glyph, Panel, Status } from '@/design';
+import { Glyph, Panel, Status } from '@/design';
 import { heldOffline } from '@/lib/offline';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { LotteryRun, Plan as PlanData, ProjectEvent, Unit } from '@/types/models';
-import { Deferred, router } from '@inertiajs/react';
-import { Alert, Badge, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
+import { Deferred, Link, router } from '@inertiajs/react';
+import { Alert, Anchor, Badge, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
 import { useDebouncedCallback } from '@mantine/hooks';
 import {
   IconAlertTriangle,
   IconClock,
-  IconDice5,
   IconHome,
   IconListNumbers,
   IconMap,
@@ -106,15 +105,16 @@ export default function Lottery({
 
   const ownUnit = assignment?.find((row) => row.id === family?.id)?.unit ?? null;
   const invalidations = runs.filter((run) => run.status === 'invalidated');
+  const completedRun = runs.find((run) => run.status === 'completed');
 
   return (
     <>
       <PageHeader
-        tour="member.ranking"
+        tour="lottery"
         title={_('Lottery')}
         description={lottery.description}
         help={
-          <InfoTip title={_('How the lottery works')} tour="member.ranking">
+          <InfoTip title={_('How the lottery works')} tour="lottery">
             <p>
               {_(
                 'Each family ranks the units of its type. The lottery first makes the worst-off family as well off as possible, then the whole project as satisfied as possible; only ties are drawn at random.',
@@ -142,6 +142,18 @@ export default function Lottery({
                   {_('Your family received')}{' '}
                   <strong className="text-positive">{ownUnit.identifier}</strong>.
                 </Text>
+              ) : null}
+              {completedRun ? (
+                <Anchor
+                  component={Link}
+                  href={route('lottery.record', { lotteryRun: completedRun.id })}
+                  size="sm"
+                  fw={650}
+                  mt="xs"
+                  display="inline-block"
+                >
+                  {_('Check the result')}
+                </Anchor>
               ) : null}
             </div>
           </Group>
@@ -200,6 +212,7 @@ export default function Lottery({
       {/* The plan across the page: there is too much in it for a column */}
       {family ? (
         <Panel
+          data-tour="lottery.plan"
           title={_('Project plan')}
           icon={IconMap}
           className="plan-panel"
@@ -258,15 +271,16 @@ export default function Lottery({
               onChange={rank}
             />
           </Panel>
-        ) : !family ? (
-          <EmptyState
-            icon={IconDice5}
-            title={_('Families rank units; you are not in a family of this project.')}
-          />
         ) : null}
 
         {assignment ? (
-          <Panel title={_('Results')} icon={IconHome} tone="positive" flush>
+          <Panel
+            data-tour="lottery.results"
+            title={_('Results')}
+            icon={IconHome}
+            tone="positive"
+            flush
+          >
             {assignment.map((row) => (
               <Group
                 key={row.id}

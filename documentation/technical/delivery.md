@@ -99,9 +99,11 @@ accepts:
 | `deploy <environment> <commit> [fresh]` | that commit's release goes live |
 | `rollback <environment>` | the release before goes live again |
 | `status` | what each environment runs (live and previous: slot and image) |
+| `backup <environment> database\|files` | a gzipped copy, streamed back ([data.md](data.md)) |
 
 It refuses anything else, any environment not set up on the host, and any image not built
-from this repository. The deploy's steps come from the release's own image
+from this repository. Backups take their own key (set up as `backups`), which can do
+nothing else; the deploy keys never take them. The deploy's steps come from the release's own image
 (`deploy/host/deploy`), never from the caller, so the key can only run MTAV's releases.
 
 Moving to a cloud provider replaces this step (and the host's proxy) with the provider's
@@ -113,8 +115,9 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
 
 1. **The host**: copy `deploy/host/setup`, `deploy/host/gate` and the pipeline's public
    keys (one per environment) to it, then
-   `sudo bash setup dev=dev.pub staging=staging.pub production=production.pub`: each key
-   runs the gate for its own environment only. It installs security updates (and
+   `sudo bash setup dev=dev.pub staging=staging.pub production=production.pub
+   backups=backups.pub`: each key runs the gate for its own environment only (the
+   backups key, for copies only). It installs security updates (and
    unattended ones from then on), stops services nothing uses, limits nginx to TLS 1.2
    and 1.3 (no version shown, uploads up to 105 MB), makes Docker publish on the
    loopback by default, renews the certificates and reloads nginx after every renewal,
@@ -126,8 +129,12 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    then the site shows only that it is under construction. Where demo data is seeded,
    its first account is the owner. Signing in with
    Google needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google Cloud OAuth
-   client (Web application) whose authorised redirect URI is
-   `<APP_URL>/auth/google/callback`; without them the option is not offered. The
+   client (Web application) whose authorised redirect URIs include
+   `<APP_URL>/auth/google/callback` (one client serves every environment, each with its
+   own URI); without them the option is not offered. Notifications on devices need
+   `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, a pair of its own per environment
+   (`php artisan push:keys`). `CONTACT_EMAIL` is whom the privacy page tells people to
+   write to (else the owner). The
    console's Deployments page needs `DEPLOYERS` (the superadmins who may deploy, by
    email) and `GITHUB_DEPLOY_TOKEN` (a fine-grained token for this repository only:
    Actions read and write; Deployments, Contents and Metadata read); without either,

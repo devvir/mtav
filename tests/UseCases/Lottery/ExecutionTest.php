@@ -297,3 +297,57 @@ class BrokenSolver implements SolverInterface
         throw new RuntimeException('The solver crashed');
     }
 }
+
+describe('Its record', function () {
+    it('shows anyone in the project each family\'s unit and its place in the family\'s ranking', function () {
+        // A and B both want unit 0 most; C wants unit 1: A gets its 1st, B its 2nd, C its 1st
+        [$families, $units] = familiesRanking([[0, 1, 2], [0, 2, 1], [1, 0, 2]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $member = $families[1]->members()->first();
+
+        $page = $this->as($member, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertOk();
+        $places = collect($page->inertiaProps('families'))->pluck('place', 'id');
+
+        expect($places->all())->toEqual([$families[0]->id => 1, $families[1]->id => 2, $families[2]->id => 1])
+            ->and($page->inertiaProps('worst'))->toBe(2)
+            ->and($page->inertiaProps('own.ranking'))->toBe([$units[0]->identifier, $units[2]->identifier, $units[1]->identifier])
+            ->and($page->inertiaProps('fingerprint'))->toMatch('/^[0-9a-f]{64}$/');
+    });
+
+    it('keeps its fingerprint for as long as the record is untouched, and loses it if it is changed', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $fingerprint = fn () => (new App\Services\Lottery\RunRecord($run->fresh()))->fingerprint();
+        $before = $fingerprint();
+
+        expect($fingerprint())->toBe($before);
+
+        $audit = $run->audits()->where('type', 'project_execution')->sole();
+        $audit->update(['audit' => [...$audit->audit, 'picks' => array_reverse($audit->audit['picks'], true)]]);
+
+        expect($fingerprint())->not->toBe($before);
+    });
+
+    it('lets admins download the whole record, and no one else', function () {
+        [$families] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+
+        $download = $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk();
+        expect($download->json('trail.0.type'))->toBe('init')
+            ->and($download->headers->get('Content-Disposition'))->toContain('attachment');
+
+        expect($this->as($families[0]->members()->first(), $this->project)->get(route('lottery.download', [$this->project, $run])))->toBeDenied();
+    });
+
+    it('has no record for a run that decided nothing', function () {
+        $run = aLotteryInProgress($this->project);
+
+        $this->as($this->admin, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertNotFound();
+    });
+});

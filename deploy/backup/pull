@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Pulls a copy of an environment's data (its database, and its uploaded files) to this
+# machine, through the host's gate, with the backups key: run it from cron where the
+# copies should live (a machine whose address may change: the host never reaches it).
+#
+#   deploy/backup/pull [environment] [directory]      production, ~/mtav-backups by default
+#
+#   # crontab -e: every night at 03:30
+#   30 3 * * * /path/to/mtav/deploy/backup/pull production /data/backups/mtav >> /data/backups/mtav/pull.log 2>&1
+#
+# Settings (environment variables): MTAV_BACKUP_KEY (the key set up on the host as
+# "backups", ~/.ssh/mtav-backup by default), MTAV_BACKUP_HOST (mtav-deploy@mtav.uy),
+# MTAV_BACKUP_DAYS (how long copies are kept, 30). Each copy is checked before it is kept;
+# a broken one is thrown away and the run fails, so cron's mail says so.
+set -euo pipefail
+
+environment="${1:-production}"
+directory="${2:-$HOME/mtav-backups}"
+key="${MTAV_BACKUP_KEY:-$HOME/.ssh/mtav-backup}"
+host="${MTAV_BACKUP_HOST:-mtav-deploy@mtav.uy}"
+days="${MTAV_BACKUP_DAYS:-30}"
+stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+
+mkdir -p "$directory"
+
+pull() {
+    local what="$1" target="$directory/$environment-$1-$stamp.$2"
+    ssh -i "$key" -o BatchMode=yes -o ServerAliveInterval=30 "$host" "backup $environment $what" > "$target.part"
+    if ! gzip -t "$target.part" 2> /dev/null || [[ ! -s "$target.part" ]]; then
+        rm -f "$target.part"
+        echo "$(date -u +%FT%TZ) $environment $what: the copy is broken, not kept" >&2
+        return 1
+    fi
+    mv "$target.part" "$target"
+    echo "$(date -u +%FT%TZ) $environment $what: $(du -h "$target" | cut -f1) in $target"
+}
+
+pull database sql.gz
+pull files tar.gz
+
+# Older copies go, the newest few always stay (in case the pulls stopped for a while)
+find "$directory" -name "$environment-*" -mtime "+$days" -print0 \
+    | sort -z | head -z -n -4 | xargs -0 -r rm -f

@@ -18,6 +18,10 @@ enum NotificationType: string
     case LOTTERY_FAILED = 'lottery_failed';
     case LOTTERY_INVALIDATED = 'lottery_invalidated';
 
+    /** The forum */
+    case FORUM_TOPIC = 'forum_topic';
+    case FORUM_REPLY = 'forum_reply';
+
     /** Project approval */
     case APPROVAL_REQUESTED = 'approval_requested';
     case PROJECT_APPROVED = 'project_approved';

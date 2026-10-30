@@ -40,6 +40,7 @@ it('renders the member app', function () {
         route('units.index', $this->project)                    => 'A-101',
         route('units.show', [$this->project, $this->unit])      => 'A-101',
         route('invitations.index', $this->project)              => 'Invite to your family',
+        route('forum.index', $this->project)                    => 'No topics yet',
     ];
 
     foreach ($pages as $url => $text) {
@@ -68,6 +69,8 @@ it('renders the platform console and the account pages', function () {
     $pages = [
         route('admin.projects.index') => 'Cooperativa Las Acacias',
         route('admin.users.index')    => 'Accounts',
+        route('admin.activity.index') => 'Activity',
+        route('admin.errors.index')   => 'No errors',
         route('projects.index')       => 'Your projects',
         route('projects.create')      => 'Start a project',
         route('notifications.index')  => 'Notifications',

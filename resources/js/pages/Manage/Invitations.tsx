@@ -2,6 +2,7 @@ import { DateTime } from '@/components/feedback/DateTime';
 import { Form, RequiredNote } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { SettingsTabs } from '@/components/layout/SettingsTabs';
 import { Panel } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { checkbox, field, nativeSelect } from '@/lib/forms';
@@ -62,7 +63,7 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
     <>
       <PageHeader
         tour="manage.invitations"
-        title={_('Invitations')}
+        title={_('Settings')}
         description={_('People join the project from the link they receive by email.')}
         help={
           <InfoTip title={_('How invitations work')} tour="manage.invitations">
@@ -72,6 +73,7 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
           </InfoTip>
         }
       />
+      <SettingsTabs />
       <div className="two-columns">
         <Panel title={_('Invite someone')} icon={IconMailPlus} data-tour="invite.form">
           <Form onSubmit={send}>

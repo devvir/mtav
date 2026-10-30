@@ -98,3 +98,16 @@ it('restores an archived project, or deletes it for good after its summary and i
     expect(Project::withTrashed()->find($gone->id))->toBeNull();
     expect(Project::find($kept->id))->not->toBeNull();
 });
+
+it('shows superadmins what changed, and narrows it to a project', function () {
+    $project = aProject(['name' => 'Los Ceibos']);
+    aUnit(aUnitType($project), ['identifier' => 'A-101']);
+    aUnit(aUnitType(aProject(['name' => 'Otra'])), ['identifier' => 'Z-9']);
+    $this->as(aSuperadmin());
+
+    visit(route('admin.activity.index', ['project' => $project->id]))
+        ->assertSee('Activity')
+        ->assertSee('«A-101»')
+        ->assertDontSee('«Z-9»')
+        ->assertNoSmoke();
+});

@@ -7,6 +7,10 @@
 #   deploy <environment> <commit> [fresh]   that commit's release goes live
 #   rollback <environment>                  the release before it goes live again
 #   status                                  what each environment runs
+#   backup <environment> database|files     a copy, gzipped, to the caller (deploy/backup/pull)
+#
+# A key set up as "backups" (setup backups=<key .pub>) takes backups of any environment and
+# does nothing else; the other keys never take them.
 #
 # and refuses anything else. The environment must be set up here (<home>/<environment>
 # with its .env, written from deploy/env.example); the release must be MTAV's image for that commit; "fresh" (the database
@@ -29,6 +33,13 @@ only="${1:-}"
 read -r -a request <<< "${SSH_ORIGINAL_COMMAND:-}"
 action="${request[0]:-}"
 
+# Reading and changing never share a key
+if [[ "$only" == backups ]]; then
+    [[ "$action" == backup ]] || refuse "this key takes backups, and nothing else"
+elif [[ "$action" == backup ]]; then
+    refuse "backups take their own key"
+fi
+
 # An MTAV environment's directory: its .env names the ports the switch listens on
 is_environment() {
     grep -q '^MTAV_WEB_PORT=' "$1/.env" 2>/dev/null
@@ -36,7 +47,7 @@ is_environment() {
 
 environment_dir() {
     [[ "$1" =~ ^[a-z][a-z0-9-]{0,30}$ ]] || refuse "unknown environment '$1'"
-    [[ -z "$only" || "$1" == "$only" ]] || refuse "this key deploys $only only, not '$1'"
+    [[ -z "$only" || "$only" == backups || "$1" == "$only" ]] || refuse "this key deploys $only only, not '$1'"
     is_environment "$home/$1" || refuse "environment '$1' is not set up on this host"
     echo "$home/$1"
 }
@@ -98,6 +109,28 @@ case "$action" in
         # Going back is the older release's own business: its steps, from its image
         bundle_of "$previous_image"
         MTAV_HOME="$home" bash "$bundle/host/deploy" --rollback "${request[1]}" "$bundle"
+        ;;
+
+    backup)
+        [[ ${#request[@]} -eq 3 ]] || refuse "usage: backup <environment> database|files"
+        dir="$(environment_dir "${request[1]}")"
+        case "${request[2]}" in
+            database)
+                # One consistent moment, without locking anyone out
+                MTAV_ENV="${request[1]}" docker compose --project-directory "$dir" -f "$dir/compose.yml" \
+                    --env-file "$dir/.env" -p "mtav-${request[1]}" exec -T db sh -c \
+                    'exec mariadb-dump --user="$MARIADB_USER" --password="$MARIADB_PASSWORD" --single-transaction --routines --events --databases "$MARIADB_DATABASE"' \
+                    | gzip
+                ;;
+            files)
+                # The uploaded files (media, documents, avatars), read-only, from no network
+                docker run --rm --network none -v "mtav-${request[1]}_files:/files:ro" alpine:3.22 \
+                    tar czf - -C /files .
+                ;;
+            *)
+                refuse "back up 'database' or 'files'"
+                ;;
+        esac
         ;;
 
     *)

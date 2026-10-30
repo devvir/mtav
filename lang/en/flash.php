@@ -71,4 +71,9 @@ return [
     'deploy_refused'          => 'GitHub did not start it (:status). Check the deploy token.',
     'upload_too_large'        => 'That was too much to send at once: share fewer files, or smaller ones.',
     'platform_settings_saved' => 'The platform settings were saved.',
+    'page_expired'            => 'The page was open for a long time: try again.',
+    'account_deleted'         => 'Your account was deleted.',
+    'topic_opened'            => 'Your topic is open.',
+    'topic_removed'           => 'The topic was removed.',
+    'error_solved'            => 'Marked solved.',
 ];

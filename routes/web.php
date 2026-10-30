@@ -16,6 +16,7 @@ use App\Http\Controllers\Member;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Platform;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Settings\AvatarController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -94,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('settings', '/settings/profile');
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
@@ -102,6 +104,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::delete('notifications/{notification}/read', [NotificationController::class, 'unread'])->name('notifications.unread');
+
+    /** Notifications on this device, even with the app closed */
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])
+        ->middleware('throttle:20,1')
+        ->name('push.subscribe');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     /** One's projects; starting one */
     Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
@@ -140,12 +148,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
             Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
 
+            /** The forum: topics, each a conversation */
+            Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
+            Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
+            Route::get('forum/{topic}', [Member\ForumController::class, 'show'])->name('forum.show');
+            Route::put('forum/{topic}', [Member\ForumController::class, 'update'])->name('forum.update');
+            Route::delete('forum/{topic}', [Member\ForumController::class, 'destroy'])->name('forum.destroy');
+            Route::post('forum/{topic}/posts', [Member\ForumController::class, 'reply'])->middleware('throttle:60,1')->name('forum.reply');
+            Route::put('forum/posts/{post}', [Member\ForumController::class, 'updatePost'])->name('forum.posts.update');
+            Route::delete('forum/posts/{post}', [Member\ForumController::class, 'destroyPost'])->name('forum.posts.destroy');
+
             Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
             Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
             Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
 
             Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
             Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
+            Route::get('lottery/runs/{lotteryRun}', [Member\LotteryController::class, 'record'])->name('lottery.record');
+            Route::get('lottery/runs/{lotteryRun}/record.json', [Member\LotteryController::class, 'download'])
+                ->name('lottery.download');
 
             /**
              * The project admin area
@@ -160,6 +181,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])
                     ->middleware('throttle:3,60')
                     ->name('approval.request');
+
+                // The project's lists, as spreadsheets
+                Route::get('export/people.csv', [Manage\ExportController::class, 'people'])->name('export.people');
+                Route::get('export/families.csv', [Manage\ExportController::class, 'families'])->name('export.families');
+                Route::get('export/units.csv', [Manage\ExportController::class, 'units'])->name('export.units');
 
                 Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
                 Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
@@ -203,6 +229,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
         Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
+        Route::get('activity', [Platform\ActivityController::class, 'index'])->name('activity.index');
+        Route::get('errors', [Platform\ErrorController::class, 'index'])->name('errors.index');
+        Route::delete('errors/{error}', [Platform\ErrorController::class, 'destroy'])->name('errors.destroy');
         Route::get('settings', [Platform\SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [Platform\SettingsController::class, 'update'])->name('settings.update');
 

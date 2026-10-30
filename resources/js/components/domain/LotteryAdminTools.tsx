@@ -1,16 +1,18 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { DateTimeField } from '@/components/forms/DateTimeField';
 import { Form } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
 import { Panel, Status, type Tone } from '@/design';
 import { confirm as ask, prompt } from '@/lib/dialogs';
-import { field } from '@/lib/forms';
+import { dateTime, field } from '@/lib/forms';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { LotteryRun, ProjectEvent } from '@/types/models';
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
   Alert,
+  Anchor,
   Box,
   Button,
   Group,
@@ -18,7 +20,6 @@ import {
   Stack,
   Text,
   Textarea,
-  TextInput,
   Title,
 } from '@mantine/core';
 import {
@@ -177,12 +178,11 @@ export function LotteryAdminTools({
           data-tour="lottery.schedule"
         >
           <Form onSubmit={saveSchedule}>
-            <TextInput
+            <DateTimeField
               label={_('Date')}
               description={_('The earliest it can run')}
-              type="datetime-local"
               disabled={Boolean(status)}
-              {...field(schedule, 'start_date')}
+              {...dateTime(schedule, 'start_date')}
             />
             <Textarea
               label={_('Description')}
@@ -296,6 +296,16 @@ export function LotteryAdminTools({
                       {_('Invalidated by {name}:', { name: item.invalidated_by ?? '?' })} «
                       {item.invalidation_reason}»
                     </Text>
+                  ) : null}
+                  {item.status === 'completed' || item.status === 'invalidated' ? (
+                    <Anchor
+                      component={Link}
+                      href={route('lottery.record', { lotteryRun: item.id })}
+                      size="sm"
+                      fw={650}
+                    >
+                      {_('Its record')}
+                    </Anchor>
                   ) : null}
                 </Stack>
                 {item.status === 'completed' ? (

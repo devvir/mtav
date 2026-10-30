@@ -1,124 +1,82 @@
-# Testing & Git Hooks
+# Testing
 
-Testing workflows and automated quality checks. All test commands run inside
-the isolated `mtav-testing` Docker environment — see
-[docker/README.md](../../docker/README.md) for the infrastructure details.
+Every rule the app keeps has a test that states it, and every fix comes with a test that
+would have caught what it fixes. The tests run in their own Docker environments
+([development.md](development.md)), never against the dev database.
 
-## 🧪 Running Tests
+## Running them
 
-```bash
-./mtav pest [args]       # PHP tests (Pest) — default: Arch, Unit, UseCases suites
-./mtav vitest [args]     # Frontend tests (Vitest)
-./mtav e2e [args]        # Browser tests (Playwright); --group=critical for the quick subset
-./mtav precommit         # Pest (minus 'slow' group) + Vitest in one env cycle
-./mtav test              # Everything: Pest + Vitest + E2E
+```sh
+./mtav pest                              # PHP: Arch, Unit, UseCases
+./mtav pest --filter="runs the lottery"  # by name
+./mtav pest --testsuite Stress           # the slow GLPK scenarios (opt in)
+./mtav vitest                            # frontend units
+./mtav e2e                               # the browser suite
+./mtav e2e --group=critical              # its quick part
+./mtav e2e --filter='LotteryTest|PlanTest'
+./mtav precommit                         # Pest without the slow group, and Vitest
 ```
 
-Pest/Vitest boot the `mtav-testing` environment; `mtav e2e` boots its own
-`mtav-e2e` composition. Each command
-installs dependencies, runs, and tears down. Arguments are forwarded to the
-underlying runner:
+To iterate without starting and stopping the environment each time:
 
-```bash
-./mtav pest --filter="runs the lottery"
-./mtav pest --stop-on-failure
-./mtav pest --testsuite Stress          # opt-in suite: Stress
-./mtav vitest resources/js/tests/unit/planEditor.test.ts
-./mtav e2e tests/Browser/Features/PlanTest.php
-```
-
-### Fast iteration (skip the boot/teardown cycle)
-
-Keep the testing environment up and exec into it directly:
-
-```bash
-./mtav compose testing up -d --wait                 # once
+```sh
+./mtav compose testing up -d --wait
 docker exec mtav-testing-php-1 php artisan test --testsuite Arch,Unit,UseCases --filter X
-docker exec mtav-testing-assets-1 pnpm run test --run
-./mtav compose testing down                         # when done
+./mtav compose testing down
 ```
 
-The testing environment runs alongside dev (different ports/project), so you
-never have to stop your dev session to run tests.
+Two runs of the same kind never at once: Pest and Vitest share `mtav-testing`, browser
+runs `mtav-e2e`. The browser run reads the app's PHP from the working tree as it goes:
+editing the app while it runs makes its results meaningless.
 
-### Suites
+## The suites
 
-- **UseCases** — the business rules, through HTTP (see below).
-- **Unit** — the lottery solvers and GLPK internals, on plain data.
-- **Arch** — architecture rules.
-- **Stress** — slow GLPK scenarios; opt in with `--testsuite Stress`.
-- **Browser** — run by `./mtav e2e` (see below).
+| Suite | Where | What |
+|---|---|---|
+| UseCases | `tests/UseCases/<area>/` | the business rules, through HTTP, from the actor's side ("an admin runs the lottery…") |
+| Unit | `tests/Unit/` | the lottery's solvers and GLPK, on plain data |
+| Arch | `tests/Arch/` | rules about the code: every language says what English says; no debugging left; models free of HTTP, solvers free of models |
+| Stress | `tests/Stress/` | GLPK on hard instances (timeouts, binary search against the direct method) |
+| Browser | `tests/Browser/` | the real app in Chromium |
+| Vitest | `resources/js/tests/` | frontend logic: the plan editor, zoom, idle, offline |
 
-### Use-case tests
+**Use cases** build exactly the data they need with the scenario builders
+(`tests/Helpers/scenario.php`: `aProject()`, `anAdminOf()`, `aFamily()`, `aMemberOf()`,
+`aUnitType()`, `aUnit()`, `anEvent()`, `aLotteryInProgress()`…), never fixture ids, and
+act with `$this->as($user, $project)`. Each test starts from an empty schema, inside a
+transaction rolled back after it (after-commit callbacks still run). Two groups mark
+rules not met yet: `bug` (broken) and `new` (decided, not built).
 
-`tests/UseCases/` holds the feature tests that state the business rules, one file per
-use case, written from the actor's point of view ("an admin registers a family…").
-They start from an empty schema and build exactly the data they need with the
-scenario builders in `tests/Helpers/scenario.php` (`aProject()`, `anAdminOf()`,
-`aFamily()`, `aMemberOf()`, …) — never fixture IDs. Builders are the only test code
-that knows how roles and memberships are stored. Act as a user with
-`$this->as($user, $project)`.
+**The solver** has its own checks, kept from the first version word for word
+(`tests/Unit/Lottery/Glpk/GlpkSolverTest.php`): exact picks, the worst-off family first,
+ties, the same answer on every run, larger cases, leftovers, a missing `glpsol`.
 
-Two groups track rules the code does not meet yet:
+**Browser tests** run the app in-process, so a test mixes browser steps with database
+checks:
 
-- `bug` — the app breaks a rule it is meant to follow;
-- `new` — a decided requirement that is not built yet.
+- `Critical/`: every page of every area renders without errors; a cooperative from
+  sign-up to its lottery; the tutor's journey on the first version's flows.
+- `Features/`: one file per area (accounts, projects, setup, people, events, files, the
+  plan, the lottery, the home page, notifications, live updates, guided help, the
+  console…), plus phones, Spanish and accessibility.
 
-```bash
-./mtav pest --exclude-group=bug --exclude-group=new   # what should be green
-./mtav pest --group=bug --group=new                   # the open list
-```
+Fields are found by `name`, buttons by their text, icon buttons by `aria-label`.
+Assertions retry until 20 seconds pass; clicks and keys run once. Helpers in
+`tests/Helpers/browser.php`:
 
-### Browser tests
+| Helper | For |
+|---|---|
+| `inDialog()`, `button()` | a button inside the open dialog; a button by its text, never a heading |
+| `attachFile()` | files to upload (the browser refuses local paths) |
+| `openHelp($page, $topic)` | a (?) opened, waiting until its popover stands still |
+| `pickDay($page, $field, $day)` | a day picked on a date field's calendar, as a person does |
+| `assertAccessible($page)` | axe's serious and critical findings, none allowed |
 
-`tests/Browser/` drives the real app in Chromium (Pest's browser plugin on Playwright).
-The app runs in-process, so tests mix browser steps with database checks.
+Tours never start by themselves under test (the browser is automated); a test that wants
+them sets `localStorage['mtav.tours'] = 'on'`.
 
-- `Critical/` (group `critical`): every page of the three areas renders without
-  JavaScript errors, and a cooperative goes from sign-up to its lottery. The quick
-  subset: `./mtav e2e --group=critical`.
-- `Features/`: one file per area of the app (accounts, projects, setup, people,
-  events, files, the lottery, the plan, guided help), plus phones, Spanish and
-  accessibility (axe). Edge cases live here: refusals, limits, validation, the last admin.
+## Before committing
 
-Fields are found by their `name`; buttons by their text, icon buttons by
-`[aria-label="…"]`. Helpers in `tests/Helpers/browser.php`: `inDialog()` and `button()`
-(a button by its text, never a heading saying the same), `attachFile()` (the browser
-refuses local paths), and the links that would arrive by email. Assertions are retried
-until the timeout (20 s); clicks and key presses run once.
-
-### Notes
-
-- Every test starts from an empty schema (migrated once per process) and runs inside a
-  rolled-back transaction (`RefreshDatabase`), which still fires after-commit callbacks.
-- Lottery unit tests audit in memory (`fakeAudits()`, `tests/Helpers/lottery.php`).
-- The testing database lives in RAM (tmpfs) and is discarded on teardown.
-- Don't run two test invocations concurrently — they share the
-  `mtav-testing` compose project.
-
-## 🔗 Git Hooks
-
-### Pre-commit (`.husky/pre-commit`)
-
-Runs core tests scoped to the **staged** files against the already-running
-testing environment (docs-only commits are instant; PHP-only commits skip
-Vitest and vice versa):
-
-- PHP: Arch + Unit suites minus the `slow` group (~50s)
-- Frontend: full Vitest run (parallel with the PHP run)
-
-If the testing environment is not up, the hook **skips with a warning**
-instead of paying the multi-minute boot cost — so keep it up while
-developing (`./mtav compose testing up -d --wait`). Run `mtav precommit`
-for the fuller check before pushing.
-
-### Pre-push (`.husky/pre-push`)
-
-Runs `php artisan insights` (code quality analysis).
-
-### Bypassing hooks
-
-```bash
-git commit --no-verify -m "Emergency fix"   # ⚠️ use only when necessary
-git push --no-verify
-```
+The pre-commit hook runs the tests that the staged files touch, against a testing
+environment already up (it skips, with a warning, when none is). The pipeline runs
+everything on every push ([delivery.md](delivery.md)).

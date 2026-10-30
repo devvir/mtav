@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Notifications\EmailChangeNotice;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\RedirectResponse;
+use App\Services\Push\PushService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 class ProfileController extends Controller
@@ -21,6 +25,8 @@ class ProfileController extends Controller
             // The languages to pick from, each named in itself; theirs (null: the platform's)
             'languages' => config('app.locales'),
             'language'  => $user->locale,
+            // What a browser needs to receive notifications (null: not set up here)
+            'pushKey' => PushService::enabled() ? config('services.push.public_key') : null,
         ]);
     }
 
@@ -58,5 +64,40 @@ class ProfileController extends Controller
         }
 
         return back()->with('success', __('flash.profile_updated'));
+    }
+
+    /**
+     * Someone deletes their own account: their memberships, devices and answers go with
+     * it; what they gave their projects (files, events, lottery records) stays there,
+     * without their name. Never the deployment's owner, nor a project's only admin (it
+     * would be left without anyone to run it).
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $request->validate(['confirmation' => ['required', Rule::in([$user->email])]], [
+            'confirmation.in' => __('validation.confirm_with_email'),
+        ]);
+
+        if ($user->is_owner) {
+            throw ValidationException::withMessages(['confirmation' => __('validation.owner_stays')]);
+        }
+
+        $alone = $user->projects()->wherePivot('is_admin', true)->get()
+            ->filter(fn ($project) => $project->admins()->count() === 1);
+        if ($alone->isNotEmpty()) {
+            throw ValidationException::withMessages(['confirmation' => __('validation.only_admin_of', [
+                'projects' => $alone->pluck('name')->join(', '),
+            ])]);
+        }
+
+        $avatar = $user->avatar;
+        Auth::logout();
+        $user->delete();
+        $avatar && Storage::disk('public')->delete($avatar);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return to_route('home')->with('success', __('flash.account_deleted'));
     }
 }

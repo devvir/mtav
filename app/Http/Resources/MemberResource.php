@@ -20,7 +20,8 @@ class MemberResource extends JsonResource
         $viewer = $request->user();
         $project = currentProject();
         $membership = $project ? $this->membershipIn($project) : null;
-        // Admins (and the person) see both; everyone else what the person shares
+        // Admins (and the person) see both, and the ID number given; everyone else what the
+        // person shares
         $seesAll = $viewer && ($viewer->is($this->resource) || ($project && $viewer->manages($project)));
 
         return [
@@ -35,6 +36,7 @@ class MemberResource extends JsonResource
             'joined_at' => $membership?->created_at,
             'email'     => $this->when($seesAll || $this->email_public, $this->email),
             'phone'     => $this->when($seesAll || $this->phone_public, $this->phone),
+            'legal_id'  => $this->when($seesAll, $this->legal_id),
         ];
     }
 }

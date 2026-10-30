@@ -5,8 +5,9 @@ import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupCh
 import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
+import { FoldablePanel } from '@/components/layout/FoldablePanel';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { EmptyState, Glyph, Panel, Stat } from '@/design';
+import { EmptyState, Glyph, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -15,6 +16,7 @@ import { Deferred, Link, usePage } from '@inertiajs/react';
 import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 import {
   IconCalendarEvent,
+  IconChevronRight,
   IconDice5,
   IconHomeHeart,
   IconLayoutGrid,
@@ -136,86 +138,96 @@ export default function Dashboard({
         </div>
       ) : null}
 
-      <Panel
-        title={_('Recently shared')}
-        icon={IconPhoto}
-        tone="accent"
-        style={{ marginBottom: 24 }}
-        actions={
-          <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
-            {_('All files')}
-          </Anchor>
-        }
-      >
-        <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
-          {media?.length ? (
-            <MediaGrid media={media} />
-          ) : (
-            <EmptyState
-              inset
-              icon={IconPhoto}
-              title={_('Nothing shared yet')}
-              action={
-                project.can.upload ? (
-                  <Button
-                    component={Link}
-                    href={route('media.index', { share: 1 })}
-                    variant="light"
-                  >
-                    {_('Share something')}
-                  </Button>
-                ) : null
-              }
-            >
-              {_('Photos of the works, plans and documents, for everyone in the project.')}
-            </EmptyState>
-          )}
-        </Deferred>
-      </Panel>
-      <div className="dashboard-top">
-        {/* The lottery, the heart of the project */}
+      {/* The lottery, the heart of the project: here once it has a date, up front */}
+      {lottery.status === 'completed' || lottery.status === 'running' || lottery.start_date ? (
         <Card
           component={Link}
           href={route('lottery.show')}
           p="lg"
-          className="ds-interactive lottery-card"
+          mb="lg"
+          className="ds-interactive lottery-banner"
           data-tour="home.lottery"
+          data-done={lottery.status === 'completed' || undefined}
         >
-          <Glyph icon={IconDice5} size={44} />
-          <Title order={2} fz="lg" mt="sm">
-            {_('Lottery')}
-          </Title>
-          {lottery.status === 'completed' ? (
-            lottery.unit ? (
-              <Text mt={4}>
-                {_('Your family received')}{' '}
-                <strong className="text-positive">{lottery.unit.identifier}</strong>.
+          <Glyph
+            icon={IconDice5}
+            size={48}
+            tone={lottery.status === 'completed' ? 'positive' : 'brand'}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Title order={2} fz="lg">
+              {_('Lottery')}
+            </Title>
+            {lottery.status === 'completed' ? (
+              lottery.unit ? (
+                <Text mt={4}>
+                  {_('Your family received')}{' '}
+                  <strong className="text-positive">{lottery.unit.identifier}</strong>.
+                </Text>
+              ) : (
+                <Text c="dimmed" mt={4}>
+                  {_('The lottery is done. See the results.')}
+                </Text>
+              )
+            ) : lottery.status === 'running' ? (
+              <Text c="dimmed" mt={4}>
+                {_('The lottery is running right now.')}
               </Text>
             ) : (
               <Text c="dimmed" mt={4}>
-                {_('The lottery is done. See the results.')}
+                {_('Scheduled for')}{' '}
+                <Text component="strong" c="var(--mtav-text)" fw={650}>
+                  <DateTime value={lottery.start_date!} />
+                </Text>
+                .{' '}
+                {project.can.rank ? _("Make sure your family's ranking is how you want it.") : null}
               </Text>
-            )
-          ) : lottery.status === 'running' ? (
-            <Text c="dimmed" mt={4}>
-              {_('The lottery is running right now.')}
-            </Text>
-          ) : lottery.start_date ? (
-            <Text c="dimmed" mt={4}>
-              {_('Scheduled for')}{' '}
-              <Text component="strong" c="var(--mtav-text)" fw={650}>
-                <DateTime value={lottery.start_date} />
-              </Text>
-              . {project.can.rank ? _("Make sure your family's ranking is how you want it.") : null}
-            </Text>
-          ) : (
-            <Text c="dimmed" mt={4}>
-              {_('Not scheduled yet.')}
-            </Text>
-          )}
+            )}
+          </div>
+          <IconChevronRight size={22} className="lottery-banner-go" aria-hidden />
         </Card>
+      ) : null}
 
-        <Panel
+      <div className="dashboard-pair">
+        <FoldablePanel
+          name="home.shared"
+          title={_('Recently shared')}
+          icon={IconPhoto}
+          tone="accent"
+          actions={
+            <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
+              {_('All files')}
+            </Anchor>
+          }
+        >
+          <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
+            {media?.length ? (
+              <MediaGrid media={media} />
+            ) : (
+              <EmptyState
+                inset
+                icon={IconPhoto}
+                title={_('Nothing shared yet')}
+                action={
+                  project.can.upload ? (
+                    <Button
+                      component={Link}
+                      href={route('media.index', { share: 1 })}
+                      variant="light"
+                    >
+                      {_('Share something')}
+                    </Button>
+                  ) : null
+                }
+              >
+                {_('Photos of the works, plans and documents, for everyone in the project.')}
+              </EmptyState>
+            )}
+          </Deferred>
+        </FoldablePanel>
+
+        <FoldablePanel
+          name="home.events"
           title={_('Coming up')}
           icon={IconCalendarEvent}
           actions={
@@ -252,7 +264,7 @@ export default function Dashboard({
               </EmptyState>
             )}
           </Deferred>
-        </Panel>
+        </FoldablePanel>
       </div>
 
       {!empty ? (

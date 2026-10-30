@@ -101,15 +101,19 @@ it('shows no choice of projects to someone in only one', function () {
         ->assertDontSeeIn('.shell-nav', 'Your projects');
 });
 
-it('gives admins the project\'s places and an administration group in one sidebar', function () {
+it('gives admins the project\'s places, and its settings apart at the bottom, in one sidebar', function () {
     $project = aProject();
     $this->as(anAdminOf($project));
 
     visit(route('projects.show', $project))
-        ->assertSeeIn('.shell-nav', 'Administration')
-        ->click('.shell-nav >> text=Setup')
+        ->assertSeeIn('.shell-apart', 'Settings')
+        ->click('.shell-apart >> text=Settings')
         ->assertPathIs(route('manage.overview', $project, absolute: false))
-        ->assertSeeIn('.shell-nav', 'Lottery')
+        ->click('.settings-tabs >> text=Invitations')
+        ->assertPathIs(route('manage.invitations.index', $project, absolute: false))
+        ->assertPresent('.shell-apart [data-active]')
+        ->click('.settings-tabs >> text=Project')
+        ->assertPathIs(route('manage.settings.edit', $project, absolute: false))
         ->click('.shell-nav >> text=Lottery')
         ->assertPathIs(route('lottery.show', $project, absolute: false));
 });
@@ -126,7 +130,7 @@ it('keeps members out of the admin area', function () {
     $project = aProject();
     $this->as(aMemberOf(aFamily($project)));
 
-    visit(route('projects.show', $project))->assertDontSeeIn('.shell-nav', 'Administration');
+    visit(route('projects.show', $project))->assertNotPresent('.shell-apart');
     visit(route('manage.overview', $project))->assertSee('Not allowed');
 });
 

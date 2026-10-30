@@ -35,6 +35,16 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    /**
+     * Notifications on people's devices (Web Push): the deployment's VAPID keys, from
+     * `php artisan push:keys` (off while unset), and whom push services may write to
+     */
+    'push' => [
+        'public_key'  => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject'     => env('VAPID_SUBJECT', 'mailto:' . (env('CONTACT_EMAIL') ?: env('MAIL_FROM_ADDRESS', 'no-reply@mtav.uy'))),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

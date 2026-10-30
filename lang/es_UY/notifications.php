@@ -29,4 +29,9 @@ return [
 
     'lottery_invalidated_title'   => 'El sorteo fue invalidado',
     'lottery_invalidated_message' => ':name invalidó el sorteo: «:reason». Se volverá a realizar.',
+
+    'forum_topic_title'   => 'Nuevo tema en el foro',
+    'forum_topic_message' => ':name abrió «:title».',
+    'forum_reply_title'   => 'Una respuesta en el foro',
+    'forum_reply_message' => ':name respondió en «:title».',
 ];

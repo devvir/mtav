@@ -140,3 +140,19 @@ it('says at once from the list that a member goes, and keeps it', function () {
 
     expect($event->rsvps()->first()?->pivot->attending)->toBe(1);
 });
+
+it('dates an event on a calendar', function () {
+    $this->as($this->admin);
+
+    $page = visit(route('events.index', $this->project))
+        ->click('Create an event')
+        ->fill('title', 'Work day')
+        ->fill('description', 'Cleaning the site')
+        ->fill('location', 'The site');
+    pickDay($page, 'start_date', now())
+        ->assertSeeIn('[data-field="start_date"]', now()->format('j F Y') . ', 00:00')
+        ->click(inDialog('Create the event'))
+        ->assertSee('The event was created.');
+
+    expect(Event::firstWhere('title', 'Work day')->start_date->format('Y-m-d H:i'))->toBe(now()->format('Y-m-d') . ' 00:00');
+});

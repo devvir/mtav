@@ -24,11 +24,17 @@ export function Stat({
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 8,
         }}
       >
-        <span className="ds-label">{label}</span>
-        {icon ? <Glyph icon={icon} tone={tone} size={34} /> : null}
+        {/* Two lines at most, a word too long cut short (whole on hover) */}
+        <span
+          className="ds-label ds-stat-label"
+          title={typeof label === 'string' ? label : undefined}
+        >
+          {label}
+        </span>
+        {icon ? <Glyph icon={icon} tone={tone} size={30} /> : null}
       </div>
       <div className="ds-figure">{value}</div>
       {note ? (

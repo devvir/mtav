@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ErrorLog;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -46,6 +47,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // Kept for superadmins to see (the console's Errors), the owner told of new ones
+        $exceptions->report(fn (Throwable $error) => ErrorLog::capture($error));
+
         /**
          * People get a friendly error page (or, for a refused form submission, a flash
          * message on the page they came from) instead of the framework's.
@@ -56,6 +60,12 @@ return Application::configure(basePath: dirname(__DIR__))
             // More than a request may carry (a share of too many large files): said on the page
             if ($status === 413 && ! $request->expectsJson()) {
                 return back()->with('error', __('flash.upload_too_large'));
+            }
+
+            // A page left open too long (its form's token expired): back to it, with a fresh
+            // token, to try again
+            if ($status === 419 && ! $request->expectsJson()) {
+                return back()->with('error', __('flash.page_expired'));
             }
 
             if ($request->expectsJson() || ! in_array($status, [403, 404, 500, 503])) {

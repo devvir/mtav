@@ -4,8 +4,10 @@ import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import {
   IconAdjustments,
+  IconBug,
   IconFlask,
   IconFolders,
+  IconHistory,
   IconRocket,
   IconShieldCheck,
   IconUser,
@@ -41,6 +43,18 @@ export function PlatformLayout({ children }: { children: ReactNode }) {
               href: route('admin.superadmins.index'),
               icon: IconShieldCheck,
               active: routeIs('admin.superadmins.*'),
+            },
+            {
+              label: _('Activity'),
+              href: route('admin.activity.index'),
+              icon: IconHistory,
+              active: routeIs('admin.activity.*'),
+            },
+            {
+              label: _('Errors'),
+              href: route('admin.errors.index'),
+              icon: IconBug,
+              active: routeIs('admin.errors.*'),
             },
             {
               label: _('Settings'),

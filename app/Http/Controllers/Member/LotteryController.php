@@ -9,7 +9,11 @@ use App\Http\Resources\EventResource;
 use App\Http\Resources\LotteryRunResource;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\UnitResource;
+use App\Models\LotteryRun;
 use App\Models\Project;
+use App\Models\Unit;
+use App\Services\Lottery\RunRecord;
+use Illuminate\Http\JsonResponse;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\PreferencesService;
 use Illuminate\Http\RedirectResponse;
@@ -90,5 +94,44 @@ class LotteryController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * A run's record, for anyone in the project: each family's unit and its place in the
+     * family's ranking, and the record's fingerprint; a family also its own whole ranking
+     */
+    public function record(Request $request, Project $project, LotteryRun $lotteryRun): Response
+    {
+        $record = new RunRecord($lotteryRun);
+        abort_unless($record->exists(), 404);
+        $family = $request->user()->familyIn($project);
+
+        return inertia('Member/LotteryRecord', [
+            'run' => [
+                'id'          => $lotteryRun->id,
+                'status'      => $lotteryRun->status->value,
+                'started_at'  => $lotteryRun->started_at,
+                'finished_at' => $lotteryRun->finished_at,
+                'by'          => $lotteryRun->starter?->name,
+                'solver'      => $lotteryRun->solver,
+            ],
+            ...$record->summary(),
+            'own' => $family ? [
+                'id'      => $family->id,
+                'ranking' => Unit::whereIn('id', $ids = $record->rankingOf($family->id))->pluck('identifier', 'id')
+                    ->sortBy(fn ($identifier, $id) => array_search($id, $ids, true))->values(),
+            ] : null,
+        ]);
+    }
+
+    /** Everything a run recorded, as written: for admins to keep or hand to an auditor */
+    public function download(Project $project, LotteryRun $lotteryRun): JsonResponse
+    {
+        $this->authorize('update', $project);
+        $record = new RunRecord($lotteryRun);
+        abort_unless($record->exists(), 404);
+
+        return response()->json($record->full(), options: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            ->header('Content-Disposition', "attachment; filename=\"lottery-{$lotteryRun->uuid}.json\"");
     }
 }

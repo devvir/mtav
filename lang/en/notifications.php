@@ -29,4 +29,9 @@ return [
 
     'lottery_invalidated_title'   => 'The lottery was invalidated',
     'lottery_invalidated_message' => ':name invalidated the lottery: ":reason". It will run again.',
+
+    'forum_topic_title'   => 'New topic in the forum',
+    'forum_topic_message' => ':name opened «:title».',
+    'forum_reply_title'   => 'A reply in the forum',
+    'forum_reply_message' => ':name replied in «:title».',
 ];

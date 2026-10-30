@@ -1,12 +1,12 @@
 import { hasTour, startTour } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 import { ActionIcon, Button, Group, Popover, Text } from '@mantine/core';
-import { IconHelpCircle, IconPlayerPlay } from '@tabler/icons-react';
+import { IconArrowRight, IconHelpCircle } from '@tabler/icons-react';
 import { useState, type ReactNode } from 'react';
 
 /**
  * A (?) next to something that needs explaining: a short text, and — where a tour exists
- * for it — "Show me how", which walks through it on the page.
+ * for it — "Tell me more", which walks through it on the page.
  */
 export function InfoTip({
   title,
@@ -47,13 +47,13 @@ export function InfoTip({
           {tour && hasTour(tour) ? (
             <Button
               size="xs"
-              leftSection={<IconPlayerPlay size={14} />}
+              rightSection={<IconArrowRight size={14} />}
               onClick={() => {
                 setOpened(false);
                 setTimeout(() => startTour(tour), 0);
               }}
             >
-              {_('Show me how')}
+              {_('Tell me more')}
             </Button>
           ) : null}
         </Group>

@@ -71,4 +71,9 @@ return [
     'deploy_refused'          => 'GitHub non l’ha avviato (:status). Controlla il token di rilascio.',
     'upload_too_large'        => 'Era troppo da inviare in una volta: condividi meno file, o più leggeri.',
     'platform_settings_saved' => 'Le impostazioni della piattaforma sono state salvate.',
+    'page_expired'            => 'La pagina è rimasta aperta a lungo: riprova.',
+    'account_deleted'         => 'Il tuo account è stato eliminato.',
+    'topic_opened'            => 'Il tuo argomento è aperto.',
+    'topic_removed'           => 'L’argomento è stato rimosso.',
+    'error_solved'            => 'Segnato come risolto.',
 ];

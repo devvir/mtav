@@ -30,31 +30,14 @@ export function QuickActions() {
   if (!project) return null;
 
   const at = { project: project.id };
+  // Admins: in the order a project is set up; members: what they share
   const actions: Action[] = [
-    ...(project.can.upload
-      ? [
-          {
-            label: _('Share photos or files'),
-            href: route('media.index', { ...at, share: 1 }),
-            icon: IconPhotoPlus,
-          },
-        ]
-      : []),
-    ...(project.family && project.can.invite
-      ? [
-          {
-            label: _('Invite a family member'),
-            href: route('invitations.index', at),
-            icon: IconUserPlus,
-          },
-        ]
-      : []),
     ...(project.can.manage
       ? [
           {
-            label: _('Create an event'),
-            href: route('events.index', { ...at, new: 1 }),
-            icon: IconCalendarPlus,
+            label: _('Invite a member'),
+            href: route('manage.invitations.index', at),
+            icon: IconMailPlus,
           },
           {
             label: _('Add a family'),
@@ -62,14 +45,31 @@ export function QuickActions() {
             icon: IconUsersPlus,
           },
           {
-            label: _('Add units'),
-            href: route('units.index', { ...at, new_unit: 1 }),
+            label: _('Set up units'),
+            href: route('units.index', at),
             icon: IconHomePlus,
           },
           {
-            label: _('Invite people'),
-            href: route('manage.invitations.index', at),
-            icon: IconMailPlus,
+            label: _('Create an event'),
+            href: route('events.index', { ...at, new: 1 }),
+            icon: IconCalendarPlus,
+          },
+        ]
+      : project.family && project.can.invite
+        ? [
+            {
+              label: _('Invite a family member'),
+              href: route('invitations.index', at),
+              icon: IconUserPlus,
+            },
+          ]
+        : []),
+    ...(project.can.upload
+      ? [
+          {
+            label: _('Upload photos or files'),
+            href: route('media.index', { ...at, share: 1 }),
+            icon: IconPhotoPlus,
           },
         ]
       : []),

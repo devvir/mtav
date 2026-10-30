@@ -178,3 +178,14 @@ function openHelp(object $page, string $topic): object
 
     return $page;
 }
+
+/**
+ * Picks a day (at 00:00) on a DateTimeField, as a person does: open its calendar, click
+ * the day (labelled by its date), confirm. The day must be in the month it opens on.
+ */
+function pickDay(object $page, string $field, DateTimeInterface $day): object
+{
+    return $page->click("[data-field=\"{$field}\"]")
+        ->click('[aria-label="' . $day->format('j F Y') . '"]')
+        ->click('.mantine-DateTimePicker-submitButton');
+}

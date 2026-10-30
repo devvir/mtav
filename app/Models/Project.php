@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Validation\ValidationException;
 use App\Enums\EventType;
 use App\Enums\LotteryRunStatus;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Project extends Model
 {
+    use RecordsActivity;
     use SoftDeletes;
 
     protected $fillable = [
@@ -110,6 +112,18 @@ class Project extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
+    }
+
+    /** Its forum's topics */
+    public function topics(): HasMany
+    {
+        return $this->hasMany(Topic::class);
+    }
+
+    /** Every post of its forum (a post's address resolves through its project) */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 
     /**
