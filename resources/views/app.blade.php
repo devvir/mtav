@@ -19,6 +19,10 @@
         <title data-inertia>{{ config('app.name') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="apple-touch-icon" href="/images/app/apple-touch-icon.png">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#faf7f4" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#120f0d" media="(prefers-color-scheme: dark)">
 
         @viteReactRefresh
         @vite('resources/js/app.tsx')

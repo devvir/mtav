@@ -10,6 +10,7 @@ use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\Manage;
 use App\Http\Controllers\Member;
 use App\Http\Controllers\NotificationController;
@@ -31,6 +32,9 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::get('ping', fn () => 'pong');
+
+/** Installing the app on a device */
+Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
 
 /**
  * Accounts
