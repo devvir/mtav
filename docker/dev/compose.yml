@@ -25,12 +25,14 @@ services:
       QUEUE_CONNECTION: database
 
   # Works the queue as on a server (deploy/slot.yml): a lottery run, the reveal it waits
-  # for, mail. queue:listen takes each job with the code as it is now, edits included.
+  # for, mail. queue:work, as there (it marks that it runs: queue:listen never does, and
+  # the lottery would wait for it); it takes PHP edits on restart (./mtav compose dev
+  # restart worker).
   worker:
     extends:
       file: ../services/php/compose.yml
       service: php
-    command: php artisan queue:listen --tries=3 --timeout=600
+    command: php artisan queue:work --tries=3 --timeout=600
     environment:
       QUEUE_CONNECTION: database
     healthcheck:
