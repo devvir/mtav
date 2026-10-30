@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ProjectFeature;
 use App\Models\Conversation;
 use App\Models\Media;
 use App\Models\Notification;
@@ -34,6 +35,8 @@ class HandleInertiaRequests extends Middleware
             'name'        => config('app.name'),
             'institution' => config('app.institution') ?: null,
             'locale'      => app()->getLocale(),
+            /** The languages to pick from, each named in itself */
+            'languages' => Inertia::once(fn () => config('app.locales')),
             'auth'        => ['user' => $user ? $this->user($user) : null],
             'projects'    => fn () => $user ? $this->projects($user) : [],
             'project'     => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
@@ -91,10 +94,11 @@ class HandleInertiaRequests extends Middleware
     {
         $managed = $user->memberships->where('is_admin', true)->pluck('project_id');
 
-        return $user->reachableProjects()->orderBy('name')->get(['id', 'name'])
+        return $user->reachableProjects()->orderBy('name')->get(['id', 'name', 'disabled_features'])
             ->map(fn (Project $project) => [
                 'id'       => $project->id,
                 'name'     => $project->name,
+                'features' => $project->features(),
                 'is_admin' => $user->isSuperadmin() || $managed->contains($project->id),
             ])
             ->all();
@@ -107,7 +111,7 @@ class HandleInertiaRequests extends Middleware
     {
         $family = $user->familyIn($project);
         $manages = $user->can('update', $project);
-        $inChat = (bool) $user->membershipIn($project);
+        $inChat = $project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project));
 
         return [
             'id'                    => $project->id,
@@ -119,13 +123,19 @@ class HandleInertiaRequests extends Middleware
             'pending_invitations' => $manages ? $project->invitations()->pending()->count() : null,
             // And those asking to join from the directory
             'join_requests' => $manages ? $project->joinRequests()->pending()->count() : null,
+            'is_guest'      => $user->isGuestIn($project),
+            'allows_guests' => $project->allows_guests,
+            // Let in without guests, until they have a family it is all there is for them
+            'needs_family' => $user->needsFamilyIn($project),
+            'features'      => $project->features(),
             // The conversations with something new for them (the chat's place says so)
             'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
             'can'             => [
                 'manage'  => $manages,
                 'invite'  => $user->can('invite', [$project, $family]),
                 'rank'    => $user->can('rankUnits', $project),
-                'upload'  => $user->can('create', [Media::class, $project]),
+                'upload'  => ($project->hasFeature(ProjectFeature::GALLERY) || $project->hasFeature(ProjectFeature::FILES))
+                    && $user->can('create', [Media::class, $project]),
                 'approve' => $user->can('approve', $project),
                 'chat'    => $inChat,
             ],

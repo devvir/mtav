@@ -19,7 +19,7 @@ interface ListedProject {
   units_count: number;
   open_to_join: boolean;
   /** Where the viewer stands with it */
-  standing: 'in' | 'can_join' | 'can_ask' | 'asked' | 'declined';
+  standing: 'in' | 'can_join' | 'can_ask' | 'asked' | 'declined' | 'closed';
 }
 
 /** What the viewer can do about a project, given where they stand */
@@ -65,6 +65,8 @@ function ProjectAction({ project }: { project: ListedProject }) {
           </Button>
         </Group>
       );
+    case 'closed':
+      return <Text className="ds-caption">{_('Not taking anyone new right now')}</Text>;
     case 'declined':
       return <Text className="ds-caption">{_('The admins did not accept your request')}</Text>;
   }

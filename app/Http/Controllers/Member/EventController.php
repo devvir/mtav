@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\Project;
+use App\Services\ArchiveService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -16,7 +17,7 @@ use Inertia\Response;
  */
 class EventController extends Controller
 {
-    public function index(Request $request, Project $project): Response
+    public function index(Request $request, Project $project, ArchiveService $archive): Response
     {
         $past = $request->query('when') === 'past';
         $manages = $request->user()->can('update', $project);
@@ -33,6 +34,7 @@ class EventController extends Controller
         return inertia('Member/Events/Index', [
             'events'  => EventResource::collection($events),
             'filters' => ['q' => $request->q, 'when' => $past ? 'past' : 'upcoming'],
+            'archive' => $archive->forPage($request, $project, 'events'),
             // An event's details, shown over the list (?event=5); drafts for admins only
             'event' => fn () => $request->integer('event') && ($event = $project->events()->find($request->integer('event')))
                 && $request->user()->can('view', $event)

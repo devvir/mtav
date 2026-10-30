@@ -31,6 +31,10 @@ return [
     'invitation_accepted' => 'Welcome to :project!',
     'invitation_declined' => 'You declined the invitation.',
     'invitation_sign_in'  => 'This invitation is for :email. Sign in with that account to accept it.',
+    'restored' => 'It is back.',
+    'account_blocked' => ':name is blocked: out of every project, and unable to sign in.',
+    'account_unblocked' => ':name can sign in again.',
+    'account_deleted' => 'The account of :name was deleted.',
 
     'added_to_family' => ':name is now in the :family family.',
     'join_requested' => 'Your request reached the admins of :project.',

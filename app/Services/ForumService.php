@@ -76,7 +76,7 @@ class ForumService
     {
         DB::transaction(function () use ($post) {
             $topic = $post->topic;
-            $post->delete();
+            $post->retire();
             $topic->forceFill([
                 'replies_count' => max(0, $topic->replies_count - 1),
                 'last_post_at'  => $topic->posts()->max('created_at') ?? $topic->created_at,

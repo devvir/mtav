@@ -59,7 +59,7 @@ class ProjectPolicy
      */
     public function join(User $user, Project $project): bool
     {
-        return $project->isInDirectory() && $project->open_to_join && ! $user->canAccess($project);
+        return $project->isInDirectory() && $project->open_to_join && $project->acceptsNewcomers() && ! $user->canAccess($project);
     }
 
     /**
@@ -68,7 +68,7 @@ class ProjectPolicy
      */
     public function askToJoin(User $user, Project $project): bool
     {
-        if (! $project->isInDirectory() || $project->open_to_join || $user->canAccess($project)) {
+        if (! $project->isInDirectory() || $project->open_to_join || ! $project->acceptsNewcomers() || $user->canAccess($project)) {
             return false;
         }
 
@@ -79,7 +79,7 @@ class ProjectPolicy
 
     /**
      * Someone taking part with no family, and no other role, starts theirs (until the
-     * lottery decided who gets what).
+     * lottery decided who gets what, and once there are unit types to choose from).
      */
     public function createOwnFamily(User $user, Project $project): bool
     {

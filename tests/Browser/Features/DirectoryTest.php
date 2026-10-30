@@ -6,7 +6,7 @@
 it('finds a project from the selector, joins it, creates a family, and sees everything without one', function () {
     $mine = aProject(['name' => 'Mine']);
     aMemberOf(aFamily($mine, aUnitType($mine)), ['email' => 'person@example.com']);
-    $open = aProject(['name' => 'Open one', 'listed' => true, 'open_to_join' => true]);
+    $open = aProject(['name' => 'Open one', 'listed' => true, 'open_to_join' => true, 'allows_guests' => true]);
     aUnit($type = aUnitType($open, ['name' => 'Two rooms']));
     $person = App\Models\User::firstWhere('email', 'person@example.com');
     $this->as($person);
@@ -34,6 +34,7 @@ it('finds a project from the selector, joins it, creates a family, and sees ever
 
 it('asks to join, and an admin accepts from the Invitations tab, whose badge says so', function () {
     $project = aProject(['name' => 'By request', 'listed' => true]);
+    aUnitType($project);
     $admin = anAdminOf($project);
     $person = aUser(['firstname' => 'Ana', 'lastname' => 'Rey']);
 

@@ -8,6 +8,7 @@ use App\Events\NotificationSent;
 use App\Jobs\PushNotification;
 use App\Services\Push\PushService;
 use App\Models\Notification;
+use App\Models\Project;
 use App\Models\User;
 
 /**
@@ -49,6 +50,47 @@ class NotificationService
         PushService::enabled() && rescue(fn () => PushNotification::dispatch($notification->id));
 
         return $notification;
+    }
+
+    /**
+     * Something a project gained, of which several tend to come together (setting up units,
+     * sharing photos): the same person's within half an hour say so in one notification, as
+     * unread again, that reaches people's devices only the first time.
+     *
+     * @param string $words  What its translation keys start with: {words}_title, _one, _many
+     */
+    public function bundle(Project $project, NotificationType $type, string $words, User $by, string $url, int $count = 1): Notification
+    {
+        $recent = Notification::where('target', NotificationTarget::PROJECT)
+            ->where('target_id', $project->id)
+            ->where('type', $type)
+            ->where('triggered_by', $by->id)
+            ->where('created_at', '>', now()->subMinutes(30))
+            ->latest('id')
+            ->first();
+
+        if (! $recent) {
+            return $this->send(
+                NotificationTarget::PROJECT,
+                $type,
+                title: "notifications.{$words}_title",
+                message: $count === 1 ? "notifications.{$words}_one" : "notifications.{$words}_many",
+                params: ['name' => $by->name, 'count' => (string) $count],
+                url: $url,
+                trigger: $by,
+                targetId: $project->id,
+            );
+        }
+
+        $data = $recent->data;
+        $data['params']['count'] = (string) ((int) $data['params']['count'] + $count);
+        $data['message'] = "notifications.{$words}_many";
+        $recent->update(['data' => $data]);
+        $recent->readers()->detach();
+
+        rescue(fn () => NotificationSent::dispatch($recent));
+
+        return $recent;
     }
 
     /** A URL's path, query and fragment: '/projects/1/events?x=1#y' */

@@ -17,7 +17,6 @@ it('starts a conversation with someone, and they find it waiting, unread until o
     $this->as($this->ana);
 
     visit(route('chat.index', $this->project))
-        ->assertSee('No conversations yet')
         ->click('New conversation')
         ->click('[role="dialog"] input[role="combobox"]')
         ->click('[role="option"]:has-text("Beto Silva")')
@@ -30,14 +29,13 @@ it('starts a conversation with someone, and they find it waiting, unread until o
 
     $this->as($this->beto);
     visit(route('projects.show', $this->project))
-        ->assertSeeIn('.shell-nav', 'Messages')
-        ->click('.shell-nav a:has-text("Messages")')
+        ->click('.chat-launcher')
         ->assertPresent('.chat-list-item[data-unread]')
         ->click('.chat-list-item:has-text("Ana Pérez")')
         ->assertSeeIn('.chat-messages', 'Hola Beto, ¿vienes el sábado?')
         ->assertMissing('.chat-list-item[data-unread]');
 
-    expect(Conversation::sole()->messages()->count())->toBe(1);
+    expect(Conversation::where('is_community', false)->sole()->messages()->count())->toBe(1);
 });
 
 it('starts a named group for several people', function () {
@@ -54,5 +52,5 @@ it('starts a named group for several people', function () {
         ->click(inDialog('Start the group'))
         ->assertSeeIn('.chat-thread-header', 'Building committee');
 
-    expect(Conversation::sole())->is_group->toBeTrue()->title->toBe('Building committee');
+    expect(Conversation::where('is_community', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee');
 });

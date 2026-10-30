@@ -21,8 +21,9 @@ class MemberResource extends JsonResource
         $project = currentProject();
         $membership = $project ? $this->membershipIn($project) : null;
         // Admins (and the person) see both, and the ID number given; everyone else what the
-        // person shares
+        // person shares, but for guests, who never see either
         $seesAll = $viewer && ($viewer->is($this->resource) || ($project && $viewer->manages($project)));
+        $seesShared = $seesAll || ! ($viewer && $project && $viewer->isGuestIn($project));
 
         return [
             'id'        => $this->id,
@@ -32,10 +33,11 @@ class MemberResource extends JsonResource
             'avatar'    => $this->avatar ? Storage::disk('public')->url($this->avatar) : null,
             'about'     => $this->about,
             'is_admin'  => (bool) $membership?->is_admin,
+            'is_guest'  => $project && $this->isGuestIn($project),
             'family'    => $membership?->family ? ['id' => $membership->family->id, 'name' => $membership->family->name] : null,
             'joined_at' => $membership?->created_at,
-            'email'     => $this->when($seesAll || $this->email_public, $this->email),
-            'phone'     => $this->when($seesAll || $this->phone_public, $this->phone),
+            'email'     => $this->when($seesAll || ($seesShared && $this->email_public), $this->email),
+            'phone'     => $this->when($seesAll || ($seesShared && $this->phone_public), $this->phone),
             'legal_id'  => $this->when($seesAll, $this->legal_id),
         ];
     }

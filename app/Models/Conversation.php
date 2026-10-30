@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A chat between people of a project: two of them (one per pair), or a group with its
- * name. Only those in it read it; nobody else does, the project's admins included.
+ * name. Only those in it read it; nobody else does, the project's admins included. Each
+ * project has one Community group, with everyone in it and nobody able to leave.
  */
 class Conversation extends Model
 {
@@ -17,6 +18,7 @@ class Conversation extends Model
 
     protected $casts = [
         'is_group'        => 'boolean',
+        'is_community'    => 'boolean',
         'last_message_at' => 'datetime',
     ];
 

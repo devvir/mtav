@@ -40,6 +40,10 @@ class InvitationService
     {
         $email = strtolower(trim($person['email']));
 
+        if (User::where('email', $email)->whereNotNull('blocked_at')->exists()) {
+            throw ValidationException::withMessages(['email' => __('validation.account_blocked')]);
+        }
+
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
 
         $familyless = $family && ! $asAdmin

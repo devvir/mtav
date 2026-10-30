@@ -6,6 +6,7 @@ use App\Models\Concerns\RecordsActivity;
 use Illuminate\Validation\ValidationException;
 use App\Enums\EventType;
 use App\Enums\LotteryRunStatus;
+use App\Enums\ProjectFeature;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -28,9 +29,10 @@ class Project extends Model
         'name',
         'description',
         'organization',
-        'active',
         'listed',
         'open_to_join',
+        'allows_guests',
+        'disabled_features',
         'created_by',
         'approval_requested_at',
         'approved_at',
@@ -38,12 +40,25 @@ class Project extends Model
     ];
 
     protected $casts = [
-        'active'                => 'boolean',
         'listed'                => 'boolean',
         'open_to_join'          => 'boolean',
+        'allows_guests'         => 'boolean',
+        'disabled_features'     => 'array',
         'approval_requested_at' => 'datetime',
         'approved_at'           => 'datetime',
     ];
+
+    /** Every project has its Community group, whether or not its chat is on */
+    protected static function booted(): void
+    {
+        static::created(function (Project $project) {
+            (new Conversation())->forceFill([
+                'project_id'   => $project->id,
+                'is_group'     => true,
+                'is_community' => true,
+            ])->save();
+        });
+    }
 
     public function creator(): BelongsTo
     {
@@ -64,8 +79,8 @@ class Project extends Model
     {
         return $this->memberships()->where('user_id', '!=', $this->created_by)->exists()
             || $this->invitations()->exists()
-            || $this->events()->where('type', '!=', EventType::LOTTERY)->exists()
-            || $this->media()->exists()
+            || $this->events()->withTrashed()->where('type', '!=', EventType::LOTTERY)->exists()
+            || $this->media()->withTrashed()->exists()
             || $this->lotteryRuns()->exists();
     }
 
@@ -179,6 +194,30 @@ class Project extends Model
      * Its admins want it listed, and the platform trusts them: a project nobody has
      * vetted yet is not shown to everyone.
      */
+    /**
+     * Whether someone new has a way to take part. With guests they always do; without, they
+     * need a family, which takes unit types to choose from and a lottery yet to decide.
+     */
+    public function acceptsNewcomers(): bool
+    {
+        return $this->allows_guests || ($this->unitTypes()->exists() && ! $this->lotteryLocked());
+    }
+
+    public function hasFeature(ProjectFeature|string $feature): bool
+    {
+        $name = $feature instanceof ProjectFeature ? $feature->value : $feature;
+
+        return ! in_array($name, $this->disabled_features ?? [], true);
+    }
+
+    /** @return array<string, bool>  each feature, and whether it is on */
+    public function features(): array
+    {
+        return collect(ProjectFeature::cases())
+            ->mapWithKeys(fn (ProjectFeature $feature) => [$feature->value => $this->hasFeature($feature)])
+            ->all();
+    }
+
     public function isInDirectory(): bool
     {
         return $this->listed && $this->isApproved();
@@ -221,11 +260,6 @@ class Project extends Model
     public function lotteryLocked(): bool
     {
         return $this->activeLotteryRun()->exists();
-    }
-
-    public function scopeActive(Builder $query): void
-    {
-        $query->where('active', true);
     }
 
     public function scopeAlphabetically(Builder $query): void

@@ -142,9 +142,14 @@ decision taken on the way is listed below for review.
   creates theirs, or someone of their family adds them: being in the project already, they
   enter that family at once, told in the app and by email (no invitation to accept).
 - **Next, agreed in outline**:
-  - *Who can do what, and project types*: most features on or off per project, and
-    predefined types of project that set them all at once; the housing cooperative
-    (MTAV) is the type with everything.
+  - *White-label, per deployment*: an unversioned `spec.yaml` (with a versioned
+    `spec.example.yaml`) defines a deployment's traits: its landing page, registration on or
+    off, which project settings exist at all, defaults for new projects. Today's app is the
+    default spec, everything on and everything configurable. MTAV's spec does not offer turning
+    the lottery off; others may. What to ask of people on joining (phone, picture, ID number,
+    each off, optional or required) is a project setting a spec may fix or remove.
+  - *Who can do what, and project types*: predefined types of project that set the on/off
+    features at once; the housing cooperative (MTAV) is the type with everything.
 - **Text size**: each person picks Small, Medium or Large (Preferences, kept on the
   device, there from the first paint); everything is sized from it (the root's font size,
   sizes in rem). Medium, the default, is a fifth larger than the browser's own: many
@@ -425,14 +430,19 @@ decision taken on the way is listed below for review.
     - Optional features are on or off per project: forum, chat, gallery, files, events (the
       lottery stays, even with events off). White-label options are per deployment, and
       decide which of these a project is even offered.
-    - Guests, people in a project who are neither in a family nor admins, are a project
-      setting, considered together with being listed. Rules being settled with the author.
+    - Guests are a project setting (see technical/architecture.md). A superadmin starting a
+      project says who its first admin is: themselves (shown as any admin) or someone invited.
+      A superadmin can be superadmin, admin and in a family at once.
+    - Superadmins block accounts (kept, their email taken: they never join again) or delete
+      them (bookkeeping: they may sign up again).
+    - Removed things worth keeping are archived, for admins to see and restore.
     - Superadmins can do whatever an admin can, in any project: hidden, de facto admins.
     - Admins never correct a person's name or email: it is the person's own.
     - New events, files, families and units notify people.
     - Text size, language and light or dark sit in the header on larger screens, each a small
       dropdown of its options, apart from the notifications and the avatar.
     - A language picked stays picked in the browser, signed in or not, across deploys.
+    - Your projects has a search past ten of them, and marks the one last browsed.
     - The chat: on tablets and up, an icon at the bottom left rather than a sidebar item;
       groups (more than two people) have names and sit apart from one-on-one chats; every
       project has a Community group with everyone in it.

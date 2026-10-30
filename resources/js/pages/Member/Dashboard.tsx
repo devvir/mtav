@@ -240,82 +240,86 @@ export default function Dashboard({
       ) : null}
 
       <div className="dashboard-pair">
-        <FoldablePanel
-          name="home.shared"
-          title={_('Recently shared')}
-          icon={IconPhoto}
-          tone="accent"
-          actions={
-            <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
-              {_('All files')}
-            </Anchor>
-          }
-        >
-          <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
-            {media?.length ? (
-              <MediaGrid media={media} />
-            ) : (
-              <EmptyState
-                inset
-                icon={IconPhoto}
-                title={_('Nothing shared yet')}
-                action={
-                  project.can.upload ? (
-                    <Button
-                      component={Link}
-                      href={route('media.index', { share: 1 })}
-                      variant="light"
-                    >
-                      {_('Share something')}
-                    </Button>
-                  ) : null
-                }
-              >
-                {_('Photos of the works, plans and documents, for everyone in the project.')}
-              </EmptyState>
-            )}
-          </Deferred>
-        </FoldablePanel>
+        {project.features.gallery ? (
+          <FoldablePanel
+            name="home.shared"
+            title={_('Recently shared')}
+            icon={IconPhoto}
+            tone="accent"
+            actions={
+              <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
+                {_('All files')}
+              </Anchor>
+            }
+          >
+            <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
+              {media?.length ? (
+                <MediaGrid media={media} />
+              ) : (
+                <EmptyState
+                  inset
+                  icon={IconPhoto}
+                  title={_('Nothing shared yet')}
+                  action={
+                    project.can.upload ? (
+                      <Button
+                        component={Link}
+                        href={route('media.index', { share: 1 })}
+                        variant="light"
+                      >
+                        {_('Share something')}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {_('Photos of the works, plans and documents, for everyone in the project.')}
+                </EmptyState>
+              )}
+            </Deferred>
+          </FoldablePanel>
+        ) : null}
 
-        <FoldablePanel
-          name="home.events"
-          title={_('Coming up')}
-          icon={IconCalendarEvent}
-          actions={
-            <Anchor component={Link} href={route('events.index')} size="sm" fw={600}>
-              {_('All events')}
-            </Anchor>
-          }
-        >
-          <Deferred data="events" fallback={<Skeleton h={96} radius="lg" />}>
-            {events?.length ? (
-              <Stack gap="sm">
-                {events.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </Stack>
-            ) : (
-              <EmptyState
-                inset
-                icon={IconCalendarEvent}
-                title={_('No events coming up')}
-                action={
-                  project.can.manage ? (
-                    <Button
-                      component={Link}
-                      href={route('events.index', { new: 1 })}
-                      variant="light"
-                    >
-                      {_('Create an event')}
-                    </Button>
-                  ) : null
-                }
-              >
-                {_('Assemblies, work days and meetings show up here.')}
-              </EmptyState>
-            )}
-          </Deferred>
-        </FoldablePanel>
+        {project.features.events ? (
+          <FoldablePanel
+            name="home.events"
+            title={_('Coming up')}
+            icon={IconCalendarEvent}
+            actions={
+              <Anchor component={Link} href={route('events.index')} size="sm" fw={600}>
+                {_('All events')}
+              </Anchor>
+            }
+          >
+            <Deferred data="events" fallback={<Skeleton h={96} radius="lg" />}>
+              {events?.length ? (
+                <Stack gap="sm">
+                  {events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </Stack>
+              ) : (
+                <EmptyState
+                  inset
+                  icon={IconCalendarEvent}
+                  title={_('No events coming up')}
+                  action={
+                    project.can.manage ? (
+                      <Button
+                        component={Link}
+                        href={route('events.index', { new: 1 })}
+                        variant="light"
+                      >
+                        {_('Create an event')}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {_('Assemblies, work days and meetings show up here.')}
+                </EmptyState>
+              )}
+            </Deferred>
+          </FoldablePanel>
+        ) : null}
       </div>
 
       {!empty ? (

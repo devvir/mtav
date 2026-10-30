@@ -3,6 +3,7 @@ import { useCurrentPage } from '@/components/layout/page';
 import { keepPlaces } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
+import type { ProjectFeature, ProjectFeatures } from '@/types/models';
 import {
   IconCalendarEvent,
   IconDice5,
@@ -26,8 +27,11 @@ export function projectPlaces(project: {
   family?: unknown;
   unread_messages?: number | null;
   can?: { chat?: boolean };
+  /** What the project has turned off stays out (unknown: as if on) */
+  features?: Partial<ProjectFeatures>;
 }): NavEntry[] {
   const at = { project: project.id };
+  const on = (feature: ProjectFeature) => project.features?.[feature] !== false;
 
   return [
     {
@@ -55,25 +59,38 @@ export function projectPlaces(project: {
       icon: IconLayoutGrid,
       active: routeIs('units.*'),
     },
-    {
-      label: _('Events'),
-      href: route('events.index', at),
-      icon: IconCalendarEvent,
-      active: routeIs('events.*'),
-    },
-    {
-      label: _('Media'),
-      href: route('media.index', at),
-      icon: IconPhoto,
-      active: routeIs('media.*'),
-    },
-    {
-      label: _('Forum'),
-      href: route('forum.index', at),
-      icon: IconMessages,
-      active: routeIs('forum.*'),
-    },
-    // Only for those with a place in the project (a superadmin overseeing it has none)
+    ...(on('events')
+      ? [
+          {
+            label: _('Events'),
+            href: route('events.index', at),
+            icon: IconCalendarEvent,
+            active: routeIs('events.*'),
+          },
+        ]
+      : []),
+    ...(on('gallery') || on('files')
+      ? [
+          {
+            label: _('Media'),
+            href: route('media.index', at),
+            icon: IconPhoto,
+            active: routeIs('media.*'),
+          },
+        ]
+      : []),
+    ...(on('forum')
+      ? [
+          {
+            label: _('Forum'),
+            href: route('forum.index', at),
+            icon: IconMessages,
+            active: routeIs('forum.*'),
+          },
+        ]
+      : []),
+    // Only for those with a place in the project (a superadmin overseeing it has none). On
+    // larger screens the chat has its button at the bottom corner instead (ChatLauncher)
     ...(project.can?.chat
       ? [
           {
@@ -81,6 +98,7 @@ export function projectPlaces(project: {
             href: route('chat.index', at),
             icon: IconMessageCircle,
             active: routeIs('chat.*'),
+            phoneOnly: true,
             count: project.unread_messages ?? undefined,
           },
         ]
@@ -113,7 +131,7 @@ export function adminPlaces(project: { id: number }): NavEntry[] {
 
 /** The sidebar of a project: its places, and for admins its settings, apart at the bottom */
 export function projectNav(
-  project: { id: number; name: string; family?: unknown },
+  project: { id: number; name: string; family?: unknown; features?: Partial<ProjectFeatures> },
   admin: boolean,
 ): NavGroup[] {
   return [
@@ -135,16 +153,19 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
   const id = project?.id;
   const manages = Boolean(project?.can.manage);
   const hasFamily = Boolean(project?.family);
+  const features = JSON.stringify(project?.features);
   // Built once per place visited: visits within a page (details, filters) reuse them
   const [nav, tabs] = useMemo(
     () =>
       project
-        ? [
-            projectNav(project, manages),
-            projectPlaces(project)
-              .filter((item) => !item.action)
-              .slice(0, 4),
-          ]
+        ? project.needs_family
+          ? [[], []]
+          : [
+              projectNav(project, manages),
+              projectPlaces(project)
+                .filter((item) => !item.action)
+                .slice(0, 4),
+            ]
         : [[], []],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -152,6 +173,9 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
       project?.name,
       manages,
       hasFamily,
+      project?.needs_family,
+      project?.can.chat,
+      features,
       project?.unread_messages,
       props.ziggy.name,
       props.locale,

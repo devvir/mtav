@@ -27,6 +27,8 @@ import {
   type ComponentProps,
   type ReactNode,
 } from 'react';
+import { ChatLauncher } from './ChatLauncher';
+import { HeaderPreferences } from './HeaderPreferences';
 import { NotificationsMenu } from './NotificationsMenu';
 import { QuickActions } from './QuickActions';
 import { useCurrentPage, useFlashToasts } from './page';
@@ -39,6 +41,8 @@ export interface NavEntry {
   count?: number;
   /** A call to action rather than a place: set apart, tinted */
   action?: boolean;
+  /** Only on phones (larger screens reach it some other way) */
+  phoneOnly?: boolean;
 }
 
 /** A group of places, under its name */
@@ -113,6 +117,7 @@ const Navigation = memo(function Navigation({ nav }: { nav: NavGroup[] }) {
         active={active}
         count={item.count}
         data-action={item.action || undefined}
+        data-phone-only={item.phoneOnly || undefined}
       />
     );
   };
@@ -218,6 +223,7 @@ export function AppShell({
         {navigation}
       </aside>
 
+      <ChatLauncher />
       <div className="shell-main">
         <header className="ds-bar shell-bar">
           <Burger opened={drawer} onClick={open} aria-label={_('Menu')} hiddenFrom="lg" size="sm" />
@@ -237,6 +243,8 @@ export function AppShell({
                     key={item.id}
                     component={Link}
                     href={route('projects.show', { project: item.id })}
+                    aria-current={item.id === project.id ? 'true' : undefined}
+                    fw={item.id === project.id ? 700 : undefined}
                     rightSection={
                       item.is_admin ? <IconShieldCheck size={16} aria-label={_('Admin')} /> : null
                     }
@@ -272,6 +280,7 @@ export function AppShell({
           <div className="shell-bar-end">
             <OfflineStatus />
             <QuickActions />
+            <HeaderPreferences />
             <NotificationsMenu />
 
             <Menu position="bottom-end" width={260}>

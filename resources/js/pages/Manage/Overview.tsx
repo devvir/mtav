@@ -125,7 +125,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
             <Glyph icon={item.icon} size={40} />
             <div style={{ minWidth: 0 }}>
               <Text fw={700}>{item.title}</Text>
-              <Text className="ds-caption ds-truncate">{item.count}</Text>
+              <Text className="ds-caption">{item.count}</Text>
               <Text size="sm" fw={650} c="var(--mtav-brand)" mt={4}>
                 {item.action}
               </Text>

@@ -155,12 +155,13 @@ class ChatController extends Controller
         return [
             'id' => $conversation->id,
             // A group by its name, else by its people; one on one, by the other person
-            'title' => $conversation->title ?: match ($others->count()) {
+            'title' => $conversation->is_community ? __('chat.community') : ($conversation->title ?: match ($others->count()) {
                 0       => __('chat.only_you'),
                 1       => $others[0]->name,
                 default => $others->pluck('firstname')->join(', '),
-            },
-            'is_group' => $conversation->is_group,
+            }),
+            'is_group'     => $conversation->is_group,
+            'is_community' => $conversation->is_community,
             'faces'    => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
             'last'     => $last ? [
                 'body'   => Str::limit($last->body, 90),

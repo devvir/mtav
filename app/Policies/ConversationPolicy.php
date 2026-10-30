@@ -8,8 +8,8 @@ use App\Models\Project;
 use App\Models\User;
 
 /**
- * A project's chat is its people's: anyone with a place in the project (in a family, or
- * an admin) talks with any other, one on one or in groups. A conversation is read and
+ * A project's chat is its people's: anyone with a place in the project (in a family, an
+ * admin or a guest) talks with any other, one on one or in groups. A conversation is read and
  * written only by those in it: nobody else, the project's admins and superadmins
  * included (its abilities are personal: superadmins do not pass them by default).
  */
@@ -30,15 +30,15 @@ class ConversationPolicy
         return $this->readChat($user, $conversation);
     }
 
-    /** A group is renamed, and grows, by anyone in it; one on one stays two */
+    /** A group is renamed, and grows, by anyone in it; one on one stays two, Community all */
     public function manageGroup(User $user, Conversation $conversation): bool
     {
-        return $conversation->is_group && $this->readChat($user, $conversation);
+        return $conversation->is_group && ! $conversation->is_community && $this->readChat($user, $conversation);
     }
 
     public function leaveGroup(User $user, Conversation $conversation): bool
     {
-        return $conversation->is_group && $conversation->includes($user);
+        return $conversation->is_group && ! $conversation->is_community && $conversation->includes($user);
     }
 
     /** A message is taken back by whoever wrote it */

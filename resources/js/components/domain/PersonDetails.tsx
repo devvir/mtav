@@ -81,6 +81,7 @@ export function PersonDetails({
                 </Anchor>
               ) : null}
               {person.is_admin ? <Badge color="blue">{_('Admin')}</Badge> : null}
+              {person.is_guest ? <Badge color="gray">{_('Guest')}</Badge> : null}
             </Group>
             {person.joined_at ? (
               <Text className="ds-caption">

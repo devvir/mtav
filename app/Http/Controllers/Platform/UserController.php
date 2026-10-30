@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,12 +31,45 @@ class UserController extends Controller
                 'name'           => $user->name,
                 'email'          => $user->email,
                 'is_superadmin'  => $user->isSuperadmin(),
+                'is_owner'       => $user->is_owner,
+                'blocked_at'     => $user->blocked_at,
                 'verified'       => $user->hasVerifiedEmail(),
                 'projects_count' => $user->memberships_count,
                 'created_at'     => $user->created_at,
             ])),
             'filters' => ['q' => $request->q, 'superadmins' => $request->boolean('superadmins')],
         ]);
+    }
+
+    /** Closing an account for good, its email taken (or opening it again) */
+    public function block(Request $request, User $user, AccountService $accounts): RedirectResponse
+    {
+        $block = $request->validate(['block' => ['required', 'boolean']])['block'];
+        $this->ensureNotProtected($request, $user);
+
+        $block ? $accounts->block($user) : $accounts->unblock($user);
+
+        return back()->with('success', __($block ? 'flash.account_blocked' : 'flash.account_unblocked', ['name' => $user->name]));
+    }
+
+    /** Taking an account away: bookkeeping, and they may sign up again */
+    public function destroy(Request $request, User $user, AccountService $accounts): RedirectResponse
+    {
+        $this->ensureNotProtected($request, $user);
+
+        $name = $user->name;
+        $accounts->ensureCanGo($user, 'account');
+        $accounts->delete($user);
+
+        return back()->with('success', __('flash.account_deleted', ['name' => $name]));
+    }
+
+    /** Not oneself, nor anyone who runs the platform: their role goes first */
+    private function ensureNotProtected(Request $request, User $user): void
+    {
+        if ($user->is($request->user()) || $user->isSuperadmin()) {
+            throw ValidationException::withMessages(['account' => __('validation.account_protected')]);
+        }
     }
 
     /** Who manages the whole platform: a page of its own, for a rare decision */

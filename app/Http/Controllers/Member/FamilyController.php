@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Enums\NotificationType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Family;
 use App\Models\Project;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,10 @@ use Inertia\Response;
 
 class FamilyController extends Controller
 {
+    public function __construct(private NotificationService $notifications)
+    {
+    }
+
     public function index(Request $request, Project $project): Response
     {
         [$families, $whole] = $this->wholeOrPaged(
@@ -23,7 +29,7 @@ class FamilyController extends Controller
                 ->withCount('members')
                 ->alphabetically(),
             fn ($query) => $query
-                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project)))
+                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project), nameOnly: $request->user()->isGuestIn($project)))
                 ->when($request->integer('unit_type'), fn ($q, $typeId) => $q->where('unit_type_id', $typeId)),
             30,
         );
@@ -41,6 +47,20 @@ class FamilyController extends Controller
         ]);
     }
 
+    /** Let into a project without guests: this comes first (ResolveProject brings them here) */
+    public function create(Request $request, Project $project): Response|RedirectResponse
+    {
+        if (! $request->user()->needsFamilyIn($project)) {
+            return to_route('projects.show', $project);
+        }
+
+        return inertia('Member/OwnFamily', [
+            'types' => $request->user()->can('createOwnFamily', $project)
+                ? $project->unitTypes()->alphabetically()->get(['id', 'name'])
+                : null,
+        ]);
+    }
+
     /** Someone taking part with no family starts theirs, and is in it */
     public function store(FamilyRequest $request, Project $project): RedirectResponse
     {
@@ -53,6 +73,8 @@ class FamilyController extends Controller
             $user->membershipIn($project)->update(['family_id' => $family->id]);
             $user->unsetRelation('memberships');
         });
+
+        $this->notifications->bundle($project, NotificationType::FAMILIES_ADDED, 'families_added', $user, route('families.index', $project));
 
         return to_route('projects.show', $project)->with('success', __('flash.family_created'));
     }

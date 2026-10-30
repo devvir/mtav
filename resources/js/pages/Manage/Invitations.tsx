@@ -28,10 +28,17 @@ interface Props {
   invitations: Invitation[];
   requests: { id: number; name: string; email: string; created_at: string }[];
   families: Ref[];
+  allowsGuests: boolean;
   limits: { members: number; invitations_per_day: number } | null;
 }
 
-export default function ManageInvitations({ invitations, requests, families, limits }: Props) {
+export default function ManageInvitations({
+  invitations,
+  requests,
+  families,
+  allowsGuests,
+  limits,
+}: Props) {
   const preselected = new URLSearchParams(window.location.search).get('family');
   const form = useForm({
     email: '',
@@ -146,10 +153,19 @@ export default function ManageInvitations({ invitations, requests, families, lim
             <NativeSelect
               data-tour="invite.family"
               label={_('Family')}
-              withAsterisk={!form.data.is_admin}
+              withAsterisk={!form.data.is_admin && !allowsGuests}
               data={[
-                ...(form.data.is_admin || !families.length
-                  ? [{ value: '', label: families.length ? _('No family') : _('No families yet') }]
+                ...(form.data.is_admin || allowsGuests || !families.length
+                  ? [
+                      {
+                        value: '',
+                        label: !families.length
+                          ? _('No families yet')
+                          : form.data.is_admin
+                            ? _('No family')
+                            : _('No family (guest)'),
+                      },
+                    ]
                   : []),
                 ...families.map((family) => ({ value: String(family.id), label: family.name })),
               ]}

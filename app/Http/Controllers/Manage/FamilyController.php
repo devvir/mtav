@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Manage;
 
+use App\Enums\NotificationType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FamilyRequest;
 use App\Models\Family;
 use App\Models\Project;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,11 +18,12 @@ use Illuminate\Validation\ValidationException;
  */
 class FamilyController extends Controller
 {
-    public function store(FamilyRequest $request, Project $project): RedirectResponse
+    public function store(FamilyRequest $request, Project $project, NotificationService $notifications): RedirectResponse
     {
         $project->ensureLotteryNotRunning();
 
         $family = $project->families()->create($request->validated());
+        $notifications->bundle($project, NotificationType::FAMILIES_ADDED, 'families_added', $request->user(), route('families.index', $project));
 
         return to_route('families.index', ['family' => $family->id])->with('success', __('flash.family_created'));
     }

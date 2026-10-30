@@ -164,32 +164,11 @@ The new end-to-end tests run through real GLPK (`tests/UseCases/Lottery/Executio
 
 ## Possibly missing from the new app
 
-- **MISSING? Seeing or verifying the lottery audit.** The new app stores every run's audit, including its input and steps, but no page, route or resource shows it to anyone, superadmins included. The thesis says anyone can verify the result (`documentation/thesis/parte-3-el-sorteo.md` §17). Old: the audit was sent to the lottery page only as raw page data. (`app/Models/LotteryRun.php`, `2c8e8b13:app/Http/Controllers/LotteryController.php` `with('audits')`)
-- **MISSING? Deleting one's own account.** Old: members could, and admins could unless they were a project's only admin. Agreed in refactor.md item 18, not built. (`2c8e8b13:app/Policies/MemberPolicy.php`, `2c8e8b13:app/Policies/AdminPolicy.php`)
-- **MISSING? Admins correcting a person's name or email.** (`2c8e8b13:app/Http/Requests/UpdateMemberRequest.php`)
-- **MISSING? Superadmins deleting, restoring or blocking accounts.** The console's Accounts page is read-only. (`2c8e8b13:app/Http/Controllers/Resources/AdminController.php` restore; `app/Http/Controllers/Platform/UserController.php`)
-- **MISSING? Notifications for new events, files, families and units.** The thesis cites "an event is published" as a live notification (`parte-2` §6.6). New only refreshes pages that are open.
-- **MISSING? Choosing the first admin when a superadmin creates a project.** A superadmin's new project has no admin until someone is invited. (`2c8e8b13:app/Http/Requests/CreateProjectRequest.php`, `app/Services/ProjectService.php`)
-- **MISSING? Admins seeing a person's ID number (cédula)**, and whether they confirmed their email or accepted their invitation. (`2c8e8b13:app/Http/Resources/UserResource.php`)
-- **MISSING? One invitation making someone admin of several projects.** (`2c8e8b13:app/Http/Requests/CreateAdminRequest.php`)
-- **MISSING? Search and the "active / all" filter on the projects list.** The `active` column remains but nothing reads it. The old app could not switch it either. Refactor.md item 8 already notes this.
-- **MISSING? Lists that span several projects** (families, members and admins of all one's projects, or the whole platform for superadmins). Probably dropped on purpose with the project in the URL.
-- **MISSING? Restoring deleted files or events.** Old soft-deleted them, but had no restore route.
-- **MISSING? Global notifications for admins of several projects** (project created, deleted, restored). New global notifications go to superadmins only.
-- **MISSING? The activity log page (`/logs`).** Old: open to every signed-in user, but only demo data ever filled it. Refactor.md item 18 plans auditing for superadmins.
-- **MISSING? Recovering from an expired page (419).** Old: the app refreshed its security token and retried. Unverified in a browser.
-- **MISSING? Asking for phone, ID number and picture when an invitation is accepted.** Now they are set later in the profile, probably on purpose.
-- **Never existed in either version:**
-  - emailing lottery results to families;
-  - taking back a project's approval (approval itself is new);
-  - legal pages;
-  - the assistant (planned in refactor.md item 14).
-
----
-
-# Changes by area
-
-Each area lists, in order: what is no longer possible, what is newly possible, and what works differently.
+Decided with the author. Dropped: admins correcting a person's name or email (it is the
+person's own); one invitation making someone admin of several projects; lists spanning several
+projects; notifying the admins of several projects of a project's creation or deletion; asking
+for phone, ID number and picture on accepting an invitation (they are in the profile; asking
+may become a project setting, see the plan). The rest was built.
 
 ## Accounts & sign-up
 

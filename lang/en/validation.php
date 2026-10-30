@@ -243,4 +243,8 @@ return [
     'limit_storage'     => 'For now this project has room for :max MB of files: ask for unlimited to lift it.',
     'image_too_large'   => 'Images up to :max megapixels can be shared; this one has more.',
     'chat_people'       => 'Choose people of the project to talk with.',
+    'guests_remain' => 'Guests remain (:count, counting invitations on their way): give them a family or remove them first.',
+    'account_blocked' => 'This account is blocked: it cannot be invited.',
+    'account_protected' => 'Not your own account, nor a superadmin\'s: their role goes first.',
+    'feature_off' => 'This project has this kind of file turned off.',
 ];

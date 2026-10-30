@@ -8,6 +8,7 @@ says the same to the people concerned; when one changes, the other does.
 
 - **Accounts** (`users`): name, email, password (hashed), and if the person gives them,
   phone, a few words, a picture, an ID number. Language and appearance preferences.
+- **Blocked accounts**: kept closed, with their email, so that they never join again.
 - **Projects**: families, memberships (who is in which family, who is an admin), unit
   types, units, the plan, invitations (only a hash of each link's token), requests to join, events and who
   goes, shared files, forum topics and posts, chat conversations and messages, lottery runs and their records.

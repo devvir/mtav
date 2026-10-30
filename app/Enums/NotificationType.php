@@ -17,6 +17,12 @@ enum NotificationType: string
     case JOIN_ACCEPTED = 'join_accepted';
     case JOIN_DECLINED = 'join_declined';
 
+    /** What the project gained */
+    case EVENT_PUBLISHED = 'event_published';
+    case FILES_ADDED = 'files_added';
+    case FAMILIES_ADDED = 'families_added';
+    case UNITS_ADDED = 'units_added';
+
     /** Lottery */
     case LOTTERY_COMPLETED = 'lottery_completed';
     case LOTTERY_FAILED = 'lottery_failed';

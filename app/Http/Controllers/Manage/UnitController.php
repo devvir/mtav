@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Manage;
 
+use App\Enums\NotificationType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UnitRequest;
 use App\Http\Resources\PlanResource;
 use App\Models\Project;
 use App\Models\Unit;
+use App\Services\NotificationService;
 use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +25,7 @@ class UnitController extends Controller
      * A new unit, on the plan where it was drawn (answered with its shape, to the plan
      * editor), else next to the others.
      */
-    public function store(UnitRequest $request, Project $project, PlanService $plans): RedirectResponse|JsonResponse
+    public function store(UnitRequest $request, Project $project, PlanService $plans, NotificationService $notifications): RedirectResponse|JsonResponse
     {
         $project->ensureLotteryNotRunning();
 
@@ -39,6 +41,8 @@ class UnitController extends Controller
 
             return $plans->place($unit, $request->validated('polygon'), (int) $request->validated('floor'));
         });
+
+        $notifications->bundle($project, NotificationType::UNITS_ADDED, 'units_added', $request->user(), route('units.index', $project));
 
         if ($request->wantsJson()) {
             return response()->json(['item' => PlanResource::item($item->load('unit.family'))], 201);

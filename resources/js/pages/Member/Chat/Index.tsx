@@ -15,6 +15,7 @@ import {
   Menu,
   Modal,
   MultiSelect,
+  SegmentedControl,
   Stack,
   Text,
   Textarea,
@@ -43,6 +44,7 @@ interface ConversationSummary {
   id: number;
   title: string;
   is_group: boolean;
+  is_community: boolean;
   faces: ChatPerson[];
   last: { body: string; author: string | null; mine: boolean; at: string } | null;
   unread?: boolean;
@@ -93,10 +95,40 @@ function ConversationList({
   open: number | null;
 }) {
   const { project } = usePage().props;
+  const groups = conversations.filter((conversation) => conversation.is_group);
+  const chats = conversations.filter((conversation) => !conversation.is_group);
+  const [kind, setKind] = useState<'chats' | 'groups'>(
+    conversations.find((conversation) => conversation.id === open)?.is_group || !chats.length
+      ? 'groups'
+      : 'chats',
+  );
+  // Community first among the groups; the rest as they come, the latest first
+  const listed =
+    kind === 'chats'
+      ? chats
+      : [...groups].sort((one, other) => Number(other.is_community) - Number(one.is_community));
+  const marked = (name: string, list: ConversationSummary[]) =>
+    list.some((conversation) => conversation.unread) ? `${name} •` : name;
 
   return (
     <nav className="chat-list ds-surface" aria-label={_('Conversations')} data-tour="chat.list">
-      {conversations.map((conversation) => (
+      <div className="chat-kinds">
+        <SegmentedControl
+          fullWidth
+          value={kind}
+          onChange={(value) => setKind(value as 'chats' | 'groups')}
+          data={[
+            { value: 'chats', label: marked(_('Chats'), chats) },
+            { value: 'groups', label: marked(_('Groups'), groups) },
+          ]}
+        />
+      </div>
+      {!listed.length ? (
+        <Text c="dimmed" ta="center" p="lg" size="sm">
+          {_('No one-on-one chats yet.')}
+        </Text>
+      ) : null}
+      {listed.map((conversation) => (
         <Link
           key={conversation.id}
           href={route('chat.show', { project: project!.id, conversation: conversation.id })}

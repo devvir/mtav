@@ -31,6 +31,10 @@ return [
     'invitation_accepted' => 'Boas-vindas a :project!',
     'invitation_declined' => 'Você recusou o convite.',
     'invitation_sign_in'  => 'Este convite é para :email. Entre com essa conta para aceitá-lo.',
+    'restored' => 'Está de volta.',
+    'account_blocked' => ':name foi bloqueado: fora de todos os projetos e sem poder entrar.',
+    'account_unblocked' => ':name pode entrar novamente.',
+    'account_deleted' => 'A conta de :name foi excluída.',
 
     'added_to_family' => ':name agora está na família :family.',
     'join_requested' => 'Seu pedido chegou aos admins de :project.',

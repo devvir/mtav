@@ -46,6 +46,10 @@ class GoogleController extends Controller
         $user = User::firstWhere('google_id', $google->getId())
             ?? User::firstWhere('email', $google->getEmail());
 
+        if ($user?->isBlocked()) {
+            return to_route('login')->with('error', __('auth.blocked'));
+        }
+
         if ($user && ! $user->hasVerifiedEmail()) {
             // Never confirmed: whoever opened it may not own the address. Google says this
             // person does, so the account becomes theirs alone: a new password nobody knows,

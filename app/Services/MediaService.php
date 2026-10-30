@@ -96,9 +96,16 @@ class MediaService
 
     public function delete(Media $media): void
     {
+        // Kept, it keeps its file: an archived file is restored whole
+        if ($media->worthKeeping()) {
+            $media->delete();
+
+            return;
+        }
+
         Storage::disk(Media::DISK)->delete(array_filter([$media->path, $media->thumbnail]));
 
-        $media->delete();
+        $media->forceDelete();
     }
 
     public static function categoryOf(string $mimeType): ?MediaCategory

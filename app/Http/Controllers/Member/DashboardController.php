@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Member;
 
 use App\Enums\MediaCategory;
+use App\Enums\ProjectFeature;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Http\Resources\FamilyResource;
@@ -49,13 +50,13 @@ class DashboardController extends Controller
                 'status'     => $run?->status->value,
                 'unit'       => $family?->unit?->only('id', 'identifier'),
             ],
-            'events' => Inertia::defer(fn () => EventResource::collection(
+            'events' => ! $project->hasFeature(ProjectFeature::EVENTS) ? null : Inertia::defer(fn () => EventResource::collection(
                 $project->events()->published()->where('type', '!=', 'lottery')->upcoming()
                     ->with('rsvps')->orderBy('start_date')->limit(3)->get()
             ), 'events'),
             // Who the project is: a few families, its admins, who joined last
             'community' => Inertia::defer(fn () => $this->community($project), 'community'),
-            'media'     => Inertia::defer(fn () => MediaResource::collection(
+            'media'     => ! $project->hasFeature(ProjectFeature::GALLERY) ? null : Inertia::defer(fn () => MediaResource::collection(
                 $project->media()->category(MediaCategory::MEDIA)->with('owner')->latest()->limit(8)->get()
             ), 'media'),
             'units' => Inertia::defer(fn () => UnitTypeResource::collection(

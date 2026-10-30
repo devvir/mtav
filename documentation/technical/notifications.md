@@ -62,3 +62,10 @@ and the owner's notice of a new error (see [data.md](data.md)) go by email, in t
 recipient's language (`lang/<locale>/emails.php`). Addresses under the domains in
 `mail.blocked_domains` (on staging, the demo accounts' made-up ones) are skipped
 (`Listeners/SkipBlockedRecipients`).
+
+## What a project gains
+
+A published event, shared files, new families and new units tell the project's people. Those
+that tend to come together (`NotificationService::bundle`) are one notification per person
+adding them, per half hour, saying how many, unread again as it grows, and reaching devices
+only the first time. The chat's Community group, with everyone in it, stays off devices.

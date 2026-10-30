@@ -2,7 +2,7 @@ import { checkbox, nativeSelect } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Button, Checkbox, NativeSelect, Text } from '@mantine/core';
 import { Form, FormActions } from './Form';
 
@@ -20,6 +20,7 @@ export function MembershipForm({
     family_id: person.family ? String(person.family.id) : '',
     is_admin: person.is_admin,
   });
+  const allowsGuests = usePage().props.project?.allows_guests ?? false;
   /** "A project needs at least one admin", and the like */
   const roleError = (form.errors as Record<string, string | undefined>).member;
 
@@ -33,9 +34,12 @@ export function MembershipForm({
       <Text c="dimmed">{_('Their role and family in this project.')}</Text>
       <NativeSelect
         label={_('Family')}
-        withAsterisk={!form.data.is_admin}
+        withAsterisk={!form.data.is_admin && !allowsGuests}
         data={[
-          { value: '', label: _('No family') },
+          {
+            value: '',
+            label: form.data.is_admin || !allowsGuests ? _('No family') : _('No family (guest)'),
+          },
           ...families.map((family) => ({ value: String(family.id), label: family.name })),
         ]}
         {...nativeSelect(form, 'family_id')}

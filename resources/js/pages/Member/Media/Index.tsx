@@ -1,3 +1,4 @@
+import { ArchivedList, ArchiveSwitch, type ArchiveState } from '@/components/domain/Archive';
 import { FileList } from '@/components/domain/FileList';
 import { MediaDetails } from '@/components/domain/MediaDetails';
 import { MediaGrid } from '@/components/domain/MediaGrid';
@@ -24,6 +25,7 @@ interface Props {
   media: Paginated<Media>;
   category: 'media' | 'files';
   filters: { q: string | null };
+  archive: ArchiveState | null;
   storage: { used_mb: number; limit_mb: number } | null;
   /** What may be shared, for those who may (the share dialog, ?share=1) */
   upload: UploadLimits | null;
@@ -42,12 +44,14 @@ export default function MediaIndex({
   media,
   category,
   filters,
+  archive,
   storage,
   upload,
   file,
   carousel,
 }: Props) {
   const details = useDetailsInAddress('file', ['carousel']);
+  const features = usePage().props.project!.features;
   const canUpload = usePage().props.project?.can.upload;
   const sharing = useAddressedDialog('share', Boolean(upload));
   useProjectChanges({ media: ['media', 'storage', 'file', 'carousel'] });
@@ -104,15 +108,22 @@ export default function MediaIndex({
       <Group justify="space-between" mb="md" gap="sm">
         <FilterTabs
           data-tour="files.tabs"
-          items={tabs.map((tab) => ({
-            label: tab.label,
-            href: route('media.index', tab.value === 'media' ? {} : { category: tab.value }),
-            active: category === tab.value,
-          }))}
+          items={tabs
+            .filter((tab) => features[tab.value === 'media' ? 'gallery' : 'files'])
+            .map((tab) => ({
+              label: tab.label,
+              href: route('media.index', tab.value === 'media' ? {} : { category: tab.value }),
+              active: category === tab.value,
+            }))}
         />
-        <QuerySearch value={filters.q} />
+        <Group gap="md">
+          <ArchiveSwitch archive={archive} />
+          <QuerySearch value={filters.q} />
+        </Group>
       </Group>
-      {media.data.length ? (
+      {archive?.shown ? (
+        <ArchivedList archive={archive} kind={category === 'files' ? 'files' : 'gallery'} />
+      ) : media.data.length ? (
         category === 'files' ? (
           <FileList media={media.data} />
         ) : (

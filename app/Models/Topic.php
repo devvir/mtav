@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Topic extends Model
 {
+    use Archivable;
     use RecordsActivity;
     use BroadcastsProjectChanges;
 
@@ -24,6 +26,12 @@ class Topic extends Model
         'is_closed'    => 'boolean',
         'last_post_at' => 'datetime',
     ];
+
+    /** Nobody answered and it only just went up: it simply goes */
+    public function worthKeeping(): bool
+    {
+        return $this->replies_count > 0 || ! $this->isFresh();
+    }
 
     public function project(): BelongsTo
     {

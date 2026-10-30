@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Notifications\EmailChangeNotice;
 use App\Notifications\VerifyEmailNotification;
+use App\Services\AccountService;
 use Illuminate\Http\RedirectResponse;
 use App\Services\Push\PushService;
 use Illuminate\Http\Request;
@@ -72,7 +73,7 @@ class ProfileController extends Controller
      * without their name. Never the deployment's owner, nor a project's only admin (it
      * would be left without anyone to run it).
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, AccountService $accounts): RedirectResponse
     {
         $user = $request->user();
         $request->validate(['confirmation' => ['required', Rule::in([$user->email])]], [
@@ -83,18 +84,9 @@ class ProfileController extends Controller
             throw ValidationException::withMessages(['confirmation' => __('validation.owner_stays')]);
         }
 
-        $alone = $user->projects()->wherePivot('is_admin', true)->get()
-            ->filter(fn ($project) => $project->admins()->count() === 1);
-        if ($alone->isNotEmpty()) {
-            throw ValidationException::withMessages(['confirmation' => __('validation.only_admin_of', [
-                'projects' => $alone->pluck('name')->join(', '),
-            ])]);
-        }
-
-        $avatar = $user->avatar;
+        $accounts->ensureCanGo($user);
         Auth::logout();
-        $user->delete();
-        $avatar && Storage::disk('public')->delete($avatar);
+        $accounts->delete($user);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

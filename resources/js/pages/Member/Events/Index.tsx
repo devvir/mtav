@@ -1,3 +1,4 @@
+import { ArchivedList, ArchiveSwitch, type ArchiveState } from '@/components/domain/Archive';
 import { EventCard } from '@/components/domain/EventCard';
 import { EventDetails } from '@/components/domain/EventDetails';
 import { FilterTabs } from '@/components/feedback/FilterTabs';
@@ -20,11 +21,12 @@ import { IconCalendarOff, IconPlus } from '@tabler/icons-react';
 interface Props {
   events: Paginated<ProjectEvent>;
   filters: { q: string | null; when: 'upcoming' | 'past' };
+  archive: ArchiveState | null;
   /** An event's details, shown over the list (?event=5) */
   event: ProjectEvent | null;
 }
 
-export default function EventsIndex({ events, filters, event: shown }: Props) {
+export default function EventsIndex({ events, filters, archive, event: shown }: Props) {
   const details = useDetailsInAddress('event');
   useProjectChanges({ events: ['events', 'event'] });
   const canManage = usePage().props.project!.can.manage;
@@ -50,37 +52,46 @@ export default function EventsIndex({ events, filters, event: shown }: Props) {
           </InfoTip>
         }
       />
-      <Group justify="space-between" mb="md" gap="sm">
-        <FilterTabs
-          data-tour="events.tabs"
-          items={[
-            {
-              label: _('Upcoming'),
-              href: route('events.index'),
-              active: filters.when === 'upcoming',
-            },
-            {
-              label: _('Past'),
-              href: route('events.index', { when: 'past' }),
-              active: filters.when === 'past',
-            },
-          ]}
-        />
-        <QuerySearch value={filters.q} />
+      <Group justify="flex-end" mb="sm">
+        <ArchiveSwitch archive={archive} />
       </Group>
-      {events.data.length ? (
-        <Stack gap="sm" data-tour="events.list">
-          {events.data.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </Stack>
+      {archive?.shown ? (
+        <ArchivedList archive={archive} kind="events" />
       ) : (
-        <EmptyState
-          icon={IconCalendarOff}
-          title={filters.when === 'past' ? _('No past events') : _('No upcoming events')}
-        />
+        <>
+          <Group justify="space-between" mb="md" gap="sm">
+            <FilterTabs
+              data-tour="events.tabs"
+              items={[
+                {
+                  label: _('Upcoming'),
+                  href: route('events.index'),
+                  active: filters.when === 'upcoming',
+                },
+                {
+                  label: _('Past'),
+                  href: route('events.index', { when: 'past' }),
+                  active: filters.when === 'past',
+                },
+              ]}
+            />
+            <QuerySearch value={filters.q} />
+          </Group>
+          {events.data.length ? (
+            <Stack gap="sm" data-tour="events.list">
+              {events.data.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </Stack>
+          ) : (
+            <EmptyState
+              icon={IconCalendarOff}
+              title={filters.when === 'past' ? _('No past events') : _('No upcoming events')}
+            />
+          )}
+          <Pagination page={events} />
+        </>
       )}
-      <Pagination page={events} />
 
       <Modal
         opened={creating.opened}

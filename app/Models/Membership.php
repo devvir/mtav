@@ -28,6 +28,18 @@ class Membership extends Model
         'is_admin' => 'boolean',
     ];
 
+    /** Everyone taking part is in the project's Community group, and only they */
+    protected static function booted(): void
+    {
+        static::created(fn (Membership $membership) => $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id]));
+        static::deleted(fn (Membership $membership) => $membership->communityGroup()?->participants()->detach($membership->user_id));
+    }
+
+    private function communityGroup(): ?Conversation
+    {
+        return Conversation::where('project_id', $this->project_id)->where('is_community', true)->first();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -6,9 +6,11 @@ use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Invitation;
 use App\Models\Project;
+use App\Services\InvitationService;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 /**
@@ -43,15 +45,31 @@ class ProjectController extends Controller
         $this->authorize('create', Project::class);
 
         return inertia('Projects/Create', [
+            'asksFirstAdmin' => $request->user()->isSuperadmin(),
             'limits' => $request->user()->isSuperadmin() ? null : config('limits.unapproved'),
         ]);
     }
 
-    public function store(ProjectRequest $request, ProjectService $projects): RedirectResponse
+    public function store(ProjectRequest $request, ProjectService $projects, InvitationService $invitations): RedirectResponse
     {
         $this->authorize('create', Project::class);
 
-        $project = $projects->create($request->user(), $request->validated());
+        $user = $request->user();
+
+        // Anyone else is its first admin; a superadmin says who is: themselves, or someone invited
+        $first = $user->isSuperadmin() ? $request->validate([
+            'first_admin'       => ['required', Rule::in(['me', 'someone'])],
+            'first_admin_email' => ['required_if:first_admin,someone', 'nullable', 'email', 'max:255'],
+        ]) : null;
+
+        $project = $projects->create($user, $request->validated());
+
+        if ($first && $first['first_admin'] === 'me') {
+            $project->memberships()->create(['user_id' => $user->id, 'is_admin' => true]);
+            $user->unsetRelation('memberships');
+        } elseif ($first) {
+            $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
+        }
 
         return to_route('manage.overview', $project)
             ->with('success', __('flash.project_created'));

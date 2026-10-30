@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\EventType;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Event extends Model
 {
+    use Archivable;
     use RecordsActivity;
     use BroadcastsProjectChanges;
 
@@ -41,6 +43,12 @@ class Event extends Model
         'is_published' => 'boolean',
         'allows_rsvp'  => 'boolean',
     ];
+
+    /** Drafts, and what nobody answered and only just went out, simply go */
+    public function worthKeeping(): bool
+    {
+        return $this->is_published && ($this->rsvps()->exists() || ! $this->isFresh());
+    }
 
     public function project(): BelongsTo
     {

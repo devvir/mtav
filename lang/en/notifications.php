@@ -19,6 +19,17 @@ return [
 
     'invitation_received_title'   => 'You are invited to a project',
     'invitation_received_message' => ':name invites you to join :project.',
+    'event_published_title' => 'New event',
+    'event_published_message' => ':title is on the calendar.',
+    'files_added_title' => 'New in the files',
+    'files_added_one' => ':name shared a file.',
+    'files_added_many' => ':name shared :count files.',
+    'families_added_title' => 'New families',
+    'families_added_one' => 'A family was added by :name.',
+    'families_added_many' => ':count families were added by :name.',
+    'units_added_title' => 'New units',
+    'units_added_one' => ':name added a unit.',
+    'units_added_many' => ':name added :count units.',
 
     'added_to_family_title' => 'You are in a family',
     'added_to_family_message' => ':name added you to the :family family in :project.',

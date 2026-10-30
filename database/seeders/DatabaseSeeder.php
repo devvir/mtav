@@ -39,8 +39,9 @@ use RuntimeException;
  *  - Barrio Sur: just started by its admin, waiting for approval: a few families,
  *    invitations out, its units not yet placed on the plan
  *  - Nuevo Horizonte and Los Robles: small, starting out, and in the directory for
- *    member@example.com to find: the first open to anyone, the second by request. Las
- *    Acacias and Los Ceibos are listed too, by request; Las Acacias has two people asking
+ *    member@example.com to find: the first open to anyone, with guests; the second by
+ *    request, without. Las Acacias and Los Ceibos are listed too, by request; Las Acacias
+ *    has two people asking and a guest; Los Ceibos, its lottery run, takes nobody new
  */
 class DatabaseSeeder extends Seeder
 {
@@ -82,6 +83,12 @@ class DatabaseSeeder extends Seeder
         $this->barrioSur($admin);
         $this->startingOut($superadmin, $admin, 'Cooperativa Nuevo Horizonte', 'Ocho viviendas en Colón, buscando familias: quien quiera puede sumarse.', open: true);
         $this->startingOut($superadmin, $admin, 'Cooperativa Los Robles', 'Doce viviendas en el Prado. Conversamos con cada familia antes de que se sume.', open: false);
+
+        // Something archived, for admins to see and restore
+        $acacias = Project::firstWhere('name', 'Cooperativa Las Acacias');
+        $acacias->topics()->oldest('id')->first()?->delete();
+        $acacias->events()->where('type', '!=', EventType::LOTTERY)->oldest('id')->first()?->delete();
+        $acacias->media()->oldest('id')->first()?->delete();
 
         // The seed is no one's doing: the activity log starts empty
         Activity::query()->delete();
@@ -160,8 +167,9 @@ class DatabaseSeeder extends Seeder
 
         $this->invite($project, $admin, [['Rosa', 'Medina', null], ['Hugo', 'Clavijo', $project->families()->first()]]);
 
-        // In the directory, by request: two people are asking
-        $project->update(['listed' => true]);
+        // In the directory, by request, with a guest: two more people are asking
+        $project->update(['listed' => true, 'allows_guests' => true]);
+        $project->memberships()->create(['user_id' => $this->people->person('Gadea')->id]);
         foreach (['Bentancor', 'Cabrera'] as $index => $lastname) {
             $this->at(now()->subDays(2 - $index), fn () => $this->directory->ask($project, $this->people->person($lastname)));
         }
@@ -262,7 +270,7 @@ class DatabaseSeeder extends Seeder
     {
         $project = $this->at(now()->subWeeks(3), fn () => $this->projects->create($superadmin, ['name' => $name, 'description' => $description]));
         $project->memberships()->create(['user_id' => $admin->id, 'is_admin' => true]);
-        $project->update(['listed' => true, 'open_to_join' => $open]);
+        $project->update(['listed' => true, 'open_to_join' => $open, 'allows_guests' => $open]);
 
         [$type] = $this->types($project, ['2 dormitorios' => null]);
         $this->sites->undrawn($project, $type, 'A', $open ? 8 : 12);

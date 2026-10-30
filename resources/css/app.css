@@ -621,6 +621,7 @@
 /* The lottery on the project's home, once it has a date: a wide card up front */
 .lottery-banner {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--mantine-spacing-lg);
   color: inherit;
@@ -1736,6 +1737,7 @@ html[data-carrying] * {
 /* The parts of a project's settings, as tabs that are links (each part its own page) */
 .settings-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-bottom: var(--mantine-spacing-lg);
   border-bottom: 1px solid var(--mtav-border);
@@ -1974,4 +1976,88 @@ html[data-carrying] * {
 .directory-card {
   display: flex;
   flex-direction: column;
+}
+
+/* Text size, language, light or dark: a group of their own in the bar, from tablets up */
+.shell-preferences {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-inline: 6px;
+  padding-inline: 6px;
+  border-inline: 1px solid var(--mtav-border);
+}
+@media (min-width: 48em) {
+  .shell-preferences {
+    display: flex;
+  }
+  /* The chat has its button instead */
+  .shell-nav [data-phone-only] {
+    display: none;
+  }
+}
+
+/* The chat, at the page's bottom corner (beside the sidebar, where there is one) */
+.chat-launcher {
+  display: none;
+  position: fixed;
+  z-index: 50;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--mtav-brand);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 25%);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.chat-launcher:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 30%);
+}
+.chat-launcher-count {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.3rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--mtav-brand);
+  background: var(--mtav-surface, #fff);
+  box-shadow: 0 0 0 1px var(--mtav-border);
+}
+@media (min-width: 48em) {
+  .chat-launcher {
+    display: inline-flex;
+  }
+}
+/* Above the tabs, where there are tabs; beside the sidebar, where there is one */
+@media (max-width: 74.99em) {
+  .chat-launcher {
+    bottom: 5.5rem;
+  }
+}
+@media (min-width: 75em) {
+  .chat-launcher {
+    left: calc(14.2rem + 1.25rem);
+  }
+}
+
+/* The chat's two kinds of conversation */
+.chat-kinds {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--mtav-border);
+}
+
+/* A single panel where its partner is off: the whole row */
+.dashboard-pair > :only-child {
+  grid-column: 1 / -1;
 }

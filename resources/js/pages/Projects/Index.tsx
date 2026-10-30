@@ -1,13 +1,21 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph } from '@/design';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Project } from '@/types/models';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
-import { IconFolderPlus, IconMail, IconSearch, IconShieldCheck, IconUsers } from '@tabler/icons-react';
+import {
+  IconFolderPlus,
+  IconMail,
+  IconSearch,
+  IconShieldCheck,
+  IconUsers,
+} from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface Props {
   projects: Project[];
@@ -22,7 +30,15 @@ interface Props {
   canCreate: boolean;
 }
 
+/** A list this long gets a search */
+const SEARCH_FROM = 10;
+
 export default function ProjectsIndex({ projects, invitations, canCreate }: Props) {
+  const { lastProject } = usePage().props;
+  const [query, setQuery] = useState('');
+  const shown = projects.filter((project) =>
+    project.name.toLowerCase().includes(query.trim().toLowerCase()),
+  );
   const respond = (id: number, accept: boolean) =>
     router.post(route('invitations.respond', id), { accept });
   const startButton = canCreate ? (
@@ -97,11 +113,19 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
         </Stack>
       ) : null}
 
+      {projects.length > SEARCH_FROM ? (
+        <div style={{ marginBottom: 16 }}>
+          <QuerySearch placeholder={_('Search projects')} onSearch={setQuery} />
+        </div>
+      ) : null}
+
       {projects.length ? (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} data-tour="projects.list">
-          {projects.map((project) => (
+          {shown.map((project) => (
             <Card
               key={project.id}
+              aria-current={project.id === lastProject ? 'true' : undefined}
+              data-current={project.id === lastProject || undefined}
               component={Link}
               href={route('projects.show', { project: project.id })}
               className="ds-interactive"
@@ -126,6 +150,7 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   {_n('{count} person', '{count} people', project.members_count ?? 0)}
                 </Group>
                 {!project.is_approved ? <Badge color="gray">{_('Limited')}</Badge> : null}
+                {project.id === lastProject ? <Badge color="green">{_('Current')}</Badge> : null}
               </Group>
             </Card>
           ))}

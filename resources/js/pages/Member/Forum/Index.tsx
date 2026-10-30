@@ -1,3 +1,4 @@
+import { ArchivedList, ArchiveSwitch, type ArchiveState } from '@/components/domain/Archive';
 import { DateTime } from '@/components/feedback/DateTime';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
@@ -12,7 +13,7 @@ import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Paginated } from '@/types/models';
 import { Link, useForm } from '@inertiajs/react';
-import { Badge, Button, Card, Group, Modal, Stack, Text, TextInput, Textarea } from '@mantine/core';
+import { Badge, Button, Card, Group, Modal, Stack, Text, Textarea, TextInput } from '@mantine/core';
 import { IconLock, IconMessages, IconPin, IconPlus } from '@tabler/icons-react';
 
 export interface ForumPerson {
@@ -36,6 +37,7 @@ export interface TopicSummary {
 interface Props {
   topics: Paginated<TopicSummary>;
   filters: { q: string | null };
+  archive: ArchiveState | null;
 }
 
 /** Opening a topic: its title, and what one has to say */
@@ -59,7 +61,7 @@ function TopicForm({ onDone }: { onDone: () => void }) {
  * The project's forum: conversations anyone in the project opens and joins, pinned ones
  * first, then those with the latest posts
  */
-export default function ForumIndex({ topics, filters }: Props) {
+export default function ForumIndex({ topics, filters, archive }: Props) {
   useProjectChanges({ topics: ['topics'], posts: ['topics'] });
   const opening = useAddressedDialog('new');
 
@@ -86,10 +88,12 @@ export default function ForumIndex({ topics, filters }: Props) {
         }
       />
       <Group justify="flex-end" mb="md">
+        <ArchiveSwitch archive={archive} />
         <QuerySearch value={filters.q} placeholder={_('Search the topics')} />
       </Group>
+      {archive?.shown ? <ArchivedList archive={archive} kind="forum" /> : null}
 
-      {topics.data.length ? (
+      {archive?.shown ? null : topics.data.length ? (
         <Stack gap="sm" data-tour="forum.topics">
           {topics.data.map((topic) => (
             <Card

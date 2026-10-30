@@ -102,7 +102,7 @@ export default function Profile({ profile, languages, pushKey }: Props) {
         )}
       />
       <Tabs value={section} onChange={open} maw={760}>
-        <Tabs.List mb="lg" data-tour="profile.sections">
+        <Tabs.List mb="lg" style={{ flexWrap: 'wrap' }} data-tour="profile.sections">
           <Tabs.Tab value="about" leftSection={<IconUser size={18} />}>
             {_('About you')}
           </Tabs.Tab>

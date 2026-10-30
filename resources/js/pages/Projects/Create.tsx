@@ -1,5 +1,6 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { OrganizationField } from '@/components/forms/OrganizationField';
+import { optionsOf, ProjectOptions } from '@/components/forms/ProjectOptions';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
@@ -8,11 +9,35 @@ import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { useForm } from '@inertiajs/react';
-import { Card, List, Text, TextInput, Textarea, Title } from '@mantine/core';
+import {
+  Card,
+  Collapse,
+  List,
+  Radio,
+  Stack,
+  Text,
+  Textarea,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 
-export default function ProjectsCreate({ limits }: { limits: Record<string, number> | null }) {
-  const form = useForm({ name: '', description: '', organization: '' });
+export default function ProjectsCreate({
+  limits,
+  asksFirstAdmin,
+}: {
+  limits: Record<string, number> | null;
+  /** A superadmin says who its first admin is: themselves, or someone invited */
+  asksFirstAdmin: boolean;
+}) {
+  const form = useForm({
+    name: '',
+    description: '',
+    organization: '',
+    ...optionsOf(),
+    first_admin: 'me',
+    first_admin_email: '',
+  });
 
   return (
     <>
@@ -26,9 +51,11 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
         }
         title={_('Start a project')}
         tour="account.start_project"
-        description={_(
-          'You will be its first admin, and can invite the rest of its people afterwards.',
-        )}
+        description={
+          asksFirstAdmin
+            ? _('Choose its first admin; the rest of its people can be invited afterwards.')
+            : _('You will be its first admin, and can invite the rest of its people afterwards.')
+        }
         back={{ href: route('projects.index'), label: _('Your projects') }}
       />
       <div className="with-aside">
@@ -54,6 +81,38 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
               value={form.data.organization}
               onChange={(organization) => form.setData('organization', organization)}
               error={form.errors.organization}
+            />
+            {asksFirstAdmin ? (
+              <Radio.Group
+                label={_('Its first admin')}
+                withAsterisk
+                value={form.data.first_admin}
+                onChange={(value) => form.setData('first_admin', value)}
+                data-tour="start.first_admin"
+              >
+                <Stack gap="xs" mt="xs">
+                  <Radio value="me" label={_('Me: I take part in it as an admin')} />
+                  <Radio value="someone" label={_('Someone I invite')} />
+                </Stack>
+              </Radio.Group>
+            ) : null}
+            <Collapse
+              expanded={asksFirstAdmin && form.data.first_admin === 'someone'}
+              transitionDuration={250}
+            >
+              <TextInput
+                label={_('Their email')}
+                withAsterisk
+                type="email"
+                autoComplete="off"
+                {...field(form, 'first_admin_email')}
+              />
+            </Collapse>
+            <ProjectOptions
+              values={form.data}
+              onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}
+              errors={form.errors}
+              approved={Boolean(asksFirstAdmin)}
             />
             <FormActions
               submit={_('Start the project')}

@@ -49,11 +49,15 @@ export function QuickActions() {
             href: route('units.edit', at),
             icon: IconHomePlus,
           },
-          {
-            label: _('Create an event'),
-            href: route('events.index', { ...at, new: 1 }),
-            icon: IconCalendarPlus,
-          },
+          ...(project.features.events
+            ? [
+                {
+                  label: _('Create an event'),
+                  href: route('events.index', { ...at, new: 1 }),
+                  icon: IconCalendarPlus,
+                },
+              ]
+            : []),
         ]
       : project.family && project.can.invite
         ? [

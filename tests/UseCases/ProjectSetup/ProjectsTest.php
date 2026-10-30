@@ -96,9 +96,32 @@ describe('A superadmin', function () {
     beforeEach(fn () => $this->superadmin = aSuperadmin());
 
     it('starts an approved project', function () {
-        $this->as($this->superadmin)->post(route('projects.store'), projectData())->assertSessionHasNoErrors();
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'me']))->assertSessionHasNoErrors();
 
         expect(theNewProject()->isApproved())->toBeTrue();
+    });
+
+    it('has to say who its first admin is', function () {
+        $this->as($this->superadmin)->post(route('projects.store'), projectData())->assertSessionHasErrors('first_admin');
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone']))->assertSessionHasErrors('first_admin_email');
+
+        expect(App\Models\Project::count())->toBe(0);
+    });
+
+    it('may be its first admin, shown as any admin', function () {
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'me']))->assertSessionHasNoErrors();
+
+        expect(theNewProject()->admins()->pluck('users.id')->all())->toBe([$this->superadmin->id]);
+    });
+
+    it('may invite its first admin instead', function () {
+        Illuminate\Support\Facades\Notification::fake();
+
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'first@example.com']))
+            ->assertSessionHasNoErrors();
+
+        expect(theNewProject()->invitations()->sole())->email->toBe('first@example.com')->is_admin->toBeTrue()
+            ->and(theNewProject()->admins()->count())->toBe(0);
     });
 
     it('approves a project, and its people are told', function () {

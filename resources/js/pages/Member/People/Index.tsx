@@ -128,6 +128,7 @@ export default function PeopleIndex({
                 </Text>
               </div>
               {person.is_admin ? <Badge color="blue">{_('Admin')}</Badge> : null}
+              {person.is_guest ? <Badge color="gray">{_('Guest')}</Badge> : null}
             </Group>
           </Card>
         ))}

@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Enums\NotificationType;
+use App\Enums\ProjectFeature;
+use App\Services\ArchiveService;
+use App\Services\NotificationService;
 use App\Http\Controllers\Controller;
 use App\Enums\MediaCategory;
 use App\Http\Requests\MediaRequest;
@@ -19,13 +23,17 @@ use Inertia\Response;
  */
 class MediaController extends Controller
 {
-    public function __construct(private MediaService $media)
+    public function __construct(private MediaService $media, private NotificationService $notifications)
     {
     }
 
-    public function index(Request $request, Project $project): Response
+    public function index(Request $request, Project $project, ArchiveService $archive): Response
     {
         $category = MediaCategory::tryFrom((string) $request->query('category')) ?? MediaCategory::MEDIA;
+        // A tab whose feature is off leads to the other one (the route needs one of them on)
+        $category = $project->hasFeature(ProjectFeature::GALLERY)
+            ? ($project->hasFeature(ProjectFeature::FILES) ? $category : MediaCategory::MEDIA)
+            : MediaCategory::FILES;
 
         $media = $project->media()
             ->category($category)
@@ -40,6 +48,7 @@ class MediaController extends Controller
             'category' => $category->value,
             'filters'  => ['q' => $request->q],
             'storage'  => $this->storage($project),
+            'archive'  => $archive->forPage($request, $project, $category === MediaCategory::MEDIA ? 'gallery' : 'files'),
             // What may be shared, for the share dialog (?share=1) of those who may share
             'upload' => fn () => $request->user()->can('create', [Media::class, $project]) ? [
                 'accept'     => MediaService::MIME_TYPES,
@@ -69,6 +78,7 @@ class MediaController extends Controller
         $this->authorize('create', [Media::class, $project]);
 
         $stored = $this->media->store($project, $request->user(), $request->file('files'), $request->validated('description'));
+        $this->notifications->bundle($project, NotificationType::FILES_ADDED, 'files_added', $request->user(), route('media.index', count($stored) === 1 ? $this->tab($stored[0]) + ['project' => $project->id] : $project), count($stored));
         return to_route('media.index', count($stored) === 1 ? $this->tab($stored[0]) : [])
             ->with('success', trans_choice('flash.media_uploaded', count($stored), ['count' => count($stored)]));
     }

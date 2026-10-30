@@ -10,14 +10,19 @@ export interface Can {
   delete?: boolean;
 }
 
+/** What a project may turn on or off */
+export type ProjectFeature = 'forum' | 'chat' | 'gallery' | 'files' | 'events';
+export type ProjectFeatures = Record<ProjectFeature, boolean>;
+
 export interface Project {
   id: Id;
   name: string;
   description: string;
   organization: string | null;
-  active: boolean;
   listed: boolean;
   open_to_join: boolean;
+  allows_guests: boolean;
+  features: ProjectFeatures;
   is_approved: boolean;
   approval_requested_at: string | null;
   created_at: string;
@@ -35,6 +40,7 @@ export interface Person {
   avatar: string | null;
   about: string | null;
   is_admin: boolean;
+  is_guest?: boolean;
   family: Ref | null;
   joined_at: string | null;
   email?: string;

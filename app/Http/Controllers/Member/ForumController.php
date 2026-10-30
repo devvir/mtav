@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Member;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\Project;
+use App\Services\ArchiveService;
 use App\Models\Topic;
 use App\Models\User;
 use App\Services\ForumService;
@@ -40,6 +41,7 @@ class ForumController extends Controller
                 'excerpt' => Str::limit(strip_tags((string) $topic->opening?->body), 160),
             ])),
             'filters' => ['q' => $request->q],
+            'archive' => app(ArchiveService::class)->forPage($request, $project, 'forum'),
         ]);
     }
 
@@ -114,7 +116,7 @@ class ForumController extends Controller
             $request->user()->can('delete', $topic) || ($topic->author_id === $request->user()->id && ! $topic->replies_count),
             403,
         );
-        $topic->delete();
+        $topic->retire();
 
         return to_route('forum.index', $project)->with('success', __('flash.topic_removed'));
     }

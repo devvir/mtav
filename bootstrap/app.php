@@ -36,7 +36,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 Request::HEADER_X_FORWARDED_PROTO
         );
 
+        // Read by the server, and of no use to anyone but this browser
+        $middleware->encryptCookies(except: ['locale']);
+
         $middleware->web(append: [
+            \App\Http\Middleware\SignOutBlocked::class,
             \App\Http\Middleware\SetLocale::class,
             AddLinkHeadersForPreloadedAssets::class,
             HandleInertiaRequests::class,

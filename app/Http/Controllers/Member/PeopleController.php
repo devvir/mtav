@@ -26,7 +26,7 @@ class PeopleController extends Controller
                 ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')])
                 ->alphabetically(),
             fn ($query) => $query
-                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $manages))
+                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $manages, nameOnly: $request->user()->isGuestIn($project)))
                 ->when($request->integer('family'), fn ($q, $familyId) => $q->where('memberships.family_id', $familyId))
                 ->when($request->boolean('admins'), fn ($q) => $q->where('memberships.is_admin', true)),
             40,

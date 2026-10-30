@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\MediaCategory;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Media extends Model
 {
+    use Archivable;
     use RecordsActivity;
     use BroadcastsProjectChanges;
 
@@ -39,6 +41,12 @@ class Media extends Model
         'width'     => 'integer',
         'height'    => 'integer',
     ];
+
+    /** Taken back right after sharing it, it simply goes */
+    public function worthKeeping(): bool
+    {
+        return ! $this->isFresh();
+    }
 
     public function project(): BelongsTo
     {

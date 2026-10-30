@@ -38,6 +38,7 @@ it('tells members their project is getting ready', function () {
 
 it('tells members where the families will show up', function () {
     $this->as(anAdminOf($this->project));
+    $this->project->update(['allows_guests' => true]);
     $member = aUser();
     $this->project->memberships()->create(['user_id' => $member->id, 'is_admin' => false]);
     $this->as($member);

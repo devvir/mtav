@@ -66,13 +66,33 @@ invited address; that person is also told in the app. Admins invite into any fam
 as admins; members, into their own family. Someone already in the project with no family
 is added to the family at once, and told in the app and by email (`JoinedNotification`).
 
-## The directory
+## The directory, guests and features
 
 Admins may list their project (`listed`; it shows only once approved) and choose who can
 join (`open_to_join`). Open, people join at once; otherwise they ask (`JoinRequest`), the
 admins answer from the Invitations tab, and someone declined may ask again after
-`limits.join_request_retry_days`. They enter with no family, and create theirs from the
-project's home (`createOwnFamily`, until the lottery has run) or are added to one.
+`limits.join_request_retry_days`. Open is simply approved beforehand: from there on, both are
+the same.
+
+Someone with neither a family nor a role is a **guest**, where the project `allows_guests`:
+they take part in everything but ranking and inviting, and never see people's email or phone
+(`MemberResource`, and searches by name only). Without guests, whoever is let in creates their
+family before anything else (`ResolveProject` brings them to it, and it is all they can reach)
+or someone of the family adds them. So a project without guests takes nobody new while it has
+no unit types or once the lottery ran (`acceptsNewcomers`), and guests cannot be turned off
+while there are any, or invitations on their way to some.
+
+Forum, chat, gallery, files and events are on or off per project (`disabled_features`,
+`ProjectFeature`; `EnsureFeature` on their routes). Off, a feature is hidden and keeps what it
+holds. The lottery stays. White-label options, per deployment, will decide which of these a
+project is even offered (see the plan).
+
+**Archiving.** Removed events, files and forum posts are soft deleted (`Archivable`), and
+admins see and restore them from a switch on each page (`ArchiveService`). What nobody came to
+rely on goes for good: a draft event, or an event, file or topic taken back within the hour
+that nothing else happened to. Families, units and unit types are deleted for good (only when
+nothing depends on them, and the activity log keeps what they were): bringing one back would
+not bring back its members or its place on the plan.
 
 ## The plan
 

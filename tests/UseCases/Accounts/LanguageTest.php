@@ -61,3 +61,39 @@ it('changes the language of someone signed in, and refuses one it does not have'
 
     expect($user->fresh()->locale)->toBe('fr');
 });
+
+describe('The browser', function () {
+    it('keeps the language picked, whatever happens to the session', function () {
+        $picked = $this->put(route('language'), ['locale' => 'es_UY']);
+        $picked->assertCookie('locale', 'es_UY', encrypted: false);
+
+        // A new session (after a deploy that starts over), the same browser
+        session()->flush();
+        $this->withUnencryptedCookie('locale', 'es_UY')->get(route('home'));
+
+        expect(app()->getLocale())->toBe('es_UY');
+    });
+
+    it('gives its language to an account with none, as when a reseed made it anew', function () {
+        $user = aUser(['locale' => null]);
+
+        $this->withUnencryptedCookie('locale', 'fr')->as($user)->get(route('projects.index'));
+
+        expect(app()->getLocale())->toBe('fr')
+            ->and($user->fresh()->locale)->toBe('fr');
+    });
+
+    it('gives way to the language an account already has', function () {
+        $user = aUser(['locale' => 'it']);
+
+        $this->withUnencryptedCookie('locale', 'fr')->as($user)->get(route('projects.index'));
+
+        expect(app()->getLocale())->toBe('it');
+    });
+
+    it('ignores a language the platform does not have', function () {
+        $this->withUnencryptedCookie('locale', 'xx')->withHeader('Accept-Language', 'pt-BR')->get(route('home'));
+
+        expect(app()->getLocale())->toBe('pt_BR');
+    });
+});

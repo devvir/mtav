@@ -47,6 +47,12 @@ class PushService
     public function deliverMessage(Message $message): void
     {
         $conversation = $message->conversation;
+
+        // Everyone in the project: on people's devices it would never stop
+        if ($conversation->is_community) {
+            return;
+        }
+
         $author = $message->author?->name ?? '';
         $others = $conversation->participants()->whereKeyNot($message->user_id)
             ->whereHas('pushSubscriptions')->with('pushSubscriptions')->get();

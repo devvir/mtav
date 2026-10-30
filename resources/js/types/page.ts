@@ -1,4 +1,4 @@
-import type { Id } from './models';
+import type { Id, ProjectFeatures } from './models';
 
 /** The websocket server, as browsers reach it */
 export interface RealtimeServer {
@@ -16,6 +16,8 @@ export interface SharedProps {
   /** The institution behind this deployment, under the brand ("FING ≒ UDELAR") */
   institution: string | null;
   locale: string;
+  /** The languages to pick from, each named in itself */
+  languages: Record<string, string>;
   auth: {
     user: {
       id: Id;
@@ -42,6 +44,11 @@ export interface SharedProps {
     pending_invitations: number | null;
     /** And those asking to join from the directory */
     join_requests: number | null;
+    is_guest: boolean;
+    allows_guests: boolean;
+    /** Let in without guests: until they have a family it is all there is for them */
+    needs_family: boolean;
+    features: ProjectFeatures;
     /** For those with a place in it: their conversations with something new */
     unread_messages: number | null;
     can: {

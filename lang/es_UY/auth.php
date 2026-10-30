@@ -14,6 +14,7 @@ return [
     */
 
     'failed'   => 'Estas credenciales no coinciden con nuestros registros.',
+    'blocked' => 'Esta cuenta está bloqueada.',
     'password' => 'La contraseña que ingresaste es incorrecta.',
     'throttle' => 'Demasiados intentos. Intenta de nuevo en :seconds segundos.',
 

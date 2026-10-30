@@ -21,6 +21,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Settings\AvatarController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\EnsureSuperadmin;
 use App\Http\Middleware\ResolveProject;
 use Illuminate\Support\Facades\Route;
@@ -141,6 +142,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
 
             Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
+            Route::get('family/new', [Member\FamilyController::class, 'create'])->name('family.create');
             Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
             Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
 
@@ -159,32 +161,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('units.edit');
             Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
 
-            Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
-            Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
-            Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
+            Route::middleware(EnsureFeature::class . ':events')->group(function () {
+                Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
+                Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
+                Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
+            });
 
             /** The chat: conversations between its people, one on one or in groups */
-            Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
-            Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
-            Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
-            Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
-            Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
-            Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
-            Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+            Route::middleware(EnsureFeature::class . ':chat')->group(function () {
+                Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
+                Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
+                Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
+                Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
+                Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
+                Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
+                Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+            });
 
             /** The forum: topics, each a conversation */
-            Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
-            Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
-            Route::get('forum/{topic}', [Member\ForumController::class, 'show'])->name('forum.show');
-            Route::put('forum/{topic}', [Member\ForumController::class, 'update'])->name('forum.update');
-            Route::delete('forum/{topic}', [Member\ForumController::class, 'destroy'])->name('forum.destroy');
-            Route::post('forum/{topic}/posts', [Member\ForumController::class, 'reply'])->middleware('throttle:60,1')->name('forum.reply');
-            Route::put('forum/posts/{post}', [Member\ForumController::class, 'updatePost'])->name('forum.posts.update');
-            Route::delete('forum/posts/{post}', [Member\ForumController::class, 'destroyPost'])->name('forum.posts.destroy');
+            Route::middleware(EnsureFeature::class . ':forum')->group(function () {
+                Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
+                Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
+                Route::get('forum/{topic}', [Member\ForumController::class, 'show'])->name('forum.show');
+                Route::put('forum/{topic}', [Member\ForumController::class, 'update'])->name('forum.update');
+                Route::delete('forum/{topic}', [Member\ForumController::class, 'destroy'])->name('forum.destroy');
+                Route::post('forum/{topic}/posts', [Member\ForumController::class, 'reply'])->middleware('throttle:60,1')->name('forum.reply');
+                Route::put('forum/posts/{post}', [Member\ForumController::class, 'updatePost'])->name('forum.posts.update');
+                Route::delete('forum/posts/{post}', [Member\ForumController::class, 'destroyPost'])->name('forum.posts.destroy');
+            });
 
-            Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
-            Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
-            Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
+            Route::middleware(EnsureFeature::class . ':gallery,files')->group(function () {
+                Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
+                Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
+                Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
+            });
 
             Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
             Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
@@ -234,7 +244,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
                 Route::post('plan/editor', [Manage\PlanController::class, 'lock'])->name('plan.lock');
                 Route::delete('plan/editor', [Manage\PlanController::class, 'unlock'])->name('plan.unlock');
-                Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy');
+                Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy')
+                    ->middleware(EnsureFeature::class . ':events');
+                Route::put('archive/{kind}/{id}', [Manage\ArchiveController::class, 'restore'])->whereNumber('id')->name('archive.restore');
 
                 Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
                 Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');
@@ -254,6 +266,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('projects/{project}', [Platform\ProjectController::class, 'destroy'])
             ->name('projects.destroy')->withTrashed();
         Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
+        Route::put('users/{user}/blocked', [Platform\UserController::class, 'block'])->name('users.block');
+        Route::delete('users/{user}', [Platform\UserController::class, 'destroy'])->name('users.destroy');
         Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
         Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');

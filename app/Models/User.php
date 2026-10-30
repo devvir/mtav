@@ -52,6 +52,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     ];
 
     protected $casts = [
+        'blocked_at' => 'datetime',
         'is_superadmin'     => 'boolean',
         'is_owner'          => 'boolean',
         'email_public'      => 'boolean',
@@ -158,6 +159,33 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->membershipIn($project)?->family;
     }
 
+    /**
+     * Taking part with neither a family nor a role, where the project allows it. They are of
+     * the community in all but ranking, inviting, and seeing people's contact details.
+     */
+    public function isGuestIn(Project $project): bool
+    {
+        return $this->isFamilylessIn($project) && $project->allows_guests;
+    }
+
+    /** Let into a project without guests: they have to create their family, or be added to one */
+    public function needsFamilyIn(Project $project): bool
+    {
+        return $this->isFamilylessIn($project) && ! $project->allows_guests;
+    }
+
+    private function isFamilylessIn(Project $project): bool
+    {
+        $membership = $this->membershipIn($project);
+
+        return $membership && ! $membership->family_id && ! $membership->is_admin;
+    }
+
+    public function isBlocked(): bool
+    {
+        return (bool) $this->blocked_at;
+    }
+
     public function scopeAlphabetically(Builder $query): void
     {
         $query->orderBy('firstname')->orderBy('lastname');
@@ -168,13 +196,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
      * them all (admins of the project, superadmins). A search never tells who has an
      * address they keep private.
      */
-    public function scopeSearch(Builder $query, string $q, bool $byEmail = false): void
+    public function scopeSearch(Builder $query, string $q, bool $byEmail = false, bool $nameOnly = false): void
     {
         $query->where(fn (Builder $query) => $query
             ->whereRaw("CONCAT_WS(' ', firstname, lastname) LIKE ?", ["%{$q}%"])
-            ->orWhere(fn (Builder $query) => $query
+            ->unless($nameOnly, fn (Builder $query) => $query->orWhere(fn (Builder $query) => $query
                 ->where('email', 'like', "%{$q}%")
-                ->unless($byEmail, fn (Builder $query) => $query->where('email_public', true))));
+                ->unless($byEmail, fn (Builder $query) => $query->where('email_public', true)))));
     }
 
     public function sendEmailVerificationNotification(): void

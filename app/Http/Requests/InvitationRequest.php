@@ -23,7 +23,8 @@ class InvitationRequest extends FormRequest
             'lastname'  => ['nullable', 'string', 'between:2,80'],
             'is_admin'  => ['boolean'],
             'family_id' => [
-                'required_unless:is_admin,true,1',
+                // Guests come with neither a family nor a role
+                ...($project->allows_guests ? [] : ['required_unless:is_admin,true,1']),
                 'nullable',
                 Rule::exists(Family::class, 'id')->where('project_id', $project->id),
             ],

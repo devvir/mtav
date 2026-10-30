@@ -16,6 +16,7 @@ beforeEach(function () {
 
     $this->project = aProject();
     $this->project->update(['listed' => true]);
+    aUnitType($this->project);
     $this->admin = anAdminOf($this->project);
     $this->person = aUser();
 });
@@ -96,7 +97,7 @@ describe('Admins', function () {
 });
 
 describe('In an open project', function () {
-    beforeEach(fn () => $this->project->update(['open_to_join' => true]));
+    beforeEach(fn () => $this->project->update(['open_to_join' => true, 'allows_guests' => true]));
 
     it('someone joins at once, with no family', function () {
         $this->as($this->person)->post(route('directory.join', $this->project))
@@ -243,9 +244,9 @@ describe('In a project by request', function () {
     });
 });
 
-describe('Someone in the project with no family', function () {
+describe('A guest', function () {
     beforeEach(function () {
-        $this->project->update(['open_to_join' => true]);
+        $this->project->update(['open_to_join' => true, 'allows_guests' => true]);
         $this->as($this->person)->post(route('directory.join', $this->project));
         $this->person = $this->person->fresh();
         $this->type = aUnitType($this->project);
@@ -254,7 +255,7 @@ describe('Someone in the project with no family', function () {
     it('is offered to create theirs', function () {
         $types = $this->as($this->person, $this->project)->get(route('projects.show'))->inertiaProps('ownFamilyTypes');
 
-        expect(collect($types)->pluck('id')->all())->toBe([$this->type->id]);
+        expect(collect($types)->pluck('id')->all())->toContain($this->type->id);
     });
 
     it('creates their family, and is in it', function () {

@@ -243,4 +243,8 @@ return [
     'limit_storage'     => 'Por ahora este proyecto tiene lugar para :max MB de archivos: pide ilimitado para quitar el límite.',
     'image_too_large'   => 'Se pueden compartir imágenes de hasta :max megapíxeles; esta tiene más.',
     'chat_people'       => 'Elige personas del proyecto para conversar.',
+    'guests_remain' => 'Quedan invitados (:count, contando invitaciones en camino): primero dales una familia o quítalos.',
+    'account_blocked' => 'Esta cuenta está bloqueada: no se la puede invitar.',
+    'account_protected' => 'Ni tu propia cuenta ni la de un superadministrador: primero se le quita el rol.',
+    'feature_off' => 'Este proyecto tiene desactivado este tipo de archivo.',
 ];

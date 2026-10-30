@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * People find a project in the directory and join it: at once where it is open, or by
- * asking its admins. Either way they enter with no family, until they create theirs or
- * someone of it adds them.
+ * asking its admins (open is simply approved beforehand). Either way they enter with no
+ * family: as guests where the project has them, else they create theirs before anything else
+ * (or someone of it adds them).
  */
 class DirectoryService
 {
@@ -34,7 +35,13 @@ class DirectoryService
             ['declined_at' => null],
         );
 
-        foreach ($project->admins()->get() as $admin) {
+        // A project with no admins left is the platform's to answer for
+        $answering = $project->admins()->get();
+        if ($answering->isEmpty()) {
+            $answering = User::where('is_superadmin', true)->get();
+        }
+
+        foreach ($answering as $admin) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
                 NotificationType::JOIN_REQUESTED,

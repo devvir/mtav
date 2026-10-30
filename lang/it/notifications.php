@@ -19,6 +19,17 @@ return [
 
     'invitation_received_title'   => 'Sei invitato a un progetto',
     'invitation_received_message' => ':name ti invita a unirti a :project.',
+    'event_published_title' => 'Nuovo evento',
+    'event_published_message' => ':title è in calendario.',
+    'files_added_title' => 'Novità nei file',
+    'files_added_one' => ':name ha condiviso un file.',
+    'files_added_many' => ':name ha condiviso :count file.',
+    'families_added_title' => 'Nuove famiglie',
+    'families_added_one' => 'Una famiglia è stata aggiunta da :name.',
+    'families_added_many' => ':count famiglie sono state aggiunte da :name.',
+    'units_added_title' => 'Nuovi alloggi',
+    'units_added_one' => ':name ha aggiunto un alloggio.',
+    'units_added_many' => ':name ha aggiunto :count alloggi.',
 
     'added_to_family_title' => 'Sei in una famiglia',
     'added_to_family_message' => ':name ti ha aggiunto alla famiglia :family in :project.',
