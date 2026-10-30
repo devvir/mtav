@@ -86,6 +86,8 @@ case "$action" in
         [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || refuse "not a commit: '$commit'"
         if [[ -n "$fresh" ]]; then
             [[ "$fresh" == fresh ]] || refuse "unknown option '$fresh'"
+            # Whatever its .env says: production's data is never started over
+            [[ "${request[1]}" != production ]] || refuse "production keeps its data: it cannot start over"
             grep -qx 'MTAV_FRESH_ALLOWED=true' "$dir/.env" \
                 || refuse "'${request[1]}' keeps its data: it cannot start over"
         fi

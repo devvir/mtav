@@ -24,6 +24,11 @@ if [[ "$1" == --rollback ]]; then
 else
     mode=deploy environment="$1" image="$2" bundle="$3" fresh="${4:-}"
 fi
+# Whatever asked for it, and whatever its .env says: production's data is never started over
+if [[ "$environment" == production && -n "$fresh" ]]; then
+    echo "production keeps its data: it cannot start over" >&2
+    exit 1
+fi
 dir="$home/$environment"
 export MTAV_ENV="$environment"
 

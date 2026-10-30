@@ -74,7 +74,9 @@ is healthy does the switch hand it the traffic, so visitors never see the site d
 6. the slot before stays up without its worker, so going back is instant.
 
 If step 4 or 5 fails, the new slot is removed and the live release never stopped. With
-`fresh` (only where the environment's `.env` says `MTAV_FRESH_ALLOWED=true`), step 3
+`fresh` (only where the environment's `.env` says `MTAV_FRESH_ALLOWED=true`, and never on
+production, whatever its `.env` says: the gate and the deploy refuse it, and the app refuses
+its own wiping commands there), step 3
 starts the database and the uploaded files over, with the demo data instead, and the
 dump of step 2 is the only copy of what was there. Every deploy to dev is fresh; staging
 is fresh only when `fresh.yml` asks: it deploys again the release staging runs, fresh.

@@ -137,3 +137,27 @@ it('hides deploying everywhere while no GitHub token is set', function () {
 
     $this->as($this->deployer)->get(route('admin.deployments.index'))->assertForbidden();
 });
+
+describe('Production', function () {
+    it('is never started over by the host, whatever asked for it', function () {
+        $deploy = Illuminate\Support\Facades\Process::run(['bash', base_path('deploy/host/deploy'), 'production', 'image', 'bundle', 'fresh']);
+
+        expect($deploy->failed())->toBeTrue()
+            ->and($deploy->errorOutput())->toContain('production keeps its data');
+    });
+
+    it('refuses the app\'s own wiping commands', function () {
+        // --pretend: were it not refused, it would still change nothing
+        $wipe = Illuminate\Support\Facades\Process::env(['MTAV_ENV' => 'production'])
+            ->run(['php', base_path('artisan'), 'migrate:rollback', '--pretend', '--force']);
+
+        expect($wipe->failed())->toBeTrue()
+            ->and($wipe->output() . $wipe->errorOutput())->toContain('prohibited');
+    });
+
+    it('never holds demo data', function () {
+        config(['app.deployment' => 'production']);
+
+        expect(fn () => $this->seed(Database\Seeders\DatabaseSeeder::class))->toThrow(RuntimeException::class, 'Production never holds demo data');
+    });
+});

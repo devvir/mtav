@@ -1,6 +1,7 @@
 # Starts an environment's database and uploaded files over, with the demo data: the
 # release it runs is deployed again, fresh. Only where the host allows it (the
-# environment's .env says MTAV_FRESH_ALLOWED=true); never production.
+# environment's .env says MTAV_FRESH_ALLOWED=true); production refuses it, whatever its
+# .env says.
 name: fresh
 run-name: Start ${{ inputs.environment }} over
 

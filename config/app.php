@@ -54,6 +54,9 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    /** Which deployment this is, where the host says so: dev, staging or production */
+    'deployment' => env('MTAV_ENV'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

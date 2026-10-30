@@ -10,6 +10,7 @@ x-app: &app
   env_file: .env
   environment:
     DB_HOST: db
+    MTAV_ENV: ${MTAV_ENV}
     REVERB_HOST: reverb-${MTAV_SLOT:?}
     REVERB_PORT: 8080
     REVERB_SCHEME: http

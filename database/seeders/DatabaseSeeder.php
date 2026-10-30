@@ -59,6 +59,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        if (config('app.deployment') === 'production') {
+            throw new RuntimeException('Production never holds demo data.');
+        }
+
         if (app()->isProduction() && ! config('app.demo_password')) {
             throw new RuntimeException('Set DEMO_PASSWORD: a public site never seeds demo accounts with "password".');
         }

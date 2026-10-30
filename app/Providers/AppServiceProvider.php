@@ -16,6 +16,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +45,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureModels();
 
         JsonResource::withoutWrapping();
+
+        // Production's data is never started over: wiping commands refuse to run there
+        DB::prohibitDestructiveCommands(config('app.deployment') === 'production');
 
         // Workers say they are alive as they loop: what waits on them knows (Workers::running)
         Queue::looping(fn () => Workers::mark());
