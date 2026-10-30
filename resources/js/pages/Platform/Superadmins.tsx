@@ -58,15 +58,16 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Superadmins')}>
+          <InfoTip title={_('Superadmins')} tour="platform.superadmins">
             {_('Who manages the whole platform. A rare role, given with care.')}
           </InfoTip>
         }
         title={_('Superadmins')}
+        tour="platform.superadmins"
         description={_('Who manages the whole platform. A rare role, given with care.')}
       />
       <div className="with-aside">
-        <Card p={0}>
+        <Card p={0} data-tour="superadmins.list">
           {superadmins.map((user) => (
             <Group key={user.id} className="row" gap="md" wrap="nowrap">
               <PersonAvatar name={user.name} size={40} />
@@ -91,7 +92,12 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
             </Group>
           ))}
         </Card>
-        <Panel title={_('Give the role to someone')} icon={IconShieldPlus} tone="warning">
+        <Panel
+          title={_('Give the role to someone')}
+          icon={IconShieldPlus}
+          tone="warning"
+          data-tour="superadmins.grant"
+        >
           <Form onSubmit={grant}>
             <TextInput
               label={_('Their account’s email')}

@@ -38,13 +38,14 @@ export default function Settings({ settings: project }: { settings: Project }) {
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Project settings')}>
+          <InfoTip title={_('Project settings')} tour="manage.settings">
             {_('Its name, what it is about and its organization; and, with care, deleting it.')}
           </InfoTip>
         }
         title={_('Settings')}
+        tour="manage.settings"
       />
-      <Card p="lg" maw={720}>
+      <Card p="lg" maw={720} data-tour="settings.form">
         <Form onSubmit={() => form.put(route('manage.settings.update'), { preserveScroll: true })}>
           <TextInput label={_('Name')} withAsterisk {...field(form, 'name')} />
           <Textarea
@@ -62,7 +63,7 @@ export default function Settings({ settings: project }: { settings: Project }) {
           <FormActions submit={_('Save')} processing={form.processing} />
         </Form>
       </Card>
-      <Card p="lg" maw={720} mt="xl" className="danger-card">
+      <Card p="lg" maw={720} mt="xl" className="danger-card" data-tour="settings.delete">
         <Group gap="sm">
           <Glyph icon={IconAlertTriangle} tone="negative" />
           <Title order={2} fz="lg" c="var(--mtav-negative)">

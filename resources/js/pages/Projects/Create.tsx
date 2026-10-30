@@ -18,20 +18,21 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Starting a project')}>
+          <InfoTip title={_('Starting a project')} tour="account.start_project">
             {_(
               'You become its first admin, then set it up step by step: unit types, units, families, invitations.',
             )}
           </InfoTip>
         }
         title={_('Start a project')}
+        tour="account.start_project"
         description={_(
           'You will be its first admin, and can invite the rest of its people afterwards.',
         )}
         back={{ href: route('projects.index'), label: _('Your projects') }}
       />
       <div className="with-aside">
-        <Card p="lg">
+        <Card p="lg" data-tour="start.form">
           <Form onSubmit={() => form.post(route('projects.store'))}>
             <TextInput
               label={_('Name')}
@@ -62,7 +63,7 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
           </Form>
         </Card>
         {limits ? (
-          <Card p="lg" h="fit-content">
+          <Card p="lg" h="fit-content" data-tour="start.room">
             <Glyph icon={IconInfoCircle} tone="info" />
             <Title order={2} fz="md" mt="sm">
               {_('Room for the project')}

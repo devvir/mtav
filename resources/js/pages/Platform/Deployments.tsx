@@ -122,13 +122,14 @@ export default function Deployments({ main, environments, branches, runs }: Prop
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Deployments')}>
+          <InfoTip title={_('Deployments')} tour="platform.deployments">
             {_(
               'What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.',
             )}
           </InfoTip>
         }
         title={_('Deployments')}
+        tour="platform.deployments"
         description={_('What each environment runs, and deploying it.')}
       />
       {errors.deploy ? (
@@ -140,7 +141,7 @@ export default function Deployments({ main, environments, branches, runs }: Prop
       <Stack gap="lg">
         <Deferred data={['main', 'environments']} fallback={<Skeleton h={180} radius="lg" />}>
           {environments && main ? (
-            <div className="deploy-environments">
+            <div className="deploy-environments" data-tour="deploy.environments">
               {environments.map((environment) => (
                 <Panel
                   key={environment.name}
@@ -207,7 +208,7 @@ export default function Deployments({ main, environments, branches, runs }: Prop
         </Deferred>
 
         <div className="two-columns">
-          <Panel title={_('Deploy dev')} icon={IconGitBranch}>
+          <Panel title={_('Deploy dev')} icon={IconGitBranch} data-tour="deploy.dev">
             <Stack gap="sm">
               <Deferred data="branches" fallback={<Skeleton h={36} />}>
                 {branches ? (
@@ -241,7 +242,12 @@ export default function Deployments({ main, environments, branches, runs }: Prop
             </Stack>
           </Panel>
 
-          <Panel title={_('Deploy production')} icon={IconRocket} tone="accent">
+          <Panel
+            title={_('Deploy production')}
+            icon={IconRocket}
+            tone="accent"
+            data-tour="deploy.production"
+          >
             <Stack gap="sm">
               <Text size="sm">
                 {_('From main: the release staging runs, unless a commit of main is named.')}
@@ -271,7 +277,7 @@ export default function Deployments({ main, environments, branches, runs }: Prop
           </Panel>
         </div>
 
-        <Panel title={_('Latest runs')} icon={IconTimeline} flush>
+        <Panel title={_('Latest runs')} icon={IconTimeline} flush data-tour="deploy.runs">
           <Deferred data="runs" fallback={<Skeleton h={160} />}>
             {runs ? (
               runs.length ? (

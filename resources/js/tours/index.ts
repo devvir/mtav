@@ -254,3 +254,162 @@ defineTour('member.people', () => [
     body: _('See the cooperative family by family, or every person at once.'),
   },
 ]);
+
+/** Account */
+defineTour('account.notifications', () => [
+  {
+    target: 'notifications.list',
+    title: _('What happened'),
+    body: _(
+      'Newest first, unread ones marked. Opening one takes you where it happened and marks it read.',
+    ),
+  },
+  {
+    target: 'notifications.unread',
+    title: _('Only what is new'),
+    body: _('Show only the unread ones, or mark them all as read at once.'),
+  },
+]);
+
+defineTour('account.profile', () => [
+  {
+    target: 'profile.sections',
+    title: _('Three parts'),
+    body: _(
+      'About you: your name and picture, as others see them. Password: how you sign in. Preferences: your language and the look of the app.',
+    ),
+  },
+  {
+    target: 'profile.picture',
+    title: _('Your picture'),
+    body: _('People recognize you by it across your projects. Pick a photo from your device.'),
+  },
+]);
+
+defineTour('account.projects', () => [
+  {
+    target: 'projects.invitations',
+    title: _('Invitations waiting for you'),
+    body: _('Join or decline. Joining takes you into the project, with your family and role set.'),
+  },
+  {
+    target: 'projects.list',
+    title: _('Your projects'),
+    body: _('Open one to go into it. You can take part in several.'),
+  },
+  {
+    target: 'projects.start',
+    title: _('Start your own'),
+    body: _('Start a project for your cooperative: you become its first admin.'),
+  },
+]);
+
+defineTour('account.start_project', () => [
+  {
+    target: 'start.form',
+    title: _('About the project'),
+    body: _(
+      'Its name as its people call it, and what it is about. All of it can be changed later, in its settings.',
+    ),
+  },
+  {
+    target: 'start.room',
+    title: _('Room for the project'),
+    body: _(
+      'Every project starts limited, with room for most cooperatives. The {app} team can make it unlimited when you ask.',
+      { app: appName() },
+    ),
+  },
+]);
+
+/** Project admin area, continued */
+defineTour('manage.settings', () => [
+  {
+    target: 'settings.form',
+    title: _('What people see'),
+    body: _('Its name, description and organization appear to everyone in the project.'),
+  },
+  {
+    target: 'settings.delete',
+    title: _('Deleting it'),
+    body: _(
+      'Removes the project and everything in it, for everyone. You are asked to type its name first.',
+    ),
+  },
+]);
+
+/** Member app, continued */
+defineTour('member.invitations', () => [
+  {
+    target: 'family_invite.form',
+    title: _('Who to invite'),
+    body: _('Their email, and their name for the greeting. They join your family directly.'),
+  },
+  {
+    target: 'family_invite.pending',
+    title: _('Waiting for an answer'),
+    body: _('Invitations not accepted yet. You can withdraw them; the link then stops working.'),
+  },
+]);
+
+/** Platform console, continued */
+defineTour('platform.users', () => [
+  {
+    target: 'users.search',
+    title: _('Find an account'),
+    body: _('Search by name or email.'),
+  },
+  {
+    target: 'users.list',
+    title: _('Each account'),
+    body: _('How many projects it takes part in, since when, and whether its email is confirmed.'),
+  },
+]);
+
+defineTour('platform.superadmins', () => [
+  {
+    target: 'superadmins.list',
+    title: _('Who has the role'),
+    body: _(
+      'Each of them sees and manages every project. Remove the role once it is no longer needed.',
+    ),
+  },
+  {
+    target: 'superadmins.grant',
+    title: _('Giving the role'),
+    body: _('To an existing account, by its email, exactly as they sign in.'),
+  },
+]);
+
+defineTour('platform.settings', () => [
+  {
+    target: 'platform_settings.lottery',
+    title: _('How long a lottery takes'),
+    body: _(
+      'Everyone sees the lottery work, step by step, for at least this long. The result does not depend on it.',
+    ),
+  },
+]);
+
+defineTour('platform.deployments', () => [
+  {
+    target: 'deploy.environments',
+    title: _('What runs where'),
+    body: _('Each environment and the release it runs. Rolling back returns to the one before.'),
+  },
+  {
+    target: 'deploy.dev',
+    title: _('Trying a branch'),
+    body: _('Deploy any branch to dev, starting from fresh demo data if needed.'),
+  },
+  {
+    target: 'deploy.production',
+    title: _('Releasing'),
+    body: _('Production gets what staging runs, once approved on GitHub.'),
+  },
+  {
+    target: 'deploy.runs',
+    title: _('Latest runs'),
+    body: _('Every deployment and how it went, linked to GitHub.'),
+  },
+]);

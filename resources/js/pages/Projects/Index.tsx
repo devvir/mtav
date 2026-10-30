@@ -29,6 +29,7 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
     <Button
       component={Link}
       href={route('projects.create')}
+      data-tour="projects.start"
       leftSection={<IconFolderPlus size={18} />}
     >
       {_('Start a project')}
@@ -39,16 +40,17 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Your projects')}>
+          <InfoTip title={_('Your projects')} tour="account.projects">
             {_('Every project you take part in, and the invitations waiting for you.')}
           </InfoTip>
         }
         title={_('Your projects')}
+        tour="account.projects"
         actions={startButton}
       />
 
       {invitations.length ? (
-        <Stack component="section" gap="sm" mb="xl">
+        <Stack component="section" gap="sm" mb="xl" data-tour="projects.invitations">
           <Title order={2} fz="lg">
             {_('Invitations waiting for you')}
           </Title>
@@ -84,7 +86,7 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
       ) : null}
 
       {projects.length ? (
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} data-tour="projects.list">
           {projects.map((project) => (
             <Card
               key={project.id}
@@ -111,9 +113,7 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   <IconUsers size={16} />
                   {_n('{count} person', '{count} people', project.members_count ?? 0)}
                 </Group>
-                {!project.is_approved ? (
-                  <Badge color="yellow">{_('Awaiting approval')}</Badge>
-                ) : null}
+                {!project.is_approved ? <Badge color="gray">{_('Limited')}</Badge> : null}
               </Group>
             </Card>
           ))}

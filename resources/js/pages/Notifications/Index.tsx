@@ -21,17 +21,19 @@ export default function NotificationsIndex({ notifications, filters }: Props) {
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Notifications')}>
+          <InfoTip title={_('Notifications')} tour="account.notifications">
             {_(
               'What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.',
             )}
           </InfoTip>
         }
         title={_('Notifications')}
+        tour="account.notifications"
         actions={
           <>
             <Button
               variant="default"
+              data-tour="notifications.unread"
               aria-pressed={filters.unread}
               onClick={() =>
                 router.get(route('notifications.index'), filters.unread ? {} : { unread: 1 }, {
@@ -55,7 +57,7 @@ export default function NotificationsIndex({ notifications, filters }: Props) {
       />
 
       {notifications.data.length ? (
-        <Card p={0}>
+        <Card p={0} data-tour="notifications.list">
           <ul className="notification-list">
             {notifications.data.map((notification) => (
               <li key={notification.id}>

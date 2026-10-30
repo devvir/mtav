@@ -29,15 +29,18 @@ export default function PlatformUsers({
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Accounts')}>{_('Everyone with an account on the platform.')}</InfoTip>
+          <InfoTip title={_('Accounts')} tour="platform.users">
+            {_('Everyone with an account on the platform.')}
+          </InfoTip>
         }
         title={_('Accounts')}
+        tour="platform.users"
         description={_('Everyone with an account on the platform.')}
       />
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16 }} data-tour="users.search">
         <QuerySearch value={filters.q} placeholder={_('Search by name or email')} maw={440} />
       </div>
-      <Card p={0}>
+      <Card p={0} data-tour="users.list">
         {users.data.map((user) => (
           <Group key={user.id} className="row" gap="md" wrap="wrap">
             <PersonAvatar name={user.name} size={40} />

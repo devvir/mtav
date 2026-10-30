@@ -25,14 +25,20 @@ export default function Settings({
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Platform settings')}>
+          <InfoTip title={_('Platform settings')} tour="platform.settings">
             {_('What applies to every project, like how long a lottery takes as people see it.')}
           </InfoTip>
         }
         title={_('Settings')}
+        tour="platform.settings"
         description={_('How the platform works for every project.')}
       />
-      <Panel title={_('Lottery')} icon={IconDice5} style={{ maxWidth: 560 }}>
+      <Panel
+        title={_('Lottery')}
+        icon={IconDice5}
+        style={{ maxWidth: 560 }}
+        data-tour="platform_settings.lottery"
+      >
         <Form onSubmit={() => form.put(route('admin.settings.update'), { preserveScroll: true })}>
           <NumberInput
             label={_('How long a lottery takes, in seconds')}

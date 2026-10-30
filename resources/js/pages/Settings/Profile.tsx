@@ -86,17 +86,18 @@ export default function Profile({ profile, languages }: Props) {
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Your account')}>
+          <InfoTip title={_('Your account')} tour="account.profile">
             {_('How others see you, how you sign in, your language and the look of the app.')}
           </InfoTip>
         }
         title={_('Profile')}
+        tour="account.profile"
         description={_(
           'Everything about you: how people see you, how you sign in, your language and how the app looks.',
         )}
       />
       <Tabs value={section} onChange={open} maw={760}>
-        <Tabs.List mb="lg">
+        <Tabs.List mb="lg" data-tour="profile.sections">
           <Tabs.Tab value="about" leftSection={<IconUser size={18} />}>
             {_('About you')}
           </Tabs.Tab>
@@ -108,7 +109,7 @@ export default function Profile({ profile, languages }: Props) {
           </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="about" className="ds-surface profile-section">
-          <Group mb="lg" gap="md">
+          <Group mb="lg" gap="md" data-tour="profile.picture">
             <PersonAvatar
               name={user.name}
               src={user.avatar}

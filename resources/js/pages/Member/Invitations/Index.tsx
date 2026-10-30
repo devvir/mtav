@@ -34,19 +34,20 @@ export default function FamilyInvitations({
     <>
       <PageHeader
         help={
-          <InfoTip title={_('Inviting your family')}>
+          <InfoTip title={_('Inviting your family')} tour="member.invitations">
             {_(
               'Invite the rest of your family by email: they join with your family already chosen.',
             )}
           </InfoTip>
         }
         title={_('Invite to your family')}
+        tour="member.invitations"
         description={_(
           'Invite the people of the {family} family to the project. They receive an email with a link.',
           { family: family.name },
         )}
       />
-      <Card p="lg" maw={720}>
+      <Card p="lg" maw={720} data-tour="family_invite.form">
         <Form
           onSubmit={() =>
             form.post(route('invitations.store'), {
@@ -80,7 +81,7 @@ export default function FamilyInvitations({
         </Form>
       </Card>
       {invitations.length ? (
-        <section style={{ marginTop: 32, maxWidth: 720 }}>
+        <section style={{ marginTop: 32, maxWidth: 720 }} data-tour="family_invite.pending">
           <Title order={2} fz="lg" mb="sm">
             {_('Waiting for an answer')}
           </Title>
