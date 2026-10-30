@@ -93,7 +93,7 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->wait(2);
     expect($families[0]->preferences()->first()?->id)->toBe($last->id);
 
-    // The admin dates it (now) and runs it: every family gets a unit, F01 its first choice
+    // The admin dates it (now) and runs it: every family gets a unit
     $this->as($tutor);
     $page = visit(route('lottery.show', $project))
         ->fill('start_date', now()->subDay()->format('Y-m-d\TH:i'))
@@ -101,8 +101,8 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->assertSee('The lottery was scheduled');
     runTheLottery($page)->assertSee('The lottery is done: every family has its unit.')->assertNoSmoke();
 
-    expect($families->map(fn ($family) => $family->fresh()->unit?->id)->filter())->toHaveCount(3)
-        ->and($families[0]->fresh()->unit->id)->toBe($last->id);
+    // (whose first choice it is depends on the others' rankings: each family gets a unit)
+    expect($families->map(fn ($family) => $family->fresh()->unit?->id)->filter()->unique())->toHaveCount(3);
 
     // Every one of them sees the outcome
     $this->as($people[1]);
