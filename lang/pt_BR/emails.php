@@ -13,10 +13,10 @@ return [
     'invitation_ignore'       => 'Se você não esperava por ele, pode ignorar este e-mail.',
 
     'joined_project_subject' => 'Você está em :project',
-    'joined_project' => 'Os admins de :project aceitaram seu pedido: você está dentro. Lá você pode criar sua família, ou alguém dela pode adicionar você.',
-    'joined_family_subject' => 'Você está na família :family',
-    'joined_family' => ':name adicionou você à família :family em :project. Não é preciso fazer mais nada.',
-    'joined_action' => 'Abrir o projeto',
+    'joined_project'         => 'Os admins de :project aceitaram seu pedido: você está dentro. Lá você pode criar sua família, ou alguém dela pode adicionar você.',
+    'joined_family_subject'  => 'Você está na família :family',
+    'joined_family'          => ':name adicionou você à família :family em :project. Não é preciso fazer mais nada.',
+    'joined_action'          => 'Abrir o projeto',
 
     'reset_password_subject' => 'Escolha uma nova senha',
     'reset_password_intro'   => 'Alguém pediu para redefinir a senha da sua conta.',

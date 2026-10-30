@@ -36,8 +36,8 @@ class InvitationController extends Controller
                     'created_at' => $joinRequest->created_at,
                 ]),
             'allowsGuests' => $project->allows_guests,
-            'families'    => $project->families()->alphabetically()->get(['id', 'name']),
-            'limits'      => $project->isApproved() ? null : [
+            'families'     => $project->families()->alphabetically()->get(['id', 'name']),
+            'limits'       => $project->isApproved() ? null : [
                 'members'             => $project->limit('members'),
                 'invitations_per_day' => $project->limit('invitations_per_day'),
             ],

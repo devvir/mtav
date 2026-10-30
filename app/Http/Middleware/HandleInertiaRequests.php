@@ -37,9 +37,9 @@ class HandleInertiaRequests extends Middleware
             'locale'      => app()->getLocale(),
             /** The languages to pick from, each named in itself */
             'languages' => Inertia::once(fn () => config('app.locales')),
-            'auth'        => ['user' => $user ? $this->user($user) : null],
-            'projects'    => fn () => $user ? $this->projects($user) : [],
-            'project'     => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
+            'auth'      => ['user' => $user ? $this->user($user) : null],
+            'projects'  => fn () => $user ? $this->projects($user) : [],
+            'project'   => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
             /** The project last browsed: the person's own pages stay in its frame */
             'lastProject'   => fn () => $request->session()->get('last_project'),
             'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
@@ -127,14 +127,14 @@ class HandleInertiaRequests extends Middleware
             'allows_guests' => $project->allows_guests,
             // Let in without guests, until they have a family it is all there is for them
             'needs_family' => $user->needsFamilyIn($project),
-            'features'      => $project->features(),
+            'features'     => $project->features(),
             // The conversations with something new for them (the chat's place says so)
             'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
             'can'             => [
-                'manage'  => $manages,
-                'invite'  => $user->can('invite', [$project, $family]),
-                'rank'    => $user->can('rankUnits', $project),
-                'upload'  => ($project->hasFeature(ProjectFeature::GALLERY) || $project->hasFeature(ProjectFeature::FILES))
+                'manage' => $manages,
+                'invite' => $user->can('invite', [$project, $family]),
+                'rank'   => $user->can('rankUnits', $project),
+                'upload' => ($project->hasFeature(ProjectFeature::GALLERY) || $project->hasFeature(ProjectFeature::FILES))
                     && $user->can('create', [Media::class, $project]),
                 'approve' => $user->can('approve', $project),
                 'chat'    => $inChat,

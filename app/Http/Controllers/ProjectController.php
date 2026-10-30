@@ -46,7 +46,7 @@ class ProjectController extends Controller
 
         return inertia('Projects/Create', [
             'asksFirstAdmin' => $request->user()->isSuperadmin(),
-            'limits' => $request->user()->isSuperadmin() ? null : config('limits.unapproved'),
+            'limits'         => $request->user()->isSuperadmin() ? null : config('limits.unapproved'),
         ]);
     }
 

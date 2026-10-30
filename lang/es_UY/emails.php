@@ -13,10 +13,10 @@ return [
     'invitation_ignore'       => 'Si no la esperabas, puedes ignorar este email.',
 
     'joined_project_subject' => 'Ya estás en :project',
-    'joined_project' => 'Los administradores de :project aceptaron tu pedido: ya estás adentro. Allí puedes crear tu familia, o alguien de ella puede sumarte.',
-    'joined_family_subject' => 'Ya estás en la familia :family',
-    'joined_family' => ':name te sumó a la familia :family en :project. No tienes que hacer nada más.',
-    'joined_action' => 'Abrir el proyecto',
+    'joined_project'         => 'Los administradores de :project aceptaron tu pedido: ya estás adentro. Allí puedes crear tu familia, o alguien de ella puede sumarte.',
+    'joined_family_subject'  => 'Ya estás en la familia :family',
+    'joined_family'          => ':name te sumó a la familia :family en :project. No tienes que hacer nada más.',
+    'joined_action'          => 'Abrir el proyecto',
 
     'reset_password_subject' => 'Elige una contraseña nueva',
     'reset_password_intro'   => 'Alguien pidió restablecer la contraseña de tu cuenta.',

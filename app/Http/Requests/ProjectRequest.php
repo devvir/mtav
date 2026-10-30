@@ -16,13 +16,13 @@ class ProjectRequest extends FormRequest
         $project = $this->route('project');
 
         return [
-            'name'         => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
-            'description'  => ['required', 'string', 'between:2,2000'],
-            'organization' => ['nullable', 'string', 'between:2,120'],
-            'listed'       => ['sometimes', 'boolean'],
-            'open_to_join' => ['sometimes', 'boolean'],
-            'allows_guests' => ['sometimes', 'boolean'],
-            'disabled_features' => ['sometimes', 'array'],
+            'name'                => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
+            'description'         => ['required', 'string', 'between:2,2000'],
+            'organization'        => ['nullable', 'string', 'between:2,120'],
+            'listed'              => ['sometimes', 'boolean'],
+            'open_to_join'        => ['sometimes', 'boolean'],
+            'allows_guests'       => ['sometimes', 'boolean'],
+            'disabled_features'   => ['sometimes', 'array'],
             'disabled_features.*' => [Rule::enum(ProjectFeature::class)],
         ];
     }

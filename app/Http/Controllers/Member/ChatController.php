@@ -162,8 +162,8 @@ class ChatController extends Controller
             }),
             'is_group'     => $conversation->is_group,
             'is_community' => $conversation->is_community,
-            'faces'    => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
-            'last'     => $last ? [
+            'faces'        => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
+            'last'         => $last ? [
                 'body'   => Str::limit($last->body, 90),
                 'author' => $last->user_id === $user->id ? null : $last->author?->firstname,
                 'mine'   => $last->user_id === $user->id,

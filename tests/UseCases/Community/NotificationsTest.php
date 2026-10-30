@@ -70,7 +70,7 @@ describe('What a project gains', function () {
 
     it('tells people of an event once it is out', function () use ($seen) {
         $store = fn (bool $published) => $this->as($this->gainingAdmin, $this->gaining)->post(route('manage.events.store'), [
-            'title' => 'Assembly', 'description' => 'All of us', 'type' => 'online', 'is_published' => $published,
+            'title'      => 'Assembly', 'description' => 'All of us', 'type' => 'online', 'is_published' => $published,
             'start_date' => now()->addWeek()->toDateTimeString(), 'end_date' => now()->addWeek()->addHour()->toDateTimeString(),
         ])->assertSessionHasNoErrors();
 
@@ -84,7 +84,7 @@ describe('What a project gains', function () {
     it('tells people when a draft event goes out, once', function () use ($seen) {
         $event = $this->gaining->events()->create(['creator_id' => $this->gainingAdmin->id, 'title' => 'Draft', 'description' => 'Later', 'type' => 'online', 'is_published' => false, 'start_date' => now()->addWeek(), 'end_date' => now()->addWeek()->addHour()]);
         $update = fn () => $this->as($this->gainingAdmin, $this->gaining)->put(route('manage.events.update', $event), [
-            'title' => 'Draft', 'description' => 'Later', 'type' => 'online', 'is_published' => true,
+            'title'      => 'Draft', 'description' => 'Later', 'type' => 'online', 'is_published' => true,
             'start_date' => now()->addWeek()->toDateTimeString(), 'end_date' => now()->addWeek()->addHour()->toDateTimeString(),
         ])->assertSessionHasNoErrors();
 

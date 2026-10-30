@@ -14,7 +14,7 @@ return [
     */
 
     'failed'   => 'Esses dados não correspondem aos nossos registros.',
-    'blocked' => 'Esta conta está bloqueada.',
+    'blocked'  => 'Esta conta está bloqueada.',
     'password' => 'A senha está incorreta.',
     'throttle' => 'Muitas tentativas de entrada. Tente de novo em :seconds segundos.',
 

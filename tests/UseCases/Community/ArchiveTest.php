@@ -21,7 +21,7 @@ beforeEach(function () {
 function anEventOf($project, $by, array $attributes = []): Event
 {
     return $project->events()->create([
-        'creator_id' => $by->id, 'title' => 'Assembly', 'description' => 'All of us', 'type' => 'online',
+        'creator_id'   => $by->id, 'title' => 'Assembly', 'description' => 'All of us', 'type' => 'online',
         'is_published' => true, 'start_date' => now()->addWeek(), ...$attributes,
     ]);
 }

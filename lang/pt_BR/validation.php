@@ -243,8 +243,8 @@ return [
     'limit_storage'     => 'Por enquanto este projeto tem espaço para :max MB de arquivos: peça ilimitado para tirar o limite.',
     'image_too_large'   => 'É possível compartilhar imagens de até :max megapixels; esta tem mais.',
     'chat_people'       => 'Escolha pessoas do projeto para conversar.',
-    'guests_remain' => 'Ainda há convidados (:count, contando convites a caminho): primeiro dê a eles uma família ou remova-os.',
-    'account_blocked' => 'Esta conta está bloqueada: não pode ser convidada.',
+    'guests_remain'     => 'Ainda há convidados (:count, contando convites a caminho): primeiro dê a eles uma família ou remova-os.',
+    'account_blocked'   => 'Esta conta está bloqueada: não pode ser convidada.',
     'account_protected' => 'Nem a sua própria conta, nem a de um superadmin: primeiro retire o papel.',
-    'feature_off' => 'Este projeto desativou este tipo de arquivo.',
+    'feature_off'       => 'Este projeto desativou este tipo de arquivo.',
 ];

@@ -2,6 +2,6 @@
 
 return [
     // A conversation whose others all left
-    'only_you' => 'Solo tú',
+    'only_you'  => 'Solo tú',
     'community' => 'Comunidad',
 ];

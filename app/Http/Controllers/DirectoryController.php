@@ -36,8 +36,8 @@ class DirectoryController extends Controller
             ->withQueryString();
 
         return inertia('Projects/Directory', [
-            'filters'  => ['q' => $request->q],
-            'listing'  => DirectoryProjectResource::collection($projects),
+            'filters' => ['q' => $request->q],
+            'listing' => DirectoryProjectResource::collection($projects),
         ]);
     }
 

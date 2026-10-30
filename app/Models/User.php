@@ -52,7 +52,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     ];
 
     protected $casts = [
-        'blocked_at' => 'datetime',
+        'blocked_at'        => 'datetime',
         'is_superadmin'     => 'boolean',
         'is_owner'          => 'boolean',
         'email_public'      => 'boolean',
