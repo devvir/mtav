@@ -171,6 +171,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::middleware(EnsureFeature::class . ':chat')->group(function () {
                 Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
                 Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
+                Route::get('chat/panel', [Member\ChatController::class, 'panel'])->name('chat.panel');
                 Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
                 Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
                 Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');

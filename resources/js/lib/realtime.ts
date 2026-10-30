@@ -3,6 +3,7 @@ import type { RealtimeServer } from '@/types/page';
 import { router, usePage } from '@inertiajs/react';
 import { configureEcho, echo } from '@laravel/echo-react';
 import { useEffect, useEffectEvent } from 'react';
+import { chatState, openChat, refreshChat } from './chat';
 import { route, routeIs } from './route';
 import { toast } from './toasts';
 import { _ } from './translations';
@@ -125,27 +126,27 @@ export function useLiveMessages() {
   const project = props.project;
   const onMessage = useEffectEvent((message: MessageArrived) => {
     if (message.by === user?.id) return;
-    if (routeIs('chat.*')) {
-      const open = (props as { conversation?: { id: number } | null }).conversation?.id;
-      router.reload({
-        only: [
-          'conversations',
-          'project',
-          ...(open === message.conversation_id ? ['messages'] : []),
-        ],
-      });
-      return;
-    }
+    refreshChat();
     router.reload({ only: ['project'] });
+
+    // Already in sight: the chat shows it, or the list it comes to
+    const { open, conversation } = chatState();
+    const inChat = open || routeIs('chat.*');
+    if (inChat && (!conversation || conversation === message.conversation_id)) return;
+
+    // The window opens on it where there is one; on phones the chat has its own page
+    const withWindow = window.matchMedia('(min-width: 48em)').matches;
     toast({
       tone: 'info',
       live: true,
       message: message.author
         ? _('New message from {name}', { name: message.author })
         : _('New message'),
-      href: project
-        ? route('chat.show', { project: project.id, conversation: message.conversation_id })
-        : null,
+      onClick: withWindow ? () => openChat(message.conversation_id) : undefined,
+      href:
+        !withWindow && project
+          ? route('chat.show', { project: project.id, conversation: message.conversation_id })
+          : null,
     });
   });
 

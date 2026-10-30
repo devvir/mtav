@@ -1220,6 +1220,13 @@ html[data-plan-full] {
   flex: none;
   color: var(--mtav-muted);
 }
+.checklist-step span {
+  /* A list of things to do, as if written by hand */
+  font-family: 'Caveat Variable', var(--mantine-font-family);
+  font-size: 1.45em;
+  font-weight: 500;
+  line-height: 1.15;
+}
 .checklist-step[data-done] {
   color: var(--mtav-muted);
 }
@@ -1852,6 +1859,12 @@ html[data-carrying] * {
 .chat-list-item {
   position: relative;
   display: flex;
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
@@ -1997,13 +2010,15 @@ html[data-carrying] * {
   }
 }
 
-/* The chat, at the page's bottom corner (beside the sidebar, where there is one) */
+/* The chat, at the page's bottom right corner */
 .chat-launcher {
   display: none;
+  border: 0;
+  cursor: pointer;
   position: fixed;
   z-index: 50;
   bottom: 1.25rem;
-  left: 1.25rem;
+  right: 1.25rem;
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
@@ -2041,22 +2056,66 @@ html[data-carrying] * {
     display: inline-flex;
   }
 }
-/* Above the tabs, where there are tabs; beside the sidebar, where there is one */
+/* Above the tabs, where there are tabs; messages that come and go keep above it */
 @media (max-width: 74.99em) {
   .chat-launcher {
     bottom: 5.5rem;
   }
 }
-@media (min-width: 75em) {
-  .chat-launcher {
-    left: calc(14.2rem + 1.25rem);
+@media (min-width: 48em) {
+  .mantine-Notifications-root[data-position='bottom-right'] {
+    bottom: 5.25rem;
+  }
+}
+@media (min-width: 48em) and (max-width: 74.99em) {
+  .mantine-Notifications-root[data-position='bottom-right'] {
+    bottom: 9.25rem;
   }
 }
 
 /* The chat's two kinds of conversation */
 .chat-kinds {
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-bottom: 1px solid var(--mtav-border);
+}
+
+/* The chat's window: out of its bubble, one thing at a time, over whatever page */
+.chat-window {
+  position: fixed;
+  z-index: 50;
+  right: 1.25rem;
+  bottom: 5.25rem;
+  width: min(25rem, calc(100vw - 2.5rem));
+  height: min(38rem, calc(100dvh - 11rem));
+  overflow: hidden;
+  border-radius: var(--mtav-radius-card);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 28%);
+  transform-origin: bottom right;
+}
+@media (max-width: 74.99em) {
+  .chat-window {
+    bottom: 9.25rem;
+    height: min(38rem, calc(100dvh - 15rem));
+  }
+}
+.chat-window .chat {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+}
+.chat-window .chat[data-open] .chat-list,
+.chat-window .chat:not([data-open]) .chat-thread {
+  display: none;
+}
+.chat-window .chat-back {
+  display: inline-flex;
+}
+.chat-window .chat-list,
+.chat-window .chat-thread {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* A single panel where its partner is off: the whole row */

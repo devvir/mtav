@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { UnstyledButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconBell, IconCheck, IconInfoCircle, IconX } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
@@ -22,6 +23,7 @@ export function toast({
   message,
   live,
   href,
+  onClick,
 }: {
   tone: ToastTone;
   title?: string;
@@ -30,12 +32,20 @@ export function toast({
   live?: boolean;
   /** Where it leads: the message becomes a link there */
   href?: string | null;
+  /** What it does instead of leading anywhere: the message becomes a button */
+  onClick?: () => void;
 }) {
   notifications.show({
     color: LOOK[tone].color,
     icon: live ? <IconBell size={18} /> : LOOK[tone].icon,
     title,
-    message: href ? <Link href={href}>{message}</Link> : message,
+    message: href ? (
+      <Link href={href}>{message}</Link>
+    ) : onClick ? (
+      <UnstyledButton onClick={onClick}>{message}</UnstyledButton>
+    ) : (
+      message
+    ),
     autoClose: tone === 'error' ? false : title ? 8000 : 5000,
   });
 }

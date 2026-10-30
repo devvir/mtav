@@ -7,7 +7,7 @@ import { IconCircle, IconCircleCheckFilled, IconListCheck } from '@tabler/icons-
 
 /** What is done on the way to the lottery (ProjectService::setupChecklist) */
 export type Setup = Record<
-  'unit_types' | 'units' | 'families' | 'members' | 'balanced' | 'scheduled' | 'lottery',
+  'unit_types' | 'units' | 'families' | 'members' | 'scheduled' | 'lottery',
   boolean
 >;
 
@@ -29,11 +29,6 @@ export function SetupChecklist({ setup }: { setup: Setup }) {
       done: setup.members,
       label: _('Invite their members'),
       href: route('manage.invitations.index'),
-    },
-    {
-      done: setup.balanced,
-      label: _('Have as many units as families of each type'),
-      href: route('lottery.show'),
     },
     {
       done: setup.scheduled,

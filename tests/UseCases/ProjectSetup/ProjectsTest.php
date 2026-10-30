@@ -158,13 +158,13 @@ describe('An admin', function () {
             'setup',
         );
 
-        expect($setup())->toMatchArray(['unit_types' => false, 'units' => false, 'balanced' => false]);
+        expect($setup())->toMatchArray(['unit_types' => false, 'units' => false]);
 
         $type = aUnitType($this->project);
         aUnit($type);
         aFamily($this->project, $type);
 
-        expect($setup())->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true, 'balanced' => true]);
+        expect($setup())->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true]);
     });
 
     it('changes the details of a project they manage', function () {
@@ -245,4 +245,17 @@ it('paints the project\'s home at once, its parts following', function () {
 
     expect(inertiaProps($home))->not->toHaveKeys(['setup', 'events', 'media', 'community', 'units'])
         ->and(deferredProp($home, 'units')[0]['units'][0]['identifier'])->toBe('A-101');
+});
+
+it('does not ask for as many units as families on the way to the lottery: it runs unbalanced too', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type);
+    aUnit($type);
+    aMemberOf(aFamily($project, $type));
+
+    $setup = app(App\Services\ProjectService::class)->setupChecklist($project);
+
+    expect($setup)->not->toHaveKey('balanced')
+        ->and($setup)->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true, 'members' => true]);
 });

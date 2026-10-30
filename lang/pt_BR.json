@@ -184,7 +184,6 @@
   "Ground floor": "Térreo",
   "Guide": "Guia",
   "Happening now": "Acontecendo agora",
-  "Have as many units as families of each type": "Ter tantas unidades quanto famílias de cada tipo",
   "High contrast": "Alto contraste",
   "Home": "Início",
   "How invitations work": "Como funcionam os convites",
@@ -1004,5 +1003,7 @@
   "Choose its first admin; the rest of its people can be invited afterwards.": "Escolha o primeiro admin; os demais podem ser convidados depois.",
   "Its first admin": "O primeiro admin",
   "Me: I take part in it as an admin": "Eu: participo como admin",
-  "Someone I invite": "Alguém que eu convido"
+  "Someone I invite": "Alguém que eu convido",
+  "Minimize": "Minimizar",
+  "That did not work. Please try again.": "Não funcionou. Tente de novo."
 }

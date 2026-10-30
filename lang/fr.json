@@ -184,7 +184,6 @@
   "Ground floor": "Rez-de-chaussée",
   "Guide": "Guide",
   "Happening now": "En cours",
-  "Have as many units as families of each type": "Avoir autant de logements que de familles de chaque type",
   "High contrast": "Contraste élevé",
   "Home": "Accueil",
   "How invitations work": "Comment fonctionnent les invitations",
@@ -1004,5 +1003,7 @@
   "Choose its first admin; the rest of its people can be invited afterwards.": "Choisissez son premier admin ; les autres pourront être invités ensuite.",
   "Its first admin": "Son premier admin",
   "Me: I take part in it as an admin": "Moi : j’y participe comme admin",
-  "Someone I invite": "Quelqu’un que j’invite"
+  "Someone I invite": "Quelqu’un que j’invite",
+  "Minimize": "Réduire",
+  "That did not work. Please try again.": "Cela n’a pas fonctionné. Réessayez."
 }

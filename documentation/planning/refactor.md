@@ -443,6 +443,7 @@ decision taken on the way is listed below for review.
       dropdown of its options, apart from the notifications and the avatar.
     - A language picked stays picked in the browser, signed in or not, across deploys.
     - Your projects has a search past ten of them, and marks the one last browsed.
-    - The chat: on tablets and up, an icon at the bottom left rather than a sidebar item;
+    - The chat: on tablets and up, a bubble at the bottom right rather than a sidebar item,
+      with a window that opens from it and folds back into it, no page change;
       groups (more than two people) have names and sit apart from one-on-one chats; every
       project has a Community group with everyone in it.

@@ -1,4 +1,5 @@
 import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/caveat';
 import '@fontsource-variable/figtree';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';

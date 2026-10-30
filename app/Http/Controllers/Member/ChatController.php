@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ChatService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -42,7 +43,22 @@ class ChatController extends Controller
         return $this->page($request, $project, $conversation);
     }
 
-    public function store(Request $request, Project $project): RedirectResponse
+    /** The chat's window, which never leaves the page it opens over: all it shows, in JSON */
+    public function panel(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('startChat', [Conversation::class, $project]);
+
+        $open = null;
+        if ($request->integer('conversation')) {
+            $open = $project->conversations()->findOrFail($request->integer('conversation'));
+            $this->authorize('readChat', $open);
+            $this->chat->read($open, $request->user());
+        }
+
+        return response()->json($this->data($request, $project, $open));
+    }
+
+    public function store(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         $this->authorize('startChat', [Conversation::class, $project]);
         $data = $request->validate([
@@ -53,21 +69,23 @@ class ChatController extends Controller
 
         $conversation = $this->chat->start($project, $request->user(), $data['people'], $data['title'] ?? null);
 
-        return to_route('chat.show', [$project, $conversation]);
+        return $request->wantsJson()
+            ? response()->json(['conversation' => $conversation->id])
+            : to_route('chat.show', [$project, $conversation]);
     }
 
-    public function send(Request $request, Project $project, Conversation $conversation): RedirectResponse
+    public function send(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('writeChat', $conversation);
         $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
 
         $this->chat->send($conversation, $request->user(), trim($data['body']));
 
-        return to_route('chat.show', [$project, $conversation]);
+        return $request->wantsJson() ? response()->json([]) : to_route('chat.show', [$project, $conversation]);
     }
 
     /** A group's name, and people added to it */
-    public function update(Request $request, Project $project, Conversation $conversation): RedirectResponse
+    public function update(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('manageGroup', $conversation);
         $data = $request->validate([
@@ -78,27 +96,33 @@ class ChatController extends Controller
 
         $this->chat->update($conversation, $data['title'] ?? null, $data['people'] ?? []);
 
-        return back();
+        return $request->wantsJson() ? response()->json([]) : back();
     }
 
-    public function leave(Request $request, Project $project, Conversation $conversation): RedirectResponse
+    public function leave(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('leaveGroup', $conversation);
         $this->chat->leave($conversation, $request->user());
 
-        return to_route('chat.index', $project)->with('success', __('flash.conversation_left'));
+        return $request->wantsJson() ? response()->json([]) : to_route('chat.index', $project)->with('success', __('flash.conversation_left'));
     }
 
-    public function destroyMessage(Request $request, Project $project, Message $message): RedirectResponse
+    public function destroyMessage(Request $request, Project $project, Message $message): RedirectResponse|JsonResponse
     {
         $this->authorize('unsendMessage', [Conversation::class, $message]);
         $this->chat->remove($message);
 
-        return back();
+        return $request->wantsJson() ? response()->json([]) : back();
     }
 
     /** The conversations, the one open (if any) with its latest messages, and who may join */
     private function page(Request $request, Project $project, ?Conversation $open = null): Response
+    {
+        return inertia('Member/Chat/Index', $this->data($request, $project, $open));
+    }
+
+    /** @return array<string, mixed> */
+    private function data(Request $request, Project $project, ?Conversation $open): array
     {
         $user = $request->user();
         $conversations = Conversation::of($user, $project)
@@ -107,7 +131,7 @@ class ChatController extends Controller
             ->get();
         $unread = Conversation::of($user, $project)->unreadBy($user)->pluck('id')->flip();
 
-        return inertia('Member/Chat/Index', [
+        return [
             'conversations' => $conversations->map(fn (Conversation $conversation) => [
                 ...$this->summary($conversation, $user),
                 'unread' => $unread->has($conversation->id),
@@ -120,12 +144,12 @@ class ChatController extends Controller
                     'leave'  => $user->can('leaveGroup', $open),
                 ],
             ] : null,
-            'messages' => fn () => $open ? $this->messages($request, $open) : null,
+            'messages' => $open ? $this->messages($request, $open) : null,
             // Everyone of the project one may talk with, for a new conversation (or a group's new people)
-            'people' => fn () => $project->members()->whereKeyNot($user->id)
+            'people' => $project->members()->whereKeyNot($user->id)
                 ->orderBy('firstname')->orderBy('lastname')->get(['users.id', 'firstname', 'lastname', 'avatar'])
                 ->map(fn (User $person) => $this->person($person))->values(),
-        ]);
+        ];
     }
 
     /** The latest messages, as many as shown (?count=…, more on asking), oldest first */

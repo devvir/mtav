@@ -33,7 +33,8 @@ it('starts a conversation with someone, and they find it waiting, unread until o
         ->assertPresent('.chat-list-item[data-unread]')
         ->click('.chat-list-item:has-text("Ana Pérez")')
         ->assertSeeIn('.chat-messages', 'Hola Beto, ¿vienes el sábado?')
-        ->assertMissing('.chat-list-item[data-unread]');
+        ->assertMissing('.chat-list-item[data-unread]')
+        ->assertPathIs('/projects/' . $this->project->id);
 
     expect(Conversation::where('is_community', false)->sole()->messages()->count())->toBe(1);
 });
@@ -53,4 +54,36 @@ it('starts a named group for several people', function () {
         ->assertSeeIn('.chat-thread-header', 'Building committee');
 
     expect(Conversation::where('is_community', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee');
+});
+
+it('opens from its bubble over the page, writes, folds back, and stays open between pages', function () {
+    $this->as($this->ana);
+    $path = '/projects/' . $this->project->id;
+
+    $page = visit(route('projects.show', $this->project))
+        ->assertMissing('.chat-window')
+        ->click('.chat-launcher')
+        ->assertPresent('.chat-window')
+        ->click('.chat-window button:has-text("New conversation")')
+        ->click('[role="dialog"] input[role="combobox"]')
+        ->click('[role="option"]:has-text("Beto Silva")')
+        ->click(inDialog('Start the conversation'))
+        ->assertSeeIn('.chat-window', 'Say hello')
+        ->fill('.chat-window [aria-label="Message"]', 'Hola desde la burbuja')
+        ->keys('.chat-window [aria-label="Message"]', 'Enter')
+        ->assertSeeIn('.chat-window .chat-messages', 'Hola desde la burbuja')
+        ->assertPathIs($path)
+        ->click('.chat-window [aria-label="Minimize"]')
+        ->assertMissing('.chat-window')
+        ->assertPathIs($path)
+        ->click('.chat-launcher')
+        ->assertSeeIn('.chat-window .chat-messages', 'Hola desde la burbuja')
+        ->assertNoSmoke();
+
+    // Moving on, it stays as it was
+    $page->click('.shell-nav a:has-text("Lottery")')
+        ->assertPathIs($path . '/lottery')
+        ->assertSeeIn('.chat-window .chat-messages', 'Hola desde la burbuja')
+        ->keys('.chat-window [aria-label="Message"]', 'Escape')
+        ->assertMissing('.chat-window');
 });

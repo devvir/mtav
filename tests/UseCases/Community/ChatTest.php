@@ -214,3 +214,56 @@ describe('The Community group', function () {
         app(App\Services\Push\PushService::class)->deliverMessage($message);
     });
 });
+
+describe('The window', function () {
+    beforeEach(function () {
+        $this->windowed = aProject();
+        $this->one = aMemberOf(aFamily($this->windowed));
+        $this->two = aMemberOf(aFamily($this->windowed));
+        $this->pair = app(App\Services\ChatService::class)->start($this->windowed, $this->one, [$this->two->id]);
+    });
+
+    it('gets the list, and a conversation it opens, marking it read', function () {
+        app(App\Services\ChatService::class)->send($this->pair, $this->one, 'Hola');
+
+        $list = $this->as($this->two, $this->windowed)->getJson(route('chat.panel'))->assertOk();
+        expect($list->json('conversation'))->toBeNull()
+            ->and(collect($list->json('conversations'))->firstWhere('id', $this->pair->id)['unread'])->toBeTrue();
+
+        $opened = $this->as($this->two, $this->windowed)->getJson(route('chat.panel', ['conversation' => $this->pair->id]))->assertOk();
+        expect($opened->json('messages.data.0.body'))->toBe('Hola');
+
+        $after = $this->as($this->two, $this->windowed)->getJson(route('chat.panel'));
+        expect(collect($after->json('conversations'))->firstWhere('id', $this->pair->id)['unread'])->toBeFalse();
+    });
+
+    it('opens nobody else\'s conversation, nor one of another project', function () {
+        $third = aMemberOf(aFamily($this->windowed));
+        $this->as($third, $this->windowed)->getJson(route('chat.panel', ['conversation' => $this->pair->id]))->assertForbidden();
+
+        $other = aProject();
+        $outsider = aMemberOf(aFamily($other));
+        $this->as($outsider, $other)->getJson(route('chat.panel', ['conversation' => $this->pair->id]))->assertNotFound();
+    });
+
+    it('writes and starts in JSON, the page staying as it is', function () {
+        $this->as($this->one, $this->windowed)->postJson(route('chat.send', $this->pair), ['body' => 'Hola'])->assertOk();
+        $started = $this->as($this->one, $this->windowed)->postJson(route('chat.store'), ['people' => [$this->two->id]])->assertOk();
+
+        expect($started->json('conversation'))->toBe($this->pair->id);
+    });
+
+    it('says what is wrong with what it sends', function () {
+        $this->as($this->one, $this->windowed)->postJson(route('chat.send', $this->pair), ['body' => ''])->assertUnprocessable();
+    });
+
+    it('is closed to those outside the project', function () {
+        $this->as(aUser())->getJson(route('chat.panel', $this->windowed))->assertNotFound();
+    });
+
+    it('is gone with the chat off', function () {
+        $this->windowed->update(['disabled_features' => ['chat']]);
+
+        $this->as($this->one, $this->windowed)->getJson(route('chat.panel'))->assertNotFound();
+    });
+});
