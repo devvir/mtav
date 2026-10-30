@@ -21,6 +21,15 @@ it('stays closed, under construction, while it has no account and no owner set',
     expect(User::count())->toBe(0);
 });
 
+it('keeps its public documents readable while closed', function () {
+    config(['app.owner' => ['email' => null, 'password' => null, 'name' => null]]);
+
+    $this->get(route('privacy'))->assertOk()->assertInertia(fn ($page) => $page->component('PublicDocument'));
+    $this->get(route('manual'))->assertOk();
+    $this->get(route('manifest'))->assertOk();
+    expect(User::count())->toBe(0);
+});
+
 it('creates its owner from the settings on the first visit, a superadmin who signs in', function () {
     config(['app.owner' => ['email' => 'Owner@Example.com', 'password' => 'the-Owner-pass-1', 'name' => 'Olga']]);
 

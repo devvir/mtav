@@ -13,8 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * A deployment is used only once it has an owner, its first superadmin. With no account at
  * all, OWNER_EMAIL / OWNER_PASSWORD create the owner; without them the site stays closed,
- * showing only that it is under construction. Once anyone exists, this costs nothing: the
- * answer is kept.
+ * showing only that it is under construction (its public documents stay readable: the
+ * privacy page, the manual, the app's manifest). Once anyone exists, this costs nothing:
+ * the answer is kept.
  */
 class RequireOwner
 {
@@ -23,9 +24,12 @@ class RequireOwner
     /** Known in this process (the cache keeps it for the others) */
     public static bool $owned = false;
 
+    /** Readable even before there is an owner */
+    private const PUBLIC = ['privacy', 'manual', 'manifest'];
+
     public function handle(Request $request, Closure $next): Response
     {
-        if (self::$owned || Cache::get(self::KNOWN)) {
+        if (self::$owned || Cache::get(self::KNOWN) || $request->routeIs(...self::PUBLIC)) {
             return $next($request);
         }
 

@@ -21,6 +21,11 @@ return [
     'institution' => env('APP_INSTITUTION', ''),
 
     /*
+    | Where people write about their data (the privacy page); else the owner's email
+    */
+    'contact' => env('CONTACT_EMAIL'),
+
+    /*
     | The demo accounts' password (database/seeders): "password" where none is set, which a
     | public site never seeds with
     */

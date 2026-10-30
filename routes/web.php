@@ -61,8 +61,9 @@ Route::middleware('guest')->group(function () {
 
 /** The landing page for guests; everyone else goes on to their projects */
 Route::get('/', HomeController::class)->name('home');
-/** The member manual, for anyone: to share, and to read before joining */
+/** For anyone: the member manual (to share, and to read before joining), and privacy */
 Route::get('manual', [DocumentationController::class, 'manual'])->name('manual');
+Route::get('privacy', [DocumentationController::class, 'privacy'])->name('privacy');
 
 /** The language picked, before signing in too (it then becomes the account's) */
 Route::put('language', LanguageController::class)->middleware('throttle:20,1')->name('language');

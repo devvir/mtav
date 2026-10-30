@@ -238,6 +238,14 @@ export default function Welcome({ dialog, google, locales }: Props) {
 
       <footer className="welcome-footer">
         {props.institution ? <Text fw={650}>{props.institution}</Text> : null}
+        <Group gap="md" my="xs">
+          <Anchor component={Link} href={route('manual')} size="sm">
+            {_('Member guide')}
+          </Anchor>
+          <Anchor component={Link} href={route('privacy')} size="sm">
+            {_('Privacy')}
+          </Anchor>
+        </Group>
         <Text className="ds-caption">
           {_('Photos')}:{' '}
           {credited.map(([key, photo], index) => (

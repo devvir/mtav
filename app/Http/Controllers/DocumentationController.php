@@ -61,10 +61,27 @@ class DocumentationController extends Controller
      */
     public function manual(): Response
     {
-        $path = resource_path('views/guides/' . app()->getLocale() . '/guide.member.html');
+        return $this->public(__('Member guide'), 'guides/{locale}/guide.member.html');
+    }
 
-        return inertia('Manual', [
-            'content' => File::get(File::exists($path) ? $path : resource_path('views/guides/en/guide.member.html')),
+    /** What is kept about people, who sees it, and their rights */
+    public function privacy(): Response
+    {
+        return $this->public(__('Privacy'), 'legal/{locale}/privacy.html', [
+            '{app}'     => e(config('app.name')),
+            '{contact}' => e(config('app.contact') ?: config('app.owner.email') ?: config('mail.from.address')),
+        ]);
+    }
+
+    /** A document anyone can read, in their language (else in English) */
+    private function public(string $title, string $path, array $fill = []): Response
+    {
+        $file = resource_path('views/' . str_replace('{locale}', app()->getLocale(), $path));
+        $file = File::exists($file) ? $file : resource_path('views/' . str_replace('{locale}', 'en', $path));
+
+        return inertia('PublicDocument', [
+            'title'   => $title,
+            'content' => strtr(File::get($file), $fill),
         ]);
     }
 

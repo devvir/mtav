@@ -754,5 +754,6 @@
   "Deploy any branch to dev, starting from fresh demo data if needed.": "Pubblica qualsiasi branch su dev, ripartendo da dati demo nuovi se serve.",
   "Releasing": "Rilasciare",
   "Production gets what staging runs, once approved on GitHub.": "La produzione riceve ciò che gira su staging, una volta approvato su GitHub.",
-  "Every deployment and how it went, linked to GitHub.": "Ogni pubblicazione e com’è andata, con il link a GitHub."
+  "Every deployment and how it went, linked to GitHub.": "Ogni pubblicazione e com’è andata, con il link a GitHub.",
+  "Privacy": "Privacy"
 }
