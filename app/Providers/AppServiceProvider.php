@@ -24,9 +24,13 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Abilities superadmins do not get by default: those that need a personal stake in
-     * the project (a family, a membership), and deploying (its own list of people).
+     * the project (a family, a membership), the chat (only those in a conversation read
+     * it), and deploying (its own list of people).
      */
-    private const PERSONAL_ABILITIES = ['rankUnits', 'rsvp', 'deploy'];
+    private const PERSONAL_ABILITIES = [
+        'rankUnits', 'rsvp', 'deploy',
+        'startChat', 'readChat', 'writeChat', 'manageGroup', 'leaveGroup', 'unsendMessage',
+    ];
 
     public function register(): void
     {

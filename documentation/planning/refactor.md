@@ -131,6 +131,10 @@ decision taken on the way is listed below for review.
   its units, its lottery run, being set up), with sites drawn floor by floor, families
   of Uruguayan names, events people answered, forum topics, pending invitations, and
   files of every kind, so nothing needs creating first.
+- **Chat**: the people of a project talk one on one or in groups. Only those in a
+  conversation read it, the project's admins and superadmins included (the forum is for
+  what concerns everyone). Messages reach the others live and on their devices, never in
+  the bell; the sidebar counts the conversations with something new.
 - **Text size**: each person picks Small, Medium or Large (Preferences, kept on the
   device, there from the first paint); everything is sized from it (the root's font size,
   sizes in rem). Medium, the default, is a fifth larger than the browser's own: many

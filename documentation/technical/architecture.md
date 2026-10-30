@@ -79,6 +79,18 @@ Topics with posts (`Topic`, `Post`, `ForumService`): anyone in the project opens
 and replies; writers edit their posts; admins pin, close and remove topics. A new topic
 is notified to the project, a reply to whoever wrote in the topic before.
 
+## The chat
+
+Conversations between people of a project (`Conversation`, `Message`, `ChatService`), one
+on one (`pair`: two people have one) or in groups with a name, for anyone with a
+membership there. Only those in a conversation read it: its abilities are personal
+(`ConversationPolicy`, `AppServiceProvider::PERSONAL_ABILITIES`), so neither the project's
+admins nor superadmins pass them. A message reaches the others on their own channels
+(`MessageSent`, `users.<id>`: where it is, each page fetches what it shows) and on their
+devices (`PushMessage`), never through notifications (nothing in the bell). What each
+person has read is on their place in the conversation (`read_up_to`); the sidebar counts
+the conversations with something new.
+
 ## Frontend
 
 - **Design system** (`resources/js/design`): the theme for each palette, the tokens

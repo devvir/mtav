@@ -11,39 +11,39 @@ use App\Models\User;
  * A project's chat is its people's: anyone with a place in the project (in a family, or
  * an admin) talks with any other, one on one or in groups. A conversation is read and
  * written only by those in it: nobody else, the project's admins and superadmins
- * included.
+ * included (its abilities are personal: superadmins do not pass them by default).
  */
 class ConversationPolicy
 {
-    public function create(User $user, Project $project): bool
+    public function startChat(User $user, Project $project): bool
     {
         return (bool) $user->membershipIn($project);
     }
 
-    public function view(User $user, Conversation $conversation): bool
+    public function readChat(User $user, Conversation $conversation): bool
     {
         return $user->membershipIn($conversation->project_id) && $conversation->includes($user);
     }
 
-    public function send(User $user, Conversation $conversation): bool
+    public function writeChat(User $user, Conversation $conversation): bool
     {
-        return $this->view($user, $conversation);
+        return $this->readChat($user, $conversation);
     }
 
     /** A group is renamed, and grows, by anyone in it; one on one stays two */
-    public function update(User $user, Conversation $conversation): bool
+    public function manageGroup(User $user, Conversation $conversation): bool
     {
-        return $conversation->is_group && $this->view($user, $conversation);
+        return $conversation->is_group && $this->readChat($user, $conversation);
     }
 
-    public function leave(User $user, Conversation $conversation): bool
+    public function leaveGroup(User $user, Conversation $conversation): bool
     {
         return $conversation->is_group && $conversation->includes($user);
     }
 
     /** A message is taken back by whoever wrote it */
-    public function deleteMessage(User $user, Message $message): bool
+    public function unsendMessage(User $user, Message $message): bool
     {
-        return $message->user_id === $user->id && $this->view($user, $message->conversation);
+        return $message->user_id === $user->id && $this->readChat($user, $message->conversation);
     }
 }

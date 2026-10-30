@@ -1829,7 +1829,7 @@ html[data-carrying] * {
 }
 @media (min-width: 62em) {
   .chat {
-    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
   }
 }
 @media (max-width: 61.99em) {

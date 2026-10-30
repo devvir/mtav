@@ -3,8 +3,10 @@
 namespace App\Events;
 
 use App\Models\Message;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * A message, to everyone in its conversation (their own channels: nobody else hears it).
@@ -12,6 +14,9 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
  */
 class MessageSent implements ShouldBroadcast
 {
+    use Dispatchable;
+    use InteractsWithSockets;
+
     /** @param list<int> $participants */
     public function __construct(public Message $message, public array $participants)
     {

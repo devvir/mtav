@@ -443,6 +443,7 @@ function AddPeople({
     title: conversation.title,
     people: [],
   });
+  const picker = useRef<HTMLInputElement>(null);
 
   return (
     <Modal opened={opened} onClose={onClose} title={_('Add people')}>
@@ -469,6 +470,8 @@ function AddPeople({
           data={people.map((person) => ({ value: String(person.id), label: person.name }))}
           value={form.data.people}
           onChange={(value) => form.setData('people', value)}
+          ref={picker}
+          onOptionSubmit={() => picker.current?.blur()}
           nothingFoundMessage={_('Nobody else in the project goes by that name')}
         />
         <Group justify="flex-end" mt="lg">
@@ -494,6 +497,7 @@ function NewConversation({
   const { project } = usePage().props;
   const form = useForm<{ people: string[]; title: string }>({ people: [], title: '' });
   const group = form.data.people.length > 1;
+  const picker = useRef<HTMLInputElement>(null);
 
   return (
     <Modal opened={opened} onClose={onClose} title={_('New conversation')}>
@@ -522,6 +526,9 @@ function NewConversation({
             value={form.data.people}
             error={form.errors.people}
             onChange={(value) => form.setData('people', value)}
+            // Picked: the list out of the way of what comes next (one more, a click away)
+            ref={picker}
+            onOptionSubmit={() => picker.current?.blur()}
             nothingFoundMessage={_('Nobody else in the project goes by that name')}
           />
           {group ? (

@@ -10,7 +10,7 @@ says the same to the people concerned; when one changes, the other does.
   phone, a few words, a picture, an ID number. Language and appearance preferences.
 - **Projects**: families, memberships (who is in which family, who is an admin), unit
   types, units, the plan, invitations (only a hash of each link's token), events and who
-  goes, shared files, forum topics and posts, lottery runs and their records.
+  goes, shared files, forum topics and posts, chat conversations and messages, lottery runs and their records.
 - **On the device**: the session and form cookies, appearance cookies, the pages kept for
   working offline (forgotten when someone else signs in there), which tours were seen.
 

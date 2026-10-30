@@ -9,6 +9,7 @@ use App\Models\Family;
 use App\Models\Project;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Services\ChatService;
 use App\Services\ForumService;
 use App\Services\InvitationService;
 use App\Services\Lottery\PreferencesService;
@@ -31,7 +32,7 @@ use RuntimeException;
  * Three projects, each at another stage:
  *  - Las Acacias: 32 units of four types (two blocks and four houses, drawn on its site),
  *    its families ranking them, its lottery three weeks away; events people answered,
- *    files of every kind (DemoMedia), a forum
+ *    files of every kind (DemoMedia), a forum, conversations in its chat
  *  - Los Ceibos: 18 units of three types, its lottery run two weeks ago (by the solver,
  *    as any run): each family has its unit, and the run its record
  *  - Barrio Sur: just started by its admin, waiting for approval: a few families,
@@ -44,6 +45,7 @@ class DatabaseSeeder extends Seeder
         private PreferencesService $preferences,
         private LotteryService $lottery,
         private ForumService $forum,
+        private ChatService $chat,
         private InvitationService $invitations,
         private DemoPeople $people,
         private DemoSites $sites,
@@ -146,6 +148,23 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->invite($project, $admin, [['Rosa', 'Medina', null], ['Hugo', 'Clavijo', $project->families()->first()]]);
+
+        $this->chats($project, [
+            [[$admin, $member], null, 3, [
+                [$member, 'Hola Andrés, ¿ya está la fecha del sorteo?'],
+                [$admin, 'Hola María. Sí, en tres semanas. Ya pueden ir ordenando las preferencias.'],
+                [$member, 'Perfecto, esta noche lo vemos en familia. ¡Gracias!'],
+            ]],
+            [[$people[1], $admin, $member, $people[2], $people[3]], 'Comisión de obra', 2, [
+                [$people[1], 'Mañana llega el hormigón para el bloque B, a las 7.'],
+                [$admin, '¿Quién puede recibir el camión?'],
+                [$people[2], 'Yo estoy desde las 6:30.'],
+                [$member, 'Llevo café para todos ☕'],
+            ]],
+            [[$people[4], $member], null, 1, [
+                [$people[4], '¿Me pasás el presupuesto de las aberturas que comentaste en el foro?'],
+            ]],
+        ]);
     }
 
     private function ceibos(User $superadmin, User $admin, User $member): void
@@ -276,6 +295,23 @@ class DatabaseSeeder extends Seeder
      *
      * @param array<array{0: string, 1: User, 2: string, 3: int, 4: array<array{0: User, 1: string}>, 5: bool, 6: bool}> $topics
      */
+    /**
+     * Conversations, their messages over the hours after they began (days ago); the last
+     * of each unread by whoever did not write it
+     *
+     * @param array<array{0: list<User>, 1: ?string, 2: int, 3: array<array{0: User, 1: string}>}> $chats
+     */
+    private function chats(Project $project, array $chats): void
+    {
+        foreach ($chats as [$people, $title, $daysAgo, $messages]) {
+            $when = now()->subDays($daysAgo)->setTime(18, 40);
+            $conversation = $this->at($when, fn () => $this->chat->start($project, $people[0], array_map(fn ($person) => $person->id, array_slice($people, 1)), $title));
+            foreach ($messages as $index => [$author, $body]) {
+                $this->at($when->copy()->addMinutes(4 + $index * 9), fn () => $this->chat->send($conversation, $author, $body));
+            }
+        }
+    }
+
     private function topics(Project $project, array $topics): void
     {
         foreach ($topics as [$title, $author, $body, $daysAgo, $replies, $pinned, $closed]) {

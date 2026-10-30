@@ -29,14 +29,14 @@ class ChatController extends Controller
 
     public function index(Request $request, Project $project): Response
     {
-        $this->authorize('create', [Conversation::class, $project]);
+        $this->authorize('startChat', [Conversation::class, $project]);
 
         return $this->page($request, $project);
     }
 
     public function show(Request $request, Project $project, Conversation $conversation): Response
     {
-        $this->authorize('view', $conversation);
+        $this->authorize('readChat', $conversation);
         $this->chat->read($conversation, $request->user());
 
         return $this->page($request, $project, $conversation);
@@ -44,7 +44,7 @@ class ChatController extends Controller
 
     public function store(Request $request, Project $project): RedirectResponse
     {
-        $this->authorize('create', [Conversation::class, $project]);
+        $this->authorize('startChat', [Conversation::class, $project]);
         $data = $request->validate([
             'people'   => ['required', 'array', 'min:1', 'max:100'],
             'people.*' => ['integer'],
@@ -58,7 +58,7 @@ class ChatController extends Controller
 
     public function send(Request $request, Project $project, Conversation $conversation): RedirectResponse
     {
-        $this->authorize('send', $conversation);
+        $this->authorize('writeChat', $conversation);
         $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
 
         $this->chat->send($conversation, $request->user(), trim($data['body']));
@@ -69,7 +69,7 @@ class ChatController extends Controller
     /** A group's name, and people added to it */
     public function update(Request $request, Project $project, Conversation $conversation): RedirectResponse
     {
-        $this->authorize('update', $conversation);
+        $this->authorize('manageGroup', $conversation);
         $data = $request->validate([
             'title'    => ['nullable', 'string', 'max:80'],
             'people'   => ['array', 'max:100'],
@@ -83,7 +83,7 @@ class ChatController extends Controller
 
     public function leave(Request $request, Project $project, Conversation $conversation): RedirectResponse
     {
-        $this->authorize('leave', $conversation);
+        $this->authorize('leaveGroup', $conversation);
         $this->chat->leave($conversation, $request->user());
 
         return to_route('chat.index', $project)->with('success', __('flash.conversation_left'));
@@ -91,7 +91,7 @@ class ChatController extends Controller
 
     public function destroyMessage(Request $request, Project $project, Message $message): RedirectResponse
     {
-        $this->authorize('deleteMessage', [Conversation::class, $message]);
+        $this->authorize('unsendMessage', [Conversation::class, $message]);
         $this->chat->remove($message);
 
         return back();
@@ -116,8 +116,8 @@ class ChatController extends Controller
                 ...$this->summary($open->load('participants:id,firstname,lastname,avatar'), $user),
                 'people' => $open->participants->map(fn (User $person) => $this->person($person))->values(),
                 'can'    => [
-                    'update' => $user->can('update', $open),
-                    'leave'  => $user->can('leave', $open),
+                    'update' => $user->can('manageGroup', $open),
+                    'leave'  => $user->can('leaveGroup', $open),
                 ],
             ] : null,
             'messages' => fn () => $open ? $this->messages($request, $open) : null,
@@ -155,7 +155,11 @@ class ChatController extends Controller
         return [
             'id' => $conversation->id,
             // A group by its name, else by its people; one on one, by the other person
-            'title'    => $conversation->title ?: ($others->pluck('firstname')->join(', ') ?: __('chat.only_you')),
+            'title' => $conversation->title ?: match ($others->count()) {
+                0       => __('chat.only_you'),
+                1       => $others[0]->name,
+                default => $others->pluck('firstname')->join(', '),
+            },
             'is_group' => $conversation->is_group,
             'faces'    => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
             'last'     => $last ? [
