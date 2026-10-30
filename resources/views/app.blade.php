@@ -13,7 +13,7 @@
 
                 document.documentElement.setAttribute('data-mantine-color-scheme', dark ? 'dark' : 'light');
                 if (cookie('contrast') === 'high') document.documentElement.setAttribute('data-high-contrast', '');
-                if (['small', 'large'].includes(cookie('text'))) document.documentElement.setAttribute('data-text-size', cookie('text'));
+                if (['medium', 'large'].includes(cookie('text'))) document.documentElement.setAttribute('data-text-size', cookie('text'));
             })();
         </script>
 

@@ -150,10 +150,10 @@ decision taken on the way is listed below for review.
     each off, optional or required) is a project setting a spec may fix or remove.
   - *Who can do what, and project types*: predefined types of project that set the on/off
     features at once; the housing cooperative (MTAV) is the type with everything.
-- **Text size**: each person picks Small, Medium or Large (Preferences, kept on the
-  device, there from the first paint); everything is sized from it (the root's font size,
-  sizes in rem). Medium, the default, is a fifth larger than the browser's own: many
-  people of a cooperative read the app without glasses or a large screen.
+- **Text size**: each person picks Small, Medium or Large (in the header, and Preferences; kept
+  on the device, there from the first paint); everything is sized from it (the root's font
+  size, sizes in rem). Small, the default, is the browser's own; Medium a fifth larger, Large
+  two fifths.
 - **Media**: the gallery holds photos and videos; recordings sit with the documents, in
   Files, as the project's records (minutes read aloud, a committee's message), each
   playing in its row (pause, position, speed) without opening it.

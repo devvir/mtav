@@ -85,7 +85,8 @@ it('has text size, language and light or dark in the header, each a small list',
     $page = visit(route('projects.show', $project))
         ->click('[aria-label="Text size"]')
         ->assertSeeIn('[role="menu"]', 'Large')
-        ->click('[role="menuitem"]:has-text("Large")');
+        ->click('[role="menuitem"]:has-text("Large")')
+        ->assertPresent('html[data-text-size="large"]');
     expect($page->script('() => getComputedStyle(document.documentElement).fontSize'))->toBe('22.4px');
 
     $page->click('[aria-label="Light or dark"]')

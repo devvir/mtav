@@ -1122,10 +1122,10 @@
 /* The text size the person chose (Preferences), everything sized from it: larger than the
    browser's own by default, since many read the app without glasses or a large screen */
 html {
-  font-size: 120%;
-}
-html[data-text-size='small'] {
   font-size: 100%;
+}
+html[data-text-size='medium'] {
+  font-size: 120%;
 }
 html[data-text-size='large'] {
   font-size: 140%;

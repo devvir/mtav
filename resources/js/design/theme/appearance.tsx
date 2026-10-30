@@ -30,7 +30,7 @@ const schemes: MantineColorSchemeManager = {
   clear: () => writeCookie('scheme', 'auto'),
 };
 
-/** The text size: medium (the default) is a fifth larger than the browser's own */
+/** The text size: small (the default) is the browser's own; medium a fifth larger */
 export type TextSize = 'small' | 'medium' | 'large';
 
 interface AppearanceContext {
@@ -47,12 +47,12 @@ const Context = createContext<AppearanceContext>({
   setPalette: () => undefined,
   highContrast: false,
   setHighContrast: () => undefined,
-  textSize: 'medium',
+  textSize: 'small',
   setTextSize: () => undefined,
 });
 
 const textSizeOf = (value: string | null): TextSize =>
-  value === 'small' || value === 'large' ? value : 'medium';
+  value === 'medium' || value === 'large' ? value : 'small';
 
 /** The palette and contrast, and how to change them (the scheme: Mantine's useMantineColorScheme) */
 export const useAppearance = () => useContext(Context);
@@ -87,7 +87,7 @@ export function Appearance({
   const setTextSize = (size: TextSize) => {
     setTextSizeState(size);
     writeCookie('text', size);
-    if (size === 'medium') document.documentElement.removeAttribute('data-text-size');
+    if (size === 'small') document.documentElement.removeAttribute('data-text-size');
     else document.documentElement.setAttribute('data-text-size', size);
   };
 

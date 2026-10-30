@@ -56,11 +56,14 @@ it('has accessible components in every palette, scheme and contrast', function (
     }
 })->with(['terracotta', 'indigo', 'forest', 'ocean'])->with(['light', 'dark'])->with(['standard', 'high']);
 
-it('sizes everything from the text size each person picks, a fifth larger than the browser by default', function () {
+it('sizes everything from the text size each person picks, the browser\'s own by default', function () {
     $this->as(aUser());
     $root = fn ($page) => $page->script('() => getComputedStyle(document.documentElement).fontSize');
 
     $page = visit(route('profile.edit', ['section' => 'preferences']));
+    expect($root($page))->toBe('16px');
+
+    $page->click('button:has-text("Medium")');
     expect($root($page))->toBe('19.2px');
 
     $page->click('button:has-text("Large")');
