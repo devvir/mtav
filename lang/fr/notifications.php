@@ -20,6 +20,15 @@ return [
     'invitation_received_title'   => 'Vous êtes invité à un projet',
     'invitation_received_message' => ':name vous invite à rejoindre :project.',
 
+    'added_to_family_title' => 'Vous faites partie d’une famille',
+    'added_to_family_message' => ':name vous a ajouté à la famille :family dans :project.',
+    'join_requested_title' => 'Quelqu’un demande à rejoindre le projet',
+    'join_requested_message' => ':name demande à rejoindre :project.',
+    'join_accepted_title' => 'Vous êtes dans le projet',
+    'join_accepted_message' => 'Les admins de :project ont accepté votre demande.',
+    'join_declined_title' => 'Votre demande n’a pas été acceptée',
+    'join_declined_message' => 'Les admins de :project n’ont pas accepté votre demande.',
+
     'lottery_completed_title'   => 'Le tirage est fait',
     'lottery_completed_message' => 'Chaque famille a son logement. Voir les résultats.',
 

@@ -1969,3 +1969,9 @@ html[data-carrying] * {
   padding: 12px 16px;
   border-top: 1px solid var(--mtav-border);
 }
+
+/* A project in the directory: its action at the foot, whatever the length of its text */
+.directory-card {
+  display: flex;
+  flex-direction: column;
+}

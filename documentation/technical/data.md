@@ -9,7 +9,7 @@ says the same to the people concerned; when one changes, the other does.
 - **Accounts** (`users`): name, email, password (hashed), and if the person gives them,
   phone, a few words, a picture, an ID number. Language and appearance preferences.
 - **Projects**: families, memberships (who is in which family, who is an admin), unit
-  types, units, the plan, invitations (only a hash of each link's token), events and who
+  types, units, the plan, invitations (only a hash of each link's token), requests to join, events and who
   goes, shared files, forum topics and posts, chat conversations and messages, lottery runs and their records.
 - **On the device**: the session and form cookies, appearance cookies, the pages kept for
   working offline (forgotten when someone else signs in there), which tours were seen.
@@ -27,7 +27,7 @@ says the same to the people concerned; when one changes, the other does.
 
 Every change and every way in is written to `activity_log`, for superadmins (console,
 Activity): what was created, changed or deleted (projects, families, unit types, units,
-memberships, invitations, events, files, forum topics and posts, lottery runs, platform
+memberships, invitations, requests to join, events, files, forum topics and posts, lottery runs, platform
 settings, accounts), by whom, on which project, from where, with what changed from what
 to what; and signing in, out, failing to, resetting a password. Never what people read.
 

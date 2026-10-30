@@ -54,6 +54,40 @@ class ProjectPolicy
         return $user->manages($project) || $user->is($member);
     }
 
+    /**
+     * From the directory, into a project open to anyone not in it yet.
+     */
+    public function join(User $user, Project $project): bool
+    {
+        return $project->isInDirectory() && $project->open_to_join && ! $user->canAccess($project);
+    }
+
+    /**
+     * From the directory, where its admins decide; once, until they answer, and again a
+     * while after they decline.
+     */
+    public function askToJoin(User $user, Project $project): bool
+    {
+        if (! $project->isInDirectory() || $project->open_to_join || $user->canAccess($project)) {
+            return false;
+        }
+
+        $request = $project->joinRequests()->firstWhere('user_id', $user->id);
+
+        return ! $request || (! $request->isPending() && ! $request->isSettled());
+    }
+
+    /**
+     * Someone taking part with no family, and no other role, starts theirs (until the
+     * lottery decided who gets what).
+     */
+    public function createOwnFamily(User $user, Project $project): bool
+    {
+        $membership = $user->membershipIn($project);
+
+        return $membership && ! $membership->family_id && ! $membership->is_admin && ! $project->lotteryLocked();
+    }
+
     public function rankUnits(User $user, Project $project): bool
     {
         return (bool) $user->familyIn($project);

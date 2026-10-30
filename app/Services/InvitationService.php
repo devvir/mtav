@@ -10,6 +10,7 @@ use App\Models\Membership;
 use App\Models\Project;
 use App\Models\User;
 use App\Notifications\InvitationNotification;
+use App\Notifications\JoinedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -19,6 +20,8 @@ use Illuminate\Validation\ValidationException;
  * People join a project by invitation: an emailed link, valid for a few days, that
  * creates their account (or adds the project to an existing one). Someone who already has
  * an account also finds it in the app, under its bell, leading to where they join.
+ * Someone already taking part with no family needs no invitation to enter one: they are
+ * added at once, and told.
  */
 class InvitationService
 {
@@ -29,13 +32,24 @@ class InvitationService
     /**
      * @param array{email: string, firstname?: ?string, lastname?: ?string} $person
      *
+     * @return Invitation|Membership  The invitation sent, or the place of someone added at once
+     *
      * @throws ValidationException when the person is already in, or a limit is reached
      */
-    public function invite(Project $project, User $inviter, array $person, ?Family $family, bool $asAdmin): Invitation
+    public function invite(Project $project, User $inviter, array $person, ?Family $family, bool $asAdmin): Invitation|Membership
     {
         $email = strtolower(trim($person['email']));
 
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
+
+        $familyless = $family && ! $asAdmin
+            ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)->first()
+            : null;
+
+        if ($familyless) {
+            return $this->addToFamily($familyless, $family, $inviter);
+        }
+
         $this->ensureWithinLimits($project);
 
         $token = Str::random(48);
@@ -74,6 +88,14 @@ class InvitationService
         return $invitation;
     }
 
+    /** What the person inviting is told happened */
+    public function outcome(Invitation|Membership $result): string
+    {
+        return $result instanceof Membership
+            ? __('flash.added_to_family', ['name' => $result->user->name, 'family' => $result->family->name])
+            : __('flash.invitation_sent', ['email' => $result->email]);
+    }
+
     /**
      * Accept an invitation on behalf of a (new or existing) user.
      */
@@ -110,6 +132,33 @@ class InvitationService
             trigger: $user,
             targetId: $invitation->project_id,
         );
+
+        return $membership;
+    }
+
+    private function addToFamily(Membership $membership, Family $family, User $by): Membership
+    {
+        $user = $membership->user;
+
+        DB::transaction(function () use ($membership, $family, $user) {
+            $membership->update(['family_id' => $family->id]);
+            $membership->project->invitations()->pending()->where('email', $user->email)->delete();
+            $user->unsetRelation('memberships');
+        });
+
+        if (! $user->is($by)) {
+            $this->notifications->send(
+                NotificationTarget::PRIVATE,
+                NotificationType::ADDED_TO_FAMILY,
+                title: 'notifications.added_to_family_title',
+                message: 'notifications.added_to_family_message',
+                params: ['name' => $by->name, 'family' => $family->name, 'project' => $membership->project->name],
+                url: route('projects.show', $membership->project_id),
+                trigger: $by,
+                targetId: $user->id,
+            );
+            $user->notify(new JoinedNotification($membership, $by));
+        }
 
         return $membership;
     }

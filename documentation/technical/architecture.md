@@ -63,7 +63,16 @@ else deletes it for good. Superadmins restore archived projects, or delete them 
 Emailed links with a random token (only its hash is stored) that expire after two
 weeks. The link opens an account, or, for an existing one, joins once signed in as the
 invited address; that person is also told in the app. Admins invite into any family or
-as admins; members, into their own family.
+as admins; members, into their own family. Someone already in the project with no family
+is added to the family at once, and told in the app and by email (`JoinedNotification`).
+
+## The directory
+
+Admins may list their project (`listed`; it shows only once approved) and choose who can
+join (`open_to_join`). Open, people join at once; otherwise they ask (`JoinRequest`), the
+admins answer from the Invitations tab, and someone declined may ask again after
+`limits.join_request_retry_days`. They enter with no family, and create theirs from the
+project's home (`createOwnFamily`, until the lottery has run) or are added to one.
 
 ## The plan
 

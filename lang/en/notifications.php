@@ -20,6 +20,15 @@ return [
     'invitation_received_title'   => 'You are invited to a project',
     'invitation_received_message' => ':name invites you to join :project.',
 
+    'added_to_family_title' => 'You are in a family',
+    'added_to_family_message' => ':name added you to the :family family in :project.',
+    'join_requested_title' => 'Someone asks to join',
+    'join_requested_message' => ':name asks to join :project.',
+    'join_accepted_title' => 'You are in',
+    'join_accepted_message' => 'The admins of :project accepted your request.',
+    'join_declined_title' => 'Your request was not accepted',
+    'join_declined_message' => 'The admins of :project did not accept your request.',
+
     'lottery_completed_title'   => 'The lottery is done',
     'lottery_completed_message' => 'Every family has its unit. See the results.',
 

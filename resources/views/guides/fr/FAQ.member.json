@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "Comment rejoindre un projet ?",
-      "answer": "Avec l’invitation que vous recevez par e-mail, d’un admin ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe ; avec un compte, vous vous connectez et acceptez. Les invitations en attente apparaissent aussi dans Vos projets."
+      "answer": "Avec l’invitation que vous recevez par e-mail, d’un admin ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe ; avec un compte, vous vous connectez et acceptez. Les invitations en attente apparaissent aussi dans Vos projets. Vous pouvez aussi en trouver un dans Trouver un projet, si ses admins l’affichent."
     },
     {
       "question": "Qui voit le classement de ma famille ?",

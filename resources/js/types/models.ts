@@ -16,6 +16,8 @@ export interface Project {
   description: string;
   organization: string | null;
   active: boolean;
+  listed: boolean;
+  open_to_join: boolean;
   is_approved: boolean;
   approval_requested_at: string | null;
   created_at: string;

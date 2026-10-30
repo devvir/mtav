@@ -40,6 +40,8 @@ export interface SharedProps {
     family: { id: Id; name: string } | null;
     /** For its admins: the invitations nobody has answered yet */
     pending_invitations: number | null;
+    /** And those asking to join from the directory */
+    join_requests: number | null;
     /** For those with a place in it: their conversations with something new */
     unread_messages: number | null;
     can: {

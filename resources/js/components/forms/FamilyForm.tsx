@@ -6,14 +6,19 @@ import { Link, useForm } from '@inertiajs/react';
 import { Anchor, Button, NativeSelect, Text, TextInput } from '@mantine/core';
 import { Form, FormActions } from './Form';
 
-/** A family's name and type: registering one, or changing one (in a dialog; `onDone` closes it) */
+/**
+ * A family's name and type: registering one, changing one, or (`own`) someone with no family
+ * starting theirs (in a dialog; `onDone` closes it)
+ */
 export function FamilyForm({
   family,
   unitTypes,
+  own = false,
   onDone,
 }: {
   family?: Family;
-  unitTypes: UnitType[];
+  unitTypes: Pick<UnitType, 'id' | 'name'>[];
+  own?: boolean;
   onDone: () => void;
 }) {
   const form = useForm({
@@ -22,7 +27,8 @@ export function FamilyForm({
   });
   const submit = () => {
     const options = { preserveScroll: true, onSuccess: onDone };
-    if (family) form.put(route('manage.families.update', family.id), options);
+    if (own) form.post(route('families.store'), options);
+    else if (family) form.put(route('manage.families.update', family.id), options);
     else form.post(route('manage.families.store'), options);
   };
 
@@ -45,7 +51,7 @@ export function FamilyForm({
         ]}
         {...nativeSelect(form, 'unit_type_id')}
       />
-      {!unitTypes.length ? (
+      {!unitTypes.length && !own ? (
         <Text className="ds-caption">
           {_('There are no unit types yet.')}{' '}
           <Anchor component={Link} href={route('units.index', { new_type: 1 })} fw={600}>
@@ -53,7 +59,10 @@ export function FamilyForm({
           </Anchor>
         </Text>
       ) : null}
-      <FormActions submit={family ? _('Save') : _('Add the family')} processing={form.processing}>
+      <FormActions
+        submit={own ? _('Create our family') : family ? _('Save') : _('Add the family')}
+        processing={form.processing}
+      >
         <Button variant="default" onClick={onDone}>
           {_('Cancel')}
         </Button>

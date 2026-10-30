@@ -151,7 +151,7 @@ it('offers each page\'s tour from the (?) by its title', function (string $as, s
     ];
     $this->as($people[$as]());
 
-    $address = str_starts_with($name, 'admin.') || in_array($name, ['notifications.index', 'profile.edit', 'projects.index', 'projects.create'])
+    $address = str_starts_with($name, 'admin.') || in_array($name, ['notifications.index', 'profile.edit', 'projects.index', 'projects.create', 'directory.index'])
         ? route($name)
         : route($name, $project);
 
@@ -164,6 +164,7 @@ it('offers each page\'s tour from the (?) by its title', function (string $as, s
     'notifications'        => ['member', 'notifications.index', 'Notifications', 'Only what is new'],
     'profile'              => ['member', 'profile.edit', 'Your account', 'Three parts'],
     'your projects'        => ['member', 'projects.index', 'Your projects', 'Open one to go into it'],
+    'finding a project'    => ['member', 'directory.index', 'Find a project', 'Search by its name'],
     'starting a project'   => ['member', 'projects.create', 'Starting a project', 'About the project'],
     'project settings'     => ['admin', 'manage.settings.edit', 'Project settings', 'What people see'],
     'inviting your family' => ['member', 'invitations.index', 'Inviting your family', 'Who to invite'],

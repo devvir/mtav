@@ -85,13 +85,16 @@ it('switches between projects', function () {
         ->assertSee('Cooperativa Dos');
 });
 
-it('shows no choice of projects to someone in only one', function () {
+it('shows someone in only one project no list of them, and the way to find another', function () {
     $project = aProject(['name' => 'Cooperativa Uno']);
     $this->as(aMemberOf(aFamily($project)), $project);
 
     visit(route('projects.show', $project))
         ->assertSee('Cooperativa Uno')
-        ->assertMissing('header .shell-switcher')
+        ->click('header .shell-switcher')
+        ->assertSeeIn('[role="menu"]', 'Find a project')
+        ->assertDontSeeIn('[role="menu"]', 'All your projects')
+        ->keys('[role="menu"]', 'Escape')
         ->click('[aria-label="Your account"]')
         ->assertDontSeeIn('[role="menu"]', 'Your projects');
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvitationRequest;
 use App\Http\Resources\InvitationResource;
 use App\Models\Invitation;
+use App\Models\JoinRequest;
 use App\Models\Project;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,14 @@ class InvitationController extends Controller
 
         return inertia('Manage/Invitations', [
             'invitations' => InvitationResource::collection($invitations),
+            // Those asking to join from the directory, first come first answered
+            'requests' => $project->joinRequests()->pending()->with('user')->oldest()->get()
+                ->map(fn (JoinRequest $joinRequest) => [
+                    'id'         => $joinRequest->id,
+                    'name'       => $joinRequest->user->name,
+                    'email'      => $joinRequest->user->email,
+                    'created_at' => $joinRequest->created_at,
+                ]),
             'families'    => $project->families()->alphabetically()->get(['id', 'name']),
             'limits'      => $project->isApproved() ? null : [
                 'members'             => $project->limit('members'),
@@ -36,7 +45,7 @@ class InvitationController extends Controller
 
     public function store(InvitationRequest $request, Project $project, InvitationService $invitations): RedirectResponse
     {
-        $invitations->invite(
+        $result = $invitations->invite(
             $project,
             $request->user(),
             $request->safe()->only('email', 'firstname', 'lastname'),
@@ -44,7 +53,7 @@ class InvitationController extends Controller
             $request->asAdmin(),
         );
 
-        return back()->with('success', __('flash.invitation_sent', ['email' => $request->validated('email')]));
+        return back()->with('success', $invitations->outcome($result));
     }
 
     public function destroy(Project $project, Invitation $invitation): RedirectResponse

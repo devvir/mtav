@@ -7,7 +7,7 @@ import { _, _n } from '@/lib/translations';
 import type { Project } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
 import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
-import { IconFolderPlus, IconMail, IconShieldCheck, IconUsers } from '@tabler/icons-react';
+import { IconFolderPlus, IconMail, IconSearch, IconShieldCheck, IconUsers } from '@tabler/icons-react';
 
 interface Props {
   projects: Project[];
@@ -46,7 +46,19 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
         }
         title={_('Your projects')}
         tour="account.projects"
-        actions={startButton}
+        actions={
+          <Group gap="sm">
+            <Button
+              component={Link}
+              href={route('directory.index')}
+              variant="default"
+              leftSection={<IconSearch size={18} />}
+            >
+              {_('Find a project')}
+            </Button>
+            {startButton}
+          </Group>
+        }
       />
 
       {invitations.length ? (
@@ -131,7 +143,7 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
           }
         >
           {_(
-            'When someone invites you, the invitation appears here. You can also start a project of your own.',
+            'When someone invites you, the invitation appears here. You can also find a project to join, or start your own.',
           )}
         </EmptyState>
       ) : null}

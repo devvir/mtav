@@ -35,7 +35,7 @@ class InvitationController extends Controller
         $family = $request->user()->familyIn($project);
 
         // From the member app, always into one's own family (an admin with none invites from
-        // the admin area, choosing the family): never someone with no family nor role
+        // the admin area, choosing the family)
         abort_unless($family, 403);
         $this->authorize('invite', [$project, $family]);
 
@@ -45,9 +45,9 @@ class InvitationController extends Controller
             'lastname'  => ['nullable', 'string', 'between:2,80'],
         ]);
 
-        $invitations->invite($project, $request->user(), $person, $family, asAdmin: false);
+        $result = $invitations->invite($project, $request->user(), $person, $family, asAdmin: false);
 
-        return back()->with('success', __('flash.invitation_sent', ['email' => $person['email']]));
+        return back()->with('success', $invitations->outcome($result));
     }
 
     public function destroy(Project $project, Invitation $invitation): RedirectResponse

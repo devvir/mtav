@@ -344,6 +344,21 @@ defineTour('account.projects', () => [
   },
 ]);
 
+defineTour('account.directory', () => [
+  {
+    target: 'directory.search',
+    title: _('Find a project'),
+    body: _('Search by its name, its organization or what it is about.'),
+  },
+  {
+    target: 'directory.list',
+    title: _('Join or ask'),
+    body: _(
+      'Some projects let you in at once; in others the admins decide, and you hear back from them. You enter with no family: you create yours, or someone in it adds you.',
+    ),
+  },
+]);
+
 defineTour('account.start_project', () => [
   {
     target: 'start.form',
@@ -368,6 +383,13 @@ defineTour('manage.settings', () => [
     target: 'settings.form',
     title: _('What people see'),
     body: _('Its name, description and organization appear to everyone in the project.'),
+  },
+  {
+    target: 'settings.listed',
+    title: _('In the directory'),
+    body: _(
+      'Listed, others can find the project and join it: at once, or when the admins accept them. They enter with no family.',
+    ),
   },
   {
     target: 'settings.export',

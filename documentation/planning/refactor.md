@@ -135,12 +135,13 @@ decision taken on the way is listed below for review.
   conversation read it, the project's admins and superadmins included (the forum is for
   what concerns everyone). Messages reach the others live and on their devices, never in
   the bell; the sidebar counts the conversations with something new.
+- **Directory of projects**: admins choose whether their project is listed (it shows only
+  once approved: a project nobody vetted is not shown to everyone) and who can join: anyone
+  at once, or those they accept (a declined person may ask again after 30 days). It is
+  reached from the project selector. Whoever joins this way enters with no family, and
+  creates theirs, or someone of their family adds them: being in the project already, they
+  enter that family at once, told in the app and by email (no invitation to accept).
 - **Next, agreed in outline**:
-  - *A directory of projects*, linked from the project selector: admins choose whether
-    their project is listed, and whether joining is open or by request (admins accept or
-    decline). Whoever joins this way creates their family, or stays without one until
-    someone of their family adds them: being in the project already, they enter that
-    family at once, told in the app and by email (no invitation to accept).
   - *Who can do what, and project types*: most features on or off per project, and
     predefined types of project that set them all at once; the housing cooperative
     (MTAV) is the type with everything.

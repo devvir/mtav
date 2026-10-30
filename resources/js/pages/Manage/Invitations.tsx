@@ -22,15 +22,16 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { IconClock, IconMailPlus, IconSend, IconX } from '@tabler/icons-react';
+import { IconClock, IconMailPlus, IconSend, IconUserPlus, IconX } from '@tabler/icons-react';
 
 interface Props {
   invitations: Invitation[];
+  requests: { id: number; name: string; email: string; created_at: string }[];
   families: Ref[];
   limits: { members: number; invitations_per_day: number } | null;
 }
 
-export default function ManageInvitations({ invitations, families, limits }: Props) {
+export default function ManageInvitations({ invitations, requests, families, limits }: Props) {
   const preselected = new URLSearchParams(window.location.search).get('family');
   const form = useForm({
     email: '',
@@ -39,7 +40,11 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
     family_id: preselected ?? (families[0] ? String(families[0].id) : ''),
     is_admin: false,
   });
-  useProjectChanges({ invitations: ['invitations'], families: ['families'] });
+  useProjectChanges({
+    invitations: ['invitations'],
+    join_requests: ['requests'],
+    families: ['families'],
+  });
 
   const send = () => {
     form.transform((data) => ({ ...data, family_id: data.family_id || null }));
@@ -59,6 +64,16 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
       router.delete(route('manage.invitations.destroy', invitation.id), { preserveScroll: true });
   };
 
+  const decline = async (request: Props['requests'][number]) => {
+    const ok = await confirm({
+      title: _('Decline the request of {name}?', { name: request.name }),
+      confirmLabel: _('Decline'),
+      danger: true,
+    });
+    if (ok)
+      router.delete(route('manage.join_requests.decline', request.id), { preserveScroll: true });
+  };
+
   return (
     <>
       <PageHeader
@@ -68,12 +83,51 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
         help={
           <InfoTip title={_('How invitations work')} tour="manage.invitations">
             {_(
-              'People join only by invitation: an emailed link, valid for two weeks. Members can also invite people into their own family.',
+              'Invite people with an emailed link, valid for two weeks; members can invite into their own family. Someone already in the project with no family enters at once. If the project is in the directory, those asking to join appear here too.',
             )}
           </InfoTip>
         }
       />
       <SettingsTabs />
+      {requests.length ? (
+        <Panel
+          title={_('Asking to join ({count})', { count: requests.length })}
+          icon={IconUserPlus}
+          tone="warning"
+          flush
+          style={{ marginBottom: 24 }}
+          data-tour="invite.requests"
+        >
+          {requests.map((request) => (
+            <Group key={request.id} className="row" wrap="wrap">
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <Text fw={600} className="ds-truncate">
+                  {request.name}
+                </Text>
+                <Text className="ds-caption ds-truncate">
+                  {request.email} · <DateTime value={request.created_at} time={false} />
+                </Text>
+              </div>
+              <Group gap="xs">
+                <Button variant="default" onClick={() => decline(request)}>
+                  {_('Decline')}
+                </Button>
+                <Button
+                  onClick={() =>
+                    router.post(
+                      route('manage.join_requests.accept', request.id),
+                      {},
+                      { preserveScroll: true },
+                    )
+                  }
+                >
+                  {_('Accept')}
+                </Button>
+              </Group>
+            </Group>
+          ))}
+        </Panel>
+      ) : null}
       <div className="two-columns">
         <Panel title={_('Invite someone')} icon={IconMailPlus} data-tour="invite.form">
           <Form onSubmit={send}>

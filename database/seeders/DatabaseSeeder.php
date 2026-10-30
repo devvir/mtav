@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\UnitType;
 use App\Models\User;
 use App\Services\ChatService;
+use App\Services\DirectoryService;
 use App\Services\ForumService;
 use App\Services\InvitationService;
 use App\Services\Lottery\PreferencesService;
@@ -26,10 +27,10 @@ use RuntimeException;
  * seed without one).
  *
  *  - superadmin@example.com   platform superadmin, the deployment's owner
- *  - admin@example.com        admin of the three projects (in a family of Las Acacias)
+ *  - admin@example.com        admin of every project (in a family of Las Acacias)
  *  - member@example.com       in a family of Las Acacias, and in one of Los Ceibos
  *
- * Three projects, each at another stage:
+ * Five projects, each at another stage:
  *  - Las Acacias: 32 units of four types (two blocks and four houses, drawn on its site),
  *    its families ranking them, its lottery three weeks away; events people answered,
  *    files of every kind (DemoMedia), a forum, conversations in its chat
@@ -37,6 +38,9 @@ use RuntimeException;
  *    as any run): each family has its unit, and the run its record
  *  - Barrio Sur: just started by its admin, waiting for approval: a few families,
  *    invitations out, its units not yet placed on the plan
+ *  - Nuevo Horizonte and Los Robles: small, starting out, and in the directory for
+ *    member@example.com to find: the first open to anyone, the second by request. Las
+ *    Acacias and Los Ceibos are listed too, by request; Las Acacias has two people asking
  */
 class DatabaseSeeder extends Seeder
 {
@@ -46,6 +50,7 @@ class DatabaseSeeder extends Seeder
         private LotteryService $lottery,
         private ForumService $forum,
         private ChatService $chat,
+        private DirectoryService $directory,
         private InvitationService $invitations,
         private DemoPeople $people,
         private DemoSites $sites,
@@ -71,6 +76,8 @@ class DatabaseSeeder extends Seeder
         $this->acacias($superadmin, $admin, $member);
         $this->ceibos($superadmin, $admin, $member);
         $this->barrioSur($admin);
+        $this->startingOut($superadmin, $admin, 'Cooperativa Nuevo Horizonte', 'Ocho viviendas en Colón, buscando familias: quien quiera puede sumarse.', open: true);
+        $this->startingOut($superadmin, $admin, 'Cooperativa Los Robles', 'Doce viviendas en el Prado. Conversamos con cada familia antes de que se sume.', open: false);
 
         // The seed is no one's doing: the activity log starts empty
         Activity::query()->delete();
@@ -149,6 +156,12 @@ class DatabaseSeeder extends Seeder
 
         $this->invite($project, $admin, [['Rosa', 'Medina', null], ['Hugo', 'Clavijo', $project->families()->first()]]);
 
+        // In the directory, by request: two people are asking
+        $project->update(['listed' => true]);
+        foreach (['Bentancor', 'Cabrera'] as $index => $lastname) {
+            $this->at(now()->subDays(2 - $index), fn () => $this->directory->ask($project, $this->people->person($lastname)));
+        }
+
         $this->chats($project, [
             [[$admin, $member], null, 3, [
                 [$member, 'Hola Andrés, ¿ya está la fecha del sorteo?'],
@@ -175,6 +188,7 @@ class DatabaseSeeder extends Seeder
             'organization' => 'FUCVAM',
         ]));
         $project->memberships()->create(['user_id' => $admin->id, 'is_admin' => true]);
+        $project->update(['listed' => true]);
 
         $types = $this->types($project, [
             '2 dormitorios'            => 'Unos 60 m², en el bloque norte.',
@@ -237,6 +251,20 @@ class DatabaseSeeder extends Seeder
             ['Germán', 'Ocampo', null],
             ['Inés', 'Duarte', $project->families()->first()],
         ]);
+    }
+
+    /** A small project in the directory, a few families in */
+    private function startingOut(User $superadmin, User $admin, string $name, string $description, bool $open): void
+    {
+        $project = $this->at(now()->subWeeks(3), fn () => $this->projects->create($superadmin, ['name' => $name, 'description' => $description]));
+        $project->memberships()->create(['user_id' => $admin->id, 'is_admin' => true]);
+        $project->update(['listed' => true, 'open_to_join' => $open]);
+
+        [$type] = $this->types($project, ['2 dormitorios' => null]);
+        $this->sites->undrawn($project, $type, 'A', $open ? 8 : 12);
+        foreach (range(1, 3) as $family) {
+            $this->people->family($project, $type);
+        }
     }
 
     /**

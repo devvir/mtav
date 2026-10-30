@@ -4,6 +4,7 @@ import { MediaGrid } from '@/components/domain/MediaGrid';
 import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
+import { FamilyForm } from '@/components/forms/FamilyForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { FoldablePanel } from '@/components/layout/FoldablePanel';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -11,9 +12,20 @@ import { EmptyState, Glyph, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Media, ProjectEvent, UnitType } from '@/types/models';
+import type { Media, ProjectEvent, Ref, UnitType } from '@/types/models';
 import { Deferred, Link, usePage } from '@inertiajs/react';
-import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
+import {
+  Anchor,
+  Button,
+  Card,
+  Group,
+  Modal,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import {
   IconCalendarEvent,
   IconChevronRight,
@@ -24,6 +36,7 @@ import {
   IconUsers,
   IconUsersGroup,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface Props {
   overview: {
@@ -38,12 +51,47 @@ interface Props {
     status: string | null;
     unit: { id: number; identifier: string } | null;
   };
+  /** For someone with no family yet, who can start theirs: the types it can have */
+  ownFamilyTypes: Ref[] | null;
   /** For admins: what is left to set up (it follows the page) */
   setup?: Setup | null;
   events?: ProjectEvent[];
   units?: UnitType[];
   media?: Media[];
   community?: Community;
+}
+
+/** Someone who joined with no family: they start theirs, or someone of it adds them */
+function NoFamilyYet({ types }: { types: Ref[] }) {
+  const [creating, setCreating] = useState(false);
+
+  return (
+    <Card p="lg" mb="lg" data-tour="home.no_family">
+      <Group gap="sm">
+        <Glyph icon={IconUsersGroup} tone="brand" />
+        <Title order={2} fz="lg">
+          {_('You have no family yet')}
+        </Title>
+      </Group>
+      <Text c="dimmed" mt="sm">
+        {_(
+          'To take part in the lottery, create your family. If it is already here, ask someone in it to add you with your email.',
+        )}
+      </Text>
+      {types.length ? (
+        <Button mt="md" style={{ alignSelf: 'flex-start' }} onClick={() => setCreating(true)}>
+          {_('Create our family')}
+        </Button>
+      ) : (
+        <Text className="ds-caption" mt="md">
+          {_('You can create it once the admins add the unit types.')}
+        </Text>
+      )}
+      <Modal opened={creating} onClose={() => setCreating(false)} title={_('Create our family')}>
+        <FamilyForm own unitTypes={types} onDone={() => setCreating(false)} />
+      </Modal>
+    </Card>
+  );
 }
 
 /**
@@ -55,6 +103,7 @@ interface Props {
 export default function Dashboard({
   overview,
   lottery,
+  ownFamilyTypes,
   setup,
   events,
   media,
@@ -101,6 +150,8 @@ export default function Dashboard({
           </InfoTip>
         }
       />
+
+      {ownFamilyTypes ? <NoFamilyYet types={ownFamilyTypes} /> : null}
 
       {empty ? checklist : null}
 

@@ -12,6 +12,10 @@ enum NotificationType: string
     /** People */
     case MEMBER_JOINED = 'member_joined';
     case INVITATION_RECEIVED = 'invitation_received';
+    case ADDED_TO_FAMILY = 'added_to_family';
+    case JOIN_REQUESTED = 'join_requested';
+    case JOIN_ACCEPTED = 'join_accepted';
+    case JOIN_DECLINED = 'join_declined';
 
     /** Lottery */
     case LOTTERY_COMPLETED = 'lottery_completed';

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Family;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Response;
 
 class FamilyController extends Controller
@@ -37,6 +39,22 @@ class FamilyController extends Controller
                 ? FamilyResource::make($family->load('unitType', 'unit', 'members'))
                 : null,
         ]);
+    }
+
+    /** Someone taking part with no family starts theirs, and is in it */
+    public function store(FamilyRequest $request, Project $project): RedirectResponse
+    {
+        $this->authorize('createOwnFamily', $project);
+
+        $user = $request->user();
+
+        DB::transaction(function () use ($request, $project, $user) {
+            $family = $project->families()->create($request->validated());
+            $user->membershipIn($project)->update(['family_id' => $family->id]);
+            $user->unsetRelation('memberships');
+        });
+
+        return to_route('projects.show', $project)->with('success', __('flash.family_created'));
     }
 
     /** A family's details open over the list: its address leads there */

@@ -117,6 +117,8 @@ class HandleInertiaRequests extends Middleware
             'family'                => $family ? ['id' => $family->id, 'name' => $family->name] : null,
             // For its admins: the invitations nobody has answered yet (the settings' tab says so)
             'pending_invitations' => $manages ? $project->invitations()->pending()->count() : null,
+            // And those asking to join from the directory
+            'join_requests' => $manages ? $project->joinRequests()->pending()->count() : null,
             // The conversations with something new for them (the chat's place says so)
             'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
             'can'             => [

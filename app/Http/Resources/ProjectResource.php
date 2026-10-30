@@ -19,6 +19,8 @@ class ProjectResource extends JsonResource
             'description'           => $this->description,
             'organization'          => $this->organization,
             'active'                => $this->active,
+            'listed'                => $this->listed,
+            'open_to_join'          => $this->open_to_join,
             'is_approved'           => $this->isApproved(),
             'approval_requested_at' => $this->approval_requested_at,
             'created_at'            => $this->created_at,

@@ -10,7 +10,19 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Project } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
-import { Button, Card, Group, Text, TextInput, Textarea, Title } from '@mantine/core';
+import {
+  Button,
+  Card,
+  Collapse,
+  Group,
+  Radio,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+  Textarea,
+  Title,
+} from '@mantine/core';
 import { IconAlertTriangle, IconDownload, IconTableExport, IconTrash } from '@tabler/icons-react';
 
 /** The project's details, and deleting it (its page prop is `settings`: `project` is shared) */
@@ -19,6 +31,8 @@ export default function Settings({ settings: project }: { settings: Project }) {
     name: project.name,
     description: project.description,
     organization: project.organization ?? '',
+    listed: project.listed,
+    open_to_join: project.open_to_join,
   });
 
   const destroy = async () => {
@@ -40,11 +54,13 @@ export default function Settings({ settings: project }: { settings: Project }) {
       <PageHeader
         help={
           <InfoTip title={_('Project settings')} tour="manage.settings">
-            {_('Its name, what it is about and its organization; and, with care, deleting it.')}
+            {_(
+              'Its name, what it is about, whether others can find it; and, with care, deleting it.',
+            )}
           </InfoTip>
         }
         title={_('Settings')}
-        description={_('Its name, what it is about and its organization.')}
+        description={_('Its name, what it is about, and whether others can find it.')}
         tour="manage.settings"
       />
       <SettingsTabs />
@@ -63,6 +79,29 @@ export default function Settings({ settings: project }: { settings: Project }) {
             onChange={(organization) => form.setData('organization', organization)}
             error={form.errors.organization}
           />
+          <Switch
+            data-tour="settings.listed"
+            label={_('List it in the directory')}
+            description={
+              project.is_approved
+                ? _('Anyone with an account can find it, and read its name and description.')
+                : _('It shows there once the project is approved.')
+            }
+            checked={form.data.listed}
+            onChange={(event) => form.setData('listed', event.currentTarget.checked)}
+          />
+          <Collapse expanded={form.data.listed} transitionDuration={250}>
+            <Radio.Group
+              label={_('Who can join')}
+              value={form.data.open_to_join ? 'open' : 'request'}
+              onChange={(value) => form.setData('open_to_join', value === 'open')}
+            >
+              <Stack gap="xs" mt="xs">
+                <Radio value="request" label={_('Those the admins accept')} />
+                <Radio value="open" label={_('Anyone, at once')} />
+              </Stack>
+            </Radio.Group>
+          </Collapse>
           <FormActions submit={_('Save')} processing={form.processing} />
         </Form>
       </Card>

@@ -48,6 +48,7 @@ const SUBJECTS: Record<string, () => string> = {
   unit: () => _('Unit'),
   membership: () => _('Membership'),
   invitation: () => _('Invitation'),
+  join_request: () => _('Request to join'),
   event: () => _('Event'),
   media: () => _('File'),
   lottery_run: () => _('Lottery run'),

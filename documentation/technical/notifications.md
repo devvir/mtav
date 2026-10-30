@@ -57,6 +57,7 @@ push service (Google's, Mozilla's, Apple's), encrypted for that browser.
 ## Email
 
 Account mail (confirming an address, resetting a password, an email change), invitations,
+the confirmation of a place someone now has (accepted into a project, added to a family),
 and the owner's notice of a new error (see [data.md](data.md)) go by email, in the
 recipient's language (`lang/<locale>/emails.php`). Addresses under the domains in
 `mail.blocked_domains` (on staging, the demo accounts' made-up ones) are skipped

@@ -12,6 +12,12 @@ return [
     'invitation_expiry'       => 'L’invito è valido fino al :date.',
     'invitation_ignore'       => 'Se non te lo aspettavi, puoi ignorare questa email.',
 
+    'joined_project_subject' => 'Sei in :project',
+    'joined_project' => 'Gli admin di :project hanno accettato la tua richiesta: ci sei. Lì puoi creare la tua famiglia, oppure qualcuno della famiglia può aggiungerti.',
+    'joined_family_subject' => 'Sei nella famiglia :family',
+    'joined_family' => ':name ti ha aggiunto alla famiglia :family in :project. Non devi fare altro.',
+    'joined_action' => 'Apri il progetto',
+
     'reset_password_subject' => 'Scegli una nuova password',
     'reset_password_intro'   => 'Qualcuno ha chiesto di reimpostare la password del tuo account.',
     'reset_password_action'  => 'Scegli una nuova password',

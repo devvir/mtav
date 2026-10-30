@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
@@ -111,6 +112,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('push.subscribe');
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
+    /** The projects listed for anyone to find, and joining them */
+    Route::get('directory', [DirectoryController::class, 'index'])->name('directory.index');
+    Route::post('directory/{project}/join', [DirectoryController::class, 'join'])->name('directory.join');
+    // Each request tells the project's admins: a few a minute are plenty
+    Route::post('directory/{project}/request', [DirectoryController::class, 'ask'])
+        ->middleware('throttle:10,1')
+        ->name('directory.ask');
+    Route::delete('directory/{project}/request', [DirectoryController::class, 'withdraw'])->name('directory.withdraw');
+
     /** One's projects; starting one */
     Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
@@ -131,6 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
 
             Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
+            Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
             Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
 
             /** Members invite people into their own family */
@@ -209,6 +220,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     ->name('invitations.store');
                 Route::delete('invitations/{invitation}', [Manage\InvitationController::class, 'destroy'])
                     ->name('invitations.destroy');
+
+                Route::post('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'accept'])
+                    ->name('join_requests.accept');
+                Route::delete('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'decline'])
+                    ->name('join_requests.decline');
 
                 Route::resource('families', Manage\FamilyController::class)->only('store', 'update', 'destroy');
                 Route::resource('unit_types', Manage\UnitTypeController::class)

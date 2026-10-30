@@ -17,6 +17,8 @@ class ProjectRequest extends FormRequest
             'name'         => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
             'description'  => ['required', 'string', 'between:2,2000'],
             'organization' => ['nullable', 'string', 'between:2,120'],
+            'listed'       => ['sometimes', 'boolean'],
+            'open_to_join' => ['sometimes', 'boolean'],
         ];
     }
 }

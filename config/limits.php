@@ -31,6 +31,9 @@ return [
     /** Days an invitation link stays valid */
     'invitation_days' => (int) env('INVITATION_DAYS', 14),
 
+    /** Days before someone declined may ask to join the same project again */
+    'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),
+
     /** Absolute ceiling for any uploaded file, approved projects included */
     'media_file_max_mb' => (int) env('MEDIA_FILE_MAX_MB', 200),
 ];

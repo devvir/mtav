@@ -29,6 +29,8 @@ class Project extends Model
         'description',
         'organization',
         'active',
+        'listed',
+        'open_to_join',
         'created_by',
         'approval_requested_at',
         'approved_at',
@@ -37,6 +39,8 @@ class Project extends Model
 
     protected $casts = [
         'active'                => 'boolean',
+        'listed'                => 'boolean',
+        'open_to_join'          => 'boolean',
         'approval_requested_at' => 'datetime',
         'approved_at'           => 'datetime',
     ];
@@ -88,6 +92,11 @@ class Project extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
+    }
+
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class);
     }
 
     public function families(): HasMany
@@ -164,6 +173,20 @@ class Project extends Model
     public function media(): HasMany
     {
         return $this->hasMany(Media::class);
+    }
+
+    /**
+     * Its admins want it listed, and the platform trusts them: a project nobody has
+     * vetted yet is not shown to everyone.
+     */
+    public function isInDirectory(): bool
+    {
+        return $this->listed && $this->isApproved();
+    }
+
+    public function scopeInDirectory(Builder $query): void
+    {
+        $query->where('listed', true)->whereNotNull('approved_at');
     }
 
     public function isApproved(): bool

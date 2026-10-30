@@ -8,7 +8,8 @@ import { IconGauge, IconMail, IconSettings } from '@tabler/icons-react';
  * and the project itself. Each is its own page (its own address); these lead between them.
  */
 export function SettingsTabs() {
-  const pending = usePage().props.project?.pending_invitations ?? 0;
+  const { pending_invitations, join_requests } = usePage().props.project ?? {};
+  const pending = (pending_invitations ?? 0) + (join_requests ?? 0);
   const tabs = [
     {
       label: _('Setup'),
@@ -46,7 +47,11 @@ export function SettingsTabs() {
           {count ? (
             <span
               className="settings-tab-count"
-              aria-label={_n('{count} invitation pending', '{count} invitations pending', count)}
+              aria-label={_n(
+                '{count} waiting for an answer',
+                '{count} waiting for an answer',
+                count,
+              )}
             >
               {count}
             </span>

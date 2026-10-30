@@ -37,6 +37,10 @@ class DashboardController extends Controller
                 'units_count'    => $project->units()->count(),
             ],
             // Admins see what is left to set up, until the lottery has run
+            // Someone with no family yet starts theirs here, choosing its type
+            'ownFamilyTypes' => $user->can('createOwnFamily', $project)
+                ? $project->unitTypes()->alphabetically()->get(['id', 'name'])
+                : null,
             'setup' => $user->can('update', $project)
                 ? Inertia::defer(fn () => $projects->setupChecklist($project), 'setup')
                 : null,

@@ -31,6 +31,12 @@ return [
     'invitation_accepted' => 'Welcome to :project!',
     'invitation_declined' => 'You declined the invitation.',
     'invitation_sign_in'  => 'This invitation is for :email. Sign in with that account to accept it.',
+
+    'added_to_family' => ':name is now in the :family family.',
+    'join_requested' => 'Your request reached the admins of :project.',
+    'join_withdrawn' => 'You withdrew your request.',
+    'join_accepted' => ':name is now in the project.',
+    'join_declined' => 'You declined the request of :name.',
     'member_updated'      => 'Saved.',
     'member_removed'      => 'The person was removed from the project.',
     'superadmin_granted'  => ':name is now a superadmin.',

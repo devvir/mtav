@@ -2,7 +2,7 @@ import { AppShell, type NavGroup } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { IconBell, IconFolders, IconUser } from '@tabler/icons-react';
+import { IconBell, IconFolders, IconSearch, IconUser } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { projectNav, projectPlaces } from './ProjectLayout';
 
@@ -31,6 +31,12 @@ export function AccountLayout({ children }: { children: ReactNode }) {
                 active: routeIs('projects.index', 'projects.create'),
               },
             ]),
+        {
+          label: _('Find a project'),
+          href: route('directory.index'),
+          icon: IconSearch,
+          active: routeIs('directory.*'),
+        },
         {
           label: _('Notifications'),
           href: route('notifications.index'),

@@ -36,6 +36,11 @@ it('seeds a project ranking its units, one whose lottery ran, and one being set 
         ->and($sur->approval_requested_at)->not->toBeNull()
         ->and($sur->invitations()->pending()->count())->toBe(3);
 
+    // The directory has something to find: open, by request, and people asking
+    expect(Project::inDirectory()->where('open_to_join', true)->pluck('name')->all())->toBe(['Cooperativa Nuevo Horizonte'])
+        ->and(Project::inDirectory()->where('open_to_join', false)->count())->toBe(3)
+        ->and($acacias->joinRequests()->pending()->count())->toBe(2);
+
     $member = User::firstWhere('email', 'member@example.com');
     expect($member->familyIn($acacias))->not->toBeNull()
         ->and($member->familyIn($ceibos))->not->toBeNull()

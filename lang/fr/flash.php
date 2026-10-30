@@ -31,6 +31,12 @@ return [
     'invitation_accepted' => 'Bienvenue dans :project !',
     'invitation_declined' => 'Vous avez décliné l’invitation.',
     'invitation_sign_in'  => 'Cette invitation est pour :email. Connectez-vous avec ce compte pour l’accepter.',
+
+    'added_to_family' => ':name fait maintenant partie de la famille :family.',
+    'join_requested' => 'Votre demande est arrivée aux admins de :project.',
+    'join_withdrawn' => 'Vous avez retiré votre demande.',
+    'join_accepted' => ':name fait maintenant partie du projet.',
+    'join_declined' => 'Vous avez refusé la demande de :name.',
     'member_updated'      => 'Enregistré.',
     'member_removed'      => 'La personne a été retirée du projet.',
     'superadmin_granted'  => ':name est maintenant superadmin.',

@@ -14,6 +14,7 @@ import {
   IconFolders,
   IconLogout,
   IconMessageQuestion,
+  IconSearch,
   IconShieldCheck,
   IconUser,
   type Icon,
@@ -221,7 +222,7 @@ export function AppShell({
         <header className="ds-bar shell-bar">
           <Burger opened={drawer} onClick={open} aria-label={_('Menu')} hiddenFrom="lg" size="sm" />
 
-          {project && props.projects.length > 1 ? (
+          {project && props.projects.length ? (
             <Menu position="bottom-start" width={280}>
               <Menu.Target>
                 <UnstyledButton className="shell-switcher">
@@ -244,12 +245,21 @@ export function AppShell({
                   </Menu.Item>
                 ))}
                 <Menu.Divider />
+                {props.projects.length > 1 ? (
+                  <Menu.Item
+                    component={Link}
+                    href={route('projects.index')}
+                    leftSection={<IconFolders size={16} />}
+                  >
+                    {_('All your projects')}
+                  </Menu.Item>
+                ) : null}
                 <Menu.Item
                   component={Link}
-                  href={route('projects.index')}
-                  leftSection={<IconFolders size={16} />}
+                  href={route('directory.index')}
+                  leftSection={<IconSearch size={16} />}
                 >
-                  {_('All your projects')}
+                  {_('Find a project')}
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>

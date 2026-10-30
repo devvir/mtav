@@ -31,6 +31,12 @@ return [
     'invitation_accepted' => 'Boas-vindas a :project!',
     'invitation_declined' => 'Você recusou o convite.',
     'invitation_sign_in'  => 'Este convite é para :email. Entre com essa conta para aceitá-lo.',
+
+    'added_to_family' => ':name agora está na família :family.',
+    'join_requested' => 'Seu pedido chegou aos admins de :project.',
+    'join_withdrawn' => 'Você retirou seu pedido.',
+    'join_accepted' => ':name agora está no projeto.',
+    'join_declined' => 'Você recusou o pedido de :name.',
     'member_updated'      => 'Salvo.',
     'member_removed'      => 'A pessoa foi removida do projeto.',
     'superadmin_granted'  => ':name agora é superadmin.',
