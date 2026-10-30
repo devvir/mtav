@@ -35,8 +35,10 @@ class AvatarController extends Controller
         $user = $request->user();
         $previous = $user->avatar;
 
-        $path = 'avatars/' . Str::random(40) . '.webp';
-        Storage::disk('public')->put($path, $this->small($request->file('avatar')));
+        // WebP where this PHP can write it, else JPEG: never an empty picture
+        $webp = function_exists('imagewebp') && (imagetypes() & IMG_WEBP);
+        $path = 'avatars/' . Str::random(40) . ($webp ? '.webp' : '.jpg');
+        Storage::disk('public')->put($path, $this->small($request->file('avatar'), $webp));
         $user->update(['avatar' => $path]);
 
         $previous && Storage::disk('public')->delete($previous);
@@ -44,8 +46,8 @@ class AvatarController extends Controller
         return back()->with('success', __('flash.avatar_updated'));
     }
 
-    /** The picture drawn anew, no side over SIDE, as WebP */
-    private function small(UploadedFile $file): string
+    /** The picture drawn anew, no side over SIDE, as WebP (or JPEG) */
+    private function small(UploadedFile $file, bool $webp): string
     {
         $image = @imagecreatefromstring((string) file_get_contents($file->getPathname()));
         if (! $image) {
@@ -57,7 +59,7 @@ class AvatarController extends Controller
         $small = imagescale($image, max(1, (int) round($width * $scale)), max(1, (int) round($height * $scale)));
 
         ob_start();
-        imagewebp($small, null, 85);
+        $webp ? imagewebp($small, null, 85) : imagejpeg($small, null, 85);
 
         return (string) ob_get_clean();
     }
