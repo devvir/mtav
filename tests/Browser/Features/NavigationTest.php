@@ -129,3 +129,10 @@ it('says a project that does not exist is not found, within the app one is signe
         ->assertPresent('.shell-sidebar')
         ->assertNoSmoke();
 });
+
+it('keeps the page clear while its project\'s places load in the background', function () {
+    $this->as($this->member);
+
+    // The places are kept for offline a few seconds after arriving: no trip, no dimming
+    visit(route('projects.show', $this->project))->wait(6)->assertNotPresent('.shell-page[data-loading]');
+});

@@ -74,6 +74,9 @@ function useTrip(): string | null {
       if (!tracking) {
         tracking = true;
         router.on('start', ({ detail: { visit } }) => {
+          // A page loaded in the background (kept for later, offline) is no trip: nothing
+          // arrives to end it, and the page would stay dimmed
+          if (visit.prefetch) return;
           if (visit.method === 'get' && visit.url.pathname !== window.location.pathname)
             setTrip(visit.url.pathname);
         });
