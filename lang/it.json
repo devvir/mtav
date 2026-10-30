@@ -705,5 +705,17 @@
   "The lottery": "Il sorteggio",
   "When it happens, and once it has, which unit your family received.": "Quando si fa e, una volta fatto, quale unità ha ricevuto la tua famiglia.",
   "By family, or everyone": "Per famiglia, o tutti",
-  "See the cooperative family by family, or every person at once.": "Guarda la cooperativa famiglia per famiglia, o tutte le persone insieme."
+  "See the cooperative family by family, or every person at once.": "Guarda la cooperativa famiglia per famiglia, o tutte le persone insieme.",
+  "What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.": "Cosa è successo nei tuoi progetti, le più recenti prima. La campanella mostra le ultime; aprirne una ti ci porta.",
+  "How others see you, how you sign in, your language and the look of the app.": "Come ti vedono gli altri, come accedi, la tua lingua e l’aspetto dell’app.",
+  "Every project you take part in, and the invitations waiting for you.": "Ogni progetto a cui partecipi, e gli inviti che ti aspettano.",
+  "Starting a project": "Avviare un progetto",
+  "You become its first admin, then set it up step by step: unit types, units, families, invitations.": "Ne diventi il primo admin, poi lo prepari passo dopo passo: tipi di unità, unità, famiglie, inviti.",
+  "Project settings": "Impostazioni del progetto",
+  "Its name, what it is about and its organization; and, with care, deleting it.": "Il nome, di cosa tratta e la sua organizzazione; e, con cura, eliminarlo.",
+  "Inviting your family": "Invitare la tua famiglia",
+  "Invite the rest of your family by email: they join with your family already chosen.": "Invita via email il resto della tua famiglia: entrano con la tua famiglia già scelta.",
+  "Platform settings": "Impostazioni della piattaforma",
+  "What applies to every project, like how long a lottery takes as people see it.": "Ciò che vale per tutti i progetti, come quanto dura un sorteggio come lo vedono le persone.",
+  "What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.": "Cosa esegue ogni ambiente, rilasciare un branch in dev o main in produzione, e tornare a una versione precedente."
 }

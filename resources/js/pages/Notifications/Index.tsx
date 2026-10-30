@@ -1,5 +1,6 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { Pagination } from '@/components/feedback/Pagination';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
 import { openNotification } from '@/lib/notifications';
@@ -19,6 +20,13 @@ export default function NotificationsIndex({ notifications, filters }: Props) {
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Notifications')}>
+            {_(
+              'What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.',
+            )}
+          </InfoTip>
+        }
         title={_('Notifications')}
         actions={
           <>

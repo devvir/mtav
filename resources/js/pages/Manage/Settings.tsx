@@ -1,5 +1,6 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { OrganizationField } from '@/components/forms/OrganizationField';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
 import { confirm } from '@/lib/dialogs';
@@ -35,7 +36,14 @@ export default function Settings({ settings: project }: { settings: Project }) {
 
   return (
     <>
-      <PageHeader title={_('Settings')} />
+      <PageHeader
+        help={
+          <InfoTip title={_('Project settings')}>
+            {_('Its name, what it is about and its organization; and, with care, deleting it.')}
+          </InfoTip>
+        }
+        title={_('Settings')}
+      />
       <Card p="lg" maw={720}>
         <Form onSubmit={() => form.put(route('manage.settings.update'), { preserveScroll: true })}>
           <TextInput label={_('Name')} withAsterisk {...field(form, 'name')} />

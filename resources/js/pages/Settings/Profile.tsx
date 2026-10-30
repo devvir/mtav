@@ -2,6 +2,7 @@ import { AppearanceSettings } from '@/components/account/AppearanceSettings';
 import { LanguageSettings } from '@/components/account/LanguageSettings';
 import { PasswordForm } from '@/components/account/PasswordForm';
 import { Form, FormActions } from '@/components/forms/Form';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
 import { checkbox, field } from '@/lib/forms';
@@ -84,6 +85,11 @@ export default function Profile({ profile, languages }: Props) {
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Your account')}>
+            {_('How others see you, how you sign in, your language and the look of the app.')}
+          </InfoTip>
+        }
         title={_('Profile')}
         description={_(
           'Everything about you: how people see you, how you sign in, your language and how the app looks.',

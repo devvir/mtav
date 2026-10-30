@@ -1,5 +1,6 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { OrganizationField } from '@/components/forms/OrganizationField';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
 import { appName, megabytes } from '@/lib/app';
@@ -16,6 +17,13 @@ export default function ProjectsCreate({ limits }: { limits: Record<string, numb
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Starting a project')}>
+            {_(
+              'You become its first admin, then set it up step by step: unit types, units, families, invitations.',
+            )}
+          </InfoTip>
+        }
         title={_('Start a project')}
         description={_(
           'You will be its first admin, and can invite the rest of its people afterwards.',

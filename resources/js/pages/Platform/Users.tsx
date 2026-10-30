@@ -1,6 +1,7 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar, Status } from '@/design';
 import { _, _n } from '@/lib/translations';
@@ -27,6 +28,9 @@ export default function PlatformUsers({
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Accounts')}>{_('Everyone with an account on the platform.')}</InfoTip>
+        }
         title={_('Accounts')}
         description={_('Everyone with an account on the platform.')}
       />

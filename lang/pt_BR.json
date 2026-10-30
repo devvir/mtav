@@ -705,5 +705,17 @@
   "The lottery": "O sorteio",
   "When it happens, and once it has, which unit your family received.": "Quando acontece e, depois, que unidade sua família recebeu.",
   "By family, or everyone": "Por família, ou todos",
-  "See the cooperative family by family, or every person at once.": "Veja a cooperativa família por família, ou todas as pessoas juntas."
+  "See the cooperative family by family, or every person at once.": "Veja a cooperativa família por família, ou todas as pessoas juntas.",
+  "What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.": "O que aconteceu nos seus projetos, o mais recente primeiro. O sino mostra as últimas; abrir uma leva você até ela.",
+  "How others see you, how you sign in, your language and the look of the app.": "Como os outros veem você, como você entra, seu idioma e a aparência do aplicativo.",
+  "Every project you take part in, and the invitations waiting for you.": "Cada projeto de que você participa, e os convites esperando por você.",
+  "Starting a project": "Criar um projeto",
+  "You become its first admin, then set it up step by step: unit types, units, families, invitations.": "Você passa a ser o primeiro admin e o prepara passo a passo: tipos de unidade, unidades, famílias, convites.",
+  "Project settings": "Configurações do projeto",
+  "Its name, what it is about and its organization; and, with care, deleting it.": "O nome, do que se trata e a organização; e, com cuidado, excluí-lo.",
+  "Inviting your family": "Convidar sua família",
+  "Invite the rest of your family by email: they join with your family already chosen.": "Convide por e-mail o resto da sua família: eles entram com a sua família já escolhida.",
+  "Platform settings": "Configurações da plataforma",
+  "What applies to every project, like how long a lottery takes as people see it.": "O que vale para todos os projetos, como quanto dura um sorteio do jeito que as pessoas o veem.",
+  "What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.": "O que cada ambiente executa, implantar um branch no dev ou main na produção, e voltar a uma versão anterior."
 }

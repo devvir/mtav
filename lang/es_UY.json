@@ -705,5 +705,17 @@
   "The lottery": "El sorteo",
   "When it happens, and once it has, which unit your family received.": "Cuándo se realiza y, una vez hecho, qué vivienda recibió tu familia.",
   "By family, or everyone": "Por familia, o todos",
-  "See the cooperative family by family, or every person at once.": "Mira la cooperativa familia por familia, o a todas las personas juntas."
+  "See the cooperative family by family, or every person at once.": "Mira la cooperativa familia por familia, o a todas las personas juntas.",
+  "What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.": "Lo que pasó en tus proyectos, lo más nuevo primero. La campana muestra lo último; abrir una te lleva allí.",
+  "How others see you, how you sign in, your language and the look of the app.": "Cómo te ven los demás, cómo entras, tu idioma y el aspecto de la aplicación.",
+  "Every project you take part in, and the invitations waiting for you.": "Cada proyecto en el que participas, y las invitaciones que te esperan.",
+  "Starting a project": "Crear un proyecto",
+  "You become its first admin, then set it up step by step: unit types, units, families, invitations.": "Pasas a ser su primer administrador y lo preparas paso a paso: tipos de vivienda, viviendas, familias, invitaciones.",
+  "Project settings": "Configuración del proyecto",
+  "Its name, what it is about and its organization; and, with care, deleting it.": "Su nombre, de qué se trata y su organización; y, con cuidado, eliminarlo.",
+  "Inviting your family": "Invitar a tu familia",
+  "Invite the rest of your family by email: they join with your family already chosen.": "Invita por email al resto de tu familia: se suman con tu familia ya elegida.",
+  "Platform settings": "Configuración de la plataforma",
+  "What applies to every project, like how long a lottery takes as people see it.": "Lo que vale para todos los proyectos, como cuánto dura un sorteo tal como lo ve la gente.",
+  "What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.": "Qué corre cada entorno, desplegar una rama en dev o main en producción, y volver a una versión anterior."
 }

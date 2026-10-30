@@ -1,4 +1,5 @@
 import { Form } from '@/components/forms/Form';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Panel } from '@/design';
 import { route } from '@/lib/route';
@@ -23,6 +24,11 @@ export default function Settings({
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Platform settings')}>
+            {_('What applies to every project, like how long a lottery takes as people see it.')}
+          </InfoTip>
+        }
         title={_('Settings')}
         description={_('How the platform works for every project.')}
       />

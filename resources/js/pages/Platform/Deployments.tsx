@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Panel, Status, type Tone } from '@/design';
 import { confirm } from '@/lib/dialogs';
@@ -120,6 +121,13 @@ export default function Deployments({ main, environments, branches, runs }: Prop
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Deployments')}>
+            {_(
+              'What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.',
+            )}
+          </InfoTip>
+        }
         title={_('Deployments')}
         description={_('What each environment runs, and deploying it.')}
       />

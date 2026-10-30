@@ -1,4 +1,5 @@
 import { Form } from '@/components/forms/Form';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Panel, PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
@@ -56,6 +57,11 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Superadmins')}>
+            {_('Who manages the whole platform. A rare role, given with care.')}
+          </InfoTip>
+        }
         title={_('Superadmins')}
         description={_('Who manages the whole platform. A rare role, given with care.')}
       />

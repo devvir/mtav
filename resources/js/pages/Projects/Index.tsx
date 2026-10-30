@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph } from '@/design';
 import { route } from '@/lib/route';
@@ -36,7 +37,15 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
 
   return (
     <>
-      <PageHeader title={_('Your projects')} actions={startButton} />
+      <PageHeader
+        help={
+          <InfoTip title={_('Your projects')}>
+            {_('Every project you take part in, and the invitations waiting for you.')}
+          </InfoTip>
+        }
+        title={_('Your projects')}
+        actions={startButton}
+      />
 
       {invitations.length ? (
         <Stack component="section" gap="sm" mb="xl">

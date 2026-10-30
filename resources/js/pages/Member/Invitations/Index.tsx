@@ -1,5 +1,6 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { Form, RequiredNote } from '@/components/forms/Form';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { confirm } from '@/lib/dialogs';
 import { field } from '@/lib/forms';
@@ -32,6 +33,13 @@ export default function FamilyInvitations({
   return (
     <>
       <PageHeader
+        help={
+          <InfoTip title={_('Inviting your family')}>
+            {_(
+              'Invite the rest of your family by email: they join with your family already chosen.',
+            )}
+          </InfoTip>
+        }
         title={_('Invite to your family')}
         description={_(
           'Invite the people of the {family} family to the project. They receive an email with a link.',

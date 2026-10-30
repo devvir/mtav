@@ -705,5 +705,17 @@
   "The lottery": "Le tirage",
   "When it happens, and once it has, which unit your family received.": "Quand il a lieu et, une fois fait, quel logement votre famille a reçu.",
   "By family, or everyone": "Par famille, ou tout le monde",
-  "See the cooperative family by family, or every person at once.": "Voyez la coopérative famille par famille, ou toutes les personnes à la fois."
+  "See the cooperative family by family, or every person at once.": "Voyez la coopérative famille par famille, ou toutes les personnes à la fois.",
+  "What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.": "Ce qui s’est passé dans vos projets, le plus récent d’abord. La cloche montre les dernières ; en ouvrir une vous y mène.",
+  "How others see you, how you sign in, your language and the look of the app.": "Comment les autres vous voient, comment vous vous connectez, votre langue et l’apparence de l’application.",
+  "Every project you take part in, and the invitations waiting for you.": "Chaque projet auquel vous participez, et les invitations qui vous attendent.",
+  "Starting a project": "Créer un projet",
+  "You become its first admin, then set it up step by step: unit types, units, families, invitations.": "Vous en devenez le premier admin, puis le préparez étape par étape : types de logement, logements, familles, invitations.",
+  "Project settings": "Paramètres du projet",
+  "Its name, what it is about and its organization; and, with care, deleting it.": "Son nom, son objet et son organisation ; et, avec prudence, sa suppression.",
+  "Inviting your family": "Inviter votre famille",
+  "Invite the rest of your family by email: they join with your family already chosen.": "Invitez par e-mail le reste de votre famille : ils rejoignent avec votre famille déjà choisie.",
+  "Platform settings": "Paramètres de la plateforme",
+  "What applies to every project, like how long a lottery takes as people see it.": "Ce qui vaut pour tous les projets, comme la durée d’un tirage telle que les gens la voient.",
+  "What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.": "Ce que chaque environnement exécute, déployer une branche en dev ou main en production, et revenir à une version précédente."
 }
