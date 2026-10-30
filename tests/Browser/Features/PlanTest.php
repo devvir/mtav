@@ -33,6 +33,16 @@ beforeEach(function () {
     $this->admin = anAdminOf($this->project);
 });
 
+it('opens for drawing at its own address, and leaves it once done', function () {
+    $this->as($this->admin);
+
+    visit(route('units.edit', $this->project))
+        ->assertPresent('[aria-label="Plan editor"]')
+        ->click('Done editing')
+        ->assertMissing('[aria-label="Plan editor"]')
+        ->assertPathIs("/projects/{$this->project->id}/units");
+});
+
 it('adds a named green area that members then see', function () {
     $this->as($this->admin);
 

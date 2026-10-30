@@ -47,6 +47,22 @@ it('files documents under documents', function () {
     expect(Media::sole()->category->value)->toBe('document');
 });
 
+it('lists recordings with the files, each playing in its row at the speed chosen', function () {
+    Media::factory()->create([
+        'project_id'  => $this->project->id, 'category' => 'audio', 'mime_type' => 'audio/mpeg',
+        'description' => 'Summary of the last assembly', 'width' => null, 'height' => null,
+    ]);
+
+    visit(route('media.index', $this->project))
+        ->assertDontSee('Summary of the last assembly')
+        ->click('Files')
+        ->assertSee('Summary of the last assembly')
+        ->assertPresent('[data-audio] button[aria-label="Play"]')
+        ->click('[data-audio] button[aria-label^="Speed"]')
+        ->assertSeeIn('[data-audio]', '1.25×')
+        ->assertNoSmoke();
+});
+
 it('refuses files that could run scripts', function () {
     attachFile(visit(route('media.index', [$this->project, 'share' => 1])), 'input[type="file"]', fixtureFile('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'))
         ->assertSee('logo.svg cannot be shared')

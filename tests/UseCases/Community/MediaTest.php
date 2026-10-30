@@ -58,6 +58,25 @@ it('files a phone\'s voice memo under audio', function () {
     expect($this->project->media()->sole()->category)->toBe(MediaCategory::AUDIO);
 });
 
+it('lists recordings with the documents, as the project\'s records, and the gallery with photos and videos only', function () {
+    $media = fn ($category, $mime) => Media::factory()->create(['project_id' => $this->project->id, 'category' => $category, 'mime_type' => $mime]);
+    $photo = $media(MediaCategory::IMAGE, 'image/jpeg');
+    $video = $media(MediaCategory::VIDEO, 'video/mp4');
+    $recording = $media(MediaCategory::AUDIO, 'audio/mpeg');
+    $minutes = $media(MediaCategory::DOCUMENT, 'application/pdf');
+    $this->as($this->member, $this->project);
+
+    $listed = fn (array $query) => collect($this->get(route('media.index', $query))->inertiaProps('media.data'))->pluck('id')->sort()->values()->all();
+
+    expect($listed([]))->toBe([$photo->id, $video->id])
+        ->and($listed(['category' => 'files']))->toBe([$recording->id, $minutes->id]);
+
+    // A recording shared alone, or removed, leads back to the files
+    upload($this, $this->member, UploadedFile::fake()->create('memo.m4a', 300, 'audio/x-m4a'))
+        ->assertRedirect(route('media.index', ['category' => 'files']));
+    $this->delete(route('media.destroy', $recording))->assertRedirect(route('media.index', ['category' => 'files']));
+});
+
 it('shares several files at once', function () {
     upload(
         $this,

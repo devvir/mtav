@@ -60,9 +60,29 @@ export function autoTour(id: string) {
   return () => window.clearTimeout(later);
 }
 
+/** Whether tours play by themselves on this device */
+export const toursOn = () => remembered(OFF) !== 'off';
+
+/**
+ * Tours played by themselves, or not (the (?) still has them). Back on, each page's
+ * plays again on its next visit.
+ */
+export function setToursOn(on: boolean) {
+  remember(OFF, on ? 'on' : 'off');
+  if (on) {
+    try {
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith(SEEN))
+        .forEach((key) => localStorage.removeItem(key));
+    } catch {
+      // Without storage, nothing was remembered as seen
+    }
+  }
+}
+
 /** No more tours played by themselves (the (?) still has them) */
 export function noMoreTours() {
-  remember(OFF, 'off');
+  setToursOn(false);
   tourState.set({ ...tourState.get(), offer: false });
 }
 

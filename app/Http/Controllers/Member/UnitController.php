@@ -29,6 +29,8 @@ class UnitController extends Controller
             /** Where they are: after the list */
             'plan'   => Inertia::defer(fn () => PlanResource::make($project->plan->load('items.unit.family'))),
             'family' => $request->user()->familyIn($project)?->only('id', 'name', 'unit_type_id'),
+            // Reached at units/edit: the plan opens for drawing
+            'editPlan' => $request->routeIs('units.edit'),
             // A unit's details, shown over the page (?unit=7)
             'unit' => fn () => $request->integer('unit') && ($unit = $project->units()->find($request->integer('unit')))
                 ? UnitResource::make($unit->load('type', 'family'))

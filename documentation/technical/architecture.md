@@ -107,7 +107,8 @@ is notified to the project, a reply to whoever wrote in the topic before.
   change (`lib/offline.ts`). The app installs on devices (`/manifest.webmanifest`).
 - **Help**: a (?) by every page's title (`InfoTip`) says what the page is for and offers
   "Tell me more", a tour of it (`tours/index.ts`, `lib/tour.ts`). For new people, each
-  page's tour plays once by itself; dismissing one offers, once, to show no more.
+  page's tour plays once by itself; any tour stops them all ("No more tours"), and
+  Preferences turns them back on.
 - **Words**: `_('English text')` everywhere; each language's words are keyed by the
   English (`lang/<locale>.json`), the server's in `lang/<locale>/*.php`, the manuals and
   the privacy page in `resources/views/`. Other languages are written natively, never

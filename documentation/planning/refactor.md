@@ -127,8 +127,13 @@ decision taken on the way is listed below for review.
   a choice, their browser's when the platform has it, else English. English, Spanish, French, Portuguese (Brazil) and Italian,
   each written natively. Adding one is its line in `config/app.php` with its words and
   guides; tests refuse a language with a word, a blank or a guide missing.
-- **Demo data covers every kind of file**: the seeder shares photos, videos, audio and
-  documents, so every viewer and list can be tried without uploading.
+- **Demo data to try and to show every feature**: three projects at three stages (ranking
+  its units, its lottery run, being set up), with sites drawn floor by floor, families
+  of Uruguayan names, events people answered, forum topics, pending invitations, and
+  files of every kind, so nothing needs creating first.
+- **Media**: the gallery holds photos and videos; recordings sit with the documents, in
+  Files, as the project's records (minutes read aloud, a committee's message), each
+  playing in its row (pause, position, speed) without opening it.
 - **Quick actions**: a "+" menu in the top bar with what the person may do (invite,
   share files, create an event, …), as a shortcut: every action stays where it lives.
 - **Institution line**: a line under the brand naming the institution ("FING ≒ UDELAR"),
@@ -156,6 +161,10 @@ decision taken on the way is listed below for review.
   `OWNER_NAME`) create it; without them the site shows only that it is under
   construction. Where demo data is seeded, its first account is the owner. For now an
   owner is a superadmin like any other (`users.is_owner` keeps the door open).
+- **Dev and staging run on demo data.** Every deploy to dev starts its database and
+  uploaded files over with the demo data; staging starts over only by hand (the console's
+  Deployments page, or the `fresh` workflow), at least once, then keeps its data across
+  deploys. Production never starts over.
 - **The lottery takes its time.** Solving stays as fast as it is; people see the
   lottery work, step by step (reading the preferences, weighing each type, finding the
   assignment, checking it), for at least the time superadmins set in the platform
@@ -364,8 +373,8 @@ decision taken on the way is listed below for review.
     - Units drawn as a very light, much simplified house plan (rooms, kitchen, bathroom),
       recognisable as one, never fighting the name.
     - Every page a (?) by its title: the page's core in a short paragraph and its tour.
-      For new people tours run as they arrive at each page, easily dismissed; dismissing
-      one offers once to show no more (the (?) still has them). The tour blurs the rest of
+      For new people tours run as they arrive at each page, easily dismissed; every tour
+      offers to show no more, and Preferences turns them back on (the (?) still has them). The tour blurs the rest of
       the page a little; a subtler outline.
     - Agreed ideas, built (see technical/data.md and notifications.md): the app installs
       on devices; production's database and files pulled every night to the author's

@@ -14,7 +14,8 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 
 /**
- * Files shared in a project: the gallery (images and videos), audio and documents.
+ * Files shared in a project: the gallery (images and videos), and the files (documents and
+ * audio: the project's records).
  */
 class MediaController extends Controller
 {
@@ -68,9 +69,7 @@ class MediaController extends Controller
         $this->authorize('create', [Media::class, $project]);
 
         $stored = $this->media->store($project, $request->user(), $request->file('files'), $request->validated('description'));
-        $category = count($stored) === 1 && $stored[0]->category === MediaCategory::DOCUMENT ? MediaCategory::DOCUMENT->value : null;
-
-        return to_route('media.index', array_filter(['category' => $category]))
+        return to_route('media.index', count($stored) === 1 ? $this->tab($stored[0]) : [])
             ->with('success', trans_choice('flash.media_uploaded', count($stored), ['count' => count($stored)]));
     }
 
@@ -88,11 +87,11 @@ class MediaController extends Controller
     {
         $this->authorize('delete', $media);
 
-        $category = $media->category === MediaCategory::DOCUMENT ? MediaCategory::DOCUMENT->value : null;
+        $tab = $this->tab($media);
 
         $this->media->delete($media);
 
-        return to_route('media.index', array_filter(['category' => $category]))
+        return to_route('media.index', $tab)
             ->with('success', __('flash.media_deleted'));
     }
 
@@ -125,10 +124,10 @@ class MediaController extends Controller
         ];
     }
 
-    /** The tab a file is listed under (documents apart) */
+    /** The tab a file is listed under: the gallery, or the files (documents and audio) */
     private function tab(Media $media): array
     {
-        return $media->category === MediaCategory::DOCUMENT ? ['category' => MediaCategory::DOCUMENT->value] : [];
+        return $media->isVisual() ? [] : ['category' => MediaCategory::FILES->value];
     }
 
     /**

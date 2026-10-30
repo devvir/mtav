@@ -3,6 +3,7 @@ import { DeleteAccount } from '@/components/account/DeleteAccount';
 import { DeviceNotifications } from '@/components/account/DeviceNotifications';
 import { LanguageSettings } from '@/components/account/LanguageSettings';
 import { PasswordForm } from '@/components/account/PasswordForm';
+import { TourSettings } from '@/components/account/TourSettings';
 import { Form, FormActions } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -205,6 +206,10 @@ export default function Profile({ profile, languages, pushKey }: Props) {
             {_('Only on this device.')}
           </Text>
           <AppearanceSettings />
+          <Text fw={650} mt="xl" mb="md">
+            {_('Help')}
+          </Text>
+          <TourSettings />
           {pushKey ? (
             <>
               <Text fw={650} mt="xl" mb="md">

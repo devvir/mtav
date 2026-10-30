@@ -440,12 +440,14 @@ defineTour('platform.deployments', () => [
   {
     target: 'deploy.environments',
     title: _('What runs where'),
-    body: _('Each environment and the release it runs. Rolling back returns to the one before.'),
+    body: _(
+      'Each environment and the release it runs. Rolling back returns to the one before; starting over brings back the demo data.',
+    ),
   },
   {
     target: 'deploy.dev',
     title: _('Trying a branch'),
-    body: _('Deploy any branch to dev, starting from fresh demo data if needed.'),
+    body: _('Deploy any branch to dev. Every deploy starts it over, with the demo data.'),
   },
   {
     target: 'deploy.production',

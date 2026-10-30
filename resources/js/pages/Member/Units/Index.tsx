@@ -22,14 +22,16 @@ interface Props {
   family: { id: number; name: string; unit_type_id: number } | null;
   /** A unit's details, shown over the page (?unit=7) */
   unit: Unit | null;
+  /** Reached at units/edit: the plan opens for drawing */
+  editPlan: boolean;
 }
 
 /**
  * The project's units: where they are on the plan, and by type. Admins add types and units
  * here (dialogs; ?new_type=1 and ?new_unit=1 open them), change or remove a type, and draw
- * the plan in place.
+ * the plan in place (at units/edit, open for drawing from the start).
  */
-export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Props) {
+export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editPlan }: Props) {
   const details = useDetailsInAddress('unit');
   const canManage = usePage().props.project!.can.manage;
   const noUnits = unitTypes.every((type) => !type.units?.length);
@@ -113,6 +115,7 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown }: Pro
               <PlanPanel
                 plan={plan}
                 canEdit={canManage}
+                editAtOnce={editPlan}
                 unitTypes={canManage ? unitTypes : undefined}
                 highlightType={family?.unit_type_id}
                 ownUnit={ownUnit}

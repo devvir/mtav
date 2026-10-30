@@ -93,7 +93,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
         types: _n('{count} type', '{count} types', counts.unit_types),
       }),
       action: _('Set up units'),
-      href: route('units.index'),
+      href: route('units.edit'),
     },
   ];
 

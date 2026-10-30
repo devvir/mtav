@@ -124,3 +124,10 @@ describe('One person drawing it at a time', function () {
         $this->as($this->admin, $this->project)->postJson(route('manage.plan.lock'))->assertStatus(423);
     });
 });
+
+it('opens the plan for drawing at its own address, for its admins only', function () {
+    expect($this->as($this->admin, $this->project)->get(route('units.edit'))->assertOk()->inertiaProps('editPlan'))->toBeTrue()
+        ->and($this->get(route('units.index'))->inertiaProps('editPlan'))->toBeFalse();
+
+    $this->as(aMemberOf(aFamily($this->project)), $this->project)->get(route('units.edit'))->assertForbidden();
+});

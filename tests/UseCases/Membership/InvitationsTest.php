@@ -261,3 +261,12 @@ it('never invites from the member app someone into no family', function () {
 
     expect(Invitation::count())->toBe(0);
 });
+
+it('tells admins, on every page of the project, how many invitations nobody answered yet', function () {
+    invite($this, $this->admin, ['email' => 'one@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+    invite($this, $this->admin, ['email' => 'two@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+
+    expect($this->as($this->admin, $this->project)->get(route('manage.overview'))->inertiaProps('project.pending_invitations'))->toBe(2)
+        // Members are told nothing of it
+        ->and($this->as(aMemberOf($this->family), $this->project)->get(route('projects.show'))->inertiaProps('project.pending_invitations'))->toBeNull();
+});

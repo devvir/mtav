@@ -162,6 +162,19 @@ it('invalidates a run with a reason everyone reads, and runs again', function ()
     expect(LotteryRun::pluck('status')->map->value->sort()->values()->all())->toBe(['completed', 'invalidated']);
 });
 
+it('reads the date and description of a lottery that ran as text, never as a greyed-out form', function () {
+    $this->project->lottery->update(['description' => 'In the common hall, streamed for whoever cannot come.']);
+    lotteryDue($this);
+    $this->as($this->admin);
+
+    runFromUi($this)
+        ->assertSee('The lottery is done')
+        ->assertSee('In the common hall, streamed for whoever cannot come.')
+        ->assertSee('They stay as they were once the lottery ran.')
+        ->assertMissing('[data-tour="lottery.schedule"] textarea')
+        ->assertNoSmoke();
+});
+
 it('shows every family which unit it received', function () {
     lotteryDue($this);
     $this->as($this->admin);

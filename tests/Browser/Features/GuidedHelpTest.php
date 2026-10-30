@@ -118,6 +118,30 @@ it('plays a page\'s tour by itself the first time, and offers once to show no mo
     $page->refresh()->wait(2)->assertDontSee('Step 1 of');
 });
 
+it('stops every tour from any tour, until Preferences turns them back on', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = visit(route('lottery.show', $project));
+    $page->script("() => localStorage.setItem('mtav.tours', 'on')");
+    $page->refresh()
+        ->assertSee('Step 1 of')
+        ->click('No more tours')
+        ->assertDontSee('Step 1 of')
+        ->assertDontSee('Show no more tours?')
+        ->assertSee('Preferences turns them back on');
+
+    // Another page's tour, never seen, does not play either
+    $page->navigate(route('events.index', $project))->wait(2)->assertDontSee('Step 1 of');
+
+    $page->navigate(route('profile.edit', ['section' => 'preferences']))
+        ->click('Guided tours')
+        ->navigate(route('lottery.show', $project))
+        ->assertSee('Step 1 of');
+});
+
 it('offers each page\'s tour from the (?) by its title', function (string $as, string $name, string $topic, string $first) {
     $project = aProject();
     $people = [

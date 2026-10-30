@@ -38,6 +38,8 @@ export interface SharedProps {
     is_approved: boolean;
     approval_requested_at: string | null;
     family: { id: Id; name: string } | null;
+    /** For its admins: the invitations nobody has answered yet */
+    pending_invitations: number | null;
     can: { manage: boolean; invite: boolean; rank: boolean; upload: boolean; approve: boolean };
   } | null;
   notifications: { unread: number } | null;

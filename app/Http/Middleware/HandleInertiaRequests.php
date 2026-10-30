@@ -105,6 +105,7 @@ class HandleInertiaRequests extends Middleware
     private function project(Project $project, User $user): array
     {
         $family = $user->familyIn($project);
+        $manages = $user->can('update', $project);
 
         return [
             'id'                    => $project->id,
@@ -112,8 +113,10 @@ class HandleInertiaRequests extends Middleware
             'is_approved'           => $project->isApproved(),
             'approval_requested_at' => $project->approval_requested_at,
             'family'                => $family ? ['id' => $family->id, 'name' => $family->name] : null,
-            'can'                   => [
-                'manage'  => $user->can('update', $project),
+            // For its admins: the invitations nobody has answered yet (the settings' tab says so)
+            'pending_invitations' => $manages ? $project->invitations()->pending()->count() : null,
+            'can'                 => [
+                'manage'  => $manages,
                 'invite'  => $user->can('invite', [$project, $family]),
                 'rank'    => $user->can('rankUnits', $project),
                 'upload'  => $user->can('create', [Media::class, $project]),

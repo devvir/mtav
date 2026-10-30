@@ -177,26 +177,45 @@ export function LotteryAdminTools({
           icon={IconCalendarEvent}
           data-tour="lottery.schedule"
         >
-          <Form onSubmit={saveSchedule}>
-            <DateTimeField
-              label={_('Date')}
-              description={_('The earliest it can run')}
-              disabled={Boolean(status)}
-              {...dateTime(schedule, 'start_date')}
-            />
-            <Textarea
-              label={_('Description')}
-              autosize
-              minRows={3}
-              disabled={Boolean(status)}
-              {...field(schedule, 'description')}
-            />
-            <Group justify="flex-end">
-              <Button type="submit" loading={schedule.processing} disabled={Boolean(status)}>
-                {_('Save')}
-              </Button>
-            </Group>
-          </Form>
+          {status ? (
+            // Run (or running): fixed, so read as text, never as a greyed-out form
+            <Stack gap="md">
+              <div>
+                <Text className="ds-label">{_('Date')}</Text>
+                <Text mt={4}>
+                  {lottery.start_date ? <DateTime value={lottery.start_date} /> : _('Not set')}
+                </Text>
+              </div>
+              <div>
+                <Text className="ds-label">{_('Description')}</Text>
+                <Text mt={4} style={{ whiteSpace: 'pre-line' }}>
+                  {lottery.description}
+                </Text>
+              </div>
+              <Text className="ds-caption">
+                {_('They stay as they were once the lottery ran.')}
+              </Text>
+            </Stack>
+          ) : (
+            <Form onSubmit={saveSchedule}>
+              <DateTimeField
+                label={_('Date')}
+                description={_('The earliest it can run')}
+                {...dateTime(schedule, 'start_date')}
+              />
+              <Textarea
+                label={_('Description')}
+                autosize
+                minRows={3}
+                {...field(schedule, 'description')}
+              />
+              <Group justify="flex-end">
+                <Button type="submit" loading={schedule.processing}>
+                  {_('Save')}
+                </Button>
+              </Group>
+            </Form>
+          )}
         </Panel>
 
         <Panel

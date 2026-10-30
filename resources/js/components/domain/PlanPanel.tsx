@@ -13,7 +13,7 @@ import { Panel } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { sendJson } from '@/lib/json';
 import { connection, heldOffline } from '@/lib/offline';
-import { route } from '@/lib/route';
+import { route, routeIs } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
 import type { Plan, UnitType } from '@/types/models';
@@ -55,9 +55,12 @@ export function PlanPanel({
   ownUnit,
   aside,
   unitTypes,
+  editAtOnce,
 }: {
   plan: Plan;
   canEdit: boolean;
+  /** Reached at its own address (units/edit): drawing from the start */
+  editAtOnce?: boolean;
   /** For admins: units are then added on the plan too */
   unitTypes?: UnitType[];
   highlightType?: number;
@@ -93,9 +96,22 @@ export function PlanPanel({
   const leave = () => {
     setEditing(null);
     void sendJson('DELETE', route('manage.plan.unlock'), {});
-    // The pages that show the plan read it again, as saved
-    router.reload({ only: ['plan'] });
+    // The pages that show the plan read it again, as saved; done at the editor's own
+    // address, back to the plain one
+    if (routeIs('units.edit'))
+      router.visit(route('units.index'), { replace: true, preserveScroll: true });
+    else router.reload({ only: ['plan'] });
   };
+
+  // Its own address opens it for drawing, in view (where drawing can be: a large screen)
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!editAtOnce || !canEdit || !canDraw || opened.current) return;
+    opened.current = true;
+    void start().then(() =>
+      document.querySelector('.plan-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
+  });
 
   const done = async () => {
     // What is pending goes first; only what could not be saved asks

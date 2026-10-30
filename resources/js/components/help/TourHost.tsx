@@ -1,4 +1,6 @@
+import { route } from '@/lib/route';
 import { useStore } from '@/lib/store';
+import { toast } from '@/lib/toasts';
 import {
   currentStep,
   findTarget,
@@ -177,18 +179,39 @@ export function TourHost() {
               <IconX size={18} />
             </ActionIcon>
           </Group>
-          <Group justify="space-between" mt="md">
-            <Button variant="subtle" size="xs" disabled={state.index === 0} onClick={previousStep}>
-              {_('Back')}
+          <Group justify="space-between" mt="md" gap="xs">
+            <Button variant="subtle" color="gray" size="xs" px={6} onClick={endAllTours}>
+              {_('No more tours')}
             </Button>
-            <Button size="xs" onClick={nextStep}>
-              {last ? _('Done') : _('Next')}
-            </Button>
+            <Group gap="xs">
+              <Button
+                variant="subtle"
+                size="xs"
+                disabled={state.index === 0}
+                onClick={previousStep}
+              >
+                {_('Back')}
+              </Button>
+              <Button size="xs" onClick={nextStep}>
+                {last ? _('Done') : _('Next')}
+              </Button>
+            </Group>
           </Group>
         </div>
       </div>
     </Portal>
   );
+}
+
+/** From any tour: this one ends, and none plays by itself again (Preferences turns them back on) */
+function endAllTours() {
+  stopTour();
+  noMoreTours();
+  toast({
+    tone: 'info',
+    message: _('No more tours. Preferences turns them back on.'),
+    href: route('profile.edit', { section: 'preferences' }),
+  });
 }
 
 /** Asked once, after the first tour someone ended early: whether to show no more */

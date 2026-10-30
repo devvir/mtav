@@ -68,6 +68,7 @@ return [
     'deploy_dev'              => 'Dev est en cours de déploiement depuis :branch. Suivez-le ci-dessous.',
     'deploy_production'       => 'La production est en cours de déploiement : elle attend l’approbation sur GitHub.',
     'deploy_rollback'         => ':environment revient à la version précédente.',
+    'deploy_fresh'            => ':environment repart de zéro, avec les données de démo. Suivez-le ci-dessous.',
     'deploy_refused'          => 'GitHub ne l’a pas lancé (:status). Vérifiez le jeton de déploiement.',
     'upload_too_large'        => 'C’était trop à envoyer d’un coup : partagez moins de fichiers, ou des plus légers.',
     'platform_settings_saved' => 'Les réglages de la plateforme ont été enregistrés.',

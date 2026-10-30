@@ -56,13 +56,16 @@ class Media extends Model
     }
 
     /**
-     * Filter by category; VISUAL means images and videos.
+     * Filter by category; MEDIA means images and videos (the gallery), FILES documents and
+     * audio.
      */
     public function scopeCategory(Builder $query, MediaCategory $category): void
     {
-        $category === MediaCategory::MEDIA
-            ? $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO, MediaCategory::AUDIO])
-            : $query->where('category', $category);
+        match ($category) {
+            MediaCategory::MEDIA => $query->whereIn('category', [MediaCategory::IMAGE, MediaCategory::VIDEO]),
+            MediaCategory::FILES => $query->whereIn('category', [MediaCategory::DOCUMENT, MediaCategory::AUDIO]),
+            default              => $query->where('category', $category),
+        };
     }
 
     public function scopeSearch(Builder $query, string $q): void

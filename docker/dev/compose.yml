@@ -9,13 +9,36 @@
 name: mtav-dev
 
 include:
-  - ../services/php/compose.yml
   - ../services/nginx/compose.yml
   - ../services/mysql/compose.yml
   - ../services/assets/compose.yml
   - ../services/mailpit/compose.yml
 
 services:
+  # Jobs wait their time (a lottery's reveal) and run apart, in the worker, as on a
+  # server; the root .env's queue (the tests' too) stays as it is
+  php:
+    extends:
+      file: ../services/php/compose.yml
+      service: php
+    environment:
+      QUEUE_CONNECTION: database
+
+  # Works the queue as on a server (deploy/slot.yml): a lottery run, the reveal it waits
+  # for, mail. queue:listen takes each job with the code as it is now, edits included.
+  worker:
+    extends:
+      file: ../services/php/compose.yml
+      service: php
+    command: php artisan queue:listen --tries=3 --timeout=600
+    environment:
+      QUEUE_CONNECTION: database
+    healthcheck:
+      disable: true
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   # Reverb touches the database at boot, so unlike php-fpm (which only
   # connects per-request) it needs mysql up before starting.
   reverb:

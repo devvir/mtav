@@ -46,7 +46,7 @@ export function QuickActions() {
           },
           {
             label: _('Set up units'),
-            href: route('units.index', at),
+            href: route('units.edit', at),
             icon: IconHomePlus,
           },
           {

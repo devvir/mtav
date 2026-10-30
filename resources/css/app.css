@@ -637,6 +637,10 @@
   .dashboard-pair {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* Side by side, both open, they end on one line (one folded keeps to its title) */
+  .dashboard-pair:not(:has(> [data-folded])) {
+    align-items: stretch;
+  }
 }
 .text-positive {
   color: var(--mtav-positive);
@@ -705,6 +709,49 @@
 }
 .media-tile:hover img {
   transform: scale(1.05);
+}
+.file-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.file-kind {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--mtav-brand-soft);
+  color: var(--mtav-brand);
+}
+.file-name {
+  display: block;
+  overflow: hidden;
+  font-weight: 650;
+  color: inherit;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-name:hover {
+  text-decoration: underline;
+}
+.audio-controls {
+  padding-left: 56px;
+}
+.audio-time {
+  min-width: 2.6em;
+  font-variant-numeric: tabular-nums;
+}
+.audio-speed {
+  min-width: 3.4em;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 36em) {
+  .audio-controls {
+    padding-left: 0;
+  }
 }
 .media-kind {
   display: flex;
@@ -1688,6 +1735,18 @@ html[data-carrying] * {
   transition:
     color 160ms ease,
     border-color 160ms ease;
+}
+.settings-tab-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--mtav-brand-soft);
+  color: var(--mtav-brand);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .settings-tab:hover {
   color: var(--mtav-text);

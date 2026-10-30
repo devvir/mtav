@@ -1,6 +1,6 @@
 import { route, routeIs } from '@/lib/route';
-import { _ } from '@/lib/translations';
-import { Link } from '@inertiajs/react';
+import { _, _n } from '@/lib/translations';
+import { Link, usePage } from '@inertiajs/react';
 import { IconGauge, IconMail, IconSettings } from '@tabler/icons-react';
 
 /**
@@ -8,6 +8,7 @@ import { IconGauge, IconMail, IconSettings } from '@tabler/icons-react';
  * and the project itself. Each is its own page (its own address); these lead between them.
  */
 export function SettingsTabs() {
+  const pending = usePage().props.project?.pending_invitations ?? 0;
   const tabs = [
     {
       label: _('Setup'),
@@ -20,6 +21,7 @@ export function SettingsTabs() {
       href: route('manage.invitations.index'),
       icon: IconMail,
       active: routeIs('manage.invitations.*'),
+      count: pending,
     },
     {
       label: _('Project'),
@@ -31,7 +33,7 @@ export function SettingsTabs() {
 
   return (
     <nav className="settings-tabs" aria-label={_('Settings')}>
-      {tabs.map(({ label, href, icon: Icon, active }) => (
+      {tabs.map(({ label, href, icon: Icon, active, count }) => (
         <Link
           key={href}
           href={href}
@@ -41,6 +43,14 @@ export function SettingsTabs() {
         >
           <Icon size={18} />
           {label}
+          {count ? (
+            <span
+              className="settings-tab-count"
+              aria-label={_n('{count} invitation pending', '{count} invitations pending', count)}
+            >
+              {count}
+            </span>
+          ) : null}
         </Link>
       ))}
     </nav>

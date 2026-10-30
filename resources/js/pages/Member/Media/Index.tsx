@@ -1,3 +1,4 @@
+import { FileList } from '@/components/domain/FileList';
 import { MediaDetails } from '@/components/domain/MediaDetails';
 import { MediaGrid } from '@/components/domain/MediaGrid';
 import { FilterTabs } from '@/components/feedback/FilterTabs';
@@ -21,7 +22,7 @@ import { useState } from 'react';
 
 interface Props {
   media: Paginated<Media>;
-  category: 'media' | 'document';
+  category: 'media' | 'files';
   filters: { q: string | null };
   storage: { used_mb: number; limit_mb: number } | null;
   /** What may be shared, for those who may (the share dialog, ?share=1) */
@@ -70,7 +71,7 @@ export default function MediaIndex({
 
   const tabs = [
     { value: 'media', label: _('Media') },
-    { value: 'document', label: _('Files') },
+    { value: 'files', label: _('Files') },
   ];
 
   return (
@@ -78,7 +79,9 @@ export default function MediaIndex({
       <PageHeader
         tour="member.files"
         title={_('Media')}
-        description={_('Photos, videos, documents and audio shared in the project.')}
+        description={_(
+          "The project's photos and videos, and its records: documents and recordings.",
+        )}
         help={
           <InfoTip title={_('About files')} tour="member.files">
             {_(
@@ -110,7 +113,11 @@ export default function MediaIndex({
         <QuerySearch value={filters.q} />
       </Group>
       {media.data.length ? (
-        <MediaGrid media={media.data} />
+        category === 'files' ? (
+          <FileList media={media.data} />
+        ) : (
+          <MediaGrid media={media.data} />
+        )
       ) : (
         <EmptyState icon={IconPhoto} title={_('Nothing here yet')}>
           {canUpload ? _('Be the first to share something.') : null}

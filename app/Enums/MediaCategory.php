@@ -9,6 +9,9 @@ enum MediaCategory: string
     case IMAGE = 'image';
     case VIDEO = 'video';
 
-    /** Not stored: a filter meaning photos, videos and audio (the media tab; documents have theirs) */
+    /** Not stored: a filter meaning photos and videos (the gallery) */
     case MEDIA = 'media';
+
+    /** Not stored: a filter meaning documents and audio (the files tab: the project's records) */
+    case FILES = 'files';
 }
