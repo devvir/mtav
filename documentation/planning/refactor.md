@@ -131,6 +131,14 @@ decision taken on the way is listed below for review.
   its units, its lottery run, being set up), with sites drawn floor by floor, families
   of Uruguayan names, events people answered, forum topics, pending invitations, and
   files of every kind, so nothing needs creating first.
+- **Next, agreed in outline**:
+  - *A directory of projects*, linked from the project selector: admins choose whether
+    their project is listed, and whether joining is open or by request (admins accept or
+    decline). Still to settle: whether someone who joins enters without a family, or
+    creates theirs.
+  - *Who can do what, and project types*: most features on or off per project, and
+    predefined types of project that set them all at once; the housing cooperative
+    (MTAV) is the type with everything.
 - **Text size**: each person picks Small, Medium or Large (Preferences, kept on the
   device, there from the first paint); everything is sized from it (the root's font size,
   sizes in rem). Medium, the default, is a fifth larger than the browser's own: many
