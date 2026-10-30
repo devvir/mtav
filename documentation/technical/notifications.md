@@ -16,6 +16,9 @@ notification on their devices, and email.
 | A project started, or asking to be unlimited | the platform's superadmins |
 | A project made unlimited | everyone in it |
 
+Chat messages are not notifications: they reach the others live and on their devices, and
+the sidebar counts what is unread ([architecture.md](architecture.md)).
+
 People see notifications from when their account began; an archived project's go with
 it. Whoever caused one gets no push for it.
 

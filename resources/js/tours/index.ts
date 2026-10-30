@@ -490,3 +490,21 @@ defineTour('member.forum', () => [
     ),
   },
 ]);
+
+defineTour('member.chat', () => [
+  {
+    target: 'chat.new',
+    title: _('Talk with anyone in the project'),
+    body: _('Pick one person for a private conversation, or several for a group with its name.'),
+  },
+  {
+    target: 'chat.list',
+    title: _('Your conversations'),
+    body: _('The latest first; a dot marks those with something new. Nobody else reads them.'),
+  },
+  {
+    target: 'chat.composer',
+    title: _('Writing'),
+    body: _('Enter sends; Shift and Enter start a new line. The others see it at once.'),
+  },
+]);

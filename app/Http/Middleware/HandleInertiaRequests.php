@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Conversation;
 use App\Models\Media;
 use App\Models\Notification;
 use App\Models\Project;
@@ -106,6 +107,7 @@ class HandleInertiaRequests extends Middleware
     {
         $family = $user->familyIn($project);
         $manages = $user->can('update', $project);
+        $inChat = (bool) $user->membershipIn($project);
 
         return [
             'id'                    => $project->id,
@@ -115,12 +117,15 @@ class HandleInertiaRequests extends Middleware
             'family'                => $family ? ['id' => $family->id, 'name' => $family->name] : null,
             // For its admins: the invitations nobody has answered yet (the settings' tab says so)
             'pending_invitations' => $manages ? $project->invitations()->pending()->count() : null,
-            'can'                 => [
+            // The conversations with something new for them (the chat's place says so)
+            'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
+            'can'             => [
                 'manage'  => $manages,
                 'invite'  => $user->can('invite', [$project, $family]),
                 'rank'    => $user->can('rankUnits', $project),
                 'upload'  => $user->can('create', [Media::class, $project]),
                 'approve' => $user->can('approve', $project),
+                'chat'    => $inChat,
             ],
         ];
     }

@@ -8,6 +8,7 @@ import {
   IconDice5,
   IconHome,
   IconLayoutGrid,
+  IconMessageCircle,
   IconMessages,
   IconPhoto,
   IconSettings,
@@ -20,7 +21,12 @@ import { useEffect, useMemo, type ReactNode } from 'react';
  * A project's places, the lottery first after home: the shell's main group, here and on
  * the account's pages (which pass the project, not being inside it).
  */
-export function projectPlaces(project: { id: number; family?: unknown }): NavEntry[] {
+export function projectPlaces(project: {
+  id: number;
+  family?: unknown;
+  unread_messages?: number | null;
+  can?: { chat?: boolean };
+}): NavEntry[] {
   const at = { project: project.id };
 
   return [
@@ -67,6 +73,18 @@ export function projectPlaces(project: { id: number; family?: unknown }): NavEnt
       icon: IconMessages,
       active: routeIs('forum.*'),
     },
+    // Only for those with a place in the project (a superadmin overseeing it has none)
+    ...(project.can?.chat
+      ? [
+          {
+            label: _('Messages'),
+            href: route('chat.index', at),
+            icon: IconMessageCircle,
+            active: routeIs('chat.*'),
+            count: project.unread_messages ?? undefined,
+          },
+        ]
+      : []),
     ...(project.family
       ? [
           {
@@ -129,7 +147,15 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
           ]
         : [[], []],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [id, project?.name, manages, hasFamily, props.ziggy.name, props.locale],
+    [
+      id,
+      project?.name,
+      manages,
+      hasFamily,
+      project?.unread_messages,
+      props.ziggy.name,
+      props.locale,
+    ],
   );
   // Its main places, kept on the device in the background: there offline, even unvisited
   useEffect(() => {

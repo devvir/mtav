@@ -131,11 +131,16 @@ decision taken on the way is listed below for review.
   its units, its lottery run, being set up), with sites drawn floor by floor, families
   of Uruguayan names, events people answered, forum topics, pending invitations, and
   files of every kind, so nothing needs creating first.
+- **Chat**: the people of a project talk one on one or in groups. Only those in a
+  conversation read it, the project's admins and superadmins included (the forum is for
+  what concerns everyone). Messages reach the others live and on their devices, never in
+  the bell; the sidebar counts the conversations with something new.
 - **Next, agreed in outline**:
   - *A directory of projects*, linked from the project selector: admins choose whether
     their project is listed, and whether joining is open or by request (admins accept or
-    decline). Still to settle: whether someone who joins enters without a family, or
-    creates theirs.
+    decline). Whoever joins this way creates their family, or stays without one until
+    someone of their family adds them: being in the project already, they enter that
+    family at once, told in the app and by email (no invitation to accept).
   - *Who can do what, and project types*: most features on or off per project, and
     predefined types of project that set them all at once; the housing cooperative
     (MTAV) is the type with everything.
