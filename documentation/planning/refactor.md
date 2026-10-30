@@ -205,7 +205,8 @@ decision taken on the way is listed below for review.
 - **Refactor in place**, not a rewrite in another stack.
 - **Memberships.** `memberships(user, project, family?, is_admin)`, one per user and
   project. An admin may also belong to a family of the same project (a cooperative's
-  admin is often a cooperativist too); a member without `is_admin` must have a family.
+  admin is often a cooperativist too); someone may also be in with neither, having joined
+  from the directory, until they have a family.
   `users.is_superadmin` replaces the `SUPERADMINS` env list (granted with an artisan
   command). The Admin/Member model subclasses go.
 - **Project in the URL** (`/projects/{project}/families/…`) instead of a "current
