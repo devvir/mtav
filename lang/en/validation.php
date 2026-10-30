@@ -242,4 +242,5 @@ return [
     'limit_invitations' => 'For now this project can send up to :max invitations a day: ask for unlimited to lift it.',
     'limit_storage'     => 'For now this project has room for :max MB of files: ask for unlimited to lift it.',
     'image_too_large'   => 'Images up to :max megapixels can be shared; this one has more.',
+    'chat_people'       => 'Choose people of the project to talk with.',
 ];

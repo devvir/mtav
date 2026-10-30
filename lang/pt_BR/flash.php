@@ -77,4 +77,5 @@ return [
     'topic_opened'            => 'Seu tópico está aberto.',
     'topic_removed'           => 'O tópico foi removido.',
     'error_solved'            => 'Marcado como resolvido.',
+    'conversation_left'       => 'Você saiu da conversa.',
 ];

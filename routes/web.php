@@ -152,6 +152,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
             Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
 
+            /** The chat: conversations between its people, one on one or in groups */
+            Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
+            Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
+            Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
+            Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
+            Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
+            Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
+            Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+
             /** The forum: topics, each a conversation */
             Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
             Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');

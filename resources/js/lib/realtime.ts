@@ -3,7 +3,9 @@ import type { RealtimeServer } from '@/types/page';
 import { router, usePage } from '@inertiajs/react';
 import { configureEcho, echo } from '@laravel/echo-react';
 import { useEffect, useEffectEvent } from 'react';
+import { route, routeIs } from './route';
 import { toast } from './toasts';
+import { _ } from './translations';
 
 let server: RealtimeServer | null = null;
 
@@ -103,4 +105,57 @@ export function useLiveNotifications() {
       channels.forEach((name) => echo().private(name).stopListening('.notification'));
     };
   }, [user?.id, user?.is_superadmin, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+interface MessageArrived {
+  conversation_id: number;
+  message_id: number;
+  by: number | null;
+  author: string | null;
+}
+
+/**
+ * Chat messages as they arrive (the shell, once): on the chat's page, its conversations
+ * and the one open (read as it shows); anywhere else, the chat's count of the unread, and
+ * a toast saying who wrote.
+ */
+export function useLiveMessages() {
+  const { props } = usePage();
+  const user = props.auth.user;
+  const project = props.project;
+  const onMessage = useEffectEvent((message: MessageArrived) => {
+    if (message.by === user?.id) return;
+    if (routeIs('chat.*')) {
+      const open = (props as { conversation?: { id: number } | null }).conversation?.id;
+      router.reload({
+        only: [
+          'conversations',
+          'project',
+          ...(open === message.conversation_id ? ['messages'] : []),
+        ],
+      });
+      return;
+    }
+    router.reload({ only: ['project'] });
+    toast({
+      tone: 'info',
+      live: true,
+      message: message.author
+        ? _('New message from {name}', { name: message.author })
+        : _('New message'),
+      href: project
+        ? route('chat.show', { project: project.id, conversation: message.conversation_id })
+        : null,
+    });
+  });
+
+  useEffect(() => {
+    if (!user || !project?.can.chat || !realtimeEnabled()) return undefined;
+    const channel = `users.${user.id}`;
+    echo().private(channel).listen('.message', onMessage);
+
+    return () => {
+      echo().private(channel).stopListening('.message');
+    };
+  }, [user?.id, project?.id, project?.can.chat]); // eslint-disable-line react-hooks/exhaustive-deps
 }

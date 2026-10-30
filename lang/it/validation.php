@@ -242,4 +242,5 @@ return [
     'limit_invitations' => 'Per ora questo progetto può inviare fino a :max inviti al giorno: chiedi illimitato per togliere il limite.',
     'limit_storage'     => 'Per ora questo progetto ha spazio per :max MB di file: chiedi illimitato per togliere il limite.',
     'image_too_large'   => 'Si possono condividere immagini fino a :max megapixel; questa ne ha di più.',
+    'chat_people'       => 'Scegli persone del progetto con cui parlare.',
 ];

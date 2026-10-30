@@ -242,4 +242,5 @@ return [
     'limit_invitations' => 'Pour l’instant, ce projet peut envoyer jusqu’à :max invitations par jour : demandez l’illimité pour lever la limite.',
     'limit_storage'     => 'Pour l’instant, ce projet peut accueillir :max Mo de fichiers : demandez l’illimité pour lever la limite.',
     'image_too_large'   => 'Les images peuvent avoir jusqu’à :max mégapixels ; celle-ci en a davantage.',
+    'chat_people'       => 'Choisissez des personnes du projet avec qui échanger.',
 ];

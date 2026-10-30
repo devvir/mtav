@@ -2,7 +2,7 @@ import { TourHost } from '@/components/help/TourHost';
 import { OfflineStatus } from '@/components/layout/OfflineStatus';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Logo, NavItem, PersonAvatar } from '@/design';
-import { useLiveNotifications } from '@/lib/realtime';
+import { useLiveMessages, useLiveNotifications } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { Link, router } from '@inertiajs/react';
@@ -202,6 +202,7 @@ export function AppShell({
   const [drawer, { open, close }] = useDisclosure(false);
 
   useLiveNotifications();
+  useLiveMessages();
   useFlashToasts();
   useEffect(() => router.on('navigate', close), [close]);
 
