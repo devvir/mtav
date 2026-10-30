@@ -346,6 +346,10 @@ run_e2e_suite() {
         return 1
     fi
 
+    # Public files (avatars) are served through public/storage, as in every deployment;
+    # a fresh checkout (CI) has no link yet
+    cexec e2e e2e php artisan storage:link --relative --no-interaction --force > /dev/null
+
     echo ""
     echo -e "${BLUE}Building assets...${NC}"
     if ! cexec e2e e2e pnpm run build; then

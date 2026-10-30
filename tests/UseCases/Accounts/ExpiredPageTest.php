@@ -16,3 +16,8 @@ it('sends someone back to try again when their page was open too long', function
         ->assertRedirect(route('profile.edit'))
         ->assertSessionHas('error', __('flash.page_expired'));
 });
+
+it('refuses an address it has nothing at, such as a missing file, never failing on it', function () {
+    expect($this->get('/storage/avatars/gone.webp')->status())->toBeIn([403, 404]);
+    $this->get('/no/such/place')->assertNotFound();
+});
