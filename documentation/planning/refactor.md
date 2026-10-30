@@ -205,8 +205,8 @@ decision taken on the way is listed below for review.
 - **Refactor in place**, not a rewrite in another stack.
 - **Memberships.** `memberships(user, project, family?, is_admin)`, one per user and
   project. An admin may also belong to a family of the same project (a cooperative's
-  admin is often a cooperativist too); someone may also be in with neither, having joined
-  from the directory, until they have a family.
+  admin is often a cooperativist too). Someone with neither is a guest, where the project
+  allows guests (see item 20).
   `users.is_superadmin` replaces the `SUPERADMINS` env list (granted with an artisan
   command). The Admin/Member model subclasses go.
 - **Project in the URL** (`/projects/{project}/families/…`) instead of a "current
@@ -421,3 +421,18 @@ decision taken on the way is listed below for review.
       nothing about room; only "Limited" is ever said.
     - Notifications reach people's devices (Web Push), each in its reader's language
       (notifications keep translation keys and values, written out per reader).
+20. **The author's review of 2026-10-30 (evening)**:
+    - Optional features are on or off per project: forum, chat, gallery, files, events (the
+      lottery stays, even with events off). White-label options are per deployment, and
+      decide which of these a project is even offered.
+    - Guests, people in a project who are neither in a family nor admins, are a project
+      setting, considered together with being listed. Rules being settled with the author.
+    - Superadmins can do whatever an admin can, in any project: hidden, de facto admins.
+    - Admins never correct a person's name or email: it is the person's own.
+    - New events, files, families and units notify people.
+    - Text size, language and light or dark sit in the header on larger screens, each a small
+      dropdown of its options, apart from the notifications and the avatar.
+    - A language picked stays picked in the browser, signed in or not, across deploys.
+    - The chat: on tablets and up, an icon at the bottom left rather than a sidebar item;
+      groups (more than two people) have names and sit apart from one-on-one chats; every
+      project has a Community group with everyone in it.
