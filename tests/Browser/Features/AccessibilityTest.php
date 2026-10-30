@@ -63,12 +63,12 @@ it('sizes everything from the text size each person picks, a fifth larger than t
     $page = visit(route('profile.edit', ['section' => 'preferences']));
     expect($root($page))->toBe('19.2px');
 
-    $page->click('Large');
+    $page->click('button:has-text("Large")');
     expect($root($page))->toBe('22.4px');
 
     // Kept on the device, there from the first paint
     expect($root($page->refresh()))->toBe('22.4px');
 
-    $page->click('Small');
+    $page->click('button:has-text("Small")');
     expect($root($page))->toBe('16px');
 });
