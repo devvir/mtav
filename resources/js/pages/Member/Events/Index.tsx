@@ -33,6 +33,7 @@ export default function EventsIndex({ events, filters, event: shown }: Props) {
   return (
     <>
       <PageHeader
+        tour="member.events"
         title={_('Events')}
         actions={
           canManage ? (

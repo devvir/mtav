@@ -690,5 +690,10 @@
   "Hello!": "Ciao!",
   "Regards,": "Un saluto,",
   "All rights reserved.": "Tutti i diritti riservati.",
-  "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Se il pulsante «:actionText» non funziona, copia e incolla questo indirizzo nel browser:"
+  "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Se il pulsante «:actionText» non funziona, copia e incolla questo indirizzo nel browser:",
+  "Tours": "Tour",
+  "Show no more tours?": "Non mostrare più i tour?",
+  "You can always take one from the ? by each page's title.": "Puoi sempre farne uno dal ? accanto al titolo di ogni pagina.",
+  "Keep showing them": "Continua a mostrarli",
+  "No more tours": "Niente più tour"
 }

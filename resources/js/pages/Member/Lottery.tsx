@@ -110,6 +110,7 @@ export default function Lottery({
   return (
     <>
       <PageHeader
+        tour="member.ranking"
         title={_('Lottery')}
         description={lottery.description}
         help={

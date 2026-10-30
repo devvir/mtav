@@ -170,6 +170,7 @@ export default function PlatformProjects({ projects, counts, filters }: Props) {
   return (
     <>
       <PageHeader
+        tour="platform.approvals"
         title={_('Projects')}
         description={_('Every project on the platform.')}
         help={

@@ -450,17 +450,28 @@
   left: 0;
   pointer-events: none;
   border-radius: 14px;
-  box-shadow:
-    0 0 0 4px var(--mtav-brand),
-    0 0 0 9999px rgb(0 0 0 / 55%);
+  /* A subtle outline: the blur around it does the pointing */
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mtav-brand) 60%, transparent);
   /* Placed by a transform, following its element frame by frame: no easing to lag behind */
   will-change: transform;
 }
+/* The rest of the page while a tour shows something: a little blurred, a little dimmed */
 .tour-dim {
   position: absolute;
-  inset: 0;
   pointer-events: none;
-  background: rgb(0 0 0 / 55%);
+  background: rgb(0 0 0 / 35%);
+  backdrop-filter: blur(2px);
+}
+.tour-offer {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 400;
+  width: min(360px, calc(100vw - 32px));
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: var(--mantine-shadow-xl);
+  animation: plan-hint-in 220ms ease-out;
 }
 .tour-card {
   position: absolute;

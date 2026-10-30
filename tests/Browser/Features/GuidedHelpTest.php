@@ -71,3 +71,22 @@ it('finishes a tour on its last step', function () {
         ->click('Done')
         ->assertDontSee('Step 4 of 4');
 });
+
+it('plays a page\'s tour by itself the first time, and offers once to show no more', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = visit(route('lottery.show', $project));
+    $page->script("() => localStorage.setItem('mtav.tours', 'on')");
+    $page->refresh()
+        ->assertSee('Step 1 of')
+        ->click('[aria-label="End the tour"]')
+        ->assertSee('Show no more tours?')
+        ->click('No more tours')
+        ->assertDontSee('Show no more tours?');
+
+    // Seen, and no more asked for: it does not come back
+    $page->refresh()->wait(2)->assertDontSee('Step 1 of');
+});

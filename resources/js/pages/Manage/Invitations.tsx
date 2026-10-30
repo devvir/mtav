@@ -61,6 +61,7 @@ export default function ManageInvitations({ invitations, families, limits }: Pro
   return (
     <>
       <PageHeader
+        tour="manage.invitations"
         title={_('Invitations')}
         description={_('People join the project from the link they receive by email.')}
         help={

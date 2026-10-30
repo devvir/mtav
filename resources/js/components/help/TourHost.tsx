@@ -1,5 +1,14 @@
 import { useStore } from '@/lib/store';
-import { currentStep, findTarget, nextStep, previousStep, stopTour, tourState } from '@/lib/tour';
+import {
+  currentStep,
+  findTarget,
+  keepTours,
+  nextStep,
+  noMoreTours,
+  previousStep,
+  stopTour,
+  tourState,
+} from '@/lib/tour';
 import { _ } from '@/lib/translations';
 import { router } from '@inertiajs/react';
 import { ActionIcon, Button, Group, Portal, Text } from '@mantine/core';
@@ -78,9 +87,10 @@ export function TourHost() {
     };
   }, [step, measure]);
 
-  useEffect(() => router.on('navigate', () => stopTour()), []);
+  // Leaving the page is no dismissal: the tour simply ends
+  useEffect(() => router.on('navigate', () => stopTour({ finished: true })), []);
 
-  if (!step) return null;
+  if (!step) return state.offer ? <TourOffer /> : null;
 
   const last = state.index === state.steps.length - 1;
 
@@ -99,18 +109,47 @@ export function TourHost() {
     <Portal>
       <div className="tour" style={{ position: 'fixed', inset: 0, zIndex: 400 }}>
         {/* A click outside ends the tour */}
-        <div style={{ position: 'absolute', inset: 0 }} onClick={stopTour} />
+        <div style={{ position: 'absolute', inset: 0 }} onClick={() => stopTour()} />
         {rect ? (
-          <div
-            className="tour-spotlight"
-            style={{
-              transform: `translate(${rect.left - PAD}px, ${rect.top - PAD}px)`,
-              width: rect.width + PAD * 2,
-              height: rect.height + PAD * 2,
-            }}
-          />
+          <>
+            {/* The rest of the page, a little blurred and dimmed, in four panes around it */}
+            <div
+              className="tour-dim"
+              style={{ top: 0, left: 0, right: 0, height: Math.max(0, rect.top - PAD) }}
+            />
+            <div
+              className="tour-dim"
+              style={{ top: rect.bottom + PAD, left: 0, right: 0, bottom: 0 }}
+            />
+            <div
+              className="tour-dim"
+              style={{
+                top: rect.top - PAD,
+                left: 0,
+                width: Math.max(0, rect.left - PAD),
+                height: rect.height + PAD * 2,
+              }}
+            />
+            <div
+              className="tour-dim"
+              style={{
+                top: rect.top - PAD,
+                left: rect.right + PAD,
+                right: 0,
+                height: rect.height + PAD * 2,
+              }}
+            />
+            <div
+              className="tour-spotlight"
+              style={{
+                transform: `translate(${rect.left - PAD}px, ${rect.top - PAD}px)`,
+                width: rect.width + PAD * 2,
+                height: rect.height + PAD * 2,
+              }}
+            />
+          </>
         ) : (
-          <div className="tour-dim" />
+          <div className="tour-dim" style={{ inset: 0 }} />
         )}
 
         <div
@@ -134,7 +173,7 @@ export function TourHost() {
                 {step.body}
               </Text>
             </div>
-            <ActionIcon aria-label={_('End the tour')} onClick={stopTour} radius="xl">
+            <ActionIcon aria-label={_('End the tour')} onClick={() => stopTour()} radius="xl">
               <IconX size={18} />
             </ActionIcon>
           </Group>
@@ -147,6 +186,28 @@ export function TourHost() {
             </Button>
           </Group>
         </div>
+      </div>
+    </Portal>
+  );
+}
+
+/** Asked once, after the first tour someone ended early: whether to show no more */
+function TourOffer() {
+  return (
+    <Portal>
+      <div className="tour-offer ds-floating" role="dialog" aria-label={_('Tours')}>
+        <Text fw={700}>{_('Show no more tours?')}</Text>
+        <Text size="sm" c="dimmed" mt={4}>
+          {_("You can always take one from the ? by each page's title.")}
+        </Text>
+        <Group justify="flex-end" gap="xs" mt="md">
+          <Button variant="subtle" size="xs" onClick={keepTours}>
+            {_('Keep showing them')}
+          </Button>
+          <Button size="xs" onClick={noMoreTours}>
+            {_('No more tours')}
+          </Button>
+        </Group>
       </div>
     </Portal>
   );

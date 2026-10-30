@@ -99,6 +99,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
   return (
     <>
       <PageHeader
+        tour="manage.setup"
         title={_('Overview')}
         description={project.name}
         help={

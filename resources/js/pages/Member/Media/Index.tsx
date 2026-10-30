@@ -76,6 +76,7 @@ export default function MediaIndex({
   return (
     <>
       <PageHeader
+        tour="member.files"
         title={_('Media')}
         description={_('Photos, videos, documents and audio shared in the project.')}
         help={
