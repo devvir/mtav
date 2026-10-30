@@ -22,7 +22,7 @@ function notify($test, ?string $url): Notification
         NotificationType::RESOURCE_CREATED,
         'New event: General assembly',
         'On Friday at 10, in the communal hall',
-        $url,
+        url: $url,
         targetId: $test->project->id,
     );
 }

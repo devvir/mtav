@@ -1,3 +1,4 @@
+import type { Notification } from '@/types/models';
 import type { RealtimeServer } from '@/types/page';
 import { router, usePage } from '@inertiajs/react';
 import { configureEcho, echo } from '@laravel/echo-react';
@@ -75,20 +76,26 @@ export function useLiveNotifications() {
     if (projectId) channels.push(`projects.${projectId}`);
     if (user.is_superadmin) channels.push('superadmins');
 
-    const onNotification = (notification: {
-      title: string;
-      message: string;
-      url: string | null;
-    }) => {
-      toast({
-        tone: 'info',
-        live: true,
-        title: notification.title,
-        message: notification.message,
-        href: notification.url,
+    // Only which one arrives: it is fetched in this person's language, then shown
+    const onNotification = ({ id }: { id: number }) =>
+      router.reload({
+        only: ['notifications', 'recentNotifications'],
+        onSuccess: (page) => {
+          const recent = page.props.recentNotifications as
+            { data: Notification[] } | Notification[] | undefined;
+          const notification = (Array.isArray(recent) ? recent : recent?.data)?.find(
+            (one) => one.id === id,
+          );
+          if (!notification) return;
+          toast({
+            tone: 'info',
+            live: true,
+            title: notification.title,
+            message: notification.message,
+            href: notification.url,
+          });
+        },
       });
-      router.reload({ only: ['notifications'] });
-    };
 
     channels.forEach((name) => echo().private(name).listen('.notification', onNotification));
 

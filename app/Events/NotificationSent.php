@@ -43,13 +43,7 @@ class NotificationSent implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        return [
-            'id'         => $this->notification->id,
-            'type'       => $this->notification->type->value,
-            'title'      => $this->notification->data['title'] ?? '',
-            'message'    => $this->notification->data['message'] ?? '',
-            'url'        => $this->notification->data['url'] ?? null,
-            'created_at' => $this->notification->created_at,
-        ];
+        // Only which one: each reader fetches it in their own language
+        return ['id' => $this->notification->id];
     }
 }

@@ -9,11 +9,14 @@ use App\Models\Notification;
 use App\Models\User;
 
 /**
- * Creates in-app notifications and pushes them to whoever is online.
+ * Creates in-app notifications and pushes them to whoever is online. A notification keeps
+ * its words as translation keys and their values: each reader gets it in their language.
  */
 class NotificationService
 {
     /**
+     * @param string $title, $message  Translation keys (a plain text is kept as it is)
+     * @param array<string, string> $params  The values their placeholders take
      * @param string|null $url  What it is about: kept as a path in the app, so that it leads
      *                          there whatever address the app is reached by
      * @param int|null $targetId  The user (private) or project (project) addressed
@@ -23,6 +26,7 @@ class NotificationService
         NotificationType $type,
         string $title,
         string $message,
+        array $params = [],
         ?string $url = null,
         ?User $trigger = null,
         ?int $targetId = null,
@@ -33,7 +37,7 @@ class NotificationService
             'type'         => $type,
             'target'       => $target,
             'target_id'    => $target === NotificationTarget::GLOBAL ? null : $targetId,
-            'data'         => compact('title', 'message', 'url'),
+            'data'         => compact('title', 'message', 'params', 'url'),
             'triggered_by' => $trigger?->id,
         ]);
 

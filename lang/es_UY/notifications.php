@@ -25,6 +25,8 @@ return [
 
     'lottery_failed_title' => 'El sorteo no pudo terminar',
 
+    'lottery_failed_message' => 'Mira en la página del sorteo qué pasó. Se puede volver a hacer.',
+
     'lottery_invalidated_title'   => 'El sorteo fue invalidado',
     'lottery_invalidated_message' => ':name invalidó el sorteo: «:reason». Se volverá a realizar.',
 ];

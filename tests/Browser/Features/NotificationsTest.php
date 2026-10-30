@@ -16,7 +16,7 @@ beforeEach(function () {
         NotificationType::RESOURCE_CREATED,
         'New event: General assembly',
         'On Friday at 10, in the communal hall',
-        route('events.index', $this->project),
+        url: route('events.index', $this->project),
         targetId: $this->project->id,
     );
 
@@ -47,7 +47,7 @@ it('marks every notification read from the bell', function () {
         NotificationType::RESOURCE_CREATED,
         'New file: Minutes',
         'The minutes of the last assembly',
-        route('media.index', $this->project),
+        url: route('media.index', $this->project),
         targetId: $this->project->id,
     );
 

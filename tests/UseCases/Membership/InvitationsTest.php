@@ -232,10 +232,22 @@ it('tells someone who already has an account, in the app and in their language, 
 
     invite($this, $this->admin, ['is_admin' => true, 'family_id' => null])->assertSessionHasNoErrors();
 
-    $notice = App\Models\Notification::for($existing)->sole()->data;
+    $notice = $this->as($existing)->get(route('notifications.index'))->inertiaProps('notifications.data.0');
     expect($notice['title'])->toBe('Te invitaron a un proyecto')
         ->and($notice['message'])->toContain($this->project->name)
         ->and($notice['url'])->toBe(route('projects.index', absolute: false));
+});
+
+it('writes each notification in the language of whoever reads it', function () {
+    $spanish = aMemberOf(aFamily($this->project), ['locale' => 'es_UY']);
+    $french = aMemberOf(aFamily($this->project), ['locale' => 'fr']);
+
+    app(App\Services\LotteryService::class)->invalidate(tap(aLotteryInProgress($this->project))->update(['status' => App\Enums\LotteryRunStatus::COMPLETED]), $this->admin, 'A family was missing');
+
+    $titleFor = fn ($user) => $this->as($user)->get(route('notifications.index'))->inertiaProps('notifications.data.0.title');
+    expect($titleFor($spanish))->toBe(__('notifications.lottery_invalidated_title', [], 'es_UY'))
+        ->and($titleFor($french))->toBe(__('notifications.lottery_invalidated_title', [], 'fr'))
+        ->and(__('notifications.lottery_invalidated_title', [], 'fr'))->not->toBe(__('notifications.lottery_invalidated_title', [], 'es_UY'));
 });
 
 it('tells no one in the app when the person has no account yet (the email is theirs)', function () {

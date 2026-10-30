@@ -60,8 +60,9 @@ class ProjectService
         $this->notifications->send(
             NotificationTarget::GLOBAL,
             NotificationType::RESOURCE_CREATED,
-            title: __('notifications.project_created_title'),
-            message: __('notifications.project_created_message', ['name' => $project->name]),
+            title: 'notifications.project_created_title',
+            message: 'notifications.project_created_message',
+            params: ['name' => $project->name],
             url: route('admin.projects.index', ['q' => $project->name]),
             trigger: $creator,
         );
@@ -76,11 +77,9 @@ class ProjectService
         $this->notifications->send(
             NotificationTarget::GLOBAL,
             NotificationType::APPROVAL_REQUESTED,
-            title: __('notifications.approval_requested_title'),
-            message: __('notifications.approval_requested_message', [
-                'name'      => $project->name,
-                'requester' => $requester->name,
-            ]),
+            title: 'notifications.approval_requested_title',
+            message: 'notifications.approval_requested_message',
+            params: ['name' => $project->name, 'requester' => $requester->name],
             url: route('admin.projects.index', ['show' => 'awaiting']),
             trigger: $requester,
         );
@@ -93,8 +92,9 @@ class ProjectService
         $this->notifications->send(
             NotificationTarget::PROJECT,
             NotificationType::PROJECT_APPROVED,
-            title: __('notifications.project_approved_title'),
-            message: __('notifications.project_approved_message', ['name' => $project->name]),
+            title: 'notifications.project_approved_title',
+            message: 'notifications.project_approved_message',
+            params: ['name' => $project->name],
             url: route('projects.show', $project),
             trigger: $superadmin,
             targetId: $project->id,

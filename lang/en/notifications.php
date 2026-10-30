@@ -25,6 +25,8 @@ return [
 
     'lottery_failed_title' => 'The lottery could not finish',
 
+    'lottery_failed_message' => 'See on the lottery page what happened. It can run again.',
+
     'lottery_invalidated_title'   => 'The lottery was invalidated',
     'lottery_invalidated_message' => ':name invalidated the lottery: ":reason". It will run again.',
 ];

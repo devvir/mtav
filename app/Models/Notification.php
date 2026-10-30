@@ -86,10 +86,18 @@ class Notification extends Model
         $query->whereDoesntHave('readers', fn (Builder $q) => $q->whereKey($user->id));
     }
 
-    public function scopeSearch(Builder $query, string $q): void
+    /**
+     * Its title and message, in a language (the current one by default)
+     *
+     * @return array{title: string, message: string}
+     */
+    public function text(?string $locale = null): array
     {
-        $query->where(fn (Builder $query) => $query
-            ->whereLike('data->title', "%{$q}%")
-            ->orWhereLike('data->message', "%{$q}%"));
+        $params = $this->data['params'] ?? [];
+
+        return [
+            'title'   => __($this->data['title'] ?? '', $params, $locale),
+            'message' => __($this->data['message'] ?? '', $params, $locale),
+        ];
     }
 }

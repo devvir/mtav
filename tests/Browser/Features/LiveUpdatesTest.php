@@ -66,9 +66,9 @@ it('rings the bell the moment a notification is sent', function () {
         NotificationType::RESOURCE_CREATED,
         'New event: General assembly',
         'On Friday at 10, in the communal hall',
-        route('events.index', $this->project),
-        $this->admin,
-        $this->project->id,
+        url: route('events.index', $this->project),
+        trigger: $this->admin,
+        targetId: $this->project->id,
     );
 
     $page->assertSee('New event: General assembly')

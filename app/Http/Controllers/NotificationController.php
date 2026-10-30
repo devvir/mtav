@@ -16,14 +16,13 @@ class NotificationController extends Controller
         $user = $request->user();
 
         $notifications = Notification::for($user)
-            ->when($request->q, fn ($q, $search) => $q->search($search))
             ->when($request->boolean('unread'), fn ($q) => $q->unreadBy($user))
             ->paginate(30)
             ->withQueryString();
 
         return inertia('Notifications/Index', [
             'notifications' => NotificationResource::collection($notifications),
-            'filters'       => ['q' => $request->q, 'unread' => $request->boolean('unread')],
+            'filters'       => ['unread' => $request->boolean('unread')],
         ]);
     }
 

@@ -25,6 +25,8 @@ return [
 
     'lottery_failed_title' => 'Le tirage n’a pas pu aboutir',
 
+    'lottery_failed_message' => 'Voyez sur la page du tirage ce qui s’est passé. Il peut être relancé.',
+
     'lottery_invalidated_title'   => 'Le tirage a été annulé',
     'lottery_invalidated_message' => ':name a annulé le tirage : « :reason ». Il sera refait.',
 ];

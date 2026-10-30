@@ -143,8 +143,8 @@ class LotteryService
         $this->notifications->send(
             NotificationTarget::PROJECT,
             NotificationType::LOTTERY_COMPLETED,
-            title: __('notifications.lottery_completed_title'),
-            message: __('notifications.lottery_completed_message'),
+            title: 'notifications.lottery_completed_title',
+            message: 'notifications.lottery_completed_message',
             url: route('lottery.show', $run->project_id),
             trigger: $run->starter,
             targetId: $run->project_id,
@@ -176,8 +176,8 @@ class LotteryService
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
                 NotificationType::LOTTERY_FAILED,
-                title: __('notifications.lottery_failed_title'),
-                message: $userMessage,
+                title: 'notifications.lottery_failed_title',
+                message: 'notifications.lottery_failed_message',
                 url: route('lottery.show', $run->project_id),
                 targetId: $run->started_by,
             );
@@ -208,8 +208,9 @@ class LotteryService
         $this->notifications->send(
             NotificationTarget::PROJECT,
             NotificationType::LOTTERY_INVALIDATED,
-            title: __('notifications.lottery_invalidated_title'),
-            message: __('notifications.lottery_invalidated_message', ['name' => $admin->name, 'reason' => $reason]),
+            title: 'notifications.lottery_invalidated_title',
+            message: 'notifications.lottery_invalidated_message',
+            params: ['name' => $admin->name, 'reason' => $reason],
             url: route('lottery.show', $run->project_id),
             trigger: $admin,
             targetId: $run->project_id,

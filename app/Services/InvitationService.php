@@ -59,13 +59,12 @@ class InvitationService
         Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
 
         if ($invitee = User::firstWhere('email', $email)) {
-            // In their own language: it is theirs alone
-            $locale = $invitee->locale ?? config('app.locale');
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
                 NotificationType::INVITATION_RECEIVED,
-                title: __('notifications.invitation_received_title', [], $locale),
-                message: __('notifications.invitation_received_message', ['name' => $inviter->name, 'project' => $project->name], $locale),
+                title: 'notifications.invitation_received_title',
+                message: 'notifications.invitation_received_message',
+                params: ['name' => $inviter->name, 'project' => $project->name],
                 url: route('projects.index'),
                 trigger: $inviter,
                 targetId: $invitee->id,
@@ -104,10 +103,9 @@ class InvitationService
         $this->notifications->send(
             NotificationTarget::PROJECT,
             NotificationType::MEMBER_JOINED,
-            title: __('notifications.member_joined_title'),
-            message: $invitation->family
-                ? __('notifications.member_joined_family_message', ['name' => $user->name, 'family' => $invitation->family->name])
-                : __('notifications.member_joined_message', ['name' => $user->name]),
+            title: 'notifications.member_joined_title',
+            message: $invitation->family ? 'notifications.member_joined_family_message' : 'notifications.member_joined_message',
+            params: ['name' => $user->name, 'family' => $invitation->family?->name],
             url: route('people.show', ['project' => $invitation->project_id, 'member' => $user->id]),
             trigger: $user,
             targetId: $invitation->project_id,
