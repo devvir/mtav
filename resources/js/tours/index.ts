@@ -225,3 +225,32 @@ defineTour('platform.approvals', () => [
     ),
   },
 ]);
+
+defineTour('member.home', () => [
+  {
+    target: 'home.figures',
+    title: _('The project in figures'),
+    body: _('Its families, people and units: each leads to its page.'),
+  },
+  {
+    target: 'home.lottery',
+    title: _('The lottery'),
+    body: _('When it happens, and once it has, which unit your family received.'),
+  },
+]);
+
+defineTour('member.families', () => [
+  {
+    target: 'people.views',
+    title: _('By family, or everyone'),
+    body: _('See the cooperative family by family, or every person at once.'),
+  },
+]);
+
+defineTour('member.people', () => [
+  {
+    target: 'people.views',
+    title: _('By family, or everyone'),
+    body: _('See the cooperative family by family, or every person at once.'),
+  },
+]);

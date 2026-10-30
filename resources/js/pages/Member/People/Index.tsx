@@ -2,6 +2,7 @@ import { PeopleViews } from '@/components/domain/PeopleViews';
 import { PersonDetails } from '@/components/domain/PersonDetails';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PersonAvatar } from '@/design';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
@@ -61,6 +62,12 @@ export default function PeopleIndex({
     <>
       <PageHeader
         title={_('People')}
+        tour="member.people"
+        help={
+          <InfoTip title={_('Everyone in the project')} tour="member.people">
+            {_('Every person in the project, the admins too. Open someone to see what they share.')}
+          </InfoTip>
+        }
         actions={
           canManage ? (
             <Button

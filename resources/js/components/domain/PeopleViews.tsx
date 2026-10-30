@@ -13,7 +13,7 @@ export function PeopleViews() {
   ];
 
   return (
-    <nav className="people-views" aria-label={_('How to see them')}>
+    <nav className="people-views" aria-label={_('How to see them')} data-tour="people.views">
       {views.map((view) => (
         <Link
           key={view.label}

@@ -68,6 +68,7 @@ export default function FamiliesIndex({
     <>
       <PageHeader
         title={_('People')}
+        tour="member.families"
         actions={
           canManage && !nothingYet ? (
             <Button leftSection={<IconPlus size={18} />} onClick={adding.open}>
@@ -76,7 +77,7 @@ export default function FamiliesIndex({
           ) : null
         }
         help={
-          <InfoTip title={_('What is a family?')}>
+          <InfoTip title={_('What is a family?')} tour="member.families">
             {_(
               'The family takes part in the lottery as one: its members share one ranking, and it receives one unit.',
             )}

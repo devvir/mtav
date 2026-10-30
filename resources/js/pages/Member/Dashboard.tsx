@@ -4,6 +4,7 @@ import { MediaGrid } from '@/components/domain/MediaGrid';
 import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
+import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph, Panel, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
@@ -86,12 +87,23 @@ export default function Dashboard({
 
   return (
     <>
-      <PageHeader title={project.name} description={overview.description} />
+      <PageHeader
+        title={project.name}
+        description={overview.description}
+        tour="member.home"
+        help={
+          <InfoTip title={_('The project at a glance')} tour="member.home">
+            {_(
+              'Its figures, what was shared lately, the lottery and what is coming up, its people and its units.',
+            )}
+          </InfoTip>
+        }
+      />
 
       {empty ? checklist : null}
 
       {!empty ? (
-        <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg">
+        <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg" data-tour="home.figures">
           <Link href={route('families.index')} className="stat-link">
             <Stat
               label={_('Families')}
@@ -167,6 +179,7 @@ export default function Dashboard({
           href={route('lottery.show')}
           p="lg"
           className="ds-interactive lottery-card"
+          data-tour="home.lottery"
         >
           <Glyph icon={IconDice5} size={44} />
           <Title order={2} fz="lg" mt="sm">
