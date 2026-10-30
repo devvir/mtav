@@ -17,7 +17,7 @@ class GitHub
     private const FRESH_SECONDS = 30;
 
     /** What each kind of request runs */
-    public const WORKFLOWS = ['dev' => 'dev.yml', 'production' => 'production.yml', 'rollback' => 'rollback.yml'];
+    public const WORKFLOWS = ['dev' => 'dev.yml', 'production' => 'production.yml', 'rollback' => 'rollback.yml', 'fresh' => 'fresh.yml'];
 
     public static function configured(): bool
     {
@@ -94,10 +94,10 @@ class GitHub
      */
     public function dispatch(string $workflow, string $ref, array $inputs = []): void
     {
-        $this->client()->post("actions/workflows/{$workflow}/dispatches", [
-            'ref'    => $ref,
+        // GitHub takes inputs as an object: none, none sent (never an empty list)
+        $this->client()->post("actions/workflows/{$workflow}/dispatches", ['ref' => $ref] + ($inputs ? [
             'inputs' => array_map(fn ($value) => is_bool($value) ? ($value ? 'true' : 'false') : $value, $inputs),
-        ])->throw();
+        ] : []))->throw();
 
         Cache::forget('delivery.runs');
         Cache::forget('delivery.environments');

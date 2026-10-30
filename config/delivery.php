@@ -24,4 +24,7 @@ return [
         'staging'    => 'https://stg.mtav.uy',
         'dev'        => 'https://dev.mtav.uy',
     ],
+
+    // Those that may start over with the demo data (where their host allows it too)
+    'fresh' => ['staging', 'dev'],
 ];

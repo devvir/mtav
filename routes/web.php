@@ -142,6 +142,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('invitations.destroy');
 
             Route::get('units', [Member\UnitController::class, 'index'])->name('units.index');
+            // The same page, its plan open for drawing (admins)
+            Route::get('units/edit', [Member\UnitController::class, 'index'])
+                ->middleware('can:update,project')
+                ->name('units.edit');
             Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
 
             Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
@@ -241,6 +245,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('dev', [Platform\DeploymentController::class, 'dev'])->name('dev');
                 Route::post('production', [Platform\DeploymentController::class, 'production'])->name('production');
                 Route::post('rollback', [Platform\DeploymentController::class, 'rollback'])->name('rollback');
+                Route::post('fresh', [Platform\DeploymentController::class, 'fresh'])->name('fresh');
             });
         });
     });

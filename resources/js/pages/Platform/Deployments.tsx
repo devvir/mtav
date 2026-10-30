@@ -11,7 +11,6 @@ import {
   Anchor,
   Button,
   Card,
-  Checkbox,
   Group,
   Select,
   Skeleton,
@@ -21,6 +20,7 @@ import {
 } from '@mantine/core';
 import {
   IconArrowBackUp,
+  IconDatabase,
   IconGitBranch,
   IconRocket,
   IconServer,
@@ -63,6 +63,8 @@ interface Props {
   environments?: Environment[] | null;
   branches?: string[] | null;
   runs?: Run[] | null;
+  /** Environments that may start over with the demo data */
+  fresh: string[];
 }
 
 /** A run, as its state reads */
@@ -79,13 +81,12 @@ const runState = (run: Run): [Tone, string] =>
 
 /**
  * What each environment runs against main, and deploying: dev from any branch, production
- * from main (approved on GitHub), any environment back to its release before. GitHub runs
- * every deploy; the page follows it.
+ * from main (approved on GitHub), any environment back to its release before, dev or staging
+ * over from the demo data. GitHub runs every deploy; the page follows it.
  */
-export default function Deployments({ main, environments, branches, runs }: Props) {
+export default function Deployments({ main, environments, branches, runs, fresh }: Props) {
   const { errors } = usePage().props as { errors: Record<string, string> };
   const [branch, setBranch] = useState<string | null>('main');
-  const [fresh, setFresh] = useState(false);
   const [commit, setCommit] = useState('');
   const [sending, setSending] = useState<string | null>(null);
 
@@ -112,6 +113,21 @@ export default function Deployments({ main, environments, branches, runs }: Prop
       });
   };
 
+  const startOver = async (environment: Environment) => {
+    const ok = await confirm({
+      title: _('Start {environment} over?', { environment: environment.name }),
+      message: _(
+        'Everything in it, people and uploaded files included, is replaced by the demo data. The release it runs stays.',
+      ),
+      confirmLabel: _('Start over'),
+      danger: true,
+    });
+    if (ok)
+      send(`fresh-${environment.name}`, route('admin.deployments.fresh'), {
+        environment: environment.name,
+      });
+  };
+
   const unanswered = (
     <Alert color="orange" radius="lg">
       {_('GitHub did not answer. Try again in a moment.')}
@@ -124,7 +140,7 @@ export default function Deployments({ main, environments, branches, runs }: Prop
         help={
           <InfoTip title={_('Deployments')} tour="platform.deployments">
             {_(
-              'What each environment runs, deploying a branch to dev or main to production, and going back to an earlier release.',
+              'What each environment runs, deploying a branch to dev or main to production, going back to an earlier release, and starting dev or staging over with the demo data.',
             )}
           </InfoTip>
         }
@@ -188,16 +204,28 @@ export default function Deployments({ main, environments, branches, runs }: Prop
                     </Text>
                   )}
                   {environment.live ? (
-                    <Button
-                      mt="md"
-                      variant="default"
-                      size="xs"
-                      leftSection={<IconArrowBackUp size={16} />}
-                      loading={sending === `rollback-${environment.name}`}
-                      onClick={() => rollback(environment)}
-                    >
-                      {_('Roll back')}
-                    </Button>
+                    <Group mt="md" gap="xs">
+                      <Button
+                        variant="default"
+                        size="xs"
+                        leftSection={<IconArrowBackUp size={16} />}
+                        loading={sending === `rollback-${environment.name}`}
+                        onClick={() => rollback(environment)}
+                      >
+                        {_('Roll back')}
+                      </Button>
+                      {fresh.includes(environment.name) ? (
+                        <Button
+                          variant="default"
+                          size="xs"
+                          leftSection={<IconDatabase size={16} />}
+                          loading={sending === `fresh-${environment.name}`}
+                          onClick={() => startOver(environment)}
+                        >
+                          {_('Start over')}
+                        </Button>
+                      ) : null}
+                    </Group>
                   ) : null}
                 </Panel>
               ))}
@@ -224,17 +252,15 @@ export default function Deployments({ main, environments, branches, runs }: Prop
                   unanswered
                 )}
               </Deferred>
-              <Checkbox
-                label={_('Start from fresh demo data')}
-                checked={fresh}
-                onChange={(event) => setFresh(event.currentTarget.checked)}
-              />
+              <Text className="ds-caption">
+                {_('Every deploy starts dev over, with the demo data.')}
+              </Text>
               <Group justify="flex-end">
                 <Button
                   leftSection={<IconRocket size={18} />}
                   disabled={!branch}
                   loading={sending === 'dev'}
-                  onClick={() => send('dev', route('admin.deployments.dev'), { branch, fresh })}
+                  onClick={() => send('dev', route('admin.deployments.dev'), { branch })}
                 >
                   {_('Deploy dev')}
                 </Button>

@@ -7,7 +7,8 @@
 #   deploy <environment> <image> <bundle> [fresh]   the release goes live
 #   deploy --rollback <environment> <bundle>        the release before goes live again
 #
-# fresh (only where the environment allows it) starts the database over, with demo data.
+# fresh (only where the environment allows it) starts the database and the uploaded files
+# over, with demo data.
 #
 # An environment's directory (<home>/<environment>) holds its .env and what the deploys
 # keep: compose.yml and slot.yml (copied from the release), switch/ (the live slot's
@@ -96,9 +97,11 @@ if [[ -n "$live_slot" ]]; then
 fi
 
 if [[ "$fresh" == fresh ]]; then
-    say "Starting the database over, with demo data"
+    # The uploaded files go too: the demo data brings its own, and nothing would point
+    # at the old ones
+    say "Starting the database and the uploaded files over, with demo data"
     slot_compose "$next" "$image" run --rm --no-deps app sh -c \
-        'php artisan db:wipe --force && php artisan migrate --force --seed'
+        'find storage/app -mindepth 2 -delete && php artisan db:wipe --force && php artisan migrate --force --seed'
 else
     # While the live release keeps serving: migrations must leave it working (add first,
     # remove in a later release)

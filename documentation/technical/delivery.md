@@ -12,9 +12,10 @@ On GitHub Actions:
 | `pipeline.yml` | every push | style, lint and types; tests (Pest, Vitest); the browser suite; the release image |
 | | `staging`, once all of that passes | the image published, and staging deployed |
 | | `main`, once all of that passes | the image published (and tagged `main`) |
-| `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev; by hand, optionally from fresh demo data |
+| `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev, from fresh demo data |
 | `production.yml` | by hand, from `main` | the release staging runs (or a commit on `main`), deployed to production |
 | `rollback.yml` | by hand | an environment back on the release before |
+| `fresh.yml` | by hand | dev or staging started over with the demo data, on the release it runs |
 | `watch.yml` | every morning | every site answers, and every certificate has three weeks left |
 
 Pushes to this repository run on push; pull requests from forks run on the pull request.
@@ -74,7 +75,9 @@ is healthy does the switch hand it the traffic, so visitors never see the site d
 
 If step 4 or 5 fails, the new slot is removed and the live release never stopped. With
 `fresh` (only where the environment's `.env` says `MTAV_FRESH_ALLOWED=true`), step 3
-starts the database over, with the demo data instead.
+starts the database and the uploaded files over, with the demo data instead, and the
+dump of step 2 is the only copy of what was there. Every deploy to dev is fresh; staging
+is fresh only when `fresh.yml` asks: it deploys again the release staging runs, fresh.
 
 `rollback` puts the release before back on the switch (its slot starts again if it
 had stopped). Migrations run forward only: the release before runs on the newer
@@ -124,8 +127,11 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    and creates `mtav-deploy` with the gate. Every step can run again.
 2. **Each environment**: `/mtav/<environment>/.env`, written from `deploy/env.example`
    (its ports, a new `APP_KEY`, database password and Reverb keys). An environment
-   without demo data needs its owner, its first superadmin: `OWNER_EMAIL` and
-   `OWNER_PASSWORD` (and `OWNER_NAME`), taken while it has no account at all; until
+   on demo data (dev, and staging) needs `MTAV_FRESH_ALLOWED=true` and `DEMO_PASSWORD`,
+   the demo accounts' password (`superadmin@example.com`, `admin@example.com`,
+   `member@example.com`, …). An environment without demo data needs its owner, its first
+   superadmin: `OWNER_EMAIL` and `OWNER_PASSWORD` (and `OWNER_NAME`), taken while it has
+   no account at all; until
    then the site shows only that it is under construction. Where demo data is seeded,
    its first account is the owner. Signing in with
    Google needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google Cloud OAuth
@@ -153,9 +159,10 @@ The first deploy creates the switch, the volumes and the database.
 
 Each environment follows a branch of its own: deploying is pushing.
 
-- **Dev** deploys every push to `dev`, by itself, untested (dev is where things are
-  tried); by hand, any other branch.
-- **Staging** deploys every green push to `staging`, by itself.
+- **Dev** deploys every push to `dev`, by itself, untested, from fresh demo data (dev is
+  where things are tried); by hand, any other branch.
+- **Staging** deploys every green push to `staging`, by itself, keeping its data; it
+  starts over with the demo data only by hand.
 - **Production** deploys only by hand, from `main`: by default the release staging runs.
 
 Commits move up by fast-forward only: `staging` to `main` always (so production runs the
@@ -163,6 +170,7 @@ commit, and the image, staging ran), `dev` to `staging` as fits. A push to `main
 commit `staging` never had fails the pipeline, and production refuses it.
 
 The platform console's Deployments page starts these same workflows through GitHub's API
-(dev from a branch, production from `main`, a rollback of any environment) and shows
+(dev from a branch, production from `main`, a rollback of any environment, dev or
+staging started over) and shows
 what each environment runs: GitHub's deployment records, replayed in order (a rollback
 swaps the live release with the one before), against the latest `main`.

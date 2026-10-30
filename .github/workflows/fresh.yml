@@ -1,0 +1,42 @@
+# Starts an environment's database and uploaded files over, with the demo data: the
+# release it runs is deployed again, fresh. Only where the host allows it (the
+# environment's .env says MTAV_FRESH_ALLOWED=true); never production.
+name: fresh
+run-name: Start ${{ inputs.environment }} over
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to start over, with demo data
+        type: choice
+        options: [staging, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  fresh:
+    name: Start ${{ inputs.environment }} over
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: deploy/ci
+
+      - name: Start over
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TARGET: ${{ secrets.DEPLOY_TARGET }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          # What it runs: "<environment> live=<slot>:ghcr.io/devvir/mtav:sha-<commit> previous=…"
+          live="$(deploy/ci/deploy status | awk -v environment="$ENVIRONMENT" '$1 == environment { print $2 }')"
+          commit="${live##*:sha-}"
+          [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || { echo "Nothing runs on $ENVIRONMENT yet: deploy it first"; exit 1; }
+          deploy/ci/deploy deploy "$ENVIRONMENT" "$commit" fresh

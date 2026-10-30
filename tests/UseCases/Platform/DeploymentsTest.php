@@ -87,15 +87,30 @@ it('asks GitHub to deploy dev from a branch, production from main, and to roll b
     githubWith();
     $this->as($this->deployer);
 
-    $this->post(route('admin.deployments.dev'), ['branch' => 'plan-guides', 'fresh' => true])->assertSessionHasNoErrors();
+    $this->post(route('admin.deployments.dev'), ['branch' => 'plan-guides'])->assertSessionHasNoErrors();
     $this->post(route('admin.deployments.production'), ['commit' => null])->assertSessionHasNoErrors();
     $this->post(route('admin.deployments.rollback'), ['environment' => 'staging'])->assertSessionHasNoErrors();
 
+    // Dev starts over on every deploy: nothing to ask, and no inputs at all (GitHub
+    // refuses an empty list where it takes an object)
     Http::assertSent(fn ($request) => str_ends_with($request->url(), 'workflows/dev.yml/dispatches')
-        && $request['ref'] === 'plan-guides' && $request['inputs'] === ['fresh' => 'true']);
+        && $request['ref'] === 'plan-guides' && ! str_contains($request->body(), 'inputs'));
     Http::assertSent(fn ($request) => str_ends_with($request->url(), 'workflows/production.yml/dispatches') && $request['ref'] === 'main');
     Http::assertSent(fn ($request) => str_ends_with($request->url(), 'workflows/rollback.yml/dispatches')
         && $request['inputs'] === ['environment' => 'staging']);
+});
+
+it('asks GitHub to start dev or staging over with the demo data, never production', function () {
+    githubWith();
+    $this->as($this->deployer);
+
+    $this->post(route('admin.deployments.fresh'), ['environment' => 'staging'])
+        ->assertSessionHasNoErrors()->assertSessionHas('success', __('flash.deploy_fresh', ['environment' => 'staging']));
+    $this->post(route('admin.deployments.fresh'), ['environment' => 'production'])->assertSessionHasErrors('environment');
+
+    Http::assertSent(fn ($request) => str_ends_with($request->url(), 'workflows/fresh.yml/dispatches')
+        && $request['ref'] === 'main' && $request['inputs'] === ['environment' => 'staging']);
+    Http::assertSentCount(1);
 });
 
 it('deploys dev only from a branch that exists', function () {

@@ -14,8 +14,8 @@ use Inertia\Response;
 
 /**
  * What each environment runs, and deploying: dev from any branch, production from main
- * (after its approval on GitHub), any of them back to the release before. GitHub runs
- * each deploy; this only asks it to.
+ * (after its approval on GitHub), any of them back to the release before, dev or staging
+ * over from the demo data. GitHub runs each deploy; this only asks it to.
  */
 class DeploymentController extends Controller
 {
@@ -31,17 +31,15 @@ class DeploymentController extends Controller
             'environments' => Inertia::defer(fn () => $this->read(fn () => $this->github->environments())),
             'branches'     => Inertia::defer(fn () => $this->read(fn () => $this->github->branches())),
             'runs'         => Inertia::defer(fn () => $this->read(fn () => $this->github->runs()->take(12)->values()->all())),
+            'fresh'        => config('delivery.fresh'),
         ]);
     }
 
     public function dev(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'branch' => ['required', 'string', Rule::in($this->github->branches())],
-            'fresh'  => ['boolean'],
-        ]);
+        $data = $request->validate(['branch' => ['required', 'string', Rule::in($this->github->branches())]]);
 
-        return $this->dispatch('dev', $data['branch'], ['fresh' => $request->boolean('fresh')], __('flash.deploy_dev', ['branch' => $data['branch']]));
+        return $this->dispatch('dev', $data['branch'], [], __('flash.deploy_dev', ['branch' => $data['branch']]));
     }
 
     public function production(Request $request): RedirectResponse
@@ -56,6 +54,13 @@ class DeploymentController extends Controller
         $data = $request->validate(['environment' => ['required', Rule::in(array_keys(config('delivery.environments')))]]);
 
         return $this->dispatch('rollback', 'main', ['environment' => $data['environment']], __('flash.deploy_rollback', ['environment' => $data['environment']]));
+    }
+
+    public function fresh(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['environment' => ['required', Rule::in(config('delivery.fresh'))]]);
+
+        return $this->dispatch('fresh', 'main', ['environment' => $data['environment']], __('flash.deploy_fresh', ['environment' => $data['environment']]));
     }
 
     private function dispatch(string $kind, string $ref, array $inputs, string $done): RedirectResponse

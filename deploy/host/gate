@@ -14,7 +14,7 @@
 #
 # and refuses anything else. The environment must be set up here (<home>/<environment>
 # with its .env, written from deploy/env.example); the release must be MTAV's image for that commit; "fresh" (the database
-# started over, with demo data) only where the environment's .env says
+# and uploaded files started over, with demo data) only where the environment's .env says
 # MTAV_FRESH_ALLOWED=true. The deploy's steps come from the release's own image
 # (deploy/host/deploy), never from the caller: this key can only run MTAV's releases.
 set -euo pipefail

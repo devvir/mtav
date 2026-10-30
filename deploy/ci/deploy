@@ -2,7 +2,7 @@
 # The pipeline's side of a deploy: hands a request to the host's gate (deploy/host/gate),
 # over SSH, and shows what it answers.
 #
-#   deploy deploy <environment> <commit> [fresh]
+#   deploy deploy <environment> <commit> [fresh]   (fresh: the database and files start over)
 #   deploy rollback <environment>
 #   deploy status
 #
