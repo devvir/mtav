@@ -1,3 +1,4 @@
+/* global process, setInterval, console */
 // The MTAV warden: a page, on a developer's machine, watching everything from above: the local
 // stacks, the machine, deployments, pipelines, the Claude accounts, the app's figures. It is not
 // part of the app and never runs from a deployment: it needs this machine's docker, gh and ssh.

@@ -1,3 +1,4 @@
+/* global process, fetch, AbortSignal */
 // What the warden watches. Each source reads one thing, on its own pace, and either gives what it
 // found or fails on its own: one that is down never hides the others.
 import { execFile } from 'node:child_process';
