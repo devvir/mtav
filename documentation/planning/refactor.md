@@ -447,6 +447,9 @@ decision taken on the way is listed below for review.
     - The road to the lottery is for the whole community: a tiny note taped to the corner of
       the home, the lottery page and Setup, that grows from there over itself into a readable
       sheet on a click.
+    - The chat: someone is in up to 50 groups of a project (Community aside; `limits`); a group
+      with one person left stays, and goes with the last. Chats and groups can be pinned, each
+      person their own; Community starts pinned, and can be unpinned.
     - Your projects has a search past ten of them, and marks the one last browsed.
     - The chat: on tablets and up, a bubble at the bottom right rather than a sidebar item,
       with a window that opens from it and folds back into it, no page change;

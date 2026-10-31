@@ -28,10 +28,10 @@ class Membership extends Model
         'is_admin' => 'boolean',
     ];
 
-    /** Everyone taking part is in the project's Community group, and only they */
+    /** Everyone taking part is in the project's Community group, pinned to begin with, and only they */
     protected static function booted(): void
     {
-        static::created(fn (Membership $membership) => $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id]));
+        static::created(fn (Membership $membership) => $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id => ['pinned_at' => now()]]));
         static::deleted(fn (Membership $membership) => $membership->communityGroup()?->participants()->detach($membership->user_id));
     }
 

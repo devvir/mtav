@@ -29,6 +29,8 @@ import {
   IconDots,
   IconMinus,
   IconPencil,
+  IconPin,
+  IconPinFilled,
   IconPlus,
   IconSend2,
   IconTrash,
@@ -58,6 +60,7 @@ interface ConversationSummary {
   faces: ChatPerson[];
   last: { body: string; author: string | null; mine: boolean; at: string } | null;
   unread?: boolean;
+  pinned?: boolean;
 }
 
 interface ChatMessage {
@@ -79,6 +82,9 @@ export interface ChatData {
   messages: { data: ChatMessage[]; earlier: boolean } | null;
   people: ChatPerson[];
 }
+
+/** A list this long gets a search */
+const SEARCH_FROM = 12;
 
 /** Earlier messages come this many at a time */
 const MORE = 50;
@@ -110,12 +116,16 @@ function ConversationList({
   open,
   onNew,
   popup,
+  onChange,
 }: {
   conversations: ConversationSummary[];
   open: number | null;
   onNew: () => void;
   popup: boolean;
+  onChange: () => Promise<void>;
 }) {
+  const projectId = usePage().props.project!.id;
+  const [query, setQuery] = useState('');
   const groups = conversations.filter((conversation) => conversation.is_group);
   const chats = conversations.filter((conversation) => !conversation.is_group);
   const [kind, setKind] = useState<'chats' | 'groups'>(
@@ -123,11 +133,16 @@ function ConversationList({
       ? 'groups'
       : 'chats',
   );
-  // Community first among the groups; the rest as they come, the latest first
-  const listed =
-    kind === 'chats'
-      ? chats
-      : [...groups].sort((one, other) => Number(other.is_community) - Number(one.is_community));
+  // The pinned first; within each, as they come, the latest first
+  const words = query.trim().toLowerCase();
+  const listed = (kind === 'chats' ? chats : groups)
+    .filter((conversation) => conversation.title.toLowerCase().includes(words))
+    .sort((one, other) => Number(other.pinned ?? false) - Number(one.pinned ?? false));
+  const pin = async (conversation: ConversationSummary) => {
+    const url = route('chat.pin', { project: projectId, conversation: conversation.id });
+    if ((await sendJson('PUT', url, { pinned: !conversation.pinned })).ok) await onChange();
+    else refused();
+  };
   const marked = (name: string, list: ConversationSummary[]) =>
     list.some((conversation) => conversation.unread) ? `${name} •` : name;
 
@@ -160,40 +175,64 @@ function ConversationList({
           ]}
         />
       </div>
+      {conversations.length > SEARCH_FROM ? (
+        <div className="chat-search">
+          <TextInput
+            size="xs"
+            aria-label={_('Search conversations')}
+            placeholder={_('Search conversations')}
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+          />
+        </div>
+      ) : null}
       {!listed.length ? (
         <Text c="dimmed" ta="center" p="lg" size="sm">
           {_('No one-on-one chats yet.')}
         </Text>
       ) : null}
       {listed.map((conversation) => (
-        <button
-          key={conversation.id}
-          type="button"
-          onClick={() => showConversation(conversation.id)}
-          className="chat-list-item"
-          aria-current={conversation.id === open ? 'page' : undefined}
-          data-unread={conversation.unread || undefined}
-        >
-          <Faces conversation={conversation} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Group justify="space-between" gap="xs" wrap="nowrap">
-              <Text fw={conversation.unread ? 750 : 650} truncate>
-                {conversation.title}
-              </Text>
-              {conversation.last ? (
-                <Text className="ds-caption" style={{ flex: 'none' }}>
-                  <DateTime value={conversation.last.at} relative />
+        <div key={conversation.id} className="chat-list-row">
+          <button
+            type="button"
+            onClick={() => showConversation(conversation.id)}
+            className="chat-list-item"
+            aria-current={conversation.id === open ? 'page' : undefined}
+            data-unread={conversation.unread || undefined}
+          >
+            <Faces conversation={conversation} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Group justify="space-between" gap="xs" wrap="nowrap">
+                <Text fw={conversation.unread ? 750 : 650} truncate>
+                  {conversation.title}
                 </Text>
-              ) : null}
-            </Group>
-            <Text size="sm" c="dimmed" truncate>
-              {conversation.last
-                ? `${conversation.last.mine ? _('You') + ': ' : conversation.is_group && conversation.last.author ? conversation.last.author + ': ' : ''}${conversation.last.body}`
-                : _('No messages yet')}
-            </Text>
-          </div>
-          {conversation.unread ? <span className="chat-unread" aria-label={_('Unread')} /> : null}
-        </button>
+                {conversation.last ? (
+                  <Text className="ds-caption" style={{ flex: 'none' }}>
+                    <DateTime value={conversation.last.at} relative />
+                  </Text>
+                ) : null}
+              </Group>
+              <Text size="sm" c="dimmed" truncate>
+                {conversation.last
+                  ? `${conversation.last.mine ? _('You') + ': ' : conversation.is_group && conversation.last.author ? conversation.last.author + ': ' : ''}${conversation.last.body}`
+                  : _('No messages yet')}
+              </Text>
+            </div>
+            {conversation.unread ? <span className="chat-unread" aria-label={_('Unread')} /> : null}
+          </button>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+            className="chat-pin"
+            data-pinned={conversation.pinned || undefined}
+            aria-pressed={Boolean(conversation.pinned)}
+            aria-label={conversation.pinned ? _('Unpin') : _('Pin')}
+            onClick={() => void pin(conversation)}
+          >
+            {conversation.pinned ? <IconPinFilled size={14} /> : <IconPin size={14} />}
+          </ActionIcon>
+        </div>
       ))}
     </nav>
   );
@@ -550,6 +589,7 @@ function AddPeople({
   const { project } = usePage().props;
   const [chosen, setChosen] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>();
   const picker = useRef<HTMLInputElement>(null);
 
   const save = async (event: FormEvent) => {
@@ -564,6 +604,8 @@ function AddPeople({
       setChosen([]);
       await onChange();
       onClose();
+    } else if (response.status === 422) {
+      setError((await fieldErrors(response)).people);
     } else refused();
     setSaving(false);
   };
@@ -577,6 +619,7 @@ function AddPeople({
           searchable
           data={people.map((person) => ({ value: String(person.id), label: person.name }))}
           value={chosen}
+          error={error}
           onChange={setChosen}
           ref={picker}
           onOptionSubmit={() => picker.current?.blur()}
@@ -743,6 +786,7 @@ export function Chat({
         open={open}
         popup={popup && !open}
         onNew={() => setStarting(true)}
+        onChange={() => load()}
       />
       {shown && data.messages ? (
         <Thread

@@ -39,8 +39,12 @@ class ChatService
             }
         }
 
-        return DB::transaction(function () use ($project, $by, $others, $title) {
-            $group = count($others) > 1;
+        $group = count($others) > 1;
+        if ($group) {
+            $this->ensureRoomForAGroup($project, [$by->id, ...$others], $by);
+        }
+
+        return DB::transaction(function () use ($project, $by, $others, $title, $group) {
             $conversation = new Conversation(['title' => $group ? ($title ?: null) : null]);
             $conversation->forceFill([
                 'project_id' => $project->id,
@@ -91,11 +95,22 @@ class ChatService
     {
         $conversation->update(['title' => $title ?: null]);
         if ($people) {
-            $conversation->participants()->syncWithoutDetaching($this->ofProject($conversation->project, $people));
+            $added = array_values(array_diff(
+                $this->ofProject($conversation->project, $people),
+                $conversation->participants()->pluck('users.id')->all(),
+            ));
+            $this->ensureRoomForAGroup($conversation->project, $added);
+            $conversation->participants()->syncWithoutDetaching($added);
         }
     }
 
-    /** Leaving a group; the last to leave takes it with them */
+    /** Pinned, it stays at the top of that person's list */
+    public function pin(Conversation $conversation, User $user, bool $pinned): void
+    {
+        $conversation->participants()->updateExistingPivot($user->id, ['pinned_at' => $pinned ? now() : null]);
+    }
+
+    /** Leaving a group; whoever remains may bring others in, the last to leave takes it along */
     public function leave(Conversation $conversation, User $user): void
     {
         $conversation->participants()->detach($user->id);
@@ -111,6 +126,29 @@ class ChatService
         $message->delete();
         $last = $conversation->messages()->latest('id')->first();
         $conversation->forceFill(['last_message_id' => $last?->id, 'last_message_at' => $last?->created_at])->save();
+    }
+
+    /**
+     * Nobody ends up in more groups than there can be: someone starting one is told to leave
+     * another, and someone at the limit cannot be brought in
+     *
+     * @param list<int> $people
+     *
+     * @throws ValidationException
+     */
+    private function ensureRoomForAGroup(Project $project, array $people, ?User $starting = null): void
+    {
+        $max = config('limits.chat_groups_per_person');
+        $full = User::whereIn('id', $people)
+            ->whereHas('conversations', fn ($q) => $q->where('project_id', $project->id)->where('is_group', true)->where('is_community', false), '>=', $max)
+            ->get();
+
+        if ($starting && $full->contains($starting)) {
+            throw ValidationException::withMessages(['people' => __('validation.chat_group_limit', ['max' => $max])]);
+        }
+        if ($full->isNotEmpty()) {
+            throw ValidationException::withMessages(['people' => __('validation.chat_group_limit_other', ['name' => $full->first()->name, 'max' => $max])]);
+        }
     }
 
     /**

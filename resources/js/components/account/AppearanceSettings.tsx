@@ -49,7 +49,7 @@ export function AppearanceSettings() {
   const schemes: { value: MantineColorScheme; label: string; icon: Icon }[] = [
     { value: 'light', label: _('Light'), icon: IconSun },
     { value: 'dark', label: _('Dark'), icon: IconMoon },
-    { value: 'auto', label: _('As my device'), icon: IconDeviceDesktop },
+    { value: 'auto', label: _('Automatic'), icon: IconDeviceDesktop },
   ];
 
   return (

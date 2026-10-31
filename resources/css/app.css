@@ -1861,9 +1861,6 @@ html[data-carrying] * {
   text-decoration: none;
   transition: background 160ms ease;
 }
-.chat-list-item + .chat-list-item {
-  border-top: 1px solid var(--mtav-border);
-}
 .chat-list-item:hover {
   background: var(--mtav-hover);
 }
@@ -2068,20 +2065,10 @@ html[data-carrying] * {
     display: inline-flex;
   }
 }
-/* Above the tabs, where there are tabs; messages that come and go keep above it */
+/* Above the tabs, where there are tabs */
 @media (max-width: 74.99em) {
   .chat-launcher {
     bottom: 5.5rem;
-  }
-}
-@media (min-width: 48em) {
-  .mantine-Notifications-root[data-position='bottom-right'] {
-    bottom: 5.25rem;
-  }
-}
-@media (min-width: 48em) and (max-width: 74.99em) {
-  .mantine-Notifications-root[data-position='bottom-right'] {
-    bottom: 9.25rem;
   }
 }
 
@@ -2093,8 +2080,6 @@ html[data-carrying] * {
 
 /* The chat's window: out of its bubble, one thing at a time, over whatever page */
 .chat-window {
-  /* Solid: what it holds reads over any page */
-  background: var(--mantine-color-body);
   position: fixed;
   z-index: 50;
   right: 1.25rem;
@@ -2276,9 +2261,9 @@ html[data-carrying] * {
 }
 .note-sheet {
   /* Paper with something bright behind: a touch of what is under it comes through */
-  background: color-mix(in srgb, var(--paper) 93%, transparent);
-  -webkit-backdrop-filter: blur(1.5px);
-  backdrop-filter: blur(1.5px);
+  background: color-mix(in srgb, var(--paper) 97%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   position: absolute;
   z-index: 1;
   top: 0;
@@ -2462,7 +2447,52 @@ html[data-carrying] * {
   html[data-layout='contained'] .chat-window {
     right: calc(var(--frame-gutter) + 1.25rem);
   }
-  html[data-layout='contained'] .mantine-Notifications-root[data-position='bottom-right'] {
-    right: calc(var(--frame-gutter) + var(--mantine-spacing-md));
+}
+
+/* The chat's window: glass, mostly solid and well blurred, so that it reads without effort */
+.chat-window.ds-surface {
+  background: color-mix(in srgb, var(--mantine-color-body) 90%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+}
+.chat-window .chat-list.ds-surface,
+.chat-window .chat-thread.ds-surface {
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Messages that come and go, under the bar */
+.mantine-Notifications-root[data-position='top-center'] {
+  top: 4.5rem;
+}
+/* A conversation in the list, and pinning it */
+.chat-list-row {
+  position: relative;
+}
+.chat-list-row + .chat-list-row {
+  border-top: 1px solid var(--mtav-border);
+}
+.chat-list-row .chat-list-item {
+  padding-right: 2.5rem;
+}
+.chat-pin {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.6rem;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.chat-pin[data-pinned],
+.chat-list-row:hover .chat-pin,
+.chat-pin:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .chat-pin {
+    opacity: 1;
   }
+}
+.chat-search {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--mtav-border);
 }

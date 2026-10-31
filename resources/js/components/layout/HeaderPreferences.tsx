@@ -120,7 +120,7 @@ export function HeaderPreferences() {
         options={[
           { value: 'light', label: _('Light') },
           { value: 'dark', label: _('Dark') },
-          { value: 'auto', label: _('As my device') },
+          { value: 'auto', label: _('Automatic') },
         ]}
       />
     </div>

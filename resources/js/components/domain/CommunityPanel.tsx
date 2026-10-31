@@ -49,9 +49,12 @@ export function CommunityPanel({ community }: { community: Community }) {
         </Anchor>
       }
     >
-      <Stack gap="lg">
-        {community.families.length ? (
-          <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }}>
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+        <div>
+          <Title order={3} fz="sm" mb="xs" className="ds-label">
+            {_('Families')}
+          </Title>
+          <Stack gap="xs">
             {community.families.map((family) => (
               <Card
                 key={family.id}
@@ -73,31 +76,29 @@ export function CommunityPanel({ community }: { community: Community }) {
                 </Group>
               </Card>
             ))}
-          </SimpleGrid>
-        ) : null}
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-          <div>
-            <Title order={3} fz="sm" mb="xs" className="ds-label">
-              {_('Admins')}
-            </Title>
-            <Stack gap="xs">
-              {community.admins.map((person) => (
-                <PersonRow key={person.id} person={person} caption={person.email} />
-              ))}
-            </Stack>
-          </div>
-          <div>
-            <Title order={3} fz="sm" mb="xs" className="ds-label">
-              {_('Joined lately')}
-            </Title>
-            <Stack gap="xs">
-              {community.latest.map((person) => (
-                <PersonRow key={person.id} person={person} caption={person.family?.name} />
-              ))}
-            </Stack>
-          </div>
-        </SimpleGrid>
-      </Stack>
+          </Stack>
+        </div>
+        <div>
+          <Title order={3} fz="sm" mb="xs" className="ds-label">
+            {_('Admins')}
+          </Title>
+          <Stack gap="xs">
+            {community.admins.map((person) => (
+              <PersonRow key={person.id} person={person} caption={person.email} />
+            ))}
+          </Stack>
+        </div>
+        <div>
+          <Title order={3} fz="sm" mb="xs" className="ds-label">
+            {_('Joined lately')}
+          </Title>
+          <Stack gap="xs">
+            {community.latest.map((person) => (
+              <PersonRow key={person.id} person={person} caption={person.family?.name} />
+            ))}
+          </Stack>
+        </div>
+      </SimpleGrid>
     </FoldablePanel>
   );
 }

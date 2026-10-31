@@ -61,6 +61,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'email_verified_at' => 'datetime',
     ];
 
+    /** The chats and groups they are in */
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class)->withPivot('read_up_to', 'pinned_at')->withTimestamps();
+    }
+
     /** The browsers and devices where they allowed notifications */
     public function pushSubscriptions(): HasMany
     {

@@ -63,7 +63,7 @@ createInertiaApp({
     void loadLocale(props.initialPage.props.locale as string).then(() =>
       createRoot(el).render(
         <Appearance closeLabel={_('Close')}>
-          <Notifications position="bottom-right" limit={4} />
+          <Notifications position="top-center" limit={4} />
           <App {...props} />
         </Appearance>,
       ),

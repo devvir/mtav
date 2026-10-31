@@ -11,6 +11,7 @@ use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Response;
@@ -99,6 +100,14 @@ class ChatController extends Controller
         return $request->wantsJson() ? response()->json([]) : back();
     }
 
+    public function pin(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
+    {
+        $this->authorize('readChat', $conversation);
+        $this->chat->pin($conversation, $request->user(), $request->validate(['pinned' => ['required', 'boolean']])['pinned']);
+
+        return $request->wantsJson() ? response()->json([]) : back();
+    }
+
     public function leave(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('leaveGroup', $conversation);
@@ -126,15 +135,21 @@ class ChatController extends Controller
     {
         $user = $request->user();
         $conversations = Conversation::of($user, $project)
-            ->with(['participants:id,firstname,lastname,avatar', 'lastMessage.author:id,firstname'])
+            // A few are enough to name a conversation and show its faces, however many it has
+            ->with([
+                'participants' => fn ($people) => $people->select('users.id', 'firstname', 'lastname', 'avatar')->limit(6),
+                'lastMessage.author:id,firstname',
+            ])
             ->orderByDesc('last_message_at')->orderByDesc('id')
             ->get();
         $unread = Conversation::of($user, $project)->unreadBy($user)->pluck('id')->flip();
+        $pinned = DB::table('conversation_user')->where('user_id', $user->id)->whereNotNull('pinned_at')->pluck('conversation_id')->flip();
 
         return [
             'conversations' => $conversations->map(fn (Conversation $conversation) => [
                 ...$this->summary($conversation, $user),
                 'unread' => $unread->has($conversation->id),
+                'pinned' => $pinned->has($conversation->id),
             ])->values(),
             'conversation' => $open ? [
                 ...$this->summary($open->load('participants:id,firstname,lastname,avatar'), $user),

@@ -54,7 +54,6 @@
   "Archived": "Archivado",
   "As an admin": "Como administrador",
   "As its people call it": "Como lo llama su gente",
-  "As my device": "Como mi dispositivo",
   "Ask people whether they will go": "Preguntar si van a ir",
   "Asks for approval": "Pide aprobación",
   "Assemblies, work days and meetings show up here.": "Aquí aparecen las asambleas, las jornadas de trabajo y las reuniones.",
@@ -1005,5 +1004,7 @@
   "Me: I take part in it as an admin": "Yo: participo como administrador",
   "Someone I invite": "Alguien a quien invito",
   "Minimize": "Minimizar",
-  "That did not work. Please try again.": "No funcionó. Vuelve a intentarlo."
+  "That did not work. Please try again.": "No funcionó. Vuelve a intentarlo.",
+  "Automatic": "Automático",
+  "Search conversations": "Buscar conversaciones"
 }

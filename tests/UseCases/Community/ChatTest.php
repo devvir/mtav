@@ -267,3 +267,106 @@ describe('The window', function () {
         $this->as($this->one, $this->windowed)->getJson(route('chat.panel'))->assertNotFound();
     });
 });
+
+describe('Groups', function () {
+    beforeEach(function () {
+        $this->crowded = aProject();
+        $this->one = aMemberOf(aFamily($this->crowded));
+        $this->two = aMemberOf(aFamily($this->crowded));
+        $this->three = aMemberOf(aFamily($this->crowded));
+        $this->service = app(App\Services\ChatService::class);
+        config(['limits.chat_groups_per_person' => 2]);
+    });
+
+    it('are not started past the limit: they say to leave one', function () {
+        foreach (['A', 'B'] as $name) {
+            $this->service->start($this->crowded, $this->one, [$this->two->id, $this->three->id], $name);
+        }
+
+        $this->as($this->one, $this->crowded)->postJson(route('chat.store'), ['people' => [$this->two->id, $this->three->id], 'title' => 'C'])
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.people.0', __('validation.chat_group_limit', ['max' => 2]));
+    });
+
+    it('take nobody already in as many as there can be', function () {
+        $four = aMemberOf(aFamily($this->crowded));
+        foreach (['A', 'B'] as $name) {
+            $this->service->start($this->crowded, $this->two, [$this->three->id, $four->id], $name);
+        }
+        $mine = $this->service->start($this->crowded, $this->one, [aMemberOf(aFamily($this->crowded))->id, aMemberOf(aFamily($this->crowded))->id], 'Mine');
+
+        $this->as($this->one, $this->crowded)->putJson(route('chat.update', $mine), ['title' => 'Mine', 'people' => [$this->two->id]])
+            ->assertUnprocessable();
+        expect($mine->includes($this->two))->toBeFalse();
+    });
+
+    it('leave Community out of the count, and one-on-one chats too', function () {
+        $this->service->start($this->crowded, $this->one, [$this->two->id]);
+        $this->service->start($this->crowded, $this->one, [$this->three->id]);
+        foreach (['A', 'B'] as $name) {
+            $this->service->start($this->crowded, $this->one, [$this->two->id, $this->three->id], $name);
+        }
+
+        expect(Conversation::where('project_id', $this->crowded->id)->where('title', 'B')->exists())->toBeTrue();
+    });
+
+    it('stay with one person left, who may bring others in, and go with the last', function () {
+        $group = $this->service->start($this->crowded, $this->one, [$this->two->id, $this->three->id], 'Few');
+
+        $this->service->leave($group, $this->one);
+        $this->service->leave($group, $this->two);
+
+        expect(Conversation::find($group->id))->not->toBeNull()
+            ->and($this->three->can('manageGroup', $group->fresh()))->toBeTrue();
+
+        $this->service->leave($group->fresh(), $this->three);
+
+        expect(Conversation::find($group->id))->toBeNull();
+    });
+});
+
+describe('Pins', function () {
+    beforeEach(function () {
+        $this->pinning = aProject();
+        $this->one = aMemberOf(aFamily($this->pinning));
+        $this->two = aMemberOf(aFamily($this->pinning));
+        $this->pair = app(App\Services\ChatService::class)->start($this->pinning, $this->one, [$this->two->id]);
+    });
+
+    $listed = fn ($test, $user) => collect($test->as($user, $test->pinning)->getJson(route('chat.panel'))->json('conversations'));
+
+    it('are each person\'s own', function () use ($listed) {
+        $this->as($this->one, $this->pinning)->putJson(route('chat.pin', $this->pair), ['pinned' => true])->assertOk();
+
+        expect($listed($this, $this->one)->firstWhere('id', $this->pair->id)['pinned'])->toBeTrue()
+            ->and($listed($this, $this->two)->firstWhere('id', $this->pair->id)['pinned'])->toBeFalse();
+
+        $this->as($this->one, $this->pinning)->putJson(route('chat.pin', $this->pair), ['pinned' => false])->assertOk();
+        expect($listed($this, $this->one)->firstWhere('id', $this->pair->id)['pinned'])->toBeFalse();
+    });
+
+    it('start on Community, and it can be unpinned', function () use ($listed) {
+        $community = $listed($this, $this->one)->firstWhere('is_community', true);
+        expect($community['pinned'])->toBeTrue();
+
+        $this->as($this->one, $this->pinning)->putJson(route('chat.pin', $community['id']), ['pinned' => false])->assertOk();
+        expect($listed($this, $this->one)->firstWhere('is_community', true)['pinned'])->toBeFalse();
+    });
+
+    it('are only for conversations one is in', function () {
+        $this->as(aMemberOf(aFamily($this->pinning)), $this->pinning)->putJson(route('chat.pin', $this->pair), ['pinned' => true])->assertForbidden();
+    });
+});
+
+it('names a conversation with many people without loading them all', function () {
+    $project = aProject();
+    $family = aFamily($project);
+    $me = aMemberOf($family);
+    foreach (range(1, 10) as $n) {
+        aMemberOf($family);
+    }
+
+    $listed = $this->as($me, $project)->getJson(route('chat.panel'))->assertOk()->json('conversations');
+
+    expect(collect($listed)->firstWhere('is_community', true)['faces'])->toHaveCount(3);
+});

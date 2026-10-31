@@ -30,3 +30,10 @@ it('locks signing in for a while after five wrong passwords, even with the right
 
     $this->assertGuest();
 });
+
+it('leaves someone who signs out on the landing page, with no offer to sign in again', function () {
+    $this->as(aUser())->post(route('logout'))->assertRedirect(route('home'));
+
+    $this->assertGuest();
+    $this->get(route('home'))->assertInertia(fn ($page) => $page->component('Welcome'));
+});

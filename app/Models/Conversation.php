@@ -35,7 +35,7 @@ class Conversation extends Model
 
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withPivot('read_up_to')->withTimestamps();
+        return $this->belongsToMany(User::class)->withPivot('read_up_to', 'pinned_at')->withTimestamps();
     }
 
     public function messages(): HasMany

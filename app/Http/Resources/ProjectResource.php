@@ -28,7 +28,7 @@ class ProjectResource extends JsonResource
             'members_count'         => $this->whenCounted('members'),
             'families_count'        => $this->whenCounted('families'),
             'units_count'           => $this->whenCounted('units'),
-            'is_admin'              => $this->whenPivotLoaded('memberships', fn () => (bool) $this->pivot->is_admin),
+            'is_admin'              => (bool) $request->user()?->manages($this->resource),
         ];
     }
 }

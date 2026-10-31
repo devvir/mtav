@@ -174,6 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('chat/panel', [Member\ChatController::class, 'panel'])->name('chat.panel');
                 Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
                 Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
+                Route::put('chat/{conversation}/pin', [Member\ChatController::class, 'pin'])->name('chat.pin');
                 Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
                 Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
                 Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');

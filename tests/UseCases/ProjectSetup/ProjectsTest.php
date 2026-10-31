@@ -268,3 +268,14 @@ it('frames its pages on wide screens, by default, or not, as the deployment says
     config(['app.layout' => 'wide']);
     $this->get(route('login'))->assertSee('data-layout="wide"', false);
 });
+
+it('says who administers each project in the list: only they hear it is limited', function () {
+    $project = anUnapprovedProject();
+    $admin = $project->admins()->first();
+    $member = aMemberOf(aFamily($project));
+
+    $of = fn ($user) => collect($this->as($user)->get(route('projects.index'))->inertiaProps('projects'))->firstWhere('id', $project->id);
+
+    expect($of($admin)['is_admin'])->toBeTrue()
+        ->and($of($member)['is_admin'])->toBeFalse();
+});

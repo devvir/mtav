@@ -31,6 +31,9 @@ return [
     /** Days an invitation link stays valid */
     'invitation_days' => (int) env('INVITATION_DAYS', 14),
 
+    /** How many groups of a project's chat one person may be in (Community aside) */
+    'chat_groups_per_person' => (int) env('LIMIT_CHAT_GROUPS_PER_PERSON', 50),
+
     /** Days before someone declined may ask to join the same project again */
     'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),
 

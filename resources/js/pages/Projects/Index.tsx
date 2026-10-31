@@ -149,7 +149,9 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   <IconUsers size={16} />
                   {_n('{count} person', '{count} people', project.members_count ?? 0)}
                 </Group>
-                {!project.is_approved ? <Badge color="gray">{_('Limited')}</Badge> : null}
+                {!project.is_approved && project.is_admin ? (
+                  <Badge color="gray">{_('Limited')}</Badge>
+                ) : null}
                 {project.id === lastProject ? <Badge color="green">{_('Current')}</Badge> : null}
               </Group>
             </Card>

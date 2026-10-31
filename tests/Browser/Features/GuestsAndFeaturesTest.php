@@ -90,7 +90,7 @@ it('has text size, language and light or dark in the header, each a small list',
     expect($page->script('() => getComputedStyle(document.documentElement).fontSize'))->toBe('22.4px');
 
     $page->click('[aria-label="Light or dark"]')
-        ->assertSeeIn('[role="menu"]', 'As my device')
+        ->assertSeeIn('[role="menu"]', 'Automatic')
         ->click('[role="menuitem"]:has-text("Dark")');
     expect($page->script('() => document.documentElement.dataset.mantineColorScheme'))->toBe('dark');
 
