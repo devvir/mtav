@@ -34,7 +34,7 @@ services:
     extends:
       file: ../services/php/compose.yml
       service: php
-    command: php artisan queue:work --tries=3 --timeout=600
+    command: php artisan queue:work --tries=3 --timeout=600 --sleep=1
     environment:
       QUEUE_CONNECTION: database
       # The Assistant, on this machine's signed-in Claude account (the volume the machine's agent
