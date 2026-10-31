@@ -1,0 +1,35 @@
+# Asks a cloud Claude Code task to review each push, in a session only its owner sees. It only
+# starts the review: it decides nothing about deploying, and failing here stops nothing. Without
+# its two secrets it does nothing. main and staging only receive what dev and branches already had.
+name: review
+run-name: Review ${{ github.ref_name }}
+
+on:
+  push:
+    branches-ignore: [main, staging]
+    paths-ignore:
+      - 'documentation/**'
+      - '**.md'
+
+permissions: {}
+
+jobs:
+  review:
+    name: Ask for a review
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    timeout-minutes: 2
+    env:
+      FIRE_URL: ${{ secrets.REVIEW_FIRE_URL }}
+      FIRE_TOKEN: ${{ secrets.REVIEW_FIRE_TOKEN }}
+      TEXT: 'Branch ${{ github.ref_name }}, commits ${{ github.event.before }}..${{ github.sha }}'
+    steps:
+      - name: Start the review
+        run: |
+          [[ -n "$FIRE_URL" && -n "$FIRE_TOKEN" ]] || { echo "Not set up: nothing to do"; exit 0; }
+          curl --fail --silent --show-error --output /dev/null -X POST "$FIRE_URL" \
+            -H "Authorization: Bearer $FIRE_TOKEN" \
+            -H "anthropic-beta: experimental-cc-routine-2026-04-01" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg text "$TEXT" '{text: $text}')"

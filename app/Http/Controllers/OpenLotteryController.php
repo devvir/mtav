@@ -6,7 +6,6 @@ use App\Enums\LotteryRunStatus;
 use App\Models\OpenLottery;
 use App\Models\OpenLotteryItem;
 use App\Models\OpenLotteryParticipant;
-use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\OpenLotteryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -61,10 +60,10 @@ class OpenLotteryController extends Controller
                 'kept_until' => $lottery->updated_at->addDays(config('limits.open_lottery.kept_days')),
             ],
             'state' => match (true) {
-                ! $run                                        => 'open',
-                $run->status === LotteryRunStatus::RUNNING    => 'running',
-                $decided                                      => 'decided',
-                default                                       => 'open',
+                ! $run                                     => 'open',
+                $run->status === LotteryRunStatus::RUNNING => 'running',
+                $decided                                   => 'decided',
+                default                                    => 'open',
             },
             'pace'    => $run?->status === LotteryRunStatus::RUNNING ? ['started_at' => $run->started_at, 'reveal_at' => $run->reveal_at] : null,
             'failure' => $run?->status === LotteryRunStatus::FAILED ? $run->failure : null,
@@ -190,11 +189,11 @@ class OpenLotteryController extends Controller
         $run = $openLottery->runs()->where('status', LotteryRunStatus::COMPLETED)->firstOrFail();
 
         return response()->json([
-            'lottery'   => $openLottery->only('name', 'items_name'),
-            'run'       => $run->uuid,
-            'finished'  => $run->finished_at,
-            'solver'    => $run->solver,
-            'people'    => $openLottery->participants()->with(['ranking:open_lottery_items.id,name', 'item:id,name'])->get()
+            'lottery'  => $openLottery->only('name', 'items_name'),
+            'run'      => $run->uuid,
+            'finished' => $run->finished_at,
+            'solver'   => $run->solver,
+            'people'   => $openLottery->participants()->with(['ranking:open_lottery_items.id,name', 'item:id,name'])->get()
                 ->map(fn (OpenLotteryParticipant $person) => [
                     'name'    => $person->name,
                     'got'     => $person->item?->name,

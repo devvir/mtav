@@ -86,7 +86,7 @@ class Project extends Model
         }
     }
 
-        public function hasHistory(): bool
+    public function hasHistory(): bool
     {
         return $this->memberships()->when($this->created_by, fn ($people, $creator) => $people->where('user_id', '!=', $creator))->exists()
             || $this->invitations()->exists()
