@@ -39,7 +39,7 @@ class MessageSent implements ShouldBroadcast
             'message_id'      => $this->message->id,
             'by'              => $this->message->user_id,
             // Only those in the conversation hear it: who wrote, for the toast
-            'author' => $this->message->author?->firstname,
+            'author' => $this->message->from_assistant ? __('chat.assistant') : $this->message->author?->firstname,
         ];
     }
 }

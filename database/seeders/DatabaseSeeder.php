@@ -4,8 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\EventType;
 use App\Models\Activity;
+use App\Models\Conversation;
 use App\Models\Event;
 use App\Models\Family;
+use App\Models\Message;
 use App\Models\Project;
 use App\Models\UnitType;
 use App\Models\User;
@@ -83,6 +85,8 @@ class DatabaseSeeder extends Seeder
         $this->barrioSur($admin);
         $this->startingOut($superadmin, $admin, 'Cooperativa Nuevo Horizonte', 'Ocho viviendas en Colón, buscando familias: quien quiera puede sumarse.', open: true);
         $this->startingOut($superadmin, $admin, 'Cooperativa Los Robles', 'Doce viviendas en el Prado. Conversamos con cada familia antes de que se sume.', open: false);
+
+        $this->askedTheAssistant($member, Project::firstWhere('name', 'Cooperativa Las Acacias'));
 
         // Something archived, for admins to see and restore
         $acacias = Project::firstWhere('name', 'Cooperativa Las Acacias');
@@ -263,6 +267,26 @@ class DatabaseSeeder extends Seeder
             ['Germán', 'Ocampo', null],
             ['Inés', 'Duarte', $project->families()->first()],
         ]);
+    }
+
+    /** Someone already asked it something: how it looks, without a brain at hand */
+    private function askedTheAssistant(User $member, Project $project): void
+    {
+        $conversation = Conversation::where('project_id', $project->id)->where('pair', "assistant:{$member->id}")->sole();
+        $say = function (array $attributes, string $body) use ($conversation) {
+            $message = new Message(['body' => $body]);
+            $message->forceFill(['conversation_id' => $conversation->id, ...$attributes])->save();
+            $conversation->forceFill(['last_message_id' => $message->id, 'last_message_at' => $message->created_at])->save();
+        };
+
+        $say(['user_id' => $member->id], '¿Cómo funciona el sorteo?');
+        $say([
+            'from_assistant' => true,
+            'extras'         => ['actions' => [
+                ['type' => 'tour', 'label' => 'Ver cómo funciona', 'href' => route('lottery.show', $project, absolute: false), 'tour' => 'lottery'],
+                ['type' => 'reply', 'label' => '¿Cómo ordeno las viviendas?'],
+            ]],
+        ], 'Cada familia ordena las viviendas de su tipo, y el sorteo busca que a la peor ubicada le toque lo mejor posible. Nadie gana ni pierde: solo los empates se resuelven al azar.');
     }
 
     /** A small project in the directory, a few families in */

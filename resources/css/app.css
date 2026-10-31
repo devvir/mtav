@@ -2496,3 +2496,59 @@ html[data-carrying] * {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--mtav-border);
 }
+
+/* The Assistant: a house that looks at you, its buttons under what it says, its dots as it writes */
+.assistant-face {
+  flex: none;
+  fill: var(--mtav-brand);
+}
+.assistant-face .assistant-house {
+  fill: #fff;
+}
+.assistant-face .assistant-eye {
+  fill: var(--mtav-brand);
+}
+.assistant-face .assistant-smile {
+  fill: none;
+  stroke: var(--mtav-brand);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.chat-actions {
+  margin-top: 6px;
+}
+.chat-answering {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 8px;
+}
+.chat-answering span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mtav-muted);
+  animation: chat-answering 1.2s infinite ease-in-out;
+}
+.chat-answering span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.chat-answering span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes chat-answering {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-answering span {
+    animation: none;
+  }
+}

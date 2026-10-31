@@ -15,6 +15,12 @@ says the same to the people concerned; when one changes, the other does.
 - **On the device**: the session and form cookies, appearance cookies, the pages kept for
   working offline (forgotten when someone else signs in there), which tours were seen.
 
+## What leaves the server
+
+Where the Assistant is on: what someone writes to it, with their first name, their family's name
+and their role, goes to Anthropic to be answered. Nothing about anyone else does (see
+[architecture.md](architecture.md)). The privacy page says so.
+
 ## Who sees what
 
 - People in a project see each other's name and picture. Email and phone, only if the

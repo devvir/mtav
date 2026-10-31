@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\MessageSent;
+use App\Jobs\AnswerInChat;
 use App\Jobs\PushMessage;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -71,7 +72,9 @@ class ChatService
         });
 
         MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all());
-        if (PushService::enabled()) {
+        if ($conversation->is_assistant) {
+            AnswerInChat::dispatch($message->id);
+        } elseif (PushService::enabled()) {
             PushMessage::dispatch($message->id);
         }
 

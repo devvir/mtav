@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Conversation;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\User;
@@ -34,6 +35,8 @@ class AccountService
     public function delete(User $user): void
     {
         $avatar = $user->avatar;
+        // Their conversations with the Assistant were theirs alone
+        Conversation::where('pair', "assistant:{$user->id}")->delete();
         $user->delete();
         $avatar && Storage::disk('public')->delete($avatar);
     }

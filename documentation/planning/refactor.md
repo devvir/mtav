@@ -105,13 +105,10 @@ decision taken on the way is listed below for review.
 - **Full browser coverage.** The browser suite covers every button, every form and every
   edge case; anything later judged too slow or costly for every run moves to an
   on-demand run, by decision.
-- **Assistant (optional module).** A chat in the app that guides people: it explains
-  how to do things and MTAV's rules from documentation written for it, and acts in the
-  page through tools (start a guided tour, go to a page, later more), run by the browser
-  as the signed-in user, so it can never do what that person could not. Its
-  documentation and tools are assembled from the modules a project has, like everything
-  else white-label. The model is a setting, chosen by measured answers on real
-  questions; it runs on an API key with a spending cap, the documentation cached.
+- **Assistant.** Another conversation of the chat, each person's own, pinned to begin with: it
+  explains the app and leads people to it, with buttons, links and options. No internet, no
+  database; it can only say what the person could find by other means (technical/architecture.md).
+  It declines anything outside the app in a sentence, cheaply. Its model is a setting.
 - **Contact details, shared by choice.** Each person decides, beside their email and
   their phone in the profile, whether the people of their projects see it. Shared, it
   shows on their card and searches find it; not shared (the default), only admins see it
@@ -368,8 +365,7 @@ decision taken on the way is listed below for review.
 12. **Delivery** (see *Delivery from scratch*): the pipeline, its documentation, the
     staging deploy (first run with the author), the approval-gated production deploy.
 13. **Full browser coverage** (see the decision): every button, form and edge case.
-14. **Assistant** (see the decision), after the queue above: agent documentation, the
-    chat, its tools, a measured model choice.
+14. **Assistant** (see the decision): built on `feature/assistant`.
 15. **A landing page** that invites people in (built: `pages/Welcome.tsx`): what MTAV is
     and who it is for, "Sign in" as the main call to action, signing in and up in a dialog
     over it (`/login` and `/register` open it), a language switch whose choice the account

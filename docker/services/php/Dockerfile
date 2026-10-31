@@ -64,6 +64,12 @@ RUN arch=$(case "$(uname -m)" in x86_64) echo x64;; aarch64) echo arm64;; esac) 
     && wget -qO- "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-${arch}-musl.tar.gz" | tar xz -C /opt/pnpm \
     && ln -s /opt/pnpm/pnpm /usr/local/bin/pnpm
 
+# The Claude command line: for the Assistant on a developer's machine (config/assistant.php)
+ARG CLAUDE_CODE_VERSION=2.1.316
+RUN apk add --no-cache libgcc libstdc++ ripgrep npm \
+    && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+    && apk del npm
+
 # User/group mapping for host compatibility
 ARG PUID=1000
 ARG PGID=1000

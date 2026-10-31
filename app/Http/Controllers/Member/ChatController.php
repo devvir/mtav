@@ -78,7 +78,7 @@ class ChatController extends Controller
     public function send(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('writeChat', $conversation);
-        $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
+        $data = $request->validate(['body' => ['required', 'string', 'max:' . ($conversation->is_assistant ? config('assistant.message_chars') : 5000)]]);
 
         $this->chat->send($conversation, $request->user(), trim($data['body']));
 
@@ -176,11 +176,13 @@ class ChatController extends Controller
 
         return [
             'data' => $page->take($count)->reverse()->map(fn (Message $message) => [
-                'id'         => $message->id,
-                'body'       => $message->body,
-                'author'     => $message->author ? $this->person($message->author) : null,
-                'mine'       => $message->user_id === $request->user()->id,
-                'created_at' => $message->created_at,
+                'id'             => $message->id,
+                'body'           => $message->body,
+                'author'         => $message->author ? $this->person($message->author) : null,
+                'mine'           => $message->user_id === $request->user()->id,
+                'from_assistant' => $message->from_assistant,
+                'actions'        => $message->extras['actions'] ?? [],
+                'created_at'     => $message->created_at,
             ])->values(),
             'earlier' => $page->count() > $count,
         ];
@@ -194,17 +196,20 @@ class ChatController extends Controller
         return [
             'id' => $conversation->id,
             // A group by its name, else by its people; one on one, by the other person
-            'title' => $conversation->is_community ? __('chat.community') : ($conversation->title ?: match ($others->count()) {
+            'title' => $conversation->is_assistant ? __('chat.assistant') : ($conversation->is_community ? __('chat.community') : ($conversation->title ?: match ($others->count()) {
                 0       => __('chat.only_you'),
                 1       => $others[0]->name,
                 default => $others->pluck('firstname')->join(', '),
-            }),
+            })),
             'is_group'     => $conversation->is_group,
             'is_community' => $conversation->is_community,
-            'faces'        => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
-            'last'         => $last ? [
+            'is_assistant' => $conversation->is_assistant,
+            // It has been asked, and has not said anything yet
+            'answering' => $conversation->is_assistant && $last && ! $last->from_assistant && $last->created_at->isAfter(now()->subMinutes(2)),
+            'faces'     => $others->take(3)->map(fn (User $person) => $this->person($person))->values(),
+            'last'      => $last ? [
                 'body'   => Str::limit($last->body, 90),
-                'author' => $last->user_id === $user->id ? null : $last->author?->firstname,
+                'author' => $last->user_id === $user->id ? null : ($last->from_assistant ? null : $last->author?->firstname),
                 'mine'   => $last->user_id === $user->id,
                 'at'     => $last->created_at,
             ] : null,

@@ -36,7 +36,7 @@ it('starts a conversation with someone, and they find it waiting, unread until o
         ->assertMissing('.chat-list-item[data-unread]')
         ->assertPathIs('/projects/' . $this->project->id);
 
-    expect(Conversation::where('is_community', false)->sole()->messages()->count())->toBe(1);
+    expect(Conversation::where('is_community', false)->where('is_assistant', false)->sole()->messages()->count())->toBe(1);
 });
 
 it('starts a named group for several people', function () {
@@ -53,7 +53,7 @@ it('starts a named group for several people', function () {
         ->click(inDialog('Start the group'))
         ->assertSeeIn('.chat-thread-header', 'Building committee');
 
-    expect(Conversation::where('is_community', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee');
+    expect(Conversation::where('is_community', false)->where('is_assistant', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee');
 });
 
 it('opens from its bubble over the page, writes, folds back, and stays open between pages', function () {
@@ -86,4 +86,38 @@ it('opens from its bubble over the page, writes, folds back, and stays open betw
         ->assertSeeIn('.chat-window .chat-messages', 'Hola desde la burbuja')
         ->keys('.chat-window [aria-label="Message"]', 'Escape')
         ->assertMissing('.chat-window');
+});
+
+it('has the Assistant at hand, pinned, offering what to ask, and says when it is not available', function () {
+    $this->as($this->ana);
+
+    visit(route('projects.show', $this->project))
+        ->click('.chat-launcher')
+        ->assertSeeIn('.chat-kinds + .chat-list-row', 'Assistant')
+        ->assertPresent('.chat-kinds + .chat-list-row .chat-pin[data-pinned]')
+        ->click('.chat-list-item:has-text("Assistant")')
+        ->assertSeeIn('.chat-window', 'I am the Assistant of this app')
+        ->click('.chat-window button:has-text("How does the lottery work?")')
+        ->assertSeeIn('.chat-messages', 'How does the lottery work?')
+        ->assertSeeIn('.chat-messages', 'The Assistant is not available here yet')
+        ->assertNoSmoke();
+});
+
+it('leads somewhere from the Assistant\'s buttons, and sends its replies with a tap', function () {
+    $conversation = Conversation::where('pair', "assistant:{$this->ana->id}")->sole();
+    app(App\Services\Assistant\Assistant::class)->say($conversation, 'Here it is', [
+        ['type' => 'link', 'label' => 'Go to the lottery', 'href' => route('lottery.show', $this->project, absolute: false)],
+        ['type' => 'reply', 'label' => 'Tell me more about it'],
+    ]);
+    $this->as($this->ana);
+
+    visit(route('projects.show', $this->project))
+        ->click('.chat-launcher')
+        ->click('.chat-list-item:has-text("Assistant")')
+        ->assertSeeIn('.chat-messages', 'Here it is')
+        ->click('.chat-actions button:has-text("Tell me more about it")')
+        ->assertPresent('.chat-message[data-mine]')
+        ->click('.chat-actions button:has-text("Go to the lottery")')
+        ->assertPathIs('/projects/' . $this->project->id . '/lottery')
+        ->assertNoSmoke();
 });

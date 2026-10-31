@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Queue;
 use App\Models\User;
 use App\Services\Delivery\GitHub;
 use App\Services\ActivityLog;
+use App\Services\Assistant\Brain;
+use App\Services\Assistant\Brains\ApiBrain;
+use App\Services\Assistant\Brains\CliBrain;
 use App\Services\Push\PushSender;
 use App\Services\Push\WebPushSender;
 use Illuminate\Auth\Events\Failed;
@@ -36,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PushSender::class, WebPushSender::class);
+        $this->app->bind(Brain::class, fn () => config('assistant.driver') === 'cli' ? new CliBrain() : new ApiBrain());
     }
 
     public function boot(): void

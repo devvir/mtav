@@ -35,11 +35,11 @@ function say($test, $user, Conversation $conversation, string $body = 'Hello!')
 
 it('gives two people one conversation, whoever starts it', function () {
     startChat($this, $this->ana, [$this->beto])->assertSessionHasNoErrors();
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
 
     startChat($this, $this->beto, [$this->ana])->assertRedirect(route('chat.show', [$this->project, $conversation]));
 
-    expect(Conversation::where('is_community', false)->count())->toBe(1)
+    expect(Conversation::where('is_community', false)->where('is_assistant', false)->count())->toBe(1)
         ->and($conversation->is_group)->toBeFalse()
         ->and($conversation->participants()->pluck('users.id')->sort()->values()->all())->toBe(collect([$this->ana->id, $this->beto->id])->sort()->values()->all());
 });
@@ -47,13 +47,13 @@ it('gives two people one conversation, whoever starts it', function () {
 it('starts a group, with its name, for several people', function () {
     startChat($this, $this->ana, [$this->beto, $this->carla], 'Building committee')->assertSessionHasNoErrors();
 
-    expect(Conversation::where('is_community', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee')
-        ->and(Conversation::where('is_community', false)->sole()->participants()->count())->toBe(3);
+    expect(Conversation::where('is_community', false)->where('is_assistant', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee')
+        ->and(Conversation::where('is_community', false)->where('is_assistant', false)->sole()->participants()->count())->toBe(3);
 });
 
 it('lets only those in a conversation read and write it, the admins neither', function () {
     startChat($this, $this->ana, [$this->beto]);
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     say($this, $this->ana, $conversation, 'Our secret')->assertSessionHasNoErrors();
 
     $this->as($this->beto, $this->project)->get(route('chat.show', [$this->project, $conversation]))->assertOk()
@@ -72,12 +72,12 @@ it('never starts a conversation with someone outside the project', function () {
 
     startChat($this, $this->ana, [$stranger])->assertSessionHasErrors('people');
 
-    expect(Conversation::where('is_community', false)->count())->toBe(0);
+    expect(Conversation::where('is_community', false)->where('is_assistant', false)->count())->toBe(0);
 });
 
 it('keeps a project\'s conversations at its own address', function () {
     startChat($this, $this->ana, [$this->beto]);
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     $other = aProject();
     $this->ana->memberships()->create(['project_id' => $other->id, 'family_id' => aFamily($other)->id]);
 
@@ -86,7 +86,7 @@ it('keeps a project\'s conversations at its own address', function () {
 
 it('counts the conversations with something new for each person, until they read it', function () {
     startChat($this, $this->ana, [$this->beto]);
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     say($this, $this->ana, $conversation);
 
     $unread = fn ($user) => $this->as($user, $this->project)->get(route('projects.show', $this->project))->inertiaProps('project.unread_messages');
@@ -103,7 +103,7 @@ it('counts the conversations with something new for each person, until they read
 it('tells everyone in the conversation of a message, on their own channels only', function () {
     Event::fake([MessageSent::class]);
     startChat($this, $this->ana, [$this->beto]);
-    say($this, $this->ana, Conversation::where('is_community', false)->sole());
+    say($this, $this->ana, Conversation::where('is_community', false)->where('is_assistant', false)->sole());
 
     Event::assertDispatched(MessageSent::class, function (MessageSent $event) {
         $channels = collect($event->broadcastOn())->map->name->sort()->values()->all();
@@ -114,7 +114,7 @@ it('tells everyone in the conversation of a message, on their own channels only'
 
 it('lets those in a group rename it, add people, and leave it; one on one stays two', function () {
     startChat($this, $this->ana, [$this->beto, $this->carla], 'Committee');
-    $group = Conversation::where('is_community', false)->sole();
+    $group = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     $dora = aMemberOf(aFamily($this->project), ['firstname' => 'Dora']);
 
     $this->as($this->beto, $this->project)->put(route('chat.update', [$this->project, $group]), ['title' => 'Works committee', 'people' => [$dora->id]])->assertSessionHasNoErrors();
@@ -125,14 +125,14 @@ it('lets those in a group rename it, add people, and leave it; one on one stays 
     expect($group->includes($this->carla))->toBeFalse();
 
     startChat($this, $this->ana, [$this->beto]);
-    $pair = Conversation::where('is_group', false)->sole();
+    $pair = Conversation::where('is_group', false)->where('is_assistant', false)->sole();
     expect($this->as($this->ana, $this->project)->put(route('chat.update', [$this->project, $pair]), ['people' => [$dora->id]]))->toBeDenied()
         ->and($this->delete(route('chat.leave', [$this->project, $pair])))->toBeDenied();
 });
 
 it('lets whoever wrote a message take it back, and nobody else', function () {
     startChat($this, $this->ana, [$this->beto]);
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     say($this, $this->ana, $conversation, 'First');
     say($this, $this->ana, $conversation, 'Oops');
     $oops = Message::where('body', 'Oops')->sole();
@@ -148,7 +148,7 @@ it('lets whoever wrote a message take it back, and nobody else', function () {
 
 it('opens a conversation with its latest messages, earlier ones on asking', function () {
     startChat($this, $this->ana, [$this->beto]);
-    $conversation = Conversation::where('is_community', false)->sole();
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     foreach (range(1, 60) as $n) {
         say($this, $this->ana, $conversation, "Message {$n}");
     }

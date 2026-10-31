@@ -94,6 +94,23 @@ that nothing else happened to. Families, units and unit types are deleted for go
 nothing depends on them, and the activity log keeps what they were): bringing one back would
 not bring back its members or its place on the plan.
 
+## The Assistant
+
+Another conversation of the chat (`is_assistant`, one per person and project, pinned to begin
+with), answered apart from the request (`AnswerInChat`, `App\Services\Assistant`). It gets words
+and gives words: no tools, no internet, no database. `Prompt` writes what it knows: its rules,
+the guides for the person's role and language, and a few facts about them and their project.
+Nothing about anyone else goes in, so there is nothing to leak. What it answers comes in a fixed
+shape, and is checked: a link names a key of `Places`, which lists only what that person can reach
+(role, family, features), and the address is the server's. Short limits keep it cheap
+(`config/assistant.php`): per person and deployment a day, a short history, and saying no to
+either costs nothing.
+
+It answers through a `Brain`: `ApiBrain` (the official SDK; `ANTHROPIC_API_KEY`, the deployed way)
+or `CliBrain` (the Claude command line on a signed-in account, a developer's machine only). With
+neither it says it is not available, and nothing leaves the server. `php artisan assistant:try`
+runs a set of real questions through the real prompt, its answers shown to be judged.
+
 ## The plan
 
 A project's site drawn as shapes on floors (`components/plan`): units, buildings,

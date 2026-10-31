@@ -6,6 +6,7 @@ import { fieldErrors, sendJson } from '@/lib/json';
 import { heldOffline } from '@/lib/offline';
 import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
+import { startTour } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 import { router, usePage } from '@inertiajs/react';
 import {
@@ -25,6 +26,7 @@ import {
 } from '@mantine/core';
 import {
   IconArrowLeft,
+  IconArrowRight,
   IconDoorExit,
   IconDots,
   IconMinus,
@@ -57,6 +59,9 @@ interface ConversationSummary {
   title: string;
   is_group: boolean;
   is_community: boolean;
+  is_assistant?: boolean;
+  /** It was asked, and has not said anything yet */
+  answering?: boolean;
   faces: ChatPerson[];
   last: { body: string; author: string | null; mine: boolean; at: string } | null;
   unread?: boolean;
@@ -68,7 +73,17 @@ interface ChatMessage {
   body: string;
   author: ChatPerson | null;
   mine: boolean;
+  from_assistant?: boolean;
+  actions?: AssistantAction[];
   created_at: string;
+}
+
+/** A button under an Assistant's message: to a place (its tour too), or a reply sent with a tap */
+interface AssistantAction {
+  type: 'link' | 'tour' | 'reply';
+  label: string;
+  href?: string;
+  tour?: string;
 }
 
 type OpenConversation = ConversationSummary & {
@@ -94,8 +109,25 @@ const seen = new Map<number, ChatData>();
 
 const refused = () => toast({ tone: 'error', message: _('That did not work. Please try again.') });
 
+/** The Assistant: a small friendly house, the app's subject, looking at you */
+function AssistantFace({ size = 40 }: { size?: number }) {
+  return (
+    <svg className="assistant-face" viewBox="0 0 40 40" width={size} height={size} aria-hidden>
+      <circle cx="20" cy="20" r="20" />
+      <path
+        className="assistant-house"
+        d="M20 8.5 8.8 18.2c-.8.7-.3 2 .7 2H11v9.3c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-9.3h1.5c1 0 1.5-1.3.7-2z"
+      />
+      <circle className="assistant-eye" cx="16.3" cy="21.2" r="1.7" />
+      <circle className="assistant-eye" cx="23.7" cy="21.2" r="1.7" />
+      <path className="assistant-smile" d="M15.8 25.6c2.4 2.2 6 2.2 8.4 0" />
+    </svg>
+  );
+}
+
 /** A conversation's faces: the other person, or a group's first few, overlapping */
 function Faces({ conversation }: { conversation: ConversationSummary }) {
+  if (conversation.is_assistant) return <AssistantFace />;
   if (!conversation.faces.length) return <Avatar radius="xl" size={40} />;
   if (!conversation.is_group) {
     const [person] = conversation.faces;
@@ -257,6 +289,71 @@ function dayLabel(value: string) {
   return formatDate(value, false);
 }
 
+/** Before the first message: what it is, and a few things to ask with a tap */
+function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
+  const can = usePage().props.project?.can;
+  const asks = [
+    _('What can I do here?'),
+    _('How does the lottery work?'),
+    ...(can?.rank ? [_('How do I rank the units?')] : []),
+    ...(can?.manage ? [_('What is left to set up?')] : []),
+    ...(can?.invite && !can?.manage ? [_('How do I invite my family?')] : []),
+  ];
+
+  return (
+    <div className="chat-message" data-assistant>
+      <AssistantFace size={28} />
+      <div className="chat-bubble">
+        <Text component="div" className="chat-body">
+          {_(
+            'Hello! I am the Assistant of this app, an automatic helper. I can explain how things work and take you where you need to go. What would you like to know?',
+          )}
+        </Text>
+      </div>
+      <AssistantActions
+        actions={asks.map((label) => ({ type: 'reply' as const, label }))}
+        onReply={onAsk}
+      />
+    </div>
+  );
+}
+
+/** The buttons under an Assistant's message; leading somewhere, the window folds out of the way on phones */
+function AssistantActions({
+  actions,
+  onReply,
+}: {
+  actions: AssistantAction[];
+  onReply: (words: string) => void;
+}) {
+  const press = (action: AssistantAction) => {
+    if (action.type === 'reply') return onReply(action.label);
+
+    router.visit(action.href!, {
+      onSuccess: () => {
+        if (action.tour) startTour(action.tour);
+      },
+    });
+    return undefined;
+  };
+
+  return (
+    <Group gap="xs" className="chat-actions">
+      {actions.map((action) => (
+        <Button
+          key={`${action.type}-${action.label}`}
+          size="xs"
+          variant={action.type === 'reply' ? 'default' : 'light'}
+          rightSection={action.type === 'reply' ? null : <IconArrowRight size={14} />}
+          onClick={() => press(action)}
+        >
+          {action.label}
+        </Button>
+      ))}
+    </Group>
+  );
+}
+
 /** The open conversation: its messages, the latest at the bottom, and writing a new one */
 function Thread({
   conversation,
@@ -291,13 +388,13 @@ function Thread({
     if (element && atBottom.current) element.scrollTop = element.scrollHeight;
   }, [last, conversation.id]);
 
-  const send = async (event?: FormEvent) => {
+  const send = async (event?: FormEvent, words = body) => {
     event?.preventDefault();
-    if (!body.trim() || sending || heldOffline()) return;
+    if (!words.trim() || sending || heldOffline()) return;
     atBottom.current = true;
     setSending(true);
     setBodyError(undefined);
-    const response = await sendJson('POST', route('chat.send', at), { body });
+    const response = await sendJson('POST', route('chat.send', at), { body: words });
     if (response.ok) {
       setBody('');
       await onChange();
@@ -422,11 +519,14 @@ function Thread({
             </Button>
           </Group>
         ) : null}
-        {messages.data.length ? null : (
+        {messages.data.length || conversation.is_assistant ? null : (
           <Text c="dimmed" ta="center" py="xl">
             {_('Say hello: the first message starts the conversation.')}
           </Text>
         )}
+        {!messages.data.length && conversation.is_assistant ? (
+          <AssistantWelcome onAsk={(words) => void send(undefined, words)} />
+        ) : null}
         {messages.data.map((message, index) => {
           const before = messages.data[index - 1];
           const newDay = !before || dayOf(before.created_at) !== dayOf(message.created_at);
@@ -439,6 +539,7 @@ function Thread({
                 data-mine={message.mine || undefined}
                 data-follows={sameAuthor || undefined}
               >
+                {message.from_assistant && !sameAuthor ? <AssistantFace size={28} /> : null}
                 {!message.mine && conversation.is_group && !sameAuthor ? (
                   <Text className="chat-author">
                     {message.author?.name ?? _('Someone who left')}
@@ -454,6 +555,12 @@ function Thread({
                     )}
                   </span>
                 </div>
+                {message.actions?.length ? (
+                  <AssistantActions
+                    actions={message.actions}
+                    onReply={(words) => void send(undefined, words)}
+                  />
+                ) : null}
                 {message.mine ? (
                   <ActionIcon
                     variant="subtle"
@@ -472,6 +579,13 @@ function Thread({
         })}
       </div>
 
+      {conversation.answering ? (
+        <div className="chat-answering" role="status" aria-label={_('The Assistant is writing')}>
+          <span />
+          <span />
+          <span />
+        </div>
+      ) : null}
       <form
         className="chat-composer"
         onSubmit={(event) => void send(event)}
