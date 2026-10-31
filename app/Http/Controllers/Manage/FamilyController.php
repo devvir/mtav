@@ -68,6 +68,7 @@ class FamilyController extends Controller
             // Archived first: nobody is told of it emptying, the admin just removed it
             $family->delete();
             $family->joinRequests()->pending()->delete();
+            $family->invitations()->pending()->delete();
             $family->memberships()->where('is_admin', false)->get()->each->delete();
             $family->memberships()->update(['family_id' => null]);
         });

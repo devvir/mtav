@@ -77,7 +77,7 @@ class Project extends Model
      */
     public function hasHistory(): bool
     {
-        return $this->memberships()->where('user_id', '!=', $this->created_by)->exists()
+        return $this->memberships()->when($this->created_by, fn ($people, $creator) => $people->where('user_id', '!=', $creator))->exists()
             || $this->invitations()->exists()
             || $this->events()->withTrashed()->where('type', '!=', EventType::LOTTERY)->exists()
             || $this->media()->withTrashed()->exists()

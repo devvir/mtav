@@ -108,6 +108,15 @@ describe('A superadmin', function () {
         expect(App\Models\Project::count())->toBe(0);
     });
 
+    it('leaves no project behind when the first admin\'s invitation is refused', function () {
+        aUser(['email' => 'blocked@example.com', 'blocked_at' => now()]);
+
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'blocked@example.com']))
+            ->assertSessionHasErrors('email');
+
+        expect(App\Models\Project::count())->toBe(0);
+    });
+
     it('may be its first admin, shown as any admin', function () {
         $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'me']))->assertSessionHasNoErrors();
 

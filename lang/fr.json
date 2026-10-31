@@ -656,7 +656,7 @@
   "Member guide": "Guide des coopérateurs",
   "The server cannot run the lottery right now: its background work has stopped. It is being looked into; try again later.": "Le serveur ne peut pas réaliser le tirage pour l’instant : son travail en arrière-plan est arrêté. C’est en cours de vérification ; réessayez plus tard.",
   "You are offline": "Vous êtes hors ligne",
-  "Changes are held until the connection is back: nothing was sent.": "Les modifications attendent le retour de la connexion : rien n’a été envoyé.",
+  "Nothing was sent. Try again when the connection is back.": "Rien n’a été envoyé. Réessayez quand la connexion sera revenue.",
   "You see what was last loaded; changes wait until the connection is back.": "Vous voyez ce qui a été chargé en dernier ; les modifications attendent le retour de la connexion.",
   "Offline": "Hors ligne",
   "Room for the project": "Capacité du projet",

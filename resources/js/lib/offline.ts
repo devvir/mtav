@@ -23,7 +23,7 @@ export function heldOffline(): boolean {
   toast({
     tone: 'warning',
     title: _('You are offline'),
-    message: _('Changes are held until the connection is back: nothing was sent.'),
+    message: _('Nothing was sent. Try again when the connection is back.'),
   });
   return true;
 }

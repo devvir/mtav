@@ -22,6 +22,17 @@ beforeEach(function () {
     $this->project->lottery->update(['start_date' => now()->subMinute()]);
 });
 
+it('keeps the record of a run away while its result is held, from everyone', function () {
+    PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 30);
+    Queue::fake([PublishLotteryRun::class]);
+
+    $this->as($this->admin, $this->project)->post(route('manage.lottery.run'))->assertSessionHasNoErrors();
+    $run = $this->project->lotteryRuns()->sole();
+
+    $this->as($this->member, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertNotFound();
+    $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertNotFound();
+});
+
 it('shows the lottery running for the time set, the result held until then', function () {
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 30);
     Queue::fake([PublishLotteryRun::class]);

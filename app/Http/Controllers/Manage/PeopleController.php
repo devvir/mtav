@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Manage;
 
 use App\Http\Controllers\Controller;
 use App\Models\Family;
+use App\Models\FamilyJoinRequest;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class PeopleController extends Controller
     public function update(Request $request, Project $project, User $member): RedirectResponse
     {
         $data = $request->validate([
-            'family_id' => ['nullable', Rule::exists(Family::class, 'id')->where('project_id', $project->id)],
+            'family_id' => ['nullable', Rule::exists(Family::class, 'id')->where('project_id', $project->id)->whereNull('deleted_at')],
             'is_admin'  => ['required', 'boolean'],
         ]);
 
@@ -34,6 +35,12 @@ class PeopleController extends Controller
 
         if ($membership->is_admin && ! $data['is_admin']) {
             $this->ensureNotLastAdmin($project, $member);
+        }
+
+        // A family's decline stands against admins too: only someone in it lifts it
+        if (($data['family_id'] ?? null) && (int) $data['family_id'] !== $membership->family_id
+            && FamilyJoinRequest::declined()->where('family_id', $data['family_id'])->where('user_id', $member->id)->exists()) {
+            throw ValidationException::withMessages(['family_id' => __('validation.family_declined_them')]);
         }
 
         $membership->update($data);

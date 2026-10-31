@@ -147,6 +147,57 @@ describe('A decline', function () {
     });
 });
 
+describe('Admins and a decline', function () {
+    it('cannot move someone into a family that declined them', function () {
+        FamilyJoinRequest::create(['project_id' => $this->project->id, 'family_id' => $this->family->id, 'user_id' => $this->guest->id, 'declined_at' => now()]);
+
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->guest), ['family_id' => $this->family->id, 'is_admin' => false])
+            ->assertSessionHasErrors('family_id');
+
+        expect($this->guest->familyIn($this->project))->toBeNull();
+    });
+
+    it('can still change the role of someone staying in the family', function () {
+        FamilyJoinRequest::create(['project_id' => $this->project->id, 'family_id' => $this->family->id, 'user_id' => $this->member->id, 'declined_at' => now()]);
+
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->member), ['family_id' => $this->family->id, 'is_admin' => true])
+            ->assertSessionHasNoErrors();
+    });
+
+    it('cannot move someone into an archived family', function () {
+        $archived = aFamily($this->project, $this->type, ['name' => 'Gone']);
+        $archived->delete();
+
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->guest), ['family_id' => $archived->id, 'is_admin' => false])
+            ->assertSessionHasErrors('family_id');
+    });
+});
+
+describe('Removing a family', function () {
+    it('withdraws the invitations into it, so nobody lands in an archived family', function () {
+        $invitation = app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $this->family, false);
+
+        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $this->family));
+
+        expect($this->family->fresh()->trashed())->toBeTrue()
+            ->and(Invitation::whereKey($invitation->id)->exists())->toBeFalse();
+    });
+
+    it('stays archived when the people limit refuses an invitation back into it', function () {
+        $small = anUnapprovedProject(aUser());
+        $family = aFamily($small, aUnitType($small));
+        $family->delete();
+        config(['limits.unapproved.members' => 0]);
+
+        expect(fn () => app(InvitationService::class)->invite($small, $small->admins()->first(), ['email' => 'new@example.com'], $family, false))
+            ->toThrow(\Illuminate\Validation\ValidationException::class)
+            ->and($family->fresh()->trashed())->toBeTrue();
+    });
+});
+
 describe('Leaving a family', function () {
     it('leaves them a guest where guests are allowed', function () {
         aMemberOf($this->family);

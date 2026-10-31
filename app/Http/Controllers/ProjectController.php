@@ -10,6 +10,7 @@ use App\Services\InvitationService;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
 
@@ -62,14 +63,19 @@ class ProjectController extends Controller
             'first_admin_email' => ['required_if:first_admin,someone', 'nullable', 'email', 'max:255'],
         ]) : null;
 
-        $project = $projects->create($user, $request->validated());
+        // One whole: an invitation refused leaves no project behind, holding its name
+        $project = DB::transaction(function () use ($projects, $invitations, $request, $user, $first) {
+            $project = $projects->create($user, $request->validated());
 
-        if ($first && $first['first_admin'] === 'me') {
-            $project->memberships()->create(['user_id' => $user->id, 'is_admin' => true]);
-            $user->unsetRelation('memberships');
-        } elseif ($first) {
-            $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
-        }
+            if ($first && $first['first_admin'] === 'me') {
+                $project->memberships()->create(['user_id' => $user->id, 'is_admin' => true]);
+                $user->unsetRelation('memberships');
+            } elseif ($first) {
+                $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
+            }
+
+            return $project;
+        });
 
         return to_route('manage.overview', $project)
             ->with('success', __('flash.project_created'));

@@ -41,7 +41,7 @@ class UnitType extends Model
 
     public function isInUse(): bool
     {
-        return $this->units()->exists() || $this->families()->exists();
+        return $this->units()->exists() || $this->families()->withTrashed()->exists();
     }
 
     public function scopeAlphabetically(Builder $query): void

@@ -74,6 +74,15 @@ describe('An admin', function () {
         expect(UnitType::find($type->id))->not->toBeNull();
     });
 
+    it('cannot delete a unit type only an archived family has, and says so', function () {
+        $type = aUnitType($this->project);
+        aFamily($this->project, $type)->delete();
+
+        $this->as($this->admin, $this->project)->delete(route('manage.unit_types.destroy', $type))->assertRedirect();
+
+        expect($type->fresh())->not->toBeNull();
+    });
+
     it('cannot delete a unit type that has units', function () {
         $type = aUnitType($this->project);
         aUnit($type);

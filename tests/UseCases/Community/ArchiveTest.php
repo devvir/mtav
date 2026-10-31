@@ -3,6 +3,8 @@
 use App\Models\Event;
 use App\Models\Media;
 use App\Models\Topic;
+use App\Services\ArchiveService;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,6 +37,18 @@ function shareFile($test): Media
 
     return Media::latest('id')->first();
 }
+
+it('names an archived file by its description in the admins\' list', function () {
+    $media = shareFile($this);
+    $media->delete();
+
+    $request = Request::create('/', 'GET', ['archived' => '1']);
+    $request->setUserResolver(fn () => $this->admin);
+
+    $list = app(ArchiveService::class)->forPage($request, $this->project, 'files');
+
+    expect($list['items']->first()['title'])->toBe('The minutes');
+});
 
 describe('An event', function () {
     it('goes for good if it never went out', function () {

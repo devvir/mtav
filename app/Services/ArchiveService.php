@@ -38,7 +38,7 @@ class ArchiveService
                 ->map(fn ($item) => [
                     'id'    => $item->id,
                     'title' => match (true) {
-                        $item instanceof Media  => $item->title ?: $item->original_name,
+                        $item instanceof Media  => $item->description,
                         $item instanceof Family => $item->name,
                         default                 => $item->title,
                     },

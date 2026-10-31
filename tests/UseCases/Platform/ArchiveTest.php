@@ -44,6 +44,15 @@ it('deletes a project whose name has a comma or quotes in it', function () {
     expect(Project::withTrashed()->find($project->id))->toBeNull();
 });
 
+it('archives, not wipes, a project with people in it whose creator deleted their account', function () {
+    $creator = aUser();
+    $project = anUnapprovedProject($creator);
+    aMemberOf(aFamily($project, aUnitType($project)));
+    $project->forceFill(['created_by' => null])->save();
+
+    expect($project->fresh()->hasHistory())->toBeTrue();
+});
+
 it('archives a project others took part in, which then is gone for them', function () {
     $project = aProject();
     $admin = anAdminOf($project);

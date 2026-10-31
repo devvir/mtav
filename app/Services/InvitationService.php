@@ -46,17 +46,18 @@ class InvitationService
         }
 
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
-        $family && $this->ensureFamilyTakes($family, $email, $inviter);
 
         $familyless = $family && ! $asAdmin
             ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)->first()
             : null;
 
+        // Limits first: a refused invitation brings no archived family back, empty
+        $familyless || $this->ensureWithinLimits($project);
+        $family && $this->ensureFamilyTakes($family, $email, $inviter);
+
         if ($familyless) {
             return $this->addToFamily($familyless, $family, $inviter);
         }
-
-        $this->ensureWithinLimits($project);
 
         $token = Str::random(48);
 
