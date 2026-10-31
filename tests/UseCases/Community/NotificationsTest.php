@@ -137,7 +137,7 @@ describe('What a project gains', function () {
 
     it('tells people of families', function () use ($seen) {
         $this->as($this->gainingAdmin, $this->gaining)->post(route('manage.families.store'), [
-            'name' => 'New one', 'unit_type_id' => $this->gainingType->id,
+            'name' => 'New one', 'unit_type_id' => $this->gainingType->id, 'email' => 'new@example.com',
         ])->assertSessionHasNoErrors();
 
         expect($seen($this)->pluck('title'))->toContain(__('notifications.families_added_title'));

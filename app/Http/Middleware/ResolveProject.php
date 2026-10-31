@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ResolveProject
 {
     /** All there is for someone let into a project without guests, until they have a family */
-    private const WITHOUT_FAMILY = ['family.create', 'families.store', 'membership.leave'];
+    private const WITHOUT_FAMILY = ['family.create', 'families.store', 'family.requests.store', 'family.requests.destroy', 'membership.leave'];
 
     public function handle(Request $request, Closure $next): Response
     {

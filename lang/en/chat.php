@@ -34,8 +34,7 @@ return [
         'steps'          => [
             'unit_types' => 'add the unit types',
             'units'      => 'add the units',
-            'families'   => 'register the families',
-            'members'    => 'invite their members',
+            'families'   => 'invite the families',
             'scheduled'  => 'schedule the lottery',
             'lottery'    => 'run the lottery',
         ],

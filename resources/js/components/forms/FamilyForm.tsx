@@ -3,12 +3,12 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Family, UnitType } from '@/types/models';
 import { Link, useForm } from '@inertiajs/react';
-import { Anchor, Button, NativeSelect, Text, TextInput } from '@mantine/core';
+import { Anchor, Button, NativeSelect, SimpleGrid, Text, TextInput } from '@mantine/core';
 import { Form, FormActions } from './Form';
 
 /**
- * A family's name and type: registering one, changing one, or (`own`) someone with no family
- * starting theirs (in a dialog; `onDone` closes it)
+ * A family's name and type: adding one with the first person invited into it, changing one, or
+ * (`own`) someone starting theirs (in a dialog; `onDone` closes it)
  */
 export function FamilyForm({
   family,
@@ -24,7 +24,11 @@ export function FamilyForm({
   const form = useForm({
     name: family?.name ?? '',
     unit_type_id: String(family?.unit_type?.id ?? unitTypes[0]?.id ?? ''),
+    email: '',
+    firstname: '',
+    lastname: '',
   });
+  const adding = !own && !family;
   const submit = () => {
     const options = { preserveScroll: true, onSuccess: onDone };
     if (own) form.post(route('families.store'), options);
@@ -51,6 +55,22 @@ export function FamilyForm({
         ]}
         {...nativeSelect(form, 'unit_type_id')}
       />
+      {adding ? (
+        <>
+          <TextInput
+            label={_('Email of someone in it')}
+            description={_('They receive the invitation')}
+            withAsterisk
+            type="email"
+            autoComplete="off"
+            {...field(form, 'email')}
+          />
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
+            <TextInput label={_('First name')} autoComplete="off" {...field(form, 'firstname')} />
+            <TextInput label={_('Last name')} autoComplete="off" {...field(form, 'lastname')} />
+          </SimpleGrid>
+        </>
+      ) : null}
       {!unitTypes.length && !own ? (
         <Text className="ds-caption">
           {_('There are no unit types yet.')}{' '}
@@ -60,7 +80,7 @@ export function FamilyForm({
         </Text>
       ) : null}
       <FormActions
-        submit={own ? _('Create our family') : family ? _('Save') : _('Add the family')}
+        submit={own ? _('Create our family') : family ? _('Save') : _('Add and invite')}
         processing={form.processing}
       >
         <Button variant="default" onClick={onDone}>

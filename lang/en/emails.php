@@ -34,7 +34,10 @@ return [
     'email_change_intro'   => 'Someone asked to change your account\'s email address to :email. It changes once that address confirms it.',
     'email_change_ignore'  => 'If it was not you, change your password now: your account keeps this address until then.',
 
-    'new_error_subject' => 'Something went wrong in :app',
-    'new_error_intro'   => 'The app ran into an error it had not seen before:',
-    'new_error_action'  => 'See the errors',
+    'new_error_subject'      => 'Something went wrong in :app',
+    'new_error_intro'        => 'The app ran into an error it had not seen before:',
+    'new_error_action'       => 'See the errors',
+    'family_request_subject' => ':name asks to join the :family family',
+    'family_request'         => ':name asks to join the :family family in :project. Anyone in the family can answer.',
+    'family_request_action'  => 'Answer',
 ];

@@ -34,8 +34,7 @@ return [
         'steps'          => [
             'unit_types' => 'agregar los tipos de vivienda',
             'units'      => 'agregar las viviendas',
-            'families'   => 'registrar las familias',
-            'members'    => 'invitar a sus integrantes',
+            'families'   => 'invitar a las familias',
             'scheduled'  => 'fijar la fecha del sorteo',
             'lottery'    => 'hacer el sorteo',
         ],

@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
      * the project (a family, a membership), the chat (only those in a conversation read
      * it), and deploying (its own list of people).
      */
-    private const PERSONAL_ABILITIES = ['join', 'askToJoin', 'createOwnFamily',
+    private const PERSONAL_ABILITIES = ['join', 'askToJoin', 'createOwnFamily', 'answerRequests',
         'rankUnits', 'rsvp', 'deploy',
         'startChat', 'readChat', 'writeChat', 'manageGroup', 'leaveGroup', 'unsendMessage',
     ];

@@ -38,7 +38,8 @@ export function MembershipForm({
         data={[
           {
             value: '',
-            label: form.data.is_admin || !allowsGuests ? _('No family') : _('No family (guest)'),
+            label:
+              form.data.is_admin || !allowsGuests ? _('Not joined a family yet') : _('As a guest'),
           },
           ...families.map((family) => ({ value: String(family.id), label: family.name })),
         ]}

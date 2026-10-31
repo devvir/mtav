@@ -34,7 +34,10 @@ return [
     'email_change_intro'   => 'Quelqu’un a demandé de remplacer l’e-mail de votre compte par :email. Il change une fois cette adresse confirmée.',
     'email_change_ignore'  => 'Si ce n’était pas vous, changez votre mot de passe maintenant : votre compte garde cette adresse d’ici là.',
 
-    'new_error_subject' => 'Un problème dans :app',
-    'new_error_intro'   => 'L’application a rencontré une erreur jamais vue auparavant :',
-    'new_error_action'  => 'Voir les erreurs',
+    'new_error_subject'      => 'Un problème dans :app',
+    'new_error_intro'        => 'L’application a rencontré une erreur jamais vue auparavant :',
+    'new_error_action'       => 'Voir les erreurs',
+    'family_request_subject' => ':name demande à rejoindre la famille :family',
+    'family_request'         => ':name demande à rejoindre la famille :family dans :project. Chaque membre de la famille peut répondre.',
+    'family_request_action'  => 'Répondre',
 ];

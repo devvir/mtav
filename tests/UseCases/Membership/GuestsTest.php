@@ -175,7 +175,7 @@ describe('In a project without guests', function () {
         $person = $person->fresh();
         expect($person->familyIn($this->project)?->name)->toBe('Ours');
         $this->as($person, $this->project)->get(route('forum.index'))->assertOk();
-        $this->as($person, $this->project)->get(route('family.create'))->assertRedirect(route('projects.show', $this->project));
+        $this->as($person, $this->project)->get(route('family.create'))->assertOk();
     });
 
     it('whoever an admin accepts does the same: open is simply approved beforehand', function () {

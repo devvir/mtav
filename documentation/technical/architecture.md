@@ -74,6 +74,12 @@ admins answer from the Invitations tab, and someone declined may ask again after
 `limits.join_request_retry_days`. Open is simply approved beforehand: from there on, both are
 the same.
 
+Inside a project, a family exists while it holds someone (`FamilyService`): members, an open
+invitation, or the unit it received. People ask to join one (`FamilyJoinRequest`), any member
+answering; a decline stays until a member lifts it. Whatever leaves a family with nobody archives
+it and tells the admins (`Membership` and `Invitation` events, and a job sent ahead to each
+invitation's expiry); an invitation brings it back, ranking included.
+
 Someone with neither a family nor a role is a **guest**, where the project `allows_guests`:
 they take part in everything but ranking and inviting, and never see people's email or phone
 (`MemberResource`, and searches by name only). Without guests, whoever is let in creates their

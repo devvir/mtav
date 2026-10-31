@@ -11,8 +11,9 @@ import { PersonAvatar } from '@/design';
 import { checkbox, field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { router, useForm, usePage } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
+  Anchor,
   Button,
   Fieldset,
   FileButton,
@@ -56,7 +57,7 @@ interface Props {
 }
 
 export default function Profile({ profile, languages, pushKey }: Props) {
-  const { auth, errors } = usePage().props;
+  const { auth, errors, project } = usePage().props;
   const user = auth.user!;
   const form = useForm({
     firstname: profile.firstname,
@@ -101,6 +102,11 @@ export default function Profile({ profile, languages, pushKey }: Props) {
           'Everything about you: how people see you, how you sign in, your language and how the app looks.',
         )}
       />
+      {project?.is_guest ? (
+        <Anchor component={Link} href={route('family.create')} size="sm" display="block" mb="md">
+          {_('Join your family')}
+        </Anchor>
+      ) : null}
       <Tabs value={section} onChange={open} maw={760}>
         <Tabs.List mb="lg" style={{ flexWrap: 'wrap' }} data-tour="profile.sections">
           <Tabs.Tab value="about" leftSection={<IconUser size={18} />}>

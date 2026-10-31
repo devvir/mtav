@@ -34,7 +34,10 @@ return [
     'email_change_intro'   => 'Qualcuno ha chiesto di cambiare l’email del tuo account in :email. Cambia quando quell’indirizzo lo conferma.',
     'email_change_ignore'  => 'Se non sei stato tu, cambia subito la password: fino ad allora il tuo account mantiene questo indirizzo.',
 
-    'new_error_subject' => 'Qualcosa non è andato in :app',
-    'new_error_intro'   => 'L’app ha incontrato un errore mai visto prima:',
-    'new_error_action'  => 'Vedi gli errori',
+    'new_error_subject'      => 'Qualcosa non è andato in :app',
+    'new_error_intro'        => 'L’app ha incontrato un errore mai visto prima:',
+    'new_error_action'       => 'Vedi gli errori',
+    'family_request_subject' => ':name chiede di unirsi alla famiglia :family',
+    'family_request'         => ':name chiede di unirsi alla famiglia :family in :project. Qualsiasi familiare può rispondere.',
+    'family_request_action'  => 'Rispondi',
 ];

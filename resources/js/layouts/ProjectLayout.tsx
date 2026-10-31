@@ -25,6 +25,7 @@ import { useEffect, useMemo, type ReactNode } from 'react';
 export function projectPlaces(project: {
   id: number;
   family?: unknown;
+  is_guest?: boolean;
   unread_messages?: number | null;
   can?: { chat?: boolean };
   /** What the project has turned off stays out (unknown: as if on) */
@@ -113,7 +114,17 @@ export function projectPlaces(project: {
             action: true,
           },
         ]
-      : []),
+      : project.is_guest
+        ? [
+            {
+              label: _('Join your family'),
+              href: route('family.create', at),
+              icon: IconUserPlus,
+              active: routeIs('family.create'),
+              action: true,
+            },
+          ]
+        : []),
   ];
 }
 

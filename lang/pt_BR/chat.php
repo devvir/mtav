@@ -34,8 +34,7 @@ return [
         'steps'          => [
             'unit_types' => 'adicionar os tipos de unidade',
             'units'      => 'adicionar as unidades',
-            'families'   => 'registrar as famílias',
-            'members'    => 'convidar os integrantes',
+            'families'   => 'convidar as famílias',
             'scheduled'  => 'marcar a data do sorteio',
             'lottery'    => 'fazer o sorteio',
         ],

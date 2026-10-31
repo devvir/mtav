@@ -249,4 +249,10 @@ return [
     'account_blocked'        => 'This account is blocked: it cannot be invited.',
     'account_protected'      => 'Not your own account, nor a superadmin\'s: their role goes first.',
     'feature_off'            => 'This project has this kind of file turned off.',
+    'family_already_in'      => 'You are already in this family.',
+    'family_declined'        => 'This family declined your request.',
+    'family_request_open'    => 'You are already waiting for a family to answer: cancel that first.',
+    'family_none'            => 'You have not joined a family here.',
+    'family_cannot_leave'    => 'Here everyone takes part as a family: ask to join yours, or create it.',
+    'family_declined_them'   => 'This family declined this person: only someone in it can lift that.',
 ];

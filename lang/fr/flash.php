@@ -88,4 +88,10 @@ return [
     'topic_removed'           => 'Le sujet a été retiré.',
     'error_solved'            => 'Marquée comme résolue.',
     'conversation_left'       => 'Vous avez quitté la conversation.',
+    'family_asked'            => 'Vous avez demandé à rejoindre la famille :family.',
+    'family_ask_cancelled'    => 'Votre demande a été annulée.',
+    'family_ask_accepted'     => ':name est maintenant dans votre famille.',
+    'family_ask_declined'     => 'Vous avez refusé :name.',
+    'family_ask_undeclined'   => ':name peut demander à nouveau.',
+    'family_left'             => 'Vous avez quitté votre famille.',
 ];

@@ -34,7 +34,10 @@ return [
     'email_change_intro'   => 'Alguém pediu para mudar o e-mail da sua conta para :email. Ele muda quando esse endereço confirmar.',
     'email_change_ignore'  => 'Se não foi você, troque sua senha agora: até lá sua conta continua com este endereço.',
 
-    'new_error_subject' => 'Algo deu errado no :app',
-    'new_error_intro'   => 'O app encontrou um erro que não tinha visto antes:',
-    'new_error_action'  => 'Ver os erros',
+    'new_error_subject'      => 'Algo deu errado no :app',
+    'new_error_intro'        => 'O app encontrou um erro que não tinha visto antes:',
+    'new_error_action'       => 'Ver os erros',
+    'family_request_subject' => ':name pede para entrar na família :family',
+    'family_request'         => ':name pede para entrar na família :family em :project. Qualquer pessoa da família pode responder.',
+    'family_request_action'  => 'Responder',
 ];

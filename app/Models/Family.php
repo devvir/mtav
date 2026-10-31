@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,10 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * The lottery participant: it ranks the units of its type and receives one of them.
+ * The lottery participant: it ranks the units of its type and receives one of them. It exists
+ * while it holds someone (FamilyService): archived otherwise, inviting someone brings it back.
  */
 class Family extends Model
 {
+    use Archivable;
     use RecordsActivity;
     use BroadcastsProjectChanges;
 
@@ -33,6 +36,21 @@ class Family extends Model
     public function unitType(): BelongsTo
     {
         return $this->belongsTo(UnitType::class);
+    }
+
+    public function worthKeeping(): bool
+    {
+        return true;
+    }
+
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(FamilyJoinRequest::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 
     public function memberships(): HasMany

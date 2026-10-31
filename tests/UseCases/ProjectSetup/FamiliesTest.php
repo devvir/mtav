@@ -18,6 +18,7 @@ describe('An admin', function () {
         $this->as($this->admin, $this->project)->post(route('manage.families.store'), [
             'name'         => 'García',
             'unit_type_id' => $this->type->id,
+            'email'        => 'garcia@example.com',
         ])->assertSessionHasNoErrors();
 
         expect($this->project->families()->firstWhere('name', 'García'))

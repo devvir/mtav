@@ -257,6 +257,11 @@ class Project extends Model
         }
     }
 
+    public function familyJoinRequests(): HasMany
+    {
+        return $this->hasMany(FamilyJoinRequest::class);
+    }
+
     public function lotteryLocked(): bool
     {
         return $this->activeLotteryRun()->exists();

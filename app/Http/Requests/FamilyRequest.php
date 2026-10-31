@@ -21,7 +21,9 @@ class FamilyRequest extends FormRequest
         return [
             'name' => [
                 'required', 'string', 'between:2,120',
-                Rule::unique('families', 'name')->where('project_id', $project->id)->ignore($family),
+                // Someone starting theirs takes back an archived one of that name
+                Rule::unique('families', 'name')->where('project_id', $project->id)->ignore($family)
+                    ->when($this->routeIs('families.store'), fn ($rule) => $rule->withoutTrashed()),
             ],
             'unit_type_id' => ['required', Rule::exists(UnitType::class, 'id')->where('project_id', $project->id)],
         ];

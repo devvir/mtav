@@ -16,6 +16,9 @@ enum NotificationType: string
     case JOIN_REQUESTED = 'join_requested';
     case JOIN_ACCEPTED = 'join_accepted';
     case JOIN_DECLINED = 'join_declined';
+    case FAMILY_REQUESTED = 'family_requested';
+    case FAMILY_DECLINED = 'family_declined';
+    case FAMILY_DISCARDED = 'family_discarded';
 
     /** What the project gained */
     case EVENT_PUBLISHED = 'event_published';

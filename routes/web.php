@@ -144,6 +144,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
             Route::get('family/new', [Member\FamilyController::class, 'create'])->name('family.create');
             Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
+            Route::delete('family/membership', [Member\FamilyController::class, 'leave'])->name('family.leave');
+            Route::post('families/{family}/requests', [Member\FamilyJoinRequestController::class, 'store'])->middleware('throttle:30,1')->name('family.requests.store');
+            Route::delete('family-requests/{familyJoinRequest}', [Member\FamilyJoinRequestController::class, 'destroy'])->name('family.requests.destroy');
+            Route::put('family-requests/{familyJoinRequest}/accept', [Member\FamilyJoinRequestController::class, 'accept'])->name('family.requests.accept');
+            Route::put('family-requests/{familyJoinRequest}/decline', [Member\FamilyJoinRequestController::class, 'decline'])->name('family.requests.decline');
+            Route::put('family-requests/{familyJoinRequest}/undecline', [Member\FamilyJoinRequestController::class, 'undecline'])->name('family.requests.undecline');
             Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
 
             /** Members invite people into their own family */

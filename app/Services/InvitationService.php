@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
+use App\Jobs\DiscardFamilyIfEmpty;
 use App\Models\Family;
 use App\Models\Invitation;
 use App\Models\Membership;
@@ -45,6 +46,7 @@ class InvitationService
         }
 
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
+        $family && $this->ensureFamilyTakes($family, $email, $inviter);
 
         $familyless = $family && ! $asAdmin
             ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)->first()
@@ -73,6 +75,9 @@ class InvitationService
                 'expires_at' => now()->addDays(config('limits.invitation_days')),
             ]);
         });
+
+        // Nothing else happens the moment it expires
+        $family && DiscardFamilyIfEmpty::dispatch($family->id)->delay(now()->addDays(config('limits.invitation_days'))->addMinute());
 
         Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
 
@@ -138,6 +143,29 @@ class InvitationService
         );
 
         return $membership;
+    }
+
+    /**
+     * A family's decline stands against admins too, and only its own members can lift it: one
+     * inviting the person does. An archived family comes back with someone on the way.
+     */
+    private function ensureFamilyTakes(Family $family, string $email, User $inviter): void
+    {
+        $declined = $family->joinRequests()->declined()->whereRelation('user', 'email', $email);
+
+        if ($family->memberships()->where('user_id', $inviter->id)->exists()) {
+            $declined->delete();
+        } elseif ($declined->exists()) {
+            throw ValidationException::withMessages(['email' => __('validation.family_declined_them')]);
+        }
+
+        if ($family->trashed()) {
+            $max = $family->project->limit('families');
+            if ($max !== null && $family->project->families()->count() >= $max) {
+                throw ValidationException::withMessages(['email' => __('validation.limit_families', ['max' => $max])]);
+            }
+            $family->restore();
+        }
     }
 
     private function addToFamily(Membership $membership, Family $family, User $by): Membership

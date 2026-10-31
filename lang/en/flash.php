@@ -88,4 +88,10 @@ return [
     'topic_removed'           => 'The topic was removed.',
     'error_solved'            => 'Marked solved.',
     'conversation_left'       => 'You left the conversation.',
+    'family_asked'            => 'You asked to join the :family family.',
+    'family_ask_cancelled'    => 'Your request was cancelled.',
+    'family_ask_accepted'     => ':name is in your family now.',
+    'family_ask_declined'     => 'You declined :name.',
+    'family_ask_undeclined'   => ':name can ask again.',
+    'family_left'             => 'You left your family.',
 ];

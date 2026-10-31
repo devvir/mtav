@@ -252,12 +252,6 @@ describe('A guest', function () {
         $this->type = aUnitType($this->project);
     });
 
-    it('is offered to create theirs', function () {
-        $types = $this->as($this->person, $this->project)->get(route('projects.show'))->inertiaProps('ownFamilyTypes');
-
-        expect(collect($types)->pluck('id')->all())->toContain($this->type->id);
-    });
-
     it('creates their family, and is in it', function () {
         $this->as($this->person, $this->project)->post(route('families.store'), [
             'name' => 'Rodríguez Silva', 'unit_type_id' => $this->type->id,
@@ -266,11 +260,12 @@ describe('A guest', function () {
         expect($this->person->fresh()->familyIn($this->project)?->name)->toBe('Rodríguez Silva');
     });
 
-    it('creates only one', function () {
+    it('moves to a new one if the first was a mistake, which goes', function () {
         $this->as($this->person, $this->project)->post(route('families.store'), ['name' => 'One', 'unit_type_id' => $this->type->id]);
+        $this->as($this->person->fresh(), $this->project)->post(route('families.store'), ['name' => 'Two', 'unit_type_id' => $this->type->id])->assertSessionHasNoErrors();
 
-        expect($this->as($this->person->fresh(), $this->project)->post(route('families.store'), ['name' => 'Two', 'unit_type_id' => $this->type->id]))->toBeDenied();
-        expect($this->project->families()->where('name', 'Two')->exists())->toBeFalse();
+        expect($this->person->fresh()->familyIn($this->project)->name)->toBe('Two')
+            ->and($this->project->families()->where('name', 'One')->exists())->toBeFalse();
     });
 
     it('cannot create it once the lottery decided', function () {

@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\UnitType;
 use App\Models\User;
 use App\Services\ChatService;
+use App\Services\FamilyService;
 use App\Services\DirectoryService;
 use App\Services\ForumService;
 use App\Services\InvitationService;
@@ -88,6 +89,8 @@ class DatabaseSeeder extends Seeder
         $this->startingOut($superadmin, $admin, 'Cooperativa Los Robles', 'Doce viviendas en el Prado. Conversamos con cada familia antes de que se sume.', open: false);
 
         $this->askedTheAssistant($member, Project::firstWhere('name', 'Cooperativa Las Acacias'));
+
+        $this->familiesAsked(Project::firstWhere('name', 'Cooperativa Las Acacias'), $member);
 
         // Something archived, for admins to see and restore
         $acacias = Project::firstWhere('name', 'Cooperativa Las Acacias');
@@ -328,6 +331,18 @@ class DatabaseSeeder extends Seeder
             [$people[0], 'Gracias por la invitación. ¿Cuándo es la primera reunión?'],
             [$admin, 'Apenas tengamos la aprobación, les aviso por acá.'],
         ]);
+    }
+
+    /**
+     * The guest asks to join María's family, for it to answer, and a family emptied: its admins
+     * were told, and it waits archived for someone to bring it back
+     */
+    private function familiesAsked(Project $project, User $member): void
+    {
+        $guest = $project->memberships()->whereNull('family_id')->where('is_admin', false)->first()->user;
+        app(FamilyService::class)->ask($member->familyIn($project), $guest);
+
+        $this->people->family($project, $project->unitTypes()->first())->memberships()->get()->each->delete();
     }
 
     /** Someone already asked it something: how it looks, without a brain at hand */

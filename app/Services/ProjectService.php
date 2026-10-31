@@ -139,17 +139,17 @@ class ProjectService
     /**
      * How far the project is from its lottery: each step of the setup, done or not.
      *
-     * @return array{unit_types: bool, units: bool, families: bool, members: bool, scheduled: bool, lottery: bool}
+     * @return array{unit_types: bool, units: bool, families: bool, scheduled: bool, lottery: bool}
      */
     public function setupChecklist(Project $project): array
     {
         return [
             'unit_types' => $project->unitTypes()->exists(),
             'units'      => $project->units()->exists(),
-            'families'   => $project->families()->exists(),
-            'members'    => $project->memberships()->whereNotNull('family_id')->exists(),
-            'scheduled'  => (bool) $project->lottery->start_date,
-            'lottery'    => $project->activeLotteryRun?->status === LotteryRunStatus::COMPLETED,
+            // A family comes with someone in it, or invited
+            'families'  => $project->families()->exists(),
+            'scheduled' => (bool) $project->lottery->start_date,
+            'lottery'   => $project->activeLotteryRun?->status === LotteryRunStatus::COMPLETED,
         ];
     }
 }

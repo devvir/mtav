@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FamilyService;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,12 @@ class Invitation extends Model
 {
     use RecordsActivity;
     use BroadcastsProjectChanges;
+
+    protected static function booted(): void
+    {
+        // Revoked: a family waiting only for this one may have nobody left
+        static::deleted(fn (Invitation $invitation) => app(FamilyService::class)->discardIfEmpty($invitation->family));
+    }
 
     protected $fillable = [
         'project_id',

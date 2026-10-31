@@ -124,7 +124,7 @@ export default function PeopleIndex({
                   {person.name}
                 </Text>
                 <Text className="ds-caption ds-truncate">
-                  {person.family?.name ?? _('No family')}
+                  {person.family?.name ?? _('Not joined a family yet')}
                 </Text>
               </div>
               {person.is_admin ? <Badge color="blue">{_('Admin')}</Badge> : null}

@@ -90,7 +90,7 @@ export default function ManageInvitations({
         help={
           <InfoTip title={_('How invitations work')} tour="manage.invitations">
             {_(
-              'Invite people with an emailed link, valid for two weeks; members can invite into their own family. Someone already in the project with no family enters at once. If the project is in the directory, those asking to join appear here too.',
+              'Invite people with an emailed link, valid for two weeks; members can invite into their own family. Someone already in the project joins their family at once. If the project is in the directory, those asking to join appear here too.',
             )}
           </InfoTip>
         }
@@ -162,8 +162,8 @@ export default function ManageInvitations({
                         label: !families.length
                           ? _('No families yet')
                           : form.data.is_admin
-                            ? _('No family')
-                            : _('No family (guest)'),
+                            ? _('Not joined a family yet')
+                            : _('As a guest'),
                       },
                     ]
                   : []),

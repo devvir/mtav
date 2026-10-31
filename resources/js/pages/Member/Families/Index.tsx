@@ -1,8 +1,10 @@
-import { FamilyDetails } from '@/components/domain/FamilyDetails';
+import { ArchivedList, ArchiveSwitch, type ArchiveState } from '@/components/domain/Archive';
+import { FamilyDetails, type FamilyRequest } from '@/components/domain/FamilyDetails';
 import { PeopleViews } from '@/components/domain/PeopleViews';
 import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { FamilyForm } from '@/components/forms/FamilyForm';
+import { FamilyInvitationForm } from '@/components/forms/FamilyInvitationForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, FamilyMark } from '@/design';
@@ -17,6 +19,7 @@ import type { Family, Paginated, Ref, UnitType } from '@/types/models';
 import { Link, usePage } from '@inertiajs/react';
 import { Badge, Button, Card, Group, Modal, NativeSelect, SimpleGrid, Text } from '@mantine/core';
 import { IconHome, IconPlus, IconUsersGroup } from '@tabler/icons-react';
+import { useState } from 'react';
 
 export default function FamiliesIndex({
   families,
@@ -25,6 +28,9 @@ export default function FamiliesIndex({
   types,
   unitTypes,
   family: shown,
+  requests,
+  archive,
+  guests,
 }: {
   families: Paginated<Family>;
   /** All of them came (a short list): searched and filtered here, with no request */
@@ -36,7 +42,13 @@ export default function FamiliesIndex({
   unitTypes: UnitType[] | null;
   /** A family's details, shown over the list (?family=12) */
   family: Family | null;
+  /** For those in that family: who asks to join */
+  requests: FamilyRequest[] | null;
+  /** For admins: the families archived, each to bring back by inviting someone */
+  archive: ArchiveState | null;
+  guests: { name: string; email: string }[];
 }) {
+  const [reviving, setReviving] = useState<Ref | null>(null);
   const details = useDetailsInAddress('family');
   const project = usePage().props.project!;
   const own = project.family?.id;
@@ -85,19 +97,35 @@ export default function FamiliesIndex({
         }
       />
       <PeopleViews />
-      {nothingYet ? (
+      {archive ? (
+        <Group mb="md">
+          <ArchiveSwitch archive={archive} />
+        </Group>
+      ) : null}
+      {archive?.shown ? (
+        <ArchivedList
+          archive={archive}
+          kind="families"
+          action={(item) => (
+            <Button
+              variant="default"
+              onClick={() => setReviving({ id: item.id, name: item.title })}
+            >
+              {_('Invite someone into it')}
+            </Button>
+          )}
+        />
+      ) : nothingYet ? (
         <EmptyState
           icon={IconUsersGroup}
           title={_('No families yet')}
           action={
-            canManage ? (
-              <Button onClick={adding.open}>{_('Register the first family')}</Button>
-            ) : null
+            canManage ? <Button onClick={adding.open}>{_('Add the first family')}</Button> : null
           }
         >
           {canManage
-            ? _('Register each family with its unit type, then invite its members.')
-            : _('Families show up here as the admins register them.')}
+            ? _('Add each family with its unit type, and invite someone in it.')
+            : _('Families show up here as people join them.')}
         </EmptyState>
       ) : (
         <Group mb="md" gap="sm">
@@ -125,7 +153,10 @@ export default function FamiliesIndex({
           ) : null}
         </Group>
       )}
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+      <SimpleGrid
+        cols={{ base: 1, sm: 2, lg: 3 }}
+        style={archive?.shown ? { display: 'none' } : undefined}
+      >
         {listed.map((family) => (
           <Card
             key={family.id}
@@ -163,7 +194,7 @@ export default function FamiliesIndex({
           </Card>
         ))}
       </SimpleGrid>
-      {!listed.length && !nothingYet ? (
+      {!listed.length && !nothingYet && !archive?.shown ? (
         <Text ta="center" c="dimmed" py="xl">
           {current.q
             ? _('No family or person matches “{q}”.', { q: current.q })
@@ -178,8 +209,22 @@ export default function FamiliesIndex({
         </Modal>
       ) : null}
 
+      <Modal
+        opened={Boolean(reviving)}
+        onClose={() => setReviving(null)}
+        title={_('Bring back the {name} family', { name: reviving?.name ?? '' })}
+      >
+        {reviving ? (
+          <FamilyInvitationForm
+            family={reviving}
+            guests={guests}
+            onDone={() => setReviving(null)}
+          />
+        ) : null}
+      </Modal>
+
       <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.name} size="lg">
-        {shown ? <FamilyDetails family={shown} unitTypes={unitTypes} /> : null}
+        {shown ? <FamilyDetails family={shown} unitTypes={unitTypes} requests={requests} /> : null}
       </Modal>
     </>
   );

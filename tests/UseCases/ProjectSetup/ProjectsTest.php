@@ -259,7 +259,7 @@ it('does not ask for as many units as families on the way to the lottery: it run
     $setup = app(App\Services\ProjectService::class)->setupChecklist($project);
 
     expect($setup)->not->toHaveKey('balanced')
-        ->and($setup)->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true, 'members' => true]);
+        ->and($setup)->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true]);
 });
 
 it('frames its pages on wide screens, by default, or not, as the deployment says', function () {

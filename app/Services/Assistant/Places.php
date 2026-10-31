@@ -29,6 +29,7 @@ class Places
             'files'            => $project->hasFeature(ProjectFeature::GALLERY) || $project->hasFeature(ProjectFeature::FILES) ? ['about' => 'shared photos, videos, documents and recordings; sharing one', 'route' => 'media.index', 'tour' => 'member.files'] : null,
             'forum'            => $project->hasFeature(ProjectFeature::FORUM) ? ['about' => 'conversations among everyone in the project', 'route' => 'forum.index', 'tour' => 'member.forum'] : null,
             'invite_family'    => $family ? ['about' => 'inviting someone into their own family', 'route' => 'invitations.index', 'tour' => 'member.invitations'] : null,
+            'find_family'      => $user->membershipIn($project) ? ['about' => 'the families of the project: asking to join theirs, creating it, or moving if they are in the wrong one', 'route' => 'family.create'] : null,
             'setup'            => $manages ? ['about' => 'admins: setting the project up, step by step', 'route' => 'manage.overview', 'tour' => 'manage.setup'] : null,
             'invitations'      => $manages ? ['about' => 'admins: inviting people, those asking to join', 'route' => 'manage.invitations.index', 'tour' => 'manage.invitations'] : null,
             'project_settings' => $manages ? ['about' => 'admins: name, directory, guests, features on or off', 'route' => 'manage.settings.edit', 'tour' => 'manage.settings'] : null,

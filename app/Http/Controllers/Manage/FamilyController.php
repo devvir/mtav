@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\FamilyRequest;
 use App\Models\Family;
 use App\Models\Project;
+use App\Services\InvitationService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -18,11 +19,23 @@ use Illuminate\Validation\ValidationException;
  */
 class FamilyController extends Controller
 {
-    public function store(FamilyRequest $request, Project $project, NotificationService $notifications): RedirectResponse
+    /** A family comes with someone: alone, nobody could ever answer for it */
+    public function store(FamilyRequest $request, Project $project, NotificationService $notifications, InvitationService $invitations): RedirectResponse
     {
         $project->ensureLotteryNotRunning();
 
-        $family = $project->families()->create($request->validated());
+        $person = $request->validate([
+            'email'     => ['required', 'email', 'max:255'],
+            'firstname' => ['nullable', 'string', 'between:2,80'],
+            'lastname'  => ['nullable', 'string', 'between:2,80'],
+        ]);
+
+        $family = DB::transaction(function () use ($request, $project, $invitations, $person) {
+            $family = $project->families()->create($request->safe()->only('name', 'unit_type_id'));
+            $invitations->invite($project, $request->user(), $person, $family, asAdmin: false);
+
+            return $family;
+        });
         $notifications->bundle($project, NotificationType::FAMILIES_ADDED, 'families_added', $request->user(), route('families.index', $project));
 
         return to_route('families.index', ['family' => $family->id])->with('success', __('flash.family_created'));
@@ -40,7 +53,8 @@ class FamilyController extends Controller
     }
 
     /**
-     * Removing a family removes its members from the project too (admins stay admins).
+     * Removing a family archives it, and removes its members from the project too (admins stay
+     * admins, with no family).
      */
     public function destroy(Project $project, Family $family): RedirectResponse
     {
@@ -51,8 +65,11 @@ class FamilyController extends Controller
         }
 
         DB::transaction(function () use ($family) {
-            $family->memberships()->where('is_admin', false)->delete();
+            // Archived first: nobody is told of it emptying, the admin just removed it
             $family->delete();
+            $family->joinRequests()->pending()->delete();
+            $family->memberships()->where('is_admin', false)->get()->each->delete();
+            $family->memberships()->update(['family_id' => null]);
         });
 
         return to_route('families.index')->with('success', __('flash.family_deleted'));

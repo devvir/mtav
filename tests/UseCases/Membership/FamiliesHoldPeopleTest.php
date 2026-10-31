@@ -1,0 +1,307 @@
+<?php
+
+use App\Enums\NotificationType;
+use App\Jobs\DiscardFamilyIfEmpty;
+use App\Models\Family;
+use App\Models\FamilyJoinRequest;
+use App\Models\Invitation;
+use App\Models\Notification;
+use App\Models\Unit;
+use App\Models\User;
+use App\Notifications\FamilyRequestNotification;
+use App\Services\InvitationService;
+use Illuminate\Support\Facades\Notification as Notifications;
+
+/**
+ * A family holds people: someone finds theirs and asks, anyone in it answers, and a family with
+ * nobody left is archived, to come back when someone is invited into it.
+ */
+
+function aGuestIn($project): User
+{
+    $guest = User::factory()->create();
+    $project->memberships()->create(['user_id' => $guest->id]);
+
+    return $guest;
+}
+
+function toldOf($user, NotificationType $type): bool
+{
+    return Notification::where('type', $type)->where('target_id', $user->id)->exists();
+}
+
+beforeEach(function () {
+    Notifications::fake();
+    $this->project = aProject(['allows_guests' => true]);
+    $this->type = aUnitType($this->project);
+    $this->family = aFamily($this->project, $this->type, ['name' => 'Pereira']);
+    $this->member = aMemberOf($this->family);
+    $this->admin = anAdminOf($this->project);
+    $this->guest = aGuestIn($this->project);
+    $this->ask = fn ($who = null, $family = null) => $this->as($who ?? $this->guest, $this->project)
+        ->post(route('family.requests.store', $family ?? $this->family));
+});
+
+describe('Finding one\'s family', function () {
+    it('shows the families by name and people, with no contact details', function () {
+        $props = $this->as($this->guest, $this->project)->get(route('family.create'))->viewData('page')['props'];
+
+        expect($props['families'][0])->name->toBe('Pereira')->people->toContain($this->member->name)
+            ->and(json_encode($props['families']))->not->toContain($this->member->email);
+    });
+
+    it('is where someone goes first where guests are not allowed, and they can ask from there', function () {
+        $this->project->update(['allows_guests' => false]);
+        $newcomer = aGuestIn($this->project);
+
+        $this->as($newcomer, $this->project)->get(route('projects.show', $this->project))->assertRedirect(route('family.create', $this->project));
+        ($this->ask)($newcomer)->assertSessionHasNoErrors();
+
+        expect($this->family->joinRequests()->where('user_id', $newcomer->id)->exists())->toBeTrue();
+    });
+});
+
+describe('Asking and answering', function () {
+    it('tells every member of the family, in the app and by email', function () {
+        ($this->ask)();
+
+        expect(toldOf($this->member, NotificationType::FAMILY_REQUESTED))->toBeTrue();
+        Notifications::assertSentTo($this->member, FamilyRequestNotification::class);
+    });
+
+    it('lets any member accept, and they are in', function () {
+        ($this->ask)();
+        $joinRequest = FamilyJoinRequest::sole();
+
+        $this->as($this->member, $this->project)->put(route('family.requests.accept', $joinRequest))->assertSessionHasNoErrors();
+
+        expect($this->guest->fresh()->familyIn($this->project)->id)->toBe($this->family->id)
+            ->and(FamilyJoinRequest::count())->toBe(0)
+            ->and(toldOf($this->guest, NotificationType::ADDED_TO_FAMILY))->toBeTrue();
+    });
+
+    it('is for the family alone to answer: not other people, nor admins', function () {
+        ($this->ask)();
+        $joinRequest = FamilyJoinRequest::sole();
+
+        expect($this->as($this->admin, $this->project)->put(route('family.requests.accept', $joinRequest)))->toBeDenied()
+            ->and($this->as($this->guest, $this->project)->put(route('family.requests.accept', $joinRequest)))->toBeDenied()
+            ->and($this->as(aMemberOf(aFamily($this->project, $this->type)), $this->project)->put(route('family.requests.decline', $joinRequest)))->toBeDenied();
+    });
+
+    it('takes one open request at a time, which they can cancel', function () {
+        $other = aFamily($this->project, $this->type);
+        aMemberOf($other);
+        ($this->ask)();
+        ($this->ask)(null, $other)->assertSessionHasErrors('family');
+
+        $this->as($this->guest, $this->project)->delete(route('family.requests.destroy', FamilyJoinRequest::sole()))->assertSessionHasNoErrors();
+        ($this->ask)(null, $other)->assertSessionHasNoErrors();
+    });
+
+    it('closes what they were asking when they get a family another way', function () {
+        ($this->ask)();
+
+        $this->guest->membershipIn($this->project)->update(['family_id' => aFamily($this->project, $this->type)->id]);
+
+        expect(FamilyJoinRequest::count())->toBe(0);
+    });
+});
+
+describe('A decline', function () {
+    beforeEach(function () {
+        ($this->ask)();
+        $this->joinRequest = FamilyJoinRequest::sole();
+        $this->as($this->member, $this->project)->put(route('family.requests.decline', $this->joinRequest))->assertSessionHasNoErrors();
+    });
+
+    it('stands for good, however long it has been', function () {
+        $this->travel(5)->years();
+
+        ($this->ask)()->assertSessionHasErrors('family');
+        expect(toldOf($this->guest, NotificationType::FAMILY_DECLINED))->toBeTrue();
+    });
+
+    it('leaves them free to ask another family', function () {
+        $other = aFamily($this->project, $this->type);
+        aMemberOf($other);
+
+        ($this->ask)(null, $other)->assertSessionHasNoErrors();
+    });
+
+    it('is lifted only by someone in the family', function () {
+        expect($this->as($this->admin, $this->project)->put(route('family.requests.undecline', $this->joinRequest)))->toBeDenied()
+            ->and($this->as($this->guest, $this->project)->delete(route('family.requests.destroy', $this->joinRequest)))->toBeDenied();
+
+        $this->as($this->member, $this->project)->put(route('family.requests.undecline', $this->joinRequest))->assertSessionHasNoErrors();
+        ($this->ask)()->assertSessionHasNoErrors();
+    });
+
+    it('stands against an admin\'s invitation too, while a member\'s invitation lifts it', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), ['email' => $this->guest->email, 'family_id' => $this->family->id])
+            ->assertSessionHasErrors('email');
+        expect($this->guest->fresh()->familyIn($this->project))->toBeNull();
+
+        app(InvitationService::class)->invite($this->project, $this->member, ['email' => $this->guest->email], $this->family, asAdmin: false);
+        expect($this->guest->fresh()->familyIn($this->project)->id)->toBe($this->family->id);
+    });
+});
+
+describe('Leaving a family', function () {
+    it('leaves them a guest where guests are allowed', function () {
+        aMemberOf($this->family);
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'))->assertSessionHasNoErrors();
+
+        expect($this->member->fresh()->familyIn($this->project))->toBeNull()
+            ->and($this->member->fresh()->membershipIn($this->project))->not->toBeNull();
+    });
+
+    it('is refused where guests are not allowed: they ask to join the right one instead', function () {
+        $this->project->update(['allows_guests' => false]);
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'))->assertSessionHasErrors('family');
+        expect($this->member->fresh()->familyIn($this->project)->id)->toBe($this->family->id);
+    });
+
+    it('moves someone in the wrong family in one step, staying in theirs until accepted', function () {
+        $this->project->update(['allows_guests' => false]);
+        $right = aFamily($this->project, $this->type);
+        $other = aMemberOf($right);
+        aMemberOf($this->family);
+
+        ($this->ask)($this->member, $right)->assertSessionHasNoErrors();
+        expect($this->member->fresh()->familyIn($this->project)->id)->toBe($this->family->id);
+
+        $this->as($other, $this->project)->put(route('family.requests.accept', FamilyJoinRequest::sole()))->assertSessionHasNoErrors();
+        expect($this->member->fresh()->familyIn($this->project)->id)->toBe($right->id);
+    });
+
+    it('lets them create the right one at once, from the wrong one', function () {
+        $this->project->update(['allows_guests' => false]);
+        aMemberOf($this->family);
+
+        $this->as($this->member, $this->project)->post(route('families.store'), ['name' => 'Rodríguez', 'unit_type_id' => $this->type->id])->assertSessionHasNoErrors();
+
+        expect($this->member->fresh()->familyIn($this->project)->name)->toBe('Rodríguez');
+    });
+});
+
+describe('A family with nobody left', function () {
+    it('is archived when its last member leaves, and its admins are told', function () {
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        expect(Family::find($this->family->id))->toBeNull()
+            ->and(Family::withTrashed()->find($this->family->id))->not->toBeNull()
+            ->and(toldOf($this->admin, NotificationType::FAMILY_DISCARDED))->toBeTrue();
+    });
+
+    it('is archived when they leave the project, or move to another family', function () {
+        $this->member->membershipIn($this->project)->delete();
+        expect(Family::find($this->family->id))->toBeNull();
+
+        $other = aFamily($this->project, $this->type);
+        $person = aMemberOf($other);
+        $person->membershipIn($this->project)->update(['family_id' => aFamily($this->project, $this->type)->id]);
+        expect(Family::find($other->id))->toBeNull();
+    });
+
+    it('goes with the last member\'s account', function () {
+        app(App\Services\AccountService::class)->delete($this->member);
+
+        expect(Family::find($this->family->id))->toBeNull();
+    });
+
+    it('stays while someone else is in it', function () {
+        aMemberOf($this->family);
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        expect(Family::find($this->family->id))->not->toBeNull();
+    });
+
+    it('stays while someone is invited, and goes when that invitation is revoked', function () {
+        app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $this->family, asAdmin: false);
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+        expect(Family::find($this->family->id))->not->toBeNull();
+
+        $this->as($this->admin, $this->project)->delete(route('manage.invitations.destroy', Invitation::sole()));
+        expect(Family::find($this->family->id))->toBeNull();
+    });
+
+    it('goes when the invitation expires', function () {
+        app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $this->family, asAdmin: false);
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        $this->travel(config('limits.invitation_days') + 1)->days();
+        (new DiscardFamilyIfEmpty($this->family->id))->handle(app(App\Services\FamilyService::class));
+
+        expect(Family::find($this->family->id))->toBeNull();
+    });
+
+    it('stays if it received its unit', function () {
+        Unit::factory()->create(['project_id' => $this->project->id, 'unit_type_id' => $this->type->id, 'family_id' => $this->family->id]);
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        expect(Family::find($this->family->id))->not->toBeNull();
+    });
+
+    it('closes the requests waiting for it, and tells whoever asked', function () {
+        ($this->ask)();
+
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        expect(FamilyJoinRequest::count())->toBe(0)
+            ->and(toldOf($this->guest, NotificationType::FAMILY_DISCARDED))->toBeTrue();
+    });
+
+    it('comes back, ranking and all, with an invitation or a guest added', function () {
+        $unit = Unit::factory()->create(['project_id' => $this->project->id, 'unit_type_id' => $this->type->id]);
+        $this->family->preferences()->attach($unit->id, ['rank' => 1]);
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), ['email' => $this->guest->email, 'family_id' => $this->family->id])
+            ->assertSessionHasNoErrors();
+
+        $family = Family::find($this->family->id);
+        expect($family)->not->toBeNull()
+            ->and($this->guest->fresh()->familyIn($this->project)->id)->toBe($family->id)
+            ->and($family->preferences()->pluck('units.id')->all())->toBe([$unit->id]);
+    });
+
+    it('is shown to admins, and not restored empty', function () {
+        $this->as($this->member, $this->project)->delete(route('family.leave'));
+
+        $archive = $this->as($this->admin, $this->project)->get(route('families.index', ['archived' => 1]))->viewData('page')['props']['archive'];
+        expect($archive['items'][0]['title'])->toBe('Pereira');
+
+        $this->as($this->admin, $this->project)->put(route('manage.archive.restore', ['kind' => 'families', 'id' => $this->family->id]))->assertNotFound();
+    });
+});
+
+describe('Admins', function () {
+    it('add a family with someone invited into it, all at once', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.families.store'), [
+            'name' => 'García', 'unit_type_id' => $this->type->id, 'email' => 'garcia@example.com',
+        ])->assertSessionHasNoErrors();
+
+        expect(Invitation::where('email', 'garcia@example.com')->sole()->family->name)->toBe('García');
+    });
+
+    it('cannot add a family with nobody', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.families.store'), ['name' => 'García', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors('email');
+
+        expect($this->project->families()->where('name', 'García')->exists())->toBeFalse();
+    });
+
+    it('are warned on the lottery page of families with only an invitation', function () {
+        $family = aFamily($this->project, $this->type, ['name' => 'Silva']);
+        app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'silva@example.com'], $family, asAdmin: false);
+
+        $props = $this->as($this->admin, $this->project)->get(route('lottery.show'))->viewData('page')['props'];
+        expect($props['admin']['families_without_people'])->toContain('Silva');
+    });
+});

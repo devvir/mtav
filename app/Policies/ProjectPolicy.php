@@ -78,14 +78,14 @@ class ProjectPolicy
     }
 
     /**
-     * Someone taking part with no family, and no other role, starts theirs (until the
-     * lottery decided who gets what, and once there are unit types to choose from).
+     * Someone taking part starts their family, in one or in the wrong one (an admin with none
+     * has no need of one), until the lottery decided who gets what.
      */
     public function createOwnFamily(User $user, Project $project): bool
     {
         $membership = $user->membershipIn($project);
 
-        return $membership && ! $membership->family_id && ! $membership->is_admin && ! $project->lotteryLocked();
+        return $membership && ($membership->family_id || ! $membership->is_admin) && ! $project->lotteryLocked();
     }
 
     public function rankUnits(User $user, Project $project): bool

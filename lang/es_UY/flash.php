@@ -88,4 +88,10 @@ return [
     'topic_removed'           => 'Se quitó el tema.',
     'error_solved'            => 'Marcado como resuelto.',
     'conversation_left'       => 'Saliste de la conversación.',
+    'family_asked'            => 'Pediste unirte a la familia :family.',
+    'family_ask_cancelled'    => 'Se canceló tu pedido.',
+    'family_ask_accepted'     => ':name ya está en tu familia.',
+    'family_ask_declined'     => 'Rechazaste a :name.',
+    'family_ask_undeclined'   => ':name puede volver a pedirlo.',
+    'family_left'             => 'Saliste de tu familia.',
 ];

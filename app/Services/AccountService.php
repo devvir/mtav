@@ -37,6 +37,8 @@ class AccountService
         $avatar = $user->avatar;
         // Their conversations with the Assistant were theirs alone
         Conversation::where('pair', "assistant:{$user->id}")->delete();
+        // One by one: a family left with nobody goes with them
+        $user->memberships()->get()->each->delete();
         $user->delete();
         $avatar && Storage::disk('public')->delete($avatar);
     }

@@ -189,6 +189,14 @@ export default function Lottery({
         )}
       </Card>
 
+      {admin?.families_without_people.length && status !== 'completed' ? (
+        <Alert color="yellow" radius="lg" mb="lg" icon={<IconAlertTriangle size={20} />}>
+          {_('Nobody has joined these families yet, only invited: {families}.', {
+            families: admin.families_without_people.join(', '),
+          })}
+        </Alert>
+      ) : null}
+
       {/* Said before anyone tries: the lottery is held until the server can run it */}
       {!runnable && status !== 'completed' ? (
         <Alert color="yellow" radius="lg" mb="lg" icon={<IconAlertTriangle size={20} />}>

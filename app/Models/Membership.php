@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\FamilyService;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,10 +37,24 @@ class Membership extends Model
             $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id => ['pinned_at' => now()]]);
             $membership->startWithAssistant();
         });
+        static::updated(function (Membership $membership) {
+            if ($membership->wasChanged('family_id')) {
+                $membership->family_id && $membership->closeRequests();
+                app(FamilyService::class)->discardIfEmpty(Family::find($membership->getOriginal('family_id')));
+            }
+        });
         static::deleted(function (Membership $membership) {
             $membership->communityGroup()?->participants()->detach($membership->user_id);
             $membership->assistantConversation()->delete();
+            $membership->closeRequests();
+            app(FamilyService::class)->discardIfEmpty(Family::find($membership->family_id));
         });
+    }
+
+    /** What they were asking no longer stands (a family's decline does) */
+    private function closeRequests(): void
+    {
+        FamilyJoinRequest::pending()->where('user_id', $this->user_id)->where('project_id', $this->project_id)->delete();
     }
 
     private function communityGroup(): ?Conversation

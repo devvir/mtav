@@ -33,7 +33,8 @@ class InvitationRequest extends FormRequest
 
     public function family(): ?Family
     {
-        return Family::find($this->validated('family_id'));
+        // Archived ones too: inviting someone is how they come back
+        return Family::withTrashed()->find($this->validated('family_id'));
     }
 
     public function asAdmin(): bool

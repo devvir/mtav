@@ -354,7 +354,7 @@ defineTour('account.directory', () => [
     target: 'directory.list',
     title: _('Join or ask'),
     body: _(
-      'Some projects let you in at once; in others the admins decide, and you hear back from them. You enter with no family: you create yours, or someone in it adds you.',
+      'Some projects let you in at once; in others the admins decide, and you hear back from them. Once in, you join your family, or create it if it is not here yet.',
     ),
   },
 ]);
@@ -388,7 +388,7 @@ defineTour('manage.settings', () => [
     target: 'settings.listed',
     title: _('In the directory'),
     body: _(
-      'Listed, others can find the project and join it: at once, or when the admins accept them. They enter with no family.',
+      'Listed, others can find the project and join it: at once, or when the admins accept them. Then they join their family.',
     ),
   },
   {

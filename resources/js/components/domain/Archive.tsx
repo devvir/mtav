@@ -5,11 +5,18 @@ import { _ } from '@/lib/translations';
 import { router } from '@inertiajs/react';
 import { Button, Card, Group, Switch, Text } from '@mantine/core';
 import { IconArchive } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
+
+export interface ArchivedItem {
+  id: number;
+  title: string;
+  deleted_at: string;
+}
 
 export interface ArchiveState {
   count: number;
   shown: boolean;
-  items: { id: number; title: string; deleted_at: string }[] | null;
+  items: ArchivedItem[] | null;
 }
 
 /** For admins, where something was archived: whether the page shows that instead */
@@ -38,7 +45,16 @@ export function ArchiveSwitch({ archive }: { archive?: ArchiveState | null }) {
 }
 
 /** What was removed and kept, each to bring back */
-export function ArchivedList({ archive, kind }: { archive: ArchiveState; kind: string }) {
+export function ArchivedList({
+  archive,
+  kind,
+  action,
+}: {
+  archive: ArchiveState;
+  kind: string;
+  /** Instead of restoring: how this kind comes back */
+  action?: (item: ArchivedItem) => ReactNode;
+}) {
   if (!archive.items?.length) {
     return <EmptyState icon={IconArchive} title={_('Nothing archived here')} />;
   }
@@ -55,18 +71,22 @@ export function ArchivedList({ archive, kind }: { archive: ArchiveState; kind: s
               {_('Archived')} <DateTime value={item.deleted_at} time={false} />
             </Text>
           </div>
-          <Button
-            variant="default"
-            onClick={() =>
-              router.put(
-                route('manage.archive.restore', { kind, id: item.id }),
-                {},
-                { preserveScroll: true },
-              )
-            }
-          >
-            {_('Restore')}
-          </Button>
+          {action ? (
+            action(item)
+          ) : (
+            <Button
+              variant="default"
+              onClick={() =>
+                router.put(
+                  route('manage.archive.restore', { kind, id: item.id }),
+                  {},
+                  { preserveScroll: true },
+                )
+              }
+            >
+              {_('Restore')}
+            </Button>
+          )}
         </Group>
       ))}
     </Card>

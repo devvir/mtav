@@ -147,6 +147,19 @@ decision taken on the way is listed below for review.
   reached from the project selector. Whoever joins this way enters with no family, and
   creates theirs, or someone of their family adds them: being in the project already, they
   enter that family at once, told in the app and by email (no invitation to accept).
+- **Families hold people.** A family exists while it has members, open invitations, or the unit
+  it received. People may have a family whether or not they joined it here, so the words are about
+  joining, never about having one. Someone who has not joined theirs sees the project's families
+  (names and their people's names, no contacts), asks to join one, any of its members answering,
+  or creates it. A decline stands for good, against admins too, until someone in that family lifts
+  it: a person either is in that family or is not. Someone in the wrong family asks to join the
+  right one or creates it in one step, staying where they are until it is settled; where guests
+  are allowed they can also just leave. Admins add a family together with someone invited into it.
+  A family left with nobody is archived, ranking kept, and its admins are told; inviting someone
+  (by email, or a guest already here) brings it back. Families are never merged. A family with only
+  an invitation may reach the lottery: the admin is warned, and decides. It stays out of the way:
+  guests reach it from the menu and their profile, and those in a family from a quiet link on
+  their family's card; the guide and the Assistant explain it.
 - **Next, agreed in outline**:
   - *White-label, per deployment*: an unversioned `spec.yaml` (with a versioned
     `spec.example.yaml`) defines a deployment's traits: its landing page, registration on or

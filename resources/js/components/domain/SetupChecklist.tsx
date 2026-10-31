@@ -6,10 +6,7 @@ import { useClickOutside } from '@mantine/hooks';
 import { useEffect, useState, type ReactNode } from 'react';
 
 /** What is done on the way to the lottery (ProjectService::setupChecklist) */
-export type Setup = Record<
-  'unit_types' | 'units' | 'families' | 'members' | 'scheduled' | 'lottery',
-  boolean
->;
+export type Setup = Record<'unit_types' | 'units' | 'families' | 'scheduled' | 'lottery', boolean>;
 
 /** Whether every step is done */
 export const isSetUp = (setup: Setup) => Object.values(setup).every(Boolean);
@@ -36,11 +33,10 @@ function Steps({ setup }: { setup: Setup }) {
       href: route('units.index', { new_type: 1 }),
     },
     { done: setup.units, label: _('Add the units'), href: route('units.index', { new_unit: 1 }) },
-    { done: setup.families, label: _('Register the families'), href: route('families.index') },
     {
-      done: setup.members,
-      label: _('Invite their members'),
-      href: route('manage.invitations.index'),
+      done: setup.families,
+      label: _('Invite the families'),
+      href: route('families.index', { new: 1 }),
     },
     { done: setup.scheduled, label: _('Schedule the lottery'), href: route('lottery.show') },
     { done: setup.lottery, label: _('Run the lottery'), href: route('lottery.show') },

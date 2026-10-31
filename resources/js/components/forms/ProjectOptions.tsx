@@ -60,7 +60,7 @@ export function ProjectOptions({
       <Switch
         label={_('Allow guests')}
         description={_(
-          'People with no family, who take part in everything but the lottery. Without guests, whoever joins creates their family first.',
+          'People who take part in everything but the lottery, until they join their family. Without guests, whoever enters joins their family first.',
         )}
         checked={values.allows_guests}
         error={errors.allows_guests}

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\MediaCategory;
 use App\Models\Event;
+use App\Models\Family;
 use App\Models\Media;
 use App\Models\Project;
 use App\Models\Topic;
@@ -35,8 +36,12 @@ class ArchiveService
             'shown' => $shown,
             'items' => $shown ? (clone $query)->latest('deleted_at')->limit(200)->get()
                 ->map(fn ($item) => [
-                    'id'         => $item->id,
-                    'title'      => $item instanceof Media ? ($item->title ?: $item->original_name) : $item->title,
+                    'id'    => $item->id,
+                    'title' => match (true) {
+                        $item instanceof Media  => $item->title ?: $item->original_name,
+                        $item instanceof Family => $item->name,
+                        default                 => $item->title,
+                    },
                     'deleted_at' => $item->deleted_at,
                 ]) : null,
         ];
@@ -44,17 +49,21 @@ class ArchiveService
 
     public function restore(Project $project, string $kind, int $id): void
     {
+        // A family comes back with someone in it: inviting them does it
+        abort_if($kind === 'families', 404);
+
         $this->query($project, $kind)->findOrFail($id)->restore();
     }
 
     private function query(Project $project, string $kind): Builder
     {
         return match ($kind) {
-            'events'  => Event::onlyTrashed()->where('project_id', $project->id),
-            'gallery' => Media::onlyTrashed()->where('project_id', $project->id)->category(MediaCategory::MEDIA),
-            'files'   => Media::onlyTrashed()->where('project_id', $project->id)->category(MediaCategory::FILES),
-            'forum'   => Topic::onlyTrashed()->where('project_id', $project->id),
-            default   => abort(404),
+            'events'   => Event::onlyTrashed()->where('project_id', $project->id),
+            'gallery'  => Media::onlyTrashed()->where('project_id', $project->id)->category(MediaCategory::MEDIA),
+            'files'    => Media::onlyTrashed()->where('project_id', $project->id)->category(MediaCategory::FILES),
+            'forum'    => Topic::onlyTrashed()->where('project_id', $project->id),
+            'families' => Family::onlyTrashed()->where('project_id', $project->id),
+            default    => abort(404),
         };
     }
 }

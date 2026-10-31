@@ -6,9 +6,71 @@ import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Family, UnitType } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Alert, Button, Card, Divider, Group, SimpleGrid, Text, Tooltip } from '@mantine/core';
+import {
+  Alert,
+  Anchor,
+  Button,
+  Card,
+  Divider,
+  Group,
+  SimpleGrid,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { IconHome, IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useState } from 'react';
+
+export interface FamilyRequest {
+  id: number;
+  name: string;
+  declined: boolean;
+}
+
+/** Who asks to join, for those in the family to answer; a decline stands until they lift it */
+function FamilyRequests({ requests }: { requests: FamilyRequest[] }) {
+  const answer = (id: number, how: 'accept' | 'decline' | 'undecline') =>
+    router.put(route(`family.requests.${how}`, id), {}, { preserveScroll: true });
+  const decline = async (request: FamilyRequest) => {
+    const ok = await confirm({
+      title: _('{name} is not in your family?', { name: request.name }),
+      message: _('They cannot ask again, unless someone in your family lifts this.'),
+      confirmLabel: _('Decline'),
+      danger: true,
+    });
+    if (ok) answer(request.id, 'decline');
+  };
+
+  return (
+    <Stack gap="xs" mb="lg" className="family-requests">
+      {requests.map((request) => (
+        <Card key={request.id} p="sm">
+          <Group justify="space-between" gap="sm">
+            <Text fw={600}>
+              {request.declined
+                ? _('{name}: declined', { name: request.name })
+                : _('{name} asks to join your family', { name: request.name })}
+            </Text>
+            {request.declined ? (
+              <Button size="xs" variant="default" onClick={() => answer(request.id, 'undecline')}>
+                {_('Lift the decline')}
+              </Button>
+            ) : (
+              <Group gap="xs">
+                <Button size="xs" onClick={() => answer(request.id, 'accept')}>
+                  {_('Accept')}
+                </Button>
+                <Button size="xs" variant="default" onClick={() => void decline(request)}>
+                  {_('Decline')}
+                </Button>
+              </Group>
+            )}
+          </Group>
+        </Card>
+      ))}
+    </Stack>
+  );
+}
 
 /**
  * A family: its unit type, the unit it received, its members. Its own members and admins
@@ -17,10 +79,13 @@ import { useState } from 'react';
 export function FamilyDetails({
   family,
   unitTypes,
+  requests,
 }: {
   family: Family;
   /** For admins, who edit families here */
   unitTypes: UnitType[] | null;
+  /** For those in it, who answer them */
+  requests?: FamilyRequest[] | null;
 }) {
   const project = usePage().props.project;
   const isOwn = project?.family?.id === family.id;
@@ -30,7 +95,7 @@ export function FamilyDetails({
   const remove = async () => {
     const ok = await confirm({
       title: _('Remove the {name} family?', { name: family.name }),
-      message: _('Its members leave the project (admins stay admins). This cannot be undone.'),
+      message: _('Its members leave the project (admins stay admins). It stays archived.'),
       confirmLabel: _('Remove'),
       danger: true,
     });
@@ -60,6 +125,7 @@ export function FamilyDetails({
           {_('Received unit {unit} in the lottery.', { unit: family.unit.identifier })}
         </Alert>
       ) : null}
+      {requests?.length ? <FamilyRequests requests={requests} /> : null}
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
         {family.members?.map((person) => (
           <Card
@@ -120,6 +186,19 @@ export function FamilyDetails({
             ) : null}
           </Group>
         </>
+      ) : null}
+      {isOwn ? (
+        <Anchor
+          component={Link}
+          href={route('family.create')}
+          size="xs"
+          c="dimmed"
+          display="block"
+          mt="md"
+          className="family-wrong"
+        >
+          {_('Wrong family?')}
+        </Anchor>
       ) : null}
     </>
   );

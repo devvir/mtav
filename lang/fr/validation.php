@@ -249,4 +249,10 @@ return [
     'account_blocked'        => 'Ce compte est bloqué : il ne peut pas être invité.',
     'account_protected'      => 'Ni votre propre compte, ni celui d’un superadmin : retirez d’abord son rôle.',
     'feature_off'            => 'Ce projet a désactivé ce type de fichier.',
+    'family_already_in'      => 'Vous êtes déjà dans cette famille.',
+    'family_declined'        => 'Cette famille a refusé votre demande.',
+    'family_request_open'    => 'Vous attendez déjà la réponse d’une famille : annulez d’abord cette demande.',
+    'family_none'            => 'Vous n’avez pas encore rejoint de famille ici.',
+    'family_cannot_leave'    => 'Ici, chacun participe en famille : demandez à rejoindre la vôtre, ou créez-la.',
+    'family_declined_them'   => 'Cette famille a refusé cette personne : seul l’un de ses membres peut l’annuler.',
 ];

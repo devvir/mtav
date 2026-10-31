@@ -8,7 +8,11 @@ use App\Http\Requests\FamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Family;
+use App\Models\FamilyJoinRequest;
+use App\Models\User;
 use App\Models\Project;
+use App\Services\ArchiveService;
+use App\Services\FamilyService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +25,7 @@ class FamilyController extends Controller
     {
     }
 
-    public function index(Request $request, Project $project): Response
+    public function index(Request $request, Project $project, ArchiveService $archive): Response
     {
         [$families, $whole] = $this->wholeOrPaged(
             $project->families()
@@ -44,21 +48,57 @@ class FamilyController extends Controller
             'family' => fn () => $request->integer('family') && ($family = $project->families()->find($request->integer('family')))
                 ? FamilyResource::make($family->load('unitType', 'unit', 'members'))
                 : null,
+            // For those in it, who answer them: who asks to join, and who was declined
+            'requests' => fn () => $this->requestsFor($request, $project),
+            'archive'  => fn () => $archive->forPage($request, $project, 'families'),
+            // Someone to bring an archived family back with
+            'guests' => fn () => $request->user()->can('update', $project) && $request->boolean('archived')
+                ? $project->memberships()->whereNull('family_id')->where('is_admin', false)->with('user:id,firstname,lastname,email')->get()
+                    ->map(fn ($membership) => ['name' => $membership->user->name, 'email' => $membership->user->email])
+                : [],
         ]);
     }
 
-    /** Let into a project without guests: this comes first (ResolveProject brings them here) */
-    public function create(Request $request, Project $project): Response|RedirectResponse
+    /**
+     * Finding one's family, or starting it: with none (let in without guests it comes first:
+     * ResolveProject brings them here), or in the wrong one. Names only: nobody's contact
+     * details, to someone who may not belong here.
+     */
+    public function create(Request $request, Project $project): Response
     {
-        if (! $request->user()->needsFamilyIn($project)) {
-            return to_route('projects.show', $project);
-        }
+        $user = $request->user();
+        $own = $user->familyIn($project);
+        $asked = FamilyJoinRequest::where('user_id', $user->id)->where('project_id', $project->id)->get();
 
         return inertia('Member/OwnFamily', [
-            'types' => $request->user()->can('createOwnFamily', $project)
+            'types' => $user->can('createOwnFamily', $project)
                 ? $project->unitTypes()->alphabetically()->get(['id', 'name'])
                 : null,
+            'families' => $project->families()->with('unitType:id,name', 'members:id,firstname,lastname')->alphabetically()->get()
+                ->reject(fn (Family $family) => $family->is($own))
+                ->values()
+                ->map(fn (Family $family) => [
+                    'id'        => $family->id,
+                    'name'      => $family->name,
+                    'unit_type' => $family->unitType?->name,
+                    'people'    => $family->members->map(fn (User $person) => $person->name),
+                    'request'   => $asked->firstWhere('family_id', $family->id)?->only('id', 'declined_at'),
+                ]),
+            'own' => $own ? [
+                'name'  => $own->name,
+                'alone' => $own->memberships()->count() === 1,
+            ] : null,
+            'can_leave_family' => (bool) $own && ($project->allows_guests || $user->membershipIn($project)->is_admin),
+            'locked'           => $project->lotteryLocked(),
         ]);
+    }
+
+    /** Out of their family, staying in the project: where guests are welcome, and for admins */
+    public function leave(Request $request, Project $project, FamilyService $families): RedirectResponse
+    {
+        $families->leave($request->user(), $project);
+
+        return to_route('projects.show', $project)->with('success', __('flash.family_left'));
     }
 
     /** Someone taking part with no family starts theirs, and is in it */
@@ -69,7 +109,11 @@ class FamilyController extends Controller
         $user = $request->user();
 
         DB::transaction(function () use ($request, $project, $user) {
-            $family = $project->families()->create($request->validated());
+            $data = $request->validated();
+            $family = Family::onlyTrashed()->where('project_id', $project->id)->firstWhere('name', $data['name']);
+            $family?->restore();
+            $family?->update($data);
+            $family ??= $project->families()->create($data);
             $user->membershipIn($project)->update(['family_id' => $family->id]);
             $user->unsetRelation('memberships');
         });
@@ -83,6 +127,22 @@ class FamilyController extends Controller
     public function show(Project $project, Family $family): RedirectResponse
     {
         return to_route('families.index', ['family' => $family->id]);
+    }
+
+    private function requestsFor(Request $request, Project $project): ?array
+    {
+        $family = $project->families()->find($request->integer('family'));
+
+        if (! $family || ! $request->user()->can('answerRequests', $family)) {
+            return null;
+        }
+
+        return $family->joinRequests()->with('user:id,firstname,lastname')->oldest()->get()
+            ->map(fn (FamilyJoinRequest $joinRequest) => [
+                'id'       => $joinRequest->id,
+                'name'     => $joinRequest->user->name,
+                'declined' => (bool) $joinRequest->declined_at,
+            ])->all();
     }
 
     /** For admins, who register and edit families here: the types a family can have */

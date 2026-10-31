@@ -35,6 +35,7 @@ import { useEffect } from 'react';
 
 /** What admins get on the lottery page besides what everyone sees */
 export interface LotteryAdmin {
+  families_without_people: string[];
   readiness: { id: number; name: string; units_count: number; families_count: number }[];
   runs: LotteryRun[];
   confirm: { option: string; message: string } | null;

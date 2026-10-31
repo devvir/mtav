@@ -4,14 +4,23 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Family } from '@/types/models';
 import { useForm, usePage } from '@inertiajs/react';
-import { Button, Group, SimpleGrid, TextInput } from '@mantine/core';
+import { Button, Group, NativeSelect, SimpleGrid, TextInput } from '@mantine/core';
 import { IconSend } from '@tabler/icons-react';
 
 /**
  * Someone invited into one family, the one it is opened from: admins into any, members into
  * their own
  */
-export function FamilyInvitationForm({ family, onDone }: { family: Family; onDone: () => void }) {
+export function FamilyInvitationForm({
+  family,
+  guests = [],
+  onDone,
+}: {
+  family: Pick<Family, 'id' | 'name'>;
+  /** Already in the project with no family: they enter at once */
+  guests?: { name: string; email: string }[];
+  onDone: () => void;
+}) {
   const admin = usePage().props.project?.can.manage;
   const form = useForm({ email: '', firstname: '', lastname: '', family_id: family.id });
 
@@ -26,6 +35,17 @@ export function FamilyInvitationForm({ family, onDone }: { family: Family; onDon
       }
     >
       <TextInput label={_('Family')} value={family.name} readOnly disabled />
+      {guests.length ? (
+        <NativeSelect
+          label={_('Someone already in the project')}
+          data={[
+            { value: '', label: _('Choose someone, or write an email below') },
+            ...guests.map((guest) => ({ value: guest.email, label: guest.name })),
+          ]}
+          value={guests.some((guest) => guest.email === form.data.email) ? form.data.email : ''}
+          onChange={(event) => form.setData('email', event.currentTarget.value)}
+        />
+      ) : null}
       <TextInput
         label={_('Their email')}
         withAsterisk
