@@ -1218,23 +1218,12 @@ html[data-plan-full] {
 }
 .checklist-step svg {
   flex: none;
-  color: var(--mtav-muted);
-}
-.checklist-step span {
-  /* A list of things to do, as if written by hand */
-  font-family: 'Caveat Variable', var(--mantine-font-family);
-  font-size: 1.45em;
-  font-weight: 500;
-  line-height: 1.15;
 }
 .checklist-step[data-done] {
   color: var(--mtav-muted);
 }
 .checklist-step[data-done] span {
   text-decoration: line-through;
-}
-.checklist-step[data-done] svg {
-  color: var(--mtav-positive);
 }
 .approval-card {
   border-color: color-mix(in srgb, var(--mtav-warning) 40%, var(--mtav-border));
@@ -2013,27 +2002,50 @@ html[data-carrying] * {
 /* The chat, at the page's bottom right corner */
 .chat-launcher {
   display: none;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 45%);
   cursor: pointer;
   position: fixed;
   z-index: 50;
   bottom: 1.25rem;
   right: 1.25rem;
-  width: 3rem;
-  height: 3rem;
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: var(--mtav-brand);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 25%);
+  /* Glass tinted with the brand: a highlight above, what is behind it blurred through it */
+  background:
+    radial-gradient(
+      120% 70% at 50% 8%,
+      rgb(255 255 255 / 55%),
+      rgb(255 255 255 / 8%) 55%,
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--mtav-brand) 78%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  box-shadow:
+    0 8px 22px rgb(0 0 0 / 28%),
+    inset 0 -6px 12px rgb(0 0 0 / 14%),
+    inset 0 1px 1px rgb(255 255 255 / 60%);
   transition:
     transform 200ms ease,
-    box-shadow 200ms ease;
+    box-shadow 200ms ease,
+    background 200ms ease;
 }
 .chat-launcher:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgb(0 0 0 / 30%);
+  box-shadow:
+    0 12px 26px rgb(0 0 0 / 32%),
+    inset 0 -6px 12px rgb(0 0 0 / 14%),
+    inset 0 1px 1px rgb(255 255 255 / 60%);
+}
+/* Plain and solid where contrast comes first */
+[data-high-contrast] .chat-launcher {
+  background: var(--mtav-brand);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 .chat-launcher-count {
   position: absolute;
@@ -2121,4 +2133,117 @@ html[data-carrying] * {
 /* A single panel where its partner is off: the whole row */
 .dashboard-pair > :only-child {
   grid-column: 1 / -1;
+}
+
+/*
+ * A card as a sheet of paper, ruled, with its margin: what is written on it, by hand. Its own
+ * ink and paper, in the light and in the dark.
+ */
+.ds-paper {
+  --paper: #fbf6e9;
+  --paper-rule: rgb(70 110 170 / 16%);
+  --paper-margin: rgb(200 70 60 / 28%);
+  --paper-ink: #2a3550;
+  --paper-done: #5c6476;
+  --paper-tick: #24703f;
+}
+.ds-panel.ds-paper {
+  color: var(--paper-ink);
+  background: var(--paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: rgb(120 100 60 / 22%);
+  border-radius: 6px;
+  box-shadow:
+    0 1px 1px rgb(80 60 20 / 8%),
+    0 10px 22px -12px rgb(80 60 20 / 35%);
+}
+[data-mantine-color-scheme='dark'] .ds-paper {
+  --paper: #2b2a26;
+  --paper-rule: rgb(170 190 230 / 11%);
+  --paper-margin: rgb(230 110 100 / 24%);
+  --paper-ink: #e6e1d3;
+  --paper-done: #a8a596;
+  --paper-tick: #7fcf9a;
+}
+[data-mantine-color-scheme='dark'] .ds-panel.ds-paper {
+  border-color: rgb(255 255 255 / 8%);
+}
+.ds-paper .ds-panel-header {
+  background: none;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.ds-paper .ds-panel-title,
+.ds-paper .ds-panel-header .ds-caption,
+.ds-paper .checklist-step span {
+  font-family: 'Caveat Variable', var(--mantine-font-family);
+  color: var(--paper-ink);
+}
+.ds-paper .ds-panel-title {
+  /* Handwriting leans past its box: nothing cut */
+  overflow: visible;
+  padding-right: 0.3em;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.ds-paper .ds-panel-header .ds-caption {
+  font-size: 1.3rem;
+}
+.ds-paper .ds-panel-body {
+  background: none;
+}
+.ds-paper .mantine-Progress-root {
+  background: var(--paper-rule);
+}
+.ds-paper .mantine-Progress-section {
+  background: var(--paper-tick);
+}
+.ds-paper .checklist {
+  /* Each step on a line of the sheet, right of its margin */
+  background:
+    linear-gradient(
+      90deg,
+      transparent 2.6rem,
+      var(--paper-margin) 2.6rem,
+      var(--paper-margin) calc(2.6rem + 1px),
+      transparent calc(2.6rem + 1px)
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 calc(44px - 1px),
+      var(--paper-rule) calc(44px - 1px) 44px
+    );
+}
+.ds-paper .checklist-step {
+  height: 44px;
+  gap: 1rem;
+  color: var(--paper-ink);
+}
+.ds-paper .checklist-step:hover {
+  background: rgb(120 100 60 / 8%);
+}
+.ds-paper .checklist-step span {
+  font-size: 1.45em;
+  font-weight: 500;
+  line-height: 1.15;
+}
+.ds-paper .checklist-step[data-done] span {
+  color: var(--paper-done);
+  text-decoration-thickness: 1px;
+}
+.hand-mark path {
+  stroke: var(--paper-ink, currentColor);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hand-mark .hand-tick {
+  stroke: var(--paper-tick, currentColor);
+  stroke-width: 2.3;
+}
+/* Plainer where contrast comes first: the paper stays, the lines go */
+[data-high-contrast] .ds-paper .checklist {
+  background: none;
 }

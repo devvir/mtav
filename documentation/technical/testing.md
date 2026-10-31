@@ -77,6 +77,11 @@ them sets `localStorage['mtav.tours'] = 'on'`.
 
 ## Before committing
 
+**Locally and in CI.** The whole browser suite is for GitHub's pipeline, which runs it on every
+push to any branch (the repository is public: its minutes are free). Locally, `--group=critical`
+and the tests of what changed are enough; a `task/...` branch runs the whole pipeline without
+deploying anything, while work moves on.
+
 The pre-commit hook runs the tests that the staged files touch, against a testing
 environment already up (it skips, with a warning, when none is). The pipeline runs
 everything on every push ([delivery.md](delivery.md)).
