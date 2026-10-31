@@ -2,6 +2,7 @@
 
 | Where | What |
 |---|---|
+| [../VOCABULARY.md](../VOCABULARY.md) | the domain's words, for people and agents alike |
 | [technical/architecture.md](technical/architecture.md) | how the app is put together: areas, roles, authorization, projects, the plan, the forum, the frontend |
 | [technical/lottery.md](technical/lottery.md) | rankings, running the lottery, the solver, the record anyone can check |
 | [technical/notifications.md](technical/notifications.md) | the bell, live updates, notifications on devices, email |
