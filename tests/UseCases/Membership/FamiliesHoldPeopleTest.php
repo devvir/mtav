@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\FamilyRequestNotification;
 use App\Services\InvitationService;
 use Illuminate\Support\Facades\Notification as Notifications;
+use Illuminate\Support\Str;
 
 /**
  * A family holds people: someone finds theirs and asks, anyone in it answers, and a family with
@@ -386,4 +387,91 @@ describe('Admins', function () {
         $props = $this->as($this->admin, $this->project)->get(route('lottery.show'))->viewData('page')['props'];
         expect($props['admin']['families_without_people'])->toContain('Silva');
     });
+});
+
+describe('An admin moving or removing someone', function () {
+    function runningLottery($project): void
+    {
+        $project->lotteryRuns()->create(['uuid' => (string) Str::uuid(), 'status' => App\Enums\LotteryRunStatus::RUNNING, 'solver' => 'glpk', 'started_at' => now()]);
+    }
+
+    it('is refused while a lottery runs', function () {
+        runningLottery($this->project);
+
+        $this->as($this->admin, $this->project)->put(route('manage.people.update', $this->member), ['family_id' => null, 'is_admin' => false])
+            ->assertSessionHasErrors('lottery');
+        $this->as($this->admin, $this->project)->delete(route('manage.people.destroy', $this->member))
+            ->assertSessionHasErrors('lottery');
+    });
+
+    it('still changes a role while a lottery runs', function () {
+        runningLottery($this->project);
+
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->member), ['family_id' => $this->family->id, 'is_admin' => true])
+            ->assertSessionHasNoErrors();
+    });
+
+    it('keeps an old admin invitation from bringing someone back who was removed', function () {
+        $invitation = app(InvitationService::class)->invite($this->project, $this->admin, ['email' => $this->member->email], null, true);
+
+        $this->as($this->admin, $this->project)->delete(route('manage.people.destroy', $this->member))->assertSessionHasNoErrors();
+
+        expect(Invitation::whereKey($invitation->id)->exists())->toBeFalse();
+    });
+
+    it('withdraws what someone demoted was invited to be', function () {
+        $other = anAdminOf($this->project);
+        Invitation::create(['project_id' => $this->project->id, 'is_admin' => true, 'email' => $other->email, 'token_hash' => 'x', 'invited_by' => $this->admin->id, 'expires_at' => now()->addDay()]);
+
+        $this->as($this->admin, $this->project)->put(route('manage.people.update', $other), ['family_id' => null, 'is_admin' => false])->assertSessionHasNoErrors();
+
+        expect(Invitation::where('email', $other->email)->exists())->toBeFalse();
+    });
+
+    it('tells whoever was moved into a family, and withdraws the invitation into another', function () {
+        $other = aFamily($this->project, $this->type, ['name' => 'Other']);
+        Invitation::create(['project_id' => $this->project->id, 'family_id' => $other->id, 'email' => $this->guest->email, 'token_hash' => 'y', 'invited_by' => $this->admin->id, 'expires_at' => now()->addDay()]);
+
+        $this->as($this->admin, $this->project)->put(route('manage.people.update', $this->guest), ['family_id' => $this->family->id, 'is_admin' => false])->assertSessionHasNoErrors();
+
+        expect(toldOf($this->guest, NotificationType::ADDED_TO_FAMILY))->toBeTrue()
+            ->and(Invitation::where('email', $this->guest->email)->exists())->toBeFalse();
+    });
+
+    it('refuses a family that is not a plain id', function ($given) {
+        $this->as($this->admin, $this->project)->put(route('manage.people.update', $this->guest), ['family_id' => $given, 'is_admin' => false])
+            ->assertSessionHasErrors('family_id');
+    })->with([['1abc'], [[1]]]);
+});
+
+describe('A family\'s decline and its name', function () {
+    it('cannot be got around by starting a family under the archived one\'s name', function () {
+        FamilyJoinRequest::create(['project_id' => $this->project->id, 'family_id' => $this->family->id, 'user_id' => $this->guest->id, 'declined_at' => now()]);
+        $this->family->delete();
+
+        $this->as($this->guest, $this->project)->post(route('families.store'), ['name' => 'Pereira', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors('name');
+
+        expect($this->family->fresh()->trashed())->toBeTrue();
+    });
+});
+
+describe('A family emptied while the lottery held it', function () {
+    it('goes when the run fails', function () {
+        $empty = aFamily($this->project, $this->type, ['name' => 'Emptied']);
+        $run = $this->project->lotteryRuns()->create(['uuid' => (string) Str::uuid(), 'status' => App\Enums\LotteryRunStatus::RUNNING, 'solver' => 'glpk', 'started_at' => now()]);
+
+        app(App\Services\LotteryService::class)->fail($run, 'It broke');
+
+        expect($empty->fresh()->trashed())->toBeTrue();
+    });
+});
+
+it('lets someone leave an archived project, even if their family empties', function () {
+    $this->project->delete();
+
+    $this->member->memberships()->where('project_id', $this->project->id)->first()->delete();
+
+    expect($this->family->fresh()->trashed())->toBeTrue();
 });

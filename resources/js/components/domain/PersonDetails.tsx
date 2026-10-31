@@ -3,6 +3,7 @@ import { MembershipForm } from '@/components/forms/MembershipForm';
 import { PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
+import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -22,6 +23,10 @@ import { useState } from 'react';
  * details lead to their profile or out of the project; admins change their role or family,
  * or remove them.
  */
+/** Why the server refused: nothing on the page holds a field for it */
+const showRefusal = (errors: Record<string, string>) =>
+  toast({ tone: 'error', message: Object.values(errors)[0] ?? '' });
+
 export function PersonDetails({
   person,
   families,
@@ -41,7 +46,7 @@ export function PersonDetails({
       confirmLabel: _('Remove'),
       danger: true,
     });
-    if (ok) router.delete(route('manage.people.destroy', person.id));
+    if (ok) router.delete(route('manage.people.destroy', person.id), { onError: showRefusal });
   };
 
   const leave = async () => {
@@ -52,7 +57,7 @@ export function PersonDetails({
       confirmLabel: _('Leave'),
       danger: true,
     });
-    if (ok) router.delete(route('membership.leave'));
+    if (ok) router.delete(route('membership.leave'), { onError: showRefusal });
   };
 
   // Editing replaces the details in the same dialog (one dialog at a time)

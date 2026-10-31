@@ -30,7 +30,8 @@ class Family extends Model
 
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        // Its project may be archived: its people still leave, and their accounts still go
+        return $this->belongsTo(Project::class)->withTrashed();
     }
 
     public function unitType(): BelongsTo

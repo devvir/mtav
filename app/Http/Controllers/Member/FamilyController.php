@@ -17,6 +17,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 class FamilyController extends Controller
@@ -111,6 +112,12 @@ class FamilyController extends Controller
         DB::transaction(function () use ($request, $project, $user) {
             $data = $request->validated();
             $family = Family::onlyTrashed()->where('project_id', $project->id)->firstWhere('name', $data['name']);
+
+            // A family's name does not get around its decline
+            if ($family && $family->joinRequests()->declined()->where('user_id', $user->id)->exists()) {
+                throw ValidationException::withMessages(['name' => __('validation.family_declined_them')]);
+            }
+
             $family?->restore();
             $family?->update($data);
             $family ??= $project->families()->create($data);

@@ -161,6 +161,7 @@ class InvitationService
         }
 
         if ($family->trashed()) {
+            $family->project->ensureLotteryNotRunning();
             $family->project->ensureRoomForFamily('email');
             $family->restore();
         }
@@ -176,6 +177,17 @@ class InvitationService
             $user->unsetRelation('memberships');
         });
 
+        $this->tellAddedToFamily($membership, $by);
+
+        return $membership;
+    }
+
+    /** Whoever someone else put in a family hears of it, in the app and by email */
+    public function tellAddedToFamily(Membership $membership, User $by): void
+    {
+        $user = $membership->user;
+        $family = $membership->family;
+
         if (! $user->is($by)) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
@@ -189,8 +201,6 @@ class InvitationService
             );
             $user->notify(new JoinedNotification($membership, $by));
         }
-
-        return $membership;
     }
 
     private function ensureNotAlreadyIn(Project $project, string $email, ?Family $family, bool $asAdmin): void
