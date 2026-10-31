@@ -59,6 +59,14 @@ class ChatController extends Controller
         return response()->json($this->data($request, $project, $open));
     }
 
+    /** The Assistant greeted them: once, wherever they go next */
+    public function welcomed(Request $request, Project $project): JsonResponse
+    {
+        $request->user()->forceFill(['welcomed_at' => now()])->save();
+
+        return response()->json(['welcomed' => true]);
+    }
+
     public function store(Request $request, Project $project): RedirectResponse|JsonResponse
     {
         $this->authorize('startChat', [Conversation::class, $project]);

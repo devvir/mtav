@@ -22,6 +22,8 @@ services:
       file: ../services/php/compose.yml
       service: php
     environment:
+      # The Assistant is on here too: the app greets people with it, and the worker answers
+      ASSISTANT_DRIVER: ${ASSISTANT_DRIVER:-cli}
       QUEUE_CONNECTION: database
 
   # Works the queue as on a server (deploy/slot.yml): a lottery run, the reveal it waits

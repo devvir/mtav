@@ -5,6 +5,7 @@ namespace App\Services\Assistant;
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class Assistant
     private const LABEL_CHARS = 60;
     private const TEXT_CHARS = 1500;
 
-    public function __construct(private Brain $brain, private Prompt $prompt, private Places $places)
+    public function __construct(private Brain $brain, private Prompt $prompt, private Places $places, private ReadyAnswers $ready)
     {
     }
 
@@ -38,8 +39,25 @@ class Assistant
         // They read it in their own language, whatever the worker last spoke
         App::setLocale($user->preferredLocale() ?? config('app.locale'));
 
-        if ($refusal = $this->overLimit($user)) {
-            $this->say($conversation, __($refusal));
+        // Written again before the answer came: the later message answers them all, for one ask
+        if ($conversation->messages()->where('id', '>', $question->id)->where('from_assistant', false)->exists()) {
+            return;
+        }
+
+        if ($ready = $this->ready->to($question->body, $user, $conversation->project)) {
+            $this->free($question);
+            $this->say($conversation, $ready['text'], $this->actions($ready['actions'], $user, $conversation));
+
+            return;
+        }
+
+        if ($refusal = $this->overLimit($user, $conversation->project)) {
+            $this->free($question);
+            $this->say($conversation, __($refusal), $this->actions(
+                [['type' => 'link', 'place' => 'guide', 'label' => __('chat.assistant_guide')]],
+                $user,
+                $conversation,
+            ));
 
             return;
         }
@@ -81,8 +99,14 @@ class Assistant
         return $message;
     }
 
+    /** It reached no model: it takes nothing from the person's messages of the day */
+    private function free(Message $question): void
+    {
+        $question->forceFill(['extras' => ['free' => true]])->save();
+    }
+
     /** The words of a refusal, or nothing: it costs nothing to say no here */
-    private function overLimit(User $user): ?string
+    private function overLimit(User $user, Project $project): ?string
     {
         if (config('assistant.driver') === 'off') {
             return 'chat.assistant_off';
@@ -90,12 +114,16 @@ class Assistant
 
         $today = Message::where('created_at', '>=', now()->startOfDay())
             ->whereHas('conversation', fn ($q) => $q->where('is_assistant', true))
-            ->where('from_assistant', false);
+            ->where('from_assistant', false)
+            ->whereNull('extras');
+        // A limited project's people have half
+        $theirs = (int) config('assistant.per_person_per_day');
+        $theirs = $project->isApproved() ? $theirs : intdiv($theirs, 2);
 
         return match (true) {
-            (clone $today)->where('user_id', $user->id)->count() > config('assistant.per_person_per_day') => 'chat.assistant_limit',
-            (clone $today)->count() > config('assistant.per_day')                                         => 'chat.assistant_busy',
-            default                                                                                       => null,
+            (clone $today)->where('user_id', $user->id)->count() > $theirs => 'chat.assistant_limit',
+            (clone $today)->count() > config('assistant.per_day')          => 'chat.assistant_busy',
+            default                                                        => null,
         };
     }
 

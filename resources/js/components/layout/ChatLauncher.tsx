@@ -1,11 +1,16 @@
 import { Chat } from '@/components/domain/Chat';
 import { minimizeChat, openChat, useChat } from '@/lib/chat';
-import { routeIs } from '@/lib/route';
+import { sendJson } from '@/lib/json';
+import { route, routeIs } from '@/lib/route';
+import { AUTO_AFTER_MS, drivenBrowser, offerTourInstead } from '@/lib/tour';
 import { _, _n } from '@/lib/translations';
 import { usePage } from '@inertiajs/react';
 import { Transition } from '@mantine/core';
 import { IconChevronDown, IconMessageCircle } from '@tabler/icons-react';
 import { useEffect } from 'react';
+
+/** Once a visit, whatever the server's word on the next page */
+let welcomed = false;
 
 /**
  * The project's chat wherever one is, on tablets and up: a bubble at the bottom right corner,
@@ -16,6 +21,17 @@ export function ChatLauncher() {
   const project = usePage().props.project;
   const { open } = useChat();
   const here = routeIs('chat.*');
+  const welcome = project?.welcome;
+
+  // Someone's first arrival: the Assistant greets them, and offers the tour the page would play
+  useEffect(() => {
+    if (!welcome || here || welcomed || drivenBrowser()) return undefined;
+    welcomed = true;
+    offerTourInstead();
+    void sendJson('POST', route('chat.welcomed', { project: project.id }), {});
+    const later = window.setTimeout(() => openChat(welcome), AUTO_AFTER_MS);
+    return () => window.clearTimeout(later);
+  }, [welcome, here, project?.id]);
 
   useEffect(() => {
     if (!open) return undefined;

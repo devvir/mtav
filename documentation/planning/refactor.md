@@ -108,7 +108,13 @@ decision taken on the way is listed below for review.
 - **Assistant.** Another conversation of the chat, each person's own, pinned to begin with: it
   explains the app and leads people to it, with buttons, links and options. No internet, no
   database; it can only say what the person could find by other means (technical/architecture.md).
-  It declines anything outside the app in a sentence, cheaply. Its model is a setting.
+  It declines anything outside the app in a sentence, cheaply. Its model is a setting. The model
+  is only for what people put in their own words: greetings, thanks, the questions it offers,
+  buttons and refusals are written beforehand or worked out from the project, for free. It greets
+  someone on their first arrival by opening by itself, offering the page's tour instead of playing
+  it, and folds away when a button leads somewhere. A limited project's people have half the
+  messages a day. Deployed sites need an API key (with a spending cap): a subscription's login may
+  not serve other people. Until then it answers only what needs no model, and greets nobody.
 - **Contact details, shared by choice.** Each person decides, beside their email and
   their phone in the profile, whether the people of their projects see it. Shared, it
   shows on their card and searches find it; not shared (the default), only admins see it

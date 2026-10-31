@@ -41,7 +41,7 @@ function assistantOf($user, $project): Conversation
     return Conversation::where('project_id', $project->id)->where('pair', "assistant:{$user->id}")->sole();
 }
 
-function askAssistant($user, $project, string $words = 'How does the lottery work?'): Message
+function askAssistant($user, $project, string $words = 'Where do I see the plan of the site?'): Message
 {
     $question = app(ChatService::class)->send(assistantOf($user, $project), $user, $words);
 
@@ -305,6 +305,7 @@ describe('What it costs', function () {
 
     it('asks nothing past a person\'s messages of the day', function () {
         config(['assistant.per_person_per_day' => 1]);
+        $this->project->forceFill(['approved_at' => now()])->save();
         $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
 
         askAssistant($this->member, $this->project);
@@ -317,6 +318,22 @@ describe('What it costs', function () {
         expect(askAssistant($this->member, $this->project)->body)->toBe('Sure');
     });
 
+    it('gives a limited project\'s people half the messages, and says so kindly, with the guide at hand', function () {
+        config(['assistant.per_person_per_day' => 2]);
+        $this->project->forceFill(['approved_at' => null])->save();
+        $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
+
+        askAssistant($this->member, $this->project);
+        $refusal = askAssistant($this->member, $this->project);
+
+        expect($refusal->body)->toBe(__('chat.assistant_limit'))->toContain('tomorrow')
+            ->and($refusal->extras['actions'][0]['href'])->toContain('guide')
+            ->and($brain->asked)->toHaveCount(1);
+
+        $this->project->forceFill(['approved_at' => now()])->save();
+        expect(askAssistant($this->member, $this->project)->body)->toBe('Sure');
+    });
+
     it('asks nothing past the deployment\'s messages of the day', function () {
         config(['assistant.per_day' => 1]);
         $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
@@ -324,6 +341,97 @@ describe('What it costs', function () {
         askAssistant($this->member, $this->project);
         expect(askAssistant($this->admin, $this->project)->body)->toBe(__('chat.assistant_busy'))
             ->and($brain->asked)->toHaveCount(1);
+    });
+});
+
+describe('What needs no model', function () {
+    it('answers greetings and thanks by itself, whatever the capitals or accents', function () {
+        $brain = brainAnswering(['text' => 'Never', 'actions' => []]);
+        $spanish = aMemberOf($this->family, ['locale' => 'es_UY']);
+
+        expect(askAssistant($spanish, $this->project, '¡HOLA!')->body)->toBe(trans('chat.ready.hello', locale: 'es_UY'))
+            ->and(askAssistant($spanish, $this->project, 'Muchas gracias.')->body)->toBe(trans('chat.ready.thanks', locale: 'es_UY'))
+            ->and($brain->asked)->toBe([]);
+    });
+
+    it('answers the questions it offers by itself, with a way there', function () {
+        $brain = brainAnswering(['text' => 'Never', 'actions' => []]);
+
+        $answer = askAssistant($this->member, $this->project, 'How does the lottery work?');
+
+        expect($answer->body)->toBe(__('chat.ready.lottery'))
+            ->and($answer->extras['actions'][0])->toMatchArray(['type' => 'tour', 'tour' => 'lottery'])
+            ->and($answer->extras['actions'][0]['href'])->toEndWith('/lottery')
+            ->and($brain->asked)->toBe([]);
+    });
+
+    it('works out from the project what is left to set up', function () {
+        $brain = brainAnswering(['text' => 'Never', 'actions' => []]);
+
+        $answer = askAssistant($this->admin, $this->project, 'What is left to set up?');
+
+        expect($answer->body)->toContain(__('chat.ready.steps.scheduled'))
+            ->not->toContain(__('chat.ready.steps.unit_types'))
+            ->and($brain->asked)->toBe([]);
+    });
+
+    it('leaves to the model what the person has no part in, so nothing leads out of reach', function () {
+        $brain = brainAnswering(['text' => 'That is for the admins', 'actions' => []]);
+
+        expect(askAssistant($this->member, $this->project, 'What is left to set up?')->body)->toBe('That is for the admins')
+            ->and($brain->asked)->toHaveCount(1);
+    });
+
+    it('still answers them when it is off', function () {
+        config(['assistant.driver' => 'off']);
+
+        expect(askAssistant($this->member, $this->project, 'How does the lottery work?')->body)->toBe(__('chat.ready.lottery'));
+    });
+
+    it('takes nothing from the person\'s messages of the day', function () {
+        config(['assistant.per_person_per_day' => 2]);
+        $this->project->forceFill(['approved_at' => now()])->save();
+        $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
+
+        askAssistant($this->member, $this->project, 'Thanks');
+        askAssistant($this->member, $this->project, 'Thanks');
+        askAssistant($this->member, $this->project, 'Thanks');
+
+        expect(askAssistant($this->member, $this->project)->body)->toBe('Sure')
+            ->and($brain->asked)->toHaveCount(1);
+    });
+
+    it('answers a few messages in a row once, the last one seeing them all', function () {
+        Queue::fake([AnswerInChat::class]);
+        $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
+        $conversation = assistantOf($this->member, $this->project);
+        $first = app(ChatService::class)->send($conversation, $this->member, 'Where is the plan?');
+        $second = app(ChatService::class)->send($conversation, $this->member, 'And the units?');
+
+        app(Assistant::class)->answer($first);
+        expect($brain->asked)->toBe([]);
+
+        app(Assistant::class)->answer($second);
+        expect($brain->asked)->toHaveCount(1)
+            ->and($brain->asked[0]['history'])->toHaveCount(2);
+    });
+});
+
+describe('Greeting someone new', function () {
+    it('opens the Assistant once, for whoever has not been greeted', function () {
+        brainAnswering(null);
+        $welcome = fn () => $this->as($this->member, $this->project)->get(route('projects.show', $this->project))->viewData('page')['props']['project']['welcome'];
+
+        expect($welcome())->toBe(assistantOf($this->member, $this->project)->id);
+
+        $this->as($this->member, $this->project)->postJson(route('chat.welcomed'))->assertOk();
+        expect($welcome())->toBeNull();
+    });
+
+    it('greets nobody while it is off', function () {
+        config(['assistant.driver' => 'off']);
+
+        expect($this->as($this->member, $this->project)->get(route('projects.show', $this->project))->viewData('page')['props']['project']['welcome'])->toBeNull();
     });
 });
 

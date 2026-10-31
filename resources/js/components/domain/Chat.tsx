@@ -291,7 +291,8 @@ function dayLabel(value: string) {
 
 /** Before the first message: what it is, and a few things to ask with a tap */
 function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
-  const can = usePage().props.project?.can;
+  const project = usePage().props.project;
+  const can = project?.can;
   const asks = [
     _('What can I do here?'),
     _('How does the lottery work?'),
@@ -311,14 +312,26 @@ function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
         </Text>
       </div>
       <AssistantActions
-        actions={asks.map((label) => ({ type: 'reply' as const, label }))}
+        actions={[
+          ...(project && !project.needs_family
+            ? [
+                {
+                  type: 'tour' as const,
+                  label: _('Show me around'),
+                  href: route('projects.show', { project: project.id }),
+                  tour: 'member.home',
+                },
+              ]
+            : []),
+          ...asks.map((label) => ({ type: 'reply' as const, label })),
+        ]}
         onReply={onAsk}
       />
     </div>
   );
 }
 
-/** The buttons under an Assistant's message; leading somewhere, the window folds out of the way on phones */
+/** The buttons under an Assistant's message; leading somewhere, the window folds out of the way */
 function AssistantActions({
   actions,
   onReply,
@@ -329,6 +342,7 @@ function AssistantActions({
   const press = (action: AssistantAction) => {
     if (action.type === 'reply') return onReply(action.label);
 
+    minimizeChat();
     router.visit(action.href!, {
       onSuccess: () => {
         if (action.tour) startTour(action.tour);

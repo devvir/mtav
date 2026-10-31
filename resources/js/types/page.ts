@@ -51,6 +51,7 @@ export interface SharedProps {
     features: ProjectFeatures;
     /** For those with a place in it: their conversations with something new */
     unread_messages: number | null;
+    welcome: number | null;
     can: {
       manage: boolean;
       invite: boolean;

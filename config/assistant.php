@@ -26,7 +26,7 @@ return [
     /** The longest message it takes */
     'message_chars' => 1000,
 
-    /** Messages a day: for one person, and for the whole deployment */
+    /** Messages a day that reach the model: for one person (half in a limited project), and for the whole deployment */
     'per_person_per_day' => (int) env('ASSISTANT_PER_PERSON_PER_DAY', 40),
     'per_day'            => (int) env('ASSISTANT_PER_DAY', 2000),
 ];

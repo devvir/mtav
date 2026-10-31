@@ -130,7 +130,11 @@ class HandleInertiaRequests extends Middleware
             'features'     => $project->features(),
             // The conversations with something new for them (the chat's place says so)
             'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
-            'can'             => [
+            // Someone's first arrival: the Assistant's conversation, that opens to greet them
+            'welcome' => $inChat && ! $user->welcomed_at && config('assistant.driver') !== 'off'
+                ? Conversation::of($user, $project)->where('is_assistant', true)->value('id')
+                : null,
+            'can' => [
                 'manage' => $manages,
                 'invite' => $user->can('invite', [$project, $family]),
                 'rank'   => $user->can('rankUnits', $project),

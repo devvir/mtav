@@ -97,8 +97,12 @@ it('has the Assistant at hand, pinned, offering what to ask, and says when it is
         ->assertPresent('.chat-kinds + .chat-list-row .chat-pin[data-pinned]')
         ->click('.chat-list-item:has-text("Assistant")')
         ->assertSeeIn('.chat-window', 'I am the Assistant of this app')
+        ->assertPresent('.chat-window button:has-text("Show me around")')
         ->click('.chat-window button:has-text("How does the lottery work?")')
         ->assertSeeIn('.chat-messages', 'How does the lottery work?')
+        ->assertSeeIn('.chat-messages', 'Each family ranks the units')
+        ->fill('.chat-composer textarea, .chat-composer input', 'Where do I see the plan?')
+        ->keys('.chat-composer textarea, .chat-composer input', 'Enter')
         ->assertSeeIn('.chat-messages', 'The Assistant is not available here yet')
         ->assertNoSmoke();
 });
@@ -119,5 +123,7 @@ it('leads somewhere from the Assistant\'s buttons, and sends its replies with a 
         ->assertPresent('.chat-message[data-mine]')
         ->click('.chat-actions button:has-text("Go to the lottery")')
         ->assertPathIs('/projects/' . $this->project->id . '/lottery')
+        // The window folds away, or there would be nothing to see of where it led
+        ->assertMissing('.chat-window')
         ->assertNoSmoke();
 });

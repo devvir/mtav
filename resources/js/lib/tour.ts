@@ -44,18 +44,29 @@ const remember = (key: string, value: string) => {
 };
 
 /** Once the page has settled: a tour never jumps at someone mid-load */
-const AUTO_AFTER_MS = 900;
+export const AUTO_AFTER_MS = 900;
+
+/** A browser driven by a program (tests, the manuals' pictures) plays none unless it asks */
+export const drivenBrowser = () => navigator.webdriver && remembered(OFF) !== 'on';
+
+/** The page's own tour is being offered instead: it does not play by itself this once */
+let offered = false;
+export const offerTourInstead = () => {
+  offered = true;
+};
 
 /**
  * A page's tour, played by itself the first time someone arrives there (unless they asked
  * for no more tours); the (?) by the title plays it whenever they like
  */
 export function autoTour(id: string) {
-  // A browser driven by a program (tests, the manuals' pictures) plays none unless it asks
-  const driven = navigator.webdriver && remembered(OFF) !== 'on';
-  if (driven || remembered(OFF) === 'off' || remembered(SEEN + id)) return () => undefined;
+  if (drivenBrowser() || remembered(OFF) === 'off' || remembered(SEEN + id)) return () => undefined;
   const later = window.setTimeout(() => {
-    if (!tourState.get().id) startTour(id);
+    if (offered) {
+      // The Assistant is offering it: this one counts as seen, and the (?) still has it
+      offered = false;
+      remember(SEEN + id, '1');
+    } else if (!tourState.get().id) startTour(id);
   }, AUTO_AFTER_MS);
   return () => window.clearTimeout(later);
 }

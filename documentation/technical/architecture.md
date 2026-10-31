@@ -104,11 +104,19 @@ Nothing about anyone else goes in, so there is nothing to leak. What it answers 
 shape, and is checked: a link names a key of `Places`, which lists only what that person can reach
 (role, family, features), and the address is the server's. Short limits keep it cheap
 (`config/assistant.php`): per person and deployment a day, a short history, and saying no to
-either costs nothing.
+either costs nothing. A limited project's people have half the messages.
+
+The model is only for what people put in their own words. `ReadyAnswers` answers greetings, thanks
+and the questions the Assistant offers, written beforehand or worked out from the project; those
+take nothing from the day's messages, and work with no brain at all. Messages written in a row
+are answered once. Someone's first arrival opens the conversation by itself (`users.welcomed_at`),
+its greeting drawn by the page, with the page's tour offered instead of played.
 
 It answers through a `Brain`: `ApiBrain` (the official SDK; `ANTHROPIC_API_KEY`, the deployed way)
 or `CliBrain` (the Claude command line on a signed-in account, a developer's machine only). With
-neither it says it is not available, and nothing leaves the server. `php artisan assistant:try`
+neither it says it is not available for anything that needs the model, greets nobody, and nothing
+leaves the server. A signed-in subscription account never serves a deployed site: Anthropic does
+not allow routing other people's requests through one. `php artisan assistant:try`
 runs a set of real questions through the real prompt, its answers shown to be judged.
 
 ## The plan

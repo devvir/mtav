@@ -35,7 +35,7 @@ function PersonRow({ person, caption }: { person: Person; caption?: string | nul
   );
 }
 
-/** Who the project is: some of its families, its admins, and who joined last */
+/** Who the project is: some of its families, who joined last, and its admins */
 export function CommunityPanel({ community }: { community: Community }) {
   return (
     <FoldablePanel
@@ -80,21 +80,21 @@ export function CommunityPanel({ community }: { community: Community }) {
         </div>
         <div>
           <Title order={3} fz="sm" mb="xs" className="ds-label">
-            {_('Admins')}
-          </Title>
-          <Stack gap="xs">
-            {community.admins.map((person) => (
-              <PersonRow key={person.id} person={person} caption={person.email} />
-            ))}
-          </Stack>
-        </div>
-        <div>
-          <Title order={3} fz="sm" mb="xs" className="ds-label">
             {_('Joined lately')}
           </Title>
           <Stack gap="xs">
             {community.latest.map((person) => (
               <PersonRow key={person.id} person={person} caption={person.family?.name} />
+            ))}
+          </Stack>
+        </div>
+        <div>
+          <Title order={3} fz="sm" mb="xs" className="ds-label">
+            {_('Admins')}
+          </Title>
+          <Stack gap="xs">
+            {community.admins.map((person) => (
+              <PersonRow key={person.id} person={person} caption={person.email} />
             ))}
           </Stack>
         </div>

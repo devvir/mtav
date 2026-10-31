@@ -35,11 +35,12 @@ use RuntimeException;
  * Five projects, each at another stage:
  *  - Las Acacias: 32 units of four types (two blocks and four houses, drawn on its site),
  *    its families ranking them, its lottery three weeks away; events people answered,
- *    files of every kind (DemoMedia), a forum, conversations in its chat
+ *    files of every kind (DemoMedia), a lively forum, and a chat with its Community group,
+ *    conversations one on one and committees
  *  - Los Ceibos: 18 units of three types, its lottery run two weeks ago (by the solver,
- *    as any run): each family has its unit, and the run its record
+ *    as any run): each family has its unit, and the run its record; a forum and a chat
  *  - Barrio Sur: just started by its admin, waiting for approval: a few families,
- *    invitations out, its units not yet placed on the plan
+ *    invitations out, its units not yet placed on the plan; its first words in forum and chat
  *  - Nuevo Horizonte and Los Robles: small, starting out, and in the directory for
  *    member@example.com to find: the first open to anyone, with guests; the second by
  *    request, without. Las Acacias and Los Ceibos are listed too, by request; Las Acacias
@@ -90,7 +91,7 @@ class DatabaseSeeder extends Seeder
 
         // Something archived, for admins to see and restore
         $acacias = Project::firstWhere('name', 'Cooperativa Las Acacias');
-        $acacias->topics()->oldest('id')->first()?->delete();
+        $acacias->topics()->where('is_closed', true)->first()?->delete();
         $acacias->events()->where('type', '!=', EventType::LOTTERY)->oldest('id')->first()?->delete();
         $acacias->media()->oldest('id')->first()?->delete();
 
@@ -164,6 +165,20 @@ class DatabaseSeeder extends Seeder
                 [$admin, 'Sí, lo agrego al orden del día. Traé el presupuesto si podés.'],
                 [$people[5], 'Ojo con los plazos de entrega, a la cooperativa de al lado le demoraron tres meses.'],
             ], false, false],
+            ['Guardería durante las jornadas', $people[7], 'Varias familias no podemos venir a obra por no tener con quién dejar a los chicos. ¿Armamos un turno rotativo en el salón comunal?', 8, [
+                [$people[8], 'Me parece excelente. Yo puedo cuidar un sábado al mes.'],
+                [$member, 'Nosotros también nos anotamos, tenemos dos de 6 y 9 años.'],
+                [$people[0], 'Hablemos en la asamblea cómo contarlo en las horas de trabajo.'],
+                [$admin, 'Lo sumo al orden del día. Vayan anotándose acá.'],
+            ], false, false],
+            ['Dudas sobre el orden de las viviendas', $member, 'Con mi familia no nos ponemos de acuerdo entre planta baja y primer piso. ¿Se puede cambiar el orden después de guardarlo?', 4, [
+                [$people[2], 'Sí, se guarda solo y lo pueden cambiar hasta el día del sorteo.'],
+                [$people[5], 'A nosotros nos ayudó mirar el plano del terreno para ver dónde da el sol.'],
+            ], false, false],
+            ['Cuotas de noviembre', $people[9], 'Recuerden que la cuota de noviembre vence el día 10. Quien tenga dificultades, que se acerque a la comisión de finanzas.', 2, [
+                [$people[10], '¿Se puede pagar por transferencia este mes?'],
+                [$people[9], 'Sí, los datos están en Archivos, en el acta de la última asamblea.'],
+            ], false, false],
             ['Horario de la jornada del 12', $admin, 'La jornada del 12 se pasa a las 9 por la lluvia del viernes.', 20, [
                 [$people[6], 'Perfecto, gracias por avisar.'],
             ], false, true],
@@ -178,7 +193,25 @@ class DatabaseSeeder extends Seeder
             $this->at(now()->subDays(2 - $index), fn () => $this->directory->ask($project, $this->people->person($lastname)));
         }
 
+        $this->community($project, 6, [
+            [$admin, '¡Hola a todos! Este grupo es para los avisos del día a día. Lo que necesite discutirse, mejor en el foro.'],
+            [$people[0], 'Buenísimo, gracias Andrés.'],
+            [$people[6], '¿Alguien vio una cinta métrica verde? Quedó en la obra el sábado.'],
+            [$people[2], 'La guardé en el pañol, está en el segundo estante.'],
+            [$member, 'Recuerden que el jueves es la comisión de finanzas, abierta a todos.'],
+            [$people[8], '¡Gracias por el aviso!'],
+        ]);
+
         $this->chats($project, [
+            [[$people[9], $admin, $people[10]], 'Comisión de finanzas', 4, [
+                [$people[9], 'Ya cerré el balance del trimestre. Se los paso antes del jueves.'],
+                [$admin, 'Gracias. ¿Cómo venimos con las cuotas atrasadas?'],
+                [$people[10], 'Quedan tres familias; ya hablé con dos.'],
+            ]],
+            [[$admin, $people[7]], null, 5, [
+                [$people[7], 'Andrés, ¿me podés agregar a la lista de la guardería?'],
+                [$admin, 'Sí, anotate en el foro así queda para todos.'],
+            ]],
             [[$admin, $member], null, 3, [
                 [$member, 'Hola Andrés, ¿ya está la fecha del sorteo?'],
                 [$admin, 'Hola María. Sí, en tres semanas. Ya pueden ir ordenando las preferencias.'],
@@ -240,6 +273,22 @@ class DatabaseSeeder extends Seeder
                 [$people[3], 'Nosotros la primera semana después de la entrega.'],
                 [$people[4], 'La segunda, si se puede.'],
             ], false, false],
+            ['Plantas para el patio común', $people[5], 'Sobraron plantines de la jornada. ¿Hacemos un cantero al lado de la entrada?', 3, [
+                [$member, 'Me encanta la idea, nosotros traemos tierra.'],
+            ], false, false],
+        ]);
+
+        $this->community($project, 10, [
+            [$admin, '¡Felicitaciones a todos por el sorteo! Cada familia ya puede ver su vivienda en la app.'],
+            [$people[0], 'Qué lindo momento. ¡Gracias a la comisión!'],
+            [$member, '¿La entrega de llaves sigue siendo en la fecha prevista?'],
+            [$admin, 'Sí, está en Eventos. Recuerden traer la cédula.'],
+        ]);
+        $this->chats($project, [
+            [[$member, $people[3]], null, 5, [
+                [$people[3], 'Hola María, nos toca ser vecinos. ¿Ya saben cuándo se mudan?'],
+                [$member, '¡Qué bueno! La primera semana, seguro. Después coordinamos los camiones.'],
+            ]],
         ]);
     }
 
@@ -267,11 +316,24 @@ class DatabaseSeeder extends Seeder
             ['Germán', 'Ocampo', null],
             ['Inés', 'Duarte', $project->families()->first()],
         ]);
+
+        $people = $project->members()->whereKeyNot($admin->id)->get();
+        $this->topics($project, [
+            ['¿Qué nombre le ponemos a los bloques?', $people[0], 'Ya que estamos empezando, propongo que cada bloque lleve el nombre de un árbol de la zona.', 4, [
+                [$people[1], 'Me gusta. Yo voto por tamarisco, hay muchos sobre la rambla.'],
+            ], false, false],
+        ]);
+        $this->community($project, 7, [
+            [$admin, '¡Bienvenidos! De a poco vamos sumando familias.'],
+            [$people[0], 'Gracias por la invitación. ¿Cuándo es la primera reunión?'],
+            [$admin, 'Apenas tengamos la aprobación, les aviso por acá.'],
+        ]);
     }
 
     /** Someone already asked it something: how it looks, without a brain at hand */
     private function askedTheAssistant(User $member, Project $project): void
     {
+        $member->forceFill(['welcomed_at' => now()])->save();
         $conversation = Conversation::where('project_id', $project->id)->where('pair', "assistant:{$member->id}")->sole();
         $say = function (array $attributes, string $body) use ($conversation) {
             $message = new Message(['body' => $body]);
@@ -301,6 +363,17 @@ class DatabaseSeeder extends Seeder
         foreach (range(1, 3) as $family) {
             $this->people->family($project, $type);
         }
+
+        $people = $project->members()->whereKeyNot($admin->id)->get();
+        $this->topics($project, [
+            ['Presentémonos', $admin, 'Para irnos conociendo: ¿quiénes son y qué los trajo a la cooperativa?', 6, [
+                [$people[0], 'Somos una familia de cuatro, buscamos dejar de alquilar y construir algo entre todos.'],
+            ], true, false],
+        ]);
+        $this->community($project, 5, [
+            [$admin, '¡Bienvenidos al grupo! Cualquier duda, por acá.'],
+            [$people[0], '¡Gracias! Encantados de sumarnos.'],
+        ]);
     }
 
     /**
@@ -365,6 +438,20 @@ class DatabaseSeeder extends Seeder
      *
      * @param array<array{0: list<User>, 1: ?string, 2: int, 3: array<array{0: User, 1: string}>}> $chats
      */
+    /**
+     * What people said in the project's Community group, over the day it began and those after
+     *
+     * @param array<array{0: User, 1: string}> $messages
+     */
+    private function community(Project $project, int $daysAgo, array $messages): void
+    {
+        $conversation = Conversation::where('project_id', $project->id)->where('is_community', true)->sole();
+        $when = now()->subDays($daysAgo)->setTime(9, 15);
+        foreach ($messages as $index => [$author, $body]) {
+            $this->at($when->copy()->addHours($index * 7), fn () => $this->chat->send($conversation, $author, $body));
+        }
+    }
+
     private function chats(Project $project, array $chats): void
     {
         foreach ($chats as [$people, $title, $daysAgo, $messages]) {
