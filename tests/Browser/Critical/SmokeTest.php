@@ -52,7 +52,7 @@ it('renders the project admin area', function () {
     $this->as($this->admin);
 
     $pages = [
-        route('manage.overview', $this->project)          => 'Getting to the lottery',
+        route('manage.overview', $this->project)          => 'Invitations',
         route('manage.invitations.index', $this->project) => 'Invite someone',
         route('lottery.show', $this->project)             => 'Readiness',
         route('manage.settings.edit', $this->project)     => 'Delete the project',

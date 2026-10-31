@@ -127,13 +127,14 @@ it('reaches the chat from its button at the corner, and sets groups apart with C
         ->assertNoSmoke();
 });
 
-it('keeps the chat\'s button at the bottom right corner', function () {
+it('keeps the chat\'s button at the bottom right corner of the frame', function () {
     $project = aProject();
     $this->as(aMemberOf(aFamily($project, aUnitType($project))));
 
     $page = visit(route('projects.show', $project))->assertPresent('.chat-launcher');
 
-    expect($page->script('() => innerWidth - document.querySelector(".chat-launcher").getBoundingClientRect().right'))->toBeLessThan(40);
+    // Of the page's frame, on a screen wider than it
+    expect($page->script('() => document.querySelector(".shell-main").getBoundingClientRect().right - document.querySelector(".chat-launcher").getBoundingClientRect().right'))->toBeLessThan(40);
 });
 
 it('lets a superadmin block an account from the console', function () {

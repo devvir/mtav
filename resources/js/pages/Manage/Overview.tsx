@@ -103,11 +103,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
         tour="manage.setup"
         title={_('Settings')}
         description={project.name}
-        actions={
-          isSetUp(checklist) ? null : (
-            <ChecklistCorner setup={checklist} opened={!Object.values(checklist).some(Boolean)} />
-          )
-        }
+        actions={isSetUp(checklist) ? null : <ChecklistCorner setup={checklist} />}
         help={
           <InfoTip title={_('Setting up the project')} tour="manage.setup">
             {_(

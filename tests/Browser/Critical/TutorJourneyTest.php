@@ -33,7 +33,7 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->fill('name', 'H-18octubre')
         ->fill('description', 'Three homes, three families')
         ->click('Start the project')
-        ->assertSee('Getting to the lottery');
+        ->assertPresent('.note-mini');
     $project = Project::firstWhere('name', 'H-18octubre');
 
     visit(route('manage.invitations.index', $project))

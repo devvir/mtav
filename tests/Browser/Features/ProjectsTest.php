@@ -148,7 +148,7 @@ it('suggests the federations for a project\'s organization, and takes any other'
         ->fill('name', 'Cooperativa Las Acacias')
         ->fill('description', 'Forty dwellings')
         ->click('Start the project')
-        ->assertSee('Getting to the lottery');
+        ->assertPresent('.note-mini');
 
     expect(App\Models\Project::sole()->organization)->toBe('Cooperativas del Este');
 });

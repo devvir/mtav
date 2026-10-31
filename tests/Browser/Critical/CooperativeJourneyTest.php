@@ -39,7 +39,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('name', 'Cooperativa Las Acacias')
         ->fill('description', 'Two dwellings, two families')
         ->click('Start the project')
-        ->assertSee('Getting to the lottery')
+        ->assertPresent('.note-mini')
         ->assertNoSmoke();
 
     $project = Project::firstWhere('name', 'Cooperativa Las Acacias');

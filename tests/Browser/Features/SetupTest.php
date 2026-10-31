@@ -147,7 +147,7 @@ it('guides to unit types before families', function () {
 
 it('walks the admin from an empty project to the lottery', function () {
     visit(route('manage.overview', $this->project))
-        ->assertSee('Getting to the lottery')
+        ->click('.note-mini')
         ->click('Add the unit types')
         ->assertPresent('[role="dialog"] [name="name"]');
 });
@@ -187,7 +187,7 @@ it('says nothing about room in an unlimited project', function () {
     $this->as(anAdminOf($project));
 
     visit(route('manage.overview', $project))
-        ->assertSee('Getting to the lottery')
+        ->assertPresent('.note-mini')
         ->assertDontSee('Unlimited')
         ->assertNotPresent('button[aria-expanded]:has-text("Limited")');
 });
