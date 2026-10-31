@@ -67,3 +67,13 @@ it('shows the families on the home page as soon as there are any, units or not, 
         ->assertSee('F01')
         ->assertNoSmoke();
 });
+
+it('puts cooperatives\' photos behind a home with nothing shared, and offers to share', function () {
+    $this->as($this->admin);
+
+    visit(route('projects.show', $this->project))
+        ->assertPresent('.shared-empty-photos img')
+        ->assertSeeIn('.shared-empty-note', 'Nothing shared yet')
+        ->assertSeeIn('.shared-empty-note', 'Share something')
+        ->assertNoSmoke();
+});

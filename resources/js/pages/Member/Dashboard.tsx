@@ -61,6 +61,12 @@ interface Props {
   community?: Community;
 }
 
+/**
+ * Cooperatives' own pictures (needing no credit), softened, behind a project with nothing
+ * shared yet: what the panel will look like, rather than an empty box
+ */
+const SHARED_EMPTY_PHOTOS = ['vicman', 'mutual-aid', 'work-day', 'fray-bentos'];
+
 /** Someone who joined with no family: they start theirs, or someone of it adds them */
 function NoFamilyYet({ types }: { types: Ref[] }) {
   const [creating, setCreating] = useState(false);
@@ -256,24 +262,29 @@ export default function Dashboard({
               {media?.length ? (
                 <MediaGrid media={media} />
               ) : (
-                <EmptyState
-                  inset
-                  icon={IconPhoto}
-                  title={_('Nothing shared yet')}
-                  action={
-                    project.can.upload ? (
-                      <Button
-                        component={Link}
-                        href={route('media.index', { share: 1 })}
-                        variant="light"
-                      >
+                <div className="shared-empty">
+                  <div className="shared-empty-photos" aria-hidden>
+                    {SHARED_EMPTY_PHOTOS.map((photo) => (
+                      <img
+                        key={photo}
+                        src={`/images/welcome/${photo}.webp`}
+                        alt=""
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                  <div className="shared-empty-note">
+                    <p className="ds-empty-title">{_('Nothing shared yet')}</p>
+                    <p className="ds-caption ds-empty-text">
+                      {_('Photos of the works, plans and documents, for everyone in the project.')}
+                    </p>
+                    {project.can.upload ? (
+                      <Button component={Link} href={route('media.index', { share: 1 })}>
                         {_('Share something')}
                       </Button>
-                    ) : null
-                  }
-                >
-                  {_('Photos of the works, plans and documents, for everyone in the project.')}
-                </EmptyState>
+                    ) : null}
+                  </div>
+                </div>
               )}
             </Deferred>
           </FoldablePanel>
