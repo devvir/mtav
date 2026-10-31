@@ -13,7 +13,7 @@ class ModelGenerator
      * Generate Phase 1 model: Maximize minimum satisfaction (max-min fairness).
      *
      * Objective: Find the optimal worst-case satisfaction level.
-     * The model minimizes z, which represents the worst satisfaction any family receives.
+     * The model minimizes z, which represents the worst satisfaction any participant receives.
      */
     public function generatePhase1Model(): string
     {
@@ -21,27 +21,27 @@ class ModelGenerator
 # MTAV Lottery - Phase 1: Maximize Minimum Satisfaction
 # Objective: Max-min fairness (minimize worst-case dissatisfaction)
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (units)
+set P;              # Participants
+set I;              # Items
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
 
-var x{c in C, v in V}, binary;  # Assignment decision: 1 if family c gets unit v
+var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
 var z, integer;                  # Worst satisfaction level (to minimize)
 
 minimize resultado: z;
 
-# z must be at least as large as each family's satisfaction
-s.t. z_menorIgual{c in C}:
-    z >= sum{v in V} p[c,v] * x[c,v];
+# z must be at least as large as each participant's satisfaction
+s.t. z_menorIgual{p in P}:
+    z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. oneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa{v in V}:
-    sum{c in C} x[c,v] = 1;
+# Each item assigned to exactly one participant
+s.t. oneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] = 1;
 
 end;
 GMPL;
@@ -62,84 +62,84 @@ GMPL;
 # MTAV Lottery - Phase 2: Maximize Overall Satisfaction
 # Objective: Break ties by maximizing total satisfaction
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (units)
+set P;              # Participants
+set I;              # Items
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
 param S;                  # Minimum satisfaction from Phase 1 (worst-case rank)
 
-var x{c in C, v in V}, binary;  # Assignment decision
+var x{p in P, i in I}, binary;  # Assignment decision
 
 # Minimize sum of ranks = Maximize satisfaction
-minimize resultado: sum{c in C, v in V} p[c,v] * x[c,v];
+minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 
-# No family gets worse than S
-s.t. satisfaccionMinima{c in C}:
-    sum{v in V} p[c,v] * x[c,v] <= S;
+# No participant gets worse than S
+s.t. satisfaccionMinima{p in P}:
+    sum{i in I} r[p,i] * x[p,i] <= S;
 
-# Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. oneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa{v in V}:
-    sum{c in C} x[c,v] = 1;
+# Each item assigned to exactly one participant
+s.t. oneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] = 1;
 
 end;
 GMPL;
     }
 
     /**
-     * Generate unit selection model for surplus units scenario.
+     * Generate item selection model for surplus items scenario.
      *
-     * This model selects exactly M units from a larger set while minimizing worst-case
-     * satisfaction. Used as pre-phase when heuristic pruning leaves more units than needed.
+     * This model selects exactly M items from a larger set while minimizing worst-case
+     * satisfaction. Used as pre-phase when heuristic pruning leaves more items than needed.
      *
      * Variables:
-     * - x[c,v]: Assignment of family c to unit v (binary)
-     * - u[v]: Whether unit v is used (binary)
+     * - x[p,i]: Assignment of participant p to item i (binary)
+     * - u[i]: Whether item i is used (binary)
      * - z: Worst-case satisfaction level (integer)
      *
-     * The model finds which M units to keep such that the assignment has the best
+     * The model finds which M items to keep such that the assignment has the best
      * worst-case outcome (max-min fairness).
      */
-    public function generateUnitSelectionModel(): string
+    public function generateItemSelectionModel(): string
     {
         return <<<'GMPL'
-# MTAV Lottery - Unit Selection: Identify Worst Units
-# Objective: Select M units that minimize worst-case satisfaction
+# MTAV Lottery - Item Selection: Identify Worst Items
+# Objective: Select M items that minimize worst-case satisfaction
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (candidate units)
+set P;              # Participants
+set I;              # Items (candidates)
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
-param M;                  # Number of units to select (= number of families)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
+param M;                  # Number of items to select (= number of participants)
 
-var x{c in C, v in V}, binary;  # Assignment decision: 1 if family c gets unit v
-var u{v in V}, binary;          # Unit selection: 1 if unit v is used
+var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
+var u{i in I}, binary;          # Item selection: 1 if item i is used
 var z, integer;                 # Worst satisfaction level (to minimize)
 
 minimize resultado: z;
 
-# z must be at least as large as each family's satisfaction
-s.t. z_menorIgual{c in C}:
-    z >= sum{v in V} p[c,v] * x[c,v];
+# z must be at least as large as each participant's satisfaction
+s.t. z_menorIgual{p in P}:
+    z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each family gets exactly one unit
-s.t. familyGetsOne{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. participantGetsOne{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to at most one family
-s.t. unitGetsAtMostOne{v in V}:
-    sum{c in C} x[c,v] <= 1;
+# Each item assigned to at most one participant
+s.t. itemGetsAtMostOne{i in I}:
+    sum{p in P} x[p,i] <= 1;
 
-# Link assignment to usage: if family gets unit v, then u[v] = 1
-s.t. unitUsageLink{v in V}:
-    sum{c in C} x[c,v] <= u[v];
+# Link assignment to usage: if participant gets item i, then u[i] = 1
+s.t. itemUsageLink{i in I}:
+    sum{p in P} x[p,i] <= u[i];
 
-# Select exactly M units
-s.t. exactlyMUnitsUsed:
-    sum{v in V} u[v] = M;
+# Select exactly M items
+s.t. exactlyMItemsUsed:
+    sum{i in I} u[i] = M;
 
 end;
 GMPL;

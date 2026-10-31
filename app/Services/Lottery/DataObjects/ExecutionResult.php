@@ -8,8 +8,8 @@ use InvalidArgumentException;
 /**
  * Represents the result of a lottery execution phase.
  *
- * @property array<int, int> $picks All assignments: family_id => unit_id
- * @property array{families: array<int>, units: array<int>} $orphans Remaining unassigned IDs
+ * @property array<int, int> $picks All assignments: participant_id => item_id
+ * @property array{participants: array<int>, items: array<int>} $orphans Remaining unassigned IDs
  * @property Carbon $created_at Execution timestamp
  */
 class ExecutionResult
@@ -33,12 +33,12 @@ class ExecutionResult
      */
     protected function validatePicks(array $picks): array
     {
-        foreach ($picks as $familyId => $unitId) {
-            if (! is_numeric($familyId) || ! is_numeric($unitId)) {
+        foreach ($picks as $participantId => $itemId) {
+            if (! is_numeric($participantId) || ! is_numeric($itemId)) {
                 throw new InvalidArgumentException("ExecutionResult: picks must be array<int, int>.");
             }
 
-            $sanitized[(int) $familyId] = (int) $unitId;
+            $sanitized[(int) $participantId] = (int) $itemId;
         }
 
         return $sanitized ?? [];
@@ -51,16 +51,16 @@ class ExecutionResult
      */
     protected function validateOrphans(array $orphans): array
     {
-        $orphans['families'] ??= [];
-        $orphans['units'] ??= [];
+        $orphans['participants'] ??= [];
+        $orphans['items'] ??= [];
 
-        if (! is_array($orphans['families']) || ! is_array($orphans['units'])) {
-            throw new InvalidArgumentException("ExecutionResult: orphans.families and orphans.units must be arrays.");
+        if (! is_array($orphans['participants']) || ! is_array($orphans['items'])) {
+            throw new InvalidArgumentException("ExecutionResult: orphans.participants and orphans.items must be arrays.");
         }
 
         return [
-            'families' => $this->sanitizeIntArray($orphans['families'], 'orphans.families'),
-            'units'    => $this->sanitizeIntArray($orphans['units'], 'orphans.units'),
+            'participants' => $this->sanitizeIntArray($orphans['participants'], 'orphans.participants'),
+            'items'        => $this->sanitizeIntArray($orphans['items'], 'orphans.items'),
         ];
     }
 

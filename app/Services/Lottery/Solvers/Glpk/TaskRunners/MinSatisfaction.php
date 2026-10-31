@@ -47,7 +47,7 @@ class MinSatisfaction extends TaskRunner
         $startTime = microtime(true);
 
         $lo = 1;
-        $hi = count($spec->units);
+        $hi = count($spec->items);
 
         while ($lo <= $hi) {
             $iterations++;

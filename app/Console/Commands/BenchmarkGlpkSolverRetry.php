@@ -218,16 +218,15 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
             return null;
         }
 
-        // Accept 'preferences' as primary, 'families' for backwards compatibility
-        $preferences = $data['preferences'] ?? $data['families'] ?? null;
-        $units = $data['units'] ?? null;
+        $preferences = $data['preferences'] ?? null;
+        $items = $data['items'] ?? null;
 
-        if ($preferences === null || $units === null) {
-            $this->warn("Missing units or preferences in decoded data");
+        if ($preferences === null || $items === null) {
+            $this->warn("Missing items or preferences in decoded data");
             $this->warn("Available keys: " . implode(', ', array_keys($data)));
             return null;
         }
 
-        return new LotterySpec($preferences, $units);
+        return new LotterySpec($preferences, $items);
     }
 }

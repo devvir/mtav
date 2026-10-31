@@ -3,7 +3,7 @@
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
-use App\Services\Lottery\Solvers\Glpk\TaskRunners\UnitDistribution;
+use App\Services\Lottery\Solvers\Glpk\TaskRunners\ItemDistribution;
 
 uses()->group('Unit.Lottery.Glpk', 'slow');
 
@@ -11,25 +11,25 @@ beforeEach(function () {
     config()->set('logging.default', 'null');
 });
 
-describe('UnitDistribution', function () {
+describe('ItemDistribution', function () {
     test('executes with min_satisfaction context and returns valid TaskResult', function () {
-        $families = [
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 30, 10],
             3 => [30, 10, 20],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
         $result = $runner
             ->withContext(['min_satisfaction' => 2])
             ->execute($spec, $timeout);
 
         // Check TaskResult structure
-        expect($result->task)->toBe(Task::UNIT_DISTRIBUTION);
+        expect($result->task)->toBe(Task::ITEM_DISTRIBUTION);
 
         // Check data contains distribution
         expect($result->data)->toHaveKey('distribution');
@@ -38,53 +38,53 @@ describe('UnitDistribution', function () {
         expect($distribution)->toBeArray();
         expect($distribution)->toHaveCount(3);
 
-        // Verify all families got units
+        // Verify all participants got items
         expect(array_keys($distribution))->toEqualCanonicalizing([1, 2, 3]);
-        expect($distribution)->each->toBeIn($units);
+        expect($distribution)->each->toBeIn($items);
 
-        // No duplicate unit assignments
+        // No duplicate item assignments
         expect(array_unique(array_values($distribution)))->toHaveCount(3);
     });
 
     test('throws exception when min_satisfaction context is missing', function () {
-        $families = [1 => [10, 20], 2 => [20, 10]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20], 2 => [20, 10]];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
 
         expect(fn () => $runner->execute($spec, $timeout))
-            ->toThrow(InvalidArgumentException::class, 'UnitDistribution requires min_satisfaction in context');
+            ->toThrow(InvalidArgumentException::class, 'ItemDistribution requires min_satisfaction in context');
     });
 
     test('throws exception when min_satisfaction is null', function () {
-        $families = [1 => [10, 20], 2 => [20, 10]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20], 2 => [20, 10]];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
 
         expect(fn () => $runner->execute($spec, $timeout))
-            ->toThrow(InvalidArgumentException::class, 'UnitDistribution requires min_satisfaction in context');
+            ->toThrow(InvalidArgumentException::class, 'ItemDistribution requires min_satisfaction in context');
     });
 
     test('respects min_satisfaction constraint', function () {
-        // All families want unit 10 first
-        $families = [
+        // All participants want item 10 first
+        $participants = [
             1 => [10, 20, 30],
             2 => [10, 30, 20],
             3 => [10, 20, 30],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
         $result = $runner
             ->withContext(['min_satisfaction' => 2])
             ->execute($spec, $timeout);
@@ -93,23 +93,23 @@ describe('UnitDistribution', function () {
 
         // Calculate worst rank
         $worstRank = 0;
-        foreach ($distribution as $familyId => $unitId) {
-            $rank = array_search($unitId, $families[$familyId]) + 1;
+        foreach ($distribution as $participantId => $itemId) {
+            $rank = array_search($itemId, $participants[$participantId]) + 1;
             $worstRank = max($worstRank, $rank);
         }
 
-        // No family should get worse than rank 2
+        // No participant should get worse than rank 2
         expect($worstRank)->toBeLessThanOrEqual(2);
     });
 
     test('includes proper metadata', function () {
-        $families = [1 => [10, 20], 2 => [20, 10]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20], 2 => [20, 10]];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 5;
 
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
         $result = $runner
             ->withContext(['min_satisfaction' => 1])
             ->execute($spec, $timeout);
@@ -132,16 +132,16 @@ describe('UnitDistribution', function () {
     });
 
     test('works with different min_satisfaction values', function () {
-        $families = [
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 30, 10],
             3 => [30, 10, 20],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
-        $runner = app(UnitDistribution::class);
+        $runner = app(ItemDistribution::class);
 
         // Test with S=1 (strict)
         $result1 = $runner

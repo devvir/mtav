@@ -8,8 +8,8 @@ enum Task: string
      * Atomic tasks
      */
     case MIN_SATISFACTION = 'min_satisfaction';
-    case UNIT_DISTRIBUTION = 'unit_distribution';
-    case WORST_UNITS_PRUNING = 'worst_units_pruning';
+    case ITEM_DISTRIBUTION = 'item_distribution';
+    case WORST_ITEMS_PRUNING = 'worst_items_pruning';
 
     /**
      * Composite tasks

@@ -14,7 +14,7 @@ class GlpkDistribution extends TaskRunner
      * Execute two-phase GLPK distribution (phase1 glpk + phase2 glpk).
      *
      * Phase 1: Find minimum satisfaction using GLPK optimization
-     * Phase 2: Distribute units using GLPK with S constraint from Phase 1
+     * Phase 2: Distribute items using GLPK with S constraint from Phase 1
      */
     public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
@@ -37,12 +37,12 @@ class GlpkDistribution extends TaskRunner
     }
 
     /**
-     * Execute Phase 2: Distribute units with minimum satisfaction constraint.
+     * Execute Phase 2: Distribute items with minimum satisfaction constraint.
      */
     protected function executePhase2(LotterySpec $spec, float $timeout, int $minSatisfaction): TaskResult
     {
         $runner = app(TaskRunnerFactory::class)
-            ->make(Task::UNIT_DISTRIBUTION)
+            ->make(Task::ITEM_DISTRIBUTION)
             ->withContext([ 'min_satisfaction' => $minSatisfaction ]);
 
         return $runner->execute($spec, $timeout);

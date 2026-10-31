@@ -33,21 +33,26 @@ Once the lottery's date has come, an admin runs it (`LotteryService::run`):
 
 ## Solving
 
-`LotteryOrchestrator` solves each unit type on its own, then one last round for whatever
-was left over (families of types with too few units, units of types with too many),
-where every leftover unit is equally good for every leftover family.
+The engine (`app/Services/Lottery`) knows two generic sets: **participants**, who receive,
+and **items**, what is distributed. In MTAV the participants are families and the items
+units; each unit type is a **group**. `LotteryService` and `RunRecord` translate between
+the two.
+
+`LotteryOrchestrator` solves each group on its own, then one last round for whatever was
+left over (participants of groups with too few items, items of groups with too many),
+where every leftover item is equally good for every leftover participant.
 
 The solver is GLPK (`Solvers/GlpkSolver`, `Solvers/Glpk/`), run as `glpsol` on models
 written for each solve (`ModelGenerator`, `DataGenerator`):
 
-- **Phase 1** makes the worst-off family as well off as possible: the best rank the
-  worst-placed family can get. Large instances use a binary search over that rank
+- **Phase 1** makes the worst-off participant as well off as possible: the best rank the
+  worst-placed participant can get. Large instances use a binary search over that rank
   (`HybridDistribution`), which finds the same answer as solving it directly.
 - **Phase 2** keeps that bound and makes everyone as satisfied as possible together.
 - **Ties** (several equally good assignments) are broken by a tiny random term on each
   rank, so the lottery is a lottery only where the rankings leave it open.
-- **Uneven counts**: with more units than families, the least wanted units are set
-  aside first (`WorstUnitsPruning`); with more families, placeholder units balance it.
+- **Uneven counts**: with more items than participants, the least wanted items are set
+  aside first (`WorstItemsPruning`); with more participants, placeholder items balance it.
 
 The solvers work on plain data (`LotteryManifest`, `LotterySpec`), never on models.
 `config/lottery.php` names the solver (`glpk`; `random` and `test` exist for development)

@@ -3,7 +3,7 @@
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
-use App\Services\Lottery\Solvers\Glpk\TaskRunners\UnitDistribution;
+use App\Services\Lottery\Solvers\Glpk\TaskRunners\ItemDistribution;
 use App\Services\Lottery\Solvers\GlpkSolver;
 
 uses()->group('Stress.Lottery.Glpk');
@@ -30,17 +30,17 @@ describe('GLPK Solver Stress Tests', function () {
 
         test('with random preferences', function (int $size) {
             // Generate random preferences (pure arrays, no database)
-            $families = [];
-            $units = range(1, $size);
+            $participants = [];
+            $items = range(1, $size);
 
-            foreach (range(1, $size) as $familyId) {
-                $prefs = $units;
+            foreach (range(1, $size) as $participantId) {
+                $prefs = $items;
                 shuffle($prefs);
-                $families[$familyId] = $prefs;
+                $participants[$participantId] = $prefs;
             }
 
-            $spec = new LotterySpec($families, $units);
-            $manifest = mockManifest(1, [1 => ['families' => $families, 'units' => $units]]);
+            $spec = new LotterySpec($participants, $items);
+            $manifest = mockManifest(1, [1 => ['participants' => $participants, 'items' => $items]]);
 
             // Test GLPK solver directly
             $start = microtime(true);
@@ -48,27 +48,27 @@ describe('GLPK Solver Stress Tests', function () {
             $elapsed = microtime(true) - $start;
 
             expect($elapsed)->toBeLessThan(300); // Must complete within 5 minutes
-            expect($result->picks)->toHaveCount($size); // All units distributed
-            expect(array_keys($result->picks))->toEqualCanonicalizing(range(1, $size)); // All families got a unit
+            expect($result->picks)->toHaveCount($size); // All items distributed
+            expect(array_keys($result->picks))->toEqualCanonicalizing(range(1, $size)); // All participants got an item
         })->with('safe zone stress cases');
     });
 
     describe('Model correctness - proper INFEASIBLE handling', function () {
         test('Phase 2 with impossibly strict S returns INFEASIBLE (not OPTIMAL with zeros)', function () {
-            // 2 families, 2 units, both wanting unit 10 first: S=1 (everyone gets their
+            // 2 participants, 2 items, both wanting item 10 first: S=1 (everyone gets their
             // first choice) cannot be met
-            $families = [
+            $participants = [
                 1 => [10, 20],
                 2 => [10, 20],
             ];
-            $units = [10, 20];
+            $items = [10, 20];
 
-            $spec = new LotterySpec($families, $units);
-            $manifest = mockManifest(1, [1 => ['families' => $families, 'units' => $units]]);
+            $spec = new LotterySpec($participants, $items);
+            $manifest = mockManifest(1, [1 => ['participants' => $participants, 'items' => $items]]);
 
             // With = 1 constraints, GLPK should return INFEASIBLE
             // (not OPTIMAL with all zeros like with split >= 1, <= 1 constraints)
-            $phase2 = app(UnitDistribution::class);
+            $phase2 = app(ItemDistribution::class);
 
             expect(fn () => $phase2->withContext(['min_satisfaction' => 1])->execute($spec, 300))
                 ->toThrow(GlpkInfeasibleException::class);

@@ -15,7 +15,7 @@ use App\Services\Lottery\Solvers\Glpk\SpecBalancer;
  *
  * Implements max-min fairness optimization in two phases:
  * - Phase 1: Find minimum satisfaction level S (maximize worst-case satisfaction)
- * - Phase 2: Maximize overall satisfaction given constraint that no family gets worse than S
+ * - Phase 2: Maximize overall satisfaction given constraint that no participant gets worse than S
  */
 class GlpkSolver implements SolverInterface
 {
@@ -33,69 +33,69 @@ class GlpkSolver implements SolverInterface
      */
     public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
-        $familyCount = count($spec->families);
-        $unitCount = count($spec->units);
+        $participantCount = count($spec->participants);
+        $itemCount = count($spec->items);
 
         return match (true) {
-            $familyCount === $unitCount => $this->executeBalanced($manifest, $spec),
-            $familyCount < $unitCount   => $this->executeMoreUnits($manifest, $spec),
-            $familyCount > $unitCount   => $this->executeMoreFamilies($manifest, $spec),
+            $participantCount === $itemCount => $this->executeBalanced($manifest, $spec),
+            $participantCount < $itemCount   => $this->executeMoreItems($manifest, $spec),
+            $participantCount > $itemCount   => $this->executeMoreParticipants($manifest, $spec),
         };
     }
 
     /**
-     * Execute balanced scenario (equal families and units).
+     * Execute balanced scenario (equal participants and items).
      */
     protected function executeBalanced(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
-        $picks = $this->glpk->distributeUnits($manifest, $spec);
+        $picks = $this->glpk->distributeItems($manifest, $spec);
 
         return new ExecutionResult($picks, [
-            'families' => [],
-            'units'    => [],
+            'participants' => [],
+            'items'        => [],
         ]);
     }
 
     /**
-     * Execute scenario with more units than families.
+     * Execute scenario with more items than participants.
      *
-     *  1. Prune worst units until we're left with as many units as families
-     *  2. Distribute the best units as in the originally balanced scenario
+     *  1. Prune worst items until we're left with as many items as participants
+     *  2. Distribute the best items as in the originally balanced scenario
      */
-    protected function executeMoreUnits(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
+    protected function executeMoreItems(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
-        $balancedSpec = $this->balancer->pruneWorstUnits($manifest, $spec);
-        $picks = $this->glpk->distributeUnits($manifest, $balancedSpec);
+        $balancedSpec = $this->balancer->pruneWorstItems($manifest, $spec);
+        $picks = $this->glpk->distributeItems($manifest, $balancedSpec);
 
-        $orphans = array_values(array_diff($spec->units, $balancedSpec->units));
+        $orphans = array_values(array_diff($spec->items, $balancedSpec->items));
 
         return new ExecutionResult($picks, [
-            'families' => [],
-            'units'    => $orphans,
+            'participants' => [],
+            'items'        => $orphans,
         ]);
     }
 
     /**
-     * Execute scenario with more families than units.
+     * Execute scenario with more participants than items.
      *
-     * Strategy: Add fake units to balance the problem, then filter them out.
+     * Strategy: Add fake items to balance the problem, then filter them out.
      */
-    protected function executeMoreFamilies(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
+    protected function executeMoreParticipants(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
-        $balancedSpec = $this->balancer->addMockUnits($spec);
-        $picks = $this->glpk->distributeUnits($manifest, $balancedSpec);
+        $balancedSpec = $this->balancer->addMockItems($spec);
+        $picks = $this->glpk->distributeItems($manifest, $balancedSpec);
 
-        foreach ($picks as $familyId => $unitId) {
-            if ($this->balancer->isMockUnit($unitId)) {
-                $orphans[] = $familyId;
+        foreach ($picks as $participantId => $itemId) {
+            if ($this->balancer->isMockItem($itemId)) {
+                $orphans[] = $participantId;
             } else {
-                $realPicks[$familyId] = $unitId;
+                $realPicks[$participantId] = $itemId;
             }
         }
 
         return new ExecutionResult($realPicks ?? [], [
-            'families' => $orphans ?? [],
-            'units'    => [],
+            'participants' => $orphans ?? [],
+            'items'        => [],
         ]);
     }
 }

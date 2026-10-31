@@ -5,13 +5,13 @@ namespace App\Services\Lottery\DataObjects;
 use JsonSerializable;
 
 /**
- * Everything a lottery run decides from, as plain data (no models): for each unit
- * type, every family's complete ranking and the units available.
+ * Everything a lottery run decides from, as plain data (no models): for each group,
+ * every participant's complete ranking and the items available.
  *
  * $data = [
- *     <unit_type_id> => [
- *         'families' => [<family_id> => [<unit_id>, …], …],  // most wanted first
- *         'units'    => [<unit_id>, …],
+ *     <group_id> => [
+ *         'participants' => [<participant_id> => [<item_id>, …], …],  // most wanted first
+ *         'items'        => [<item_id>, …],
  *     ],
  *     …
  * ]
@@ -23,7 +23,7 @@ class LotteryManifest implements JsonSerializable
      */
     public function __construct(
         public readonly string $uuid,
-        public readonly int $projectId,
+        public readonly ?int $projectId,
         public readonly int $runId,
         public readonly array $data,
         public readonly array $options = [],

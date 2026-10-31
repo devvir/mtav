@@ -10,24 +10,24 @@ beforeEach(function () {
 });
 
 describe('Glpk Orchestrator', function () {
-    test('distributeUnits with large spec calls HybridDistribution', function () {
+    test('distributeItems with large spec calls HybridDistribution', function () {
         config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 10);
         config()->set('lottery.solvers.glpk.config.timeout', 10);
 
         // Mock Glpk to capture auditTask calls
         $glpkMock = mockGlpkWithAuditCapture();
 
-        // Large spec (11 families >= 10 threshold)
-        $units = range(1, 11);
+        // Large spec (11 participants >= 10 threshold)
+        $items = range(1, 11);
 
-        for ($i = 1; $i <= count($units); $i++) {
-            $families[$i] = [...$units];
-            shuffle($families[$i]);
+        for ($i = 1; $i <= count($items); $i++) {
+            $participants[$i] = [...$items];
+            shuffle($participants[$i]);
         }
 
-        $spec = new LotterySpec(families: $families, units: $units);
+        $spec = new LotterySpec(participants: $participants, items: $items);
 
-        $result = $glpkMock->distributeUnits(mockManifest(), $spec);
+        $result = $glpkMock->distributeItems(mockManifest(), $spec);
 
         // Should have called auditTask once
         expect(count($glpkMock->auditCalls))->toBe(1);
@@ -39,10 +39,10 @@ describe('Glpk Orchestrator', function () {
         // Should have distribution
         expect($result)->toBeArray();
         expect($result)->not->toBeEmpty();
-        expect($result)->toHaveCount(count($units));
+        expect($result)->toHaveCount(count($items));
     });
 
-    test('distributeUnits with small spec calls GlpkDistribution', function () {
+    test('distributeItems with small spec calls GlpkDistribution', function () {
         config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 25);
         config()->set('lottery.solvers.glpk.config.timeout', 10);
         config()->set('lottery.solvers.glpk.config.glpk_phase1_timeout', 5);
@@ -50,13 +50,13 @@ describe('Glpk Orchestrator', function () {
         // Mock Glpk to capture auditTask calls
         $glpkMock = mockGlpkWithAuditCapture();
 
-        // Small spec (3 families < 25 threshold)
+        // Small spec (3 participants < 25 threshold)
         $spec = new LotterySpec(
-            families: [1 => [10, 20], 2 => [20, 10], 3 => [10, 20]],
-            units: [10, 20, 30]
+            participants: [1 => [10, 20], 2 => [20, 10], 3 => [10, 20]],
+            items: [10, 20, 30]
         );
 
-        $result = $glpkMock->distributeUnits(mockManifest(), $spec);
+        $result = $glpkMock->distributeItems(mockManifest(), $spec);
 
         // Should have called auditTask once
         expect(count($glpkMock->auditCalls))->toBe(1);
@@ -74,7 +74,7 @@ describe('Glpk Orchestrator', function () {
         expect($result)->toHaveCount(3);
     });
 
-    test('distributeUnits falls back to HybridDistribution on timeout', function () {
+    test('distributeItems falls back to HybridDistribution on timeout', function () {
         config()->set('lottery.solvers.glpk.config.glpk_phase1_max_size', 25);
         config()->set('lottery.solvers.glpk.config.timeout', 10);
         config()->set('lottery.solvers.glpk.config.glpk_phase1_timeout', 0.001); // Force timeout
@@ -84,11 +84,11 @@ describe('Glpk Orchestrator', function () {
 
         // Small spec (would normally use GLPK, but will timeout)
         $spec = new LotterySpec(
-            families: [1 => [10, 20], 2 => [20, 10]],
-            units: [10, 20]
+            participants: [1 => [10, 20], 2 => [20, 10]],
+            items: [10, 20]
         );
 
-        $result = $glpkMock->distributeUnits(mockManifest(), $spec);
+        $result = $glpkMock->distributeItems(mockManifest(), $spec);
 
         // Should have called auditTask once (only for successful fallback)
         expect(count($glpkMock->auditCalls))->toBe(1);
@@ -106,28 +106,28 @@ describe('Glpk Orchestrator', function () {
         expect($result)->toHaveCount(2);
     });
 
-    test('identifyWorstUnits calls WorstUnitsPruning runner', function () {
+    test('identifyWorstItems calls WorstItemsPruning runner', function () {
         config()->set('lottery.solvers.glpk.config.timeout', 10);
 
         // Mock Glpk to capture auditTask calls
         $glpkMock = mockGlpkWithAuditCapture();
 
-        // Spec with more units than families
+        // Spec with more items than participants
         $spec = new LotterySpec(
-            families: [1 => [10, 20, 30, 40, 50], 2 => [20, 30, 10, 40, 50]],
-            units: [10, 20, 30, 40, 50]
+            participants: [1 => [10, 20, 30, 40, 50], 2 => [20, 30, 10, 40, 50]],
+            items: [10, 20, 30, 40, 50]
         );
 
-        $result = $glpkMock->identifyWorstUnits(mockManifest(), $spec);
+        $result = $glpkMock->identifyWorstItems(mockManifest(), $spec);
 
         // Should have called auditTask once
         expect(count($glpkMock->auditCalls))->toBe(1);
 
-        // Should have used WorstUnitsPruning
+        // Should have used WorstItemsPruning
         $taskResult = $glpkMock->auditCalls[0];
-        expect($taskResult->task->value)->toBe('worst_units_pruning');
+        expect($taskResult->task->value)->toBe('worst_items_pruning');
 
-        // Should have worst_units array
+        // Should have worst_items array
         expect($result)->toBeArray();
     });
 });

@@ -6,41 +6,41 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 
-class WorstUnitsPruning extends TaskRunner
+class WorstItemsPruning extends TaskRunner
 {
-    protected Task $task = Task::WORST_UNITS_PRUNING;
+    protected Task $task = Task::WORST_ITEMS_PRUNING;
 
     /**
-     * Execute worst units pruning task.
+     * Execute worst items pruning task.
      *
-     * Identifies which units should be discarded to balance the lottery.
+     * Identifies which items should be discarded to balance the lottery.
      */
     public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         $startTime = microtime(true);
 
         $modFile = $this->files->write(
-            'unit_selection_',
+            'item_selection_',
             '.mod',
-            $this->modelGenerator->generateUnitSelectionModel()
+            $this->modelGenerator->generateItemSelectionModel()
         );
 
         $datFile = $this->files->write(
-            'data_units_',
+            'data_items_',
             '.dat',
-            $this->dataGenerator->generateDataWithUnitCount($spec, count($spec->families))
+            $this->dataGenerator->generateDataWithItemCount($spec, count($spec->participants))
         );
 
-        $worstUnits = $this->runGlpk(
+        $worstItems = $this->runGlpk(
             $timeout,
             $modFile,
             $datFile,
-            $this->solutionParser->extractUnusedUnits(...)
+            $this->solutionParser->extractUnusedItems(...)
         );
 
         return $this->taskResult(
             startTime: $startTime,
-            data: ['worst_units' => $worstUnits],
+            data: ['worst_items' => $worstItems],
         );
     }
 }

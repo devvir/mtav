@@ -6,11 +6,11 @@ use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
- * Balances lottery specifications to handle unequal family/unit counts.
+ * Balances lottery specifications to handle unequal participant/item counts.
  *
  * Handles two scenarios:
- * - More units than families: Prunes worst units to achieve balance
- * - More families than units: Adds mock units to achieve balance
+ * - More items than participants: Prunes worst items to achieve balance
+ * - More participants than items: Adds mock items to achieve balance
  */
 class SpecBalancer
 {
@@ -20,114 +20,114 @@ class SpecBalancer
     }
 
     /**
-     * Remove worst units to balance spec (more units than families).
+     * Remove worst items to balance spec (more items than participants).
      *
      * Strategy: two-step process to maintain max-min fairness:
-     *  1. Heuristic pruning: Find minimal preference depth where enough units exist
-     *  2.a. If exact match (#picked-units = #families), we're done
-     *  2.b. Otherwise, use GLPK to prune worst units among the remaining candidates
+     *  1. Heuristic pruning: Find minimal preference depth where enough items exist
+     *  2.a. If exact match (#picked-items = #participants), we're done
+     *  2.b. Otherwise, use GLPK to prune worst items among the remaining candidates
      *
-     * @return LotterySpec Balanced spec with same number of units as families
+     * @return LotterySpec Balanced spec with same number of items as participants
      */
-    public function pruneWorstUnits(LotteryManifest $manifest, LotterySpec $spec): LotterySpec
+    public function pruneWorstItems(LotteryManifest $manifest, LotterySpec $spec): LotterySpec
     {
-        // Step 1: Heuristic pruning - find minimal set of candidate units
-        $unitIds = $this->collectTopPreferredUnits($spec);
+        // Step 1: Heuristic pruning - find minimal set of candidate items
+        $itemIds = $this->collectTopPreferredItems($spec);
 
-        // Step 2: If there are still more units than preferences, use GLPK to prune further
-        if (count($unitIds) > count($spec->families)) {
-            $candidateSpec = $spec->filter(unitIds: $unitIds);
-            $worstRemainingUnits = $this->glpk->identifyWorstUnits($manifest, $candidateSpec);
+        // Step 2: If there are still more items than preferences, use GLPK to prune further
+        if (count($itemIds) > count($spec->participants)) {
+            $candidateSpec = $spec->filter(itemIds: $itemIds);
+            $worstRemainingItems = $this->glpk->identifyWorstItems($manifest, $candidateSpec);
 
-            $unitIds = array_diff($unitIds, $worstRemainingUnits);
+            $itemIds = array_diff($itemIds, $worstRemainingItems);
         }
 
-        return $spec->filter(unitIds: $unitIds);
+        return $spec->filter(itemIds: $itemIds);
     }
 
     /**
-     * Add mock units to balance spec (more families than units).
+     * Add mock items to balance spec (more participants than items).
      *
-     * Each family will rank these fake units as 999 (worst possible).
-     * This lets GLPK decide which families should lose fairly.
+     * Each participant will rank these fake items as 999 (worst possible).
+     * This lets GLPK decide which participants should lose fairly.
      *
-     * @return LotterySpec Balanced spec with same number of units as families
+     * @return LotterySpec Balanced spec with same number of items as participants
      */
-    public function addMockUnits(LotterySpec $spec): LotterySpec
+    public function addMockItems(LotterySpec $spec): LotterySpec
     {
-        $mockUnitsNeeded = count($spec->families) - count($spec->units);
+        $mockItemsNeeded = count($spec->participants) - count($spec->items);
 
-        $mockUnits = [];
-        for ($i = 1; $i <= $mockUnitsNeeded; $i++) {
-            $mockUnits[] = 'MOCK_' . $i;
+        $mockItems = [];
+        for ($i = 1; $i <= $mockItemsNeeded; $i++) {
+            $mockItems[] = 'MOCK_' . $i;
         }
 
-        $paddedUnits = array_merge($spec->units, $mockUnits);
-        $paddedFamilies = $this->appendMockUnitsToPreferences($spec->families, $mockUnits);
+        $paddedItems = array_merge($spec->items, $mockItems);
+        $paddedParticipants = $this->appendMockItemsToPreferences($spec->participants, $mockItems);
 
-        return new LotterySpec($paddedFamilies, $paddedUnits);
+        return new LotterySpec($paddedParticipants, $paddedItems);
     }
 
     /**
-     * Check if a unit ID represents a mock unit (id = MOCK_*).
+     * Check if an item ID represents a mock item (id = MOCK_*).
      */
-    public function isMockUnit(string|int $unitId): bool
+    public function isMockItem(string|int $itemId): bool
     {
-        return is_string($unitId) && str_starts_with($unitId, 'MOCK_');
+        return is_string($itemId) && str_starts_with($itemId, 'MOCK_');
     }
 
     /**
-     * Collect units that appear in families' top preferences.
+     * Collect items that appear in participants' top preferences.
      *
-     * Algorithm: Start with top-1 choices, collect unique units. If fewer than M families,
-     * expand to top-2, then top-3, etc. Stop when we have at least M unique units.
+     * Algorithm: Start with top-1 choices, collect unique items. If fewer than M participants,
+     * expand to top-2, then top-3, etc. Stop when we have at least M unique items.
      *
-     * Result: Returns Px units where M ≤ Px ≤ 2M-1
+     * Result: Returns Px items where M ≤ Px ≤ 2M-1
      *
-     * @return array<int> Array of unit IDs
+     * @return array<int> Array of item IDs
      */
-    protected function collectTopPreferredUnits(LotterySpec $spec): array
+    protected function collectTopPreferredItems(LotterySpec $spec): array
     {
-        $unitsCount = count($spec->units);
-        $familyCount = count($spec->families);
+        $itemsCount = count($spec->items);
+        $participantCount = count($spec->participants);
 
         $depth = 0;
-        $uniqueUnits = [];
+        $uniqueItems = [];
 
-        while (count($uniqueUnits) < $familyCount && $depth < $unitsCount) {
-            // Collect preferences of level $depth from each family
-            foreach ($spec->families as $preferences) {
-                $uniqueUnits[$preferences[$depth]] = true;
+        while (count($uniqueItems) < $participantCount && $depth < $itemsCount) {
+            // Collect preferences of level $depth from each participant
+            foreach ($spec->participants as $preferences) {
+                $uniqueItems[$preferences[$depth]] = true;
             }
 
             $depth++;
         }
 
-        $result = array_keys($uniqueUnits);
+        $result = array_keys($uniqueItems);
         sort($result);
 
         return $result;
     }
 
     /**
-     * Add mock units to every family's preferences (will be given rank 999, i.e. very bad).
+     * Add mock items to every participant's preferences (will be given rank 999, i.e. very bad).
      *
-     * @param array<int, array<int, int>> $families Original family preferences
-     * @param array<string> $mockUnits Array of mock unit IDs
-     * @return array<int, array<int, int|string>> Updated preferences with mock units appended
+     * @param array<int, array<int, int>> $participants Original participant preferences
+     * @param array<string> $mockItems Array of mock item IDs
+     * @return array<int, array<int, int|string>> Updated preferences with mock items appended
      */
-    protected function appendMockUnitsToPreferences(array $families, array $mockUnits): array
+    protected function appendMockItemsToPreferences(array $participants, array $mockItems): array
     {
-        $paddedFamilies = [];
+        $paddedParticipants = [];
 
-        foreach ($families as $familyId => $preferences) {
-            $paddedFamilies[$familyId] = $preferences;
+        foreach ($participants as $participantId => $preferences) {
+            $paddedParticipants[$participantId] = $preferences;
 
-            foreach ($mockUnits as $mockUnitId) {
-                $paddedFamilies[$familyId][] = $mockUnitId;
+            foreach ($mockItems as $mockItemId) {
+                $paddedParticipants[$participantId][] = $mockItemId;
             }
         }
 
-        return $paddedFamilies;
+        return $paddedParticipants;
     }
 }

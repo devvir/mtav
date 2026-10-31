@@ -10,7 +10,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 /**
  * Random solver for lottery assignments.
  *
- * Shuffles families and units, then pairs them, ignoring preferences.
+ * Shuffles participants and items, then pairs them, ignoring preferences.
  * Useful for development and manual testing.
  */
 class RandomSolver implements SolverInterface
@@ -20,22 +20,22 @@ class RandomSolver implements SolverInterface
      */
     public function execute(LotteryManifest $_, LotterySpec $spec): ExecutionResult
     {
-        $families = array_keys($spec->families);
-        $units = $spec->units;
+        $participants = array_keys($spec->participants);
+        $items = $spec->items;
 
-        shuffle($families);
-        shuffle($units);
+        shuffle($participants);
+        shuffle($items);
 
-        $matched = min(count($families), count($units));
+        $matched = min(count($participants), count($items));
 
         return new ExecutionResult(
             picks: array_combine(
-                array_slice($families, 0, $matched),
-                array_slice($units, 0, $matched)
+                array_slice($participants, 0, $matched),
+                array_slice($items, 0, $matched)
             ),
             orphans: [
-                'families' => array_slice($families, $matched),
-                'units'    => array_slice($units, $matched),
+                'participants' => array_slice($participants, $matched),
+                'items'        => array_slice($items, $matched),
             ],
         );
     }

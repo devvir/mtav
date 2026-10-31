@@ -20,7 +20,7 @@ class HybridDistribution extends TaskRunner
     public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         // Sum of step timeouts tends to $timeout * 2 (worst case, highly unlikely).
-        $iterations = (int) ceil(log($spec->familyCount(), 2)) + 1;
+        $iterations = (int) ceil(log($spec->participantCount(), 2)) + 1;
         $stepTimeout = 2 * $timeout / $iterations;
 
         $startTime = microtime(true);
@@ -47,7 +47,7 @@ class HybridDistribution extends TaskRunner
      */
     protected function searchBestDistribution(Generator $generator, LotterySpec $spec, float $timeout): array
     {
-        $distributionRunner = app(TaskRunnerFactory::class)->make(Task::UNIT_DISTRIBUTION);
+        $distributionRunner = app(TaskRunnerFactory::class)->make(Task::ITEM_DISTRIBUTION);
 
         $taskResults = [];
 
@@ -77,7 +77,7 @@ class HybridDistribution extends TaskRunner
     protected function binarySearchGenerator(LotterySpec $spec): Generator
     {
         $lo = 1;
-        $hi = count($spec->units);
+        $hi = count($spec->items);
 
         while ($lo <= $hi) {
             $candidateS = (int) floor(($lo + $hi) / 2);

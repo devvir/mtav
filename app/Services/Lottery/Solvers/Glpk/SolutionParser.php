@@ -40,30 +40,30 @@ class SolutionParser
     /**
      * Extract assignments from Phase 2 solution file.
      *
-     * Parses variable values to find x[c,v] = 1 (family c assigned to unit v).
+     * Parses variable values to find x[p,i] = 1 (participant p assigned to item i).
      *
      * @param  string  $solFile  Path to .sol file
-     * @return array<int, string|int> Array of family_id => unit_id assignments (unit_id can be string for mock units)
+     * @return array<int, string|int> Array of participant_id => item_id assignments (item_id can be string for mock items)
      */
     public function extractAssignments(string $solFile): array
     {
         $content = file_get_contents($solFile);
         $picks = [];
 
-        // Find all x[cN,vM] or x[cN,vMOCK_X] variables with Activity value of 1
-        // Example line: "     1 x[c1,v10]    *              1             0             1"
-        // Example line: "     1 x[c1,vMOCK_1]    *              1             0             1"
+        // Find all x[pN,iM] or x[pN,iMOCK_X] variables with Activity value of 1
+        // Example line: "     1 x[p1,i10]    *              1             0             1"
+        // Example line: "     1 x[p1,iMOCK_1]    *              1             0             1"
         // Format: column number, variable name, *, activity (multiple spaces between)
-        preg_match_all('/x\[c(\d+),v([A-Za-z0-9_]+)\]\s+\*?\s+(\d+(?:\.\d+)?)/i', $content, $matches, PREG_SET_ORDER);
+        preg_match_all('/x\[p(\d+),i([A-Za-z0-9_]+)\]\s+\*?\s+(\d+(?:\.\d+)?)/i', $content, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
-            $familyId = (int) $match[1];
-            $unitId = is_numeric($match[2]) ? (int) $match[2] : $match[2]; // Keep strings as strings, convert numbers to int
+            $participantId = (int) $match[1];
+            $itemId = is_numeric($match[2]) ? (int) $match[2] : $match[2]; // Keep strings as strings, convert numbers to int
             $activity = (float) $match[3];
 
             // Only include assignments where activity is close to 1
             if ($activity >= 0.99) {
-                $picks[$familyId] = $unitId;
+                $picks[$participantId] = $itemId;
             }
         }
 
@@ -100,32 +100,32 @@ class SolutionParser
     }
 
     /**
-     * Extract unused units from unit selection solution file.
+     * Extract unused items from item selection solution file.
      *
-     * Parses variable values to find u[v] = 0 (unit v not selected).
+     * Parses variable values to find u[i] = 0 (item i not selected).
      *
      * @param  string  $solFile  Path to .sol file
-     * @return array<int> Array of unit IDs that were not selected
+     * @return array<int> Array of item IDs that were not selected
      */
-    public function extractUnusedUnits(string $solFile): array
+    public function extractUnusedItems(string $solFile): array
     {
         $content = file_get_contents($solFile);
-        $unusedUnits = [];
+        $unusedItems = [];
 
-        // Find all u[vM] variables with Activity value of 0
-        // Example line: "     1 u[v10]    *              0             0             1"
-        preg_match_all('/u\[v(\d+)\]\s+\*?\s+(\d+(?:\.\d+)?)/i', $content, $matches, PREG_SET_ORDER);
+        // Find all u[iM] variables with Activity value of 0
+        // Example line: "     1 u[i10]    *              0             0             1"
+        preg_match_all('/u\[i(\d+)\]\s+\*?\s+(\d+(?:\.\d+)?)/i', $content, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
-            $unitId = (int) $match[1];
+            $itemId = (int) $match[1];
             $activity = (float) $match[2];
 
-            // Only include units where activity is close to 0
+            // Only include items where activity is close to 0
             if ($activity < 0.01) {
-                $unusedUnits[] = $unitId;
+                $unusedItems[] = $itemId;
             }
         }
 
-        return $unusedUnits;
+        return $unusedItems;
     }
 }

@@ -139,10 +139,10 @@ Status:     OPTIMAL
 
    No. Column name       Activity     Lower bound   Upper bound
 ------ ------------    ------------- ------------- -------------
-     1 x[c1,v10]    *              1             0             1
-     2 x[c1,v20]    *              0             0             1
-     3 x[c2,v10]    *              0             0             1
-     4 x[c2,v20]    *              1             0             1
+     1 x[p1,i10]    *              1             0             1
+     2 x[p1,i20]    *              0             0             1
+     3 x[p2,i10]    *              0             0             1
+     4 x[p2,i20]    *              1             0             1
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -162,12 +162,12 @@ SOL;
 
         test('ignores variables with value 0', function () {
             $solContent = <<<'SOL'
-     1 x[c1,v10]    *              1             0             1
-     2 x[c1,v20]    *              0             0             1
-     3 x[c1,v30]    *              0             0             1
-     4 x[c2,v10]    *              0             0             1
-     5 x[c2,v20]    *              1             0             1
-     6 x[c2,v30]    *              0             0             1
+     1 x[p1,i10]    *              1             0             1
+     2 x[p1,i20]    *              0             0             1
+     3 x[p1,i30]    *              0             0             1
+     4 x[p2,i10]    *              0             0             1
+     5 x[p2,i20]    *              1             0             1
+     6 x[p2,i30]    *              0             0             1
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -183,14 +183,14 @@ SOL;
             }
         });
 
-        test('handles multiple families and units', function () {
+        test('handles multiple participants and items', function () {
             $solContent = <<<'SOL'
-     1 x[c1,v100]    *              1             0             1
-     2 x[c1,v200]    *              0             0             1
-     3 x[c5,v100]    *              0             0             1
-     4 x[c5,v200]    *              1             0             1
-     5 x[c7,v100]    *              0             0             1
-     6 x[c7,v300]    *              1             0             1
+     1 x[p1,i100]    *              1             0             1
+     2 x[p1,i200]    *              0             0             1
+     3 x[p5,i100]    *              0             0             1
+     4 x[p5,i200]    *              1             0             1
+     5 x[p7,i100]    *              0             0             1
+     6 x[p7,i300]    *              1             0             1
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -220,8 +220,8 @@ Status:     OPTIMAL
 
    No. Column name  St   Activity
 ------ ------------ -- -------------
-     1 x[c1,v10]    *              0
-     2 x[c1,v20]    *              0
+     1 x[p1,i10]    *              0
+     2 x[p1,i20]    *              0
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -240,7 +240,7 @@ SOL;
             for ($f = 1; $f <= 10; $f++) {
                 for ($u = 100; $u <= 109; $u++) {
                     $value = ($f + $u) % 11 === 0 ? 1 : 0; // Some pattern for assignments
-                    $lines[] = sprintf('x[c%d,v%d]    *              %d       0       1', $f, $u, $value);
+                    $lines[] = sprintf('x[p%d,i%d]    *              %d       0       1', $f, $u, $value);
                 }
             }
             $solContent = implode("\n", $lines);
@@ -255,14 +255,14 @@ SOL;
                 expect($assignments)->toBeArray();
                 expect($assignments)->not->toBeEmpty();
 
-                // All values should be unit IDs in valid range
-                foreach ($assignments as $familyId => $unitId) {
-                    expect($familyId)->toBeInt();
-                    expect($unitId)->toBeInt();
-                    expect($familyId)->toBeGreaterThanOrEqual(1);
-                    expect($familyId)->toBeLessThanOrEqual(10);
-                    expect($unitId)->toBeGreaterThanOrEqual(100);
-                    expect($unitId)->toBeLessThanOrEqual(109);
+                // All values should be item IDs in valid range
+                foreach ($assignments as $participantId => $itemId) {
+                    expect($participantId)->toBeInt();
+                    expect($itemId)->toBeInt();
+                    expect($participantId)->toBeGreaterThanOrEqual(1);
+                    expect($participantId)->toBeLessThanOrEqual(10);
+                    expect($itemId)->toBeGreaterThanOrEqual(100);
+                    expect($itemId)->toBeLessThanOrEqual(109);
                 }
             } finally {
                 unlink($solFile);
@@ -271,8 +271,8 @@ SOL;
 
         test('case insensitive matching', function () {
             $solContent = <<<'SOL'
-     1 X[C1,V10]    *              1             0             1
-     2 X[C2,V20]    *              1             0             1
+     1 X[P1,I10]    *              1             0             1
+     2 X[P2,I20]    *              1             0             1
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -293,9 +293,9 @@ SOL;
         test('handles fractional activity values near 1', function () {
             // GLPK might output 1.000000 or 0.999999 for binary variables
             $solContent = <<<'SOL'
-     1 x[c1,v10]    *              1.000000         0             1
-     2 x[c2,v20]    *              0.999999         0             1
-     3 x[c3,v30]    *              0.000001         0             1
+     1 x[p1,i10]    *              1.000000         0             1
+     2 x[p2,i20]    *              0.999999         0             1
+     3 x[p3,i30]    *              0.000001         0             1
 SOL;
 
             $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';
@@ -322,8 +322,8 @@ Objective:  resultado = 2 (MINimum)
 
    No. Column name  St   Activity     Lower bound   Upper bound
 ------ ------------ -- ------------- ------------- -------------
-     1 x[c1,v10]    *              1             0             1
-     2 x[c2,v20]    *              1             0             1
+     1 x[p1,i10]    *              1             0             1
+     2 x[p2,i20]    *              1             0             1
 SOL;
 
         $solFile = tempnam($this->tempDir, 'test_sol_') . '.sol';

@@ -10,8 +10,8 @@ use App\Services\Lottery\Enums\LotteryAuditType;
 use Illuminate\Support\Collection;
 
 /**
- * Solves a whole project's lottery from its manifest: one lottery per unit type,
- * then one more among the families and units left over by unbalanced types.
+ * Solves a whole project's lottery from its manifest: one lottery per group,
+ * then one more among the participants and items left over by unbalanced groups.
  *
  * Works on plain data (ids), never on models, and audits every step.
  */
@@ -26,7 +26,7 @@ class LotteryOrchestrator
     public function execute(LotteryManifest $manifest): ExecutionResult
     {
         $firstPass = collect($manifest->data)->map(
-            fn (array $group) => $this->solve($manifest, $group['families'], $group['units'])
+            fn (array $group) => $this->solve($manifest, $group['participants'], $group['items'])
         );
 
         $results = $firstPass->push($this->distributeOrphans($manifest, $firstPass));
@@ -46,16 +46,16 @@ class LotteryOrchestrator
     }
 
     /**
-     * @param array<int, array<int>> $families  family_id => ranking
-     * @param array<int> $units
+     * @param array<int, array<int>> $participants  participant_id => ranking
+     * @param array<int> $items
      */
-    protected function solve(LotteryManifest $manifest, array $families, array $units): ExecutionResult
+    protected function solve(LotteryManifest $manifest, array $participants, array $items): ExecutionResult
     {
-        if (! $families || ! $units) {
-            return new ExecutionResult([], ['families' => array_keys($families), 'units' => $units]);
+        if (! $participants || ! $items) {
+            return new ExecutionResult([], ['participants' => array_keys($participants), 'items' => $items]);
         }
 
-        $result = $this->solver->execute($manifest, new LotterySpec($families, $units));
+        $result = $this->solver->execute($manifest, new LotterySpec($participants, $items));
 
         $this->audits->record($manifest, LotteryAuditType::GROUP_EXECUTION, [
             'picks'   => $result->picks,
@@ -66,18 +66,18 @@ class LotteryOrchestrator
     }
 
     /**
-     * Families and units left over by unbalanced types are matched together, every
-     * leftover unit being equally acceptable to every leftover family.
+     * Participants and items left over by unbalanced groups are matched together, every
+     * leftover item being equally acceptable to every leftover participant.
      *
      * @param Collection<ExecutionResult> $firstPass
      */
     protected function distributeOrphans(LotteryManifest $manifest, Collection $firstPass): ExecutionResult
     {
-        $units = $firstPass->flatMap(fn (ExecutionResult $result) => $result->orphans['units'])->all();
-        $families = $firstPass->flatMap(fn (ExecutionResult $result) => $result->orphans['families'])
-            ->mapWithKeys(fn (int $familyId) => [$familyId => $units])
+        $items = $firstPass->flatMap(fn (ExecutionResult $result) => $result->orphans['items'])->all();
+        $participants = $firstPass->flatMap(fn (ExecutionResult $result) => $result->orphans['participants'])
+            ->mapWithKeys(fn (int $participantId) => [$participantId => $items])
             ->all();
 
-        return $this->solve($manifest, $families, $units);
+        return $this->solve($manifest, $participants, $items);
     }
 }

@@ -7,132 +7,132 @@ use InvalidArgumentException;
 /**
  * Lottery specification for executing a single lottery.
  *
- * Represents the data needed to execute one lottery: families, units,
- * and their preferences. This is the atomic unit of lottery execution -
+ * Represents the data needed to execute one lottery: participants, items,
+ * and their preferences. This is the smallest piece of lottery execution -
  * solvers process one LotterySpec at a time.
  */
 class LotterySpec
 {
-    public readonly array $families;
-    public readonly array $units;
+    public readonly array $participants;
+    public readonly array $items;
 
-    public function __construct(array $families, array $units)
+    public function __construct(array $participants, array $items)
     {
-        $this->units = $this->validateUnits($units);
-        $this->families = $this->validateFamilies($families);
+        $this->items = $this->validateItems($items);
+        $this->participants = $this->validateParticipants($participants);
     }
 
     /**
-     * Get the number of families in this lottery.
+     * Get the number of participants in this lottery.
      */
-    public function familyCount(): int
+    public function participantCount(): int
     {
-        return count($this->families);
+        return count($this->participants);
     }
 
     /**
-     * Get the number of units in this lottery.
+     * Get the number of items in this lottery.
      */
-    public function unitCount(): int
+    public function itemCount(): int
     {
-        return count($this->units);
+        return count($this->items);
     }
 
     /**
-     * Check if this is a balanced lottery (same number of families and units).
+     * Check if this is a balanced lottery (same number of participants and items).
      */
     public function isBalanced(): bool
     {
-        return $this->familyCount() === $this->unitCount();
+        return $this->participantCount() === $this->itemCount();
     }
 
     /**
-     * Filter the spec to only include specified units and/or families.
+     * Filter the spec to only include specified items and/or participants.
      */
-    public function filter(?array $unitIds = null, ?array $familyIds = null): self
+    public function filter(?array $itemIds = null, ?array $participantIds = null): self
     {
-        $units = isset($unitIds)        /** Remove non-included Units, if $unitIds was passed */
-            ? array_values(array_filter($this->units, fn ($id) => in_array($id, $unitIds)))
-            : $this->units;
+        $items = isset($itemIds)                /** Remove non-included Items, if $itemIds was passed */
+            ? array_values(array_filter($this->items, fn ($id) => in_array($id, $itemIds)))
+            : $this->items;
 
-        $families = isset($familyIds)   /** Remove non-included Families, if $familyIds was passed */
-            ? array_filter($this->families, fn ($id) => in_array($id, $familyIds), ARRAY_FILTER_USE_KEY)
-            : $this->families;
+        $participants = isset($participantIds)  /** Remove non-included Participants, if $participantIds was passed */
+            ? array_filter($this->participants, fn ($id) => in_array($id, $participantIds), ARRAY_FILTER_USE_KEY)
+            : $this->participants;
 
-        $families = array_map(          /** Make sure all preferences still point to non-removed Units */
-            fn ($ids) => array_values(array_filter($ids, fn ($id) => in_array($id, $units))),
-            $families
+        $participants = array_map(              /** Make sure all preferences still point to non-removed Items */
+            fn ($ids) => array_values(array_filter($ids, fn ($id) => in_array($id, $items))),
+            $participants
         );
 
-        return new self(families: $families, units: $units);
+        return new self(participants: $participants, items: $items);
     }
 
     /**
-     * Validate and sanitize families array.
+     * Validate and sanitize participants array.
      *
-     * @param  array<int|string, array<int|string>>  $families  family_id => [unit_id, ...]
+     * @param  array<int|string, array<int|string>>  $participants  participant_id => [item_id, ...]
      * @throws InvalidArgumentException if validation fails
      */
-    protected function validateFamilies(array $families): array
+    protected function validateParticipants(array $participants): array
     {
         $sanitized = [];
 
-        foreach ($families as $familyId => $preferences) {
-            if (! is_string($familyId) && ! is_int($familyId)) {
-                throw new InvalidArgumentException('LotterySpec: family IDs must be string or int.');
+        foreach ($participants as $participantId => $preferences) {
+            if (! is_string($participantId) && ! is_int($participantId)) {
+                throw new InvalidArgumentException('LotterySpec: participant IDs must be string or int.');
             }
 
             if (! is_array($preferences)) {
-                throw new InvalidArgumentException("LotterySpec: preferences for family {$familyId} must be an array.");
+                throw new InvalidArgumentException("LotterySpec: preferences for participant {$participantId} must be an array.");
             }
 
             // Check for duplicate preferences
             if (count($preferences) !== count(array_unique($preferences))) {
-                throw new InvalidArgumentException("LotterySpec: family {$familyId} has duplicate preferences.");
+                throw new InvalidArgumentException("LotterySpec: participant {$participantId} has duplicate preferences.");
             }
 
-            // Validate each preference is a valid unit ID
-            foreach ($preferences as $unitId) {
-                if (! in_array($unitId, $this->units, true)) {
-                    throw new InvalidArgumentException("LotterySpec: family {$familyId} has preference for unit {$unitId} which is not in the units array.");
+            // Validate each preference is a valid item ID
+            foreach ($preferences as $itemId) {
+                if (! in_array($itemId, $this->items, true)) {
+                    throw new InvalidArgumentException("LotterySpec: participant {$participantId} has preference for item {$itemId} which is not in the items array.");
                 }
             }
 
-            $sanitized[$familyId] = $preferences;
+            $sanitized[$participantId] = $preferences;
         }
 
         return $sanitized;
     }
 
     /**
-     * Validate and sanitize units array.
+     * Validate and sanitize items array.
      *
-     * @param  array<int|string>  $units
+     * @param  array<int|string>  $items
      * @throws InvalidArgumentException if validation fails
      */
-    protected function validateUnits(array $units): array
+    protected function validateItems(array $items): array
     {
-        foreach ($units as $unitId) {
-            if (! is_string($unitId) && ! is_int($unitId)) {
-                throw new InvalidArgumentException('LotterySpec: unit IDs must be string or int.');
+        foreach ($items as $itemId) {
+            if (! is_string($itemId) && ! is_int($itemId)) {
+                throw new InvalidArgumentException('LotterySpec: item IDs must be string or int.');
             }
         }
 
         // Check for duplicates
-        if (count($units) !== count(array_unique($units))) {
-            throw new InvalidArgumentException('LotterySpec: units array contains duplicate values.');
+        if (count($items) !== count(array_unique($items))) {
+            throw new InvalidArgumentException('LotterySpec: items array contains duplicate values.');
         }
 
-        return $units;
+        return $items;
     }
 
     /**
-     * Sanitize array of unit IDs (numeric or mock string IDs).
+     * Sanitize array of item IDs (numeric or mock string IDs).
      *
      * @throws InvalidArgumentException if any value is invalid
      * @deprecated No longer used - kept for backward compatibility
      */
-    protected function sanitizeUnitIdArray(array $values, string $fieldName): array
+    protected function sanitizeItemIdArray(array $values, string $fieldName): array
     {
         foreach ($values as $value) {
             // Allow numeric IDs or string IDs starting with 'MOCK_'

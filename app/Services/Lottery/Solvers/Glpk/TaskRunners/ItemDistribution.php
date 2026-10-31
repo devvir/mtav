@@ -7,12 +7,12 @@ use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use InvalidArgumentException;
 
-class UnitDistribution extends TaskRunner
+class ItemDistribution extends TaskRunner
 {
-    protected Task $task = Task::UNIT_DISTRIBUTION;
+    protected Task $task = Task::ITEM_DISTRIBUTION;
 
     /**
-     * Execute unit distribution task (Phase 2).
+     * Execute item distribution task (Phase 2).
      *
      * Maximizes overall satisfaction given minimum satisfaction constraint from Phase 1.
      *
@@ -23,7 +23,7 @@ class UnitDistribution extends TaskRunner
         $minSatisfaction = $this->context['min_satisfaction'] ?? null;
 
         if ($minSatisfaction === null) {
-            throw new InvalidArgumentException('UnitDistribution requires min_satisfaction in context');
+            throw new InvalidArgumentException('ItemDistribution requires min_satisfaction in context');
         }
 
         $startTime = microtime(true);

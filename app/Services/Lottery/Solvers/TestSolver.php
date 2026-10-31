@@ -10,7 +10,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
 /**
  * Test solver for predictable lottery assignments.
  *
- * Sorts families and units, then pairs them, ignoring preferences.
+ * Sorts participants and items, then pairs them, ignoring preferences.
  * Useful for deterministic automated testing.
  */
 class TestSolver implements SolverInterface
@@ -20,22 +20,22 @@ class TestSolver implements SolverInterface
      */
     public function execute(LotteryManifest $_, LotterySpec $spec): ExecutionResult
     {
-        $families = array_keys($spec->families);
-        $units = $spec->units;
+        $participants = array_keys($spec->participants);
+        $items = $spec->items;
 
-        sort($families);
-        sort($units);
+        sort($participants);
+        sort($items);
 
-        $matched = min(count($families), count($units));
+        $matched = min(count($participants), count($items));
 
         return new ExecutionResult(
             picks: array_combine(
-                array_slice($families, 0, $matched),
-                array_slice($units, 0, $matched)
+                array_slice($participants, 0, $matched),
+                array_slice($items, 0, $matched)
             ),
             orphans: [
-                'families' => array_slice($families, $matched),
-                'units'    => array_slice($units, $matched),
+                'participants' => array_slice($participants, $matched),
+                'items'        => array_slice($items, $matched),
             ],
         );
     }

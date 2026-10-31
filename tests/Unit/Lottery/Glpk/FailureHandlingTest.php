@@ -20,10 +20,10 @@ describe('Failure Handling', function () {
         ]);
 
         $spec = new LotterySpec(
-            families: [1 => [10, 20], 2 => [20, 10]],
-            units: [10, 20]
+            participants: [1 => [10, 20], 2 => [20, 10]],
+            items: [10, 20]
         );
-        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
+        $manifest = mockManifest(1, [10 => ['participants' => $spec->participants, 'items' => $spec->items]]);
 
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
@@ -36,10 +36,10 @@ describe('Failure Handling', function () {
         ]);
 
         $spec = new LotterySpec(
-            families: [1 => [10, 20], 2 => [20, 10]],
-            units: [10, 20]
+            participants: [1 => [10, 20], 2 => [20, 10]],
+            items: [10, 20]
         );
-        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
+        $manifest = mockManifest(1, [10 => ['participants' => $spec->participants, 'items' => $spec->items]]);
 
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
@@ -55,10 +55,10 @@ describe('Failure Handling', function () {
         ]);
 
         $spec = new LotterySpec(
-            families: [1 => [10, 20], 2 => [20, 10]],
-            units: [10, 20]
+            participants: [1 => [10, 20], 2 => [20, 10]],
+            items: [10, 20]
         );
-        $manifest = mockManifest(1, [10 => ['families' => $spec->families, 'units' => $spec->units]]);
+        $manifest = mockManifest(1, [10 => ['participants' => $spec->participants, 'items' => $spec->items]]);
 
         try {
             app(GlpkSolver::class)->execute($manifest, $spec);
@@ -81,17 +81,17 @@ describe('Failure Handling', function () {
         ]);
 
         // Create a large problem that requires significant solving time
-        $families = [];
-        $units = range(100, 149); // 50 units
+        $participants = [];
+        $items = range(100, 149); // 50 items
 
         foreach (range(1, 50) as $i) {
-            $prefs = $units;
+            $prefs = $items;
             shuffle($prefs);
-            $families[$i] = $prefs;
+            $participants[$i] = $prefs;
         }
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
 
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))
             ->toThrow(GlpkTimeoutException::class);

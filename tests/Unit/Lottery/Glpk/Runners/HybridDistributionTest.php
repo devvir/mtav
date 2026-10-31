@@ -14,14 +14,14 @@ beforeEach(function () {
 describe('HybridDistribution', function () {
     test('executes binary search + phase2 distribution and returns valid result', function () {
         // Small problem
-        $families = [
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 30, 10],
             3 => [30, 10, 20],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(HybridDistribution::class);
@@ -44,27 +44,27 @@ describe('HybridDistribution', function () {
         expect($minSatisfaction)->toBeGreaterThanOrEqual(1);
         expect($minSatisfaction)->toBeLessThanOrEqual(3);
 
-        // Verify all families got units
+        // Verify all participants got items
         expect(array_keys($distribution))->toEqualCanonicalizing([1, 2, 3]);
-        expect($distribution)->each->toBeIn($units);
+        expect($distribution)->each->toBeIn($items);
 
-        // No duplicate unit assignments
+        // No duplicate item assignments
         expect(array_unique(array_values($distribution)))->toHaveCount(3);
     });
 
     test('finds feasible solution even with larger problem', function () {
         // Create a larger problem
-        $families = [];
-        $units = range(100, 124); // 25 units
+        $participants = [];
+        $items = range(100, 124); // 25 items
 
         srand(42); // Deterministic shuffle
         foreach (range(1, 25) as $i) {
-            $prefs = $units;
+            $prefs = $items;
             shuffle($prefs);
-            $families[$i] = $prefs;
+            $participants[$i] = $prefs;
         }
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 5;
 
         $runner = app(HybridDistribution::class);
@@ -80,27 +80,27 @@ describe('HybridDistribution', function () {
         expect($distribution)->toBeArray();
         expect($distribution)->toHaveCount(25);
 
-        // Verify all families assigned
+        // Verify all participants assigned
         expect(array_keys($distribution))->toEqualCanonicalizing(range(1, 25));
 
-        // Verify all units assigned uniquely
-        expect(array_values($distribution))->toEqualCanonicalizing($units);
+        // Verify all items assigned uniquely
+        expect(array_values($distribution))->toEqualCanonicalizing($items);
     });
 
     test('finds correct minimum satisfaction value', function () {
         // Problem where we know the optimal S
-        // All families want same unit first, then diverge
-        $families = [
+        // All participants want same item first, then diverge
+        $participants = [
             1 => [10, 20, 30],  // Wants 10 first
             2 => [10, 30, 20],  // Wants 10 first
             3 => [10, 20, 30],  // Wants 10 first
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        // Optimal: one family gets 10 (rank 1), others get 20/30 (rank 2)
-        // So minimum S should be 2 (worst family gets their 2nd choice)
+        // Optimal: one participant gets 10 (rank 1), others get 20/30 (rank 2)
+        // So minimum S should be 2 (worst participant gets their 2nd choice)
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(HybridDistribution::class);
@@ -114,25 +114,25 @@ describe('HybridDistribution', function () {
 
         // Calculate worst rank
         $worstRank = 0;
-        foreach ($distribution as $familyId => $unitId) {
-            $rank = array_search($unitId, $families[$familyId]) + 1;
+        foreach ($distribution as $participantId => $itemId) {
+            $rank = array_search($itemId, $participants[$participantId]) + 1;
             $worstRank = max($worstRank, $rank);
         }
 
-        // Worst family should get rank 2 (max-min fairness)
+        // Worst participant should get rank 2 (max-min fairness)
         expect($worstRank)->toBe(2);
         expect($minSatisfaction)->toBe(2);
     });
 
     test('includes proper metadata for hybrid strategy', function () {
         // Small problem
-        $families = [
+        $participants = [
             1 => [10, 20],
             2 => [20, 10],
         ];
-        $units = [10, 20];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(HybridDistribution::class);
@@ -174,17 +174,17 @@ describe('HybridDistribution', function () {
 
     test('preserves artifacts from execution', function () {
         // Medium problem
-        $families = [];
-        $units = range(100, 119); // 20 units
+        $participants = [];
+        $items = range(100, 119); // 20 items
 
         srand(42); // Deterministic shuffle
         foreach (range(1, 20) as $i) {
-            $prefs = $units;
+            $prefs = $items;
             shuffle($prefs);
-            $families[$i] = $prefs;
+            $participants[$i] = $prefs;
         }
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 5;
 
         $runner = app(HybridDistribution::class);

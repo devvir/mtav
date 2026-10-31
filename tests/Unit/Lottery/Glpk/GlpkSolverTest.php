@@ -17,70 +17,70 @@ beforeEach(function () {
 
 describe('GlpkSolver', function () {
     test('balanced optimal assignment respects preferences', function () {
-        // Families with full preference ordering over units
+        // Participants with full preference ordering over items
         // Ideal solution: 1->10, 2->20, 3->30 (each gets first choice)
-        $families = [
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 30, 10],
             3 => [30, 10, 20],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         expect($result->picks)->toBe([1 => 10, 2 => 20, 3 => 30]);
-        expect($result->orphans['families'])->toBe([]);
-        expect($result->orphans['units'])->toBe([]);
+        expect($result->orphans['participants'])->toBe([]);
+        expect($result->orphans['items'])->toBe([]);
     });
 
     test('max-min fairness optimization', function () {
-        // Family 1 strongly prefers unit 10 (rank 1), dislikes 20 (rank 2)
-        // Family 2 strongly prefers unit 20 (rank 1), dislikes 10 (rank 2)
+        // Participant 1 strongly prefers item 10 (rank 1), dislikes 20 (rank 2)
+        // Participant 2 strongly prefers item 20 (rank 1), dislikes 10 (rank 2)
         // Optimal: Both get rank 1 (worst-case = 1, sum = 2)
         // Suboptimal: One gets rank 1, other gets rank 2 (worst-case = 2, sum = 3)
-        $families = [
+        $participants = [
             1 => [10, 20],
             2 => [20, 10],
         ];
-        $units = [10, 20];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
-        // Verify both families get their first choice (max-min fairness)
+        // Verify both participants get their first choice (max-min fairness)
         expect($result->picks)->toBe([1 => 10, 2 => 20]);
     });
 
     test('tie breaking with overall satisfaction', function () {
         // Multiple optimal solutions with same worst-case
         // Phase 2 should pick solution with best overall satisfaction
-        $families = [
+        $participants = [
             1 => [10, 20, 30, 40],
             2 => [20, 10, 30, 40],
             3 => [30, 40, 10, 20],
             4 => [40, 30, 20, 10],
         ];
-        $units = [10, 20, 30, 40];
+        $items = [10, 20, 30, 40];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
-        // All families should be matched
+        // All participants should be matched
         expect($result->picks)->toHaveCount(4);
-        expect($result->orphans['families'])->toBeEmpty();
-        expect($result->orphans['units'])->toBeEmpty();
+        expect($result->orphans['participants'])->toBeEmpty();
+        expect($result->orphans['items'])->toBeEmpty();
 
         // No duplicate assignments
         expect(array_unique(array_values($result->picks)))->toHaveCount(4);
 
         // Calculate satisfaction score (lower is better)
         $totalSatisfaction = 0;
-        foreach ($result->picks as $familyId => $unitId) {
-            $rank = array_search($unitId, $families[$familyId]) + 1;
+        foreach ($result->picks as $participantId => $itemId) {
+            $rank = array_search($itemId, $participants[$participantId]) + 1;
             $totalSatisfaction += $rank;
         }
 
@@ -89,17 +89,17 @@ describe('GlpkSolver', function () {
     });
 
     test('deterministic across runs for same input', function () {
-        $families = [
+        $participants = [
             5 => [30, 10, 20, 40],
             2 => [10, 20, 30, 40],
             8 => [40, 30, 20, 10],
             1 => [20, 10, 30, 40],
         ];
-        $units = [30, 10, 20, 40];
+        $items = [30, 10, 20, 40];
 
         $solver = app(GlpkSolver::class);
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
 
         $result1 = $solver->execute($manifest, $spec);
         $result2 = $solver->execute($manifest, $spec);
@@ -117,101 +117,101 @@ describe('GlpkSolver', function () {
         expect(array_unique(array_values($result1->picks)))->toHaveCount(4);
     });
 
-    test('larger problem with 10 families and units', function () {
+    test('larger problem with 10 participants and items', function () {
         // Generate realistic larger problem
-        $families = [];
-        $units = range(100, 109);
+        $participants = [];
+        $items = range(100, 109);
 
-        // Each family has different preferences
+        // Each participant has different preferences
         foreach (range(1, 10) as $i) {
-            $prefs = $units;
+            $prefs = $items;
             shuffle($prefs);
-            $families[$i] = $prefs;
+            $participants[$i] = $prefs;
         }
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
-        // Should assign all families to units
+        // Should assign all participants to items
         expect($result->picks)->toHaveCount(10);
-        expect($result->orphans['families'])->toBeEmpty();
-        expect($result->orphans['units'])->toBeEmpty();
+        expect($result->orphans['participants'])->toBeEmpty();
+        expect($result->orphans['items'])->toBeEmpty();
 
         // No duplicates
         expect(array_unique(array_keys($result->picks)))->toHaveCount(10);
         expect(array_unique(array_values($result->picks)))->toHaveCount(10);
 
-        // All families assigned
+        // All participants assigned
         expect(array_keys($result->picks))->each->toBeIn(range(1, 10));
 
-        // All units assigned
-        expect(array_values($result->picks))->each->toBeIn($units);
+        // All items assigned
+        expect(array_values($result->picks))->each->toBeIn($items);
     });
 
-    test('more units than families produces orphan units', function () {
-        $families = [
+    test('more items than participants produces orphan items', function () {
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 10, 30],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
-        // Should assign 2 families
+        // Should assign 2 participants
         expect($result->picks)->toHaveCount(2);
-        expect($result->orphans['families'])->toBeEmpty();
-        expect($result->orphans['units'])->toHaveCount(1);
+        expect($result->orphans['participants'])->toBeEmpty();
+        expect($result->orphans['items'])->toHaveCount(1);
 
-        // Verify orphan unit is one of the valid units
-        expect($result->orphans['units'][0])->toBeIn($units);
+        // Verify orphan item is one of the valid items
+        expect($result->orphans['items'][0])->toBeIn($items);
 
         // No duplicate assignments
         expect(array_unique(array_values($result->picks)))->toHaveCount(2);
     });
 
-    test('more families than units produces orphan families', function () {
-        $families = [
+    test('more participants than items produces orphan participants', function () {
+        $participants = [
             1 => [10, 20],
             2 => [20, 10],
             3 => [10, 20],
         ];
-        $units = [10, 20];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
-        // Should assign 2 families
+        // Should assign 2 participants
         expect($result->picks)->toHaveCount(2);
-        expect($result->orphans['families'])->toHaveCount(1);
-        expect($result->orphans['units'])->toBeEmpty();
+        expect($result->orphans['participants'])->toHaveCount(1);
+        expect($result->orphans['items'])->toBeEmpty();
 
-        // Verify orphan family is one of the valid families
-        expect($result->orphans['families'][0])->toBeIn([1, 2, 3]);
+        // Verify orphan participant is one of the valid participants
+        expect($result->orphans['participants'][0])->toBeIn([1, 2, 3]);
 
-        // All units should be assigned
-        expect(array_values($result->picks))->each->toBeIn($units);
+        // All items should be assigned
+        expect(array_values($result->picks))->each->toBeIn($items);
     });
 
-    test('single family single unit', function () {
-        $families = [100 => [200]];
-        $units = [200];
+    test('single participant single item', function () {
+        $participants = [100 => [200]];
+        $items = [200];
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         $result = app(GlpkSolver::class)->execute($manifest, $spec);
 
         expect($result->picks)->toBe([100 => 200]);
-        expect($result->orphans['families'])->toBe([]);
-        expect($result->orphans['units'])->toBe([]);
+        expect($result->orphans['participants'])->toBe([]);
+        expect($result->orphans['items'])->toBe([]);
     });
 
     test('throws GlpkException when solver missing', function () {
-        $families = [1 => [10, 20], 2 => [20, 10]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20], 2 => [20, 10]];
+        $items = [10, 20];
 
         // Point to a non-existent glpsol path to force failure
         config()->set('lottery.solvers.glpk.config', [
@@ -220,24 +220,24 @@ describe('GlpkSolver', function () {
             'timeout'     => 5,
         ]);
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
 
         // Call solver directly to test GLPK failure, not the whole system
         expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
     });
 
     test('reports user-friendly error message on GLPK failure', function () {
-        $families = [1 => [10, 20]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20]];
+        $items = [10, 20];
 
         config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',
             'temp_dir'    => sys_get_temp_dir(),
         ]);
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
 
         // Call solver directly to test GLPK error message
         try {
@@ -250,18 +250,18 @@ describe('GlpkSolver', function () {
     });
 
     test('temp files are cleaned up after success', function () {
-        $families = [
+        $participants = [
             1 => [10, 20],
             2 => [20, 10],
         ];
-        $units = [10, 20];
+        $items = [10, 20];
 
         $tempDir = sys_get_temp_dir();
         $beforeFiles = glob($tempDir . '/mtav_*');
 
         config()->set('lottery.solvers.glpk.config.temp_dir', $tempDir);
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         app(GlpkSolver::class)->execute($manifest, $spec);
 
         $afterFiles = glob($tempDir . '/mtav_*');
@@ -271,8 +271,8 @@ describe('GlpkSolver', function () {
     });
 
     test('temp files are cleaned up after failure', function () {
-        $families = [1 => [10, 20]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20]];
+        $items = [10, 20];
 
         $tempDir = sys_get_temp_dir();
         $beforeFiles = glob($tempDir . '/mtav_*');
@@ -282,8 +282,8 @@ describe('GlpkSolver', function () {
             'temp_dir'    => $tempDir,
         ]);
 
-        $spec = new LotterySpec($families, $units);
-        $manifest = mockManifest(1, [10 => ['families' => $families, 'units' => $units]]);
+        $spec = new LotterySpec($participants, $items);
+        $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
 
         try {
             app(GlpkSolver::class)->execute($manifest, $spec);

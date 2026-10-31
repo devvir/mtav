@@ -15,16 +15,16 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  * - GlpkSolver: Optimal assignments using GLPK mathematical optimization
  * - <ApiService>Solver: Calls external optimization service
  *
- * Solvers process ONE group at a time (one LotterySpec), usually linked to
- * one UnitType (may be mixed for distributing remnants from previous phases).
+ * Solvers process ONE group at a time (one LotterySpec), usually one of the
+ * manifest's (may be mixed for distributing remnants from previous phases).
  */
 interface SolverInterface
 {
     /**
-     * Solve the lottery assignment problem for a single group of families and units.
+     * Solve the lottery assignment problem for a single group of participants and items.
      *
      * @param LotteryManifest $manifest Full lottery manifest with project-wide configuration
-     * @param LotterySpec $spec Group-specific families and units to solve
+     * @param LotterySpec $spec Group-specific participants and items to solve
      */
     public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult;
 }

@@ -121,8 +121,8 @@ abstract class BenchmarkGlpkBase extends Command
     protected function generateSpecJson(LotterySpec $spec): string
     {
         $data = [
-            'units'       => $spec->units,
-            'preferences' => $spec->families,
+            'items'       => $spec->items,
+            'preferences' => $spec->participants,
         ];
 
         return json_encode($data, JSON_UNESCAPED_SLASHES);

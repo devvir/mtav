@@ -31,11 +31,11 @@ class Logger
             'exception_type'    => get_class($e),
             'exception_message' => $e->getMessage(),
             'phase'             => 1,
-            'family_count'      => count($spec->families),
-            'unit_count'        => count($spec->units),
+            'participant_count' => count($spec->participants),
+            'item_count'        => count($spec->items),
             'spec'              => [
-                'units'       => $spec->units,
-                'preferences' => $spec->families,
+                'items'       => $spec->items,
+                'preferences' => $spec->participants,
             ],
             'artifacts' => [
                 'model_file'    => $modFile,
@@ -78,11 +78,11 @@ class Logger
             'exception_message' => $e->getMessage(),
             'phase'             => 2,
             'phase1_result'     => $minSatisfaction,
-            'family_count'      => count($spec->families),
-            'unit_count'        => count($spec->units),
+            'participant_count' => count($spec->participants),
+            'item_count'        => count($spec->items),
             'spec'              => [
-                'units'       => $spec->units,
-                'preferences' => $spec->families,
+                'items'       => $spec->items,
+                'preferences' => $spec->participants,
             ],
             'artifacts' => [
                 'model_file'    => $modFile,

@@ -25,20 +25,20 @@ describe('ModelGenerator', function () {
         test('contains required sets', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('set C;'); // Families
-            expect($model)->toContain('set V;'); // Units
+            expect($model)->toContain('set P;'); // Participants
+            expect($model)->toContain('set I;'); // Items
         });
 
         test('contains required parameters', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('param p{c in C, v in V}'); // Preferences
+            expect($model)->toContain('param r{p in P, i in I}'); // Preferences
         });
 
         test('contains required variables', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('var x{c in C, v in V}, binary'); // Assignment
+            expect($model)->toContain('var x{p in P, i in I}, binary'); // Assignment
             expect($model)->toContain('var z, integer'); // Min satisfaction
         });
 
@@ -51,22 +51,22 @@ describe('ModelGenerator', function () {
         test('contains min satisfaction constraint', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('z_menorIgual{c in C}');
-            expect($model)->toContain('z >= sum{v in V} p[c,v] * x[c,v]');
+            expect($model)->toContain('z_menorIgual{p in P}');
+            expect($model)->toContain('z >= sum{i in I} r[p,i] * x[p,i]');
         });
 
-        test('contains family uniqueness constraints', function () {
+        test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('unicaAsignacionCoperativista{c in C}');
-            expect($model)->toContain('sum{v in V} x[c,v] = 1');
+            expect($model)->toContain('oneItemPerParticipant{p in P}');
+            expect($model)->toContain('sum{i in I} x[p,i] = 1');
         });
 
-        test('contains unit uniqueness constraints', function () {
+        test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('unicaAsignacionCasa{v in V}');
-            expect($model)->toContain('sum{c in C} x[c,v] = 1');
+            expect($model)->toContain('oneParticipantPerItem{i in I}');
+            expect($model)->toContain('sum{p in P} x[p,i] = 1');
         });
 
         test('ends with end statement', function () {
@@ -87,49 +87,49 @@ describe('ModelGenerator', function () {
         test('contains required sets', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('set C;');
-            expect($model)->toContain('set V;');
+            expect($model)->toContain('set P;');
+            expect($model)->toContain('set I;');
         });
 
         test('contains required parameters including S', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('param p{c in C, v in V}');
+            expect($model)->toContain('param r{p in P, i in I}');
             expect($model)->toContain('param S;'); // Min satisfaction from Phase 1
         });
 
         test('contains assignment variable', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('var x{c in C, v in V}, binary');
+            expect($model)->toContain('var x{p in P, i in I}, binary');
         });
 
         test('contains objective to minimize sum of ranks', function () {
             $model = $this->generator->generatePhase2Model();
 
             expect($model)->toContain('minimize resultado:');
-            expect($model)->toContain('sum{c in C, v in V} p[c,v] * x[c,v]');
+            expect($model)->toContain('sum{p in P, i in I} r[p,i] * x[p,i]');
         });
 
         test('contains min satisfaction constraint', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('satisfaccionMinima{c in C}');
-            expect($model)->toContain('sum{v in V} p[c,v] * x[c,v] <= S');
+            expect($model)->toContain('satisfaccionMinima{p in P}');
+            expect($model)->toContain('sum{i in I} r[p,i] * x[p,i] <= S');
         });
 
-        test('contains family uniqueness constraints', function () {
+        test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('unicaAsignacionCoperativista{c in C}');
-            expect($model)->toContain('sum{v in V} x[c,v] = 1');
+            expect($model)->toContain('oneItemPerParticipant{p in P}');
+            expect($model)->toContain('sum{i in I} x[p,i] = 1');
         });
 
-        test('contains unit uniqueness constraints', function () {
+        test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('unicaAsignacionCasa{v in V}');
-            expect($model)->toContain('sum{c in C} x[c,v] = 1');
+            expect($model)->toContain('oneParticipantPerItem{i in I}');
+            expect($model)->toContain('sum{p in P} x[p,i] = 1');
         });
 
         test('ends with end statement', function () {
@@ -150,17 +150,16 @@ describe('ModelGenerator', function () {
         expect($phase2)->toContain('param S;');
     });
 
-    test('models use Spanish constraint names', function () {
+    test('models describe their sets and rank', function () {
         $phase1 = $this->generator->generatePhase1Model();
         $phase2 = $this->generator->generatePhase2Model();
 
-        // Verify Spanish naming from original Windows application
-        expect($phase1)->toContain('Cooperativistas');
-        expect($phase1)->toContain('Viviendas');
-        expect($phase1)->toContain('Prioridad');
+        expect($phase1)->toContain('Participants');
+        expect($phase1)->toContain('Items');
+        expect($phase1)->toContain('Rank');
 
-        expect($phase2)->toContain('Cooperativistas');
-        expect($phase2)->toContain('Viviendas');
-        expect($phase2)->toContain('Prioridad');
+        expect($phase2)->toContain('Participants');
+        expect($phase2)->toContain('Items');
+        expect($phase2)->toContain('Rank');
     });
 });

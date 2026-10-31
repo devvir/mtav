@@ -13,13 +13,15 @@ use App\Models\PlatformSetting;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\FamilyService;
 use App\Services\Lottery\AuditService;
+use App\Services\Lottery\Contracts\LotteryHost;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Exceptions\CannotExecuteLotteryException;
 use App\Services\Lottery\Exceptions\LotteryLockedException;
-use App\Services\Lottery\Exceptions\UnitFamilyMismatchException;
+use App\Services\Lottery\Exceptions\ParticipantItemMismatchException;
 use App\Services\Lottery\PreferencesService;
 use App\Services\Queue\Workers;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +31,7 @@ use Illuminate\Support\Str;
  * A project's lottery, from scheduling to the final assignment (and, exceptionally,
  * its invalidation).
  */
-class LotteryService
+class LotteryService implements LotteryHost
 {
     public function __construct(
         private PreferencesService $preferences,
@@ -58,7 +60,7 @@ class LotteryService
      *
      * @param array<string> $options  Confirmations given by the admin
      *
-     * @throws CannotExecuteLotteryException|UnitFamilyMismatchException
+     * @throws CannotExecuteLotteryException|ParticipantItemMismatchException
      */
     public function run(Project $project, User $admin, array $options = []): LotteryRun
     {
@@ -92,7 +94,9 @@ class LotteryService
     }
 
     /**
-     * What a run decides from: every family's complete ranking, per unit type.
+     * What a run decides from: every family's complete ranking, per unit type. In the
+     * engine's words each unit type is a group, its families the participants, its units
+     * the items.
      */
     public function manifest(LotteryRun $run): LotteryManifest
     {
@@ -101,10 +105,10 @@ class LotteryService
 
         $data = $project->families()->get()->groupBy('unit_type_id')
             ->map(fn ($families, $typeId) => [
-                'families' => $families->mapWithKeys(fn ($family) => [
+                'participants' => $families->mapWithKeys(fn ($family) => [
                     $family->id => $this->preferences->ranking($family)->pluck('id')->all(),
                 ])->all(),
-                'units' => ($units[$typeId] ?? collect())->pluck('id')->all(),
+                'items' => ($units[$typeId] ?? collect())->pluck('id')->all(),
             ])
             ->all();
 
@@ -172,6 +176,8 @@ class LotteryService
             ...$debug,
         ]);
 
+        $this->discardEmptied($run);
+
         if ($run->started_by) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
@@ -205,6 +211,8 @@ class LotteryService
             ]);
         });
 
+        $this->discardEmptied($run);
+
         $this->notifications->send(
             NotificationTarget::PROJECT,
             NotificationType::LOTTERY_INVALIDATED,
@@ -218,8 +226,14 @@ class LotteryService
     }
 
     /**
-     * @throws CannotExecuteLotteryException|UnitFamilyMismatchException
+     * @throws CannotExecuteLotteryException|ParticipantItemMismatchException
      */
+    /** Families left with nobody while the lottery held them still, now that it lets go */
+    private function discardEmptied(LotteryRun $run): void
+    {
+        $run->project->families()->get()->each(app(FamilyService::class)->discardIfEmpty(...));
+    }
+
     private function ensureCanRun(Project $project, array $options): void
     {
         $lottery = $project->lottery;
@@ -244,14 +258,14 @@ class LotteryService
         $mismatches = $project->unitTypes()->withCount('units', 'families')->get()
             ->filter(fn ($type) => $type->units_count !== $type->families_count)
             ->map(fn ($type) => [
-                'unit_type_id'   => $type->id,
-                'unit_type_name' => $type->name,
-                'units_count'    => $type->units_count,
-                'families_count' => $type->families_count,
+                'group_id'           => $type->id,
+                'group_name'         => $type->name,
+                'items_count'        => $type->units_count,
+                'participants_count' => $type->families_count,
             ]);
 
         if ($mismatches->isNotEmpty()) {
-            throw new UnitFamilyMismatchException($mismatches);
+            throw new ParticipantItemMismatchException($mismatches);
         }
     }
 }

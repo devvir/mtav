@@ -20,7 +20,7 @@ beforeEach(function () {
  */
 describe('binary search equivalence', function () {
     test('direct GLPK and binary search produce identical minimum satisfaction S', function (array $specData) {
-        $spec = new LotterySpec(families: $specData['preferences'], units: $specData['units']);
+        $spec = new LotterySpec(participants: $specData['preferences'], items: $specData['items']);
 
         // Method 1: Direct GLPK Phase 1 (bypass orchestrator, high timeout)
         $minSatisfactionRunner = app(MinSatisfaction::class);
@@ -34,7 +34,7 @@ describe('binary search equivalence', function () {
             'timeout'              => 10,
         ]);
 
-        $glpkMock->distributeUnits(mockManifest(), $spec);
+        $glpkMock->distributeItems(mockManifest(), $spec);
         $binarySearchS = $glpkMock->auditCalls[0]->get('min_satisfaction');
 
         // Assert equivalence: both methods must find identical minimum S

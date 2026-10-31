@@ -33,13 +33,13 @@ class Glpk
     }
 
     /**
-     * Distribute units using two-phase optimization.
+     * Distribute items using two-phase optimization.
      * Chooses between GlpkDistribution and HybridDistribution strategies.
      */
-    public function distributeUnits(LotteryManifest $manifest, LotterySpec $spec): array
+    public function distributeItems(LotteryManifest $manifest, LotterySpec $spec): array
     {
         // Large spec: use Hybrid strategy directly (binary search is faster)
-        if ($spec->familyCount() >= $this->phase1MaxSize) {
+        if ($spec->participantCount() >= $this->phase1MaxSize) {
             return $this->hybridDistribution($manifest, $spec);
         }
 
@@ -52,16 +52,16 @@ class Glpk
     }
 
     /**
-     * Identify worst units among candidates.
+     * Identify worst items among candidates.
      */
-    public function identifyWorstUnits(LotteryManifest $manifest, LotterySpec $spec): array
+    public function identifyWorstItems(LotteryManifest $manifest, LotterySpec $spec): array
     {
-        $pruningRunner = $this->taskRunnerFactory->make(Task::WORST_UNITS_PRUNING);
+        $pruningRunner = $this->taskRunnerFactory->make(Task::WORST_ITEMS_PRUNING);
         $taskResult = $pruningRunner->execute($spec, $this->timeout);
 
         $this->auditTask($manifest, $taskResult, 'success');
 
-        return $taskResult->get('worst_units');
+        return $taskResult->get('worst_items');
     }
 
     /**

@@ -13,14 +13,14 @@ beforeEach(function () {
 
 describe('MinSatisfaction', function () {
     test('executes and returns valid TaskResult', function () {
-        $families = [
+        $participants = [
             1 => [10, 20, 30],
             2 => [20, 30, 10],
             3 => [30, 10, 20],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(MinSatisfaction::class);
@@ -39,33 +39,33 @@ describe('MinSatisfaction', function () {
     });
 
     test('finds correct min_satisfaction for contention scenario', function () {
-        // All families want same unit first
-        $families = [
+        // All participants want same item first
+        $participants = [
             1 => [10, 20, 30],
             2 => [10, 30, 20],
             3 => [10, 20, 30],
         ];
-        $units = [10, 20, 30];
+        $items = [10, 20, 30];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(MinSatisfaction::class);
         $result = $runner->execute($spec, $timeout);
 
-        // One family gets unit 10 (rank 1), others get rank 2
+        // One participant gets item 10 (rank 1), others get rank 2
         expect($result->get('min_satisfaction'))->toBe(2);
     });
 
     test('handles perfect match scenario', function () {
-        // Each family gets their first choice
-        $families = [
+        // Each participant gets their first choice
+        $participants = [
             1 => [10, 20],
             2 => [20, 10],
         ];
-        $units = [10, 20];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(MinSatisfaction::class);
@@ -75,10 +75,10 @@ describe('MinSatisfaction', function () {
     });
 
     test('includes proper metadata', function () {
-        $families = [1 => [10, 20], 2 => [20, 10]];
-        $units = [10, 20];
+        $participants = [1 => [10, 20], 2 => [20, 10]];
+        $items = [10, 20];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 5;
 
         $runner = app(MinSatisfaction::class);
@@ -102,10 +102,10 @@ describe('MinSatisfaction', function () {
     });
 
     test('accepts context parameter but does not use it', function () {
-        $families = [1 => [10]];
-        $units = [10];
+        $participants = [1 => [10]];
+        $items = [10];
 
-        $spec = new LotterySpec($families, $units);
+        $spec = new LotterySpec($participants, $items);
         $timeout = 10;
 
         $runner = app(MinSatisfaction::class);
