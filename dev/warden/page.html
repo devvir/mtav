@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MTAV warden</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f5f3;
+        --card: #fff;
+        --text: #1c1917;
+        --muted: #6b6560;
+        --line: #e7e3df;
+        --good: #1f7a44;
+        --bad: #c0392b;
+        --warn: #b7791f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121110;
+          --card: #1c1b19;
+          --text: #ece9e4;
+          --muted: #9b958e;
+          --line: #2e2c29;
+          --good: #57c283;
+          --bad: #ef7d6e;
+          --warn: #e0b050;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 20px;
+        font: 14px/1.45 system-ui, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      h1 {
+        margin: 0 0 16px;
+        font-size: 20px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 14px;
+        align-items: start;
+      }
+      section {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+      }
+      h2 {
+        display: flex;
+        justify-content: space-between;
+        margin: 0 0 10px;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      h2 small {
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 3px 0;
+      }
+      .row > :last-child {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .good {
+        color: var(--good);
+      }
+      .bad {
+        color: var(--bad);
+        font-weight: 600;
+      }
+      .warn {
+        color: var(--warn);
+      }
+      .bar {
+        height: 6px;
+        margin: 2px 0 8px;
+        overflow: hidden;
+        border-radius: 4px;
+        background: var(--line);
+      }
+      .bar > i {
+        display: block;
+        height: 100%;
+        background: var(--good);
+      }
+      .bar > i.warn {
+        background: var(--warn);
+      }
+      .bar > i.bad {
+        background: var(--bad);
+      }
+      h3 {
+        margin: 8px 0 2px;
+        font-size: 13px;
+      }
+      a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MTAV warden</h1>
+    <main id="cards"></main>
+    <script>
+      const esc = (value) => String(value ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      const gb = (bytes) => (bytes / 1024 ** 3).toFixed(1) + ' GB';
+      const row = (label, value, tone = '') => `<div class="row"><span class="muted">${esc(label)}</span><span class="${tone}">${value}</span></div>`;
+      const meter = (label, share, text) => {
+        const percent = Math.round(share * 100);
+        const tone = percent > 90 ? 'bad' : percent > 75 ? 'warn' : '';
+        return `${row(label, esc(text ?? percent + '%'))}<div class="bar"><i class="${tone}" style="width:${Math.min(percent, 100)}%"></i></div>`;
+      };
+      const used = (part) => 1 - part.free / part.total;
+      const ago = (at) => (at ? Math.round((Date.now() - at) / 1000) + 's ago' : 'reading…');
+      const when = (at) => new Date(at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+
+      const views = {
+        host: ['This machine', (d) =>
+          meter('CPU', d.load[0] / d.cores, `load ${d.load.join(' / ')} on ${d.cores} cores`) +
+          meter('Memory', used(d.memory), `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`) +
+          meter('Disk', used(d.disk), `${gb(d.disk.free)} free`)],
+        stacks: ['Local stacks', (d) =>
+          Object.entries(d).map(([stack, containers]) =>
+            `<h3>${esc(stack)}</h3>` + containers.map((c) => row(c.name.replace(stack + '-', ''), esc(c.status), c.healthy ? 'good' : c.state === 'running' ? 'warn' : 'muted')).join('')).join('') || '<span class="muted">Nothing running</span>'],
+        sites: ['Sites', (d) =>
+          d.map((s) => row(s.name, s.status ? `${s.status} · ${s.ms} ms` : esc(s.error), s.status === 200 ? 'good' : s.name === 'production' && s.status === 503 ? 'muted' : 'bad')).join('')],
+        server: ['The server', (d) =>
+          Object.entries(d.releases).map(([env, slots]) => row(env, slots.map((s) => `${esc(s.slot)} ${esc(s.commit)}`).join(', '))).join('') +
+          meter('Load', d.load[0] / 4, d.load.join(' / ')) +
+          meter('Memory', used(d.memory), `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`) +
+          meter('Disk', used(d.disk), `${gb(d.disk.free)} free`)],
+        pipelines: ['Pipelines', (d) =>
+          d.map((r) => row(`${r.workflow} · ${r.branch} · ${r.commit}`, `<a href="${esc(r.url)}" target="_blank" rel="noreferrer">${esc(r.conclusion || r.status)}</a> · ${when(r.at)}`, r.conclusion === 'success' ? 'good' : r.conclusion ? 'bad' : 'warn')).join('')],
+        repository: ['Repository', (d) =>
+          row('Here', `${esc(d.branch)}, ${d.changed} changed`) + `<div class="muted">${esc(d.commit)}</div>` +
+          d.remote.filter((r) => r.name !== 'origin').map((r) => row(r.name, `${esc(r.commit)} · ${esc(r.when)}`)).join('')],
+        claude: ['Claude accounts', (d) =>
+          d.map((a) => {
+            const five = a.reading?.five_hour?.percent;
+            const week = a.reading?.weekly?.percent;
+            return `<h3>${esc(a.account)}</h3>` + (five != null ? meter('5 hours', five / 100) : '') + (week != null ? meter('Week', week / 100) : '') + (five == null && week == null ? '<span class="muted">No reading</span>' : '');
+          }).join('')],
+        app: ['The app, locally', (d) =>
+          Object.entries(d).map(([name, count]) => row(name.replace('_', ' '), count ?? '—', name === 'failed_jobs' && count ? 'bad' : '')).join('')],
+      };
+
+      async function look() {
+        const readings = await (await fetch('/api')).json();
+        document.getElementById('cards').innerHTML = Object.entries(views).map(([name, [title, view]]) => {
+          const reading = readings[name];
+          let body = '<span class="muted">Reading…</span>';
+          if (reading.data) {
+            try { body = view(reading.data); } catch (error) { body = `<span class="bad">${esc(error.message)}</span>`; }
+          }
+          if (reading.error) body = `<div class="bad">${esc(reading.error)}</div>` + (reading.data ? body : '');
+          return `<section><h2>${esc(title)} <small>${ago(reading.at)}</small></h2>${body}</section>`;
+        }).join('');
+      }
+
+      look();
+      setInterval(() => look().catch(() => {}), 5000);
+    </script>
+  </body>
+</html>
