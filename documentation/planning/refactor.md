@@ -444,9 +444,9 @@ decision taken on the way is listed below for review.
     - A language picked stays picked in the browser, signed in or not, across deploys.
     - On wide screens, sidebar and page sit centred in a frame (`APP_LAYOUT=contained`, the
       default; `wide` goes to the screen's edges), per deployment.
-    - The road to the lottery is for the whole community, on paper: three shapes being tried (a
-      note at the home's corner, a notebook page on the lottery page, a sticky note in Setup),
-      to keep the author's favourite and remove the others.
+    - The road to the lottery is for the whole community: a tiny note taped to the corner of
+      the home, the lottery page and Setup, that grows from there over itself into a readable
+      sheet on a click.
     - Your projects has a search past ten of them, and marks the one last browsed.
     - The chat: on tablets and up, a bubble at the bottom right rather than a sidebar item,
       with a window that opens from it and folds back into it, no page change;

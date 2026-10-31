@@ -1,8 +1,9 @@
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { Link, usePage } from '@inertiajs/react';
-import { Popover, UnstyledButton } from '@mantine/core';
-import type { ReactNode } from 'react';
+import { Transition, UnstyledButton } from '@mantine/core';
+import { useClickOutside } from '@mantine/hooks';
+import { useEffect, useState, type ReactNode } from 'react';
 
 /** What is done on the way to the lottery (ProjectService::setupChecklist) */
 export type Setup = Record<
@@ -89,55 +90,49 @@ function Sheet({ setup, children }: { setup: Setup; children?: ReactNode }) {
   );
 }
 
+/** It grows out of the small note, from their shared corner, swinging into place (see .note-sheet) */
+const GROW = {
+  in: { opacity: 1, scale: '1', rotate: '0deg' },
+  out: { opacity: 0, scale: '0.22', rotate: '6deg' },
+  transitionProperty: 'scale, rotate, opacity',
+};
+
 /**
- * Option A: a tiny sheet taped to the page's corner, that grows into a readable one on a click.
+ * The road to the lottery, for the whole community: a tiny sheet taped to the page's corner, that
+ * grows from there into a readable one on a click, and goes back the same way.
  */
 export function ChecklistCorner({ setup, opened = false }: { setup: Setup; opened?: boolean }) {
-  return (
-    <Popover
-      defaultOpened={opened}
-      position="bottom-end"
-      offset={8}
-      withinPortal
-      shadow="none"
-      transitionProps={{ transition: 'pop-top-right', duration: 220 }}
-    >
-      <Popover.Target>
-        <UnstyledButton
-          className="note note-mini"
-          aria-label={`${_('Getting to the lottery')}: ${counted(setup)}`}
-        >
-          <span className="note-tape" aria-hidden />
-          <span className="note-mini-lines" aria-hidden />
-          <span className="note-count">{counted(setup)}</span>
-        </UnstyledButton>
-      </Popover.Target>
-      <Popover.Dropdown className="note note-popup">
-        <Sheet setup={setup}>
-          <span className="note-tape" aria-hidden />
-        </Sheet>
-      </Popover.Dropdown>
-    </Popover>
-  );
-}
+  const [open, setOpen] = useState(opened);
+  const corner = useClickOutside(() => setOpen(false));
 
-/** Option B: a page torn from a spiral notebook, ruled, its bottom edge torn */
-export function ChecklistNotebook({ setup }: { setup: Setup }) {
+  useEffect(() => {
+    if (!open) return undefined;
+    const escape = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [open]);
+
   return (
-    <div className="note-lift" data-tour="setup.checklist">
-      <section className="note note-notebook">
-        <span className="note-spiral" aria-hidden />
-        <Sheet setup={setup} />
-      </section>
+    <div ref={corner} className="note-corner" data-tour="setup.checklist">
+      <UnstyledButton
+        className="note note-mini"
+        aria-expanded={open}
+        aria-label={`${_('Getting to the lottery')}: ${counted(setup)}`}
+        onClick={() => setOpen(true)}
+      >
+        <span className="note-tape" aria-hidden />
+        <span className="note-mini-lines" aria-hidden />
+        <span className="note-count">{counted(setup)}</span>
+      </UnstyledButton>
+      <Transition mounted={open} transition={GROW} duration={340}>
+        {(styles) => (
+          <section className="note note-sheet" style={styles}>
+            <Sheet setup={setup}>
+              <span className="note-tape" aria-hidden />
+            </Sheet>
+          </section>
+        )}
+      </Transition>
     </div>
-  );
-}
-
-/** Option C: a sticky note stuck on the page, its corner curling up */
-export function ChecklistSticky({ setup }: { setup: Setup }) {
-  return (
-    <section className="note note-sticky" data-tour="setup.checklist">
-      <Sheet setup={setup} />
-    </section>
   );
 }

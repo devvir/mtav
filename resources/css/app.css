@@ -16,7 +16,7 @@
   display: none;
   flex-direction: column;
   gap: 4px;
-  width: 14.2rem;
+  width: 16rem;
   padding: 18px 14px;
   border-right: 1px solid var(--mtav-border);
   background: var(--mtav-header);
@@ -28,7 +28,7 @@
     display: flex;
   }
   .shell-main {
-    padding-left: 14.2rem;
+    padding-left: 16rem;
   }
 }
 
@@ -2139,7 +2139,7 @@ html[data-carrying] * {
 
 /*
  * The road to the lottery as something written by hand: paper of its own (light or dark,
- * whatever the theme), in three shapes to choose from.
+ * whatever the theme).
  */
 .note {
   --paper: #fbf6e9;
@@ -2238,7 +2238,7 @@ html[data-carrying] * {
   transform: translateX(-50%) rotate(-2.5deg);
 }
 
-/* A: tiny, at the page's corner, and what it grows into */
+/* Tiny, at the page's corner, and what it grows into */
 .note-mini {
   display: flex;
   width: 5.25rem;
@@ -2253,8 +2253,7 @@ html[data-carrying] * {
     transform 200ms ease,
     box-shadow 200ms ease;
 }
-.note-mini:hover,
-.note-mini[aria-expanded='true'] {
+.note-mini:hover {
   box-shadow: 0 10px 20px -6px rgb(60 45 15 / 55%);
   transform: rotate(0deg) scale(1.06);
 }
@@ -2269,103 +2268,62 @@ html[data-carrying] * {
   font-size: 1.05rem;
   line-height: 1;
 }
-.note-popup {
-  /* The menu places it: a note's own position does not apply */
+/* Over the small note, their top right corners together */
+.note-corner {
+  position: relative;
+  z-index: 40;
+  margin-left: auto;
+}
+.note-sheet {
+  /* Paper with something bright behind: a touch of what is under it comes through */
+  background: color-mix(in srgb, var(--paper) 93%, transparent);
+  -webkit-backdrop-filter: blur(1.5px);
+  backdrop-filter: blur(1.5px);
   position: absolute;
-  width: min(25rem, calc(100vw - 2rem)) !important;
-  padding: 1.5rem 1.1rem 1rem !important;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  width: min(25rem, calc(100vw - 2rem));
+  padding: 1.5rem 1.1rem 1rem;
   border: 1px solid rgb(120 100 60 / 22%);
   border-radius: 3px;
-  background: var(--paper);
   box-shadow: 0 18px 40px -12px rgb(40 30 10 / 50%);
   transform-origin: top right;
+  /* Growth settles first; the rotation goes a little past straight, and comes back */
+  transition-duration: 240ms, 340ms, 200ms !important;
+  transition-timing-function: ease, cubic-bezier(0.3, 1.9, 0.5, 1), ease !important;
+}
+/* The small one gives way to the big one, and comes back as it goes */
+.note-corner .note-mini {
+  transition:
+    transform 220ms ease,
+    opacity 180ms ease,
+    box-shadow 200ms ease;
+}
+.note-corner .note-mini[aria-expanded='true'] {
+  opacity: 0;
+  pointer-events: none;
+  transform: rotate(-3deg) scale(1.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .note-sheet {
+    rotate: 0deg !important;
+    transition-duration: 1ms !important;
+  }
+  .note-corner .note-mini {
+    transition: none;
+  }
 }
 
-/* B: a page from a spiral notebook, its bottom torn */
-.note-lift {
-  max-width: 36rem;
-  margin-bottom: var(--mantine-spacing-lg);
-  filter: drop-shadow(0 8px 12px rgb(60 45 15 / 22%));
-  transform: rotate(-0.5deg);
-}
-.note-notebook {
-  padding: 1.75rem 1.25rem 1.75rem;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% 97.5%,
-    96% 99%,
-    91% 97.8%,
-    86% 99.4%,
-    80% 98%,
-    74% 99.6%,
-    68% 98.1%,
-    62% 99.2%,
-    56% 97.7%,
-    50% 99.5%,
-    44% 98%,
-    38% 99.3%,
-    32% 97.9%,
-    26% 99.6%,
-    20% 98.2%,
-    14% 99.2%,
-    8% 97.8%,
-    3% 99.3%,
-    0 98%
-  );
-}
-.note-spiral {
-  position: absolute;
-  inset: 0.45rem 0.75rem auto;
-  height: 0.7rem;
-  background: radial-gradient(circle at center, rgb(0 0 0 / 38%) 0 0.26rem, transparent 0.28rem) 0
-    0 / 1.6rem 100% repeat-x;
-}
-[data-mantine-color-scheme='dark'] .note-spiral {
-  background-image: radial-gradient(
-    circle at center,
-    rgb(0 0 0 / 70%) 0 0.26rem,
-    transparent 0.28rem
-  );
-}
-
-/* C: a sticky note, square and yellow, unruled, its corner curling up */
-.note-sticky {
-  max-width: 22rem;
-  justify-self: start;
-  --paper: #fdf0a6;
-  --paper-rule: transparent;
-  --paper-margin: transparent;
-  --paper-ink: #3a3414;
-  --paper-done: #6e6636;
-  --paper-tick: #2c6a33;
-  padding: 1.1rem 1.1rem 1.5rem;
-  border-bottom-right-radius: 2.2rem 0.5rem;
-  box-shadow:
-    0 1px 2px rgb(60 45 15 / 18%),
-    6px 14px 16px -10px rgb(60 45 15 / 45%);
-  transform: rotate(0.8deg);
-}
-[data-mantine-color-scheme='dark'] .note-sticky {
-  --paper: #57502a;
-  --paper-rule: transparent;
-  --paper-margin: transparent;
-  --paper-ink: #f6efcd;
-  --paper-done: #cfc79a;
-  --paper-tick: #a6e6a8;
-}
-.note-sticky .checklist-step {
-  height: 40px;
-}
 /* Plainer where contrast comes first: the sheet stays, its lines and tilt go */
 [data-high-contrast] .note .checklist {
   background: none;
 }
-[data-high-contrast] .note,
-[data-high-contrast] .note-lift {
-  filter: none;
+[data-high-contrast] .note-mini {
   transform: none;
-  clip-path: none;
+}
+[data-high-contrast] .note-sheet {
+  background: var(--paper);
 }
 
 /* Nothing shared yet: cooperatives' photos, softened, and what to do about it over them */
@@ -2490,7 +2448,7 @@ html[data-carrying] * {
  */
 @media (min-width: 75em) {
   html[data-layout='contained'] {
-    --frame-gutter: max(0px, calc((100vw - 92rem) / 2));
+    --frame-gutter: max(0px, calc((100vw - 96rem) / 2));
   }
   html[data-layout='contained'] .shell-sidebar {
     left: var(--frame-gutter);

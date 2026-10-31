@@ -3,7 +3,7 @@ import { LotteryPlan } from '@/components/domain/LotteryPlan';
 import { LotteryProgress } from '@/components/domain/LotteryProgress';
 import { usePlanFullScreen } from '@/components/domain/PlanFullScreen';
 import { RankingList } from '@/components/domain/RankingList';
-import { ChecklistNotebook, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
+import { ChecklistCorner, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -116,6 +116,11 @@ export default function Lottery({
       <PageHeader
         tour="lottery"
         title={_('Lottery')}
+        actions={
+          <Deferred data="setup" fallback={<></>}>
+            {setup && !isSetUp(setup) ? <ChecklistCorner setup={setup} /> : <></>}
+          </Deferred>
+        }
         description={lottery.description}
         help={
           <InfoTip title={_('How the lottery works')} tour="lottery">
@@ -192,10 +197,6 @@ export default function Lottery({
           )}
         </Alert>
       ) : null}
-
-      <Deferred data="setup" fallback={<></>}>
-        {setup && !isSetUp(setup) ? <ChecklistNotebook setup={setup} /> : <></>}
-      </Deferred>
 
       {admin ? (
         <LotteryAdminTools lottery={lottery} status={status} runnable={runnable} {...admin} />

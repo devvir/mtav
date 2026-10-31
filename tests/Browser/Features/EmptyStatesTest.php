@@ -78,3 +78,30 @@ it('puts cooperatives\' photos behind a home with nothing shared, and offers to 
         ->assertSeeIn('.shared-empty-note', 'Share something')
         ->assertNoSmoke();
 });
+
+it('shows everyone the road to the lottery on a note, growing over itself and back', function (string $name) {
+    aUnitType($this->project);
+    $this->as(aMemberOf(aFamily($this->project)));
+
+    $page = visit(route($name, $this->project))
+        ->assertMissing('.note-sheet')
+        ->click('.note-mini')
+        ->assertSeeIn('.note-sheet', 'Getting to the lottery')
+        ->assertNotPresent('.note-sheet a')
+        ->assertPresent('.note-mini[aria-expanded="true"]');
+
+    // Their top right corners together
+    expect($page->script('() => {
+        const corner = document.querySelector(".note-corner").getBoundingClientRect();
+        return Math.abs(document.querySelector(".note-sheet").offsetTop) + Math.abs(document.querySelector(".note-sheet").offsetLeft + document.querySelector(".note-sheet").offsetWidth - corner.width);
+    }'))->toBeLessThan(2);
+
+    // A click anywhere else, or Escape, and it goes back
+    $page->script('() => document.body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }))');
+    $page->assertMissing('.note-sheet')
+        ->click('.note-mini')
+        ->assertPresent('.note-sheet')
+        ->keys('.note-mini', 'Escape')
+        ->assertMissing('.note-sheet')
+        ->assertNoSmoke();
+})->with(['projects.show', 'lottery.show']);

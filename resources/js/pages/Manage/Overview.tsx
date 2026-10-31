@@ -1,4 +1,4 @@
-import { ChecklistSticky, type Setup } from '@/components/domain/SetupChecklist';
+import { ChecklistCorner, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -103,6 +103,11 @@ export default function Overview({ counts, checklist, approval }: Props) {
         tour="manage.setup"
         title={_('Settings')}
         description={project.name}
+        actions={
+          isSetUp(checklist) ? null : (
+            <ChecklistCorner setup={checklist} opened={!Object.values(checklist).some(Boolean)} />
+          )
+        }
         help={
           <InfoTip title={_('Setting up the project')} tour="manage.setup">
             {_(
@@ -134,9 +139,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
         ))}
       </div>
 
-      <div className="with-aside">
-        <ChecklistSticky setup={checklist} />
-
+      <div style={{ maxWidth: '21rem', marginLeft: 'auto' }}>
         <ProjectCapacity approval={approval} usage={usage} onAsk={requestApproval} />
       </div>
     </>
