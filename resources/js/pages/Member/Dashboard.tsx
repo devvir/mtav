@@ -67,6 +67,40 @@ interface Props {
  */
 const SHARED_EMPTY_PHOTOS = ['vicman', 'mutual-aid', 'work-day', 'fray-bentos'];
 
+/**
+ * This month as a wall calendar, softened, behind a project with nothing coming up: today lit,
+ * a few days coloured as the days of its events will be
+ */
+function MonthBackdrop() {
+  const today = new Date();
+  const first = new Date(today.getFullYear(), today.getMonth(), 1);
+  const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  // Weeks from Monday, as the app's calendars
+  const before = (first.getDay() + 6) % 7;
+  const tones = ['brand', 'accent', 'info', 'positive'];
+
+  return (
+    <div className="month-backdrop" aria-hidden>
+      {Array.from({ length: before }, (_unused, index) => (
+        <span key={`before-${index}`} data-blank />
+      ))}
+      {Array.from({ length: days }, (_unused, index) => {
+        const day = index + 1;
+        const lit = day % 5 === 2 || day % 7 === 3;
+        return (
+          <span
+            key={day}
+            data-today={day === today.getDate() || undefined}
+            data-tone={lit ? tones[day % tones.length] : undefined}
+          >
+            {day}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Someone who joined with no family: they start theirs, or someone of it adds them */
 function NoFamilyYet({ types }: { types: Ref[] }) {
   const [creating, setCreating] = useState(false);
@@ -309,24 +343,20 @@ export default function Dashboard({
                   ))}
                 </Stack>
               ) : (
-                <EmptyState
-                  inset
-                  icon={IconCalendarEvent}
-                  title={_('No events coming up')}
-                  action={
-                    project.can.manage ? (
-                      <Button
-                        component={Link}
-                        href={route('events.index', { new: 1 })}
-                        variant="light"
-                      >
+                <div className="shared-empty">
+                  <MonthBackdrop />
+                  <div className="shared-empty-note">
+                    <p className="ds-empty-title">{_('No events coming up')}</p>
+                    <p className="ds-caption ds-empty-text">
+                      {_('Assemblies, work days and meetings show up here.')}
+                    </p>
+                    {project.can.manage ? (
+                      <Button component={Link} href={route('events.index', { new: 1 })}>
                         {_('Create an event')}
                       </Button>
-                    ) : null
-                  }
-                >
-                  {_('Assemblies, work days and meetings show up here.')}
-                </EmptyState>
+                    ) : null}
+                  </div>
+                </div>
               )}
             </Deferred>
           </FoldablePanel>

@@ -2301,6 +2301,61 @@ html[data-carrying] * {
 .shared-empty-note .ds-empty-title {
   margin: 0;
 }
-[data-high-contrast] .shared-empty-photos {
+/* Nothing coming up: this month as a wall calendar, softened, behind the same note */
+.month-backdrop {
+  position: absolute;
+  z-index: -1;
+  inset: -6px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 5px;
+  padding: 8px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--mtav-brand) 22%, var(--mantine-color-body)),
+    color-mix(in srgb, var(--mtav-accent, var(--mtav-info)) 24%, var(--mantine-color-body))
+  );
+  filter: blur(1.5px) saturate(120%);
+}
+.month-backdrop span {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--mtav-text) 55%, transparent);
+  background: color-mix(in srgb, var(--mantine-color-body) 62%, transparent);
+}
+.month-backdrop span[data-blank] {
+  background: none;
+}
+.month-backdrop span[data-tone='brand'] {
+  color: #fff;
+  background: var(--mtav-brand);
+}
+.month-backdrop span[data-tone='accent'] {
+  color: #fff;
+  background: var(--mtav-accent, var(--mtav-brand));
+}
+.month-backdrop span[data-tone='info'] {
+  color: #fff;
+  background: var(--mtav-info);
+}
+.month-backdrop span[data-tone='positive'] {
+  color: #fff;
+  background: var(--mtav-positive);
+}
+/* Colour for the card, never competing with what is written over it */
+.month-backdrop span[data-tone] {
+  opacity: 0.72;
+}
+.month-backdrop span[data-today] {
+  box-shadow: inset 0 0 0 2px var(--mtav-text);
+}
+[data-high-contrast] .shared-empty-photos,
+[data-high-contrast] .month-backdrop {
   display: none;
 }

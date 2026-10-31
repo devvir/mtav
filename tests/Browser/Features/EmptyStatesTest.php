@@ -73,6 +73,7 @@ it('puts cooperatives\' photos behind a home with nothing shared, and offers to 
 
     visit(route('projects.show', $this->project))
         ->assertPresent('.shared-empty-photos img')
+        ->assertPresent('.month-backdrop span[data-today]')
         ->assertSeeIn('.shared-empty-note', 'Nothing shared yet')
         ->assertSeeIn('.shared-empty-note', 'Share something')
         ->assertNoSmoke();
