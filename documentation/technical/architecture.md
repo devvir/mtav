@@ -112,11 +112,15 @@ take nothing from the day's messages, and work with no brain at all. Messages wr
 are answered once. Someone's first arrival opens the conversation by itself (`users.welcomed_at`),
 its greeting drawn by the page, with the page's tour offered instead of played.
 
-It answers through a `Brain`: `ApiBrain` (the official SDK; `ANTHROPIC_API_KEY`, the deployed way)
-or `CliBrain` (the Claude command line on a signed-in account, a developer's machine only). With
+It answers through a `Brain`: `ApiBrain` (the official SDK; `ANTHROPIC_API_KEY`) or `CliBrain`
+(the Claude command line on a signed-in account). Failing a few times in a row, whatever the reason
+(spent, down, a bad key), it rests a quarter of an hour: it asks nothing, says to try again in a
+while with the guide at hand, and still gives what needs no model. With
 neither it says it is not available for anything that needs the model, greets nobody, and nothing
-leaves the server. A signed-in subscription account never serves a deployed site: Anthropic does
-not allow routing other people's requests through one. `php artisan assistant:try`
+leaves the server. A signed-in subscription account is for its owner trying things: this machine, or
+dev and staging while only they use them (its token in the environment's `.env`). Production refuses
+it, and anyone else using a site needs the key: Anthropic does not allow routing other people's
+requests through a subscription. `php artisan assistant:try`
 runs a set of real questions through the real prompt, its answers shown to be judged.
 
 ## The plan

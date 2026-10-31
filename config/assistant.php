@@ -2,18 +2,21 @@
 
 /**
  * The Assistant: the chat's guide to the app. It answers through a "brain": the API (a key with
- * a spending cap), or, on a developer's machine, the Claude command line on a signed-in account.
+ * a spending cap), or the Claude command line on a signed-in account, for a developer trying it
+ * on their machine, dev or staging; never in production, where it serves other people.
  * Off, it says it is not available, and nothing is sent anywhere.
  */
+$driver = env('ASSISTANT_DRIVER', env('ANTHROPIC_API_KEY') ? 'api' : 'off');
+
 return [
     /** api, cli or off */
-    'driver' => env('ASSISTANT_DRIVER', env('ANTHROPIC_API_KEY') ? 'api' : 'off'),
+    'driver' => $driver === 'cli' && env('MTAV_ENV') === 'production' ? 'off' : $driver,
 
     /** The API's model and key */
     'model'   => env('ASSISTANT_MODEL', 'claude-haiku-5-5'),
     'api_key' => env('ANTHROPIC_API_KEY'),
 
-    /** The command line's model, and the signed-in account's folder it runs on */
+    /** The command line's model, and the signed-in account's folder it runs on (a token in CLAUDE_CODE_OAUTH_TOKEN needs none) */
     'cli_model' => env('ASSISTANT_CLI_MODEL', 'haiku'),
     'cli_home'  => env('ASSISTANT_CLI_HOME'),
 

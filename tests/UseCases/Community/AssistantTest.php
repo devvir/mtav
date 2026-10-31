@@ -36,6 +36,25 @@ function brainAnswering(?array $answer): object
     return $brain;
 }
 
+/** A brain that always fails, and counts how many times it was asked */
+function failingBrain(): object
+{
+    $brain = new class () implements Brain {
+        public int $asked = 0;
+
+        public function ask(string $instructions, string $context, array $history): ?array
+        {
+            $this->asked++;
+
+            throw new RuntimeException('Spent');
+        }
+    };
+    app()->instance(Brain::class, $brain);
+    config(['assistant.driver' => 'api']);
+
+    return $brain;
+}
+
 function assistantOf($user, $project): Conversation
 {
     return Conversation::where('project_id', $project->id)->where('pair', "assistant:{$user->id}")->sole();
@@ -344,6 +363,60 @@ describe('What it costs', function () {
     });
 });
 
+describe('When it cannot answer', function () {
+    it('rests after failing a few times, asking nothing, and answers again after', function () {
+        $brain = failingBrain();
+
+        foreach (range(1, 3) as $try) {
+            $answer = askAssistant($this->member, $this->project);
+            expect($answer->body)->toBe(__('chat.assistant_trouble'))
+                ->and($answer->extras['actions'][0]['href'])->toContain('guide');
+        }
+
+        expect(askAssistant($this->admin, $this->project)->body)->toBe(__('chat.assistant_resting'))
+            ->and($brain->asked)->toBe(3);
+
+        $this->travel(16)->minutes();
+        brainAnswering(['text' => 'Back', 'actions' => []]);
+        expect(askAssistant($this->admin, $this->project)->body)->toBe('Back');
+    });
+
+    it('still gives what needs no model while it rests', function () {
+        $brain = failingBrain();
+        foreach (range(1, 3) as $try) {
+            askAssistant($this->member, $this->project);
+        }
+
+        expect(askAssistant($this->member, $this->project, 'How does the lottery work?')->body)->toBe(__('chat.ready.lottery'))
+            ->and($brain->asked)->toBe(3);
+    });
+
+    it('takes what it failed to answer from nobody\'s messages of the day', function () {
+        config(['assistant.per_person_per_day' => 1]);
+        $this->project->forceFill(['approved_at' => now()])->save();
+        failingBrain();
+        askAssistant($this->member, $this->project);
+        askAssistant($this->member, $this->project);
+
+        brainAnswering(['text' => 'Sure', 'actions' => []]);
+        expect(askAssistant($this->member, $this->project)->body)->toBe('Sure');
+    });
+
+    it('starts counting again once it answers', function () {
+        failingBrain();
+        askAssistant($this->member, $this->project);
+        askAssistant($this->member, $this->project);
+        brainAnswering(['text' => 'Sure', 'actions' => []]);
+        askAssistant($this->member, $this->project);
+
+        $brain = failingBrain();
+        askAssistant($this->member, $this->project);
+        askAssistant($this->member, $this->project);
+        expect($brain->asked)->toBe(2)
+            ->and(askAssistant($this->member, $this->project)->body)->toBe(__('chat.assistant_trouble'));
+    });
+});
+
 describe('What needs no model', function () {
     it('answers greetings and thanks by itself, whatever the capitals or accents', function () {
         $brain = brainAnswering(['text' => 'Never', 'actions' => []]);
@@ -433,6 +506,21 @@ describe('Greeting someone new', function () {
 
         expect($this->as($this->member, $this->project)->get(route('projects.show', $this->project))->viewData('page')['props']['project']['welcome'])->toBeNull();
     });
+});
+
+it('never runs on a signed-in account in production, whatever its settings say', function () {
+    putenv('ASSISTANT_DRIVER=cli');
+    putenv('MTAV_ENV=production');
+
+    try {
+        expect((require config_path('assistant.php'))['driver'])->toBe('off');
+
+        putenv('MTAV_ENV=staging');
+        expect((require config_path('assistant.php'))['driver'])->toBe('cli');
+    } finally {
+        putenv('ASSISTANT_DRIVER');
+        putenv('MTAV_ENV');
+    }
 });
 
 it('knows what everyone sees of the road to the lottery, and no hour', function () {

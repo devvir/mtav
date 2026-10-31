@@ -9,6 +9,7 @@ return [
     'assistant_limit'   => 'Thank you for asking! I have answered all I can for you today. Please write again tomorrow and I will gladly help. Until then, the guide has plenty of answers.',
     'assistant_busy'    => 'I have had a lot of questions today and cannot answer any more. Please try again tomorrow, and I will gladly help. Until then, the guide has plenty of answers.',
     'assistant_trouble' => 'Sorry, I could not answer just now. Please try again in a moment.',
+    'assistant_resting' => 'I cannot answer right now. Please try again in a little while, and I will gladly help. Until then, the guide has plenty of answers.',
     'assistant_guide'   => 'Open the guide',
 
     // What the Assistant answers with no model: greetings, thanks, and the questions it offers

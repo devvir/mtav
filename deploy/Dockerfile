@@ -34,6 +34,12 @@ FROM dunglas/frankenphp:1.13.4-php8.5.12-alpine AS app
 RUN apk add --no-cache ffmpeg glpk \
     && install-php-extensions bcmath exif gd intl opcache pcntl pdo_mysql sockets zip
 
+# The Claude command line: the Assistant on a signed-in account, in dev and staging (config/assistant.php)
+ARG CLAUDE_CODE_VERSION=2.1.316
+RUN apk add --no-cache libgcc libstdc++ ripgrep npm \
+    && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+    && apk del npm
+
 COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
 COPY deploy/php.ini $PHP_INI_DIR/conf.d/99-mtav.ini
 

@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
@@ -22,6 +23,11 @@ class Assistant
     private const ACTIONS = 3;
     private const LABEL_CHARS = 60;
     private const TEXT_CHARS = 1500;
+    private const RESTING = 'assistant.resting';
+    private const REST = 900;
+    private const STUMBLES = 'assistant.stumbles';
+    private const STUMBLES_FOR = 600;
+    private const STUMBLES_TO_REST = 3;
 
     public function __construct(private Brain $brain, private Prompt $prompt, private Places $places, private ReadyAnswers $ready)
     {
@@ -53,11 +59,14 @@ class Assistant
 
         if ($refusal = $this->overLimit($user, $conversation->project)) {
             $this->free($question);
-            $this->say($conversation, __($refusal), $this->actions(
-                [['type' => 'link', 'place' => 'guide', 'label' => __('chat.assistant_guide')]],
-                $user,
-                $conversation,
-            ));
+            $this->say($conversation, __($refusal), $this->toTheGuide($user, $conversation));
+
+            return;
+        }
+
+        if (Cache::has(self::RESTING)) {
+            $this->free($question);
+            $this->say($conversation, __('chat.assistant_resting'), $this->toTheGuide($user, $conversation));
 
             return;
         }
@@ -71,10 +80,14 @@ class Assistant
         $text = is_array($answer) ? $this->text($answer['text'] ?? null) : '';
 
         if ($text === '') {
-            $this->say($conversation, __('chat.assistant_trouble'));
+            $this->free($question);
+            $this->stumbled();
+            $this->say($conversation, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
 
             return;
         }
+
+        Cache::forget(self::STUMBLES);
 
         $this->say($conversation, $text, $this->actions($answer['actions'] ?? null, $user, $conversation));
     }
@@ -97,6 +110,28 @@ class Assistant
         rescue(fn () => MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all()));
 
         return $message;
+    }
+
+    /**
+     * Failing again and again (spent, down, a bad key: all alike from here), it rests: nobody
+     * waits for an answer that will not come, and whatever is failing is left alone a while
+     */
+    private function stumbled(): void
+    {
+        Cache::add(self::STUMBLES, 0, self::STUMBLES_FOR);
+        if (Cache::increment(self::STUMBLES) >= self::STUMBLES_TO_REST) {
+            Cache::put(self::RESTING, true, self::REST);
+            Cache::forget(self::STUMBLES);
+        }
+    }
+
+    private function toTheGuide(User $user, Conversation $conversation): array
+    {
+        return $this->actions(
+            [['type' => 'link', 'place' => 'guide', 'label' => __('chat.assistant_guide')]],
+            $user,
+            $conversation,
+        );
     }
 
     /** It reached no model: it takes nothing from the person's messages of the day */

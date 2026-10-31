@@ -6,8 +6,8 @@ use App\Services\Assistant\Brain;
 use Illuminate\Support\Facades\Process;
 
 /**
- * Claude through its command line, on a signed-in account: for a developer's machine. It runs
- * with no tools and none of the account's settings or memory: words in, words out.
+ * Claude through its command line, on a signed-in account: for a developer trying it, never in
+ * production (config/assistant.php). It runs with no tools and none of the account's settings or memory: words in, words out.
  */
 class CliBrain implements Brain
 {
@@ -19,7 +19,7 @@ class CliBrain implements Brain
 
         $result = Process::timeout(config('assistant.timeout'))
             ->path('/tmp')
-            ->env(['HOME' => config('assistant.cli_home'), 'DISABLE_AUTOUPDATER' => '1'])
+            ->env(array_filter(['HOME' => config('assistant.cli_home'), 'DISABLE_AUTOUPDATER' => '1']))
             ->run([
                 'claude', '-p', "The conversation so far:\n\n{$transcript}\n\nAnswer the person's last message.",
                 '--model', config('assistant.cli_model'),

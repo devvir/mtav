@@ -9,6 +9,7 @@ return [
     'assistant_limit'   => 'Merci pour vos questions ! Pour aujourd’hui, j’ai répondu à tout ce que je pouvais. Réécrivez-moi demain et je vous aiderai avec plaisir. D’ici là, le guide contient beaucoup de réponses.',
     'assistant_busy'    => 'J’ai reçu énormément de questions aujourd’hui et je ne peux plus répondre. Réessayez demain et je vous aiderai avec plaisir. D’ici là, le guide contient beaucoup de réponses.',
     'assistant_trouble' => 'Désolé, je n’ai pas pu répondre. Réessayez dans un instant.',
+    'assistant_resting' => 'Je ne peux pas répondre pour le moment. Réessayez d’ici un moment et je vous aiderai avec plaisir. D’ici là, le guide contient beaucoup de réponses.',
     'assistant_guide'   => 'Ouvrir le guide',
 
     // What the Assistant answers with no model: greetings, thanks, and the questions it offers
