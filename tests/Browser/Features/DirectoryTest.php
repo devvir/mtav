@@ -25,7 +25,7 @@ it('finds a project from the selector, joins it, creates a family, and sees ever
     }
 
     $page->navigate(route('projects.show', $open))
-        ->click('Join your family')
+        ->click('a:has-text("Join your family")')
         ->click('button:has-text("Mine is not here")')
         ->fill('input[name="name"]', 'Silva Pereira')
         ->click('[role="dialog"] button[type="submit"]')
