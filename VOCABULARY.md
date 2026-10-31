@@ -28,6 +28,7 @@ here. Never say someone "has no family", "does not have a family", or "is family
 | --- | --- | --- | --- |
 | **Deployment** | One installation of the app, with its own people and projects: dev, staging or production. | `MTAV_ENV` | |
 | **Variant** | What a deployment is made to be: its name, landing page, words, and which parts of the app it offers. MTAV is one, running as dev, staging and production. Say "app variant" where "variant" alone is unclear. | | |
+| **Module** | A part of the app a variant has or lacks. Every route belongs to one. | `module:…` | |
 | **Project** | One housing cooperative building its homes. Everything else belongs to one. | `Project` | proyecto |
 | **Limited** / **unlimited** | A project nobody vetted yet has limits that fit most cooperatives. A superadmin's approval makes it unlimited. A fact, never a warning. | `isApproved()` | limitado |
 | **Directory** | Where listed projects can be found and joined. | `DirectoryService` | Encontrar un proyecto |
@@ -64,6 +65,17 @@ light or dark) are also called preferences, in their profile.
 
 **Say it this way:** the lottery is never a competition. Families do not compete, nobody wins or loses:
 each family *receives* a unit, and the lottery makes what each gets as good as it can.
+
+## Lotteries in general
+
+| Word | What it means | In code | Spanish |
+| --- | --- | --- | --- |
+| **Participant** | Who receives in a lottery. In MTAV, a family; in Open Lottery, a person. | `participants` | |
+| **Item** | What a lottery gives out. In MTAV, a unit; in Open Lottery, whatever its organizer names. | `items` | |
+| **Group** | Participants and items solved together. In MTAV, a unit type. | `data` of `LotteryManifest` | |
+| **Host** | What a lottery belongs to: a project or an open lottery. | `LotteryHost` | |
+| **Open lottery** | A lottery with no accounts, known by its link, in the Open Lottery variant. | `OpenLottery` | |
+| **Organizer** | Who created an open lottery, and alone runs it. | `organizer_key` | quien organiza |
 
 ## Life of the project
 

@@ -26,6 +26,11 @@ trait BroadcastsProjectChanges
     protected function announce(string $action): void
     {
         $projectId = $this->project_id;
+
+        if (! $projectId) {
+            return;
+        }
+
         $resource = property_exists($this, 'broadcastAs')
             ? $this->broadcastAs
             : Str::snake(Str::plural(class_basename($this)));

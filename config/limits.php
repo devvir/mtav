@@ -37,6 +37,13 @@ return [
     /** Days before someone declined may ask to join the same project again */
     'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),
 
+    /** Open lotteries: anyone may write in them, so each stays small and none stays for ever */
+    'open_lottery' => [
+        'participants' => (int) env('OPEN_LOTTERY_PARTICIPANTS', 50),
+        'items'        => (int) env('OPEN_LOTTERY_ITEMS', 100),
+        'kept_days'    => (int) env('OPEN_LOTTERY_KEPT_DAYS', 90),
+    ],
+
     /** Absolute ceiling for any uploaded file, approved projects included */
     'media_file_max_mb' => (int) env('MEDIA_FILE_MAX_MB', 200),
 ];

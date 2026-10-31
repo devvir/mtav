@@ -21,6 +21,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AccountLayout } from './layouts/AccountLayout';
 import { AuthLayout } from './layouts/AuthLayout';
+import { OpenLayout } from './layouts/OpenLayout';
 import { PlatformLayout } from './layouts/PlatformLayout';
 import { ProjectLayout } from './layouts/ProjectLayout';
 
@@ -37,6 +38,7 @@ const LAYOUTS: [string, Layout][] = [
   ['Member/', ProjectLayout],
   ['Manage/', ProjectLayout],
   ['Platform/', PlatformLayout],
+  ['Open/', OpenLayout],
 ];
 
 createInertiaApp({

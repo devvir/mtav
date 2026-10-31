@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\RecordsActivity;
-use Illuminate\Validation\ValidationException;
 use App\Enums\EventType;
 use App\Enums\LotteryRunStatus;
 use App\Enums\ProjectFeature;
+use App\Models\Concerns\RecordsActivity;
+use App\Support\Variant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\ValidationException;
 
 /**
  * A housing project. Until a superadmin approves it (trusts its managers), it works
@@ -217,13 +218,14 @@ class Project extends Model
     {
         $name = $feature instanceof ProjectFeature ? $feature->value : $feature;
 
-        return ! in_array($name, $this->disabled_features ?? [], true);
+        return Variant::offers($name) && ! in_array($name, $this->disabled_features ?? [], true);
     }
 
     /** @return array<string, bool>  each feature, and whether it is on */
     public function features(): array
     {
         return collect(ProjectFeature::cases())
+            ->filter(fn (ProjectFeature $feature) => Variant::offers($feature->value))
             ->mapWithKeys(fn (ProjectFeature $feature) => [$feature->value => $this->hasFeature($feature)])
             ->all();
     }

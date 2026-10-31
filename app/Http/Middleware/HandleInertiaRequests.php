@@ -9,7 +9,9 @@ use App\Models\Notification;
 use App\Models\Project;
 use App\Http\Resources\NotificationResource;
 use App\Models\User;
+use App\Support\Variant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -24,6 +26,19 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+    /** The routes the browser may call: those of parts of the app this variant has */
+    private function routes(): array
+    {
+        $routes = (new Ziggy())->toArray();
+        $routes['routes'] = array_filter(
+            $routes['routes'],
+            fn (string $name) => Variant::opens(Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? []),
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        return $routes;
+    }
+
     public function share(Request $request): array
     {
         /** @var User|null $user */
@@ -57,7 +72,7 @@ class HandleInertiaRequests extends Middleware
              * The route list, sent once (the client remembers it), and what changes per visit:
              * the defaults (the project being browsed), where one is and the route's name
              */
-            'routes' => Inertia::once(fn () => (new Ziggy())->toArray()),
+            'routes' => Inertia::once(fn () => $this->routes()),
             /** Where browsers reach the websocket server (null: no live updates) */
             'realtime' => Inertia::once(fn () => $this->realtime()),
             'ziggy'    => fn () => [

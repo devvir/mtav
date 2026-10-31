@@ -161,12 +161,10 @@ decision taken on the way is listed below for review.
   guests reach it from the menu and their profile, and those in a family from a quiet link on
   their family's card; the guide and the Assistant explain it.
 - **Next, agreed in outline**:
-  - *Variants*: an unversioned `spec.yaml` (with a versioned
-    `spec.example.yaml`) defines a variant's traits: its landing page, registration on or
-    off, which project settings exist at all, defaults for new projects. Today's app is the
-    default spec, everything on and everything configurable. MTAV's spec does not offer turning
-    the lottery off; others may. What to ask of people on joining (phone, picture, ID number,
-    each off, optional or required) is a project setting a spec may fix or remove.
+  - *Variants*: see [variants.md](variants.md). Still to come: registration on or off,
+    defaults for new projects, and whether the lottery may be off. What to ask of people on
+    joining (phone, picture, ID number, each off, optional or required) is a project setting a
+    variant may fix or remove.
   - *Who can do what, and project types*: predefined types of project that set the on/off
     features at once; the housing cooperative (MTAV) is the type with everything.
 - **Text size**: each person picks Small, Medium or Large (in the header, and Preferences; kept

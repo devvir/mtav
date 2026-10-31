@@ -388,7 +388,7 @@ function Credit({ photo, last }: { photo: (typeof PHOTOS)[keyof typeof PHOTOS]; 
 }
 
 /** The language of the page, each named in itself; the account they sign in to keeps it */
-function LanguagePicker({ locales }: { locales: Record<string, string> }) {
+export function LanguagePicker({ locales }: { locales: Record<string, string> }) {
   const current = getLocale();
   const pick = (locale: string) =>
     locale !== current &&

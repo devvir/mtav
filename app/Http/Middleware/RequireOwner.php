@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\Variant;
 use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -29,7 +30,8 @@ class RequireOwner
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (self::$owned || Cache::get(self::KNOWN) || $request->routeIs(...self::PUBLIC)) {
+        // A variant with no accounts has no owner to wait for
+        if (! Variant::has('accounts') || self::$owned || Cache::get(self::KNOWN) || $request->routeIs(...self::PUBLIC)) {
             return $next($request);
         }
 

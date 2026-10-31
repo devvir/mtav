@@ -66,6 +66,24 @@ export function useProjectChanges(reloads: Record<string, string[]>) {
   }, [projectId, userId]);
 }
 
+/**
+ * Keep an open lottery's page current: at once when told, and by asking now and then, for a page
+ * that lost its connection (or a server with none).
+ */
+export function useOpenLotteryChanges(slug: string) {
+  useEffect(() => {
+    const reload = () => router.reload();
+    const every = window.setInterval(reload, 15000);
+
+    if (realtimeEnabled()) echo().channel(`open-lottery.${slug}`).listen('.changed', reload);
+
+    return () => {
+      window.clearInterval(every);
+      if (realtimeEnabled()) echo().leaveChannel(`open-lottery.${slug}`);
+    };
+  }, [slug]);
+}
+
 /** Show notifications as they arrive (the shell, once), and keep the unread counter current */
 export function useLiveNotifications() {
   const { props } = usePage();

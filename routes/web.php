@@ -15,6 +15,7 @@ use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\Manage;
 use App\Http\Controllers\Member;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OpenLotteryController;
 use App\Http\Controllers\Platform;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -32,6 +33,9 @@ use Illuminate\Support\Facades\Route;
  *  - admin tools, /projects/{project}/manage/…         what admins do on them, and the
  *    few pages only admins have
  *  - the platform console, /admin/…                    superadmins only
+ *
+ * Each belongs to a module, the part of the app it is (`module:…`): a variant without that
+ * module does not have the route. Only what every variant has goes without one (tests/Arch/VariantsTest.php).
  */
 
 Route::get('ping', fn () => 'pong');
@@ -42,7 +46,7 @@ Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
 /**
  * Accounts
  */
-Route::middleware('guest')->group(function () {
+Route::middleware(['module:accounts', 'guest'])->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:10,1');
 
@@ -65,19 +69,21 @@ Route::middleware('guest')->group(function () {
 /** The landing page for guests; everyone else goes on to their projects */
 Route::get('/', HomeController::class)->name('home');
 /** For anyone: the member manual (to share, and to read before joining), and privacy */
-Route::get('manual', [DocumentationController::class, 'manual'])->name('manual');
+Route::get('manual', [DocumentationController::class, 'manual'])->middleware('module:manual')->name('manual');
 Route::get('privacy', [DocumentationController::class, 'privacy'])->name('privacy');
 
 /** The language picked, before signing in too (it then becomes the account's) */
 Route::put('language', LanguageController::class)->middleware('throttle:20,1')->name('language');
 
 /** Invitation links work for guests and signed-in people alike */
-Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('invitation.show');
-Route::post('invitations/{token}', [InvitationController::class, 'accept'])
-    ->middleware('throttle:10,1')
-    ->name('invitation.accept');
+Route::middleware('module:accounts')->group(function () {
+    Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('invitation.show');
+    Route::post('invitations/{token}', [InvitationController::class, 'accept'])
+        ->middleware('throttle:10,1')
+        ->name('invitation.accept');
+});
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['module:accounts', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
@@ -92,7 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::get('documentation/guide', [DocumentationController::class, 'guide'])->name('documentation.guide');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
     /** Settings */
     Route::redirect('settings', '/settings/profile');
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -113,161 +119,164 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('push.subscribe');
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
-    /** The projects listed for anyone to find, and joining them */
-    Route::get('directory', [DirectoryController::class, 'index'])->name('directory.index');
-    Route::post('directory/{project}/join', [DirectoryController::class, 'join'])->name('directory.join');
-    // Each request tells the project's admins: a few a minute are plenty
-    Route::post('directory/{project}/request', [DirectoryController::class, 'ask'])
-        ->middleware('throttle:10,1')
-        ->name('directory.ask');
-    Route::delete('directory/{project}/request', [DirectoryController::class, 'withdraw'])->name('directory.withdraw');
+    Route::middleware('module:projects')->group(function () {
+        /** The projects listed for anyone to find, and joining them */
+        Route::get('directory', [DirectoryController::class, 'index'])->name('directory.index');
+        Route::post('directory/{project}/join', [DirectoryController::class, 'join'])->name('directory.join');
+        // Each request tells the project's admins: a few a minute are plenty
+        Route::post('directory/{project}/request', [DirectoryController::class, 'ask'])
+            ->middleware('throttle:10,1')
+            ->name('directory.ask');
+        Route::delete('directory/{project}/request', [DirectoryController::class, 'withdraw'])->name('directory.withdraw');
 
-    /** One's projects; starting one */
-    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
-    Route::post('my-invitations/{invitation}', [InvitationController::class, 'respond'])->name('invitations.respond');
+        /** One's projects; starting one */
+        Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
+        Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+        Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::post('my-invitations/{invitation}', [InvitationController::class, 'respond'])->name('invitations.respond');
 
-    /**
-     * The member app
-     */
-    Route::prefix('projects/{project}')
-        ->middleware(ResolveProject::class)
-        ->scopeBindings()
-        ->group(function () {
-            Route::get('/', Member\DashboardController::class)->name('projects.show');
+        /**
+         * The member app
+         */
+        Route::prefix('projects/{project}')
+            ->middleware(ResolveProject::class)
+            ->scopeBindings()
+            ->group(function () {
+                Route::get('/', Member\DashboardController::class)->name('projects.show');
 
-            Route::get('people', [Member\PeopleController::class, 'index'])->name('people.index');
-            Route::get('people/{member}', [Member\PeopleController::class, 'show'])->name('people.show');
-            Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
+                Route::get('people', [Member\PeopleController::class, 'index'])->name('people.index');
+                Route::get('people/{member}', [Member\PeopleController::class, 'show'])->name('people.show');
+                Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
 
-            Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
-            Route::get('family/new', [Member\FamilyController::class, 'create'])->name('family.create');
-            Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
-            Route::delete('family/membership', [Member\FamilyController::class, 'leave'])->name('family.leave');
-            Route::post('families/{family}/requests', [Member\FamilyJoinRequestController::class, 'store'])->middleware('throttle:30,1')->name('family.requests.store');
-            Route::delete('family-requests/{familyJoinRequest}', [Member\FamilyJoinRequestController::class, 'destroy'])->name('family.requests.destroy');
-            Route::put('family-requests/{familyJoinRequest}/accept', [Member\FamilyJoinRequestController::class, 'accept'])->name('family.requests.accept');
-            Route::put('family-requests/{familyJoinRequest}/decline', [Member\FamilyJoinRequestController::class, 'decline'])->name('family.requests.decline');
-            Route::put('family-requests/{familyJoinRequest}/undecline', [Member\FamilyJoinRequestController::class, 'undecline'])->name('family.requests.undecline');
-            Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
+                Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
+                Route::get('family/new', [Member\FamilyController::class, 'create'])->name('family.create');
+                Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
+                Route::delete('family/membership', [Member\FamilyController::class, 'leave'])->name('family.leave');
+                Route::post('families/{family}/requests', [Member\FamilyJoinRequestController::class, 'store'])->middleware('throttle:30,1')->name('family.requests.store');
+                Route::delete('family-requests/{familyJoinRequest}', [Member\FamilyJoinRequestController::class, 'destroy'])->name('family.requests.destroy');
+                Route::put('family-requests/{familyJoinRequest}/accept', [Member\FamilyJoinRequestController::class, 'accept'])->name('family.requests.accept');
+                Route::put('family-requests/{familyJoinRequest}/decline', [Member\FamilyJoinRequestController::class, 'decline'])->name('family.requests.decline');
+                Route::put('family-requests/{familyJoinRequest}/undecline', [Member\FamilyJoinRequestController::class, 'undecline'])->name('family.requests.undecline');
+                Route::get('families/{family}', [Member\FamilyController::class, 'show'])->name('families.show');
 
-            /** Members invite people into their own family */
-            Route::get('invitations', [Member\InvitationController::class, 'index'])->name('invitations.index');
-            Route::post('invitations', [Member\InvitationController::class, 'store'])
-                ->middleware('throttle:30,1')
-                ->name('invitations.store');
-            Route::delete('invitations/{invitation}', [Member\InvitationController::class, 'destroy'])
-                ->name('invitations.destroy');
-
-            Route::get('units', [Member\UnitController::class, 'index'])->name('units.index');
-            // The same page, its plan open for drawing (admins)
-            Route::get('units/edit', [Member\UnitController::class, 'index'])
-                ->middleware('can:update,project')
-                ->name('units.edit');
-            Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
-
-            Route::middleware(EnsureFeature::class . ':events')->group(function () {
-                Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
-                Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
-                Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
-            });
-
-            /** The chat: conversations between its people, one on one or in groups */
-            Route::middleware(EnsureFeature::class . ':chat')->group(function () {
-                Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
-                Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
-                Route::get('chat/panel', [Member\ChatController::class, 'panel'])->name('chat.panel');
-                Route::post('chat/welcomed', [Member\ChatController::class, 'welcomed'])->name('chat.welcomed');
-                Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
-                Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
-                Route::put('chat/{conversation}/pin', [Member\ChatController::class, 'pin'])->name('chat.pin');
-                Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
-                Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
-                Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
-            });
-
-            /** The forum: topics, each a conversation */
-            Route::middleware(EnsureFeature::class . ':forum')->group(function () {
-                Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
-                Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
-                Route::get('forum/{topic}', [Member\ForumController::class, 'show'])->name('forum.show');
-                Route::put('forum/{topic}', [Member\ForumController::class, 'update'])->name('forum.update');
-                Route::delete('forum/{topic}', [Member\ForumController::class, 'destroy'])->name('forum.destroy');
-                Route::post('forum/{topic}/posts', [Member\ForumController::class, 'reply'])->middleware('throttle:60,1')->name('forum.reply');
-                Route::put('forum/posts/{post}', [Member\ForumController::class, 'updatePost'])->name('forum.posts.update');
-                Route::delete('forum/posts/{post}', [Member\ForumController::class, 'destroyPost'])->name('forum.posts.destroy');
-            });
-
-            Route::middleware(EnsureFeature::class . ':gallery,files')->group(function () {
-                Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
-                Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
-                Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
-            });
-
-            Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
-            Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
-            Route::get('lottery/runs/{lotteryRun}', [Member\LotteryController::class, 'record'])->name('lottery.record');
-            Route::get('lottery/runs/{lotteryRun}/record.json', [Member\LotteryController::class, 'download'])
-                ->name('lottery.download');
-
-            /**
-             * The project admin area
-             */
-            Route::prefix('manage')->name('manage.')->middleware('can:update,project')->group(function () {
-                Route::get('/', Manage\OverviewController::class)->name('overview');
-
-                Route::get('settings', [Manage\SettingsController::class, 'edit'])->name('settings.edit');
-                Route::put('settings', [Manage\SettingsController::class, 'update'])->name('settings.update');
-                Route::delete('settings', [Manage\SettingsController::class, 'destroy'])->name('settings.destroy');
-                // Each request tells every superadmin: a few a day are plenty
-                Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])
-                    ->middleware('throttle:3,60')
-                    ->name('approval.request');
-
-                // The project's lists, as spreadsheets
-                Route::get('export/people.csv', [Manage\ExportController::class, 'people'])->name('export.people');
-                Route::get('export/families.csv', [Manage\ExportController::class, 'families'])->name('export.families');
-                Route::get('export/units.csv', [Manage\ExportController::class, 'units'])->name('export.units');
-
-                Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
-                Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
-
-                Route::get('invitations', [Manage\InvitationController::class, 'index'])->name('invitations.index');
-                Route::post('invitations', [Manage\InvitationController::class, 'store'])
-                    ->middleware('throttle:60,1')
+                /** Members invite people into their own family */
+                Route::get('invitations', [Member\InvitationController::class, 'index'])->name('invitations.index');
+                Route::post('invitations', [Member\InvitationController::class, 'store'])
+                    ->middleware('throttle:30,1')
                     ->name('invitations.store');
-                Route::delete('invitations/{invitation}', [Manage\InvitationController::class, 'destroy'])
+                Route::delete('invitations/{invitation}', [Member\InvitationController::class, 'destroy'])
                     ->name('invitations.destroy');
 
-                Route::post('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'accept'])
-                    ->name('join_requests.accept');
-                Route::delete('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'decline'])
-                    ->name('join_requests.decline');
+                Route::get('units', [Member\UnitController::class, 'index'])->name('units.index');
+                // The same page, its plan open for drawing (admins)
+                Route::get('units/edit', [Member\UnitController::class, 'index'])
+                    ->middleware('can:update,project')
+                    ->name('units.edit');
+                Route::get('units/{unit}', [Member\UnitController::class, 'show'])->name('units.show');
 
-                Route::resource('families', Manage\FamilyController::class)->only('store', 'update', 'destroy');
-                Route::resource('unit_types', Manage\UnitTypeController::class)
-                    ->only('store', 'update', 'destroy')
-                    ->parameters(['unit_types' => 'unitType']);
-                Route::resource('units', Manage\UnitController::class)->only('store', 'update', 'destroy');
-                Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
-                Route::post('plan/editor', [Manage\PlanController::class, 'lock'])->name('plan.lock');
-                Route::delete('plan/editor', [Manage\PlanController::class, 'unlock'])->name('plan.unlock');
-                Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy')
-                    ->middleware(EnsureFeature::class . ':events');
-                Route::put('archive/{kind}/{id}', [Manage\ArchiveController::class, 'restore'])->whereNumber('id')->name('archive.restore');
+                Route::middleware(EnsureFeature::class . ':events')->group(function () {
+                    Route::get('events', [Member\EventController::class, 'index'])->name('events.index');
+                    Route::get('events/{event}', [Member\EventController::class, 'show'])->name('events.show');
+                    Route::put('events/{event}/rsvp', [Member\EventController::class, 'rsvp'])->name('events.rsvp');
+                });
 
-                Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
-                Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');
-                Route::post('lottery/runs/{lotteryRun}/invalidation', [Manage\LotteryController::class, 'invalidate'])
-                    ->name('lottery.invalidate');
+                /** The chat: conversations between its people, one on one or in groups */
+                Route::middleware(EnsureFeature::class . ':chat')->group(function () {
+                    Route::get('chat', [Member\ChatController::class, 'index'])->name('chat.index');
+                    Route::post('chat', [Member\ChatController::class, 'store'])->middleware('throttle:30,1')->name('chat.store');
+                    Route::get('chat/panel', [Member\ChatController::class, 'panel'])->name('chat.panel');
+                    Route::post('chat/welcomed', [Member\ChatController::class, 'welcomed'])->name('chat.welcomed');
+                    Route::get('chat/{conversation}', [Member\ChatController::class, 'show'])->name('chat.show');
+                    Route::put('chat/{conversation}', [Member\ChatController::class, 'update'])->name('chat.update');
+                    Route::put('chat/{conversation}/pin', [Member\ChatController::class, 'pin'])->name('chat.pin');
+                    Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
+                    Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
+                    Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+                });
+
+                /** The forum: topics, each a conversation */
+                Route::middleware(EnsureFeature::class . ':forum')->group(function () {
+                    Route::get('forum', [Member\ForumController::class, 'index'])->name('forum.index');
+                    Route::post('forum', [Member\ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
+                    Route::get('forum/{topic}', [Member\ForumController::class, 'show'])->name('forum.show');
+                    Route::put('forum/{topic}', [Member\ForumController::class, 'update'])->name('forum.update');
+                    Route::delete('forum/{topic}', [Member\ForumController::class, 'destroy'])->name('forum.destroy');
+                    Route::post('forum/{topic}/posts', [Member\ForumController::class, 'reply'])->middleware('throttle:60,1')->name('forum.reply');
+                    Route::put('forum/posts/{post}', [Member\ForumController::class, 'updatePost'])->name('forum.posts.update');
+                    Route::delete('forum/posts/{post}', [Member\ForumController::class, 'destroyPost'])->name('forum.posts.destroy');
+                });
+
+                Route::middleware(EnsureFeature::class . ':gallery,files')->group(function () {
+                    Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
+                    Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
+                    Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
+                });
+
+                Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
+                Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
+                Route::get('lottery/runs/{lotteryRun}', [Member\LotteryController::class, 'record'])->name('lottery.record');
+                Route::get('lottery/runs/{lotteryRun}/record.json', [Member\LotteryController::class, 'download'])
+                    ->name('lottery.download');
+
+                /**
+                 * The project admin area
+                 */
+                Route::prefix('manage')->name('manage.')->middleware('can:update,project')->group(function () {
+                    Route::get('/', Manage\OverviewController::class)->name('overview');
+
+                    Route::get('settings', [Manage\SettingsController::class, 'edit'])->name('settings.edit');
+                    Route::put('settings', [Manage\SettingsController::class, 'update'])->name('settings.update');
+                    Route::delete('settings', [Manage\SettingsController::class, 'destroy'])->name('settings.destroy');
+                    // Each request tells every superadmin: a few a day are plenty
+                    Route::post('approval', [Manage\SettingsController::class, 'requestApproval'])
+                        ->middleware('throttle:3,60')
+                        ->name('approval.request');
+
+                    // The project's lists, as spreadsheets
+                    Route::get('export/people.csv', [Manage\ExportController::class, 'people'])->name('export.people');
+                    Route::get('export/families.csv', [Manage\ExportController::class, 'families'])->name('export.families');
+                    Route::get('export/units.csv', [Manage\ExportController::class, 'units'])->name('export.units');
+
+                    Route::put('people/{member}', [Manage\PeopleController::class, 'update'])->name('people.update');
+                    Route::delete('people/{member}', [Manage\PeopleController::class, 'destroy'])->name('people.destroy');
+
+                    Route::get('invitations', [Manage\InvitationController::class, 'index'])->name('invitations.index');
+                    Route::post('invitations', [Manage\InvitationController::class, 'store'])
+                        ->middleware('throttle:60,1')
+                        ->name('invitations.store');
+                    Route::delete('invitations/{invitation}', [Manage\InvitationController::class, 'destroy'])
+                        ->name('invitations.destroy');
+
+                    Route::post('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'accept'])
+                        ->name('join_requests.accept');
+                    Route::delete('join-requests/{joinRequest}', [Manage\JoinRequestController::class, 'decline'])
+                        ->name('join_requests.decline');
+
+                    Route::resource('families', Manage\FamilyController::class)->only('store', 'update', 'destroy');
+                    Route::resource('unit_types', Manage\UnitTypeController::class)
+                        ->only('store', 'update', 'destroy')
+                        ->parameters(['unit_types' => 'unitType']);
+                    Route::resource('units', Manage\UnitController::class)->only('store', 'update', 'destroy');
+                    Route::put('plan', [Manage\PlanController::class, 'update'])->name('plan.update');
+                    Route::post('plan/editor', [Manage\PlanController::class, 'lock'])->name('plan.lock');
+                    Route::delete('plan/editor', [Manage\PlanController::class, 'unlock'])->name('plan.unlock');
+                    Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy')
+                        ->middleware(EnsureFeature::class . ':events');
+                    Route::put('archive/{kind}/{id}', [Manage\ArchiveController::class, 'restore'])->whereNumber('id')->name('archive.restore');
+
+                    Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
+                    Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');
+                    Route::post('lottery/runs/{lotteryRun}/invalidation', [Manage\LotteryController::class, 'invalidate'])
+                        ->name('lottery.invalidate');
+                });
             });
-        });
+
+    });
 
     /**
      * The platform console
      */
-    Route::prefix('admin')->name('admin.')->middleware(EnsureSuperadmin::class)->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['module:platform', EnsureSuperadmin::class])->group(function () {
         Route::get('/', [Platform\ProjectController::class, 'index'])->name('projects.index');
         Route::put('projects/{project}/approval', [Platform\ProjectController::class, 'approve'])->name('projects.approve');
         Route::put('projects/{project}/restoration', [Platform\ProjectController::class, 'restore'])
@@ -296,6 +305,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('fresh', [Platform\DeploymentController::class, 'fresh'])->name('fresh');
             });
         });
+    });
+});
+
+/**
+ * Open lotteries: no accounts, a link each
+ */
+Route::prefix('l')->name('open.')->middleware('module:open_lottery')->group(function () {
+    Route::post('/', [OpenLotteryController::class, 'store'])->middleware('throttle:10,60')->name('store');
+
+    Route::prefix('{openLottery}')->scopeBindings()->group(function () {
+        Route::get('/', [OpenLotteryController::class, 'show'])->name('show');
+        Route::get('record.json', [OpenLotteryController::class, 'record'])->name('record');
+        Route::get('me/{key}', [OpenLotteryController::class, 'returning'])->middleware('throttle:20,1')->name('me');
+        Route::get('organize/{key}', [OpenLotteryController::class, 'organize'])->middleware('throttle:20,1')->name('organize');
+
+        Route::post('people', [OpenLotteryController::class, 'join'])->middleware('throttle:20,1')->name('join');
+        Route::delete('people/me', [OpenLotteryController::class, 'leave'])->name('leave');
+        Route::delete('people/{participant}', [OpenLotteryController::class, 'removePerson'])->name('people.remove');
+        Route::put('ranking', [OpenLotteryController::class, 'rank'])->middleware('throttle:60,1')->name('rank');
+        Route::post('items', [OpenLotteryController::class, 'addItem'])->middleware('throttle:60,1')->name('items.store');
+        Route::delete('items/{item}', [OpenLotteryController::class, 'removeItem'])->name('items.remove');
+        Route::post('run', [OpenLotteryController::class, 'run'])->middleware('throttle:6,1')->name('run');
     });
 });
 

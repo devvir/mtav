@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\RecordsActivity;
-use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\LotteryRunStatus;
+use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\RecordsActivity;
+use App\Services\Lottery\Contracts\LotteryHost;
+use App\Services\LotteryService;
+use App\Services\OpenLotteryService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +23,7 @@ class LotteryRun extends Model
     protected $fillable = [
         'uuid',
         'project_id',
+        'open_lottery_id',
         'status',
         'solver',
         'options',
@@ -47,6 +51,17 @@ class LotteryRun extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function openLottery(): BelongsTo
+    {
+        return $this->belongsTo(OpenLottery::class);
+    }
+
+    /** What this run belongs to: it says what the run decides from, and takes the result */
+    public function host(): LotteryHost
+    {
+        return app($this->open_lottery_id ? OpenLotteryService::class : LotteryService::class);
     }
 
     public function starter(): BelongsTo

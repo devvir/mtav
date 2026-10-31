@@ -7,7 +7,6 @@ use App\Models\LotteryRun;
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\LotteryOrchestrator;
-use App\Services\LotteryService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
@@ -36,13 +35,15 @@ class RunLottery implements ShouldQueue
         $this->afterCommit();
     }
 
-    public function handle(LotteryService $lottery): void
+    public function handle(): void
     {
         $run = $this->run->fresh();
 
         if ($run?->status !== LotteryRunStatus::RUNNING) {
             return;
         }
+
+        $lottery = $run->host();
 
         try {
             $result = app(LotteryOrchestrator::class, ['solver' => $this->solver($run)])
@@ -66,7 +67,7 @@ class RunLottery implements ShouldQueue
      */
     public function failed(?Throwable $e): void
     {
-        app(LotteryService::class)->fail($this->run, __('lottery.execution_failed'), [
+        $this->run->host()->fail($this->run, __('lottery.execution_failed'), [
             'exception' => $e ? get_class($e) : null,
             'error'     => $e?->getMessage(),
         ]);

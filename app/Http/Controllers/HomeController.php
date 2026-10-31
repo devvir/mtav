@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Auth\GoogleController;
+use App\Support\Variant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -46,7 +47,7 @@ class HomeController extends Controller
      */
     public static function welcome(?string $dialog = null): Response
     {
-        return inertia('Welcome', [
+        return inertia(Variant::landing(), [
             // Not `auth`: that is every page's signed-in person
             'dialog'  => $dialog,
             'google'  => GoogleController::enabled(),

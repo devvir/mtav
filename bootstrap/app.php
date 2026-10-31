@@ -47,6 +47,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RequireOwner::class,
         ]);
 
+        $middleware->alias(['module' => \App\Http\Middleware\EnsureModule::class]);
+        // Before anything else about the person: a route closed here is not there, for anyone
+        $middleware->prependToPriorityList(
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \App\Http\Middleware\EnsureModule::class,
+        );
+
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));
     })
