@@ -1,12 +1,12 @@
 # Asks a cloud Claude Code task to review each push, in a session only its owner sees. It only
 # starts the review: it decides nothing about deploying, and failing here stops nothing. Without
-# its two secrets it does nothing. main and staging only receive what dev and branches already had.
+# its two secrets it does nothing. Only dev: nothing reaches staging or main without going through it.
 name: review
 run-name: Review ${{ github.ref_name }}
 
 on:
   push:
-    branches-ignore: [main, staging]
+    branches: [dev]
     paths-ignore:
       - 'documentation/**'
       - '**.md'
