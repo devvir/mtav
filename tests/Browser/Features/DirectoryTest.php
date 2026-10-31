@@ -16,19 +16,20 @@ it('finds a project from the selector, joins it, creates a family, and sees ever
         ->click('Find a project')
         ->assertSee('Open one')
         ->click('Join')
-        ->assertSee('You have no family yet')
+        ->assertSee('Join your family')
         ->assertNoSmoke();
 
-    // Every page of the project works for someone with no family
+    // Every page of the project works for someone who has not joined their family
     foreach (['families.index', 'people.index', 'units.index', 'events.index', 'forum.index', 'media.index', 'lottery.show'] as $name) {
         $page->navigate(route($name, $open))->assertNoSmoke();
     }
 
     $page->navigate(route('projects.show', $open))
-        ->click('Create our family')
+        ->click('Join your family')
+        ->click('button:has-text("Mine is not here")')
         ->fill('input[name="name"]', 'Silva Pereira')
         ->click('[role="dialog"] button[type="submit"]')
-        ->assertDontSee('You have no family yet')
+        ->assertDontSee('Join your family')
         ->assertSee('Invite a family member');
 });
 

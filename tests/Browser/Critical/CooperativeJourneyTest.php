@@ -2,6 +2,7 @@
 
 uses()->group('critical');
 
+use Illuminate\Support\Str;
 use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
@@ -62,7 +63,8 @@ it('takes a cooperative from sign-up to its lottery', function () {
     foreach (['García', 'Pérez'] as $name) {
         visit(route('families.index', [$project, 'new' => 1]))
             ->fill('name', $name)
-            ->click(inDialog('Add the family'))
+            ->fill('email', Str::ascii($name) . '@example.com')
+            ->click(inDialog('Add and invite'))
             ->assertSee('The family was added.');
     }
 

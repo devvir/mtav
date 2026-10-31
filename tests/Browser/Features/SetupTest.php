@@ -86,7 +86,7 @@ it('starts empty lists from their first item', function () {
     aUnitType($this->project);
 
     visit(route('families.index', $this->project))
-        ->click('Register the first family')
+        ->click('Add the first family')
         ->assertPresent('[role="dialog"] [name="name"]');
 });
 
@@ -119,9 +119,10 @@ it('registers, edits and removes families', function () {
     aUnitType($this->project, ['name' => '3 bedrooms']);
 
     visit(route('families.index', $this->project))
-        ->click('Register the first family')
+        ->click('Add the first family')
         ->fill('name', 'García')
-        ->click(inDialog('Add the family'))
+        ->fill('email', 'garcia@example.com')
+        ->click(inDialog('Add and invite'))
         ->assertSee('The family was added.')
         ->click('Edit')
         ->select(inDialogField('unit_type_id'), (string) UnitType::firstWhere('name', '3 bedrooms')->id)

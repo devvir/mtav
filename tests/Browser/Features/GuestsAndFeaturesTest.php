@@ -21,22 +21,23 @@ it('shows a guest the lottery with no ranking, no dragging and no way to invite'
         ->assertNoSmoke();
 
     visit(route('projects.show', $project))
-        ->assertSee('You have no family yet')
+        ->assertSee('Join your family')
         ->assertDontSee('Invite a family member')
         ->assertNoSmoke();
 });
 
-it('has someone let into a project without guests create their family first', function () {
+it('has someone let into a project without guests find their family first', function () {
     $project = aProject(['name' => 'No guests here', 'listed' => true, 'open_to_join' => true]);
     aUnitType($project, ['name' => 'Two rooms']);
     $this->as(aUser());
 
     visit(route('directory.index'))
         ->click('Join')
-        ->assertSee('Welcome to No guests here')
+        ->assertSee('Find your family')
         ->assertDontSee('Forum')
+        ->click('button:has-text("Mine is not here")')
         ->fill('input[name="name"]', 'Silva Pereira')
-        ->click('button[type="submit"]')
+        ->click('[role="dialog"] button[type="submit"]')
         ->assertSee('Forum')
         ->assertSee('Invite a family member')
         ->assertNoSmoke();

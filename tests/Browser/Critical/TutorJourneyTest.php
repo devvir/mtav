@@ -73,11 +73,12 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
     foreach (['F01', 'F02', 'F03'] as $name) {
         visit(route('families.index', [$project, 'new' => 1]))
             ->fill('name', $name)
-            ->click(inDialog('Add the family'))
+            ->fill('email', "{$name}@example.com")
+            ->click(inDialog('Add and invite'))
             ->assertSee('The family was added.');
     }
 
-    // Families with no one in them yet are there, on their page and on the project's home
+    // Families with someone invited are there, on their page and on the project's home
     visit(route('families.index', $project))->assertSee('F01')->assertSee('F02')->assertSee('F03');
     visit(route('projects.show', $project))->assertSeeIn('.stat-link:first-child', '3');
 
