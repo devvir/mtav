@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Member;
 
 use App\Services\Queue\Workers;
+use App\Services\ProjectService;
 use App\Enums\LotteryRunStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
@@ -65,6 +66,7 @@ class LotteryController extends Controller
                     ->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'unit' => $f->unit?->only('id', 'identifier')])
                 : null,
             'canRank' => $user->can('rankUnits', $project) && ! $activeRun,
+            'setup'   => Inertia::defer(fn () => app(ProjectService::class)->setupChecklist($project)),
             // Admins run it from here: its readiness, every run's record, the server's questions
             'admin' => $user->can('update', $project) ? [
                 'readiness' => $project->unitTypes()->withCount('units', 'families')->alphabetically()->get()

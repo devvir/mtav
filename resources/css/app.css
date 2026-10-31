@@ -2093,6 +2093,8 @@ html[data-carrying] * {
 
 /* The chat's window: out of its bubble, one thing at a time, over whatever page */
 .chat-window {
+  /* Solid: what it holds reads over any page */
+  background: var(--mantine-color-body);
   position: fixed;
   z-index: 50;
   right: 1.25rem;
@@ -2136,29 +2138,21 @@ html[data-carrying] * {
 }
 
 /*
- * A card as a sheet of paper, ruled, with its margin: what is written on it, by hand. Its own
- * ink and paper, in the light and in the dark.
+ * The road to the lottery as something written by hand: paper of its own (light or dark,
+ * whatever the theme), in three shapes to choose from.
  */
-.ds-paper {
+.note {
   --paper: #fbf6e9;
   --paper-rule: rgb(70 110 170 / 16%);
   --paper-margin: rgb(200 70 60 / 28%);
   --paper-ink: #2a3550;
   --paper-done: #5c6476;
   --paper-tick: #24703f;
-}
-.ds-panel.ds-paper {
+  position: relative;
   color: var(--paper-ink);
   background: var(--paper);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  border-color: rgb(120 100 60 / 22%);
-  border-radius: 6px;
-  box-shadow:
-    0 1px 1px rgb(80 60 20 / 8%),
-    0 10px 22px -12px rgb(80 60 20 / 35%);
 }
-[data-mantine-color-scheme='dark'] .ds-paper {
+[data-mantine-color-scheme='dark'] .note {
   --paper: #2b2a26;
   --paper-rule: rgb(170 190 230 / 11%);
   --paper-margin: rgb(230 110 100 / 24%);
@@ -2166,41 +2160,30 @@ html[data-carrying] * {
   --paper-done: #a8a596;
   --paper-tick: #7fcf9a;
 }
-[data-mantine-color-scheme='dark'] .ds-panel.ds-paper {
-  border-color: rgb(255 255 255 / 8%);
+.note-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
 }
-.ds-paper .ds-panel-header {
-  background: none;
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-.ds-paper .ds-panel-title,
-.ds-paper .ds-panel-header .ds-caption,
-.ds-paper .checklist-step span {
+.note-title,
+.note-count,
+.note .checklist-step span {
   font-family: 'Caveat Variable', var(--mantine-font-family);
   color: var(--paper-ink);
 }
-.ds-paper .ds-panel-title {
-  /* Handwriting leans past its box: nothing cut */
-  overflow: visible;
-  padding-right: 0.3em;
-  font-size: 1.7rem;
+.note-title {
+  margin: 0;
+  font-size: 1.8rem;
   font-weight: 700;
   line-height: 1.1;
 }
-.ds-paper .ds-panel-header .ds-caption {
+.note-count {
   font-size: 1.3rem;
+  font-weight: 600;
 }
-.ds-paper .ds-panel-body {
-  background: none;
-}
-.ds-paper .mantine-Progress-root {
-  background: var(--paper-rule);
-}
-.ds-paper .mantine-Progress-section {
-  background: var(--paper-tick);
-}
-.ds-paper .checklist {
+.note .checklist {
+  margin: 0;
   /* Each step on a line of the sheet, right of its margin */
   background:
     linear-gradient(
@@ -2216,20 +2199,20 @@ html[data-carrying] * {
       var(--paper-rule) calc(44px - 1px) 44px
     );
 }
-.ds-paper .checklist-step {
+.note .checklist-step {
   height: 44px;
   gap: 1rem;
   color: var(--paper-ink);
 }
-.ds-paper .checklist-step:hover {
+.note a.checklist-step:hover {
   background: rgb(120 100 60 / 8%);
 }
-.ds-paper .checklist-step span {
+.note .checklist-step span {
   font-size: 1.45em;
   font-weight: 500;
   line-height: 1.15;
 }
-.ds-paper .checklist-step[data-done] span {
+.note .checklist-step[data-done] span {
   color: var(--paper-done);
   text-decoration-thickness: 1px;
 }
@@ -2243,9 +2226,146 @@ html[data-carrying] * {
   stroke: var(--paper-tick, currentColor);
   stroke-width: 2.3;
 }
-/* Plainer where contrast comes first: the paper stays, the lines go */
-[data-high-contrast] .ds-paper .checklist {
+/* A strip of tape holding a sheet up */
+.note-tape {
+  position: absolute;
+  top: -0.55rem;
+  left: 50%;
+  width: 3.4rem;
+  height: 1.1rem;
+  background: rgb(214 200 160 / 62%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+  transform: translateX(-50%) rotate(-2.5deg);
+}
+
+/* A: tiny, at the page's corner, and what it grows into */
+.note-mini {
+  display: flex;
+  width: 5.25rem;
+  height: 4.25rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 0.4rem 0.5rem;
+  box-shadow: 0 6px 14px -5px rgb(60 45 15 / 45%);
+  transform: rotate(3deg);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+.note-mini:hover,
+.note-mini[aria-expanded='true'] {
+  box-shadow: 0 10px 20px -6px rgb(60 45 15 / 55%);
+  transform: rotate(0deg) scale(1.06);
+}
+.note-mini-lines {
+  position: absolute;
+  inset: 0.85rem 0.55rem auto;
+  height: 1.3rem;
+  background: repeating-linear-gradient(180deg, var(--paper-ink) 0 1px, transparent 1px 0.42rem);
+  opacity: 0.32;
+}
+.note-mini .note-count {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.note-popup {
+  /* The menu places it: a note's own position does not apply */
+  position: absolute;
+  width: min(25rem, calc(100vw - 2rem)) !important;
+  padding: 1.5rem 1.1rem 1rem !important;
+  border: 1px solid rgb(120 100 60 / 22%);
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: 0 18px 40px -12px rgb(40 30 10 / 50%);
+  transform-origin: top right;
+}
+
+/* B: a page from a spiral notebook, its bottom torn */
+.note-lift {
+  max-width: 36rem;
+  margin-bottom: var(--mantine-spacing-lg);
+  filter: drop-shadow(0 8px 12px rgb(60 45 15 / 22%));
+  transform: rotate(-0.5deg);
+}
+.note-notebook {
+  padding: 1.75rem 1.25rem 1.75rem;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 97.5%,
+    96% 99%,
+    91% 97.8%,
+    86% 99.4%,
+    80% 98%,
+    74% 99.6%,
+    68% 98.1%,
+    62% 99.2%,
+    56% 97.7%,
+    50% 99.5%,
+    44% 98%,
+    38% 99.3%,
+    32% 97.9%,
+    26% 99.6%,
+    20% 98.2%,
+    14% 99.2%,
+    8% 97.8%,
+    3% 99.3%,
+    0 98%
+  );
+}
+.note-spiral {
+  position: absolute;
+  inset: 0.45rem 0.75rem auto;
+  height: 0.7rem;
+  background: radial-gradient(circle at center, rgb(0 0 0 / 38%) 0 0.26rem, transparent 0.28rem) 0
+    0 / 1.6rem 100% repeat-x;
+}
+[data-mantine-color-scheme='dark'] .note-spiral {
+  background-image: radial-gradient(
+    circle at center,
+    rgb(0 0 0 / 70%) 0 0.26rem,
+    transparent 0.28rem
+  );
+}
+
+/* C: a sticky note, square and yellow, unruled, its corner curling up */
+.note-sticky {
+  max-width: 22rem;
+  justify-self: start;
+  --paper: #fdf0a6;
+  --paper-rule: transparent;
+  --paper-margin: transparent;
+  --paper-ink: #3a3414;
+  --paper-done: #6e6636;
+  --paper-tick: #2c6a33;
+  padding: 1.1rem 1.1rem 1.5rem;
+  border-bottom-right-radius: 2.2rem 0.5rem;
+  box-shadow:
+    0 1px 2px rgb(60 45 15 / 18%),
+    6px 14px 16px -10px rgb(60 45 15 / 45%);
+  transform: rotate(0.8deg);
+}
+[data-mantine-color-scheme='dark'] .note-sticky {
+  --paper: #57502a;
+  --paper-rule: transparent;
+  --paper-margin: transparent;
+  --paper-ink: #f6efcd;
+  --paper-done: #cfc79a;
+  --paper-tick: #a6e6a8;
+}
+.note-sticky .checklist-step {
+  height: 40px;
+}
+/* Plainer where contrast comes first: the sheet stays, its lines and tilt go */
+[data-high-contrast] .note .checklist {
   background: none;
+}
+[data-high-contrast] .note,
+[data-high-contrast] .note-lift {
+  filter: none;
+  transform: none;
+  clip-path: none;
 }
 
 /* Nothing shared yet: cooperatives' photos, softened, and what to do about it over them */
@@ -2305,57 +2425,86 @@ html[data-carrying] * {
 .month-backdrop {
   position: absolute;
   z-index: -1;
-  inset: -6px;
+  inset: -4px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   grid-auto-rows: 1fr;
-  gap: 5px;
+  gap: 4px;
   padding: 8px;
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--mtav-brand) 22%, var(--mantine-color-body)),
-    color-mix(in srgb, var(--mtav-accent, var(--mtav-info)) 24%, var(--mantine-color-body))
-  );
-  filter: blur(1.5px) saturate(120%);
+  /* Only the page's own colours: at home in any theme and mode */
+  background: var(--mtav-hover);
+  filter: blur(1px);
 }
 .month-backdrop span {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
   padding: 4px 6px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--mtav-text) 55%, transparent);
-  background: color-mix(in srgb, var(--mantine-color-body) 62%, transparent);
+  border: 1px solid var(--mtav-border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mtav-muted);
+  background: var(--mantine-color-body);
 }
 .month-backdrop span[data-blank] {
+  border: 0;
   background: none;
 }
-.month-backdrop span[data-tone='brand'] {
-  color: #fff;
-  background: var(--mtav-brand);
-}
-.month-backdrop span[data-tone='accent'] {
-  color: #fff;
-  background: var(--mtav-accent, var(--mtav-brand));
-}
-.month-backdrop span[data-tone='info'] {
-  color: #fff;
-  background: var(--mtav-info);
-}
-.month-backdrop span[data-tone='positive'] {
-  color: #fff;
-  background: var(--mtav-positive);
-}
-/* Colour for the card, never competing with what is written over it */
-.month-backdrop span[data-tone] {
-  opacity: 0.72;
+/* A day with something on: a dot in the brand's colour, quietly */
+.month-backdrop span[data-marked]::after {
+  content: '';
+  position: absolute;
+  bottom: 22%;
+  left: 18%;
+  width: 34%;
+  height: 12%;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--mtav-brand) 45%, transparent);
 }
 .month-backdrop span[data-today] {
-  box-shadow: inset 0 0 0 2px var(--mtav-text);
+  border-color: color-mix(in srgb, var(--mtav-brand) 55%, transparent);
 }
 [data-high-contrast] .shared-empty-photos,
 [data-high-contrast] .month-backdrop {
   display: none;
+}
+
+/* Chats and groups: the chosen one lit, a quiet line between them */
+.chat-kinds .mantine-SegmentedControl-root {
+  border: 1px solid var(--mtav-border);
+  background: var(--mtav-hover);
+}
+.chat-kinds .mantine-SegmentedControl-indicator {
+  background: var(--mantine-color-body);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 14%);
+}
+.chat-kinds .mantine-SegmentedControl-control:last-child {
+  border-inline-start: 1px solid var(--mtav-border);
+}
+
+/*
+ * The contained layout (APP_LAYOUT=contained): sidebar and page centred together in a frame, on
+ * screens wider than it. Everything fixed to the screen's edge keeps to the frame.
+ */
+@media (min-width: 75em) {
+  html[data-layout='contained'] {
+    --frame-gutter: max(0px, calc((100vw - 92rem) / 2));
+  }
+  html[data-layout='contained'] .shell-sidebar {
+    left: var(--frame-gutter);
+    border-left: 1px solid var(--mtav-border);
+  }
+  html[data-layout='contained'] .shell-main {
+    margin-inline: var(--frame-gutter);
+    border-right: 1px solid var(--mtav-border);
+  }
+  html[data-layout='contained'] .chat-launcher,
+  html[data-layout='contained'] .chat-window {
+    right: calc(var(--frame-gutter) + 1.25rem);
+  }
+  html[data-layout='contained'] .mantine-Notifications-root[data-position='bottom-right'] {
+    right: calc(var(--frame-gutter) + var(--mantine-spacing-md));
+  }
 }

@@ -1,14 +1,17 @@
-import { Panel } from '@/design';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Link } from '@inertiajs/react';
-import { Progress } from '@mantine/core';
+import { Link, usePage } from '@inertiajs/react';
+import { Popover, UnstyledButton } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 /** What is done on the way to the lottery (ProjectService::setupChecklist) */
 export type Setup = Record<
   'unit_types' | 'units' | 'families' | 'members' | 'scheduled' | 'lottery',
   boolean
 >;
+
+/** Whether every step is done */
+export const isSetUp = (setup: Setup) => Object.values(setup).every(Boolean);
 
 /** A circle and a tick as a pen leaves them, the circle not quite closing */
 function HandMark({ done }: { done: boolean }) {
@@ -22,8 +25,9 @@ function HandMark({ done }: { done: boolean }) {
   );
 }
 
-/** The steps from an empty project to its lottery, each leading where it is done */
-export function SetupChecklist({ setup }: { setup: Setup }) {
+/** The steps, written by hand: for the whole community to follow, leading admins where each is done */
+function Steps({ setup }: { setup: Setup }) {
+  const manages = usePage().props.project?.can.manage;
   const steps = [
     {
       done: setup.unit_types,
@@ -31,53 +35,109 @@ export function SetupChecklist({ setup }: { setup: Setup }) {
       href: route('units.index', { new_type: 1 }),
     },
     { done: setup.units, label: _('Add the units'), href: route('units.index', { new_unit: 1 }) },
-    {
-      done: setup.families,
-      label: _('Register the families'),
-      href: route('families.index'),
-    },
+    { done: setup.families, label: _('Register the families'), href: route('families.index') },
     {
       done: setup.members,
       label: _('Invite their members'),
       href: route('manage.invitations.index'),
     },
-    {
-      done: setup.scheduled,
-      label: _('Schedule the lottery'),
-      href: route('lottery.show'),
-    },
+    { done: setup.scheduled, label: _('Schedule the lottery'), href: route('lottery.show') },
     { done: setup.lottery, label: _('Run the lottery'), href: route('lottery.show') },
   ];
-  const done = steps.filter((step) => step.done).length;
 
   return (
-    <Panel
-      title={_('Getting to the lottery')}
-      className="ds-paper"
-      aside={`${done} / ${steps.length}`}
-      data-tour="setup.checklist"
-    >
-      <Progress
-        value={(done / steps.length) * 100}
-        radius="xl"
-        size="xs"
-        mb="md"
-        color="green"
-        aria-label={_('Getting to the lottery')}
-      />
-      <ol className="checklist">
-        {steps.map((step) => (
+    <ol className="checklist">
+      {steps.map((step) => {
+        const inner = (
+          <>
+            <HandMark done={step.done} />
+            <span>{step.label}</span>
+          </>
+        );
+        return (
           <li key={step.label}>
-            <Link href={step.href} className="checklist-step" data-done={step.done || undefined}>
-              <HandMark done={step.done} />
-              <span>{step.label}</span>
-            </Link>
+            {manages ? (
+              <Link href={step.href} className="checklist-step" data-done={step.done || undefined}>
+                {inner}
+              </Link>
+            ) : (
+              <div className="checklist-step" data-done={step.done || undefined}>
+                {inner}
+              </div>
+            )}
           </li>
-        ))}
-      </ol>
-    </Panel>
+        );
+      })}
+    </ol>
   );
 }
 
-/** Whether every step is done */
-export const isSetUp = (setup: Setup) => Object.values(setup).every(Boolean);
+const counted = (setup: Setup) =>
+  `${Object.values(setup).filter(Boolean).length} / ${Object.values(setup).length}`;
+
+/** A title and its count, in the same hand */
+function Sheet({ setup, children }: { setup: Setup; children?: ReactNode }) {
+  return (
+    <>
+      {children}
+      <header className="note-head">
+        <h2 className="note-title">{_('Getting to the lottery')}</h2>
+        <span className="note-count">{counted(setup)}</span>
+      </header>
+      <Steps setup={setup} />
+    </>
+  );
+}
+
+/**
+ * Option A: a tiny sheet taped to the page's corner, that grows into a readable one on a click.
+ */
+export function ChecklistCorner({ setup, opened = false }: { setup: Setup; opened?: boolean }) {
+  return (
+    <Popover
+      defaultOpened={opened}
+      position="bottom-end"
+      offset={8}
+      withinPortal
+      shadow="none"
+      transitionProps={{ transition: 'pop-top-right', duration: 220 }}
+    >
+      <Popover.Target>
+        <UnstyledButton
+          className="note note-mini"
+          aria-label={`${_('Getting to the lottery')}: ${counted(setup)}`}
+        >
+          <span className="note-tape" aria-hidden />
+          <span className="note-mini-lines" aria-hidden />
+          <span className="note-count">{counted(setup)}</span>
+        </UnstyledButton>
+      </Popover.Target>
+      <Popover.Dropdown className="note note-popup">
+        <Sheet setup={setup}>
+          <span className="note-tape" aria-hidden />
+        </Sheet>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+/** Option B: a page torn from a spiral notebook, ruled, its bottom edge torn */
+export function ChecklistNotebook({ setup }: { setup: Setup }) {
+  return (
+    <div className="note-lift" data-tour="setup.checklist">
+      <section className="note note-notebook">
+        <span className="note-spiral" aria-hidden />
+        <Sheet setup={setup} />
+      </section>
+    </div>
+  );
+}
+
+/** Option C: a sticky note stuck on the page, its corner curling up */
+export function ChecklistSticky({ setup }: { setup: Setup }) {
+  return (
+    <section className="note note-sticky" data-tour="setup.checklist">
+      <Sheet setup={setup} />
+    </section>
+  );
+}

@@ -202,11 +202,13 @@ describe('An admin', function () {
 });
 
 describe('A member', function () {
-    it('is not shown the setup of the project', function () {
+    it('follows the road to the lottery, as the whole community does', function () {
         $project = aProject();
         $member = aMemberOf(aFamily($project));
 
-        expect($this->as($member, $project)->get(route('projects.show', $project))->inertiaProps('setup'))->toBeNull();
+        $home = $this->as($member, $project)->get(route('projects.show', $project));
+
+        expect(deferredProp($home, 'setup'))->toHaveKey('lottery');
     });
 
     it('cannot change the project', function () {
@@ -258,4 +260,11 @@ it('does not ask for as many units as families on the way to the lottery: it run
 
     expect($setup)->not->toHaveKey('balanced')
         ->and($setup)->toMatchArray(['unit_types' => true, 'units' => true, 'families' => true, 'members' => true]);
+});
+
+it('frames its pages on wide screens, by default, or not, as the deployment says', function () {
+    $this->get(route('login'))->assertSee('data-layout="contained"', false);
+
+    config(['app.layout' => 'wide']);
+    $this->get(route('login'))->assertSee('data-layout="wide"', false);
 });

@@ -1,4 +1,4 @@
-import { SetupChecklist, type Setup } from '@/components/domain/SetupChecklist';
+import { ChecklistSticky, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -135,7 +135,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
       </div>
 
       <div className="with-aside">
-        <SetupChecklist setup={checklist} />
+        <ChecklistSticky setup={checklist} />
 
         <ProjectCapacity approval={approval} usage={usage} onAsk={requestApproval} />
       </div>

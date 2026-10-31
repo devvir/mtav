@@ -1,7 +1,7 @@
 import { CommunityPanel, type Community } from '@/components/domain/CommunityPanel';
 import { EventCard } from '@/components/domain/EventCard';
 import { MediaGrid } from '@/components/domain/MediaGrid';
-import { SetupChecklist, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
+import { ChecklistCorner, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
 import { FamilyForm } from '@/components/forms/FamilyForm';
@@ -53,7 +53,7 @@ interface Props {
   };
   /** For someone with no family yet, who can start theirs: the types it can have */
   ownFamilyTypes: Ref[] | null;
-  /** For admins: what is left to set up (it follows the page) */
+  /** What is left on the way to the lottery (it follows the page) */
   setup?: Setup | null;
   events?: ProjectEvent[];
   units?: UnitType[];
@@ -68,8 +68,8 @@ interface Props {
 const SHARED_EMPTY_PHOTOS = ['vicman', 'mutual-aid', 'work-day', 'fray-bentos'];
 
 /**
- * This month as a wall calendar, softened, behind a project with nothing coming up: today lit,
- * a few days coloured as the days of its events will be
+ * This month as a wall calendar, softened, behind a project with nothing coming up: today
+ * outlined, a few days marked as the days of its events will be
  */
 function MonthBackdrop() {
   const today = new Date();
@@ -77,7 +77,6 @@ function MonthBackdrop() {
   const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   // Weeks from Monday, as the app's calendars
   const before = (first.getDay() + 6) % 7;
-  const tones = ['brand', 'accent', 'info', 'positive'];
 
   return (
     <div className="month-backdrop" aria-hidden>
@@ -86,12 +85,11 @@ function MonthBackdrop() {
       ))}
       {Array.from({ length: days }, (_unused, index) => {
         const day = index + 1;
-        const lit = day % 5 === 2 || day % 7 === 3;
         return (
           <span
             key={day}
             data-today={day === today.getDate() || undefined}
-            data-tone={lit ? tones[day % tones.length] : undefined}
+            data-marked={day % 5 === 2 || day % 7 === 3 || undefined}
           >
             {day}
           </span>
@@ -136,9 +134,9 @@ function NoFamilyYet({ types }: { types: Ref[] }) {
 
 /**
  * The project's home, in the order people look for things: its figures, what was shared,
- * the lottery and what is coming up, its people, its units, and for admins the path to the
- * lottery (first while the project is still empty, when it is all there is to do). The
- * page paints at once; each part shows a skeleton until its data arrives.
+ * the lottery and what is coming up, its people, its units; the path to the lottery on a note
+ * at its corner (open for admins while the project is still empty, when it is all there is to
+ * do). The page paints at once; each part shows a skeleton until its data arrives.
  */
 export default function Dashboard({
   overview,
@@ -163,25 +161,21 @@ export default function Dashboard({
     unit_types: ['setup', 'units'],
   });
 
-  // Admins only: what is left to set up, until it is all done
-  const checklist = project.can.manage ? (
-    <Deferred data="setup" fallback={<Skeleton h={300} radius="lg" mt={24} />}>
-      {setup && !isSetUp(setup) ? (
-        <div style={{ marginTop: 24 }}>
-          <SetupChecklist setup={setup} />
-        </div>
-      ) : (
-        <></>
-      )}
-    </Deferred>
-  ) : null;
-
   return (
     <>
       <PageHeader
         title={project.name}
         description={overview.description}
         tour="member.home"
+        actions={
+          <Deferred data="setup" fallback={<></>}>
+            {setup && !isSetUp(setup) ? (
+              <ChecklistCorner setup={setup} opened={empty && project.can.manage} />
+            ) : (
+              <></>
+            )}
+          </Deferred>
+        }
         help={
           <InfoTip title={_('The project at a glance')} tour="member.home">
             {_(
@@ -192,8 +186,6 @@ export default function Dashboard({
       />
 
       {ownFamilyTypes ? <NoFamilyYet types={ownFamilyTypes} /> : null}
-
-      {empty ? checklist : null}
 
       {!empty ? (
         <SimpleGrid cols={{ base: 1, xs: 3 }} mb="lg" data-tour="home.figures">
@@ -378,8 +370,6 @@ export default function Dashboard({
           </Deferred>
         </div>
       ) : null}
-
-      {!empty ? checklist : null}
     </>
   );
 }

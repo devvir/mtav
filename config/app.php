@@ -20,6 +20,9 @@ return [
     */
     'institution' => env('APP_INSTITUTION', ''),
 
+    /** contained: sidebar and page centred in a frame on wide screens; wide: to the screen's edges */
+    'layout' => env('APP_LAYOUT', 'contained'),
+
     /*
     | Where people write about their data (the privacy page); else the owner's email
     */

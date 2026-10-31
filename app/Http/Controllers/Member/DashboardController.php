@@ -42,9 +42,7 @@ class DashboardController extends Controller
             'ownFamilyTypes' => $user->can('createOwnFamily', $project)
                 ? $project->unitTypes()->alphabetically()->get(['id', 'name'])
                 : null,
-            'setup' => $user->can('update', $project)
-                ? Inertia::defer(fn () => $projects->setupChecklist($project), 'setup')
-                : null,
+            'setup'   => Inertia::defer(fn () => $projects->setupChecklist($project), 'setup'),
             'lottery' => [
                 'start_date' => $project->lottery->start_date,
                 'status'     => $run?->status->value,

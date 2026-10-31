@@ -3,6 +3,7 @@ import { LotteryPlan } from '@/components/domain/LotteryPlan';
 import { LotteryProgress } from '@/components/domain/LotteryProgress';
 import { usePlanFullScreen } from '@/components/domain/PlanFullScreen';
 import { RankingList } from '@/components/domain/RankingList';
+import { ChecklistNotebook, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -41,6 +42,8 @@ interface Props {
   canRank: boolean;
   /** For admins: what running the lottery takes */
   admin: LotteryAdmin | null;
+  /** What is left on the way to it (it follows the page) */
+  setup?: Setup;
 }
 
 /**
@@ -58,6 +61,7 @@ export default function Lottery({
   assignment,
   canRank,
   plan,
+  setup,
   admin,
 }: Props) {
   const [ranking, setRanking] = useState<Unit[]>(given ?? []);
@@ -188,6 +192,10 @@ export default function Lottery({
           )}
         </Alert>
       ) : null}
+
+      <Deferred data="setup" fallback={<></>}>
+        {setup && !isSetUp(setup) ? <ChecklistNotebook setup={setup} /> : <></>}
+      </Deferred>
 
       {admin ? (
         <LotteryAdminTools lottery={lottery} status={status} runnable={runnable} {...admin} />
