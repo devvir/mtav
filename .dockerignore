@@ -9,6 +9,9 @@
 # Docker (docker/ itself stays in: Dockerfiles COPY configs from it)
 .dockerignore
 
+# A developer's tools: never in an image
+dev/
+
 # Documentation
 documentation/
 README.md

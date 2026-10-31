@@ -98,6 +98,8 @@ decision taken on the way is listed below for review.
   grants deploying; an empty list hides it. The app asks GitHub to run the deploy (a
   token limited to this repository's workflows), so it works the same wherever the
   environments live.
+- **A warden on a developer's machine** (`dev/warden`): watches services, deployments, Claude's
+  usage, the machine, from above the app, with full access; never from a deployment.
 - **Mail per environment.** Staging and production send real mail; staging (and dev, if
   it sends) skips addresses under blocked domains, logged instead: by default the
   reserved ones every demo account uses (`example.com`, `.org`, `.net`, and the `.test`,

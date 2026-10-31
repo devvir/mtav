@@ -681,6 +681,11 @@ case $COMMAND in
         release "$@"
         ;;
 
+    warden)
+        # This machine's Node (a shell function under nvm, unknown to this script), or any
+        node_bin=$(command -v node 2>/dev/null || ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | tail -1)
+        exec "$node_bin" "$(dirname "$0")/dev/warden/server.mjs"
+        ;;
     compose)
         env="${1:-}"
         shift 2>/dev/null || true

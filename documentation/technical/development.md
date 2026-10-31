@@ -58,6 +58,7 @@ assets). The e2e run builds the assets first and removes `public/build` when it 
 | `./mtav e2e [args]` | the browser suite (starts and stops `e2e`) |
 | `./mtav test` | all three |
 | `./mtav precommit` | Pest and Vitest without the slow group |
+| `./mtav warden` | a page watching everything from above: [dev/warden](../../dev/warden/README.md) |
 | `./mtav release` | the release image, built as the pipeline builds it |
 | `./mtav compose <env> …` | raw Docker Compose against an environment |
 
