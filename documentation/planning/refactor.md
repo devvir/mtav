@@ -42,18 +42,18 @@ decision taken on the way is listed below for review.
 - **Lottery invalidation** moves to admins, with mandatory visibility: invalidating
   requires a reason, and every member of the project sees that the lottery was
   invalidated, by whom, when and why.
-- **Features come out, whole (white-label).** Other deployments are MTAV with parts taken
+- **Features come out, whole (variants).** Other variants are MTAV with parts taken
   out, never new features: everything MTAV needs is built, and nothing is coupled so
-  that it cannot be removed. What every version keeps is the core — people (members and
+  that it cannot be removed. What every variant keeps is the core — people (members and
   admins) state their preferences, and the lottery distributes the items of one set to
   them. In MTAV the items are units and the participants families; elsewhere the items
   may be anything, and the groups may be called otherwise or be absent (then each
   person is a group of one, and groups are never shown). Units, unit types and the plan
   are one module, in or out together; so are events, files and invitations by members.
   To be designed in full once MTAV works; until then, no new coupling between modules.
-- **White-label, later (nice-to-have).** The deployment decides the vocabulary and
+- **Variants, later (nice-to-have).** The variant decides the vocabulary and
   shape of the grouping concept. Internally the lottery participant is the group, not
-  its users. MTAV calls the group a *family*; another deployment may name it
+  its users. MTAV calls the group a *family*; another variant may name it
   differently, or hide it entirely (each user is silently a group of one). Until then
   the code keeps families, but avoids assumptions that would block this.
 - **One project UI; admins see more tools.** A project has one set of pages, the same
@@ -161,8 +161,8 @@ decision taken on the way is listed below for review.
   guests reach it from the menu and their profile, and those in a family from a quiet link on
   their family's card; the guide and the Assistant explain it.
 - **Next, agreed in outline**:
-  - *White-label, per deployment*: an unversioned `spec.yaml` (with a versioned
-    `spec.example.yaml`) defines a deployment's traits: its landing page, registration on or
+  - *Variants*: an unversioned `spec.yaml` (with a versioned
+    `spec.example.yaml`) defines a variant's traits: its landing page, registration on or
     off, which project settings exist at all, defaults for new projects. Today's app is the
     default spec, everything on and everything configurable. MTAV's spec does not offer turning
     the lottery off; others may. What to ask of people on joining (phone, picture, ID number,
@@ -260,8 +260,8 @@ decision taken on the way is listed below for review.
 - **Families and people, one place.** The navigation has one place for the
   cooperative's people ("People"; "Cooperativistas" in Spanish, "Coopérateurs",
   "Soci", "Cooperados"), seen by family or everyone; each view keeps its own address,
-  search and details. Names are tailored to housing cooperatives now; white-labelling
-  would rename them. It frees a phone tab: Home, Lottery, People, Units.
+  search and details. Names are tailored to housing cooperatives now; a variant
+  may rename them. It frees a phone tab: Home, Lottery, People, Units.
 - **Google sign-in** finds the account linked to the Google account, else the one with
   its email, else opens a new one (email already confirmed); an email Google has not
   verified never opens or links an account.
@@ -300,7 +300,7 @@ decision taken on the way is listed below for review.
      and an "active / all" filter. *Recommendation*: check against Your projects, add the
      counts and the filter if missing.
    - **Branding**: "FING ≒ UDELAR" under the logo. *Recommendation*: an institution line
-     under the brand, set per deployment (white-label).
+     under the brand, set per variant.
    - **Links**: the documentation and the GitHub repository in the sidebar (the "Dev
      Dashboard" is a development tool, not kept). *Recommendation*: link the repository
      from the guide, since the code is published with the thesis.
@@ -446,7 +446,7 @@ decision taken on the way is listed below for review.
       (notifications keep translation keys and values, written out per reader).
 20. **The author's review of 2026-10-30 (evening)**:
     - Optional features are on or off per project: forum, chat, gallery, files, events (the
-      lottery stays, even with events off). White-label options are per deployment, and
+      lottery stays, even with events off). Variants
       decide which of these a project is even offered.
     - Guests are a project setting (see technical/architecture.md). A superadmin starting a
       project says who its first admin is: themselves (shown as any admin) or someone invited.

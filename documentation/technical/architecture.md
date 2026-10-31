@@ -90,7 +90,7 @@ while there are any, or invitations on their way to some.
 
 Forum, chat, gallery, files and events are on or off per project (`disabled_features`,
 `ProjectFeature`; `EnsureFeature` on their routes). Off, a feature is hidden and keeps what it
-holds. The lottery stays. White-label options, per deployment, will decide which of these a
+holds. The lottery stays. Each variant of the app will decide which of these a
 project is even offered (see the plan).
 
 **Archiving.** Removed events, files and forum posts are soft deleted (`Archivable`), and

@@ -27,6 +27,7 @@ here. Never say someone "has no family", "does not have a family", or "is family
 | Word | What it means | In code | Spanish |
 | --- | --- | --- | --- |
 | **Deployment** | One installation of the app, with its own people and projects: dev, staging or production. | `MTAV_ENV` | |
+| **Variant** | What a deployment is made to be: its name, landing page, words, and which parts of the app it offers. MTAV is one, running as dev, staging and production. Say "app variant" where "variant" alone is unclear. | | |
 | **Project** | One housing cooperative building its homes. Everything else belongs to one. | `Project` | proyecto |
 | **Limited** / **unlimited** | A project nobody vetted yet has limits that fit most cooperatives. A superadmin's approval makes it unlimited. A fact, never a warning. | `isApproved()` | limitado |
 | **Directory** | Where listed projects can be found and joined. | `DirectoryService` | Encontrar un proyecto |
