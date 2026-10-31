@@ -166,13 +166,44 @@ describe('Admins and a decline', function () {
             ->assertSessionHasNoErrors();
     });
 
-    it('cannot move someone into an archived family', function () {
+    it('brings back an archived family by moving someone into it', function () {
         $archived = aFamily($this->project, $this->type, ['name' => 'Gone']);
         $archived->delete();
 
         $this->as($this->admin, $this->project)
             ->put(route('manage.people.update', $this->guest), ['family_id' => $archived->id, 'is_admin' => false])
+            ->assertSessionHasNoErrors();
+
+        expect($archived->fresh()->trashed())->toBeFalse()
+            ->and($this->guest->fresh()->familyIn($this->project)->id)->toBe($archived->id);
+    });
+
+    it('stays within a Limited project\'s families when bringing one back', function () {
+        $project = anUnapprovedProject(aUser());
+        $admin = $project->admins()->first();
+        $type = aUnitType($project);
+        $guest = aGuestIn($project);
+        $archived = aFamily($project, $type);
+        $archived->delete();
+        aFamily($project, $type);
+        config(['limits.unapproved.families' => 1]);
+
+        $this->as($admin, $project)
+            ->put(route('manage.people.update', $guest), ['family_id' => $archived->id, 'is_admin' => false])
             ->assertSessionHasErrors('family_id');
+
+        expect($archived->fresh()->trashed())->toBeTrue();
+    });
+});
+
+describe('A family is shown while someone is in it', function () {
+    it('comes back however someone lands in it', function () {
+        $archived = aFamily($this->project, $this->type, ['name' => 'Gone']);
+        $archived->delete();
+
+        $this->project->memberships()->create(['user_id' => aUser()->id, 'family_id' => $archived->id]);
+
+        expect($archived->fresh()->trashed())->toBeFalse();
     });
 });
 

@@ -33,6 +33,12 @@ class Membership extends Model
     /** Everyone taking part is in the project's Community group, pinned to begin with, and only they */
     protected static function booted(): void
     {
+        // A family is shown while someone is in it, however they got there
+        static::saving(function (Membership $membership) {
+            if ($membership->family_id && $membership->isDirty('family_id')) {
+                Family::onlyTrashed()->find($membership->family_id)?->restore();
+            }
+        });
         static::created(function (Membership $membership) {
             $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id => ['pinned_at' => now()]]);
             $membership->startWithAssistant();

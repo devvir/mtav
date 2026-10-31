@@ -161,10 +161,7 @@ class InvitationService
         }
 
         if ($family->trashed()) {
-            $max = $family->project->limit('families');
-            if ($max !== null && $family->project->families()->count() >= $max) {
-                throw ValidationException::withMessages(['email' => __('validation.limit_families', ['max' => $max])]);
-            }
+            $family->project->ensureRoomForFamily('email');
             $family->restore();
         }
     }

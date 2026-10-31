@@ -75,7 +75,17 @@ class Project extends Model
      * invited), it held events (besides its lottery's own), shared files or ran its
      * lottery. A project its creator only set up has none, and is deleted for good.
      */
-    public function hasHistory(): bool
+    /** @throws ValidationException when a Limited project holds all the families it may */
+    public function ensureRoomForFamily(string $field): void
+    {
+        $max = $this->limit('families');
+
+        if ($max !== null && $this->families()->count() >= $max) {
+            throw ValidationException::withMessages([$field => __('validation.limit_families', ['max' => $max])]);
+        }
+    }
+
+        public function hasHistory(): bool
     {
         return $this->memberships()->when($this->created_by, fn ($people, $creator) => $people->where('user_id', '!=', $creator))->exists()
             || $this->invitations()->exists()

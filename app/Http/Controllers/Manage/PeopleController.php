@@ -23,7 +23,7 @@ class PeopleController extends Controller
     public function update(Request $request, Project $project, User $member): RedirectResponse
     {
         $data = $request->validate([
-            'family_id' => ['nullable', Rule::exists(Family::class, 'id')->where('project_id', $project->id)->whereNull('deleted_at')],
+            'family_id' => ['nullable', Rule::exists(Family::class, 'id')->where('project_id', $project->id)],
             'is_admin'  => ['required', 'boolean'],
         ]);
 
@@ -41,6 +41,11 @@ class PeopleController extends Controller
         if (($data['family_id'] ?? null) && (int) $data['family_id'] !== $membership->family_id
             && FamilyJoinRequest::declined()->where('family_id', $data['family_id'])->where('user_id', $member->id)->exists()) {
             throw ValidationException::withMessages(['family_id' => __('validation.family_declined_them')]);
+        }
+
+        // Moving someone into an archived family brings it back: it takes room again
+        if (($data['family_id'] ?? null) && Family::onlyTrashed()->whereKey($data['family_id'])->exists()) {
+            $project->ensureRoomForFamily('family_id');
         }
 
         $membership->update($data);
