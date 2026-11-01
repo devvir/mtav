@@ -225,6 +225,7 @@ return [
     'no_account_with_email'     => 'Aucun compte n’utilise cet e-mail.',
     'email_taken'               => 'Un autre compte utilise déjà cet e-mail.',
     'family_has_unit'           => 'Cette famille a déjà reçu un logement lors du tirage : elle ne peut pas être retirée.',
+    'family_has_people'         => 'Cette famille compte encore des personnes : déplacez-les vers une autre famille ou retirez-les d’abord du projet.',
     'owner_stays'               => 'Le propriétaire de la plateforme garde son compte.',
     'owner_keeps_role'          => 'Le propriétaire de la plateforme garde ce rôle.',
     'email_changes_limit'       => 'Vous avez changé d’e-mail plusieurs fois récemment : réessayez plus tard.',

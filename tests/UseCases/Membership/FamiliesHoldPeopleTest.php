@@ -247,11 +247,12 @@ describe('A family is shown while someone is in it', function () {
 
 describe('Removing a family', function () {
     it('withdraws the invitations into it, so nobody lands in an archived family', function () {
-        $invitation = app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $this->family, false);
+        $waiting = aFamily($this->project, $this->type);
+        $invitation = app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $waiting, false);
 
-        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $this->family));
+        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $waiting))->assertSessionHasNoErrors();
 
-        expect($this->family->fresh()->trashed())->toBeTrue()
+        expect($waiting->fresh()->trashed())->toBeTrue()
             ->and(Invitation::whereKey($invitation->id)->exists())->toBeFalse();
     });
 

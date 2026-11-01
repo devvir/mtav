@@ -137,7 +137,7 @@ it('registers, edits and removes families', function () {
         ->assertSee('The family was saved.')
         ->assertSee('García Pérez')
         ->click(button('Remove'))
-        ->assertSee('Its members leave the project')
+        ->assertSee('Invitations waiting to be accepted are withdrawn.')
         ->click(inDialog('Remove'))
         ->assertSee('The family was removed.')
         ->assertNoSmoke();

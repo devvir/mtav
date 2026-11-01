@@ -46,14 +46,35 @@ describe('An admin', function () {
         expect($family->fresh())->name->toBe('Renamed')->unit_type_id->toBe($otherType->id);
     });
 
-    it('removes a family together with its members', function () {
+    it('refuses removing a family with people in it, and says what to do', function () {
         $family = aFamily($this->project, $this->type);
         $member = aMemberOf($family);
 
-        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $family));
+        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $family))
+            ->assertSessionHasErrors(['family' => __('validation.family_has_people')]);
+
+        expect($family->fresh()->trashed())->toBeFalse()
+            ->and($member->fresh()->familyIn($this->project)->id)->toBe($family->id);
+    });
+
+    it('refuses it when the only one in it is an admin too', function () {
+        $family = aFamily($this->project, $this->type);
+        $this->admin->membershipIn($this->project)->update(['family_id' => $family->id]);
+
+        $this->as($this->admin, $this->project)->delete(route('manage.families.destroy', $family))
+            ->assertSessionHasErrors(['family' => __('validation.family_has_people')]);
+
+        expect($family->fresh()->trashed())->toBeFalse();
+    });
+
+    it('still archives a family when its last person leaves', function () {
+        $family = aFamily($this->project, $this->type);
+        $member = aMemberOf($family);
+
+        $member->membershipIn($this->project)->delete();
 
         expect(Family::find($family->id))->toBeNull()
-            ->and($this->project->members()->whereKey($member->id)->exists())->toBeFalse();
+            ->and($family->fresh()->trashed())->toBeTrue();
     });
 
     it('cannot give a family a unit type from another project', function () {

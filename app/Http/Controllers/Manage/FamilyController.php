@@ -53,8 +53,9 @@ class FamilyController extends Controller
     }
 
     /**
-     * Removing a family archives it, and removes its members from the project too (admins stay
-     * admins, with no family).
+     * Removing a family archives it. One with people in it stays: they are moved or removed first,
+     * one by one, knowing what happens to each. What is left to remove is one only waiting for
+     * someone invited: an empty one is archived already.
      */
     public function destroy(Project $project, Family $family): RedirectResponse
     {
@@ -64,13 +65,15 @@ class FamilyController extends Controller
             throw ValidationException::withMessages(['family' => __('validation.family_has_unit')]);
         }
 
+        if ($family->memberships()->exists()) {
+            throw ValidationException::withMessages(['family' => __('validation.family_has_people')]);
+        }
+
         DB::transaction(function () use ($family) {
             // Archived first: nobody is told of it emptying, the admin just removed it
             $family->delete();
             $family->joinRequests()->pending()->delete();
             $family->invitations()->pending()->delete();
-            $family->memberships()->where('is_admin', false)->get()->each->delete();
-            $family->memberships()->update(['family_id' => null]);
         });
 
         return to_route('families.index')->with('success', __('flash.family_deleted'));

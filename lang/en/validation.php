@@ -225,6 +225,7 @@ return [
     'no_account_with_email'     => 'There is no account with this email.',
     'email_taken'               => 'Another account already uses this email.',
     'family_has_unit'           => 'This family already received a unit in the lottery: it cannot be removed.',
+    'family_has_people'         => 'This family still has people: move them to another family or remove them from the project first.',
     'owner_stays'               => 'The owner of the platform keeps their account.',
     'owner_keeps_role'          => 'The owner of the platform keeps this role.',
     'email_changes_limit'       => 'You have changed your email several times lately: try again in a while.',

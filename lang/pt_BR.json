@@ -999,7 +999,6 @@
   "{name}: declined": "{name}: recusado",
   "{name} asks to join your family": "{name} pede para entrar na sua família",
   "Lift the decline": "Reverter a recusa",
-  "Its members leave the project (admins stay admins). It stays archived.": "Seus integrantes saem do projeto (admins continuam admins). Ela fica arquivada.",
   "Someone already in the project": "Alguém que já está no projeto",
   "Choose someone, or write an email below": "Escolha alguém, ou escreva um e-mail abaixo",
   "Invite someone into it": "Convidar alguém",
@@ -1109,5 +1108,7 @@
   "Nobody on record": "Ninguém registrado",
   "Delete the {name} family for good?": "Excluir definitivamente a família {name}?",
   "It cannot be brought back. Past lottery records still show its place.": "Não dá para recuperar. Os registros de sorteios anteriores continuam mostrando a posição dela.",
-  "Family created": "Família criada"
+  "Family created": "Família criada",
+  "It still has people: move or remove them first": "Ainda tem pessoas: mova-as ou remova-as primeiro",
+  "Invitations waiting to be accepted are withdrawn. It stays archived.": "Os convites pendentes são retirados. Ela fica arquivada."
 }

@@ -67,6 +67,19 @@ it('says why a family that received a unit cannot be removed, to the pointer and
     expect($this->family->fresh())->not->toBeNull();
 });
 
+it('says why a family with people cannot be removed', function () {
+    $this->as(anAdminOf($this->project));
+
+    $page = visit(route('families.index', ['project' => $this->project, 'family' => $this->family->id]))
+        ->assertPresent('[role="dialog"] button:has-text("Remove")');
+
+    $page->keys('[role="dialog"] button:has-text("Remove")', 'Shift')->assertSee('It still has people: move or remove them first');
+    $page->script('() => [...document.querySelectorAll("[role=\"dialog\"] button")].find((button) => button.textContent.trim() === "Remove").click()');
+
+    $page->wait(0.3)->assertDontSee('Remove the Pereira family?');
+    expect($this->family->fresh()->trashed())->toBeFalse();
+});
+
 it('shows an archived family\'s history, and deletes it for good from there', function () {
     $admin = anAdminOf($this->project);
     $archived = aFamily($this->project, $this->type, ['name' => 'Ferreira']);

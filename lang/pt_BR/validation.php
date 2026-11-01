@@ -225,6 +225,7 @@ return [
     'no_account_with_email'     => 'Não há nenhuma conta com este e-mail.',
     'email_taken'               => 'Outra conta já usa este e-mail.',
     'family_has_unit'           => 'Esta família já recebeu uma unidade no sorteio: não pode ser removida.',
+    'family_has_people'         => 'Esta família ainda tem pessoas: mova-as para outra família ou remova-as do projeto primeiro.',
     'owner_stays'               => 'Quem é dono da plataforma mantém sua conta.',
     'owner_keeps_role'          => 'Quem é dono da plataforma mantém este papel.',
     'email_changes_limit'       => 'Você trocou de e-mail várias vezes há pouco: tente de novo mais tarde.',

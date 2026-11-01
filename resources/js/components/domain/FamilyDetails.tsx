@@ -92,10 +92,16 @@ export function FamilyDetails({
   const canInvite = isOwn || Boolean(project?.can.manage);
   const [editing, setEditing] = useState(false);
   const [inviting, setInviting] = useState(false);
+  /** Why it cannot be removed, if so */
+  const notRemovable = family.unit
+    ? _('It already received a unit')
+    : family.members?.length
+      ? _('It still has people: move or remove them first')
+      : null;
   const remove = async () => {
     const ok = await confirm({
       title: _('Remove the {name} family?', { name: family.name }),
-      message: _('Its members leave the project (admins stay admins). It stays archived.'),
+      message: _('Invitations waiting to be accepted are withdrawn. It stays archived.'),
       confirmLabel: _('Remove'),
       danger: true,
     });
@@ -167,20 +173,20 @@ export function FamilyDetails({
                   {_('Edit')}
                 </Button>
                 <Tooltip
-                  label={_('It already received a unit')}
-                  disabled={!family.unit}
+                  label={notRemovable ?? ''}
+                  disabled={!notRemovable}
                   events={{ hover: true, focus: true, touch: false }}
                   withinPortal
                 >
                   <Button
                     variant="default"
                     color="red"
-                    c={family.unit ? undefined : 'red'}
+                    c={notRemovable ? undefined : 'red'}
                     leftSection={<IconTrash size={18} />}
                     // Not `disabled`: it stays reachable, to say why
-                    data-disabled={family.unit ? true : undefined}
-                    aria-disabled={Boolean(family.unit)}
-                    onClick={family.unit ? undefined : remove}
+                    data-disabled={notRemovable ? true : undefined}
+                    aria-disabled={Boolean(notRemovable)}
+                    onClick={notRemovable ? undefined : remove}
                   >
                     {_('Remove')}
                   </Button>
