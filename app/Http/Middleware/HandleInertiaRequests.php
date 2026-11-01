@@ -48,14 +48,20 @@ class HandleInertiaRequests extends Middleware
         /** @var User|null $user */
         $user = $request->user();
 
+        // A page loaded in the background is shown to nobody yet: a message or a refusal on its
+        // way waits for the visit that shows it, and a form takes the visit without one as success
+        $background = $request->header('Purpose') === 'prefetch';
+        $background && $request->session()->reflash();
+
         // Said once: apart from the props, a page the browser brings back does not bring them
-        if ($flashed = array_filter($request->session()->only(['success', 'info', 'warning', 'error', 'confirm']))) {
+        if (! $background && $flashed = array_filter($request->session()->only(['success', 'info', 'warning', 'error', 'confirm']))) {
             Inertia::flash($flashed);
         }
 
         /** Closures resolve at render time: the project is known only after routing */
         return [
             ...parent::share($request),
+            ...($background ? ['errors' => Inertia::always((object) [])] : []),
             'name'        => config('app.name'),
             'institution' => config('app.institution') ?: null,
             'locale'      => app()->getLocale(),
