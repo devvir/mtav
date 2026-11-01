@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { route } from './route';
+import { toast } from './toasts';
 
 /**
  * Notifications on this device, even with the app closed (Web Push): the browser asks the
@@ -33,19 +34,27 @@ const keyBytes = (key: string) => {
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
 };
 
+/** Whether the server took it */
 const tell = (
   method: 'post' | 'delete',
   data: { endpoint?: string; keys?: Record<string, string> },
 ) =>
-  new Promise<void>((done) =>
+  new Promise<boolean>((done) => {
+    let refusal: string | undefined;
     router.visit(route(method === 'post' ? 'push.subscribe' : 'push.unsubscribe'), {
       method,
       data: data as Record<string, string | Record<string, string>>,
       preserveScroll: true,
       preserveState: true,
-      onFinish: () => done(),
-    }),
-  );
+      onError: (errors) => {
+        refusal = Object.values(errors)[0];
+      },
+      onFinish: () => {
+        if (refusal) toast({ tone: 'error', message: refusal });
+        done(!refusal);
+      },
+    });
+  });
 
 /** Asks the person (the browser's own question), then subscribes this device */
 export async function turnOn(key: string): Promise<PushState> {
@@ -58,8 +67,9 @@ export async function turnOn(key: string): Promise<PushState> {
       applicationServerKey: keyBytes(key),
     }));
   const { endpoint, keys } = subscribed.toJSON();
-  await tell('post', { endpoint, keys });
-  return 'on';
+  if (await tell('post', { endpoint, keys })) return 'on';
+  await subscribed.unsubscribe();
+  return 'off';
 }
 
 export async function turnOff(): Promise<PushState> {

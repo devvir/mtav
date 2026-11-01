@@ -245,6 +245,7 @@ return [
     'limit_storage'          => 'For now this project has room for :max MB of files: ask for unlimited to lift it.',
     'image_too_large'        => 'Images up to :max megapixels can be shared; this one has more.',
     'chat_people'            => 'Choose people of the project to talk with.',
+    'push_device'            => 'This device cannot take notifications from here.',
     'chat_group_limit'       => 'You are in :max groups, the most there can be: leave one to start another.',
     'chat_group_limit_other' => ':name is in :max groups, the most there can be.',
     'guests_remain'          => 'Guests remain (:count, counting invitations on their way): give them a family or remove them first.',

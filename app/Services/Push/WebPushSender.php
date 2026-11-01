@@ -17,6 +17,11 @@ class WebPushSender implements PushSender
 
     public function send(PushSubscription $to, array $payload): bool
     {
+        // The library throws on keys it cannot encrypt with: no browser gave these
+        if (! PushSubscription::areKeys($to->public_key, $to->auth_token)) {
+            return false;
+        }
+
         $report = $this->push()->sendOneNotification(
             Subscription::create([
                 'endpoint'        => $to->endpoint,

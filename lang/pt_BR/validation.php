@@ -245,6 +245,7 @@ return [
     'limit_storage'          => 'Por enquanto este projeto tem espaço para :max MB de arquivos: peça ilimitado para tirar o limite.',
     'image_too_large'        => 'É possível compartilhar imagens de até :max megapixels; esta tem mais.',
     'chat_people'            => 'Escolha pessoas do projeto para conversar.',
+    'push_device'            => 'Este dispositivo não pode receber notificações daqui.',
     'chat_group_limit'       => 'Você está em :max grupos, o máximo: saia de algum para criar outro.',
     'chat_group_limit_other' => ':name está em :max grupos, o máximo.',
     'guests_remain'          => 'Ainda há convidados (:count, contando convites a caminho): primeiro dê a eles uma família ou remova-os.',

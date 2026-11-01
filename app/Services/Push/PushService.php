@@ -5,9 +5,11 @@ namespace App\Services\Push;
 use App\Enums\NotificationTarget;
 use App\Models\Message;
 use App\Models\Notification;
+use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Notifications on people's devices, even with the app closed: to everyone a notification
@@ -35,7 +37,7 @@ class PushService
             ];
 
             foreach ($user->pushSubscriptions as $subscription) {
-                $this->sender->send($subscription, $payload) || $subscription->delete();
+                $this->push($subscription, $payload);
             }
         }
     }
@@ -66,8 +68,18 @@ class PushService
             ];
 
             foreach ($user->pushSubscriptions as $subscription) {
-                $this->sender->send($subscription, $payload) || $subscription->delete();
+                $this->push($subscription, $payload);
             }
+        }
+    }
+
+    /** One device's trouble stops nobody else's notification, nor repeats it to those who had it */
+    private function push(PushSubscription $subscription, array $payload): void
+    {
+        try {
+            $this->sender->send($subscription, $payload) || $subscription->delete();
+        } catch (Throwable $error) {
+            report($error);
         }
     }
 
