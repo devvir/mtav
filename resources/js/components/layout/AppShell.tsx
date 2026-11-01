@@ -149,6 +149,8 @@ function Page({ tabs, children }: { tabs: boolean; children: ReactNode }) {
 
   return (
     <main
+      id="content"
+      tabIndex={-1}
       className="shell-page"
       data-with-tabs={tabs || undefined}
       data-loading={to ? true : undefined}
@@ -216,6 +218,16 @@ export function AppShell({
 
   return (
     <div className="shell">
+      <a
+        href="#content"
+        className="shell-skip"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById('content')?.focus();
+        }}
+      >
+        {_('Skip to content')}
+      </a>
       <aside className="shell-sidebar">
         <Link href={route('home')} className="shell-logo">
           <Logo name={props.name} institution={props.institution} />

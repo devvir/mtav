@@ -12,6 +12,7 @@ import './tours';
 import { Appearance } from '@/design';
 import { setAppName } from '@/lib/app';
 import { workOffline } from '@/lib/offline';
+import { followPagesWithFocus } from '@/lib/pageFocus';
 import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
 import { _, loadLocale } from '@/lib/translations';
@@ -60,6 +61,7 @@ createInertiaApp({
     connectRealtime(props.initialPage.props.realtime);
     workOffline(props.initialPage.props.auth?.user?.id ?? null);
     setAppName(props.initialPage.props.name as string | undefined);
+    followPagesWithFocus();
 
     // The first render waits for the words of the language in use (one small file, cached)
     void loadLocale(props.initialPage.props.locale as string).then(() =>

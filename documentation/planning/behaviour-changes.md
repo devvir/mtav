@@ -943,6 +943,7 @@ Old: none. (no manifest at `2c8e8b13:public/`)
 
 ### Works differently
 
+- **Getting around with a keyboard or a screen reader.** Arriving at a page takes the focus to its heading, and a "Skip to content" link is the first stop on every signed-in page. (`resources/js/lib/pageFocus.ts`, `resources/js/components/layout/AppShell.tsx`, `tests/Browser/Features/NavigationTest.php`)
 - **A ranking moved just before leaving is saved.** A move goes out a moment after the last one, and still goes out when the person goes to another page or closes it. The page says "Saving", then "Saved", in a status screen readers announce. (`resources/js/lib/rankingSave.ts`, `resources/js/tests/unit/rankingSave.test.ts`, `tests/Browser/Features/LotteryTest.php`)
 - **Health checks.** `/ping` and `/up` answer as before, except on a site that stays closed (no account, no owner settings): `/ping` answers "under construction" (503), `/up` is unaffected. (`2c8e8b13:routes/web.php`, `bootstrap/app.php`; `routes/web.php`, `app/Http/Middleware/RequireOwner.php`)
 

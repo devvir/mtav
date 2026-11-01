@@ -31,6 +31,48 @@ it('opens the guide and the questions and answers from the account menu', functi
         ->assertPathIs(pathOf('profile.edit'));
 });
 
+it('takes the focus to the heading of each page it arrives at', function () {
+    $this->as($this->member);
+
+    visit(route('projects.show', $this->project))
+        ->click('.shell-sidebar >> a:has-text("Lottery")')
+        ->assertPathIs(pathOf('lottery.show', $this->project))
+        ->wait(0.2)
+        ->assertScript('document.activeElement.tagName', 'H1')
+        ->assertScript('document.activeElement.textContent.includes("Lottery")', true);
+});
+
+it('takes the focus to the page from the phone\'s menu too', function () {
+    $this->as($this->member);
+
+    visit(route('projects.show', $this->project))
+        ->resize(390, 844)
+        ->click('[aria-label="Menu"]')
+        ->click('[role="dialog"] >> a:has-text("Lottery")')
+        ->assertPathIs(pathOf('lottery.show', $this->project))
+        ->wait(0.5)
+        ->assertScript('document.activeElement.tagName', 'H1');
+});
+
+it('leaves the focus alone on a search within a page', function () {
+    $this->as($this->member);
+
+    visit(route('events.index', $this->project))
+        ->fill('[type="search"], input[placeholder]', 'assembly')
+        ->wait(1)
+        ->assertScript('window.location.search.includes("q=assembly")', true)
+        ->assertScript('document.activeElement.tagName', 'INPUT');
+});
+
+it('offers the keyboard a way past the navigation, first thing', function () {
+    $this->as($this->member);
+
+    visit(route('projects.show', $this->project))
+        ->assertScript("document.querySelector('.shell a, .shell button').textContent", 'Skip to content')
+        ->keys('.shell-skip', 'Enter')
+        ->assertScript('document.activeElement.id', 'content');
+});
+
 it('offers superadmins the platform console, and no one else', function () {
     $this->as($this->member);
     visit(route('projects.show', $this->project))

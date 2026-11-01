@@ -179,6 +179,28 @@
   font-weight: 700;
 }
 
+/* Out of sight until the keyboard reaches it: the first stop of every page */
+.shell-skip {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--mtav-surface-raised);
+  color: var(--mtav-text);
+  font-weight: 650;
+  transform: translateY(-200%);
+  transition: transform 200ms ease;
+}
+.shell-skip:focus {
+  transform: none;
+}
+/* The focus lands here on arriving at a page, or from the link above: nothing to outline */
+.shell-page:focus,
+.shell-page h1:focus {
+  outline: none;
+}
 .shell-page {
   width: 100%;
   max-width: 1240px;
