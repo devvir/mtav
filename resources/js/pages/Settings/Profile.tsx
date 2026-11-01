@@ -58,9 +58,10 @@ interface Props {
   languages: Record<string, string>;
   /** What a browser needs to receive notifications (null: not set up here) */
   pushKey: string | null;
+  pushDevices: string[];
 }
 
-export default function Profile({ profile, languages, pushKey }: Props) {
+export default function Profile({ profile, languages, pushKey, pushDevices }: Props) {
   const { auth, errors, project } = usePage().props;
   const user = auth.user!;
   const form = useForm({
@@ -257,7 +258,7 @@ export default function Profile({ profile, languages, pushKey }: Props) {
               <Title order={2} fz="md" fw={650} mt="xl" mb="md">
                 {_('Notifications')}
               </Title>
-              <DeviceNotifications pushKey={pushKey} />
+              <DeviceNotifications pushKey={pushKey} devices={pushDevices} />
             </>
           ) : null}
         </Tabs.Panel>

@@ -29,6 +29,8 @@ class ProfileController extends Controller
             'language'  => $user->locale,
             // What a browser needs to receive notifications (null: not set up here)
             'pushKey' => PushService::enabled() ? config('services.push.public_key') : null,
+            // Which browsers send them to this person: a browser alone does not know
+            'pushDevices' => $user->pushSubscriptions()->pluck('endpoint'),
         ]);
     }
 

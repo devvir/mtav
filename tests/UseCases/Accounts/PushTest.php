@@ -8,6 +8,7 @@ use App\Services\NotificationService;
 use App\Services\Push\PushSender;
 use App\Services\Push\WebPushSender;
 use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Password;
 
 /**
  * Notifications on people's devices, even with the app closed: each person allows the
@@ -263,4 +264,85 @@ it('pushes nothing where the deployment has no keys', function () {
 
     expect($this->sender->sent)->toBe([])
         ->and($this->as($this->member)->get(route('profile.edit'))->inertiaProps('pushKey'))->toBeNull();
+});
+
+it('turns off, on signing out, the device signed out of, and only that one', function () {
+    allowDevice($this, $this->member);
+    allowDevice($this, $this->member, 'https://fcm.googleapis.com/device-2');
+    allowDevice($this, $this->admin, 'https://fcm.googleapis.com/device-3');
+
+    $this->as($this->member)->post(route('logout'), ['endpoint' => 'https://fcm.googleapis.com/device-1'])
+        ->assertRedirect(route('home'));
+
+    expect(PushSubscription::pluck('endpoint')->all())
+        ->toEqualCanonicalizing(['https://fcm.googleapis.com/device-2', 'https://fcm.googleapis.com/device-3']);
+});
+
+it('does not turn off, on signing out, another person\'s device, whatever the browser says', function () {
+    allowDevice($this, $this->admin);
+
+    $this->as($this->member)->post(route('logout'), ['endpoint' => 'https://fcm.googleapis.com/device-1']);
+
+    expect($this->admin->pushSubscriptions()->count())->toBe(1);
+});
+
+it('signs out a browser that has no device to name', function () {
+    allowDevice($this, $this->member);
+
+    $this->as($this->member)->post(route('logout'), ['endpoint' => null])->assertRedirect(route('home'));
+
+    expect($this->member->pushSubscriptions()->count())->toBe(1);
+    $this->assertGuest();
+});
+
+it('turns off all of someone\'s devices when they change their password, and nobody else\'s', function () {
+    allowDevice($this, $this->member);
+    allowDevice($this, $this->member, 'https://fcm.googleapis.com/device-2');
+    allowDevice($this, $this->admin, 'https://fcm.googleapis.com/device-3');
+
+    $this->as($this->member)->put(route('password.update'), [
+        'current_password'      => 'password',
+        'password'              => 'a-New-password-9',
+        'password_confirmation' => 'a-New-password-9',
+    ])->assertSessionHasNoErrors();
+
+    expect($this->member->pushSubscriptions()->count())->toBe(0)
+        ->and($this->admin->pushSubscriptions()->count())->toBe(1);
+});
+
+it('keeps someone\'s devices when the new password is refused', function () {
+    allowDevice($this, $this->member);
+
+    $this->as($this->member)->put(route('password.update'), [
+        'current_password'      => 'not-the-password',
+        'password'              => 'a-New-password-9',
+        'password_confirmation' => 'a-New-password-9',
+    ])->assertSessionHasErrors('current_password');
+
+    expect($this->member->pushSubscriptions()->count())->toBe(1);
+});
+
+it('turns off all of someone\'s devices when they reset their password, and nobody else\'s', function () {
+    allowDevice($this, $this->member);
+    allowDevice($this, $this->admin, 'https://fcm.googleapis.com/device-3');
+    auth()->logout();
+
+    $this->post(route('password.store'), [
+        'token'                 => Password::createToken($this->member),
+        'email'                 => $this->member->email,
+        'password'              => 'a-New-password-9',
+        'password_confirmation' => 'a-New-password-9',
+    ])->assertSessionHasNoErrors();
+
+    expect($this->member->pushSubscriptions()->count())->toBe(0)
+        ->and($this->admin->pushSubscriptions()->count())->toBe(1);
+});
+
+it('tells the profile which devices send to this person, and only those', function () {
+    allowDevice($this, $this->member);
+    allowDevice($this, $this->admin, 'https://fcm.googleapis.com/device-3');
+
+    $this->as($this->member)->get(route('profile.edit'))->assertInertia(
+        fn ($page) => $page->where('pushDevices', ['https://fcm.googleapis.com/device-1']),
+    );
 });

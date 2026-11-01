@@ -13,7 +13,10 @@ use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
 {
-    /** A new password signs out every other device; this one stays, remembered if it was */
+    /**
+     * A new password signs out every other device; this one stays, remembered if it was. None
+     * keeps its notifications: each is turned back on by whoever holds it.
+     */
     public function update(Request $request, AccountService $accounts): RedirectResponse
     {
         $data = $request->validate([
@@ -25,6 +28,7 @@ class PasswordController extends Controller
         $user->forceFill(['password' => $data['password'], 'remember_token' => Str::random(60)])->save();
         Auth::logoutOtherDevices($data['password']);
         $accounts->endSessions($user, except: $request->session()->getId());
+        $user->pushSubscriptions()->delete();
 
         return back()->with('success', __('flash.password_updated'));
     }

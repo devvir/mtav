@@ -1,7 +1,8 @@
 import { AuthHeading } from '@/components/layout/AuthHeading';
+import { signOut } from '@/lib/push';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Button, Stack } from '@mantine/core';
 import { IconMailCheck } from '@tabler/icons-react';
 
@@ -18,7 +19,7 @@ export default function VerifyEmail({ email }: { email: string }) {
         <Button loading={form.processing} onClick={() => form.post(route('verification.send'))}>
           {_('Send the link again')}
         </Button>
-        <Button variant="subtle" onClick={() => router.post(route('logout'))}>
+        <Button variant="subtle" onClick={() => void signOut()}>
           {_('Sign out')}
         </Button>
       </Stack>

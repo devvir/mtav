@@ -1,9 +1,10 @@
 import { Form, RequiredNote } from '@/components/forms/Form';
 import { AuthHeading } from '@/components/layout/AuthHeading';
 import { field } from '@/lib/forms';
+import { signOut } from '@/lib/push';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Alert, Button, PasswordInput, SimpleGrid, Text, TextInput } from '@mantine/core';
 import { IconConfetti } from '@tabler/icons-react';
 
@@ -62,7 +63,7 @@ export default function Invitation({ token, invitation, mismatch }: Props) {
               current: user?.email ?? '',
             })}
           </Alert>
-          <Button fullWidth mt="lg" variant="default" onClick={() => router.post(route('logout'))}>
+          <Button fullWidth mt="lg" variant="default" onClick={() => void signOut()}>
             {_('Sign out to accept it')}
           </Button>
         </>

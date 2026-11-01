@@ -14,6 +14,7 @@ import { Appearance } from '@/design';
 import { setAppName } from '@/lib/app';
 import { workOffline } from '@/lib/offline';
 import { followPagesWithFocus } from '@/lib/pageFocus';
+import { followPerson } from '@/lib/person';
 import { connectRealtime } from '@/lib/realtime';
 import { setRoutes } from '@/lib/route';
 import { _, loadLocale } from '@/lib/translations';
@@ -61,6 +62,7 @@ createInertiaApp({
     setRoutes(props.initialPage.props.routes, props.initialPage.props.ziggy);
     connectRealtime(props.initialPage.props.realtime);
     workOffline(props.initialPage.props.auth?.user?.id ?? null);
+    followPerson(props.initialPage.props.auth?.user?.id ?? null);
     setAppName(props.initialPage.props.name as string | undefined);
     followPagesWithFocus();
     showFlashToasts();

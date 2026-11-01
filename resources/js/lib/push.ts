@@ -1,6 +1,8 @@
 import { router } from '@inertiajs/react';
+import { heldOffline } from './offline';
 import { route } from './route';
 import { toast } from './toasts';
+import { _ } from './translations';
 
 /**
  * Notifications on this device, even with the app closed (Web Push): the browser asks the
@@ -18,12 +20,17 @@ const appleNotInstalled = () =>
   !(navigator as Navigator & { standalone?: boolean }).standalone;
 
 const subscription = async () =>
-  (await navigator.serviceWorker.ready).pushManager.getSubscription();
+  supported()
+    ? ((await (await navigator.serviceWorker.getRegistration())?.pushManager.getSubscription()) ??
+      null)
+    : null;
 
-export async function pushState(): Promise<PushState> {
+/** On only if the browser has it and the server sends to it: `devices`, this person's */
+export async function pushState(devices: string[]): Promise<PushState> {
   if (!supported()) return appleNotInstalled() ? 'needs-install' : 'unsupported';
   if (Notification.permission === 'denied') return 'blocked';
-  return (await subscription()) ? 'on' : 'off';
+  const subscribed = await subscription();
+  return subscribed && devices.includes(subscribed.endpoint) ? 'on' : 'off';
 }
 
 /** The server's public key, as browsers take it */
@@ -40,25 +47,34 @@ const tell = (
   data: { endpoint?: string; keys?: Record<string, string> },
 ) =>
   new Promise<boolean>((done) => {
+    let took = false;
     let refusal: string | undefined;
     router.visit(route(method === 'post' ? 'push.subscribe' : 'push.unsubscribe'), {
       method,
       data: data as Record<string, string | Record<string, string>>,
       preserveScroll: true,
       preserveState: true,
+      onSuccess: () => {
+        took = true;
+      },
       onError: (errors) => {
         refusal = Object.values(errors)[0];
       },
+      // Refused, or never there (the connection, the server failing)
       onFinish: () => {
-        if (refusal) toast({ tone: 'error', message: refusal });
-        done(!refusal);
+        if (!took) {
+          toast({ tone: 'error', message: refusal ?? _('That did not work. Please try again.') });
+        }
+        done(took);
       },
     });
   });
 
 /** Asks the person (the browser's own question), then subscribes this device */
 export async function turnOn(key: string): Promise<PushState> {
-  if ((await Notification.requestPermission()) !== 'granted') return pushState();
+  if (heldOffline()) return 'off';
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') return permission === 'denied' ? 'blocked' : 'off';
   const registration = await navigator.serviceWorker.ready;
   const subscribed =
     (await registration.pushManager.getSubscription()) ??
@@ -73,10 +89,24 @@ export async function turnOn(key: string): Promise<PushState> {
 }
 
 export async function turnOff(): Promise<PushState> {
+  if (heldOffline()) return 'on';
   const subscribed = await subscription();
   if (subscribed) {
     await tell('delete', { endpoint: subscribed.endpoint });
     await subscribed.unsubscribe();
   }
   return 'off';
+}
+
+/** This browser stops taking notifications; the server forgets it on its next try, if not told */
+export async function dropDevice() {
+  const subscribed = await subscription().catch(() => null);
+  await subscribed?.unsubscribe().catch(() => undefined);
+  return subscribed?.endpoint ?? null;
+}
+
+/** Whoever signs out here takes their notifications with them: the server is told which device */
+export async function signOut() {
+  if (heldOffline()) return;
+  router.post(route('logout'), { endpoint: await dropDevice() });
 }

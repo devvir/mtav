@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
+use App\Services\ChatService;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -277,4 +278,55 @@ it('speaks every language it offers, guides included', function () {
         visit(route('lottery.show', $project))->assertDontSee('Your preferences')->assertNoSmoke();
         visit(route('documentation.guide'))->assertSee($guide);
     }
+});
+
+it('leaves the next person nothing of the last one in the tab', function () {
+    $project = aProject();
+    $ana = aMemberOf(aFamily($project), ['firstname' => 'Ana', 'lastname' => 'Pérez']);
+    $beto = aMemberOf(aFamily($project), ['firstname' => 'Beto', 'lastname' => 'Silva']);
+    $carla = aMemberOf(aFamily($project), ['firstname' => 'Carla', 'lastname' => 'Díaz']);
+    $chat = app(ChatService::class);
+    $chat->send($chat->start($project, $ana, [$carla->id]), $ana, 'Solo para Carla');
+    $this->as($ana);
+
+    $page = visit(route('projects.show', $project))
+        ->click('.chat-launcher')
+        ->assertSee('Solo para Carla');
+    $page->script('() => { window.lastPerson = "Ana"; }');
+
+    $page->click('[aria-label="Your account"]')->click('Sign out')->assertSee('Sign in')->wait(0.5);
+
+    // Started over: nothing in memory, no live channel left
+    expect($page->script('() => window.lastPerson ?? null'))->toBeNull()
+        ->and($page->script('() => Object.keys(window.Echo?.connector?.channels ?? {})'))->toBe([]);
+
+    $page->click('Sign in')
+        ->fill('email', $beto->email)
+        ->fill('password', 'password')
+        ->keys('[name="password"]', 'Enter')
+        ->assertSee($project->name)
+        ->click('.chat-launcher')
+        ->assertPresent('.chat-window')
+        ->wait(0.5)
+        ->assertDontSee('Solo para Carla');
+});
+
+it('shows nothing of the last person on going back after signing out', function () {
+    $project = aProject();
+    $ana = aMemberOf(aFamily($project), ['firstname' => 'Ana', 'lastname' => 'Pérez']);
+    $this->as($ana);
+
+    $page = visit(route('projects.show', $project))
+        ->click('[aria-label="Your account"]')
+        ->click('[role="menu"] >> text=Profile')
+        ->assertPathIs(route('profile.edit', absolute: false))
+        ->click('[aria-label="Your account"]')
+        ->click('Sign out')
+        ->assertSee('Sign in')
+        ->wait(0.5);
+
+    $page->script('() => history.back()');
+    $page->wait(1.5);
+
+    expect($page->content())->not->toContain($ana->email);
 });

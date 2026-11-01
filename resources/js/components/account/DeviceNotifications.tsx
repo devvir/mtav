@@ -8,19 +8,19 @@ import { useEffect, useState } from 'react';
  * switch, asked for by the person (browsers block sites that ask on arrival). Where it
  * cannot be, it says why.
  */
-export function DeviceNotifications({ pushKey }: { pushKey: string }) {
+export function DeviceNotifications({ pushKey, devices }: { pushKey: string; devices: string[] }) {
   const [state, setState] = useState<PushState | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void pushState().then(setState);
-  }, []);
+    void pushState(devices).then(setState);
+  }, [devices]);
 
   if (!state) return null;
 
   const change = async (on: boolean) => {
     setBusy(true);
-    setState(await (on ? turnOn(pushKey) : turnOff()).catch(() => pushState()));
+    setState(await (on ? turnOn(pushKey) : turnOff()).catch(() => pushState(devices)));
     setBusy(false);
   };
 

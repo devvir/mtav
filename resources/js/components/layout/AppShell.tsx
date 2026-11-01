@@ -2,6 +2,7 @@ import { TourHost } from '@/components/help/TourHost';
 import { OfflineStatus } from '@/components/layout/OfflineStatus';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Logo, NavItem, PersonAvatar } from '@/design';
+import { signOut } from '@/lib/push';
 import { useLiveMessages, useLiveNotifications } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -351,13 +352,7 @@ export function AppShell({
                   {_('Questions and answers')}
                 </Menu.Item>
                 <Menu.Divider />
-                <Menu.Item
-                  component={Link}
-                  href={route('logout')}
-                  method="post"
-                  as="button"
-                  leftSection={<IconLogout size={16} />}
-                >
+                <Menu.Item leftSection={<IconLogout size={16} />} onClick={() => void signOut()}>
                   {_('Sign out')}
                 </Menu.Item>
               </Menu.Dropdown>

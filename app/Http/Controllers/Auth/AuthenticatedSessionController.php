@@ -26,8 +26,11 @@ class AuthenticatedSessionController extends Controller
         return redirect()->intended(route('home', absolute: false));
     }
 
+    /** This device's notifications stop with the session; the browser gave which one it is */
     public function destroy(Request $request): RedirectResponse
     {
+        $request->user()->pushSubscriptions()->where('endpoint', $request->string('endpoint'))->delete();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

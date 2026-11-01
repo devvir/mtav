@@ -61,7 +61,8 @@ class NewPasswordController extends Controller
     }
 
     /**
-     * Reset the user's password. Whoever was signed in with the old one is out, everywhere.
+     * Reset the user's password. Whoever was signed in with the old one is out, everywhere, and
+     * no device keeps its notifications.
      */
     private function resetPassword(Request $request, AccountService $accounts)
     {
@@ -74,6 +75,7 @@ class NewPasswordController extends Controller
                 ])->save();
 
                 $accounts->endSessions($user);
+                $user->pushSubscriptions()->delete();
 
                 event(new PasswordReset($user));
             }
