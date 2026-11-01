@@ -3,7 +3,9 @@
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use App\Models\Notification;
+use App\Models\Project;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Opening a notification marks it read and leads to what it is about; one about nothing in
@@ -26,6 +28,65 @@ function notify($test, ?string $url): Notification
         targetId: $test->project->id,
     );
 }
+
+describe('Joining a project', function () {
+    beforeEach(function () {
+        $this->older = aProject();
+        $this->notice = fn (Project $project) => app(NotificationService::class)->send(
+            NotificationTarget::PROJECT,
+            NotificationType::RESOURCE_CREATED,
+            'A title',
+            'A message',
+            targetId: $project->id,
+        );
+        $this->ownNotices = fn () => Notification::for($this->member->fresh())->where('target', NotificationTarget::PROJECT)->pluck('target_id')->all();
+    });
+
+    it('brings no earlier news of it, however long ago they signed up', function () {
+        $this->travel(5)->days();
+        ($this->notice)($this->older);
+        $this->travel(1)->days();
+        $this->older->memberships()->create(['user_id' => $this->member->id]);
+
+        expect(($this->ownNotices)())->toBe([])
+            ->and(Notification::for($this->member->fresh())->unreadBy($this->member)->where('target_id', $this->older->id)->count())->toBe(0);
+    });
+
+    it('brings what comes after, of that project and the ones they were in', function () {
+        $this->travel(1)->days();
+        $this->older->memberships()->create(['user_id' => $this->member->id]);
+        $this->travel(1)->minutes();
+        ($this->notice)($this->older);
+        ($this->notice)($this->project);
+
+        expect(($this->ownNotices)())->toEqualCanonicalizing([$this->older->id, $this->project->id]);
+    });
+
+    it('still brings what was told in the very moment they joined', function () {
+        $this->freezeTime();
+        $this->older->memberships()->create(['user_id' => $this->member->id]);
+        ($this->notice)($this->older);
+
+        expect(($this->ownNotices)())->toBe([$this->older->id]);
+    });
+
+    it('brings nothing to who is no longer in it', function () {
+        ($this->notice)($this->project);
+        $this->member->memberships()->delete();
+
+        expect(($this->ownNotices)())->toBe([]);
+    });
+});
+
+it('marks every unread notification read, however many, past what one statement can take', function () {
+    $now = now();
+    $rows = array_fill(0, 22_000, ['type' => NotificationType::RESOURCE_CREATED->value, 'target' => NotificationTarget::PROJECT->value, 'target_id' => $this->project->id, 'data' => '{}', 'created_at' => $now, 'updated_at' => $now]);
+    collect($rows)->chunk(2000)->each(fn ($some) => DB::table('notifications')->insert($some->all()));
+
+    $this->as($this->member, $this->project)->post(route('notifications.readAll'))->assertRedirect();
+
+    expect(Notification::for($this->member->fresh())->unreadBy($this->member)->count())->toBe(0);
+});
 
 it('marks a notification read and leads to what it is about', function () {
     $notification = notify($this, route('events.index', $this->project));

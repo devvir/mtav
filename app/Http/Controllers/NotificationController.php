@@ -53,9 +53,10 @@ class NotificationController extends Controller
 
         $unread = Notification::for($user)->unreadBy($user)->pluck('id');
 
-        DB::table('notification_reads')->insertOrIgnore(
-            $unread->map(fn (int $id) => ['notification_id' => $id, 'user_id' => $user->id, 'read_at' => now()])->all()
-        );
+        // By parts: a statement only takes so many values
+        $unread->chunk(1000)->each(fn ($ids) => DB::table('notification_reads')->insertOrIgnore(
+            $ids->map(fn (int $id) => ['notification_id' => $id, 'user_id' => $user->id, 'read_at' => now()])->all()
+        ));
 
         return back()->with('success', __('flash.notifications_read'));
     }

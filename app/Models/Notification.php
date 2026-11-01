@@ -59,8 +59,9 @@ class Notification extends Model
     }
 
     /**
-     * Notifications a user receives, newest first, from their registration on, each
-     * with a `read` flag for that user. An archived project's are no longer among them.
+     * Notifications a user receives, newest first, from their registration on (a project's,
+     * from when they joined it), each with a `read` flag for that user. An archived
+     * project's are no longer among them.
      */
     public function scopeFor(Builder $query, User $user): void
     {
@@ -73,7 +74,11 @@ class Notification extends Model
                     ->where('target_id', $user->id))
                 ->orWhere(fn (Builder $q) => $q
                     ->where('target', NotificationTarget::PROJECT)
-                    ->whereIn('target_id', $projectIds))
+                    ->whereIn('target_id', $projectIds)
+                    ->whereExists(fn ($joined) => $joined->from('memberships')
+                        ->where('memberships.user_id', $user->id)
+                        ->whereColumn('memberships.project_id', 'notifications.target_id')
+                        ->whereColumn('memberships.created_at', '<=', 'notifications.created_at')))
                 ->when($user->isSuperadmin(), fn (Builder $q) => $q
                     ->orWhere('target', NotificationTarget::GLOBAL)))
             ->where('created_at', '>=', $user->created_at)
