@@ -9,6 +9,7 @@ import type { Paginated } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
 import { Badge, Button, Card, Group, SimpleGrid, Text, Title } from '@mantine/core';
 import { IconLayoutGrid, IconSearch, IconUsers } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface ListedProject {
   id: number;
@@ -24,7 +25,10 @@ interface ListedProject {
 
 /** What the viewer can do about a project, given where they stand */
 function ProjectAction({ project }: { project: ListedProject }) {
-  const options = { preserveScroll: true };
+  // One click is one answer: the button waits for it
+  const [sending, setSending] = useState(false);
+  const waiting = { onStart: () => setSending(true), onFinish: () => setSending(false) };
+  const options = { preserveScroll: true, ...waiting };
 
   switch (project.standing) {
     case 'in':
@@ -33,19 +37,26 @@ function ProjectAction({ project }: { project: ListedProject }) {
           component={Link}
           href={route('projects.show', { project: project.id })}
           variant="default"
+          aria-label={_('Open {name}', { name: project.name })}
         >
           {_('Open')}
         </Button>
       );
     case 'can_join':
       return (
-        <Button onClick={() => router.post(route('directory.join', { project: project.id }))}>
+        <Button
+          loading={sending}
+          aria-label={_('Join {project}', { project: project.name })}
+          onClick={() => router.post(route('directory.join', { project: project.id }), {}, waiting)}
+        >
           {_('Join')}
         </Button>
       );
     case 'can_ask':
       return (
         <Button
+          loading={sending}
+          aria-label={_('Ask to join {project}', { project: project.name })}
           onClick={() => router.post(route('directory.ask', { project: project.id }), {}, options)}
         >
           {_('Ask to join')}
@@ -57,6 +68,8 @@ function ProjectAction({ project }: { project: ListedProject }) {
           <Text className="ds-caption">{_('Request sent')}</Text>
           <Button
             variant="default"
+            loading={sending}
+            aria-label={_('Withdraw the request to {project}', { project: project.name })}
             onClick={() =>
               router.delete(route('directory.withdraw', { project: project.id }), options)
             }

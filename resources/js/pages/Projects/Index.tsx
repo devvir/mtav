@@ -102,10 +102,21 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   </Text>
                 </div>
                 <Group gap="xs">
-                  <Button variant="default" onClick={() => respond(invitation.id, false)}>
+                  <Button
+                    variant="default"
+                    aria-label={_('Decline the invitation to {project}', {
+                      project: invitation.project,
+                    })}
+                    onClick={() => respond(invitation.id, false)}
+                  >
                     {_('Decline')}
                   </Button>
-                  <Button onClick={() => respond(invitation.id, true)}>{_('Join')}</Button>
+                  <Button
+                    aria-label={_('Join {project}', { project: invitation.project })}
+                    onClick={() => respond(invitation.id, true)}
+                  >
+                    {_('Join')}
+                  </Button>
                 </Group>
               </Group>
             </Card>

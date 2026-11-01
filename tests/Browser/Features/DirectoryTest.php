@@ -71,3 +71,33 @@ it('lists a project from its settings, choosing who can join', function () {
         ->assertSee('The project was saved.')
         ->assertNoSmoke();
 });
+
+it('names the project each repeated button acts on', function () {
+    $open = aProject(['name' => 'Open one', 'listed' => true, 'open_to_join' => true]);
+    aUnitType($open);
+    $asking = aProject(['name' => 'By request', 'listed' => true]);
+    aUnitType($asking);
+    $asked = aProject(['name' => 'Asked already', 'listed' => true]);
+    aUnitType($asked);
+    $mine = aProject(['name' => 'Mine', 'listed' => true]);
+    $person = aUser();
+    $mine->memberships()->create(['user_id' => $person->id]);
+    $asked->joinRequests()->create(['user_id' => $person->id]);
+    $inviting = aProject(['name' => 'Inviting']);
+    $inviting->invitations()->create([
+        'email' => $person->email, 'token_hash' => 'x', 'invited_by' => anAdminOf($inviting)->id, 'expires_at' => now()->addDay(),
+    ]);
+    $this->as($person);
+
+    visit(route('directory.index'))
+        ->assertPresent('button[aria-label="Join Open one"]:has-text("Join")')
+        ->assertPresent('button[aria-label="Ask to join By request"]:has-text("Ask to join")')
+        ->assertPresent('button[aria-label="Withdraw the request to Asked already"]:has-text("Withdraw")')
+        ->assertPresent('a[aria-label="Open Mine"]:has-text("Open")')
+        ->assertNoSmoke();
+
+    visit(route('projects.index'))
+        ->assertPresent('button[aria-label="Decline the invitation to Inviting"]:has-text("Decline")')
+        ->assertPresent('button[aria-label="Join Inviting"]:has-text("Join")')
+        ->assertNoSmoke();
+});

@@ -1105,5 +1105,8 @@
   "Email me a link to choose a password": "M’envoyer un lien pour choisir un mot de passe",
   "Too many attempts": "Trop de tentatives",
   "Wait a moment and try again.": "Patientez un instant, puis réessayez.",
-  "Owner": "Propriétaire"
+  "Owner": "Propriétaire",
+  "Ask to join {project}": "Demander à rejoindre {project}",
+  "Withdraw the request to {project}": "Retirer la demande à {project}",
+  "Decline the invitation to {project}": "Décliner l’invitation à {project}"
 }
