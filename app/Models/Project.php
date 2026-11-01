@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -84,6 +85,27 @@ class Project extends Model
         if ($max !== null && $this->families()->count() >= $max) {
             throw ValidationException::withMessages([$field => __('validation.limit_families', ['max' => $max])]);
         }
+    }
+
+    /**
+     * Something that may take an admin away, with the project held still: two admins removing
+     * each other at the same moment cannot both pass.
+     *
+     * @throws ValidationException when that person is its only admin
+     */
+    public function keepingAnAdmin(User $user, string $field, callable $change): mixed
+    {
+        return DB::transaction(function () use ($user, $field, $change) {
+            self::whereKey($this->id)->lockForUpdate()->first();
+
+            $admins = $this->admins()->pluck('users.id');
+
+            if ($admins->count() === 1 && $admins->first() === $user->id) {
+                throw ValidationException::withMessages([$field => __('validation.last_admin')]);
+            }
+
+            return $change();
+        });
     }
 
     public function hasHistory(): bool

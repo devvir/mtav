@@ -8,7 +8,6 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 /**
@@ -82,11 +81,7 @@ class PeopleController extends Controller
 
         abort_unless($membership, 404);
 
-        if ($membership->is_admin && $project->admins()->count() === 1) {
-            throw ValidationException::withMessages(['membership' => __('validation.last_admin')]);
-        }
-
-        $membership->delete();
+        $project->keepingAnAdmin($user, 'membership', fn () => $membership->delete());
 
         return to_route('home')->with('success', __('flash.project_left', ['project' => $project->name]));
     }

@@ -18,6 +18,7 @@ use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Queue\Workers;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -42,17 +43,22 @@ class OpenLotteryService implements LotteryHost
     {
         $key = Str::random(40);
 
-        $lottery = DB::transaction(function () use ($data, $key) {
-            $lottery = OpenLottery::create([
-                'slug'          => $this->freeSlug(),
-                'name'          => $data['name'],
-                'items_name'    => $data['items_name'],
-                'organizer_key' => OpenLottery::hashKey($key),
-            ]);
-            $lottery->items()->createMany(collect($data['items'] ?? [])->map(fn (string $name) => ['name' => $name])->all());
+        try {
+            $lottery = DB::transaction(function () use ($data, $key) {
+                $lottery = OpenLottery::create([
+                    'slug'          => $this->freeSlug(),
+                    'name'          => $data['name'],
+                    'items_name'    => $data['items_name'],
+                    'organizer_key' => OpenLottery::hashKey($key),
+                ]);
+                $lottery->items()->createMany(collect($data['items'] ?? [])->map(fn (string $name) => ['name' => $name])->all());
 
-            return $lottery;
-        });
+                return $lottery;
+            });
+        } catch (UniqueConstraintViolationException) {
+            // Names that only differ in their accents are one name to the database
+            throw ValidationException::withMessages(['items' => __('open_lottery.name_taken')]);
+        }
 
         // No scheduler to rely on: creating one, a day apart at most, clears out the old
         Cache::add('open-lottery.purged', true, now()->addDay()) && PurgeStaleOpenLotteries::dispatch();

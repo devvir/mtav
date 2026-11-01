@@ -64,6 +64,13 @@ describe('Creating one', function () {
         expect($lottery->organizer_key)->not->toBe($key)->and($lottery->isOrganizer($key))->toBeTrue();
     });
 
+    it('says so when items differ only in their accents', function () {
+        $this->post(route('open.store'), ['name' => 'August', 'items_name' => 'Rooms', 'items' => ['Año', 'Ano']])
+            ->assertSessionHasErrors('items');
+
+        expect(OpenLottery::count())->toBe(0);
+    });
+
     it('limits how many one address creates', function () {
         foreach (range(1, 10) as $i) {
             $this->post(route('open.store'), ['name' => "Lottery {$i}", 'items_name' => 'Rooms']);
@@ -271,7 +278,7 @@ describe('The record', function () {
         $this->get(route('open.record', $lottery))->assertOk()
             ->assertJsonPath('people.0.name', 'Ana')
             ->assertJsonPath('people.0.ranking.0', 'Blue room')
-            ->assertJsonStructure(['audit' => [['type', 'audit']]]);
+            ->assertJsonStructure(['fingerprint', 'audit' => [['type', 'audit']]]);
     });
 });
 

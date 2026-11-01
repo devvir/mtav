@@ -6,6 +6,7 @@ use App\Enums\LotteryRunStatus;
 use App\Models\OpenLottery;
 use App\Models\OpenLotteryItem;
 use App\Models\OpenLotteryParticipant;
+use App\Services\Lottery\RunRecord;
 use App\Services\OpenLotteryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -117,7 +118,7 @@ class OpenLotteryController extends Controller
 
         abort_unless($me && ! $me->removed_at, Status::HTTP_FORBIDDEN);
 
-        $data = $request->validate(['ranking' => ['present', 'array'], 'ranking.*' => ['integer', 'distinct']]);
+        $data = $request->validate(['ranking' => ['present', 'array', 'max:' . config('limits.open_lottery.items')], 'ranking.*' => ['integer', 'distinct']]);
 
         $this->lotteries->rank($openLottery, $me, $data['ranking']);
 
@@ -189,11 +190,12 @@ class OpenLotteryController extends Controller
         $run = $openLottery->runs()->where('status', LotteryRunStatus::COMPLETED)->firstOrFail();
 
         return response()->json([
-            'lottery'  => $openLottery->only('name', 'items_name'),
-            'run'      => $run->uuid,
-            'finished' => $run->finished_at,
-            'solver'   => $run->solver,
-            'people'   => $openLottery->participants()->with(['ranking:open_lottery_items.id,name', 'item:id,name'])->get()
+            'lottery'     => $openLottery->only('name', 'items_name'),
+            'run'         => $run->uuid,
+            'finished'    => $run->finished_at,
+            'solver'      => $run->solver,
+            'fingerprint' => (new RunRecord($run))->fingerprint(),
+            'people'      => $openLottery->participants()->with(['ranking:open_lottery_items.id,name', 'item:id,name'])->get()
                 ->map(fn (OpenLotteryParticipant $person) => [
                     'name'    => $person->name,
                     'got'     => $person->item?->name,

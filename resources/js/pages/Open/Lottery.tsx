@@ -23,7 +23,7 @@ import {
   Title,
 } from '@mantine/core';
 import { IconCheck, IconCopy, IconX } from '@tabler/icons-react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 interface Item {
   id: number;
@@ -85,6 +85,17 @@ export default function Lottery(props: Props) {
   const [confirming, setConfirming] = useState(false);
 
   useOpenLotteryChanges(lottery.slug);
+
+  // The result is due: there is no waiting for the next look, with no live connection
+  const revealAt = pace?.reveal_at;
+  useEffect(() => {
+    if (!revealAt) return undefined;
+    const due = window.setTimeout(
+      () => router.reload(),
+      Math.max(0, Date.parse(revealAt) - Date.now()) + 2500,
+    );
+    return () => window.clearTimeout(due);
+  }, [revealAt]);
 
   const ready = organizer?.readiness;
   const unusual = ready && (ready.unranked.length > 0 || ready.left_out > 0 || ready.left_over > 0);

@@ -38,10 +38,6 @@ class PeopleController extends Controller
             throw ValidationException::withMessages(['family_id' => __('validation.member_needs_family')]);
         }
 
-        if ($demoted) {
-            $this->ensureNotLastAdmin($project, $member);
-        }
-
         if ($moved) {
             $project->ensureLotteryNotRunning();
         }
@@ -58,7 +54,7 @@ class PeopleController extends Controller
             }
         }
 
-        DB::transaction(function () use ($project, $member, $membership, $data, $moved, $demoted) {
+        $apply = function () use ($project, $member, $membership, $data, $moved, $demoted) {
             $membership->update($data);
 
             // What they were invited to no longer stands: it would undo this, on accepting
@@ -68,7 +64,9 @@ class PeopleController extends Controller
                     ->when($moved, fn ($query) => $query->orWhereNotNull('family_id'))
                     ->orWhereRaw('1 = 0'))
                 ->delete();
-        });
+        };
+
+        $demoted ? $project->keepingAnAdmin($member, 'member', $apply) : DB::transaction($apply);
 
         if ($moved && $familyId) {
             $invitations->tellAddedToFamily($membership->fresh(), $request->user());
@@ -79,24 +77,14 @@ class PeopleController extends Controller
 
     public function destroy(Project $project, User $member): RedirectResponse
     {
-        $this->ensureNotLastAdmin($project, $member);
         $project->ensureLotteryNotRunning();
 
-        DB::transaction(function () use ($project, $member) {
+        $project->keepingAnAdmin($member, 'member', function () use ($project, $member) {
             $member->membershipIn($project)->delete();
             // An old invitation would bring them back, role and all
             $project->invitations()->pending()->where('email', $member->email)->delete();
         });
 
         return to_route('people.index')->with('success', __('flash.member_removed'));
-    }
-
-    private function ensureNotLastAdmin(Project $project, User $member): void
-    {
-        $admins = $project->admins()->pluck('users.id');
-
-        if ($admins->count() === 1 && $admins->first() === $member->id) {
-            throw ValidationException::withMessages(['member' => __('validation.last_admin')]);
-        }
     }
 }

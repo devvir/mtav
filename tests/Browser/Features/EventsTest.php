@@ -23,6 +23,7 @@ it('keeps a draft from members until it is published', function () {
         ->fill('location', 'Community hall')
         ->uncheck('is_published')
         ->click(inDialog('Create the event'))
+        ->wait(1)
         ->assertSee('The event was created.')
         ->navigate(route('events.index', $this->project))
         ->assertSee('Draft');
@@ -37,6 +38,7 @@ it('keeps a draft from members until it is published', function () {
         ->click('Edit')
         ->check('is_published')
         ->click(inDialog('Save'))
+        ->wait(1)
         ->assertSee('The event was saved.');
 
     $this->as($this->member);
@@ -105,6 +107,7 @@ it('asks members whether they go only when the event says so', function () {
         ->fill('location', 'The site')
         ->click('Ask people whether they will go')
         ->click(inDialog('Create the event'))
+        ->wait(1)
         ->assertSee('The event was created.');
 
     anEvent($this->project, ['title' => 'Open day']);
@@ -135,8 +138,11 @@ it('says at once from the list that a member goes, and keeps it', function () {
 
     visit(route('events.index', $this->project))
         ->click('.event-card button:has-text("I\'ll go")')
+        ->assertPresent('.event-card button[aria-pressed="true"]')
+        ->wait(1)
         ->assertPresent('.event-card button[aria-pressed="true"]:has-text("I\'ll go")')
-        ->wait(1);
+        ->refresh()
+        ->assertPresent('.event-card button[aria-pressed="true"]:has-text("I\'ll go")');
 
     expect($event->rsvps()->first()?->pivot->attending)->toBe(1);
 });
@@ -152,6 +158,7 @@ it('dates an event on a calendar', function () {
     pickDay($page, 'start_date', now())
         ->assertSeeIn('[data-field="start_date"]', now()->format('j F Y') . ', 00:00')
         ->click(inDialog('Create the event'))
+        ->wait(1)
         ->assertSee('The event was created.');
 
     expect(Event::firstWhere('title', 'Work day')->start_date->format('Y-m-d H:i'))->toBe(now()->format('Y-m-d') . ' 00:00');

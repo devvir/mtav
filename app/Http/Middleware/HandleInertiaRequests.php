@@ -32,7 +32,7 @@ class HandleInertiaRequests extends Middleware
         $routes = (new Ziggy())->toArray();
         $routes['routes'] = array_filter(
             $routes['routes'],
-            fn (string $name) => Variant::opens(Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? []),
+            fn (string $name) => ($route = Route::getRoutes()->getByName($name)) && Variant::opens($route),
             ARRAY_FILTER_USE_KEY,
         );
 
@@ -126,7 +126,8 @@ class HandleInertiaRequests extends Middleware
     {
         $family = $user->familyIn($project);
         $manages = $user->can('update', $project);
-        $inChat = $project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project));
+        // Without guests, until they have a family, finding it is all there is for them
+        $inChat = ! $user->needsFamilyIn($project) && ($project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project)));
 
         return [
             'id'                    => $project->id,

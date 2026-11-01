@@ -475,3 +475,13 @@ it('lets someone leave an archived project, even if their family empties', funct
 
     expect($this->family->fresh()->trashed())->toBeTrue();
 });
+
+it('offers no chat to someone who has yet to find their family, where guests are not allowed', function () {
+    $this->project->update(['allows_guests' => false]);
+
+    $shared = $this->as($this->guest, $this->project)->get(route('family.create', $this->project))->inertiaProps('project');
+
+    expect($shared['needs_family'])->toBeTrue()
+        ->and($shared['welcome'])->toBeNull()
+        ->and($shared['can']['chat'])->toBeFalse();
+});

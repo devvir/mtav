@@ -29,6 +29,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="MTAV_VARIANT" value="mtav"/>
         <env name="APP_LOCALE" value="en"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="HASH_VERIFY" value="false"/>

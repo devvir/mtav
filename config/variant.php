@@ -5,5 +5,5 @@
  * Read through App\Support\Variant.
  */
 return [
-    'name' => env('MTAV_VARIANT', 'mtav'),
+    'name' => env('MTAV_VARIANT') ?: 'mtav',
 ];

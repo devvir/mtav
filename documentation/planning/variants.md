@@ -50,7 +50,7 @@ A landing page and one page per lottery. No sign-up, no login, no accounts, no e
 **The flow.** Someone creates a lottery and gets a link to share. People open it, add themselves
 and rank the items. Everyone sees who is in and whether they have ranked, never what. The organizer
 runs it; everyone watches it work, then sees who got what. Anyone with the link can read the
-record: each person's ranking, the place they got, and the fingerprint.
+record: each person's ranking, what they got, the whole trail and its fingerprint.
 
 ### Decisions
 
@@ -60,7 +60,7 @@ record: each person's ranking, the place they got, and the fingerprint.
   come back on another device; creating gives an organizer link, shown until dismissed. Only hashes
   are stored. A lost organizer link cannot be recovered: nobody knows who anybody is. The lottery
   says so where the link is shown.
-- **Link.** `/l/{slug}`: 10 characters, about 60 bits, so links cannot be guessed. Never listed,
+- **Link.** `/l/{slug}`: 10 characters, about 50 bits (the database ignores their case), so links cannot be guessed. Never listed,
   and pages ask not to be indexed.
 - **Honesty about the open door.** Anyone with the link can join, under any name. That is the
   variant's nature: the organizer sees everyone before running, and removes who should not be there.
@@ -90,6 +90,11 @@ record: each person's ranking, the place they got, and the fingerprint.
 - A lottery nobody touched for 90 days goes, with its people and record; each page says when.
 - Names of at most 60 characters, and lists are capped, so a page stays small.
 - Nothing can be uploaded, and no links are made from what people write.
+
+### Before it goes live
+
+- A privacy page of its own: the one every variant shows today speaks of accounts and the Assistant.
+- Its own name (`APP_NAME`), domain and environment on the server.
 
 ### Out of it, for now
 

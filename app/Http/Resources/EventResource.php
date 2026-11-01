@@ -27,7 +27,7 @@ class EventResource extends JsonResource
             'is_published' => $this->is_published,
             'allows_rsvp'  => $this->allows_rsvp,
             'creator'      => $this->whenLoaded('creator', fn () => $this->creator?->name),
-            'attending'    => $this->whenLoaded('rsvps', fn () => $this->rsvps->firstWhere('id', $user?->id)?->pivot->attending),
+            'attending'    => $this->whenLoaded('rsvps', fn () => ($own = $this->rsvps->firstWhere('id', $user?->id)) ? (bool) $own->pivot->attending : null),
             'attendees'    => $this->whenLoaded('rsvps', fn () => $this->rsvps->where('pivot.attending', true)
                 ->map(fn ($person) => ['id' => $person->id, 'name' => $person->name])->values()),
             'can' => [

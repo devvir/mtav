@@ -154,6 +154,20 @@ describe('A member', function () {
         expect($event->rsvps()->whereKey($this->member->id)->first()?->pivot->attending)->toBe(0);
     });
 
+    it('tells the page exactly what someone answered: the buttons light up on true or false', function () {
+        $event = anEvent($this->project, ['allows_rsvp' => true]);
+        $answer = fn () => collect($this->as($this->member, $this->project)->get(route('events.index'))->inertiaProps('events.data'))
+            ->firstWhere('id', $event->id)['attending'];
+
+        expect($answer())->toBeNull();
+
+        $this->as($this->member, $this->project)->put(route('events.rsvp', $event), ['attending' => true]);
+        expect($answer())->toBeTrue();
+
+        $this->as($this->member, $this->project)->put(route('events.rsvp', $event), ['attending' => false]);
+        expect($answer())->toBeFalse();
+    });
+
     it('cannot answer an event that does not ask for attendance', function () {
         $event = anEvent($this->project, ['allows_rsvp' => false]);
 
