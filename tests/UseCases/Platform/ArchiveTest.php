@@ -158,6 +158,64 @@ describe('A superadmin', function () {
     });
 });
 
+describe('Deleted for good', function () {
+    /** A project as one really gets: units, families in them, people, a placed plan, rankings */
+    function aProjectInUse(): Project
+    {
+        $project = aProject(['name' => 'Las Acacias']);
+        $type = aUnitType($project);
+        $unit = aUnit($type);
+        $family = aFamily($project, $type);
+        aMemberOf($family);
+        aUnit($type)->forceFill(['family_id' => aFamily($project, $type)->id])->save();
+        aFamily($project, $type)->delete();
+        $family->preferences()->attach($unit, ['rank' => 1]);
+
+        return $project;
+    }
+
+    it('takes everything along, units and families in them too', function () {
+        $project = aProjectInUse();
+        $project->delete();
+
+        $this->as(aSuperadmin())->delete(route('admin.projects.destroy', $project->id), ['confirmation' => 'Las Acacias'])
+            ->assertSessionHasNoErrors()->assertRedirect();
+
+        expect(Project::withTrashed()->find($project->id))->toBeNull()
+            ->and(App\Models\Unit::where('project_id', $project->id)->exists())->toBeFalse()
+            ->and(App\Models\Family::withTrashed()->where('project_id', $project->id)->exists())->toBeFalse()
+            ->and(App\Models\UnitType::where('project_id', $project->id)->exists())->toBeFalse();
+    });
+
+    it('takes along a project not archived first', function () {
+        $project = aProjectInUse();
+
+        $this->as(aSuperadmin())->delete(route('admin.projects.destroy', $project->id), ['confirmation' => 'Las Acacias'])
+            ->assertSessionHasNoErrors();
+
+        expect(Project::withTrashed()->find($project->id))->toBeNull();
+    });
+
+    it('takes along units of a project its creator only set up, deleted by that creator', function () {
+        $creator = aUser();
+        $project = anUnapprovedProject($creator);
+        aUnit(aUnitType($project));
+
+        deleteAsAdmin($this, $creator, $project)->assertSessionHasNoErrors();
+
+        expect(Project::withTrashed()->find($project->id))->toBeNull();
+    });
+
+    it('leaves other projects\' units alone', function () {
+        $other = aUnit(aUnitType(aProject()));
+        $project = aProjectInUse();
+
+        $this->as(aSuperadmin())->delete(route('admin.projects.destroy', $project->id), ['confirmation' => 'Las Acacias']);
+
+        expect($other->fresh())->not->toBeNull();
+    });
+});
+
 it('lets no one else restore or delete for good', function () {
     $project = aProject();
     $admin = anAdminOf($project);

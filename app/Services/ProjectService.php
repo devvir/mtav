@@ -131,6 +131,9 @@ class ProjectService
     {
         DB::transaction(function () use ($project) {
             Notification::where('target', NotificationTarget::PROJECT)->where('target_id', $project->id)->delete();
+            // A unit type refuses to go while a unit or family holds it: these first, archived or not
+            DB::table('units')->where('project_id', $project->id)->delete();
+            DB::table('families')->where('project_id', $project->id)->delete();
             $project->forceDelete();
         });
         Storage::disk(Media::DISK)->deleteDirectory("projects/{$project->id}");
