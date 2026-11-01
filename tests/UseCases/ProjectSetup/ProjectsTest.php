@@ -358,6 +358,7 @@ describe('Projects of the same name', function () {
 
     it('still takes typing the name to delete one for good, and that one goes alone', function () {
         $superadmin = aSuperadmin();
+        $this->withPasswordConfirmed();
 
         $this->as($superadmin)->delete(route('admin.projects.destroy', $this->one), ['confirmation' => 'las'])->assertSessionHasErrors('confirmation');
         expect($this->one->fresh())->not->toBeNull();

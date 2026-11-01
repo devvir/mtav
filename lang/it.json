@@ -1112,5 +1112,7 @@
   "It still has people: move or remove them first": "Ci sono ancora delle persone: spostale o toglile prima",
   "Invitations waiting to be accepted are withdrawn. It stays archived.": "Gli inviti in attesa vengono ritirati. Resta archiviata.",
   "Without email, phone or ID number": "Senza email, telefono né numero del documento",
-  "Personal data must never be used or shared without people's consent.": "I dati personali non devono mai essere usati né condivisi senza il consenso delle persone."
+  "Personal data must never be used or shared without people's consent.": "I dati personali non devono mai essere usati né condivisi senza il consenso delle persone.",
+  "Confirm your password": "Conferma la tua password",
+  "This action asks for your password once more.": "Questa azione chiede di nuovo la tua password."
 }

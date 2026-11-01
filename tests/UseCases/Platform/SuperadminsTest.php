@@ -6,6 +6,8 @@ use App\Models\User;
  * The superadmin role: given apart, to an account named by its exact email.
  */
 
+beforeEach(fn () => $this->withPasswordConfirmed());
+
 it('gives the role to the account with that exact email', function () {
     $ana = aUser(['email' => 'ana@example.com']);
 

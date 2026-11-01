@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Notification;
  */
 
 beforeEach(function () {
+    $this->withPasswordConfirmed();
     Notification::fake();
     $this->superadmin = aSuperadmin();
     $this->project = aProject();

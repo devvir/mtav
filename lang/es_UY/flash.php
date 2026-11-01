@@ -13,6 +13,7 @@ return [
     'email_changed'           => 'Tu dirección de email cambió.',
     'profile_updated'         => 'Guardamos tu perfil.',
     'password_updated'        => 'Cambiaste tu contraseña.',
+    'password_confirmed'      => 'Listo. Ahora vuelve a hacerlo.',
     'avatar_updated'          => 'Cambiaste tu foto.',
 
     /** Proyectos */

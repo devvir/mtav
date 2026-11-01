@@ -13,6 +13,7 @@ return [
     'email_changed'           => 'Seu endereço de e-mail foi alterado.',
     'profile_updated'         => 'Seu perfil foi salvo.',
     'password_updated'        => 'Sua senha foi alterada.',
+    'password_confirmed'      => 'Confirmado. Agora faça de novo.',
     'avatar_updated'          => 'Sua foto foi alterada.',
 
     /** Projects */

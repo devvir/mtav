@@ -35,4 +35,10 @@ abstract class TestCase extends BaseTestCase
 
         return $this->actingAs(User::findOrFail($user->id));
     }
+
+    /** As if they just gave their password: the console's gravest actions ask for it */
+    public function withPasswordConfirmed(): static
+    {
+        return $this->withSession(['auth.password_confirmed_at' => time()]);
+    }
 }

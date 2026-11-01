@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
  */
 
 beforeEach(function () {
+    $this->withPasswordConfirmed();
     Storage::fake(Media::DISK);
 });
 

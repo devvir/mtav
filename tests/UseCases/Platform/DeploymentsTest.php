@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Http;
 const REPO = 'https://api.github.com/repos/devvir/mtav/';
 
 beforeEach(function () {
+    $this->withPasswordConfirmed();
     config([
         'delivery.deployers'    => ['ana@example.com'],
         'delivery.github.token' => 'token',

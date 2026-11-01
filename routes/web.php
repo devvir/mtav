@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -98,6 +99,9 @@ Route::middleware(['module:accounts', 'auth'])->group(function () {
     Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
+
+    Route::get('confirm-password', [ConfirmablePasswordController::class, 'create'])->name('password.confirm');
+    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])->middleware('throttle:6,1');
 
     Route::get('documentation/faq', [DocumentationController::class, 'faq'])->name('documentation.faq');
     Route::get('documentation/guide', [DocumentationController::class, 'guide'])->name('documentation.guide');
@@ -301,13 +305,14 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         Route::put('projects/{project}/restoration', [Platform\ProjectController::class, 'restore'])
             ->name('projects.restore')->withTrashed();
         Route::delete('projects/{project}', [Platform\ProjectController::class, 'destroy'])
+            ->middleware('password.confirm')
             ->name('projects.destroy')->withTrashed();
         Route::get('users', [Platform\UserController::class, 'index'])->name('users.index');
         Route::put('users/{user}/blocked', [Platform\UserController::class, 'block'])->name('users.block');
-        Route::delete('users/{user}', [Platform\UserController::class, 'destroy'])->name('users.destroy');
-        Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->name('users.superadmin');
+        Route::delete('users/{user}', [Platform\UserController::class, 'destroy'])->middleware('password.confirm')->name('users.destroy');
+        Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->middleware('password.confirm')->name('users.superadmin');
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
-        Route::post('superadmins', [Platform\UserController::class, 'grant'])->name('superadmins.store');
+        Route::post('superadmins', [Platform\UserController::class, 'grant'])->middleware('password.confirm')->name('superadmins.store');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
         Route::get('activity', [Platform\ActivityController::class, 'index'])->name('activity.index');
         Route::get('errors', [Platform\ErrorController::class, 'index'])->name('errors.index');
@@ -317,7 +322,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
 
         Route::middleware('can:deploy')->prefix('deployments')->name('deployments.')->group(function () {
             Route::get('/', [Platform\DeploymentController::class, 'index'])->name('index');
-            Route::middleware('throttle:6,1')->group(function () {
+            Route::middleware(['throttle:6,1', 'password.confirm'])->group(function () {
                 Route::post('dev', [Platform\DeploymentController::class, 'dev'])->name('dev');
                 Route::post('production', [Platform\DeploymentController::class, 'production'])->name('production');
                 Route::post('rollback', [Platform\DeploymentController::class, 'rollback'])->name('rollback');

@@ -9,6 +9,7 @@ use App\Models\Activity;
  */
 
 beforeEach(function () {
+    $this->withPasswordConfirmed();
     $this->project = aProject();
     $this->admin = anAdminOf($this->project);
     $this->type = aUnitType($this->project);

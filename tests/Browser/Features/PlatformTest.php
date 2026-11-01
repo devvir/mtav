@@ -3,6 +3,7 @@
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * The platform console, for superadmins: every account, and who else manages the platform.
@@ -13,6 +14,15 @@ beforeEach(function () {
     $this->as($this->superadmin);
 });
 
+/** The console's gravest actions ask for the password once: given, they return to do it again */
+function confirmPassword(object $page): object
+{
+    return $page->assertSee('Confirm your password')
+        ->fill('password', 'password')
+        ->click('[type="submit"]')
+        ->assertSee('Confirmed. Now do it again.');
+}
+
 it('gives the superadmin role from its own page, by exact email, and takes it back', function () {
     $ana = aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
 
@@ -21,17 +31,20 @@ it('gives the superadmin role from its own page, by exact email, and takes it ba
         ->assertSee('Ana García')
         ->assertDontSee('Make superadmin');
 
-    visit(route('admin.superadmins.index'))
-        ->fill('email', 'ana@example.com')
+    $give = fn ($page) => $page->fill('email', 'ana@example.com')
         ->click('Give the superadmin role')
         ->fill('[role="dialog"] input', 'ana@example.com')
-        ->click(inDialog('Give the role'))
-        ->assertSee('Ana García');
+        ->click(inDialog('Give the role'));
+
+    $page = confirmPassword($give(visit(route('admin.superadmins.index'))));
+    expect($ana->fresh()->isSuperadmin())->toBeFalse();
+
+    $give($page)->assertSee('Ana García');
 
     expect($ana->fresh()->isSuperadmin())->toBeTrue();
 
-    visit(route('admin.superadmins.index'))
-        ->click('.row:has-text("Ana García") >> text=Remove the role')
+    // Asked once for a while: taking it back goes straight on
+    $page->click('.row:has-text("Ana García") >> text=Remove the role')
         ->click(inDialog('Remove the role'))
         ->assertDontSee('ana@example.com');
 
@@ -108,6 +121,12 @@ it('restores an archived project, or deletes it for good after its summary and i
     expect($page->script('[...document.querySelectorAll(\'[role="dialog"] button\')].find((b) => b.textContent.includes("Delete for good")).disabled'))->toBeTrue();
 
     $page->fill('[role="dialog"] input', 'Cooperativa Final')
+        ->click(inDialog('Delete for good'));
+    confirmPassword($page);
+    expect(Project::withTrashed()->find($gone->id))->not->toBeNull();
+
+    $page->click('.row:has-text("Cooperativa Final") >> ' . button('Delete for good'))
+        ->fill('[role="dialog"] input', 'Cooperativa Final')
         ->click(inDialog('Delete for good'))
         ->assertSee('Cooperativa Final was deleted for good.')
         ->assertNoSmoke();
@@ -184,9 +203,29 @@ it('asks before a deploy starts dev over', function () {
     expect($dispatched())->toBe(0);
 
     $page->click(button('Deploy dev'))
+        ->click(inDialog('Deploy dev'));
+    confirmPassword($page);
+    expect($dispatched())->toBe(0);
+
+    $page->click(button('Deploy dev'))
         ->click(inDialog('Deploy dev'))
         ->assertNoSmoke();
     $page->wait(0.5);
     $page->assertPathIs(route('admin.deployments.index', absolute: false));
     expect($dispatched())->toBe(1);
+});
+
+it('offers the link to choose a password where it asks for one, for an account opened with Google', function () {
+    Notification::fake();
+    $this->as(tap(aUser(['email' => 'g@example.com', 'is_superadmin' => true]), fn ($user) => $user->forceFill(['google_id' => 'g-1'])->save()));
+
+    visit(route('admin.superadmins.index'))
+        ->fill('email', 'someone@example.com')
+        ->click('Give the superadmin role')
+        ->fill('[role="dialog"] input', 'someone@example.com')
+        ->click(inDialog('Give the role'))
+        ->assertSee('Confirm your password')
+        ->click('Email me a link to choose a password')
+        ->assertSee(__('passwords.sent'))
+        ->assertNoSmoke();
 });
