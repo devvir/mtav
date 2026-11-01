@@ -6,6 +6,7 @@ use App\Enums\EventType;
 use App\Enums\LotteryRunStatus;
 use App\Enums\ProjectFeature;
 use App\Models\Concerns\RecordsActivity;
+use App\Support\Like;
 use App\Support\Variant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -318,6 +319,6 @@ class Project extends Model
 
     public function scopeSearch(Builder $query, string $q): void
     {
-        $query->whereLike('name', "%{$q}%");
+        $query->whereLike('name', Like::containing($q));
     }
 }

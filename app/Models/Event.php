@@ -6,6 +6,7 @@ use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\EventType;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -126,8 +127,8 @@ class Event extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereLike('title', "%{$q}%")
-            ->orWhereLike('description', "%{$q}%")
-            ->orWhereLike('location', "%{$q}%"));
+            ->whereLike('title', Like::containing($q))
+            ->orWhereLike('description', Like::containing($q))
+            ->orWhereLike('location', Like::containing($q)));
     }
 }

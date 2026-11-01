@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -95,7 +96,7 @@ class Family extends Model
     public function scopeSearch(Builder $query, string $q, bool $byEmail = false, bool $nameOnly = false): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereLike('name', "%{$q}%")
+            ->whereLike('name', Like::containing($q))
             ->orWhereHas('members', fn (Builder $query) => $query->search($q, $byEmail, $nameOnly)));
     }
 }

@@ -232,6 +232,20 @@ it('stores a share whole or not at all', function () {
         ->and(Storage::disk(Media::DISK)->allFiles())->toHaveCount(1); // the one that failed, found by no row
 });
 
+it('finds what is searched for as typed, a % or a _ meaning itself', function () {
+    Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->member->id, 'description' => 'Up 50% in May']);
+    Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->member->id, 'description' => 'Up 50 points']);
+    $found = fn (string $q) => collect($this->as($this->member, $this->project)->get(route('media.index', ['q' => $q]))->inertiaProps('media.data'))->pluck('description')->all();
+
+    expect($found('50%'))->toBe(['Up 50% in May'])
+        ->and($found('50'))->toHaveCount(2);
+});
+
+it('takes a list of searches as no search', function () {
+    $this->as($this->member, $this->project)->get(route('media.index', ['q' => ['x']]))->assertOk();
+    $this->as($this->member, $this->project)->get(route('forum.index', ['q' => ['x']]))->assertOk();
+});
+
 it('limits the file size of an unapproved project', function () {
     config()->set('limits.unapproved.media_file_mb', 1);
     $project = anUnapprovedProject();

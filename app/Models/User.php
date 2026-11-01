@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\RecordsActivity;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
+use App\Support\Like;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
@@ -206,9 +207,9 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function scopeSearch(Builder $query, string $q, bool $byEmail = false, bool $nameOnly = false): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereRaw("CONCAT_WS(' ', firstname, lastname) LIKE ?", ["%{$q}%"])
+            ->whereRaw("CONCAT_WS(' ', firstname, lastname) LIKE ?", [Like::containing($q)])
             ->unless($nameOnly, fn (Builder $query) => $query->orWhere(fn (Builder $query) => $query
-                ->where('email', 'like', "%{$q}%")
+                ->where('email', 'like', Like::containing($q))
                 ->unless($byEmail, fn (Builder $query) => $query->where('email_public', true)))));
     }
 

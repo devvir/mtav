@@ -6,6 +6,7 @@ use App\Models\Concerns\Archivable;
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\MediaCategory;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -43,6 +44,12 @@ class Media extends Model
     ];
 
     /** Taken back right after sharing it, it simply goes */
+    /** A kind turned off keeps its files, and shows none of them */
+    public function isOn(): bool
+    {
+        return $this->project->hasFeature($this->category->feature());
+    }
+
     public function worthKeeping(): bool
     {
         return ! $this->isFresh();
@@ -79,7 +86,7 @@ class Media extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereLike('description', "%{$q}%")
+            ->whereLike('description', Like::containing($q))
             ->orWhereHas('owner', fn (Builder $query) => $query->search($q)));
     }
 }

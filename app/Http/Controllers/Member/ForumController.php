@@ -9,6 +9,7 @@ use App\Services\ArchiveService;
 use App\Models\Topic;
 use App\Models\User;
 use App\Services\ForumService;
+use App\Support\Like;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,7 +30,7 @@ class ForumController extends Controller
     {
         $topics = $project->topics()
             ->with('author:id,firstname,lastname,avatar', 'opening:id,topic_id,body')
-            ->when($request->q, fn ($q, $search) => $q->whereLike('title', "%{$search}%"))
+            ->when($request->q, fn ($q, $search) => $q->whereLike('title', Like::containing($search)))
             ->orderByDesc('is_pinned')
             ->orderByDesc('last_post_at')
             ->paginate(30)

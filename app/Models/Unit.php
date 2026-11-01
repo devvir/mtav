@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -51,8 +52,8 @@ class Unit extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereLike('identifier', "%{$q}%")
-            ->orWhereHas('type', fn (Builder $query) => $query->whereLike('name', "%{$q}%"))
-            ->orWhereHas('family', fn (Builder $query) => $query->whereLike('name', "%{$q}%")));
+            ->whereLike('identifier', Like::containing($q))
+            ->orWhereHas('type', fn (Builder $query) => $query->whereLike('name', Like::containing($q)))
+            ->orWhereHas('family', fn (Builder $query) => $query->whereLike('name', Like::containing($q))));
     }
 }

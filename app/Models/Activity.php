@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -35,7 +36,7 @@ class Activity extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->where(fn (Builder $query) => $query
-            ->whereLike('actor', "%{$q}%")
-            ->orWhereLike('subject', "%{$q}%"));
+            ->whereLike('actor', Like::containing($q))
+            ->orWhereLike('subject', Like::containing($q)));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\DirectoryProjectResource;
 use App\Models\Project;
 use App\Services\DirectoryService;
+use App\Support\Like;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -26,9 +27,9 @@ class DirectoryController extends Controller
                 fn ($asked) => $asked->pending()->where('user_id', $user->id),
             ))
             ->when($request->q, fn ($query, $search) => $query->where(fn ($q) => $q
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('organization', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")))
+                ->where('name', 'like', Like::containing($search))
+                ->orWhere('organization', 'like', Like::containing($search))
+                ->orWhere('description', 'like', Like::containing($search))))
             ->with(['joinRequests' => fn ($asked) => $asked->where('user_id', $user->id)])
             ->withCount('members', 'units')
             ->withExists(['unitTypes', 'activeLotteryRun'])
