@@ -86,7 +86,13 @@ export default function EventsIndex({ events, filters, archive, event: shown }: 
           ) : (
             <EmptyState
               icon={IconCalendarOff}
-              title={filters.when === 'past' ? _('No past events') : _('No upcoming events')}
+              title={
+                filters.q
+                  ? _('No event matches')
+                  : filters.when === 'past'
+                    ? _('No past events')
+                    : _('No upcoming events')
+              }
             />
           )}
           <Pagination page={events} />

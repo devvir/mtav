@@ -138,8 +138,11 @@ export default function MediaIndex({
           <MediaGrid media={media.data} />
         )
       ) : (
-        <EmptyState icon={IconPhoto} title={_('Nothing here yet')}>
-          {canUpload ? _('Be the first to share something.') : null}
+        <EmptyState
+          icon={IconPhoto}
+          title={filters.q ? _('Nothing matches') : _('Nothing here yet')}
+        >
+          {canUpload && !filters.q ? _('Be the first to share something.') : null}
         </EmptyState>
       )}
       {archive?.shown ? null : <Pagination page={media} />}

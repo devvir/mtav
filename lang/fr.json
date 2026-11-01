@@ -1116,5 +1116,9 @@
   "Skip to content": "Aller au contenu",
   "Decline the invitation to {project}?": "Décliner l’invitation à {project} ?",
   "Someone in the project would have to invite you again.": "Quelqu’un du projet devrait vous inviter de nouveau.",
-  "Withdraw the invitation to {email}": "Retirer l’invitation à {email}"
+  "Withdraw the invitation to {email}": "Retirer l’invitation à {email}",
+  "No event matches": "Aucun événement ne correspond",
+  "Nothing matches": "Rien ne correspond",
+  "No project matches": "Aucun projet ne correspond",
+  "No account matches": "Aucun compte ne correspond"
 }

@@ -153,7 +153,9 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
         </div>
       ) : null}
 
-      {projects.length ? (
+      {projects.length && !shown.length ? (
+        <EmptyState icon={IconSearch} title={_('No project matches')} />
+      ) : projects.length ? (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} data-tour="projects.list">
           {shown.map((project) => (
             <Card

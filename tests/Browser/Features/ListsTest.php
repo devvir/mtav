@@ -162,3 +162,39 @@ it('leaves it out on the files and the families too', function () {
         ->assertSee('Gone')
         ->assertNotPresent('nav[aria-label="Pages"]');
 });
+
+it('says a search found nothing rather than that there is nothing', function () {
+    $this->as($this->admin);
+
+    visit(route('events.index', [$this->project, 'q' => 'nothing like this']))
+        ->assertSee('No event matches')
+        ->assertDontSee('No upcoming events');
+
+    visit(route('events.index', [$this->project, 'when' => 'past', 'q' => 'nothing like this']))
+        ->assertSee('No event matches');
+
+    visit(route('events.index', [$this->project, 'when' => 'past']))->assertSee('No past events');
+
+    visit(route('media.index', [$this->project, 'q' => 'nothing like this']))
+        ->assertSee('Nothing matches')
+        ->assertDontSee('Be the first to share something.');
+
+    visit(route('media.index', $this->project))->assertSee('Be the first to share something.');
+});
+
+it('says so among someone\'s many projects too', function () {
+    $mine = collect(range(1, 11))->map(fn ($n) => aProject(['name' => "Cooperative {$n}"]));
+    $this->as(anAdminOf(...$mine));
+
+    visit(route('projects.index'))
+        ->assertDontSee('No project matches')
+        ->type('[aria-label="Search projects"]', 'nothing like this')
+        ->assertSee('No project matches')
+        ->assertDontSee('Cooperative 1');
+});
+
+it('says so among the platform\'s accounts too', function () {
+    $this->as(aSuperadmin());
+
+    visit(route('admin.users.index', ['q' => 'nothing like this']))->assertSee('No account matches');
+});

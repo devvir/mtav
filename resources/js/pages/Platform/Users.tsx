@@ -3,7 +3,7 @@ import { Pagination } from '@/components/feedback/Pagination';
 import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { PersonAvatar, Status } from '@/design';
+import { EmptyState, PersonAvatar, Status } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
@@ -11,7 +11,7 @@ import { _, _n } from '@/lib/translations';
 import type { Paginated } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { ActionIcon, Card, Group, Menu, Text } from '@mantine/core';
-import { IconDots } from '@tabler/icons-react';
+import { IconDots, IconSearch } from '@tabler/icons-react';
 
 interface Row {
   id: number;
@@ -110,38 +110,42 @@ export default function PlatformUsers({
       <div style={{ marginBottom: 16 }} data-tour="users.search">
         <QuerySearch value={filters.q} placeholder={_('Search by name or email')} maw={440} />
       </div>
-      <Card p={0} data-tour="users.list">
-        {users.data.map((user) => (
-          <Group key={user.id} className="row" gap="md" wrap="wrap">
-            <PersonAvatar name={user.name} size={40} />
-            <div style={{ flex: 1, minWidth: 220 }}>
-              <Group gap="sm">
-                <Text fw={700}>{user.name}</Text>
-                {user.is_superadmin ? (
-                  <Status tone="info" pill>
-                    {_('Superadmin')}
-                  </Status>
-                ) : null}
-                {user.blocked_at ? (
-                  <Status tone="negative" pill>
-                    {_('Blocked')}
-                  </Status>
-                ) : null}
-                {!user.verified ? (
-                  <Status tone="warning" pill>
-                    {_('Email not confirmed')}
-                  </Status>
-                ) : null}
-              </Group>
-              <Text className="ds-caption ds-truncate">
-                {user.email} · {_n('{count} project', '{count} projects', user.projects_count)} ·{' '}
-                <DateTime value={user.created_at} time={false} />
-              </Text>
-            </div>
-            <AccountActions user={user} />
-          </Group>
-        ))}
-      </Card>
+      {users.data.length ? (
+        <Card p={0} data-tour="users.list">
+          {users.data.map((user) => (
+            <Group key={user.id} className="row" gap="md" wrap="wrap">
+              <PersonAvatar name={user.name} size={40} />
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <Group gap="sm">
+                  <Text fw={700}>{user.name}</Text>
+                  {user.is_superadmin ? (
+                    <Status tone="info" pill>
+                      {_('Superadmin')}
+                    </Status>
+                  ) : null}
+                  {user.blocked_at ? (
+                    <Status tone="negative" pill>
+                      {_('Blocked')}
+                    </Status>
+                  ) : null}
+                  {!user.verified ? (
+                    <Status tone="warning" pill>
+                      {_('Email not confirmed')}
+                    </Status>
+                  ) : null}
+                </Group>
+                <Text className="ds-caption ds-truncate">
+                  {user.email} · {_n('{count} project', '{count} projects', user.projects_count)} ·{' '}
+                  <DateTime value={user.created_at} time={false} />
+                </Text>
+              </div>
+              <AccountActions user={user} />
+            </Group>
+          ))}
+        </Card>
+      ) : (
+        <EmptyState icon={IconSearch} title={_('No account matches')} />
+      )}
       <Pagination page={users} />
     </>
   );
