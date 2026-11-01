@@ -219,3 +219,9 @@ it('has headings for the groups of the preferences', function () {
         ->click('[role="tab"]:has-text("Preferences")')
         ->assertScript("['Appearance', 'Help'].every((name) => [...document.querySelectorAll('h2')].some((heading) => heading.textContent === name))", true);
 });
+
+it('names the deployment in the way back from a public document', function () {
+    config(['app.name' => 'Cooperativas del Sur']);
+
+    visit(route('manual'))->assertPresent('a.manual-home[aria-label="Cooperativas del Sur home"]');
+});
