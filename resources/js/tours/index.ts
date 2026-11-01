@@ -34,7 +34,7 @@ const lotteryAdmin = (): TourStep[] => [
     target: 'lottery.schedule',
     title: _('Its date'),
     body: _(
-      'From this date on, the lottery can be run; until then, families can change their rankings. The description is what everyone reads at the top of this page.',
+      'From this date on, the lottery can run. Until then, families can change their rankings. Everyone reads the description at the top of this page.',
     ),
   },
   {
@@ -48,7 +48,7 @@ const lotteryAdmin = (): TourStep[] => [
     target: 'lottery.run',
     title: _('Running it'),
     body: _(
-      'Once its date arrives. Everyone sees it work, step by step; then each family finds its unit on this page, and everyone is told. The result is final.',
+      'Once its date arrives. Everyone sees it work, step by step. Then each family finds its unit on this page, and everyone is told. The result is final.',
     ),
   },
   {
@@ -79,7 +79,7 @@ const lotteryFamily = (): TourStep[] => [
     target: 'ranking.list',
     title: _('Reorder it'),
     body: _(
-      'Drag a unit, or use its arrows, to move it up or down. Any member of your family can change it: it is one ranking for the whole family.',
+      'Drag a unit, or use its arrows, to move it up or down. Anyone in your family can change the order: your family has one ranking.',
     ),
   },
   {
@@ -165,7 +165,7 @@ defineTour('manage.unit_types', () => [
     target: 'unit_types.list',
     title: _('Keep them balanced'),
     body: _(
-      'Each type should have as many units as families. Types that are not balanced are flagged here.',
+      "Each type should have as many units as families. Types that don't match are marked here.",
     ),
   },
 ]);
@@ -174,18 +174,18 @@ defineTour('manage.units', () => [
   {
     target: 'units.identifier',
     title: _('Name the unit'),
-    body: _('Use the identifier people already know: a number, or a block and floor.'),
+    body: _('Use what people already call it: a number, or a block and floor.'),
   },
   {
     target: 'units.type',
     title: _('Its type'),
-    body: _('Pick its type, or create a new type right here if it does not exist yet.'),
+    body: _('Pick its type, or create a new one here if it does not exist yet.'),
   },
   {
     target: 'units.another',
     title: _('Many at once'),
     body: _(
-      '"Add and continue" saves this unit and leaves the form ready for the next one, with the same type.',
+      '"Add and continue with another" saves this unit and starts the next, with the same type.',
     ),
   },
 ]);
@@ -209,7 +209,7 @@ defineTour('manage.invitations', () => [
     target: 'invite.admin',
     title: _('Fellow admins'),
     body: _(
-      'Admins help configure the project and run the lottery. An admin may also belong to a family.',
+      'Admins help set up the project and run the lottery. An admin can also be in a family.',
     ),
   },
   {
@@ -237,13 +237,13 @@ defineTour('manage.plan', () => [
   {
     target: 'plan.floors',
     title: _('Floors'),
-    body: _('Spread units over floors; each floor is drawn on its own.'),
+    body: _('Spread units over floors. Each floor is drawn on its own.'),
   },
   {
     target: 'plan.save',
     title: _('Saved as you go'),
     body: _(
-      'Changes save by themselves a moment after you make them. Undo and redo are above the canvas, and Ctrl+Z works too, even after a reload.',
+      'Changes save by themselves. Undo and redo are above the plan, and Ctrl+Z works too, even after you reload the page.',
     ),
   },
 ]);
@@ -254,7 +254,7 @@ defineTour('platform.approvals', () => [
     target: 'approvals.tabs',
     title: _('Projects asking for approval'),
     body: _(
-      'Projects started by anyone work within limits until approved. Those asking for approval come first.',
+      'Projects anyone starts have limits until approved. Those asking for approval come first.',
     ),
   },
   {
@@ -386,7 +386,7 @@ defineTour('manage.settings', () => [
   },
   {
     target: 'settings.listed',
-    title: _('In the directory'),
+    title: _('Can be found'),
     body: _(
       'Listed, others can find the project and join it: at once, or when the admins accept them. Then they join their family.',
     ),
@@ -527,6 +527,6 @@ defineTour('member.chat', () => [
   {
     target: 'chat.composer',
     title: _('Writing'),
-    body: _('Enter sends; Shift and Enter start a new line. The others see it at once.'),
+    body: _('Enter sends. Shift and Enter start a new line. The others see it at once.'),
   },
 ]);
