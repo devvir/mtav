@@ -38,6 +38,17 @@ function joinRequestNotices(App\Models\User $admin): int
 }
 
 describe('The directory', function () {
+    it('joining twice leaves them in once, and tells the project once', function () {
+        $this->project->update(['open_to_join' => true]);
+        $directory = app(App\Services\DirectoryService::class);
+
+        $directory->join($this->project, $this->person);
+        $directory->join($this->project, $this->person);
+
+        expect($this->project->memberships()->where('user_id', $this->person->id)->count())->toBe(1)
+            ->and(App\Models\Notification::where('type', App\Enums\NotificationType::MEMBER_JOINED)->count())->toBe(1);
+    });
+
     it('shows the projects their admins list, and no other', function () {
         $hidden = aProject();
 
@@ -200,6 +211,39 @@ describe('In a project by request', function () {
 
         expect(joinRequestNotices($this->admin))->toBe(2)
             ->and(joinRequestNotices($otherAdmin))->toBe(1);
+    });
+
+    it('is settled when they join by invitation instead', function () {
+        $this->as($this->person)->post(route('directory.ask', $this->project));
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), ['email' => $this->person->email, 'is_admin' => true])->assertSessionHasNoErrors();
+
+        $this->as($this->person->fresh())->post(route('invitations.respond', $this->project->invitations()->sole()), ['accept' => true]);
+
+        expect($this->person->fresh()->canAccess($this->project))->toBeTrue()
+            ->and($this->project->joinRequests()->count())->toBe(0);
+    });
+
+    it('tells nobody anything when answered for someone already in', function (string $method, string $answer) {
+        $this->project->memberships()->create(['user_id' => $this->person->id]);
+        $request = $this->project->joinRequests()->create(['user_id' => $this->person->id]);
+        App\Models\Notification::query()->delete();
+
+        $this->as($this->admin, $this->project)->{$method}(route("manage.join_requests.{$answer}", $request))->assertRedirect();
+
+        expect($this->project->joinRequests()->count())->toBe(0)
+            ->and(App\Models\Notification::count())->toBe(0)
+            ->and($this->person->fresh()->canAccess($this->project))->toBeTrue();
+        Notification::assertNothingSent();
+    })->with([['post', 'accept'], ['delete', 'decline']]);
+
+    it('still tells them of an answer when not in yet', function () {
+        $this->as($this->person)->post(route('directory.ask', $this->project));
+
+        $this->as($this->admin, $this->project)->post(route('manage.join_requests.accept', $this->project->joinRequests()->sole()));
+
+        expect(App\Models\Notification::where('type', App\Enums\NotificationType::JOIN_ACCEPTED)->count())->toBe(1)
+            ->and(App\Models\Notification::where('type', App\Enums\NotificationType::MEMBER_JOINED)->count())->toBe(1);
+        Notification::assertSentTo($this->person, JoinedNotification::class);
     });
 
     it('someone withdraws what they asked', function () {

@@ -40,6 +40,8 @@ class Membership extends Model
             }
         });
         static::created(function (Membership $membership) {
+            // However they got in, what they asked the project is settled by it
+            JoinRequest::where('user_id', $membership->user_id)->where('project_id', $membership->project_id)->delete();
             $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id => ['pinned_at' => now()]]);
             $membership->startWithAssistant();
         });

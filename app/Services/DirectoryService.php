@@ -65,6 +65,11 @@ class DirectoryService
     {
         $membership = $this->enter($request->project, $request->user);
 
+        // Already in: an answer has nothing to tell them
+        if (! $membership->wasRecentlyCreated) {
+            return $membership;
+        }
+
         $this->notifications->send(
             NotificationTarget::PRIVATE,
             NotificationType::JOIN_ACCEPTED,
@@ -81,6 +86,13 @@ class DirectoryService
 
     public function decline(JoinRequest $request): void
     {
+        // Already in: an answer has nothing to tell them
+        if ($request->project->memberships()->where('user_id', $request->user_id)->exists()) {
+            $request->delete();
+
+            return;
+        }
+
         $request->update(['declined_at' => now()]);
 
         $this->notifications->send(
@@ -98,12 +110,17 @@ class DirectoryService
     private function enter(Project $project, User $user): Membership
     {
         $membership = DB::transaction(function () use ($project, $user) {
-            $membership = Membership::firstOrCreate(['user_id' => $user->id, 'project_id' => $project->id]);
+            // Two clicks may race here: the second finds them in
+            $membership = Membership::createOrFirst(['user_id' => $user->id, 'project_id' => $project->id]);
             $project->joinRequests()->where('user_id', $user->id)->delete();
             $user->unsetRelation('memberships');
 
             return $membership;
         });
+
+        if (! $membership->wasRecentlyCreated) {
+            return $membership;
+        }
 
         $this->notifications->send(
             NotificationTarget::PROJECT,
