@@ -23,6 +23,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { IconClock, IconMailPlus, IconSend, IconUserPlus, IconX } from '@tabler/icons-react';
+import { useState } from 'react';
 
 interface Props {
   invitations: Invitation[];
@@ -70,6 +71,19 @@ export default function ManageInvitations({
     if (ok)
       router.delete(route('manage.invitations.destroy', invitation.id), { preserveScroll: true });
   };
+
+  // One click is one answer: the button waits for it
+  const [accepting, setAccepting] = useState<number | null>(null);
+  const accept = (request: Props['requests'][number]) =>
+    router.post(
+      route('manage.join_requests.accept', request.id),
+      {},
+      {
+        preserveScroll: true,
+        onStart: () => setAccepting(request.id),
+        onFinish: () => setAccepting(null),
+      },
+    );
 
   const decline = async (request: Props['requests'][number]) => {
     const ok = await confirm({
@@ -119,15 +133,7 @@ export default function ManageInvitations({
                 <Button variant="default" onClick={() => decline(request)}>
                   {_('Decline')}
                 </Button>
-                <Button
-                  onClick={() =>
-                    router.post(
-                      route('manage.join_requests.accept', request.id),
-                      {},
-                      { preserveScroll: true },
-                    )
-                  }
-                >
+                <Button loading={accepting === request.id} onClick={() => accept(request)}>
                   {_('Accept')}
                 </Button>
               </Group>

@@ -3,6 +3,7 @@ import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph } from '@/design';
+import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Project } from '@/types/models';
@@ -39,8 +40,26 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
   const shown = projects.filter((project) =>
     project.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
+  // One click is one answer: the invitation's buttons wait for it
+  const [answering, setAnswering] = useState<{ id: number; accept: boolean } | null>(null);
   const respond = (id: number, accept: boolean) =>
-    router.post(route('invitations.respond', id), { accept });
+    router.post(
+      route('invitations.respond', id),
+      { accept },
+      {
+        onStart: () => setAnswering({ id, accept }),
+        onFinish: () => setAnswering(null),
+      },
+    );
+  const decline = async (invitation: Props['invitations'][number]) => {
+    const ok = await confirm({
+      title: _('Decline the invitation to {project}?', { project: invitation.project }),
+      message: _('Someone in the project would have to invite you again.'),
+      confirmLabel: _('Decline'),
+      danger: true,
+    });
+    if (ok) respond(invitation.id, false);
+  };
   const startButton = canCreate ? (
     <Button
       component={Link}
@@ -107,7 +126,9 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                     aria-label={_('Decline the invitation to {project}', {
                       project: invitation.project,
                     })}
-                    onClick={() => respond(invitation.id, false)}
+                    disabled={answering?.id === invitation.id && answering.accept}
+                    loading={answering?.id === invitation.id && !answering.accept}
+                    onClick={() => void decline(invitation)}
                   >
                     {_('Decline')}
                   </Button>
@@ -116,6 +137,8 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                     onClick={() => respond(invitation.id, true)}
                   >
                     {_('Join')}
+                    disabled={answering?.id === invitation.id && !answering.accept}
+                    loading={answering?.id === invitation.id && answering.accept}
                   </Button>
                 </Group>
               </Group>

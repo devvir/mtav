@@ -84,6 +84,10 @@ class InvitationController extends Controller
      */
     public function respond(Request $request, Invitation $invitation): RedirectResponse
     {
+        if ($joined = $this->alreadyJoined($request, $invitation)) {
+            return $joined;
+        }
+
         abort_unless($invitation->isPending() && $invitation->email === $request->user()->email, 404);
 
         if (! $request->boolean('accept')) {

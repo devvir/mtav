@@ -27,6 +27,8 @@ interface ErrorEntry {
 /** An error: what and where, how often and since when; its trace on demand */
 function ErrorCard({ error }: { error: ErrorEntry }) {
   const [open, setOpen] = useState(false);
+  // One click is one answer: the button waits for it
+  const [solving, setSolving] = useState(false);
   const name = error.class.split('\\').pop();
 
   return (
@@ -58,7 +60,12 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
             leftSection={<IconCheck size={14} />}
             aria-label={_('Mark {error} solved', { error: name ?? '' })}
             onClick={() =>
-              router.delete(route('admin.errors.destroy', error.id), { preserveScroll: true })
+              router.delete(route('admin.errors.destroy', error.id), {
+                preserveScroll: true,
+                onStart: () => setSolving(true),
+                onFinish: () => setSolving(false),
+              })
+            loading={solving}
             }
           >
             {_('Solved')}

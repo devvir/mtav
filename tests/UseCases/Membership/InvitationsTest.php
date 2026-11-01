@@ -164,6 +164,27 @@ describe('An invited person', function () {
         expect($existing->fresh()->canAccess($this->project))->toBeTrue();
     });
 
+    it('takes the person to the project when they answer yes twice', function () {
+        $existing = aUser(['email' => 'new.person@example.com']);
+        invite($this, $this->admin, ['family_id' => $this->family->id]);
+        $invitation = Invitation::sole();
+
+        $this->as($existing)->post(route('invitations.respond', $invitation), ['accept' => true]);
+
+        $this->as($existing)->post(route('invitations.respond', $invitation), ['accept' => true])
+            ->assertRedirect(route('projects.show', $this->project));
+        expect($existing->fresh()->memberships()->count())->toBe(1);
+    });
+
+    it('still finds nothing for someone else answering one already accepted', function () {
+        $existing = aUser(['email' => 'new.person@example.com']);
+        invite($this, $this->admin, ['family_id' => $this->family->id]);
+        $invitation = Invitation::sole();
+        $this->as($existing)->post(route('invitations.respond', $invitation), ['accept' => true]);
+
+        $this->as(aUser())->post(route('invitations.respond', $invitation), ['accept' => true])->assertNotFound();
+    });
+
     it('cannot accept an invitation meant for someone else', function () {
         invite($this, $this->admin, ['family_id' => $this->family->id]);
         $link = invitationLink();

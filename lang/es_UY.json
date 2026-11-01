@@ -1113,5 +1113,7 @@
   "Assistant": "Asistente",
   "Pause the pictures": "Pausar las fotos",
   "Play the pictures": "Pasar las fotos",
-  "Skip to content": "Saltar al contenido"
+  "Skip to content": "Saltar al contenido",
+  "Decline the invitation to {project}?": "¿Rechazar la invitación a {project}?",
+  "Someone in the project would have to invite you again.": "Alguien del proyecto tendría que invitarte de nuevo."
 }

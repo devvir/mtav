@@ -62,7 +62,7 @@ it('withdraws an invitation, whose link then explains it is no longer valid', fu
         ->fill('email', 'ana@example.com')
         ->select('family_id', (string) $this->family->id)
         ->click('Send the invitation')
-        ->click('[aria-label="Withdraw"]')
+        ->click('[aria-label="Withdraw the invitation to ana@example.com"]')
         ->click(inDialog('Withdraw'))
         ->assertSee('The invitation was withdrawn.');
 
@@ -126,6 +126,8 @@ it('accepts or declines invitations from the projects page', function () {
     visit(route('projects.index'))
         ->assertSee('Invitations waiting for you')
         ->click('Decline')
+        ->assertSee('Someone in the project would have to invite you again.')
+        ->click(inDialog('Decline'))
         ->assertSee('You declined the invitation.')
         ->click('Join')
         ->assertSee('Welcome to');
@@ -246,4 +248,34 @@ it('shows the cooperative\'s people in one place, by family or everyone', functi
         ->assertPresent('.shell-sidebar a[aria-current="page"], .shell-sidebar [data-active]')
         ->click('.people-views >> text=Families')
         ->assertPathIs("/projects/{$project->id}/families");
+});
+
+it('joins once however fast the button is tapped twice', function () {
+    $ana = aUser(['email' => 'ana@example.com']);
+    app(\App\Services\InvitationService::class)->invite($this->project, $this->admin, ['email' => 'ana@example.com'], $this->family, false);
+    $this->as($ana);
+
+    $page = visit(route('projects.index'));
+    $page->script("() => {
+        const join = document.querySelector('[aria-label^=\"Join\"]');
+        join.click();
+        setTimeout(() => join.click(), 30);
+    }");
+
+    $page->assertSee('Welcome to')
+        ->assertPathIs("/projects/{$this->project->id}")
+        ->assertNoSmoke();
+});
+
+it('keeps the invitation when declining is thought better of', function () {
+    aUser(['email' => 'ana@example.com']);
+    app(\App\Services\InvitationService::class)->invite($this->project, $this->admin, ['email' => 'ana@example.com'], $this->family, false);
+    $this->as(\App\Models\User::firstWhere('email', 'ana@example.com'));
+
+    visit(route('projects.index'))
+        ->click('Decline')
+        ->click(inDialog('Cancel'))
+        ->assertSee('Invitations waiting for you');
+
+    expect(\App\Models\Invitation::count())->toBe(1);
 });
