@@ -888,7 +888,9 @@ export function Chat({
       const response = await fetch(url, {
         credentials: 'same-origin',
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      });
+      }).catch(() => null);
+      // No connection: what shows stays, until something asks again
+      if (!response) return;
       // Gone (they left it, or it was never theirs): back to the list
       if (response.status === 404 || response.status === 403) {
         showConversation(null);

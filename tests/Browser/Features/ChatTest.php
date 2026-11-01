@@ -165,3 +165,28 @@ it('leads somewhere from the Assistant\'s buttons, and sends its replies with a 
         ->assertMissing('.chat-window')
         ->assertNoSmoke();
 });
+
+it('gets over a message that could not leave: the button stops waiting, it says so, and the next one goes', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->beto, 'Hola Ana');
+    $this->as($this->ana);
+
+    $page = visit(route('chat.show', [$this->project, $conversation]))->assertSee('Hola Ana');
+    $page->script('() => {
+        window.realFetch = window.fetch;
+        window.fetch = () => Promise.reject(new TypeError("Failed to fetch"));
+    }');
+
+    $page->fill('[aria-label="Message"]', 'Sin conexión')
+        ->keys('[aria-label="Message"]', 'Enter')
+        ->assertSee('That did not work. Please try again.')
+        ->assertValue('[aria-label="Message"]', 'Sin conexión')
+        ->assertMissing('.chat-composer [data-loading]');
+
+    $page->script('() => { window.fetch = window.realFetch; }');
+
+    $page->keys('[aria-label="Message"]', 'Enter')
+        ->assertSeeIn('.chat-messages', 'Sin conexión')
+        ->assertValue('[aria-label="Message"]', '');
+});

@@ -5,7 +5,9 @@ const xsrfToken = () =>
 /**
  * A request answered in JSON, the page staying as it is (for work that must not reload
  * the page, like the plan editor's). `keepalive`, it is sent even as the page closes, and
- * any redirect it answers with is not followed: nobody is left to see where it leads.
+ * any redirect it answers with is not followed: nobody is left to see where it leads. It
+ * never rejects: no connection is answered as a server that cannot (503), for each caller to
+ * take as any other failure.
  */
 export const sendJson = (
   method: 'POST' | 'PUT' | 'DELETE',
@@ -25,7 +27,7 @@ export const sendJson = (
       'X-XSRF-TOKEN': xsrfToken(),
     },
     body: JSON.stringify(body),
-  });
+  }).catch(() => new Response(null, { status: 503 }));
 
 /** What a refused form says, field by field (Laravel's 422), first message each */
 export const fieldErrors = async (response: Response): Promise<Record<string, string>> => {
