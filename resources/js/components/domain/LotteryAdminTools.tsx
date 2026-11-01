@@ -9,7 +9,7 @@ import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { LotteryRun, ProjectEvent } from '@/types/models';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import {
   Alert,
   Anchor,
@@ -38,7 +38,6 @@ export interface LotteryAdmin {
   families_without_people: string[];
   readiness: { id: number; name: string; units_count: number; families_count: number }[];
   runs: LotteryRun[];
-  confirm: { option: string; message: string } | null;
 }
 
 interface Props extends LotteryAdmin {
@@ -69,8 +68,8 @@ export function LotteryAdminTools({
   runnable,
   readiness,
   runs,
-  confirm,
 }: Props & { runnable: boolean }) {
+  const { confirm } = usePage().flash;
   const schedule = useForm({
     description: lottery.description,
     start_date: local(lottery.start_date),

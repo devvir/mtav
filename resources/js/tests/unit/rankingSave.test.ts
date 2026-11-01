@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 interface Options {
   async: boolean;
-  onSuccess: (page: { props: { flash?: { error?: string } } }) => void;
+  onSuccess: (page: { flash: { error?: string } }) => void;
   onFinish: () => void;
 }
 
@@ -24,7 +24,7 @@ const options = (nth: number) => put.mock.calls[nth]![2] as Options;
 /** The server's answer to the nth request */
 const answer = (nth: number, flash: { error?: string } = {}) =>
   act(() => {
-    options(nth).onSuccess({ props: { flash } });
+    options(nth).onSuccess({ flash });
     options(nth).onFinish();
   });
 

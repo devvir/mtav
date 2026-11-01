@@ -158,6 +158,23 @@ it('asks to confirm when units and families do not match', function () {
         ->assertSee('The lottery is done: every family has its unit.');
 });
 
+it('does not ask again, on going back, what the server asked before running', function () {
+    aUnit($this->type, ['identifier' => 'A-103']);
+    lotteryDue($this);
+    $this->as($this->admin);
+
+    $page = runFromUi($this)
+        ->assertSee('The number of units and families differ')
+        ->click(inDialog('Cancel'))
+        ->assertMissing('[role="dialog"]')
+        ->click('.shell-sidebar >> a:has-text("Home")')
+        ->assertPathIs("/projects/{$this->project->id}");
+
+    $page->script('() => history.back()');
+
+    $page->assertPathIs("/projects/{$this->project->id}/lottery")->wait(0.5)->assertMissing('[role="dialog"]');
+});
+
 it('invalidates a run with a reason everyone reads, and runs again', function () {
     lotteryDue($this);
     $this->as($this->admin);

@@ -48,6 +48,11 @@ class HandleInertiaRequests extends Middleware
         /** @var User|null $user */
         $user = $request->user();
 
+        // Said once: apart from the props, a page the browser brings back does not bring them
+        if ($flashed = array_filter($request->session()->only(['success', 'info', 'warning', 'error', 'confirm']))) {
+            Inertia::flash($flashed);
+        }
+
         /** Closures resolve at render time: the project is known only after routing */
         return [
             ...parent::share($request),
@@ -66,12 +71,6 @@ class HandleInertiaRequests extends Middleware
             'recentNotifications' => Inertia::optional(fn () => $user
                 ? NotificationResource::collection(Notification::for($user)->limit(8)->get())
                 : []),
-            'flash' => [
-                'success' => $request->session()->get('success'),
-                'info'    => $request->session()->get('info'),
-                'warning' => $request->session()->get('warning'),
-                'error'   => $request->session()->get('error'),
-            ],
             /**
              * The route list, sent once (the client remembers it, under a name of its own for
              * those who enter the console, so signing in brings theirs), and what changes per

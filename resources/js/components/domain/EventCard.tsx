@@ -36,7 +36,7 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
       { attending: going },
       {
         preserveScroll: true,
-        only: ['events', 'event', 'flash'],
+        only: ['events', 'event'],
         // Refused, cut off or cancelled: back as it was
         onSuccess: () => {
           done = true;

@@ -45,9 +45,9 @@ export function useRankingSave<Unit extends { id: number }>(given: Unit[] | null
         async: true,
         preserveScroll: true,
         preserveState: true,
-        only: ['ranking', 'flash'],
+        only: ['ranking'],
         onSuccess: (page) => {
-          ok = !page.props.flash?.error;
+          ok = !page.flash.error;
         },
         onFinish: () => {
           sending.current = false;

@@ -1,6 +1,6 @@
 import { SignInForm } from '@/components/auth/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
-import { useCurrentPage, useFlashToasts } from '@/components/layout/page';
+import { useCurrentPage } from '@/components/layout/page';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Glyph, Logo } from '@/design';
 import { route } from '@/lib/route';
@@ -78,7 +78,6 @@ const addressFor = (auth: Auth | null) =>
  */
 export default function Welcome({ dialog, google, locales }: Props) {
   const { props } = useCurrentPage();
-  useFlashToasts();
   const [open, setOpen] = useState<Auth | null>(dialog);
   const show = (next: Auth | null) => {
     setOpen(next);

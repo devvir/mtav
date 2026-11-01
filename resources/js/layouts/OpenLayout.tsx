@@ -1,4 +1,3 @@
-import { useFlashToasts } from '@/components/layout/page';
 import { Logo } from '@/design';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -13,7 +12,6 @@ import type { ReactNode } from 'react';
  */
 export function OpenLayout({ children }: { children: ReactNode }) {
   const { props } = usePage();
-  useFlashToasts();
 
   return (
     <Container size="sm" py="lg">

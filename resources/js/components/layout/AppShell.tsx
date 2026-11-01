@@ -31,7 +31,7 @@ import { ChatLauncher } from './ChatLauncher';
 import { HeaderPreferences } from './HeaderPreferences';
 import { NotificationsMenu } from './NotificationsMenu';
 import { QuickActions } from './QuickActions';
-import { useCurrentPage, useFlashToasts } from './page';
+import { useCurrentPage } from './page';
 
 export interface NavEntry {
   label: string;
@@ -211,7 +211,6 @@ export function AppShell({
 
   useLiveNotifications();
   useLiveMessages();
-  useFlashToasts();
   useEffect(() => router.on('navigate', close), [close]);
 
   const navigation = <Navigation nav={nav} />;

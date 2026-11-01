@@ -67,14 +67,13 @@ class LotteryController extends Controller
                 : null,
             'canRank' => $user->can('rankUnits', $project) && ! $activeRun,
             'setup'   => Inertia::defer(fn () => app(ProjectService::class)->setupChecklist($project)),
-            // Admins run it from here: its readiness, every run's record, the server's questions
+            // Admins run it from here: its readiness, every run's record
             'admin' => $user->can('update', $project) ? [
                 // Waiting for someone invited: whether to run with them is for the admin to decide
                 'families_without_people' => $project->families()->doesntHave('memberships')->alphabetically()->pluck('name'),
                 'readiness'               => $project->unitTypes()->withCount('units', 'families')->alphabetically()->get()
                     ->map(fn ($type) => $type->only('id', 'name', 'units_count', 'families_count')),
-                'runs'    => $runs,
-                'confirm' => $request->session()->get('confirm'),
+                'runs' => $runs,
             ] : null,
         ]);
     }

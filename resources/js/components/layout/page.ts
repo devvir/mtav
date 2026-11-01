@@ -1,7 +1,6 @@
 import { setRoutes } from '@/lib/route';
 import { toast, type ToastTone } from '@/lib/toasts';
-import { usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { router, usePage } from '@inertiajs/react';
 
 /**
  * The visit being shown. Layouts call it first, so route() knows this visit's routes (and
@@ -14,13 +13,10 @@ export function useCurrentPage() {
   return page;
 }
 
-/** Each visit's flash messages, as toasts */
-export function useFlashToasts() {
-  const { flash } = usePage().props;
-
-  useEffect(() => {
+/** The server's messages as toasts, each as it comes: a page brought back by Back has none */
+export const showFlashToasts = () =>
+  router.on('flash', ({ detail: { flash } }) =>
     (['success', 'info', 'warning', 'error'] as ToastTone[]).forEach(
-      (tone) => flash?.[tone] && toast({ tone, message: flash[tone] as string }),
-    );
-  }, [flash]);
-}
+      (tone) => flash[tone] && toast({ tone, message: flash[tone] }),
+    ),
+  );

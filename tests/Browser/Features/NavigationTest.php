@@ -225,3 +225,23 @@ it('names the deployment in the way back from a public document', function () {
 
     visit(route('manual'))->assertPresent('a.manual-home[aria-label="Cooperativas del Sur home"]');
 });
+
+it('says a message once: going back to where it showed does not bring it again', function () {
+    $this->as($this->member);
+    $toasts = '() => document.querySelectorAll(".mantine-Notification-root").length';
+
+    $page = visit(route('profile.edit'))
+        ->click(button('Save'))
+        ->assertSee('Your profile was saved.')
+        // A toast leaves by itself after five seconds
+        ->wait(5.5);
+    expect($page->script($toasts))->toBe(0);
+
+    $page->click('[aria-label="Your account"]')
+        ->click('[role="menu"] >> text=Guide')
+        ->assertPathIs(pathOf('documentation.guide'))
+        ->script('() => history.back()');
+
+    $page->assertPathIs(pathOf('profile.edit'))->wait(0.5);
+    expect($page->script($toasts))->toBe(0);
+});

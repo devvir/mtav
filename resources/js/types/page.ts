@@ -62,12 +62,6 @@ export interface SharedProps {
     };
   } | null;
   notifications: { unread: number } | null;
-  flash: {
-    success: string | null;
-    info: string | null;
-    warning: string | null;
-    error: string | null;
-  };
   errors: Record<string, string>;
   /** The route list, sent once and remembered */
   routes: Record<string, unknown>;
