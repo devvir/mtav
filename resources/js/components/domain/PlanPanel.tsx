@@ -138,7 +138,7 @@ export function PlanPanel({
       leave();
       toast({
         tone: 'info',
-        message: _('The plan closed after a while with nothing drawn; what you drew is saved.'),
+        message: _('The plan closed after a while with no changes. What you drew is saved.'),
       });
       return true;
     },
@@ -242,7 +242,7 @@ export function PlanPanel({
       >
         <Text>
           {_(
-            'The editor closes in {seconds} seconds, saving what you drew, so that others can draw the plan.',
+            'The plan closes in {seconds} seconds and saves what you drew, so others can draw too.',
             { seconds: closesIn ?? 0 },
           )}
         </Text>
