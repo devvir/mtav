@@ -34,9 +34,9 @@ it('keeps a family\'s ranking after leaving the page', function () {
     $second = app(PreferencesService::class)->ranking($this->family)[1];
     $this->as($this->member);
 
-    visit(route('lottery.show', $this->project))
-        ->click("[aria-label=\"Move {$second->identifier} up\"]")
-        ->wait(2);
+    $page = visit(route('lottery.show', $this->project))
+        ->click("[aria-label=\"Move {$second->identifier} up\"]");
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->id)->toBe($second->id));
 
     visit(route('lottery.show', $this->project))
         ->assertSeeIn('ol li:first-child', $second->identifier);
@@ -46,13 +46,12 @@ it('saves a move made just before going to another page', function () {
     $second = app(PreferencesService::class)->ranking($this->family)[1];
     $this->as($this->member);
 
-    visit(route('lottery.show', $this->project))
+    $page = visit(route('lottery.show', $this->project))
         ->click("[aria-label=\"Move {$second->identifier} up\"]")
         ->click('.shell-sidebar >> a:has-text("Units")')
-        ->assertPathIs(route('units.index', $this->project, absolute: false))
-        ->wait(1);
+        ->assertPathIs(route('units.index', $this->project, absolute: false));
 
-    expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->identifier)->toBe($second->identifier);
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->identifier)->toBe($second->identifier));
 });
 
 it('says, in a status screen readers announce, that a ranking is being saved and is saved', function () {
@@ -70,12 +69,11 @@ it('moves a unit down with its button', function () {
     $first = app(PreferencesService::class)->ranking($this->family)[0];
     $this->as($this->member);
 
-    visit(route('lottery.show', $this->project))
+    $page = visit(route('lottery.show', $this->project))
         ->click("[aria-label=\"Move {$first->identifier} down\"]")
-        ->assertSeeIn('ol li:last-child', $first->identifier)
-        ->wait(2);
+        ->assertSeeIn('ol li:last-child', $first->identifier);
 
-    expect(app(PreferencesService::class)->ranking($this->family)[1]->id)->toBe($first->id);
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[1]->id)->toBe($first->id));
 });
 
 it('reorders the ranking with the keyboard', function () {
@@ -84,7 +82,7 @@ it('reorders the ranking with the keyboard', function () {
 
     // Space picks the unit up from its grip, the arrows move it, Space drops it
     $grip = "[aria-label=\"Move {$first->identifier}, number 1\"]";
-    visit(route('lottery.show', $this->project))
+    $page = visit(route('lottery.show', $this->project))
         ->keys($grip, 'Space')
         ->assertAttribute($grip, 'aria-pressed', 'true')
         // The arrows are listened to a moment after the pick-up; with two units, a second
@@ -97,10 +95,9 @@ it('reorders the ranking with the keyboard', function () {
             true,
         )
         ->keys($grip, 'Space')
-        ->assertSeeIn('ol li:last-child', $first->identifier)
-        ->wait(2);
+        ->assertSeeIn('ol li:last-child', $first->identifier);
 
-    expect(app(PreferencesService::class)->ranking($this->family)[1]->id)->toBe($first->id);
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[1]->id)->toBe($first->id));
 });
 
 it('reorders the ranking by dragging', function () {
@@ -111,6 +108,9 @@ it('reorders the ranking by dragging', function () {
     $page = visit(route('lottery.show', $this->project))->assertSee($second->identifier);
     $page->script(<<<'JS'
         async () => {
+            // The plugin may run a script again after a slow first try: one drag, not two
+            if (window.dragged) return;
+            window.dragged = true;
             const [top, bottom] = document.querySelectorAll('ol.ranking > li');
             const at = (el) => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; };
             const [x, y] = at(bottom);
@@ -122,9 +122,9 @@ it('reorders the ranking by dragging', function () {
             fire(document, 'mouseup', x, toY);
         }
         JS);
-    $page->assertSeeIn('ol li:first-child', $second->identifier)->wait(2);
+    $page->assertSeeIn('ol li:first-child', $second->identifier);
 
-    expect(app(PreferencesService::class)->ranking($this->family)[0]->id)->toBe($second->id);
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->id)->toBe($second->id));
 });
 
 it('locks the ranking while the lottery runs', function () {
@@ -198,7 +198,7 @@ it('invalidates a run with a reason everyone reads, and runs again', function ()
 
     $page->fill('[role="dialog"] textarea', 'The Pérez family was registered with the wrong type')
         ->click(inDialog('Invalidate'))
-        ->assertSee('The lottery was invalidated.');
+        ->assertSee('invalidated a lottery run');
 
     expect($this->family->fresh()->unit)->toBeNull();
 
@@ -242,6 +242,9 @@ function dragFromPlan(object $page, string $unit, int $place): void
 {
     $page->script(<<<JS
         () => {
+            // The plugin may run a script again after a slow first try: one drag, not two
+            if (window.dragged) return;
+            window.dragged = true;
             const unit = [...document.querySelectorAll('[aria-label="Project plan"] [data-unit]')]
                 .find((shape) => shape.querySelector('.plan-label')?.textContent === '{$unit}');
             const slot = document.querySelector('[data-slot="{$place}"]');
@@ -266,10 +269,9 @@ it('ranks a unit by dragging it from the plan onto a place under it', function (
     $page = visit(route('lottery.show', $this->project))->assertPresent('[data-slot="0"]');
     dragFromPlan($page, $last->identifier, 0);
     $page->assertSeeIn('[data-slot="0"]', $last->identifier)
-        ->assertSeeIn('ol li:first-child', $last->identifier)
-        ->wait(2);
+        ->assertSeeIn('ol li:first-child', $last->identifier);
 
-    expect(app(PreferencesService::class)->ranking($this->family)[0]->id)->toBe($last->id);
+    eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->id)->toBe($last->id));
 });
 
 it('lights up in the ranking a unit clicked on the plan', function () {

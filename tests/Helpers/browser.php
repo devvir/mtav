@@ -5,6 +5,8 @@ use App\Notifications\InvitationNotification;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
+use Pest\Browser\Playwright\Playwright;
+use PHPUnit\Framework\ExpectationFailedException;
 
 /**
  * Helpers for browser tests: what arrives by email, and dialogs.
@@ -133,6 +135,39 @@ function pngFile(string $name = 'photo.png'): string
     imagepng($image);
 
     return fixtureFile($name, ob_get_clean());
+}
+
+/**
+ * Waits until a check on the database holds, for what only the server can say (a save the page
+ * sends a moment later), as long as assertions wait; then it fails with the check's own message.
+ * The app runs in this process: the page's wait lets it answer meanwhile, a plain sleep would not.
+ */
+function eventually(object $page, Closure $check): void
+{
+    $until = microtime(true) + Playwright::timeout() / 1000;
+
+    while (true) {
+        try {
+            $check();
+
+            return;
+        } catch (ExpectationFailedException $failure) {
+            if (microtime(true) >= $until) {
+                throw $failure;
+            }
+
+            $page->wait(0.1);
+        }
+    }
+}
+
+/**
+ * The same tab goes to an address, however long it takes. navigate() alone gets an assertion's
+ * single second per try: on a busy machine each try starts over the page the last one was loading.
+ */
+function sameTabTo(object $page, string $url): object
+{
+    return $page->navigate($url, ['timeout' => Playwright::timeout()]);
 }
 
 /**

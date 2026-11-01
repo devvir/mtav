@@ -160,7 +160,7 @@ it('changes someone\'s family and role, keeping at least one admin', function ()
         ->select('family_id', (string) $other->id)
         ->check('is_admin')
         ->click(inDialog('Save'))
-        ->assertSee('Saved.');
+        ->assertSee('Pérez family');
 
     expect($member->fresh()->membershipIn($this->project))
         ->family_id->toBe($other->id)

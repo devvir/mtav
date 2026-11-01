@@ -61,7 +61,10 @@ checks:
   console…), plus phones, Spanish and accessibility.
 
 Fields are found by `name`, buttons by their text, icon buttons by `aria-label`.
-Assertions retry until 20 seconds pass; clicks and keys run once. Helpers in
+Assertions retry until 20 seconds pass; clicks and keys run once. A test waits for what
+stays (the record in its list, the status on the page, the row in the database), not for a
+toast, which is gone in seconds, and its selectors match one element however far the page
+has loaded (a unit's name is in its list and on the plan). Helpers in
 `tests/Helpers/browser.php`:
 
 | Helper | For |
@@ -70,6 +73,8 @@ Assertions retry until 20 seconds pass; clicks and keys run once. Helpers in
 | `attachFile()` | files to upload (the browser refuses local paths) |
 | `openHelp($page, $topic)` | a (?) opened, waiting until its popover stands still |
 | `pickDay($page, $field, $day)` | a day picked on a date field's calendar, as a person does |
+| `eventually($page, $check)` | a check on the database, repeated while the app answers the browser, for a save nothing on the page confirms |
+| `sameTabTo($page, $url)` | the same tab to another address, however long it loads |
 | `assertAccessible($page)` | axe's serious and critical findings, none allowed |
 
 Tours never start by themselves under test (the browser is automated); a test that wants

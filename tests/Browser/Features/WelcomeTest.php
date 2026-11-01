@@ -48,17 +48,16 @@ it('moves between signing in and signing up within the dialog', function () {
 it('speaks the language a guest picks, and their account keeps it', function () {
     $user = aUser(['email' => 'ana@example.com', 'password' => 'the-Right-pass-1', 'locale' => 'en']);
 
-    visit(route('home'))
+    $page = visit(route('home'))
         ->click('header >> ' . button('English'))
         ->click('text=Español')
         ->assertSee('De la primera asamblea a la entrega de llaves')
         ->click('header >> ' . button('Entrar'))
         ->fill(inDialogField('email'), 'ana@example.com')
         ->fill(inDialogField('password'), 'the-Right-pass-1')
-        ->click('[role="dialog"] [type="submit"]')
-        ->assertPathIsNot('/login');
+        ->click('[role="dialog"] [type="submit"]');
 
-    expect($user->fresh()->locale)->toBe('es_UY');
+    eventually($page, fn () => expect($user->fresh()->locale)->toBe('es_UY'));
 });
 
 it('shows every photo it names, families building among them', function () {

@@ -34,7 +34,8 @@ it('takes a cooperative from sign-up to its lottery', function () {
     $laura = User::firstWhere('email', 'laura@example.com');
     $link = URL::temporarySignedRoute('verification.verify', now()->addHour(), ['id' => $laura->id, 'hash' => sha1($laura->email)]);
 
-    visit($link)->assertSee('Your email address is confirmed. Welcome!');
+    $confirmed = visit($link);
+    eventually($confirmed, fn () => expect($laura->fresh()->hasVerifiedEmail())->toBeTrue());
 
     visit(route('projects.create'))
         ->fill('name', 'Cooperativa Las Acacias')
@@ -50,22 +51,21 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->click('Add the first unit type')
         ->fill('name', '2 bedrooms')
         ->click(inDialog('Add the unit type'))
-        ->assertSee('The unit type was added.')
         ->click('Add the first unit')
         ->fill('identifier', 'A-101')
         ->click('Add and continue with another')
-        ->assertSee('The unit was added.')
+        ->assertSeeIn('.unit-chips', 'A-101')
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-102')
         ->click(inDialog('Add the unit'))
-        ->assertSeeIn('.ds-panel', 'A-102');
+        ->assertSeeIn('.unit-chips', 'A-102');
 
     foreach (['García', 'Pérez'] as $name) {
         visit(route('families.index', [$project, 'new' => 1]))
             ->fill('name', $name)
             ->fill('email', Str::ascii($name) . '@example.com')
             ->click(inDialog('Add and invite'))
-            ->assertSee('The family was added.');
+            ->assertSee($name);
     }
 
     // Invite a member into the García family
@@ -76,7 +76,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('firstname', 'Ana')
         ->select('family_id', (string) $garcia->id)
         ->click('Send the invitation')
-        ->assertSee('Invitation sent to ana@example.com.');
+        ->assertSee('ana@example.com');
 
     $token = null;
     Notification::assertSentOnDemand(InvitationNotification::class, function ($notification) use (&$token) {
@@ -93,18 +93,17 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('password', 'another-Strong-pass-1')
         ->fill('password_confirmation', 'another-Strong-pass-1')
         ->click('Join Cooperativa Las Acacias')
-        ->assertSee('Welcome to Cooperativa Las Acacias!')
+        ->assertPathIs(route('projects.show', $project, absolute: false))
         ->assertNoSmoke();
 
     // …and moves the unit their family ranks second to the top
     $second = app(PreferencesService::class)->ranking($garcia)[1];
 
-    visit(route('lottery.show', $project))
+    $page = visit(route('lottery.show', $project))
         ->assertSee('Your preferences')
-        ->click("[aria-label=\"Move {$second->identifier} up\"]")
-        ->wait(2);
+        ->click("[aria-label=\"Move {$second->identifier} up\"]");
 
-    expect($garcia->preferences()->first()?->id)->toBe($second->id);
+    eventually($page, fn () => expect($garcia->preferences()->first()?->id)->toBe($second->id));
 
     // The other family wants the other unit most (default rankings differ per family, and two
     // families wanting the same unit would leave the outcome to chance)

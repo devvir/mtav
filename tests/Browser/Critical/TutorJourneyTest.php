@@ -40,7 +40,7 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->fill('email', 'tutor@example.com')
         ->check('is_admin')
         ->click('Send the invitation')
-        ->assertSee('Invitation sent to tutor@example.com.');
+        ->assertSee('tutor@example.com');
 
     // The admin finds the invitation among their projects, and joins
     $this->as($tutor);
@@ -55,19 +55,18 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
         ->click('Add the first unit type')
         ->fill('name', '2 dormitorios')
         ->click(inDialog('Add the unit type'))
-        ->assertSee('The unit type was added.')
         ->click('Add the first unit')
         ->fill('identifier', 'U-1')
         ->click('Add and continue with another')
-        ->assertSee('The unit was added.')
+        ->assertSeeIn('.unit-chips', 'U-1')
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'U-2')
         ->click('Add and continue with another')
-        ->assertSeeIn('.ds-panel', 'U-2')
+        ->assertSeeIn('.unit-chips', 'U-2')
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'U-3')
         ->click(inDialog('Add the unit'))
-        ->assertSeeIn('.ds-panel', 'U-3');
+        ->assertSeeIn('.unit-chips', 'U-3');
     expect(Unit::where('project_id', $project->id)->whereNotNull('unit_type_id')->count())->toBe(3);
 
     foreach (['F01', 'F02', 'F03'] as $name) {
@@ -75,7 +74,7 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
             ->fill('name', $name)
             ->fill('email', "{$name}@example.com")
             ->click(inDialog('Add and invite'))
-            ->assertSee('The family was added.');
+            ->assertSee($name);
     }
 
     // Families with someone invited are there, on their page and on the project's home
@@ -88,17 +87,15 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
     $people = $families->map(fn (Family $family) => aMemberOf($family));
     $last = app(PreferencesService::class)->ranking($families[0])->last();
     $this->as($people[0]);
-    visit(route('lottery.show', $project))
+    $page = visit(route('lottery.show', $project))
         ->click("[aria-label=\"Move {$last->identifier} up\"]")
-        ->click("[aria-label=\"Move {$last->identifier} up\"]")
-        ->wait(2);
-    expect($families[0]->preferences()->first()?->id)->toBe($last->id);
+        ->click("[aria-label=\"Move {$last->identifier} up\"]");
+    eventually($page, fn () => expect($families[0]->preferences()->first()?->id)->toBe($last->id));
 
     // The admin dates it (today, at midnight: already due) and runs it: every family gets a unit
     $this->as($tutor);
     $page = pickDay(visit(route('lottery.show', $project)), 'start_date', now())
-        ->click('[data-tour="lottery.schedule"] button[type="submit"]')
-        ->assertSee('The lottery was scheduled');
+        ->click('[data-tour="lottery.schedule"] button[type="submit"]');
     runTheLottery($page)->assertSee('The lottery is done: every family has its unit.')->assertNoSmoke();
 
     // (whose first choice it is depends on the others' rankings: each family gets a unit)
@@ -121,7 +118,7 @@ it('runs a lottery of two types, every family ranking, each family within its ty
         ->fill('identifier', 'A-1')
         ->select('unit_type_id', (string) $types[1]->id)
         ->click(inDialog('Add the unit'))
-        ->assertSee('The unit was added.');
+        ->assertSeeIn('.unit-chips', 'A-1');
     expect(Unit::firstWhere('identifier', 'A-1')->unit_type_id)->toBe($types[1]->id);
     aUnit($types[0], ['identifier' => 'B-1']);
     aUnit($types[0], ['identifier' => 'B-2']);
