@@ -50,8 +50,7 @@ class DocumentationController extends Controller
 
         $content = File::get($guidePath);
         return inertia('Documentation/Guide', [
-            'userRole' => $role,
-            'content'  => $content,
+            'content' => strtr(File::get($guidePath), ['{app}' => e(config('app.name'))]),
         ]);
     }
 
@@ -61,7 +60,9 @@ class DocumentationController extends Controller
      */
     public function manual(): Response
     {
-        return $this->public(__('Member guide'), 'guides/{locale}/guide.member.html');
+        return $this->public(__('Member guide'), 'guides/{locale}/guide.member.html', [
+            '{app}' => e(config('app.name')),
+        ]);
     }
 
     /** What is kept about people, who sees it, and their rights */

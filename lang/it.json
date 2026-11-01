@@ -651,7 +651,6 @@
   "How to see them": "Come vederli",
   "VICMAN, the first housing cooperative in Uruguay": "VICMAN, la prima cooperativa edilizia dell’Uruguay",
   "carousel": "carosello",
-  "MTAV home": "Home di MTAV",
   "Read the member guide": "Leggi la guida per i soci",
   "Member guide": "Guida per i soci",
   "The server cannot run the lottery right now: its background work has stopped. It is being looked into; try again later.": "Il server non può eseguire il sorteggio in questo momento: il suo lavoro in background è fermo. Lo stiamo verificando; riprova più tardi.",
@@ -1122,5 +1121,6 @@
   "No project matches": "Nessun progetto corrisponde",
   "No account matches": "Nessun account corrisponde",
   "Deploy {branch} to dev?": "Rilasciare {branch} su dev?",
-  "Everything in dev, people and uploaded files included, is replaced by the demo data.": "Tutto ciò che contiene dev, persone e file caricati compresi, viene sostituito dai dati demo."
+  "Everything in dev, people and uploaded files included, is replaced by the demo data.": "Tutto ciò che contiene dev, persone e file caricati compresi, viene sostituito dai dati demo.",
+  "{app} home": "Home di {app}"
 }

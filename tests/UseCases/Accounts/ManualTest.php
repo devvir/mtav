@@ -46,3 +46,29 @@ it('has the privacy page in every language it speaks', function () {
         expect(resource_path("views/legal/{$locale}/privacy.html"))->toBeFile();
     }
 });
+
+it('names the deployment wherever a guide speaks of the app, in every language', function () {
+    config(['app.name' => 'Cooperativas del Sur']);
+
+    foreach (['en-US', 'es-UY', 'fr', 'it', 'pt-BR'] as $language) {
+        expect($this->get(route('manual'), ['Accept-Language' => $language])->inertiaProps('content'))
+            ->toContain('Cooperativas del Sur')
+            ->not->toContain('MTAV')
+            ->not->toContain('{app}');
+    }
+
+    $project = aProject();
+    $this->as(anAdminOf($project), $project);
+    expect($this->get(route('documentation.guide'))->inertiaProps('content'))
+        ->toContain('Cooperativas del Sur')
+        ->not->toContain('MTAV')
+        ->not->toContain('{app}');
+});
+
+it('keeps a name with odd characters from becoming part of a guide\'s page', function () {
+    config(['app.name' => 'Sur <b>& co</b>']);
+
+    expect($this->get(route('manual'))->inertiaProps('content'))
+        ->toContain('Sur &lt;b&gt;&amp; co&lt;/b&gt;')
+        ->not->toContain('<b>&');
+});

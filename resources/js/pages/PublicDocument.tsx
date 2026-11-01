@@ -16,7 +16,7 @@ export default function PublicDocument({ title, content }: { title: string; cont
   return (
     <main className="manual guide">
       <Head title={title} />
-      <Link href="/" className="manual-home" aria-label={_('MTAV home')}>
+      <Link href="/" className="manual-home" aria-label={_('{app} home', { app: props.name })}>
         <Logo name={props.name} institution={props.institution} size={36} />
       </Link>
       <Typography>
