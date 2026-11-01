@@ -52,14 +52,14 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editP
     <>
       <PageHeader
         title={_('Units')}
-        description={_("The project's dwellings, by type.")}
+        description={_("The project's units, by type.")}
         help={
           <InfoTip
             title={_('What is a unit type?')}
             tour={canManage ? 'manage.unit_types' : undefined}
           >
             {_(
-              "A group of equivalent units, like '2 bedrooms'. Each family has one type, and receives a unit of that type: each type has, in fact, its own lottery.",
+              "Equivalent units, like '2 bedrooms'. Each family has one type and receives a unit of it, so each type has its own lottery.",
             )}
           </InfoTip>
         }
@@ -97,7 +97,7 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editP
             {!canManage
               ? _("The admins add the project's units here, by type, and place them on the plan.")
               : unitTypes.length
-                ? _('Add the units of each type; they appear on the plan, ready to be placed.')
+                ? _('Add the units of each type. They appear on the plan, ready to place.')
                 : _(
                     'Start with the types of unit (2 bedrooms, 3 bedrooms…), then add the units of each.',
                   )}
@@ -149,7 +149,7 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editP
                 {_('Add units')}
                 <InfoTip title={_('Adding units')} tour="manage.units">
                   {_(
-                    "Add the project's units one by one, each with its type. Every new unit also appears on the plan, ready to be placed.",
+                    'Add the units one by one, each with its type. Each one also appears on the plan, ready to place.',
                   )}
                 </InfoTip>
               </Group>

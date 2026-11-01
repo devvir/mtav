@@ -117,7 +117,7 @@ export function UnitForm({
     <Form onSubmit={() => submit(false)}>
       <TextInput
         data-tour="units.identifier"
-        label={_('Identifier')}
+        label={_('Name or number')}
         description={_('For example, A-101')}
         placeholder={_('A-101')}
         withAsterisk

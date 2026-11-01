@@ -164,7 +164,7 @@ export default function Dashboard({
         <div style={{ marginBottom: 24 }}>
           <EmptyState icon={IconHomeHeart} title={_('Your project is getting ready')}>
             {_(
-              'The admins are adding the units and registering the families: everything shows up here as they do.',
+              'The admins are adding the units and the families. Everything shows up here as they do.',
             )}
           </EmptyState>
         </div>

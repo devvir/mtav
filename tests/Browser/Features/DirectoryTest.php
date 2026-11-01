@@ -64,7 +64,7 @@ it('lists a project from its settings, choosing who can join', function () {
 
     visit(route('manage.settings.edit', $project))
         ->assertDontSee('Who can join')
-        ->click('label:has-text("List it in the directory")')
+        ->click('label:has-text("Show it in Find a project")')
         ->assertSee('Who can join')
         ->click('label:has-text("Anyone, at once")')
         ->click('button[type="submit"]')

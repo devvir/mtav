@@ -39,7 +39,7 @@ export function ProjectOptions({
   return (
     <Stack gap="md" data-tour="settings.listed">
       <Switch
-        label={_('List it in the directory')}
+        label={_('Show it in Find a project')}
         description={
           approved
             ? _('Anyone with an account can find it, and read its name and description.')
