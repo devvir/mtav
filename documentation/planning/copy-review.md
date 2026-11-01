@@ -2,6 +2,37 @@
 
 Every text people read in MTAV, as it ships, in English and Uruguayan Spanish, with where each one shows.
 
+## Before reading the table
+
+- **English and Spanish** come from the final files by script, so they are what ships. **"Where it shows"** is partly a script's guess at the kind of element: the place is reliable, but a kind can be off (a descriptive sentence on the Units page is labelled "button").
+- **Changed:** about a quarter of the Spanish (266 of 1,101 interface strings, 173 of 421 server messages), plus the guides, FAQs and privacy page.
+- **Not checked yet:** the PHP and browser tests have not run on this branch, and longer texts have not been seen on screen. The French, Italian and Portuguese guides, FAQs and privacy page were checked by script only, not read.
+
+## Vos or tú
+
+Mostly tú was the agreed form. This branch is written in vos as a trial, to be judged here. Where to look closest:
+
+- The privacy page, emails and legal lines, which may read too casual.
+- "Empezá vos: compartí algo." and the "Sobre vos" tab, which read oddly.
+- The landing page, which mixes "tu cooperativa" with "ustedes".
+
+Keeping tú means converting all the Spanish, including the vos strings the review fixes added on `feature/variants`.
+
+## Texts that may promise something untrue
+
+Both were already there, and the rewrite kept their meaning.
+
+1. **Who sees a family's ranking.** The FAQ says "Solo tu familia. Las demás familias nunca lo ven, ni antes ni después del sorteo." Admins can download a run's full record, which appears to include every family's ranking (no real file opened yet to confirm). An admin belongs to a family too, so the FAQ would be wrong for them. If the download does include rankings, the FAQ should say admins can see them.
+2. **"Ya lo estamos revisando."** Shown when the lottery cannot run because background work has stopped. Nothing near that message alerts anyone (only the code around it was searched). Remove the sentence, unless an alert is added.
+
+## Other known problems
+
+- **Wrong message:** when a superadmin deletes someone's account, they are told "Your account was deleted." The same key is defined twice in the language file. Fixing it needs a new key and a code change.
+- **Stiff wording left in:** some standard validation messages, like "debe ser un string", because normal forms rarely trigger them.
+- **Guide screenshots** still show the old wording and need retaking.
+
+## All the texts
+
 | English | Spanish (UY) | Where it shows |
 | --- | --- | --- |
 | Create an account | Crear una cuenta | Landing page: button |
