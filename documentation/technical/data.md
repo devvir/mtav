@@ -45,7 +45,7 @@ to what; and signing in, out, failing to, resetting a password. Never what peopl
   is gone.
 - Writing it never fails what it records.
 - Failed sign-ins, which anyone can add, go after 90 days (`config/limits.php`); the rest
-  stays. `PruneLogs` does it, with errors unseen for 180 days, jobs failed over 30 days ago
+  stays, its IP erased after 90 days. `PruneLogs` does it, with errors unseen for 180 days, jobs failed over 30 days ago
   and expired cache rows. There is no scheduler: a working queue worker asks for it, a day
   apart at most (`Workers::mark`).
 

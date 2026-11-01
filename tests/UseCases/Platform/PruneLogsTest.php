@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * What only piles up goes, a day apart at most, with no scheduler: failed sign-ins, errors
- * that stopped, failed jobs, expired cache rows. The audit stays.
+ * that stopped, failed jobs, expired cache rows. The audit stays, its old IPs erased.
  */
 
 function anEntry(string $action, int $daysAgo): Activity
@@ -45,6 +45,56 @@ it('gets through more than one batch of them', function () {
     (new PruneLogs())->handle();
 
     expect(Activity::count())->toBe(0);
+});
+
+describe('The IP of an entry', function () {
+    function anEntryFrom(string $action, int $daysAgo): Activity
+    {
+        return Activity::create(['action' => $action, 'ip' => '203.0.113.7', 'created_at' => now()->subDays($daysAgo)]);
+    }
+
+    it('is erased past its days, keeping the entry and all it says', function () {
+        $old = anEntryFrom('updated', 91);
+        $old->forceFill(['actor' => 'Ana', 'changes' => ['name' => ['a', 'b']]])->save();
+
+        (new PruneLogs())->handle();
+
+        expect($old->fresh())->ip->toBeNull()->action->toBe('updated')->actor->toBe('Ana')
+            ->changes->toBe(['name' => ['a', 'b']])
+            ->and($old->fresh()->created_at->isSameDay(now()->subDays(91)))->toBeTrue();
+    });
+
+    it('stays while it is recent', function () {
+        $recent = anEntryFrom('signed_in', 89);
+
+        (new PruneLogs())->handle();
+
+        expect($recent->fresh()->ip)->toBe('203.0.113.7');
+    });
+
+    it('follows the setting', function () {
+        config(['limits.logs.ip_days' => 10]);
+        $old = anEntryFrom('updated', 11);
+
+        (new PruneLogs())->handle();
+
+        expect($old->fresh()->ip)->toBeNull();
+    });
+
+    it('gets through more than one batch of them', function () {
+        Activity::insert(array_fill(0, 1001, ['action' => 'updated', 'ip' => '203.0.113.7', 'created_at' => now()->subDays(100)]));
+
+        (new PruneLogs())->handle();
+
+        expect(Activity::whereNotNull('ip')->count())->toBe(0)
+            ->and(Activity::count())->toBe(1001);
+    });
+});
+
+it('says on the privacy page, in every language, that IPs are erased after 3 months', function () {
+    foreach (array_keys(config('app.locales')) as $locale) {
+        expect(preg_replace('/\s+/', ' ', file_get_contents(resource_path("views/legal/{$locale}/privacy.html"))))->toMatch('/\(IP\).*3 (months|meses|mois|mesi)/');
+    }
 });
 
 it('lets go errors that stopped happening, not those that go on', function () {

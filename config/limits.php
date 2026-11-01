@@ -47,8 +47,9 @@ return [
         'kept_days'    => (int) env('OPEN_LOTTERY_KEPT_DAYS', 90),
     ],
 
-    /** Days what only piles up is kept (PruneLogs); the rest of the activity log stays */
+    /** Days what only piles up is kept (PruneLogs); the rest of the activity log stays, its IPs erased */
     'logs' => [
+        'ip_days'              => (int) env('LOG_IP_DAYS', 90),
         'failed_sign_ins_days' => (int) env('LOG_FAILED_SIGN_INS_DAYS', 90),
         'errors_days'          => (int) env('LOG_ERRORS_DAYS', 180),
         'failed_jobs_days'     => (int) env('LOG_FAILED_JOBS_DAYS', 30),
