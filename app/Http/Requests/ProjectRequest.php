@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use App\Support\Variant;
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class ProjectRequest extends FormRequest
@@ -16,7 +15,7 @@ class ProjectRequest extends FormRequest
         $project = $this->route('project');
 
         return [
-            'name'          => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
+            'name'          => ['required', 'string', 'between:2,120'],
             'description'   => ['required', 'string', 'between:2,2000'],
             'organization'  => ['nullable', 'string', 'between:2,120'],
             'listed'        => ['sometimes', 'boolean'],

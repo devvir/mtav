@@ -122,12 +122,13 @@ class HandleInertiaRequests extends Middleware
     {
         $managed = $user->memberships->where('is_admin', true)->pluck('project_id');
 
-        return $user->reachableProjects()->orderBy('name')->get(['id', 'name', 'feature_choices'])
+        return $user->reachableProjects()->orderBy('name')->get(['id', 'name', 'organization', 'feature_choices'])
             ->map(fn (Project $project) => [
-                'id'       => $project->id,
-                'name'     => $project->name,
-                'features' => $project->features(),
-                'is_admin' => $user->isSuperadmin() || $managed->contains($project->id),
+                'id'           => $project->id,
+                'name'         => $project->name,
+                'organization' => $project->organization,
+                'features'     => $project->features(),
+                'is_admin'     => $user->isSuperadmin() || $managed->contains($project->id),
             ])
             ->all();
     }

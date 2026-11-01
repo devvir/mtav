@@ -262,6 +262,9 @@ export function AppShell({
                     }
                   >
                     {item.name}
+                    {item.organization ? (
+                      <Text className="ds-caption">{item.organization}</Text>
+                    ) : null}
                   </Menu.Item>
                 ))}
                 <Menu.Divider />

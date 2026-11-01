@@ -180,6 +180,9 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   </Badge>
                 ) : null}
               </Group>
+              {project.organization ? (
+                <Text className="ds-caption">{project.organization}</Text>
+              ) : null}
               <Text c="dimmed" lineClamp={2} mt="xs">
                 {project.description}
               </Text>

@@ -32,7 +32,7 @@ export interface SharedProps {
       verified: boolean;
     } | null;
   };
-  projects: { id: Id; name: string; is_admin: boolean }[];
+  projects: { id: Id; name: string; organization: string | null; is_admin: boolean }[];
   lastProject: Id | null;
   project: {
     id: Id;

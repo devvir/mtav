@@ -231,6 +231,11 @@ export default function PlatformProjects({ projects, counts, filters }: Props) {
                   </Status>
                 )}
               </Group>
+              {project.organization ? (
+                <Text className="ds-caption" mt={4}>
+                  {project.organization}
+                </Text>
+              ) : null}
               <Text className="ds-caption" mt={4}>
                 {[
                   _n('{count} person', '{count} people', project.people_count),

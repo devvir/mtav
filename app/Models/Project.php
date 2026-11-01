@@ -148,6 +148,12 @@ class Project extends Model
         return $this->hasMany(JoinRequest::class);
     }
 
+    /** Its name, with its organization to tell it from another of that name */
+    public function label(): string
+    {
+        return collect([$this->name, $this->organization])->filter()->join(' · ');
+    }
+
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);

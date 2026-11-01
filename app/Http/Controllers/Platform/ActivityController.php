@@ -24,7 +24,7 @@ class ActivityController extends Controller
     public function index(Request $request): Response
     {
         $kind = $request->string('kind')->toString();
-        $activity = Activity::with('project:id,name')
+        $activity = Activity::with('project:id,name,organization')
             ->when($request->q, fn ($q, $search) => $q->search($search))
             ->when($request->integer('project'), fn ($q, $project) => $q->where('project_id', $project))
             ->when(self::KINDS[$kind] ?? null, fn ($q, $actions) => $q->whereIn('action', $actions))
@@ -41,12 +41,13 @@ class ActivityController extends Controller
                 'action'       => $entry->action,
                 'subject_type' => $entry->subject_type,
                 'subject'      => $entry->subject,
-                'project'      => $entry->project?->name,
+                'project'      => $entry->project?->label(),
                 'changes'      => $entry->changes,
                 'ip'           => $entry->ip,
             ])),
-            'projects' => Project::withTrashed()->orderBy('name')->get(['id', 'name']),
-            'filters'  => [
+            'projects' => Project::withTrashed()->orderBy('name')->get(['id', 'name', 'organization'])
+                ->map(fn (Project $project) => ['id' => $project->id, 'name' => $project->label()]),
+            'filters' => [
                 'q'       => $request->q,
                 'project' => $request->integer('project') ?: null,
                 'kind'    => array_key_exists($kind, self::KINDS) ? $kind : null,

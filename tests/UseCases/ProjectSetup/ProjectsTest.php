@@ -75,10 +75,21 @@ describe('Someone who signed up', function () {
         expect(theNewProject())->toBeNull();
     });
 
-    it('cannot reuse a project name', function () {
-        aProject(['name' => 'Cooperativa Las Acacias']);
+    it('can use a name another project has', function () {
+        $other = aProject(['name' => 'Cooperativa Las Acacias']);
 
-        $this->as($this->person)->post(route('projects.store'), projectData())->assertSessionHasErrors('name');
+        $this->as($this->person)->post(route('projects.store'), projectData())->assertSessionHasNoErrors();
+
+        expect(Project::where('name', 'Cooperativa Las Acacias')->whereKeyNot($other->id)->sole()->organization)->toBe('FUCVAM');
+    });
+
+    it('can rename theirs to a name another project has', function () {
+        aProject(['name' => 'Cooperativa Las Acacias']);
+        $mine = aProject(['name' => 'Otra']);
+
+        $this->as(anAdminOf($mine), $mine)->put(route('manage.settings.update'), projectData())->assertSessionHasNoErrors();
+
+        expect($mine->fresh()->name)->toBe('Cooperativa Las Acacias');
     });
 });
 
@@ -302,4 +313,58 @@ it('says who administers each project in the list: only they hear it is limited'
 
     expect($of($admin)['is_admin'])->toBeTrue()
         ->and($of($member)['is_admin'])->toBeFalse();
+});
+
+describe('Projects of the same name', function () {
+    beforeEach(function () {
+        $this->one = aProject(['name' => 'Las Acacias', 'organization' => 'FUCVAM']);
+        $this->other = aProject(['name' => 'Las Acacias', 'organization' => 'FECOVI']);
+        $this->person = anAdminOf($this->one, $this->other);
+    });
+
+    it('are told apart by their organization on the projects page and the switcher', function () {
+        $page = $this->as($this->person)->get(route('projects.index'));
+
+        expect(collect($page->inertiaProps('projects'))->pluck('organization')->sort()->values()->all())->toBe(['FECOVI', 'FUCVAM'])
+            ->and(collect($page->inertiaProps('projects'))->pluck('name')->unique()->all())->toBe(['Las Acacias']);
+
+        $switcher = $this->as($this->person)->get(route('projects.show', $this->one))->inertiaProps('projects');
+
+        expect(collect($switcher)->pluck('organization')->sort()->values()->all())->toBe(['FECOVI', 'FUCVAM']);
+    });
+
+    it('are told apart in the directory', function () {
+        $this->one->update(['listed' => true]);
+        $this->other->update(['listed' => true]);
+
+        $listing = $this->as(aUser())->get(route('directory.index'))->inertiaProps('listing');
+
+        expect(collect($listing['data'] ?? $listing)->pluck('organization')->sort()->values()->all())->toBe(['FECOVI', 'FUCVAM']);
+    });
+
+    it('are told apart in the console', function () {
+        $superadmin = aSuperadmin();
+
+        expect(collect($this->as($superadmin)->get(route('admin.projects.index'))->inertiaProps('projects.data'))->pluck('organization')->filter()->sort()->values()->all())
+            ->toBe(['FECOVI', 'FUCVAM']);
+
+        $activity = $this->as($superadmin)->get(route('admin.activity.index'));
+
+        expect(collect($activity->inertiaProps('projects'))->pluck('name')->sort()->values()->all())
+            ->toBe(['Las Acacias · FECOVI', 'Las Acacias · FUCVAM'])
+            ->and(collect($activity->inertiaProps('activity.data'))->pluck('project')->filter()->unique()->sort()->values()->all())
+            ->toBe(['Las Acacias · FECOVI', 'Las Acacias · FUCVAM']);
+    });
+
+    it('still takes typing the name to delete one for good, and that one goes alone', function () {
+        $superadmin = aSuperadmin();
+
+        $this->as($superadmin)->delete(route('admin.projects.destroy', $this->one), ['confirmation' => 'las'])->assertSessionHasErrors('confirmation');
+        expect($this->one->fresh())->not->toBeNull();
+
+        $this->as($superadmin)->delete(route('admin.projects.destroy', $this->one), ['confirmation' => 'Las Acacias'])->assertSessionHasNoErrors();
+
+        expect($this->one->fresh())->toBeNull()
+            ->and($this->other->fresh())->not->toBeNull();
+    });
 });
