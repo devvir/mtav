@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
+use App\Jobs\TellOfForumReply;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\Topic;
@@ -46,13 +47,6 @@ class ForumService
 
     public function reply(Topic $topic, User $author, string $body): Post
     {
-        // Whoever has left the project hears no more of it
-        $earlier = $topic->participants()->whereKeyNot($author->id)
-            ->where(fn ($people) => $people
-                ->where('is_superadmin', true)
-                ->orWhereHas('memberships', fn ($q) => $q->where('project_id', $topic->project_id)))
-            ->pluck('id');
-
         $post = DB::transaction(function () use ($topic, $author, $body) {
             $post = $this->post($topic, $author, $body);
             $topic->forceFill(['replies_count' => $topic->replies_count + 1, 'last_post_at' => now()])->save();
@@ -60,20 +54,39 @@ class ForumService
             return $post;
         });
 
+        rescue(fn () => TellOfForumReply::dispatch($post->id));
+
+        return $post;
+    }
+
+    public function tellOfReply(Post $post): void
+    {
+        $topic = $post->topic;
+        $author = $post->author;
+
+        if (! $topic) {
+            return;
+        }
+
+        // Whoever has left the project hears no more of it
+        $earlier = $topic->participants()->whereKeyNot($post->author_id)
+            ->where(fn ($people) => $people
+                ->where('is_superadmin', true)
+                ->orWhereHas('memberships', fn ($q) => $q->where('project_id', $topic->project_id)))
+            ->pluck('id');
+
         foreach ($earlier as $participant) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
                 NotificationType::FORUM_REPLY,
                 'notifications.forum_reply_title',
                 'notifications.forum_reply_message',
-                params: ['name' => $author->name, 'title' => $topic->title],
+                params: ['name' => $author?->name, 'title' => $topic->title],
                 url: route('forum.show', [$topic->project_id, $topic, 'post' => $post->id]),
                 trigger: $author,
                 targetId: $participant,
             );
         }
-
-        return $post;
     }
 
     /** A reply goes; the opening post goes only with its topic */

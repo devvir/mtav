@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\NotificationType;
+use App\Jobs\TellOfForumReply;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Topic;
 use App\Services\ForumService;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * The forum: anyone in the project opens topics and replies; a new topic is told to the
@@ -50,6 +52,21 @@ it('tells whoever wrote in a topic of each reply, but not the one replying', fun
         ->and($topic->fresh()->replies_count)->toBe(2);
 });
 
+it('tells of a reply apart from the request, and of none taken back before it could', function () {
+    openTopic($this, $this->ana);
+    $topic = Topic::sole();
+    Queue::fake();
+
+    replyTo($this, $this->beto, $topic)->assertRedirect();
+
+    expect(Notification::where('type', 'forum_reply')->count())->toBe(0);
+    Queue::assertPushedOn('realtime', TellOfForumReply::class);
+
+    Post::latest('id')->first()->forceDelete();
+    (new TellOfForumReply(Post::max('id') + 1))->handle(app(ForumService::class));
+    expect(Notification::where('type', 'forum_reply')->count())->toBe(0);
+});
+
 describe('A reply, to those who wrote before and have left', function () {
     beforeEach(function () {
         $this->topic = app(ForumService::class)->open($this->project, $this->admin, 'The roof', 'Opinions?');
@@ -85,6 +102,19 @@ describe('A reply, to those who wrote before and have left', function () {
 
         expect($replies($superadmin))->toBe(1);
     });
+});
+
+it('finds what is searched for as typed, a % or a _ meaning itself', function () {
+    openTopic($this, $this->ana, 'Fees up 50% in May');
+    openTopic($this, $this->ana, 'Fees up 50 points');
+    openTopic($this, $this->ana, 'snake_case names');
+    openTopic($this, $this->ana, 'snakeXcase names');
+    $found = fn (string $q) => collect($this->as($this->ana, $this->project)->get(route('forum.index', ['q' => $q]))->inertiaProps('topics.data'))->pluck('title')->all();
+
+    expect($found('50%'))->toBe(['Fees up 50% in May'])
+        ->and($found('snake_case'))->toBe(['snake_case names'])
+        ->and($found('%'))->toBe(['Fees up 50% in May'])
+        ->and($found('Fees'))->toHaveCount(2);
 });
 
 it('lists pinned topics first, then the liveliest', function () {
