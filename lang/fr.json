@@ -1120,5 +1120,7 @@
   "No event matches": "Aucun événement ne correspond",
   "Nothing matches": "Rien ne correspond",
   "No project matches": "Aucun projet ne correspond",
-  "No account matches": "Aucun compte ne correspond"
+  "No account matches": "Aucun compte ne correspond",
+  "Deploy {branch} to dev?": "Déployer {branch} sur dev ?",
+  "Everything in dev, people and uploaded files included, is replaced by the demo data.": "Tout le contenu de dev, personnes et fichiers envoyés compris, est remplacé par les données de démo."
 }

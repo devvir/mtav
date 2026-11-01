@@ -55,7 +55,7 @@ Nothing changed in what it does or how.
    - Old: a project with members could not be deleted at all.
    - A superadmin console (`/admin`) approves projects, restores archived ones and deletes any project for good after its name is typed.
    - It also grants and revokes superadmin (now stored on the account, not an environment list), blocks and deletes accounts, shows the activity and error logs, sets the lottery's minimum time and deploys.
-   - Deployers can also start dev or staging over with the demo data; production refuses it.
+   - Deployers can also start dev or staging over with the demo data; production refuses it. A deploy to dev, which starts it over too, asks first.
    - The first superadmin (owner) is created from `OWNER_*` settings.
 9. **Files are private to the project.**
    - Old: public URLs anyone could open, and "deleted" files stayed reachable.

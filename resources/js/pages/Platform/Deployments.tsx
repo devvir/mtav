@@ -113,6 +113,18 @@ export default function Deployments({ main, environments, branches, runs, fresh 
       });
   };
 
+  const deployDev = async () => {
+    const ok = await confirm({
+      title: _('Deploy {branch} to dev?', { branch: branch! }),
+      message: _(
+        'Everything in dev, people and uploaded files included, is replaced by the demo data.',
+      ),
+      confirmLabel: _('Deploy dev'),
+      danger: true,
+    });
+    if (ok) send('dev', route('admin.deployments.dev'), { branch });
+  };
+
   const startOver = async (environment: Environment) => {
     const ok = await confirm({
       title: _('Start {environment} over?', { environment: environment.name }),
@@ -260,7 +272,7 @@ export default function Deployments({ main, environments, branches, runs, fresh 
                   leftSection={<IconRocket size={18} />}
                   disabled={!branch}
                   loading={sending === 'dev'}
-                  onClick={() => send('dev', route('admin.deployments.dev'), { branch })}
+                  onClick={() => void deployDev()}
                 >
                   {_('Deploy dev')}
                 </Button>

@@ -2,6 +2,7 @@
 
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 /**
  * The platform console, for superadmins: every account, and who else manages the platform.
@@ -143,4 +144,33 @@ it('shows superadmins what changed, and narrows it to a project', function () {
         ->assertSee('«A-101»')
         ->assertDontSee('«Z-9»')
         ->assertNoSmoke();
+});
+
+it('asks before a deploy starts dev over', function () {
+    config(['delivery.deployers' => ['root@example.com'], 'delivery.github.token' => 'token']);
+    $repo = 'https://api.github.com/repos/devvir/mtav/';
+    Http::fake([
+        $repo . 'commits/*'           => Http::response(['sha' => 'c3', 'commit' => ['message' => 'A commit', 'committer' => ['date' => '2026-10-29T10:00:00Z']]]),
+        $repo . 'actions/runs*'       => Http::response(['workflow_runs' => []]),
+        $repo . 'branches*'           => Http::response([['name' => 'main']]),
+        $repo . 'compare/*'           => Http::response(['ahead_by' => 0]),
+        $repo . 'actions/workflows/*' => Http::response(null, 204),
+        $repo . 'deployments*'        => Http::response([]),
+    ]);
+    $dispatched = fn () => Http::recorded(fn ($request) => str_contains($request->url(), 'actions/workflows/'))->count();
+    $this->as(aUser(['email' => 'root@example.com', 'is_superadmin' => true]));
+
+    $page = visit(route('admin.deployments.index'))
+        ->click(button('Deploy dev'))
+        ->assertSee('Deploy main to dev?')
+        ->assertSee('is replaced by the demo data')
+        ->click(inDialog('Cancel'));
+    expect($dispatched())->toBe(0);
+
+    $page->click(button('Deploy dev'))
+        ->click(inDialog('Deploy dev'))
+        ->assertNoSmoke();
+    $page->wait(0.5);
+    $page->assertPathIs(route('admin.deployments.index', absolute: false));
+    expect($dispatched())->toBe(1);
 });
