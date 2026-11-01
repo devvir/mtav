@@ -4,7 +4,8 @@ const xsrfToken = () =>
 
 /**
  * A request answered in JSON, the page staying as it is (for work that must not reload
- * the page, like the plan editor's). `keepalive`, it is sent even as the page closes.
+ * the page, like the plan editor's). `keepalive`, it is sent even as the page closes, and
+ * any redirect it answers with is not followed: nobody is left to see where it leads.
  */
 export const sendJson = (
   method: 'POST' | 'PUT' | 'DELETE',
@@ -15,6 +16,7 @@ export const sendJson = (
   fetch(url, {
     method,
     keepalive,
+    redirect: keepalive ? 'manual' : 'follow',
     credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',

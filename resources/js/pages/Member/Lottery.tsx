@@ -9,13 +9,24 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph, Panel, Status } from '@/design';
 import { heldOffline } from '@/lib/offline';
+import { useRankingSave, type RankingSave } from '@/lib/rankingSave';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { LotteryRun, Plan as PlanData, ProjectEvent, Unit } from '@/types/models';
-import { Deferred, Link, router } from '@inertiajs/react';
-import { Alert, Anchor, Badge, Card, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
-import { useDebouncedCallback } from '@mantine/hooks';
+import { Deferred, Link } from '@inertiajs/react';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Card,
+  Group,
+  Skeleton,
+  Stack,
+  Text,
+  Title,
+  Transition,
+} from '@mantine/core';
 import {
   IconAlertTriangle,
   IconClock,
@@ -64,20 +75,16 @@ export default function Lottery({
   setup,
   admin,
 }: Props) {
-  const [ranking, setRanking] = useState<Unit[]>(given ?? []);
-  const [saving, setSaving] = useState(false);
+  const {
+    ranking,
+    rank: move,
+    state: saveState,
+  } = useRankingSave(given, route('lottery.preferences'));
   const planFull = usePlanFullScreen();
   // The unit being moved or pointed at (lit up on the plan); one picked on the plan (lit up
   // a moment in the ranking)
   const [focused, setFocused] = useState<number | null>(null);
   const [flash, setFlash] = useState<{ unit: number; at: number } | null>(null);
-
-  // A fresh ranking from the server (someone else in the family changed it) replaces ours
-  const [previous, setPrevious] = useState(given);
-  if (given !== previous) {
-    setPrevious(given);
-    setRanking(given ?? []);
-  }
 
   useProjectChanges({
     lottery_runs: ['status', 'pace', 'runs', 'assignment', 'canRank'],
@@ -86,25 +93,10 @@ export default function Lottery({
     families: ['family', 'ranking'],
   });
 
-  const save = useDebouncedCallback((units: Unit[]) => {
-    setSaving(true);
-    router.put(
-      route('lottery.preferences'),
-      { preferences: units.map((unit) => unit.id) },
-      {
-        preserveScroll: true,
-        preserveState: true,
-        only: ['ranking', 'flash'],
-        onFinish: () => setSaving(false),
-      },
-    );
-  }, 600);
-
   /** A new order, shown and saved; offline, neither (nothing shown that is not saved) */
   const rank = (units: Unit[]) => {
     if (heldOffline()) return;
-    setRanking(units);
-    save(units);
+    move(units);
   };
 
   const ownUnit = assignment?.find((row) => row.id === family?.id)?.unit ?? null;
@@ -264,13 +256,7 @@ export default function Lottery({
             data-tour="ranking.list"
             title={_('Your preferences')}
             icon={IconListNumbers}
-            actions={
-              saving ? (
-                <Status tone="info" live>
-                  {_('Saving')}
-                </Status>
-              ) : null
-            }
+            actions={<SaveNote state={saveState} />}
           >
             <Text data-tour="ranking.saving" className="ds-caption" mb="sm">
               {canRank
@@ -315,5 +301,29 @@ export default function Lottery({
         ) : null}
       </div>
     </>
+  );
+}
+
+/** How saving a ranking goes, said to screen readers too; the last word stays as it fades */
+function SaveNote({ state }: { state: RankingSave }) {
+  const [word, setWord] = useState(state);
+  if (state && state !== word) setWord(state);
+
+  return (
+    <span role="status">
+      <Transition mounted={state !== null} transition="fade" duration={200}>
+        {(styles) => (
+          <span style={styles}>
+            {word === 'saving' ? (
+              <Status tone="info" live>
+                {_('Saving')}
+              </Status>
+            ) : (
+              <Status tone="positive">{_('Saved')}</Status>
+            )}
+          </span>
+        )}
+      </Transition>
+    </span>
   );
 }

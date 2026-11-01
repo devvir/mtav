@@ -42,6 +42,30 @@ it('keeps a family\'s ranking after leaving the page', function () {
         ->assertSeeIn('ol li:first-child', $second->identifier);
 });
 
+it('saves a move made just before going to another page', function () {
+    $second = app(PreferencesService::class)->ranking($this->family)[1];
+    $this->as($this->member);
+
+    visit(route('lottery.show', $this->project))
+        ->click("[aria-label=\"Move {$second->identifier} up\"]")
+        ->click('.shell-sidebar >> a:has-text("Units")')
+        ->assertPathIs(route('units.index', $this->project, absolute: false))
+        ->wait(1);
+
+    expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->identifier)->toBe($second->identifier);
+});
+
+it('says, in a status screen readers announce, that a ranking is being saved and is saved', function () {
+    $second = app(PreferencesService::class)->ranking($this->family)[1];
+    $this->as($this->member);
+
+    visit(route('lottery.show', $this->project))
+        ->assertPresent('[data-tour="ranking.list"] [role="status"]')
+        ->click("[aria-label=\"Move {$second->identifier} up\"]")
+        ->assertSeeIn('[data-tour="ranking.list"] [role="status"]', 'Saving')
+        ->assertSeeIn('[data-tour="ranking.list"] [role="status"]', 'Saved');
+});
+
 it('moves a unit down with its button', function () {
     $first = app(PreferencesService::class)->ranking($this->family)[0];
     $this->as($this->member);
