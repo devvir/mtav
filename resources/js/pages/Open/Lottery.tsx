@@ -189,7 +189,7 @@ export default function Lottery(props: Props) {
         >
           {ready?.working === false ? (
             <Alert color="yellow">
-              {_('The server cannot run lotteries right now. Try again in a moment.')}
+              {_("The lottery can't run right now. Try again in a moment.")}
             </Alert>
           ) : null}
           <Button
