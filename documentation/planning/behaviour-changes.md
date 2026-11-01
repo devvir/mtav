@@ -816,6 +816,7 @@ Old: none. (no export or CSV route at `2c8e8b13`)
 - **No limit, no record.** No rate limit, and downloads are not in the activity log.
 - **Language and format.** Headings in the admin's language, UTF-8 with a byte order mark, named `<project>-<list>-<date>.csv`. (test "writes the headings in the admin's language")
 - **Values are written as typed.** A name starting with `=` is not escaped, and a spreadsheet may read it as a formula. Read in code, not run. (`ExportController` csv)
+- **What people wrote never runs as a formula.** A cell starting with `=`, `+`, `-`, `@`, a tab or a return, or holding one right after a semicolon, gets a leading `'` there, which spreadsheet programs may show. A phone number such as `+598 99 123 456` stays as it is. (`ExportController` asText; test "What people wrote in the cells")
 - **Archived families** are left out. (`Family` soft deletes)
 
 ## Public pages

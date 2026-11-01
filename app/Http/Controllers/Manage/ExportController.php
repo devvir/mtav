@@ -9,7 +9,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * A project's lists as spreadsheets (CSV), for its admins: its people, its families and
  * its units, with the headings in the admin's language. Opened by any spreadsheet program
- * (the byte order mark makes Excel read accents right).
+ * (the byte order mark makes Excel read accents right). People choose what the cells say:
+ * none is ever run as a formula.
  */
 class ExportController extends Controller
 {
@@ -69,9 +70,22 @@ class ExportController extends Controller
             fwrite($out, "\u{FEFF}");
             fputcsv($out, $headings, escape: '');
             foreach ($rows as $row) {
-                fputcsv($out, $row, escape: '');
+                fputcsv($out, array_map($this->asText(...), $row), escape: '');
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * What a spreadsheet program would run stays text: a leading quote (OWASP), also after a
+     * semicolon, where it may take that for the column separator. A phone number needs none.
+     */
+    private function asText(mixed $cell): mixed
+    {
+        if (! is_string($cell) || preg_match('/^\+[\d ]+$/', $cell)) {
+            return $cell;
+        }
+
+        return preg_replace('/(^|;)(?=\s*[=+\-@\t\r])/', "$1'", $cell);
     }
 }
