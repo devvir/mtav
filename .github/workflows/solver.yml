@@ -1,0 +1,32 @@
+# GLPK on hard instances (tests/Stress), when what they check changes. Apart from the pipeline:
+# they measure time, and a slow runner should not hold a release back.
+name: solver
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - app/Services/Lottery/Solvers/**
+      - config/lottery.php
+      - tests/Stress/**
+      - tests/Datasets/**
+      - .github/workflows/solver.yml
+  workflow_dispatch:
+
+concurrency:
+  group: solver-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    name: Solver on hard instances
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Stress suite (Pest)
+        run: ./mtav pest --testsuite Stress

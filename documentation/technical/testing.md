@@ -9,7 +9,7 @@ would have caught what it fixes. The tests run in their own Docker environments
 ```sh
 ./mtav pest                              # PHP: Arch, Unit, UseCases
 ./mtav pest --filter="runs the lottery"  # by name
-./mtav pest --testsuite Stress           # the slow GLPK scenarios (opt in)
+./mtav pest --testsuite Stress           # the slow GLPK scenarios (opt in; solver.yml runs them in GitHub)
 ./mtav vitest                            # frontend units
 ./mtav e2e                               # the browser suite
 ./mtav e2e --group=critical              # its quick part
