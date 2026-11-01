@@ -48,10 +48,13 @@ to what; and signing in, out, failing to, resetting a password. Never what peopl
 ## The error log
 
 Free and kept by the app itself (`ErrorLog`, `error_log`): each error the app reports,
-once per cause (its class, file and line), counted each time it comes back, with the
-address and the person when there was one. Superadmins see them in the console (Errors)
-and mark them solved; the deployment's owner is emailed the first time a new one
-appears. On wherever the app runs for people, off while testing (`config/errors.php`).
+once per cause (its class and the app's own line that led to it; for a query, the query
+too), counted each time it comes back, with the address and the person when there was
+one. Secrets stay out: the address has no query string and no token or key, a failed
+query is kept without its values, a trace without what was passed along it.
+Superadmins see them in the console (Errors) and mark them solved; the deployment's
+owner is emailed the first time a new one appears, which one and where, its details left
+in the console. On wherever the app runs for people, off while testing (`config/errors.php`).
 A hosted service (Sentry, GlitchTip) can be added beside it later.
 
 ## Giving data back

@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 /**
  * Tells the deployment's owner that the app ran into an error it had not seen before:
- * what, where, and the way to the console's list
+ * which, where, and the way to the console's list, where its details stay
  */
 class NewErrorNotice extends Notification implements ShouldQueue
 {
@@ -32,7 +32,7 @@ class NewErrorNotice extends Notification implements ShouldQueue
             ->subject(__('emails.new_error_subject', ['app' => config('app.name')]))
             ->greeting(__('emails.greeting_name', ['name' => $notifiable->firstname]))
             ->line(__('emails.new_error_intro'))
-            ->line("{$this->error->class}: {$this->error->message}")
+            ->line($this->error->class)
             ->line("{$this->error->file}:{$this->error->line}")
             ->action(__('emails.new_error_action'), route('admin.errors.index'));
     }
