@@ -1,9 +1,12 @@
 <?php
 
+use App\Events\MessageRemoved;
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\ChatService;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -197,6 +200,60 @@ it('lets whoever wrote a message take it back, and nobody else', function () {
     expect(Message::pluck('body')->all())->toBe(['First'])
         // The conversation ends on the one before
         ->and($conversation->fresh()->lastMessage->body)->toBe('First');
+});
+
+it('tells everyone in the conversation that a message was taken back, on their own channels only', function () {
+    startChat($this, $this->ana, [$this->beto]);
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
+    say($this, $this->ana, $conversation);
+    Event::fake([MessageRemoved::class]);
+
+    $this->as($this->ana, $this->project)->deleteJson(route('chat.messages.destroy', $conversation->messages()->sole()))->assertOk();
+
+    Event::assertDispatched(MessageRemoved::class, function (MessageRemoved $event) use ($conversation) {
+        expect(collect($event->broadcastOn())->map->name->sort()->values()->all())
+            ->toBe(collect(["private-users.{$this->ana->id}", "private-users.{$this->beto->id}"])->sort()->values()->all())
+            ->and($event->broadcastWith())->toBe(['conversation_id' => $conversation->id, 'by' => $this->ana->id])
+            ->and($event->broadcastQueue())->toBe('realtime');
+
+        return true;
+    });
+});
+
+it('tells nobody when a message stays, refused to someone else', function () {
+    startChat($this, $this->ana, [$this->beto]);
+    $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
+    say($this, $this->ana, $conversation);
+    Event::fake([MessageRemoved::class]);
+
+    $this->as($this->beto, $this->project)->deleteJson(route('chat.messages.destroy', $conversation->messages()->sole()));
+
+    Event::assertNotDispatched(MessageRemoved::class);
+});
+
+it('takes the double of a conversation being started as the same one, whoever came first', function () {
+    // The other's request lands right after this one looked for it, finding none
+    DB::listen(function (QueryExecuted $query) {
+        static $once = false;
+        if (! $once && str_starts_with($query->sql, 'select') && str_contains($query->sql, '`pair`')) {
+            $once = true;
+            app(ChatService::class)->start($this->project, $this->beto, [$this->ana->id]);
+        }
+    });
+
+    $conversation = app(ChatService::class)->start($this->project, $this->ana, [$this->beto->id]);
+
+    expect($conversation->created_by)->toBe($this->beto->id)
+        ->and(Conversation::where('pair', $conversation->pair)->count())->toBe(1)
+        ->and($conversation->participants()->count())->toBe(2);
+});
+
+it('tells the window its people only until it knows them', function () {
+    $panel = fn (array $query = []) => $this->as($this->ana, $this->project)->getJson(route('chat.panel', $query))->json();
+
+    expect($panel())->toHaveKey('people')
+        ->and($panel(['known_people' => 1]))->not->toHaveKey('people')
+        ->and($panel(['known_people' => 1]))->toHaveKey('conversations');
 });
 
 it('opens a conversation with its latest messages, earlier ones on asking', function () {

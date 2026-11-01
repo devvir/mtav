@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\MessageRemoved;
 use App\Events\MessageSent;
 use App\Jobs\AnswerInChat;
 use App\Jobs\PushMessage;
@@ -10,6 +11,7 @@ use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\Push\PushService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -45,18 +47,23 @@ class ChatService
             $this->ensureRoomForAGroup($project, [$by->id, ...$others], $by);
         }
 
-        return DB::transaction(function () use ($project, $by, $others, $title, $group) {
-            $conversation = new Conversation(['title' => $group ? ($title ?: null) : null]);
-            $conversation->forceFill([
-                'project_id' => $project->id,
-                'created_by' => $by->id,
-                'is_group'   => $group,
-                'pair'       => $group ? null : Conversation::pairOf($by->id, $others[0]),
-            ])->save();
-            $conversation->participants()->attach([$by->id, ...$others]);
+        try {
+            return DB::transaction(function () use ($project, $by, $others, $title, $group) {
+                $conversation = new Conversation(['title' => $group ? ($title ?: null) : null]);
+                $conversation->forceFill([
+                    'project_id' => $project->id,
+                    'created_by' => $by->id,
+                    'is_group'   => $group,
+                    'pair'       => $group ? null : Conversation::pairOf($by->id, $others[0]),
+                ])->save();
+                $conversation->participants()->attach([$by->id, ...$others]);
 
-            return $conversation;
-        });
+                return $conversation;
+            });
+        } catch (UniqueConstraintViolationException $taken) {
+            // Both of them just started it: theirs is the one that got there first
+            return Conversation::where('project_id', $project->id)->where('pair', Conversation::pairOf($by->id, $others[0]))->first() ?? throw $taken;
+        }
     }
 
     public function send(Conversation $conversation, User $author, string $body): Message
@@ -136,6 +143,8 @@ class ChatService
         $message->delete();
         $last = $conversation->messages()->latest('id')->first();
         $conversation->forceFill(['last_message_id' => $last?->id, 'last_message_at' => $last?->created_at])->save();
+
+        MessageRemoved::dispatch($conversation->id, $message->user_id, $conversation->participants()->pluck('users.id')->all());
     }
 
     /**

@@ -1109,5 +1109,6 @@
   "Ask to join {project}": "Pedir para sumarme a {project}",
   "Withdraw the request to {project}": "Retirar el pedido a {project}",
   "Decline the invitation to {project}": "Rechazar la invitación a {project}",
-  "Removed files stay stored, and count.": "Los archivos quitados siguen guardados, y cuentan."
+  "Removed files stay stored, and count.": "Los archivos quitados siguen guardados, y cuentan.",
+  "Assistant": "Asistente"
 }

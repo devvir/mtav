@@ -861,6 +861,8 @@ export function Chat({
   const [starting, setStarting] = useState(false);
   // The latest ask wins: a slow answer never replaces a newer one
   const asked = useRef(0);
+  // Whom one may talk with comes once a window opens, not with every message
+  const peopleOf = useRef<number | null>(null);
 
   const load = useCallback(
     async (messages = count) => {
@@ -868,6 +870,7 @@ export function Chat({
       const url = route('chat.panel', {
         project: projectId,
         ...(open ? { conversation: open, count: messages } : {}),
+        ...(peopleOf.current === projectId ? { known_people: 1 } : {}),
       });
       const response = await fetch(url, {
         credentials: 'same-origin',
@@ -879,7 +882,11 @@ export function Chat({
         return;
       }
       if (!response.ok || ask !== asked.current) return;
-      const next = (await response.json()) as ChatData;
+      const answer = (await response.json()) as Omit<ChatData, 'people'> & {
+        people?: ChatPerson[];
+      };
+      const next = { ...answer, people: answer.people ?? seen.get(projectId)?.people ?? [] };
+      peopleOf.current = projectId;
       const wasUnread = seen
         .get(projectId)
         ?.conversations.some((one) => one.id === open && one.unread);

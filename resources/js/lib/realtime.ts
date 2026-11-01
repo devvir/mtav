@@ -7,6 +7,7 @@ import { chatState, openChat, refreshChat } from './chat';
 import { route, routeIs } from './route';
 import { toast } from './toasts';
 import { _ } from './translations';
+import { unreadCount } from './unreadCount';
 
 let server: RealtimeServer | null = null;
 
@@ -131,12 +132,32 @@ interface MessageArrived {
   message_id: number;
   by: number | null;
   author: string | null;
+  from_assistant: boolean;
 }
+
+interface MessageRemoved {
+  conversation_id: number;
+  by: number | null;
+}
+
+/** The chat's list of conversations, asked for a moment apart by each of those it moves for */
+const LIST_SPREAD_MS = 3000;
+let listAsked: number | undefined;
+const refreshListSoon = () => {
+  listAsked ??= window.setTimeout(() => {
+    listAsked = undefined;
+    refreshChat();
+  }, Math.random() * LIST_SPREAD_MS);
+};
+
+const unread = unreadCount();
 
 /**
  * Chat messages as they arrive (the shell, once): on the chat's page, its conversations
  * and the one open (read as it shows); anywhere else, the chat's count of the unread, and
- * a toast saying who wrote.
+ * a toast saying who wrote. In a busy group nobody asks the server more than what they
+ * see needs: the conversation in sight at once, the rest a moment later, and the count
+ * only if it can move.
  */
 export function useLiveMessages() {
   const { props } = usePage();
@@ -144,22 +165,31 @@ export function useLiveMessages() {
   const project = props.project;
   const onMessage = useEffectEvent((message: MessageArrived) => {
     if (message.by === user?.id) return;
-    refreshChat();
-    router.reload({ only: ['project'] });
 
-    // Already in sight: the chat shows it, or the list it comes to
     const { open, conversation } = chatState();
     const inChat = open || routeIs('chat.*');
-    if (inChat && (!conversation || conversation === message.conversation_id)) return;
+
+    if (inChat && conversation === message.conversation_id) {
+      unread.inSight(message.conversation_id);
+      refreshChat();
+      return;
+    }
+
+    refreshListSoon();
+    if (unread.arrives(message.conversation_id)) router.reload({ only: ['project'] });
+
+    // Already in sight: the list it comes to
+    if (inChat && !conversation) return;
 
     // The window opens on it where there is one; on phones the chat has its own page
     const withWindow = window.matchMedia('(min-width: 48em)').matches;
     toast({
       tone: 'info',
       live: true,
-      message: message.author
-        ? _('New message from {name}', { name: message.author })
-        : _('New message'),
+      message:
+        message.author || message.from_assistant
+          ? _('New message from {name}', { name: message.author ?? _('Assistant') })
+          : _('New message'),
       onClick: withWindow ? () => openChat(message.conversation_id) : undefined,
       href:
         !withWindow && project
@@ -168,13 +198,23 @@ export function useLiveMessages() {
     });
   });
 
+  // A message taken back: what shows it asks again, and the count may have moved
+  const onRemoved = useEffectEvent((removed: MessageRemoved) => {
+    if (removed.by === user?.id) return;
+    refreshChat();
+    router.reload({ only: ['project'] });
+  });
+
+  useEffect(() => unread.reset, [project?.id]);
+  useEffect(() => unread.known(project?.unread_messages), [project?.unread_messages]);
+
   useEffect(() => {
     if (!user || !project?.can.chat || !realtimeEnabled()) return undefined;
     const channel = `users.${user.id}`;
-    echo().private(channel).listen('.message', onMessage);
+    echo().private(channel).listen('.message', onMessage).listen('.message-removed', onRemoved);
 
     return () => {
-      echo().private(channel).stopListening('.message');
+      echo().private(channel).stopListening('.message').stopListening('.message-removed');
     };
   }, [user?.id, project?.id, project?.can.chat]); // eslint-disable-line react-hooks/exhaustive-deps
 }
