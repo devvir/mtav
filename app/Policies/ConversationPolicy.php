@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ProjectFeature;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
@@ -22,6 +23,11 @@ class ConversationPolicy
 
     public function readChat(User $user, Conversation $conversation): bool
     {
+        // With the Assistant off, its conversations are not there
+        if ($conversation->is_assistant && ! $conversation->project->hasFeature(ProjectFeature::ASSISTANT)) {
+            return false;
+        }
+
         return $user->membershipIn($conversation->project_id) && $conversation->includes($user);
     }
 

@@ -21,10 +21,20 @@ class Variant
         return in_array($module, self::spec('modules'), true);
     }
 
-    /** Whether projects here may have this feature at all */
-    public static function offers(string $feature): bool
+    /** @return array{default: bool, configurable: bool}|null  null: it does not exist here */
+    public static function feature(string $feature): ?array
     {
-        return in_array($feature, self::spec('features'), true);
+        $spec = self::spec('features')[$feature] ?? null;
+
+        return $spec && ($spec['default'] || $spec['configurable']) ? $spec : null;
+    }
+
+    /** @return array<string, bool>  what a project here may choose, and what it starts with */
+    public static function choices(): array
+    {
+        return collect(self::spec('features'))->filter(fn (array $spec) => $spec['configurable'])
+            ->map(fn (array $spec) => $spec['default'])
+            ->all();
     }
 
     /** The page people arrive at */

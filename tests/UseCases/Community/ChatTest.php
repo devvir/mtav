@@ -262,7 +262,7 @@ describe('The window', function () {
     });
 
     it('is gone with the chat off', function () {
-        $this->windowed->update(['disabled_features' => ['chat']]);
+        $this->windowed->update(['feature_choices' => ['chat' => false]]);
 
         $this->as($this->one, $this->windowed)->getJson(route('chat.panel'))->assertNotFound();
     });

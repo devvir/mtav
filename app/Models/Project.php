@@ -34,7 +34,7 @@ class Project extends Model
         'listed',
         'open_to_join',
         'allows_guests',
-        'disabled_features',
+        'feature_choices',
         'created_by',
         'approval_requested_at',
         'approved_at',
@@ -45,7 +45,7 @@ class Project extends Model
         'listed'                => 'boolean',
         'open_to_join'          => 'boolean',
         'allows_guests'         => 'boolean',
-        'disabled_features'     => 'array',
+        'feature_choices'       => 'array',
         'approval_requested_at' => 'datetime',
         'approved_at'           => 'datetime',
     ];
@@ -236,18 +236,23 @@ class Project extends Model
         return $this->allows_guests || ($this->unitTypes()->exists() && ! $this->lotteryLocked());
     }
 
+    /** What the variant has of it, and then what the project chose where it may */
     public function hasFeature(ProjectFeature|string $feature): bool
     {
         $name = $feature instanceof ProjectFeature ? $feature->value : $feature;
+        $spec = Variant::feature($name);
 
-        return Variant::offers($name) && ! in_array($name, $this->disabled_features ?? [], true);
+        if (! $spec || ($name === ProjectFeature::ASSISTANT->value && ! $this->hasFeature(ProjectFeature::CHAT))) {
+            return false;
+        }
+
+        return $spec['configurable'] ? ($this->feature_choices[$name] ?? $spec['default']) : $spec['default'];
     }
 
-    /** @return array<string, bool>  each feature, and whether it is on */
+    /** @return array<string, bool>  every feature, and whether this project has it */
     public function features(): array
     {
         return collect(ProjectFeature::cases())
-            ->filter(fn (ProjectFeature $feature) => Variant::offers($feature->value))
             ->mapWithKeys(fn (ProjectFeature $feature) => [$feature->value => $this->hasFeature($feature)])
             ->all();
     }

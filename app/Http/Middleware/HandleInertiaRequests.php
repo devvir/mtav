@@ -73,6 +73,8 @@ class HandleInertiaRequests extends Middleware
              * the defaults (the project being browsed), where one is and the route's name
              */
             'routes' => Inertia::once(fn () => $this->routes()),
+            // What a project may choose of its features here, and what it starts with
+            'featureChoices' => Inertia::once(fn () => (object) Variant::choices()),
             /** Where browsers reach the websocket server (null: no live updates) */
             'realtime' => Inertia::once(fn () => $this->realtime()),
             'ziggy'    => fn () => [
@@ -109,7 +111,7 @@ class HandleInertiaRequests extends Middleware
     {
         $managed = $user->memberships->where('is_admin', true)->pluck('project_id');
 
-        return $user->reachableProjects()->orderBy('name')->get(['id', 'name', 'disabled_features'])
+        return $user->reachableProjects()->orderBy('name')->get(['id', 'name', 'feature_choices'])
             ->map(fn (Project $project) => [
                 'id'       => $project->id,
                 'name'     => $project->name,
@@ -147,7 +149,7 @@ class HandleInertiaRequests extends Middleware
             // The conversations with something new for them (the chat's place says so)
             'unread_messages' => $inChat ? Conversation::of($user, $project)->unreadBy($user)->count() : null,
             // Someone's first arrival: the Assistant's conversation, that opens to greet them
-            'welcome' => $inChat && ! $user->welcomed_at && config('assistant.driver') !== 'off'
+            'welcome' => $inChat && $project->hasFeature(ProjectFeature::ASSISTANT) && ! $user->welcomed_at && config('assistant.driver') !== 'off'
                 ? Conversation::of($user, $project)->where('is_assistant', true)->value('id')
                 : null,
             'can' => [

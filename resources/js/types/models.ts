@@ -11,7 +11,7 @@ export interface Can {
 }
 
 /** What a project may turn on or off */
-export type ProjectFeature = 'forum' | 'chat' | 'gallery' | 'files' | 'events';
+export type ProjectFeature = 'forum' | 'chat' | 'assistant' | 'gallery' | 'files' | 'events';
 export type ProjectFeatures = Record<ProjectFeature, boolean>;
 
 export interface Project {

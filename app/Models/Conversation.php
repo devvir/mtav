@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectFeature;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -58,8 +59,11 @@ class Conversation extends Model
     /** The conversations someone is in, in a project */
     public function scopeOf(Builder $query, User $user, Project|int $project): void
     {
-        $query->where('project_id', $project instanceof Project ? $project->id : $project)
-            ->whereHas('participants', fn (Builder $query) => $query->whereKey($user->id));
+        $project = $project instanceof Project ? $project : Project::find($project);
+
+        $query->where('project_id', $project?->id)
+            ->whereHas('participants', fn (Builder $query) => $query->whereKey($user->id))
+            ->when(! $project?->hasFeature(ProjectFeature::ASSISTANT), fn (Builder $query) => $query->where('is_assistant', false));
     }
 
     /**

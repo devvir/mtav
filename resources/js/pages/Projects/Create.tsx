@@ -8,7 +8,7 @@ import { appName, megabytes } from '@/lib/app';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import {
   Card,
   Collapse,
@@ -30,11 +30,12 @@ export default function ProjectsCreate({
   /** A superadmin says who its first admin is: themselves, or someone invited */
   asksFirstAdmin: boolean;
 }) {
+  const { featureChoices } = usePage().props;
   const form = useForm({
     name: '',
     description: '',
     organization: '',
-    ...optionsOf(),
+    ...optionsOf(featureChoices),
     first_admin: 'me',
     first_admin_email: '',
   });

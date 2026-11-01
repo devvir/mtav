@@ -327,9 +327,9 @@ it('never lets a feature a variant does not offer exist in a project', function 
     $project = aProject();
     expect($project->hasFeature('forum'))->toBeTrue();
 
-    config(['variants.mtav.features' => ['chat']]);
+    config(['variants.mtav.features' => ['chat' => ['default' => true, 'configurable' => false]]]);
 
     expect($project->hasFeature('forum'))->toBeFalse()
-        ->and(array_keys($project->features()))->toBe(['chat']);
+        ->and($project->features()['chat'])->toBeTrue();
     $this->as(anAdminOf($project), $project)->get(route('forum.index'))->assertNotFound();
 });

@@ -10,17 +10,18 @@ import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Project } from '@/types/models';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { Button, Card, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
 import { IconAlertTriangle, IconDownload, IconTableExport, IconTrash } from '@tabler/icons-react';
 
 /** The project's details, and deleting it (its page prop is `settings`: `project` is shared) */
 export default function Settings({ settings: project }: { settings: Project }) {
+  const { featureChoices } = usePage().props;
   const form = useForm({
     name: project.name,
     description: project.description,
     organization: project.organization ?? '',
-    ...optionsOf(project),
+    ...optionsOf(featureChoices, project),
   });
 
   const destroy = async () => {

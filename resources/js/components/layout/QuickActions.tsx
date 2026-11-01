@@ -71,7 +71,12 @@ export function QuickActions() {
     ...(project.can.upload
       ? [
           {
-            label: _('Upload photos or files'),
+            label:
+              project.features.gallery && project.features.files
+                ? _('Upload photos or files')
+                : project.features.files
+                  ? _('Upload files')
+                  : _('Upload photos'),
             href: route('media.index', { ...at, share: 1 }),
             icon: IconPhotoPlus,
           },

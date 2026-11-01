@@ -15,7 +15,8 @@ every question from it, in constant time.
 It says:
 - **modules**: the parts of the app that exist here (`accounts`, `projects`, `platform`,
   `manual`, `open_lottery`);
-- **features**: which of a project's features may exist, so which settings admins are offered;
+- **features**: each with what a project starts with (`default`) and whether a project may change
+  it (`configurable`);
 - **landing**: the page people arrive at.
 
 ## Closed at the door
@@ -26,10 +27,19 @@ all routes and refuses one with no module, unless it is on the short list every 
 language, health, privacy, manifest). So a new route is closed by default until someone says what
 it belongs to.
 
-**A project's features merge the two levels in one place.** `Project::hasFeature()` is true only
-if the variant offers the feature and the project has it on. `EnsureFeature` guards the routes
-with it, so a project with media off, or a variant without media, refuses an upload made directly
-against the server.
+**A feature is the variant's spec, then the project's choice.** `Project::hasFeature()` is the one
+answer, and everything reads it: routes, navigation, the home page, settings, what buttons say.
+
+| Spec | What it means |
+|---|---|
+| on, configurable | Projects start with it, and admins may turn it off |
+| off, configurable | Projects start without it, and admins may turn it on |
+| on, not configurable | Every project has it, and no setting appears |
+| off, not configurable, or left out | It does not exist here, exactly as if it had no code |
+
+Settings offer only what is configurable. `EnsureFeature` guards the routes, so a project with media
+off, or a variant without media, refuses an upload made directly against the server. With only one
+of gallery and files, the page is named after it and has no tabs. The Assistant needs the chat.
 
 What routes do not reach follows the same answers: the route names sent to the browser leave out
 closed modules, and deployment-wide duties (the owner's first account) apply only where their

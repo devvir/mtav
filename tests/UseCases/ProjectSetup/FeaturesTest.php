@@ -19,17 +19,17 @@ beforeEach(function () {
 
 function turnOff($project, string ...$features): void
 {
-    $project->update(['disabled_features' => $features]);
+    $project->update(['feature_choices' => array_fill_keys($features, false)]);
 }
 
 it('has everything on until an admin says otherwise', function () {
     expect($this->as($this->member, $this->project)->get(route('projects.show'))->inertiaProps('project.features'))
-        ->toBe(['forum' => true, 'chat' => true, 'gallery' => true, 'files' => true, 'events' => true]);
+        ->toBe(['forum' => true, 'chat' => true, 'assistant' => true, 'gallery' => true, 'files' => true, 'events' => true]);
 });
 
 it('lets admins turn features off, from the project\'s settings', function () {
     $this->as($this->admin, $this->project)->put(route('manage.settings.update'), [
-        'name' => $this->project->name, 'description' => $this->project->description, 'disabled_features' => ['forum', 'chat'],
+        'name' => $this->project->name, 'description' => $this->project->description, 'feature_choices' => ['forum' => false, 'chat' => false],
     ])->assertSessionHasNoErrors();
 
     expect($this->project->fresh()->hasFeature('forum'))->toBeFalse()
@@ -38,13 +38,13 @@ it('lets admins turn features off, from the project\'s settings', function () {
 
 it('takes only features it knows', function () {
     $this->as($this->admin, $this->project)->put(route('manage.settings.update'), [
-        'name' => $this->project->name, 'description' => $this->project->description, 'disabled_features' => ['lottery'],
-    ])->assertSessionHasErrors('disabled_features.0');
+        'name' => $this->project->name, 'description' => $this->project->description, 'feature_choices' => ['lottery' => false],
+    ])->assertSessionHasErrors('feature_choices');
 });
 
 it('asks for it when a project starts', function () {
     $this->as(aUser())->post(route('projects.store'), [
-        'name' => 'Ours', 'description' => 'Our project', 'allows_guests' => true, 'disabled_features' => ['forum'],
+        'name' => 'Ours', 'description' => 'Our project', 'allows_guests' => true, 'feature_choices' => ['forum' => false],
     ])->assertSessionHasNoErrors();
 
     $project = App\Models\Project::firstWhere('name', 'Ours');
@@ -112,4 +112,62 @@ it('leaves a home without what is off, asking for nothing of it', function () {
 
     expect($page->inertiaProps('media'))->toBeNull()->and($page->inertiaProps('events'))->toBeNull();
     expect(AppNotification::count())->toBeGreaterThanOrEqual(0);
+});
+
+describe('What the variant says', function () {
+    function theSpec(array $features): void
+    {
+        config(['variants.mtav.features' => $features]);
+    }
+
+    it('makes a feature off and not configurable not exist: no address, no setting, no way in', function () {
+        theSpec(['chat' => ['default' => true, 'configurable' => false], 'forum' => ['default' => false, 'configurable' => false]]);
+
+        $this->as($this->member, $this->project)->get(route('forum.index'))->assertNotFound();
+        expect($this->project->fresh()->hasFeature('forum'))->toBeFalse()
+            ->and(App\Support\Variant::choices())->toBe([]);
+    });
+
+    it('keeps a feature on and not configurable, whatever a project says', function () {
+        theSpec(['chat' => ['default' => true, 'configurable' => false]]);
+        $this->project->update(['feature_choices' => ['chat' => false]]);
+
+        expect($this->project->fresh()->hasFeature('chat'))->toBeTrue();
+    });
+
+    it('starts a configurable feature as its default, until the project chooses', function () {
+        theSpec(['events' => ['default' => false, 'configurable' => true], 'gallery' => ['default' => true, 'configurable' => true]]);
+
+        expect($this->project->hasFeature('events'))->toBeFalse()
+            ->and($this->project->hasFeature('gallery'))->toBeTrue();
+
+        $this->project->update(['feature_choices' => ['events' => true, 'gallery' => false]]);
+
+        expect($this->project->fresh()->hasFeature('events'))->toBeTrue()
+            ->and($this->project->fresh()->hasFeature('gallery'))->toBeFalse();
+    });
+
+    it('offers admins only what may be chosen, and refuses the rest', function () {
+        theSpec(['events' => ['default' => false, 'configurable' => true], 'chat' => ['default' => true, 'configurable' => false]]);
+
+        $page = $this->as($this->admin, $this->project)->get(route('manage.settings.edit'));
+
+        expect((array) $page->inertiaProps('featureChoices'))->toBe(['events' => false]);
+
+        $this->put(route('manage.settings.update'), [
+            'name' => $this->project->name, 'description' => $this->project->description, 'feature_choices' => ['chat' => false],
+        ])->assertSessionHasErrors('feature_choices');
+    });
+
+    it('has no assistant without a chat', function () {
+        $this->project->update(['feature_choices' => ['chat' => false]]);
+
+        expect($this->project->fresh()->hasFeature('assistant'))->toBeFalse();
+    });
+
+    it('leaves the assistant out of the chat when it is off', function () {
+        $this->project->update(['feature_choices' => ['assistant' => false]]);
+
+        expect(App\Models\Conversation::of($this->member, $this->project->fresh())->where('is_assistant', true)->exists())->toBeFalse();
+    });
 });

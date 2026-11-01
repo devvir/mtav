@@ -73,6 +73,8 @@ export default function MediaIndex({
   // The neighbours known are the file's (the server's), not yet the one just moved to
   const steady = shown?.id === file?.id ? carousel : null;
 
+  // With one of the two, its tab is the whole page
+  const both = features.gallery && features.files;
   const tabs = [
     { value: 'media', label: _('Media') },
     { value: 'files', label: _('Files') },
@@ -82,10 +84,14 @@ export default function MediaIndex({
     <>
       <PageHeader
         tour="member.files"
-        title={_('Media')}
-        description={_(
-          "The project's photos and videos, and its records: documents and recordings.",
-        )}
+        title={both ? _('Media') : features.files ? _('Files') : _('Gallery')}
+        description={
+          both
+            ? _("The project's photos and videos, and its records: documents and recordings.")
+            : features.files
+              ? _("The project's records: documents and recordings.")
+              : _("The project's photos and videos.")
+        }
         help={
           <InfoTip title={_('About files')} tour="member.files">
             {_(
@@ -100,22 +106,24 @@ export default function MediaIndex({
               onClick={sharing.open}
               leftSection={<IconPhotoPlus size={18} />}
             >
-              {_('Share files')}
+              {features.files ? _('Share files') : _('Share photos')}
             </Button>
           ) : null
         }
       />
       <Group justify="space-between" mb="md" gap="sm">
-        <FilterTabs
-          data-tour="files.tabs"
-          items={tabs
-            .filter((tab) => features[tab.value === 'media' ? 'gallery' : 'files'])
-            .map((tab) => ({
+        {both ? (
+          <FilterTabs
+            data-tour="files.tabs"
+            items={tabs.map((tab) => ({
               label: tab.label,
               href: route('media.index', tab.value === 'media' ? {} : { category: tab.value }),
               active: category === tab.value,
             }))}
-        />
+          />
+        ) : (
+          <span />
+        )}
         <Group gap="md">
           <ArchiveSwitch archive={archive} />
           <QuerySearch value={filters.q} />
@@ -168,7 +176,12 @@ export default function MediaIndex({
       </Modal>
 
       {upload ? (
-        <Modal opened={sharing.opened} onClose={sharing.close} title={_('Share files')} size="lg">
+        <Modal
+          opened={sharing.opened}
+          onClose={sharing.close}
+          title={features.files ? _('Share files') : _('Share photos')}
+          size="lg"
+        >
           <ShareFilesForm limits={upload} storage={storage} onDone={sharing.close} />
         </Modal>
       ) : null}

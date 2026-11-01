@@ -120,7 +120,7 @@ describe('Its conversation', function () {
     });
 
     it('is gone with the chat off', function () {
-        $this->project->update(['disabled_features' => ['chat']]);
+        $this->project->update(['feature_choices' => ['chat' => false]]);
 
         $this->as($this->member, $this->project)->getJson(route('chat.panel'))->assertNotFound();
     });
@@ -218,7 +218,7 @@ describe('What it may answer with', function () {
     });
 
     it('never leads to what the project has turned off', function () use ($answering) {
-        $this->project->update(['disabled_features' => ['forum']]);
+        $this->project->update(['feature_choices' => ['forum' => false]]);
         $answering([['type' => 'link', 'label' => 'Forum', 'place' => 'forum']]);
 
         expect(askAssistant($this->member, $this->project)->extras)->toBeNull();
@@ -295,7 +295,7 @@ describe('What it knows', function () {
 
     it('knows the person\'s role, language, family and what the project has', function () {
         $this->member->update(['locale' => 'es_UY']);
-        $this->project->update(['disabled_features' => ['forum']]);
+        $this->project->update(['feature_choices' => ['forum' => false]]);
         $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
 
         askAssistant($this->member->fresh(), $this->project);

@@ -73,7 +73,8 @@ export function projectPlaces(project: {
     ...(on('gallery') || on('files')
       ? [
           {
-            label: _('Media'),
+            label:
+              on('gallery') && on('files') ? _('Media') : on('files') ? _('Files') : _('Gallery'),
             href: route('media.index', at),
             icon: IconPhoto,
             active: routeIs('media.*'),

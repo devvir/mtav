@@ -1,4 +1,4 @@
-import type { Id, ProjectFeatures } from './models';
+import type { Id, ProjectFeature, ProjectFeatures } from './models';
 
 /** The websocket server, as browsers reach it */
 export interface RealtimeServer {
@@ -71,6 +71,7 @@ export interface SharedProps {
   errors: Record<string, string>;
   /** The route list, sent once and remembered */
   routes: Record<string, unknown>;
+  featureChoices: Partial<Record<ProjectFeature, boolean>>;
   /** Where browsers reach the websocket server; null when there are no live updates */
   realtime: RealtimeServer | null;
   ziggy: {

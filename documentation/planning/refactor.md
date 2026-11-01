@@ -160,6 +160,12 @@ decision taken on the way is listed below for review.
   an invitation may reach the lottery: the admin is warned, and decides. It stays out of the way:
   guests reach it from the menu and their profile, and those in a family from a quiet link on
   their family's card; the guide and the Assistant explain it.
+- **Very important, to be settled with its own time: the lottery's fairness.** Ties are not random
+  (the tie-break is rounded away, so row order decides), and when a unit type's counts differ the
+  solver can miss the best worst place: it prunes units, or adds placeholder units that empty the
+  first phase of meaning. Balanced types with no ties are sound. Fixing it changes what the thesis's
+  part 3 describes, so it is designed on purpose, not in passing; `reviews/03-lottery.md` on
+  `claude/app-review-2026-11-01` has the findings. Nothing in the solver changes until then.
 - **Next, agreed in outline**:
   - *Variants*: see [variants.md](variants.md). Still to come: registration on or off,
     defaults for new projects, and whether the lottery may be off. What to ask of people on

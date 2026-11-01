@@ -6,7 +6,7 @@ export interface ProjectOptionValues {
   listed: boolean;
   open_to_join: boolean;
   allows_guests: boolean;
-  disabled_features: ProjectFeature[];
+  feature_choices: Partial<Record<ProjectFeature, boolean>>;
 }
 
 /**
@@ -31,7 +31,10 @@ export function ProjectOptions({
     { value: 'files', label: _('Files (documents and recordings)') },
     { value: 'forum', label: _('Forum') },
     { value: 'chat', label: _('Chat') },
+    { value: 'assistant', label: _('Chat assistant') },
   ];
+  // What this deployment lets a project choose: the rest is not a question here
+  const offered = features.filter((feature) => feature.value in values.feature_choices);
 
   return (
     <Stack gap="md" data-tour="settings.listed">
@@ -66,45 +69,50 @@ export function ProjectOptions({
         error={errors.allows_guests}
         onChange={(event) => onChange('allows_guests', event.currentTarget.checked)}
       />
-      <div data-tour="settings.features">
-        <Text fw={650} size="sm" mb="xs">
-          {_('What it has')}
-        </Text>
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs">
-          {features.map((feature) => (
-            <Checkbox
-              key={feature.value}
-              label={feature.label}
-              checked={!values.disabled_features.includes(feature.value)}
-              onChange={(event) =>
-                onChange(
-                  'disabled_features',
-                  event.currentTarget.checked
-                    ? values.disabled_features.filter((off) => off !== feature.value)
-                    : [...values.disabled_features, feature.value],
-                )
-              }
-            />
-          ))}
-        </SimpleGrid>
-      </div>
+      {offered.length ? (
+        <div data-tour="settings.features">
+          <Text fw={650} size="sm" mb="xs">
+            {_('What it has')}
+          </Text>
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs">
+            {offered.map((feature) => (
+              <Checkbox
+                key={feature.value}
+                label={feature.label}
+                checked={values.feature_choices[feature.value] === true}
+                // Its assistant lives in the chat
+                disabled={feature.value === 'assistant' && values.feature_choices.chat === false}
+                onChange={(event) =>
+                  onChange('feature_choices', {
+                    ...values.feature_choices,
+                    [feature.value]: event.currentTarget.checked,
+                  })
+                }
+              />
+            ))}
+          </SimpleGrid>
+        </div>
+      ) : null}
     </Stack>
   );
 }
 
-/** A project's options as a form holds them, from its features' on and off */
-export const optionsOf = (project?: {
-  listed: boolean;
-  open_to_join: boolean;
-  allows_guests: boolean;
-  features: Record<ProjectFeature, boolean>;
-}): ProjectOptionValues => ({
+/** A project's options as a form holds them: of its features, those this deployment lets it choose */
+export const optionsOf = (
+  choices: Partial<Record<ProjectFeature, boolean>>,
+  project?: {
+    listed: boolean;
+    open_to_join: boolean;
+    allows_guests: boolean;
+    features: Record<ProjectFeature, boolean>;
+  },
+): ProjectOptionValues => ({
   listed: project?.listed ?? false,
   open_to_join: project?.open_to_join ?? false,
   allows_guests: project?.allows_guests ?? false,
-  disabled_features: project
-    ? (Object.entries(project.features)
-        .filter(([, on]) => !on)
-        .map(([feature]) => feature) as ProjectFeature[])
-    : [],
+  feature_choices: project
+    ? Object.fromEntries(
+        Object.keys(choices).map((name) => [name, project.features[name as ProjectFeature]]),
+      )
+    : choices,
 });

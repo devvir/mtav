@@ -1090,5 +1090,12 @@
   "{count} people will get nothing: there are too few to go round.": "{count} persone resteranno senza niente: non basta per tutti.",
   "{count} will be left over.": "Ne avanzeranno {count}.",
   "Your preferences: {what}": "Le tue preferenze: {what}",
-  "Left over: {names}": "Avanzati: {names}"
+  "Left over: {names}": "Avanzati: {names}",
+  "Chat assistant": "Assistente della chat",
+  "Upload files": "Carica file",
+  "Upload photos": "Carica foto",
+  "Share photos": "Condividi foto",
+  "Gallery": "Galleria",
+  "The project's records: documents and recordings.": "Gli archivi del progetto: documenti e registrazioni.",
+  "The project's photos and videos.": "Le foto e i video del progetto."
 }

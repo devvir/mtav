@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ProjectFeature;
+use App\Support\Variant;
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,14 +16,15 @@ class ProjectRequest extends FormRequest
         $project = $this->route('project');
 
         return [
-            'name'                => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
-            'description'         => ['required', 'string', 'between:2,2000'],
-            'organization'        => ['nullable', 'string', 'between:2,120'],
-            'listed'              => ['sometimes', 'boolean'],
-            'open_to_join'        => ['sometimes', 'boolean'],
-            'allows_guests'       => ['sometimes', 'boolean'],
-            'disabled_features'   => ['sometimes', 'array'],
-            'disabled_features.*' => [Rule::enum(ProjectFeature::class)],
+            'name'          => ['required', 'string', 'between:2,120', Rule::unique('projects', 'name')->ignore($project)],
+            'description'   => ['required', 'string', 'between:2,2000'],
+            'organization'  => ['nullable', 'string', 'between:2,120'],
+            'listed'        => ['sometimes', 'boolean'],
+            'open_to_join'  => ['sometimes', 'boolean'],
+            'allows_guests' => ['sometimes', 'boolean'],
+            // Only what this variant lets a project choose
+            'feature_choices'   => ['sometimes', 'array:' . implode(',', array_keys(Variant::choices()))],
+            'feature_choices.*' => ['boolean'],
         ];
     }
 

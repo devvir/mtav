@@ -49,7 +49,7 @@ it('names modules that exist', function () {
 it('has known modules and features in every variant', function () {
     foreach (config('variants') as $name => $spec) {
         expect($spec['modules'])->each->toBeIn(knownModules(), $name)
-            ->and($spec['features'])->each->toBeIn(['forum', 'chat', 'gallery', 'files', 'events'], $name);
+            ->and(array_keys($spec['features']))->each->toBeIn(array_column(App\Enums\ProjectFeature::cases(), 'value'), $name);
     }
 });
 
