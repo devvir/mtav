@@ -59,9 +59,15 @@ class PushService
         $others = $conversation->participants()->whereKeyNot($message->user_id)
             ->whereHas('pushSubscriptions')->with('pushSubscriptions')->get();
 
+        // A group with no name goes by its people, as it does in the chat
+        $people = $conversation->is_group && ! $conversation->title
+            ? $conversation->participants()->pluck('firstname', 'users.id')
+            : collect();
+
         foreach ($others as $user) {
+            $where = $conversation->title ?: $people->except([$message->user_id, $user->id])->take(3)->join(', ');
             $payload = [
-                'title'   => $conversation->is_group ? "{$author} · {$conversation->title}" : $author,
+                'title'   => collect([$author, $conversation->is_group ? $where : null])->filter()->join(' · '),
                 'message' => Str::limit($message->body, 140),
                 'url'     => route('chat.show', [$conversation->project_id, $conversation]),
                 'tag'     => "conversation-{$conversation->id}",

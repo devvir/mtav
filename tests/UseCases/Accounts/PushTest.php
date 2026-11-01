@@ -117,6 +117,43 @@ it('takes only keys a notification can be encrypted with: :dataset', function (a
     'a secret too short' => [['auth' => 'c2hvcnQ']],
 ]);
 
+describe('A chat message\'s title on a device', function () {
+    beforeEach(function () {
+        $this->writer = aMemberOf(aFamily($this->project), ['firstname' => 'Ana']);
+        $this->reader = aMemberOf(aFamily($this->project), ['firstname' => 'Beto']);
+        $this->third = aMemberOf(aFamily($this->project), ['firstname' => 'Carla']);
+        allowDevice($this, $this->reader, 'https://fcm.googleapis.com/reader');
+    });
+
+    $writes = function (array $people, ?string $title = null) {
+        $chat = app(ChatService::class);
+        $chat->send($chat->start($this->project, $this->writer, $people, $title), $this->writer, 'Hello');
+
+        return collect($this->sender->sent)->firstWhere('endpoint', 'https://fcm.googleapis.com/reader')['title'];
+    };
+
+    it('says who wrote and the group\'s name', function () use ($writes) {
+        expect($writes->call($this, [$this->reader->id, $this->third->id], 'Roof'))->toBe("{$this->writer->name} · Roof");
+    });
+
+    it('names a group with no name by who else is in it', function () use ($writes) {
+        expect($writes->call($this, [$this->reader->id, $this->third->id]))->toBe("{$this->writer->name} · Carla");
+    });
+
+    it('ends on who wrote in a group of just the two of them, with no separator left over', function () use ($writes) {
+        $chat = app(ChatService::class);
+        $group = $chat->start($this->project, $this->writer, [$this->reader->id, $this->third->id]);
+        $chat->leave($group, $this->third);
+        $chat->send($group, $this->writer, 'Hello');
+
+        expect(collect($this->sender->sent)->firstWhere('endpoint', 'https://fcm.googleapis.com/reader')['title'])->toBe($this->writer->name);
+    });
+
+    it('says only who wrote one on one', function () use ($writes) {
+        expect($writes->call($this, [$this->reader->id]))->toBe($this->writer->name);
+    });
+});
+
 describe('A device in trouble', function () {
     /** A sender that throws for one device */
     function senderThrowingFor(string $endpoint): FakePushSender
