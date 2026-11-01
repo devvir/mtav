@@ -26,15 +26,15 @@ services:
       ASSISTANT_DRIVER: ${ASSISTANT_DRIVER:-cli}
       QUEUE_CONNECTION: database
 
-  # Works the queue as on a server (deploy/slot.yml): a lottery run, the reveal it waits
-  # for, mail. queue:work, as there (it marks that it runs: queue:listen never does, and
+  # Works the queues as on a server (deploy/slot.yml), though one worker does all three here:
+  # a lottery run, the reveal it waits for, mail. queue:work, as there (it marks that it runs: queue:listen never does, and
   # the lottery would wait for it); it takes PHP edits on restart (./mtav compose dev
   # restart worker).
   worker:
     extends:
       file: ../services/php/compose.yml
       service: php
-    command: php artisan queue:work --tries=3 --timeout=600 --sleep=1
+    command: php artisan queue:work --queue=realtime,assistant,default --tries=3 --timeout=600 --sleep=1
     environment:
       QUEUE_CONNECTION: database
       # The Assistant, on this machine's signed-in Claude account (the volume the machine's agent

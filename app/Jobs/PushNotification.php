@@ -16,6 +16,7 @@ class PushNotification implements ShouldQueue
 
     public function __construct(public int $notificationId)
     {
+        $this->onQueue('realtime');
     }
 
     public function handle(PushService $push): void

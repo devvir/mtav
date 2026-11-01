@@ -22,8 +22,8 @@ Once the lottery's date has come, an admin runs it (`LotteryService::run`):
    than families, or fewer, the admin confirmed it. Then a `lottery_runs` row is written
    (`running`), and the **manifest** is recorded: every family's whole ranking, per unit
    type, as it is now.
-2. `RunLottery` (queued) solves it. Workers say they are alive as they loop
-   (`Services/Queue/Workers`); without one, the page says the lottery is held.
+2. `RunLottery` (queued) solves it. Workers of the main queue say they are alive as they
+   loop (`Services/Queue/Workers`); without one, the page says the lottery is held.
 3. The solver's assignment is **held** until the run's `reveal_at`: everyone watches the
    lottery work for at least the time the platform's settings say (superadmins set it;
    20 seconds by default). `PublishLotteryRun` writes it then, all units at once, in one

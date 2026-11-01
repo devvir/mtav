@@ -27,6 +27,22 @@ it('holds the lottery, and says so, while nothing works the queue', function () 
     expect($this->project->lotteryRuns()->count())->toBe(0);
 });
 
+it('takes no worker of another queue for one of the lottery\'s', function () {
+    event(new Looping('database', 'realtime'));
+    event(new Looping('database', 'assistant'));
+
+    expect(Workers::running())->toBeFalse();
+
+    event(new Looping('database', 'realtime,assistant,default'));
+
+    expect(Workers::running())->toBeTrue();
+});
+
+it('never stops a worker by answering it as it loops', function () {
+    expect(app('events')->until(new Looping('database', 'realtime')))->not->toBeFalse()
+        ->and(app('events')->until(new Looping('database', 'default')))->not->toBeFalse();
+});
+
 it('runs it once a worker is seen working the queue', function () {
     event(new Looping('database', 'default'));
 

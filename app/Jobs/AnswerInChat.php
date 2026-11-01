@@ -20,6 +20,8 @@ class AnswerInChat implements ShouldQueue
 
     public function __construct(public int $messageId)
     {
+        // Apart: it may take a while, and nobody else's answer or message waits behind it
+        $this->onQueue('assistant');
     }
 
     public function handle(Assistant $assistant): void

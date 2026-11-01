@@ -56,7 +56,9 @@ An environment is two compose files over one directory of settings:
   environment's front door, on two ports of the host's loopback (`MTAV_WEB_PORT` for
   pages, `MTAV_WS_PORT` for the websocket server), handing both to the live slot.
 - `deploy/slot.yml`, the projects `mtav-<environment>-blue` and `-green`: a release, in
-  one of two **slots** (`app`, `reverb`, `worker`). Both slots share the database and the
+  one of two **slots** (`app`, `reverb`, and a worker per queue: `worker` for the main one,
+  with lottery runs and mail; `worker-realtime` for live updates and devices; `worker-assistant`
+  for the Assistant's answers). Both slots share the database and the
   uploaded files (the volume `mtav-<environment>_files`).
 
 Settings and secrets live in the environment's `.env` on the host (template:
@@ -75,7 +77,7 @@ is healthy does the switch hand it the traffic, so visitors never see the site d
    leave the previous release working: add first, remove in a later release);
 4. the release starts in the other slot, and must report healthy within three minutes;
 5. the switch goes over to it, and must answer through it;
-6. the slot before stays up without its worker, so going back is instant; a worker with
+6. the slot before stays up without its workers, so going back is instant; a worker with
    a job in hand finishes it first (up to 11 minutes), and the deploy waits for it.
 
 If step 4 or 5 fails, the new slot is removed and the live release never stopped. With

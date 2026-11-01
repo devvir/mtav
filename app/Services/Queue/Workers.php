@@ -6,7 +6,7 @@ use App\Jobs\PruneLogs;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Whether anything works the queue: each worker leaves a mark as it loops (at most every
+ * Whether anything works the main queue: its worker leaves a mark as it loops (at most every
  * half minute), and none fresh means none runs. What waits on the queue (a lottery run)
  * is then held, and said, rather than left waiting for good.
  */

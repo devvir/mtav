@@ -60,6 +60,21 @@ services:
     healthcheck:
       disable: true
 
+  # What reaches people at once (live updates, notifications on devices), behind no lottery run
+  worker-realtime:
+    <<: *app
+    command: ['php', 'artisan', 'queue:work', '--queue=realtime', '--tries=3', '--max-time=3600', '--sleep=1']
+    healthcheck:
+      disable: true
+
+  # The Assistant's answers, each up to 120 s, behind no lottery run and holding up no message
+  worker-assistant:
+    <<: *app
+    command: ['php', 'artisan', 'queue:work', '--queue=assistant', '--tries=3', '--max-time=3600', '--sleep=1']
+    stop_grace_period: 2m
+    healthcheck:
+      disable: true
+
 volumes:
   files:
     name: mtav-${MTAV_ENV:?}_files

@@ -16,6 +16,7 @@ class PushMessage implements ShouldQueue
 
     public function __construct(public int $messageId)
     {
+        $this->onQueue('realtime');
     }
 
     public function handle(PushService $push): void

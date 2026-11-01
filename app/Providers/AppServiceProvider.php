@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Queue\Workers;
+use Illuminate\Queue\Events\Looping;
 use Illuminate\Support\Facades\Queue;
 use App\Models\User;
 use App\Services\Delivery\GitHub;
@@ -53,8 +54,13 @@ class AppServiceProvider extends ServiceProvider
         // Production's data is never started over: wiping commands refuse to run there
         DB::prohibitDestructiveCommands(config('app.deployment') === 'production');
 
-        // Workers say they are alive as they loop: what waits on them knows (Workers::running)
-        Queue::looping(fn () => Workers::mark());
+        // Workers of the main queue, where the lottery waits, say they are alive as they loop
+        // (Workers::running). Answering false here would stop the worker: it answers nothing.
+        Queue::looping(function (Looping $worker): void {
+            if (in_array('default', explode(',', $worker->queue), true)) {
+                Workers::mark();
+            }
+        });
 
         Gate::before(fn (User $user, string $ability) => $user->isSuperadmin()
             && ! in_array($ability, self::PERSONAL_ABILITIES) ?: null);

@@ -23,6 +23,12 @@ class OpenLotteryChanged implements ShouldBroadcast
         return new Channel("open-lottery.{$this->slug}");
     }
 
+    /** Apart from what takes long: it reaches people at once */
+    public function broadcastQueue(): string
+    {
+        return 'realtime';
+    }
+
     public function broadcastAs(): string
     {
         return 'changed';

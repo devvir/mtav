@@ -48,9 +48,10 @@ push service (Google's, Mozilla's, Apple's), encrypted for that browser.
 - A person turns it on per device, in their profile (Preferences): the browser asks them
   then, never on arrival. On iPhone and iPad, from the app added to the home screen.
   The device is kept in `push_subscriptions`; turned off, it goes.
-- Each notification queues `PushNotification`, which sends it to every device of every
-  recipient, in their language (`Services/Push`). A device its browser dropped is
-  forgotten.
+- Each notification queues `PushNotification` on the realtime queue, which sends it to every
+  device of every recipient, in their language (`Services/Push`). A device its browser
+  dropped is forgotten; another's trouble goes to the error log and stops nobody else's.
+  Only the browsers' push services are taken as addresses (`PushSubscription::SERVICES`).
 - The service worker (`public/sw.js`) shows it, and a click opens what it is about, in
   the app's window if one is open.
 
