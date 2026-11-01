@@ -71,17 +71,25 @@ class Assistant
             return;
         }
 
-        $answer = rescue(fn () => $this->brain->ask(
-            $this->prompt->instructions($user, $conversation->project),
-            $this->prompt->context($user, $conversation->project),
-            $this->history($conversation),
-        ), report: fn (Throwable $error) => true);
+        try {
+            $answer = $this->brain->ask(
+                $this->prompt->instructions($user, $conversation->project),
+                $this->prompt->context($user, $conversation->project),
+                $this->history($conversation),
+            );
+        } catch (Throwable $error) {
+            report($error);
+            $this->free($question);
+            $this->stumbled();
+            $this->say($conversation, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
+
+            return;
+        }
 
         $text = is_array($answer) ? $this->text($answer['text'] ?? null) : '';
 
+        // It was reached and made nothing of this question: that is this person's, not everyone's
         if ($text === '') {
-            $this->free($question);
-            $this->stumbled();
             $this->say($conversation, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
 
             return;
@@ -113,7 +121,7 @@ class Assistant
     }
 
     /**
-     * Failing again and again (spent, down, a bad key: all alike from here), it rests: nobody
+     * Unreachable again and again (spent, down, a bad key: all alike from here), it rests: nobody
      * waits for an answer that will not come, and whatever is failing is left alone a while
      */
     private function stumbled(): void

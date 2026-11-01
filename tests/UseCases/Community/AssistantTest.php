@@ -5,7 +5,10 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\Assistant\Assistant;
 use App\Services\Assistant\Brain;
+use App\Services\Assistant\Brains\CliBrain;
 use App\Services\ChatService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
 
 /**
@@ -400,6 +403,49 @@ describe('When it cannot answer', function () {
 
         brainAnswering(['text' => 'Sure', 'actions' => []]);
         expect(askAssistant($this->member, $this->project)->body)->toBe('Sure');
+    });
+
+    it('does not rest for what one person\'s questions make of it, and charges them for it', function () {
+        config(['assistant.per_person_per_day' => 3]);
+        $this->project->forceFill(['approved_at' => now()])->save();
+        $brain = brainAnswering(null);
+
+        foreach (range(1, 3) as $try) {
+            expect(askAssistant($this->member, $this->project)->body)->toBe(__('chat.assistant_trouble'));
+        }
+
+        expect(askAssistant($this->admin, $this->project)->body)->toBe(__('chat.assistant_trouble'))
+            ->and(count($brain->asked))->toBe(4)
+            ->and(Cache::has('assistant.resting'))->toBeFalse();
+
+        expect(askAssistant($this->member, $this->project)->body)->toBe(__('chat.assistant_limit'))
+            ->and(count($brain->asked))->toBe(4);
+    });
+
+    it('treats an answer with no words as no answer about the question: :dataset', function (array $answer) {
+        brainAnswering($answer);
+
+        foreach (range(1, 4) as $try) {
+            expect(askAssistant($this->member, $this->project)->body)->toBe(__('chat.assistant_trouble'));
+        }
+
+        expect(Cache::has('assistant.resting'))->toBeFalse();
+    })->with([
+        'empty'    => [['text' => '']],
+        'no words' => [['actions' => []]],
+        'markup'   => [['text' => '<b></b>']],
+    ]);
+
+    it('takes the command line failing as being unreachable, and its empty answer as the question\'s', function () {
+        config(['assistant.timeout' => 1, 'assistant.cli_model' => 'haiku']);
+        Process::fake(['*' => Process::result('{"is_error": true}')]);
+        expect(fn () => (new CliBrain())->ask('a', 'b', []))->toThrow(RuntimeException::class);
+
+        Process::fake(['*' => Process::result('not json')]);
+        expect(fn () => (new CliBrain())->ask('a', 'b', []))->toThrow(RuntimeException::class);
+
+        Process::fake(['*' => Process::result('{"structured_output": null}')]);
+        expect((new CliBrain())->ask('a', 'b', []))->toBeNull();
     });
 
     it('starts counting again once it answers', function () {

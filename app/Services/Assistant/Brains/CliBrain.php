@@ -4,6 +4,7 @@ namespace App\Services\Assistant\Brains;
 
 use App\Services\Assistant\Brain;
 use Illuminate\Support\Facades\Process;
+use RuntimeException;
 
 /**
  * Claude through its command line, on a signed-in account: for a developer trying it, never in
@@ -34,6 +35,11 @@ class CliBrain implements Brain
 
         $answer = json_decode($result->output(), true);
 
-        return is_array($answer) && empty($answer['is_error']) ? ($answer['structured_output'] ?? null) : null;
+        // The command line failing says nothing of this question: it counts as being unreachable
+        if (! is_array($answer) || ! empty($answer['is_error'])) {
+            throw new RuntimeException('The command line gave no answer');
+        }
+
+        return $answer['structured_output'] ?? null;
     }
 }
