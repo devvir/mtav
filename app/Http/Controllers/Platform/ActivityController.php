@@ -29,7 +29,8 @@ class ActivityController extends Controller
             ->when($request->integer('project'), fn ($q, $project) => $q->where('project_id', $project))
             ->when(self::KINDS[$kind] ?? null, fn ($q, $actions) => $q->whereIn('action', $actions))
             ->latest('id')
-            ->paginate(50)
+            // No total: counting a table this long on every look is what would take the time
+            ->simplePaginate(50)
             ->withQueryString();
 
         return inertia('Platform/Activity', [

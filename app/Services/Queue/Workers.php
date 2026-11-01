@@ -2,6 +2,7 @@
 
 namespace App\Services\Queue;
 
+use App\Jobs\PruneLogs;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -21,6 +22,9 @@ class Workers
     {
         if (now()->timestamp - (int) Cache::get(self::MARK, 0) >= 30) {
             Cache::put(self::MARK, now()->timestamp, self::STALE_SECONDS * 5);
+
+            // No scheduler to rely on: a worker, a day apart at most, clears out the logs
+            Cache::add('logs.pruned', true, now()->addDay()) && PruneLogs::dispatch();
         }
     }
 

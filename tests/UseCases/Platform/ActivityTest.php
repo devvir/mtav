@@ -77,3 +77,15 @@ it('shows superadmins the activity, by project and kind, and no one else', funct
     expect($subjects)->toContain('C-1')->not->toContain('Z-9');
     expect($this->as($this->admin)->get(route('admin.activity.index')))->toBeDenied();
 });
+
+it('pages the log without counting it', function () {
+    foreach (range(1, 51) as $_) {
+        App\Services\ActivityLog::record('signed_in', actor: $this->admin);
+    }
+
+    $page = $this->as(aSuperadmin())->get(route('admin.activity.index'))->inertiaProps('activity');
+
+    expect($page['data'])->toHaveCount(50)
+        ->and($page['meta'])->not->toHaveKey('total')
+        ->and($page['links']['next'])->not->toBeNull();
+});
