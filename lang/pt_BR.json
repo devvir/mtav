@@ -1086,7 +1086,7 @@
   "No event matches": "Nenhum evento corresponde",
   "Nothing matches": "Nada corresponde",
   "No project matches": "Nenhum projeto corresponde",
-  "No account matches": "Nenhuma conta encontrada",
+  "No account matches": "Nenhuma conta corresponde",
   "Deploy {branch} to dev?": "Implantar {branch} em dev?",
   "Everything in dev, people and uploaded files included, is replaced by the demo data.": "Tudo o que dev tem, pessoas e arquivos enviados incluídos, é substituído pelos dados de demonstração.",
   "{app} home": "Início de {app}",

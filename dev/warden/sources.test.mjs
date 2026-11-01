@@ -1,3 +1,4 @@
+/* global process */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { jsonLines, releasesOf, sources, stacksOf } from './sources.mjs';
