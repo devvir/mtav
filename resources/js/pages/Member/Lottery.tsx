@@ -12,7 +12,7 @@ import { heldOffline } from '@/lib/offline';
 import { useRankingSave, type RankingSave } from '@/lib/rankingSave';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import type { LotteryRun, Plan as PlanData, ProjectEvent, Unit } from '@/types/models';
 import { Deferred, Link } from '@inertiajs/react';
 import {
@@ -140,8 +140,9 @@ export default function Lottery({
               </Title>
               {ownUnit ? (
                 <Text mt={4}>
-                  {_('Your family received')}{' '}
-                  <strong className="text-positive">{ownUnit.identifier}</strong>.
+                  {_nodes('Your family received {unit}.', {
+                    unit: <strong className="text-positive">{ownUnit.identifier}</strong>,
+                  })}
                 </Text>
               ) : null}
               {completedRun ? (
@@ -165,13 +166,11 @@ export default function Lottery({
             <Glyph icon={IconClock} size={48} />
             <div>
               <Title order={2} fz="lg">
-                {lottery.start_date ? (
-                  <>
-                    {_('Scheduled for')} <DateTime value={lottery.start_date} />
-                  </>
-                ) : (
-                  _('Not scheduled yet')
-                )}
+                {lottery.start_date
+                  ? _nodes('Scheduled for {date}', {
+                      date: <DateTime value={lottery.start_date} />,
+                    })
+                  : _('Not scheduled yet')}
               </Title>
               <Text c="dimmed" mt={4}>
                 {_('Until then, every family can change its ranking as often as it likes.')}
@@ -208,9 +207,15 @@ export default function Lottery({
           {invalidations.map((run) => (
             <Alert key={run.id} color="yellow" radius="lg" icon={<IconAlertTriangle size={20} />}>
               <Text fw={700}>
-                {_('A lottery run was invalidated')}{' '}
-                {run.invalidated_by ? _('by {name}', { name: run.invalidated_by }) : null} ·{' '}
-                <DateTime value={run.invalidated_at} />
+                {_nodes(
+                  run.invalidated_by
+                    ? '{name} invalidated a lottery run · {date}'
+                    : 'A lottery run was invalidated · {date}',
+                  {
+                    name: run.invalidated_by,
+                    date: <DateTime value={run.invalidated_at} />,
+                  },
+                )}
               </Text>
               <Text mt={4}>«{run.invalidation_reason}»</Text>
             </Alert>

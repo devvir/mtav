@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph, Stat } from '@/design';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import type { Media, ProjectEvent, UnitType } from '@/types/models';
 import { Deferred, Link, usePage } from '@inertiajs/react';
 import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
@@ -195,8 +195,9 @@ export default function Dashboard({
             {lottery.status === 'completed' ? (
               lottery.unit ? (
                 <Text mt={4}>
-                  {_('Your family received')}{' '}
-                  <strong className="text-positive">{lottery.unit.identifier}</strong>.
+                  {_nodes('Your family received {unit}.', {
+                    unit: <strong className="text-positive">{lottery.unit.identifier}</strong>,
+                  })}
                 </Text>
               ) : (
                 <Text c="dimmed" mt={4}>
@@ -209,11 +210,13 @@ export default function Dashboard({
               </Text>
             ) : (
               <Text c="dimmed" mt={4}>
-                {_('Scheduled for')}{' '}
-                <Text component="strong" c="var(--mtav-text)" fw={650}>
-                  <DateTime value={lottery.start_date!} />
-                </Text>
-                .{' '}
+                {_nodes('Scheduled for {date}.', {
+                  date: (
+                    <Text component="strong" c="var(--mtav-text)" fw={650}>
+                      <DateTime value={lottery.start_date!} />
+                    </Text>
+                  ),
+                })}{' '}
                 {project.can.rank ? _("Make sure your family's ranking is how you want it.") : null}
               </Text>
             )}

@@ -8,7 +8,7 @@ import { confirm } from '@/lib/dialogs';
 import { checkbox, field, nativeSelect } from '@/lib/forms';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import type { Invitation, Ref } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
 import {
@@ -219,7 +219,9 @@ export default function ManageInvitations({
                   </Group>
                   <Text className="ds-caption ds-truncate">
                     {invitation.family ? `${invitation.family.name} · ` : null}
-                    {_('Until')} <DateTime value={invitation.expires_at} time={false} />
+                    {_nodes('Until {date}', {
+                      date: <DateTime value={invitation.expires_at} time={false} />,
+                    })}
                     {invitation.inviter
                       ? ` · ${_('by {name}', { name: invitation.inviter })}`
                       : null}

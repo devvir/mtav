@@ -22,7 +22,7 @@ it('starts a project with room for most cooperatives, and asks for more, never p
         ->click(button('Ask for unlimited'))
         ->click(inDialog('Ask for unlimited'))
         ->assertSee('We asked the MTAV team to make your project unlimited.')
-        ->assertSee('Unlimited asked for')
+        ->assertSee('Unlimited was asked for')
         ->assertNoSmoke();
 
     expect(Project::sole()->approval_requested_at)->not->toBeNull();

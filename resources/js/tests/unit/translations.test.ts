@@ -23,6 +23,33 @@ describe('the words', () => {
     expect(_n('{count} family', '{count} families', 3)).toBe('3 familias');
   });
 
+  it('put parts of the page where each language wants them', () => {
+    setLocale('xx', { 'Saved by {name} on {date}': 'On {date}, {name} saved it' });
+
+    const { container } = render(
+      createElement(
+        Fragment,
+        null,
+        _nodes('Saved by {name} on {date}', {
+          name: createElement('strong', null, 'Ana'),
+          date: createElement('time', null, 'Monday'),
+        }),
+      ),
+    );
+
+    expect(container.textContent).toBe('On Monday, Ana saved it');
+    expect(container.querySelector('strong')?.textContent).toBe('Ana');
+    expect(container.querySelector('time')?.textContent).toBe('Monday');
+  });
+
+  it('keep the English sentence when a language lacks it, and any blank with nothing to fill it', () => {
+    const { container } = render(
+      createElement(Fragment, null, _nodes('Until {date} or {other}', { date: 'Friday' })),
+    );
+
+    expect(container.textContent).toBe('Until Friday or {other}');
+  });
+
   it('open the app in English when a language’s cannot be fetched', async () => {
     await expect(loadLocale('fr')).resolves.toBeUndefined();
 

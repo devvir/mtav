@@ -177,7 +177,7 @@ it('invalidates a run with a reason everyone reads, and runs again', function ()
 
     $this->as($this->member);
     visit(route('lottery.show', $this->project))
-        ->assertSee('A lottery run was invalidated')
+        ->assertSee('invalidated a lottery run')
         ->assertSee('The Pérez family was registered with the wrong type');
 
     $this->as($this->admin);

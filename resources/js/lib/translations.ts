@@ -1,3 +1,5 @@
+import { createElement, Fragment, type ReactNode } from 'react';
+
 /**
  * The app's words: `_('English text')` everywhere, the other languages keyed by the English
  * (lang/<locale>.json; en.json is empty on purpose). The locale is set once, when the app
@@ -44,6 +46,17 @@ const fill = (text: string, replacements: Replacements) =>
 
 export const _ = (key: string, replacements: Replacements = {}): string =>
   fill(words[key] || key, replacements);
+
+/**
+ * A whole sentence with parts of the page in its blanks, which each language places where
+ * it needs them: `_nodes('Scheduled for {date}', { date: <DateTime value={date} /> })`.
+ */
+export const _nodes = (key: string, nodes: Record<string, ReactNode>): ReactNode =>
+  (words[key] || key)
+    .split(/(\{\w+\})/)
+    .map((part, index) =>
+      createElement(Fragment, { key: index }, nodes[part.slice(1, -1)] ?? part),
+    );
 
 /**
  * A count with its noun in the right form: `_n('{count} family', '{count} families', n)`.

@@ -4,7 +4,7 @@ import { DateTime } from '@/components/feedback/DateTime';
 import { Panel } from '@/design';
 import { useOpenLotteryChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import type { Unit } from '@/types/models';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -231,7 +231,7 @@ export default function Lottery(props: Props) {
       ) : null}
 
       <Text size="xs" c="dimmed">
-        {_('Kept until')} <DateTime value={lottery.kept_until} />.{' '}
+        {_nodes('Kept until {date}.', { date: <DateTime value={lottery.kept_until} /> })}{' '}
         {_(
           'Rankings become visible to everyone when the lottery runs, so that anyone can check the result.',
         )}

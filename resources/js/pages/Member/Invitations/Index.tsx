@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { confirm } from '@/lib/dialogs';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import type { Invitation } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
 import { ActionIcon, Button, Card, Group, SimpleGrid, Text, TextInput, Title } from '@mantine/core';
@@ -94,7 +94,9 @@ export default function FamilyInvitations({
                   </Text>
                   <Text className="ds-caption">
                     {invitation.name ? `${invitation.email} · ` : null}
-                    {_('Until')} <DateTime value={invitation.expires_at} time={false} />
+                    {_nodes('Until {date}', {
+                      date: <DateTime value={invitation.expires_at} time={false} />,
+                    })}
                   </Text>
                 </div>
                 {invitation.can.delete ? (

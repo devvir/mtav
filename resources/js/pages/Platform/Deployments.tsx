@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Panel, Status, type Tone } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _, _n, _nodes } from '@/lib/translations';
 import { Deferred, router, usePage } from '@inertiajs/react';
 import {
   Alert,
@@ -206,7 +206,9 @@ export default function Deployments({ main, environments, branches, runs, fresh 
                         {environment.live.message}
                       </Text>
                       <Text className="ds-caption">
-                        {_('Live since')} <DateTime value={environment.live.since} />
+                        {_nodes('Live since {date}', {
+                          date: <DateTime value={environment.live.since} />,
+                        })}
                         {environment.live.by ? ` · ${environment.live.by}` : null}
                       </Text>
                     </Stack>

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _, _n, _nodes } from '@/lib/translations';
 import type { Project } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
@@ -117,7 +117,10 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                     ]
                       .filter(Boolean)
                       .join(' · ')}{' '}
-                    · {_('Until')} <DateTime value={invitation.expires_at} time={false} />
+                    ·{' '}
+                    {_nodes('Until {date}', {
+                      date: <DateTime value={invitation.expires_at} time={false} />,
+                    })}
                   </Text>
                 </div>
                 <Group gap="xs">
@@ -134,11 +137,11 @@ export default function ProjectsIndex({ projects, invitations, canCreate }: Prop
                   </Button>
                   <Button
                     aria-label={_('Join {project}', { project: invitation.project })}
+                    disabled={answering?.id === invitation.id && !answering.accept}
+                    loading={answering?.id === invitation.id && answering.accept}
                     onClick={() => respond(invitation.id, true)}
                   >
                     {_('Join')}
-                    disabled={answering?.id === invitation.id && !answering.accept}
-                    loading={answering?.id === invitation.id && answering.accept}
                   </Button>
                 </Group>
               </Group>

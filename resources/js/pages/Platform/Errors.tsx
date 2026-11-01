@@ -4,7 +4,7 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
 import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _, _n, _nodes } from '@/lib/translations';
 import type { Paginated } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Badge, Button, Card, Code, Collapse, Group, Stack, Text } from '@mantine/core';
@@ -46,8 +46,10 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
             {error.url ? ` · ${error.url}` : null}
           </Text>
           <Text className="ds-caption">
-            {_('Last')} <DateTime value={error.last_seen_at} relative /> · {_('first')}{' '}
-            <DateTime value={error.first_seen_at} time={false} />
+            {_nodes('Last {last} · first {first}', {
+              last: <DateTime value={error.last_seen_at} relative />,
+              first: <DateTime value={error.first_seen_at} time={false} />,
+            })}
           </Text>
         </div>
         <Stack gap="xs" align="flex-end">
@@ -59,13 +61,13 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
             variant="default"
             leftSection={<IconCheck size={14} />}
             aria-label={_('Mark {error} solved', { error: name ?? '' })}
+            loading={solving}
             onClick={() =>
               router.delete(route('admin.errors.destroy', error.id), {
                 preserveScroll: true,
                 onStart: () => setSolving(true),
                 onFinish: () => setSolving(false),
               })
-            loading={solving}
             }
           >
             {_('Solved')}

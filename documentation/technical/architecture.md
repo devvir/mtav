@@ -190,7 +190,9 @@ the conversations with something new.
   "Tell me more", a tour of it (`tours/index.ts`, `lib/tour.ts`). For new people, each
   page's tour plays once by itself; any tour stops them all ("No more tours"), and
   Preferences turns them back on.
-- **Words**: `_('English text')` everywhere; each language's words are keyed by the
-  English (`lang/<locale>.json`), the server's in `lang/<locale>/*.php`, the manuals and
-  the privacy page in `resources/views/`. Other languages are written natively, never
-  translated word for word. The language is the person's choice, else their browser's.
+- **Words**: `_('English text')` everywhere, `_nodes()` for a sentence with parts of the
+  page in it; each language's words are keyed by the English (`lang/<locale>.json`), the
+  server's in `lang/<locale>/*.php`, the manuals and the privacy page in
+  `resources/views/`. Other languages are written natively, never translated word for
+  word. The language is the person's choice, else their browser's. Tests refuse a phrase
+  missing from a language, and a phrase nothing says.

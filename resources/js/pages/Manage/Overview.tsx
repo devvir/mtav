@@ -8,7 +8,7 @@ import { appName } from '@/lib/app';
 import { confirm } from '@/lib/dialogs';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _, _n, _nodes } from '@/lib/translations';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Button, Card, Collapse, Group, Progress, Stack, Text } from '@mantine/core';
 import { IconGauge, IconLayoutGrid, IconUsers, IconUsersGroup } from '@tabler/icons-react';
@@ -190,7 +190,9 @@ function ProjectCapacity({
           <Group justify="flex-end" mt="md">
             {approval.requested_at ? (
               <Text size="sm" c="dimmed">
-                {_('Unlimited asked for')} <DateTime value={approval.requested_at} relative />.
+                {_nodes('Unlimited was asked for {when}.', {
+                  when: <DateTime value={approval.requested_at} relative />,
+                })}
               </Text>
             ) : (
               <Button variant="light" size="xs" onClick={onAsk}>
