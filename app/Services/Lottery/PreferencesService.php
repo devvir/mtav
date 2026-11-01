@@ -6,6 +6,7 @@ use App\Models\Family;
 use App\Models\Unit;
 use App\Services\Lottery\Exceptions\LotteryLockedException;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,10 +35,43 @@ class PreferencesService
             ->orderBy('rank')
             ->pluck('unit_id');
 
-        $unranked = $units->keys()->diff($ranked)
-            ->sortBy(fn (int $unitId) => $this->defaultOrder($family, $unitId));
+        return new EloquentCollection($this->complete($family, $units->keys(), $ranked)->map(fn (int $unitId) => $units[$unitId])->all());
+    }
 
-        return new EloquentCollection($ranked->concat($unranked)->map(fn (int $unitId) => $units[$unitId])->values());
+    /**
+     * What ranking() says of each of these families, in unit ids, reading them all at once:
+     * how long this takes does not grow with families times units.
+     *
+     * @param Collection<int, Family> $families
+     *
+     * @return array<int, list<int>>  Family id => every unit of its type, most wanted first
+     */
+    public function rankings(Collection $families): array
+    {
+        $units = Unit::whereIn('unit_type_id', $families->pluck('unit_type_id')->unique())->get(['id', 'unit_type_id'])
+            ->groupBy('unit_type_id')
+            ->map(fn (EloquentCollection $units) => $units->pluck('id'));
+
+        $ranked = DB::table('unit_preferences')
+            ->whereIn('family_id', $families->modelKeys())
+            ->orderBy('rank')
+            ->get(['family_id', 'unit_id'])
+            ->groupBy('family_id');
+
+        return $families->mapWithKeys(function (Family $family) use ($units, $ranked) {
+            $ofItsType = $units[$family->unit_type_id] ?? collect();
+            $itsRanking = ($ranked[$family->id] ?? collect())->pluck('unit_id')->intersect($ofItsType)->values();
+
+            return [$family->id => $this->complete($family, $ofItsType, $itsRanking)->all()];
+        })->all();
+    }
+
+    /** The units ranked, then the rest in the family's own order */
+    private function complete(Family $family, Collection $units, Collection $ranked): Collection
+    {
+        $unranked = $units->diff($ranked)->sortBy(fn (int $unitId) => $this->defaultOrder($family, $unitId));
+
+        return $ranked->concat($unranked)->values();
     }
 
     /**

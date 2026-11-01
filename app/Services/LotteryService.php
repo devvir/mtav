@@ -102,12 +102,14 @@ class LotteryService implements LotteryHost
         $project = $run->project;
         $units = $project->units()->get(['id', 'unit_type_id'])->groupBy('unit_type_id');
 
-        $data = $project->families()->get()->groupBy('unit_type_id')
+        $families = $project->families()->get();
+        $rankings = $this->preferences->rankings($families);
+
+        // Ties go by the order families reach the solver: it stays the order they are read in
+        $data = $families->groupBy('unit_type_id')
             ->map(fn ($families, $typeId) => [
-                'participants' => $families->mapWithKeys(fn ($family) => [
-                    $family->id => $this->preferences->ranking($family)->pluck('id')->all(),
-                ])->all(),
-                'items' => ($units[$typeId] ?? collect())->pluck('id')->all(),
+                'participants' => $families->mapWithKeys(fn ($family) => [$family->id => $rankings[$family->id]])->all(),
+                'items'        => ($units[$typeId] ?? collect())->pluck('id')->all(),
             ])
             ->all();
 
