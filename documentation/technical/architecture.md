@@ -173,7 +173,7 @@ the conversations with something new.
 - **Dialogs**: Mantine modals in pages; `confirm()` and `prompt()` (`lib/dialogs.ts`) for
   questions asked from code, typed confirmations included.
 - **Addresses**: `route()` and `routeIs()` (`lib/route.ts`) work from the route list sent
-  once, and compare route names, never URLs.
+  once (the console's routes only to superadmins), and compare route names, never URLs.
 - **Moving between pages**: a link loads its page once the pointer rests on it; on the
   click, the sidebar lights the place at once and the page dims only if the trip is long.
   On arrival the focus goes to the page's heading (`lib/pageFocus.ts`).

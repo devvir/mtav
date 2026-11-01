@@ -943,6 +943,7 @@ Old: none. (no manifest at `2c8e8b13:public/`)
 
 ### Works differently
 
+- **The console's addresses are told only to superadmins.** The route list a browser receives leaves out `admin.*` for everyone else, visitors included. The routes themselves were and stay refused to them. (`app/Http/Middleware/HandleInertiaRequests.php` routes, `tests/UseCases/Accounts/RouteListTest.php`)
 - **Answering twice.** Answering yes to an invitation already accepted leads to the project instead of a "not found" page, and the buttons of invitations, requests to join and solved errors wait for their answer. (`app/Http/Controllers/InvitationController.php` respond, `tests/UseCases/Membership/InvitationsTest.php`)
 - **Getting around with a keyboard or a screen reader.** Arriving at a page takes the focus to its heading, and a "Skip to content" link is the first stop on every signed-in page. (`resources/js/lib/pageFocus.ts`, `resources/js/components/layout/AppShell.tsx`, `tests/Browser/Features/NavigationTest.php`)
 - **A ranking moved just before leaving is saved.** A move goes out a moment after the last one, and still goes out when the person goes to another page or closes it. The page says "Saving", then "Saved", in a status screen readers announce. (`resources/js/lib/rankingSave.ts`, `resources/js/tests/unit/rankingSave.test.ts`, `tests/Browser/Features/LotteryTest.php`)

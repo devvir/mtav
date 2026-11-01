@@ -26,13 +26,17 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    /** The routes the browser may call: those of parts of the app this variant has */
-    private function routes(): array
+    /**
+     * The routes the browser may call: those of parts of the app this variant has, the
+     * platform console's only for those who enter it
+     */
+    private function routes(bool $console): array
     {
         $routes = (new Ziggy())->toArray();
         $routes['routes'] = array_filter(
             $routes['routes'],
-            fn (string $name) => ($route = Route::getRoutes()->getByName($name)) && Variant::opens($route),
+            fn (string $name) => ($console || ! str_starts_with($name, 'admin.'))
+                && ($route = Route::getRoutes()->getByName($name)) && Variant::opens($route),
             ARRAY_FILTER_USE_KEY,
         );
 
@@ -69,10 +73,12 @@ class HandleInertiaRequests extends Middleware
                 'error'   => $request->session()->get('error'),
             ],
             /**
-             * The route list, sent once (the client remembers it), and what changes per visit:
-             * the defaults (the project being browsed), where one is and the route's name
+             * The route list, sent once (the client remembers it, under a name of its own for
+             * those who enter the console, so signing in brings theirs), and what changes per
+             * visit: the defaults (the project being browsed), where one is and the route's name
              */
-            'routes' => Inertia::once(fn () => $this->routes()),
+            'routes' => Inertia::once(fn () => $this->routes((bool) $user?->isSuperadmin()))
+                ->as($user?->isSuperadmin() ? 'routes.console' : 'routes'),
             // What a project may choose of its features here, and what it starts with
             'featureChoices' => Inertia::once(fn () => (object) Variant::choices()),
             /** Where browsers reach the websocket server (null: no live updates) */

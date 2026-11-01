@@ -20,6 +20,22 @@ it('presents the platform, and signs in over the page', function () {
     $this->assertAuthenticatedAs($user);
 });
 
+it('finds the platform console after a superadmin signs in over the page', function () {
+    $superadmin = aUser(['email' => 'root@example.com', 'password' => 'the-Right-pass-1', 'is_superadmin' => true]);
+
+    visit(route('login'))
+        ->fill(inDialogField('email'), 'root@example.com')
+        ->fill(inDialogField('password'), 'the-Right-pass-1')
+        ->click('[role="dialog"] [type="submit"]')
+        ->assertPathIsNot('/login')
+        ->click('[aria-label="Your account"]')
+        ->click('[role="menu"] >> text=Platform console')
+        ->assertPathIs('/admin')
+        ->assertNoSmoke();
+
+    $this->assertAuthenticatedAs($superadmin);
+});
+
 it('moves between signing in and signing up within the dialog', function () {
     visit(route('login'))
         ->click('[role="dialog"] >> text="Create an account"')
