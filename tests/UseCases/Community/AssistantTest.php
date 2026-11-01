@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\MessageSent;
 use App\Jobs\AnswerInChat;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -7,9 +8,11 @@ use App\Services\Assistant\Assistant;
 use App\Services\Assistant\Brain;
 use App\Services\Assistant\Brains\CliBrain;
 use App\Services\ChatService;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * The Assistant: another conversation of the chat. It sees what the person could see, leads only
@@ -366,6 +369,11 @@ describe('What it costs', function () {
     });
 });
 
+it('finds the messages of the day by an index, one person\'s and everyone\'s', function () {
+    expect(Schema::hasIndex('messages', ['created_at']))->toBeTrue()
+        ->and(Schema::hasIndex('messages', ['user_id', 'created_at']))->toBeTrue();
+});
+
 describe('When it cannot answer', function () {
     it('rests after failing a few times, asking nothing, and answers again after', function () {
         $brain = failingBrain();
@@ -520,6 +528,24 @@ describe('What needs no model', function () {
             ->and($brain->asked)->toHaveCount(1);
     });
 
+    it('takes from the day only the one that reached the model, of a few in a row', function () {
+        config(['assistant.per_person_per_day' => 1]);
+        $this->project->forceFill(['approved_at' => now()])->save();
+        $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
+        $chat = app(ChatService::class);
+        $conversation = assistantOf($this->member, $this->project);
+        Queue::fake();
+        $first = $chat->send($conversation, $this->member, 'one thing');
+        $second = $chat->send($conversation, $this->member, 'and another');
+
+        app(Assistant::class)->answer($first);
+        app(Assistant::class)->answer($second);
+
+        expect($first->fresh()->extras)->toBe(['free' => true])
+            ->and($second->fresh()->extras)->toBeNull()
+            ->and(count($brain->asked))->toBe(1);
+    });
+
     it('answers a few messages in a row once, the last one seeing them all', function () {
         Queue::fake([AnswerInChat::class]);
         $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
@@ -533,6 +559,34 @@ describe('What needs no model', function () {
         app(Assistant::class)->answer($second);
         expect($brain->asked)->toHaveCount(1)
             ->and($brain->asked[0]['history'])->toHaveCount(2);
+    });
+});
+
+describe('Its language', function () {
+    it('speaks the person\'s, and leaves the worker in its own', function () {
+        $member = aMemberOf(aFamily($this->project), ['locale' => 'es_UY']);
+        App::setLocale('en');
+
+        $answer = askAssistant($member, $this->project);
+
+        expect($answer->body)->toBe(trans('chat.assistant_off', locale: 'es_UY'))
+            ->and(App::getLocale())->toBe('en');
+    });
+
+    it('leaves the worker in its own even when the answer breaks', function () {
+        $member = aMemberOf(aFamily($this->project), ['locale' => 'es_UY']);
+        App::setLocale('en');
+        failingBrain();
+
+        expect(askAssistant($member, $this->project)->body)->toBe(trans('chat.assistant_trouble', locale: 'es_UY'))
+            ->and(App::getLocale())->toBe('en');
+    });
+
+    it('leaves its name for each page to say', function () {
+        $answer = app(Assistant::class)->say(assistantOf($this->member, $this->project), 'Hi');
+
+        expect((new MessageSent($answer, []))->broadcastWith())
+            ->toMatchArray(['author' => null, 'from_assistant' => true]);
     });
 });
 

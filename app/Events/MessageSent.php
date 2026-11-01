@@ -27,6 +27,12 @@ class MessageSent implements ShouldBroadcast
         return array_map(fn (int $id) => new PrivateChannel("users.{$id}"), $this->participants);
     }
 
+    /** Apart from what takes long: it reaches people at once */
+    public function broadcastQueue(): string
+    {
+        return 'realtime';
+    }
+
     public function broadcastAs(): string
     {
         return 'message';
@@ -38,8 +44,10 @@ class MessageSent implements ShouldBroadcast
             'conversation_id' => $this->message->conversation_id,
             'message_id'      => $this->message->id,
             'by'              => $this->message->user_id,
-            // Only those in the conversation hear it: who wrote, for the toast
-            'author' => $this->message->from_assistant ? __('chat.assistant') : $this->message->author?->firstname,
+            // Only those in the conversation hear it: who wrote, for the toast (the Assistant
+            // is named by each page, in its reader's language)
+            'author'         => $this->message->author?->firstname,
+            'from_assistant' => $this->message->from_assistant,
         ];
     }
 }

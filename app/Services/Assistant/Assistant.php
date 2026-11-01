@@ -7,10 +7,10 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Localizable;
 use Throwable;
 
 /**
@@ -20,6 +20,8 @@ use Throwable;
  */
 class Assistant
 {
+    use Localizable;
+
     private const ACTIONS = 3;
     private const LABEL_CHARS = 60;
     private const TEXT_CHARS = 1500;
@@ -42,11 +44,16 @@ class Assistant
             return;
         }
 
-        // They read it in their own language, whatever the worker last spoke
-        App::setLocale($user->preferredLocale() ?? config('app.locale'));
+        // They read it in their own language; the worker's next job is told in its own
+        $this->withLocale($user->preferredLocale() ?? config('app.locale'), fn () => $this->answerTo($question, $conversation, $user));
+    }
 
+    private function answerTo(Message $question, Conversation $conversation, User $user): void
+    {
         // Written again before the answer came: the later message answers them all, for one ask
         if ($conversation->messages()->where('id', '>', $question->id)->where('from_assistant', false)->exists()) {
+            $this->free($question);
+
             return;
         }
 
