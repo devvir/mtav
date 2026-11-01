@@ -1,11 +1,11 @@
 {
   "title": "Questions fréquentes",
-  "description": "Réponses rapides pour les admins",
-  "guideText": "Lire le guide des admins",
+  "description": "Réponses rapides pour les administrateurs",
+  "guideText": "Lire le guide des administrateurs",
   "questions": [
     {
       "question": "Pourquoi mon projet a-t-il des limites ?",
-      "answer": "Les nouveaux projets fonctionnent avec des limites jusqu’à ce qu’un superadmin les approuve, pour éviter les abus. Demandez l’approbation depuis Mise en place."
+      "answer": "Les nouveaux projets ont des limites tant qu’un superadministrateur ne les a pas approuvés, pour éviter les abus. Demandez l’approbation depuis Mise en place."
     },
     {
       "question": "Qu’est-ce qu’un type de logement ?",
@@ -13,27 +13,27 @@
     },
     {
       "question": "Et s’il y a plus de logements que de familles ?",
-      "answer": "Vous pouvez quand même réaliser le tirage : on vous demande de confirmer, et des logements restent sans famille (ou des familles sans logement, dans l’autre sens)."
+      "answer": "Vous pouvez quand même lancer le tirage. Nous vous demandons de confirmer, et des logements restent sans famille (ou des familles sans logement, dans l’autre sens)."
     },
     {
       "question": "Comment ajouter beaucoup de logements ?",
-      "answer": "Utilisez Ajouter et continuer : le formulaire reste prêt pour le logement suivant, du même type."
+      "answer": "Utilisez Ajouter et passer au suivant : le formulaire reste prêt pour le logement suivant, du même type."
     },
     {
-      "question": "Un admin peut-il aussi faire partie d’une famille ?",
-      "answer": "Oui. Invitez-le comme admin et dans une famille, ou changez son rôle et sa famille dans Personnes."
+      "question": "Un administrateur peut-il aussi faire partie d’une famille ?",
+      "answer": "Oui. Invitez-le comme administrateur et dans une famille, ou changez son rôle et sa famille dans Coopérateurs."
     },
     {
       "question": "Quelqu’un a perdu son invitation.",
-      "answer": "Retirez-la dans Invitations et envoyez-en une nouvelle ; l’ancien lien cesse de fonctionner."
+      "answer": "Retirez-la dans Invitations et envoyez-en une nouvelle. L’ancien lien cesse de fonctionner."
     },
     {
       "question": "Puis-je défaire le tirage ?",
-      "answer": "Seulement en l’annulant, avec une raison que tout le monde dans le projet lit. Le tirage reste dans les archives, et il peut être refait."
+      "answer": "Seulement en l’annulant, avec un motif que tout le monde dans le projet peut lire. Le tirage reste dans les archives, et il peut être relancé."
     },
     {
       "question": "Qui voit les brouillons ?",
-      "answer": "Seulement les admins, jusqu’à ce que vous les publiiez."
+      "answer": "Seulement les administrateurs, jusqu’à ce que vous les publiiez."
     }
   ]
 }

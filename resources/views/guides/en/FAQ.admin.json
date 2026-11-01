@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "Why are there limits in my project?",
-      "answer": "New projects work within limits until a superadmin approves them, to prevent abuse. Ask for approval from Setup."
+      "answer": "New projects have limits until a superadmin approves them, to prevent abuse. Ask for approval from Setup."
     },
     {
       "question": "What is a unit type?",
@@ -13,7 +13,7 @@
     },
     {
       "question": "What if there are more units than families?",
-      "answer": "You can still run the lottery: you are asked to confirm, and some units are left without a family (or families without a unit, the other way round)."
+      "answer": "You can still run the lottery. You are asked to confirm, and some units are left without a family (or families without a unit, the other way round)."
     },
     {
       "question": "How do I add many units?",
@@ -25,11 +25,11 @@
     },
     {
       "question": "Someone lost their invitation.",
-      "answer": "Withdraw it in Invitations and send a new one; the old link stops working."
+      "answer": "Withdraw it in Invitations and send a new one. The old link stops working."
     },
     {
       "question": "Can I undo the lottery?",
-      "answer": "Only by invalidating it, giving a reason that everyone in the project reads. The run stays on record, and the lottery can run again."
+      "answer": "Only by invalidating it, giving a reason that everyone in the project reads. The lottery stays on record, and the lottery can run again."
     },
     {
       "question": "Who sees drafts?",

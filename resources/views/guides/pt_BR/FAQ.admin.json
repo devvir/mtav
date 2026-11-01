@@ -1,39 +1,39 @@
 {
   "title": "Perguntas frequentes",
-  "description": "Respostas rápidas para os admins",
-  "guideText": "Ler o guia dos admins",
+  "description": "Respostas rápidas para os administradores",
+  "guideText": "Ler o guia do administrador",
   "questions": [
     {
       "question": "Por que meu projeto tem limites?",
-      "answer": "Os projetos novos funcionam com limites até que um superadmin os aprove, para evitar abusos. Peça a aprovação em Implantação."
+      "answer": "Os projetos novos têm limites até um superadministrador aprovar, para evitar abusos. Peça a aprovação em Preparação."
     },
     {
-      "question": "O que é um tipo de unidade?",
-      "answer": "Um grupo de unidades equivalentes, como 2 quartos. Cada família tem um tipo e recebe uma unidade desse tipo."
+      "question": "O que é um tipo de moradia?",
+      "answer": "Um grupo de moradias equivalentes, como 2 quartos. Cada família tem um tipo e recebe uma moradia desse tipo."
     },
     {
-      "question": "E se houver mais unidades que famílias?",
-      "answer": "Você ainda pode realizar o sorteio: será preciso confirmar, e algumas unidades ficam sem família (ou famílias sem unidade, no caso contrário)."
+      "question": "E se houver mais moradias que famílias?",
+      "answer": "Você ainda pode fazer o sorteio. Pedimos que você confirme, e algumas moradias ficam sem família (ou famílias sem moradia, no caso contrário)."
     },
     {
-      "question": "Como adiciono muitas unidades?",
-      "answer": "Use Adicionar e continuar: o formulário fica pronto para a próxima unidade, do mesmo tipo."
+      "question": "Como adiciono muitas moradias?",
+      "answer": "Use Adicionar e continuar com outra: o formulário fica pronto para a próxima moradia, com o mesmo tipo."
     },
     {
-      "question": "Um admin também pode estar numa família?",
-      "answer": "Sim. Convide a pessoa como admin e para uma família, ou mude o papel e a família dela em Pessoas."
+      "question": "Um administrador também pode estar em uma família?",
+      "answer": "Sim. Convide a pessoa como administrador e para uma família, ou mude a função e a família dela em Cooperados."
     },
     {
       "question": "Alguém perdeu o convite.",
-      "answer": "Retire-o em Convites e envie um novo; o link antigo deixa de funcionar."
+      "answer": "Retire o convite em Convites e envie um novo. O link antigo deixa de funcionar."
     },
     {
       "question": "Posso desfazer o sorteio?",
-      "answer": "Só anulando-o, com um motivo que todos no projeto leem. O sorteio fica registrado, e pode ser feito de novo."
+      "answer": "Só anulando, com um motivo que todos no projeto leem. O sorteio continua registrado e pode ser feito de novo."
     },
     {
       "question": "Quem vê os rascunhos?",
-      "answer": "Só os admins, até você publicá-los."
+      "answer": "Só os administradores, até você publicar."
     }
   ]
 }

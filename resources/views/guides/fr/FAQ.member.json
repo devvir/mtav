@@ -1,11 +1,11 @@
 {
   "title": "Questions fréquentes",
-  "description": "Réponses rapides pour les participants d’un projet",
+  "description": "Réponses rapides pour les personnes d’un projet",
   "guideText": "Lire le guide complet",
   "questions": [
     {
       "question": "Comment rejoindre un projet ?",
-      "answer": "Avec l’invitation que vous recevez par e-mail, d’un admin ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe ; avec un compte, vous vous connectez et acceptez. Les invitations en attente apparaissent aussi dans Vos projets. Vous pouvez aussi en trouver un dans Trouver un projet, si ses admins l’affichent."
+      "answer": "Avec l’invitation que vous recevez par e-mail, d’un administrateur ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe. Avec un compte, vous vous connectez et vous acceptez. Les invitations en attente apparaissent aussi dans Vos projets. Vous pouvez aussi en trouver un dans Trouver un projet, si ses administrateurs l’y affichent."
     },
     {
       "question": "Qui voit le classement de ma famille ?",
@@ -13,19 +13,19 @@
     },
     {
       "question": "Dois-je classer tous les logements ?",
-      "answer": "Non. Déplacez ceux qui comptent pour vous ; les autres gardent leur propre place à la fin de votre classement."
+      "answer": "Non. Déplacez ceux qui comptent pour vous. Les autres gardent leur propre place à la fin de votre classement."
     },
     {
-      "question": "Pouvons-nous être deux à modifier le classement ?",
-      "answer": "Oui : c’est un seul classement pour toute la famille, et chaque membre peut le modifier jusqu’au tirage. C’est le dernier changement qui compte."
+      "question": "Pouvons-nous être deux à changer le classement ?",
+      "answer": "Oui. C’est un seul classement pour toute la famille, et chaque membre peut le changer jusqu’au tirage. C’est le dernier changement qui compte."
     },
     {
       "question": "Comment le tirage décide-t-il ?",
-      "answer": "Il rend d’abord la famille qui serait la moins bien lotie aussi satisfaite que possible, puis tout le projet aussi satisfait que possible. Seules les égalités sont départagées au hasard."
+      "answer": "Il donne d’abord le meilleur possible à la famille qui serait la moins bien lotie, puis rend l’ensemble du projet aussi satisfait que possible. Seules les égalités se règlent au hasard."
     },
     {
       "question": "Le résultat peut-il changer ?",
-      "answer": "Il est définitif. Seulement dans des cas exceptionnels, un admin peut annuler un tirage ; tout le monde voit alors qui l’a fait, quand et pourquoi, et le tirage est refait."
+      "answer": "Il est définitif. Seulement dans des cas exceptionnels, un administrateur peut annuler un tirage. Tout le monde voit alors qui l’a annulé, quand et pourquoi, et le tirage est relancé."
     },
     {
       "question": "Qui voit les fichiers que je partage ?",
@@ -33,7 +33,7 @@
     },
     {
       "question": "J’ai changé mon e-mail et rien ne s’est passé.",
-      "answer": "Nous avons envoyé un lien de confirmation à la nouvelle adresse. Votre compte garde l’ancienne jusqu’à ce que vous l’ouvriez."
+      "answer": "Nous avons envoyé un lien de confirmation à la nouvelle adresse. Votre compte garde l’ancienne jusqu’à ce que vous ouvriez ce lien."
     }
   ]
 }
