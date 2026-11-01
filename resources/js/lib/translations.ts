@@ -16,12 +16,19 @@ export function setLocale(next: string, dictionary: Words = {}) {
   words = dictionary;
 }
 
-/** Switches to a language, once its words are here */
+/**
+ * Switches to a language, once its words are here. When they cannot be fetched, on a bad
+ * connection, the app still opens: in English, the words every language is keyed by.
+ */
 export async function loadLocale(next: string) {
   const name = next.replace('-', '_');
   const load = name === 'en' ? undefined : LANGUAGES[`/lang/${name}.json`];
 
-  setLocale(name, load ? await load() : {});
+  try {
+    setLocale(name, load ? await load() : {});
+  } catch {
+    setLocale('en');
+  }
 }
 
 export const getLocale = () => locale;
