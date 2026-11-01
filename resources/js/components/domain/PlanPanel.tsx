@@ -13,7 +13,7 @@ import { Panel } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { sendJson } from '@/lib/json';
 import { connection, heldOffline } from '@/lib/offline';
-import { route, routeIs } from '@/lib/route';
+import { leavesPage, route, routeIs } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
 import type { Plan, UnitType } from '@/types/models';
@@ -76,20 +76,37 @@ export function PlanPanel({
     getInitialValueInEffect: false,
   });
 
-  // Saved as JSON, the page staying as it is: the server answers the ids of new shapes
-  const save = useCallback(async (payload: PlanPayload) => {
-    // Offline it waits, quietly (the editor says it is not saved yet), for the connection
-    if (!connection.get().online) throw new Error('Offline: the plan waits for the connection');
-    const response = await sendJson('PUT', route('manage.plan.update'), payload);
-    if (response.status === 423) await taken(response);
-    if (!response.ok) throw new Error(`The plan was not saved (${response.status})`);
-    return ((await response.json()) as { ids: Record<string, number> }).ids;
+  // This hold ran out and someone else holds it now: nothing more can be saved, so the
+  // editor closes, said once
+  const lost = useRef(false);
+  const lose = useCallback(async (response: Response) => {
+    if (lost.current) return;
+    lost.current = true;
+    setEditing(null);
+    router.reload({ only: ['plan'] });
+    await taken(response);
   }, []);
+
+  // Saved as JSON, the page staying as it is: the server answers the ids of new shapes
+  const save = useCallback(
+    async (payload: PlanPayload) => {
+      // Offline it waits, quietly (the editor says it is not saved yet), for the connection
+      if (!connection.get().online) throw new Error('Offline: the plan waits for the connection');
+      const response = await sendJson('PUT', route('manage.plan.update'), payload);
+      if (response.status === 423) await lose(response);
+      if (!response.ok) throw new Error(`The plan was not saved (${response.status})`);
+      return ((await response.json()) as { ids: Record<string, number> }).ids;
+    },
+    [lose],
+  );
 
   const start = async () => {
     if (heldOffline()) return;
     const response = await sendJson('POST', route('manage.plan.lock'), {});
     if (response.status === 423) return taken(response);
+    if (!response.ok)
+      return toast({ tone: 'error', message: _('That did not work. Please try again.') });
+    lost.current = false;
     setEditing(plan);
   };
 
@@ -116,6 +133,7 @@ export function PlanPanel({
   const done = async () => {
     // What is pending goes first; only what could not be saved asks
     const saved = (await editor.current?.flush()) ?? true;
+    if (lost.current) return;
     if (
       !saved &&
       !(await confirm({
@@ -154,7 +172,7 @@ export function PlanPanel({
     const renew = window.setInterval(
       () =>
         void sendJson('POST', route('manage.plan.lock'), {}).then((response) =>
-          response.status === 423 ? taken(response) : undefined,
+          response.status === 423 ? lose(response) : undefined,
         ),
       30_000,
     );
@@ -164,7 +182,7 @@ export function PlanPanel({
     const stopGuard = router.on('before', (event) => {
       if (
         editor.current?.dirty() &&
-        event.detail.visit.method === 'get' &&
+        leavesPage(event.detail.visit) &&
         !window.confirm(_('Leave without saving the plan?'))
       ) {
         event.preventDefault();
@@ -176,7 +194,7 @@ export function PlanPanel({
       window.removeEventListener('pagehide', letGo);
       stopGuard();
     };
-  }, [editing]);
+  }, [editing, lose]);
 
   return (
     <Panel

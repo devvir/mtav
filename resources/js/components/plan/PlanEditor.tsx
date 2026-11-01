@@ -508,9 +508,15 @@ export const PlanEditor = forwardRef<
     };
 
     const onKey = (event: KeyboardEvent) => {
-      if ((event.target as HTMLElement).closest('input, textarea, select')) return;
+      const target = event.target as HTMLElement;
+      if (target.closest('input, textarea, select')) return;
+      // Keys are the editor's only where it is at work, not in a dialog or elsewhere on the page
+      if (target !== document.body && !target.closest('.plan-panel')) return;
 
       const command = event.ctrlKey || event.metaKey;
+      // Text selected (a toast's, a caption's): copying it is the browser's
+      if (command && event.key.toLowerCase() === 'c' && window.getSelection()?.toString()) return;
+
       if (command && event.key.toLowerCase() === 'z') {
         event.preventDefault();
         if (event.shiftKey) model.redo();
@@ -761,6 +767,16 @@ export const PlanEditor = forwardRef<
                   key={item.key}
                   data-shape={item.unit?.identifier ?? item.name}
                   className="plan-shape"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={
+                    item.unit?.identifier ?? (item.name || (kindLabel(item.type) ?? _('Other')))
+                  }
+                  aria-pressed={item.key === model.selected}
+                  // Reached by the keyboard, it is chosen; the pointer chooses as it presses
+                  onFocus={(event) => {
+                    if (event.currentTarget.matches(':focus-visible')) model.select(item.key);
+                  }}
                   onPointerDown={(event) => startMove(event, item.key)}
                   onContextMenu={(event) => {
                     event.preventDefault();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PlanItem;
+use App\Services\Plan\EditingLock;
 
 /**
  * The plan: drawing it, and seeing it.
@@ -375,7 +376,7 @@ it('names a new shape after its kind, a name that may be cleared', function () {
 it('tells a second admin who is drawing the plan, and leaves them reading it', function () {
     $other = anAdminOf($this->project);
     $other->update(['firstname' => 'Ana', 'lastname' => 'Pérez']);
-    app(App\Services\Plan\EditingLock::class)->take($this->project->plan, $other);
+    app(EditingLock::class)->take($this->project->plan, $other);
     $this->as($this->admin);
 
     visit(route('units.index', $this->project))
@@ -394,4 +395,112 @@ it('leaves full screen with Escape while drawing, a shape selected or not', func
         ->keys('[aria-label="Plan editor"]', 'Escape')
         ->assertNotPresent('.plan-panel[data-full]')
         ->assertPresent('[aria-label="Plan editor"]');
+});
+
+/** Saving never gets through (the shape stays unsaved); asking to leave is answered no, and counted */
+function nothingSaves(object $page): object
+{
+    $page->script('() => {
+        window.asked = 0;
+        window.confirm = () => { window.asked += 1; return false; };
+        window.fetch = () => Promise.reject(new TypeError("Failed to fetch"));
+    }');
+
+    return $page;
+}
+
+it('asks before leaving with something unsaved, and only then', function () {
+    $this->as($this->admin);
+
+    $page = nothingSaves(editPlan($this))
+        ->click('[data-shape="A-101"] .plan-top')
+        ->keys('[aria-label="Plan editor"]', 'ArrowRight');
+
+    // A link the pointer rests on is loaded for later: nobody is leaving
+    $page->hover('.shell-sidebar >> a:has-text("Home")')->wait(0.5);
+    expect($page->script('() => window.asked'))->toBe(0);
+
+    $page->click('.shell-sidebar >> a:has-text("Home")')->wait(0.3);
+    expect($page->script('() => window.asked'))->toBe(1);
+    $page->assertPresent('[aria-label="Plan editor"]');
+});
+
+it('stays closed, saying why, when the hold cannot be taken', function () {
+    $this->as($this->admin);
+
+    $page = visit(route('units.index', $this->project))->assertSee('Edit the plan');
+    $page->script('() => { window.fetch = async () => new Response("{}", { status: 419 }); }');
+
+    $page->click('Edit the plan')
+        ->assertSee('That did not work. Please try again.')
+        ->assertMissing('[aria-label="Plan editor"]');
+});
+
+it('closes, saying who drew, when someone else holds the plan by then', function () {
+    $this->as($this->admin);
+    $other = anAdminOf($this->project);
+    $other->update(['firstname' => 'Ana', 'lastname' => 'Pérez']);
+    $lock = app(EditingLock::class);
+
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+
+    $lock->release($this->project->plan, $this->admin);
+    $lock->take($this->project->plan, $other);
+
+    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')
+        ->assertSee('Ana Pérez is drawing the plan right now.')
+        ->assertMissing('[aria-label="Plan editor"]')
+        ->assertSee('Edit the plan')
+        // Nothing keeps trying: the one message, and no more, a retry's wait later
+        ->wait(5.5);
+
+    expect($page->script('() => document.querySelectorAll(".mantine-Notification-root").length'))->toBeLessThan(2);
+});
+
+/** Whether a key pressed on an element was taken from the browser, by the editor */
+function keyTaken(object $page, string $selector, string $key, bool $command = false): bool
+{
+    $options = json_encode(['key' => $key, 'ctrlKey' => $command, 'bubbles' => true, 'cancelable' => true]);
+
+    return $page->script("() => {
+        const event = new KeyboardEvent('keydown', {$options});
+        document.querySelector('{$selector}').dispatchEvent(event);
+        return event.defaultPrevented;
+    }");
+}
+
+it('keeps its keys to itself: elsewhere on the page they are the browser\'s, and so is copying text', function () {
+    $this->as($this->admin);
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+
+    expect(keyTaken($page, '.shell-sidebar a', 'c', command: true))->toBeFalse()
+        ->and(keyTaken($page, '.shell-sidebar a', 'ArrowRight'))->toBeFalse()
+        ->and(keyTaken($page, 'body', 'c', command: true))->toBeTrue()
+        ->and(keyTaken($page, '[aria-label="Plan editor"]', 'ArrowRight'))->toBeTrue();
+
+    $page->script('() => window.getSelection().selectAllChildren(document.querySelector("h1"))');
+    expect(keyTaken($page, 'body', 'c', command: true))->toBeFalse();
+
+    $page->script('() => window.getSelection().removeAllRanges()');
+    expect(keyTaken($page, 'body', 'c', command: true))->toBeTrue();
+});
+
+it('reaches any shape with the keyboard alone: chosen as it is reached, then moved or removed', function () {
+    $this->as($this->admin);
+    $page = editPlan($this);
+
+    // From the last button of the palette, on through the drawing
+    $page->keys('.plan-palette button >> nth=-1', 'Tab');
+    foreach (range(1, 25) as $_) {
+        if ($page->script('() => document.activeElement.dataset?.shape ?? null') === 'A-101') {
+            break;
+        }
+        $page->keys(':focus', 'Tab');
+    }
+
+    expect($page->script('() => document.activeElement.getAttribute("aria-label")'))->toBe('A-101')
+        ->and($page->script('() => document.activeElement.getAttribute("aria-pressed")'))->toBe('true');
+    $page->assertPresent('[data-shape="A-101"] [data-selected]');
+
+    $page->keys(':focus', 'Escape')->assertNotPresent('[data-shape="A-101"] [data-selected]');
 });

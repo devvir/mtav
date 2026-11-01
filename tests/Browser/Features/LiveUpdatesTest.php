@@ -103,3 +103,31 @@ it('rings the bell the moment a notification is sent', function () {
     $page->assertSee('New event: General assembly')
         ->assertPresent('[aria-label="Notifications, 1 unread"]');
 });
+
+it('does not ask whether to leave the plan when something arrives while it is unsaved', function () {
+    $this->as($this->admin, $this->project);
+
+    $page = visit(route('units.index', $this->project))->click('Edit the plan')->assertPresent('[aria-label="Plan editor"]');
+    listening($page, "projects.{$this->project->id}");
+    $page->script('() => {
+        window.asked = 0;
+        window.confirm = () => { window.asked += 1; return false; };
+        window.fetch = () => Promise.reject(new TypeError("Failed to fetch"));
+    }');
+    $page->click('.plan-palette >> ' . button('Green area'));
+
+    auth()->setUser($this->member);
+    app(NotificationService::class)->send(
+        NotificationTarget::PROJECT,
+        NotificationType::RESOURCE_CREATED,
+        'New event: General assembly',
+        'On Friday at 10',
+        url: route('events.index', $this->project),
+        targetId: $this->project->id,
+    );
+    auth()->setUser($this->admin);
+
+    $page->assertPresent('[aria-label="Notifications, 1 unread"]');
+    expect($page->script('() => window.asked'))->toBe(0);
+    $page->assertPresent('[aria-label="Plan editor"]');
+});

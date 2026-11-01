@@ -1202,6 +1202,10 @@ html[data-plan-full] {
 .plan-shape {
   cursor: move;
 }
+/* Reached by the keyboard it is chosen: its selected look says so */
+.plan-shape:focus {
+  outline: none;
+}
 .plan-edge {
   cursor: copy;
 }

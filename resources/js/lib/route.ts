@@ -1,3 +1,4 @@
+import type { PendingVisit } from '@inertiajs/core';
 import { route as ziggyRoute, type Config, type RouteParams } from 'ziggy-js';
 
 /**
@@ -14,6 +15,23 @@ export const setRoutes = (routes: unknown, visit: unknown) => {
   config = { ...(routes as Config), ...rest };
   current = name ?? null;
 };
+
+/**
+ * Whether a visit leaves the page in sight: not a look ahead (a link hovered, loaded for
+ * later), a reload of part of it (what arrives live asks for those), or its own address again.
+ */
+export const leavesPage = ({
+  url,
+  method,
+  prefetch,
+  only,
+  except,
+}: Pick<PendingVisit, 'url' | 'method' | 'prefetch' | 'only' | 'except'>) =>
+  method === 'get' &&
+  !prefetch &&
+  !only.length &&
+  !except.length &&
+  url.pathname + url.search !== window.location.pathname + window.location.search;
 
 /** A named route's URL, as Laravel's route() */
 export function route(
