@@ -172,7 +172,8 @@ function sameTabTo(object $page, string $url): object
 
 /**
  * The page has no serious accessibility issue (axe, critical and serious ones), as Pest's
- * own assertion checks, with room for a loaded development machine (Pest allows 5 s). A
+ * own assertion checks, with room for a loaded development machine (Pest allows 5 s), once
+ * what is moving (a dialog opening) stands still: faded, its colors would be misread. A
  * plan is checked as the labelled picture it is, not shape by shape (its shapes are its
  * drawing: thousands of them, and nothing to read or reach)
  */
@@ -180,7 +181,7 @@ function assertAccessible(object $page, int $seconds = 15): object
 {
     $page->assertScript('document.readyState', 'complete');
     $violations = Pest\Browser\Playwright\Playwright::usingTimeout($seconds * 1000, fn () => $page->script(
-        "async () => { while (window.axe._running) await new Promise((wait) => setTimeout(wait, 100)); return (await window.axe.run({ exclude: [['.plan-canvas > *']] })).violations.filter((issue) => ['critical', 'serious'].includes(issue.impact)).map((issue) => issue.id + ': ' + issue.nodes.map((node) => node.target.join(' ')).join(', ')); }",
+        "async () => { for (let still = 0; still < 5; still++) { await new Promise(requestAnimationFrame); const moving = document.getAnimations().filter((motion) => motion.effect?.getTiming().iterations !== Infinity); if (moving.length) { still = 0; await Promise.allSettled(moving.map((motion) => motion.finished)); } } while (window.axe._running) await new Promise((wait) => setTimeout(wait, 100)); return (await window.axe.run({ exclude: [['.plan-canvas > *']] })).violations.filter((issue) => ['critical', 'serious'].includes(issue.impact)).map((issue) => issue.id + ': ' + issue.nodes.map((node) => node.target.join(' ')).join(', ')); }",
     ));
 
     expect($violations)->toBe([]);

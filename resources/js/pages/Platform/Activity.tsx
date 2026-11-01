@@ -119,6 +119,7 @@ export default function Activity({ activity, projects, filters }: Props) {
           onChange={(project) => filter({ project: project ? Number(project) : null })}
           searchable
           clearable
+          clearButtonProps={{ 'aria-label': _('Clear') }}
           maw={260}
         />
         <Select
@@ -131,6 +132,7 @@ export default function Activity({ activity, projects, filters }: Props) {
           value={filters.kind}
           onChange={(kind) => filter({ kind: kind as Props['filters']['kind'] })}
           clearable
+          clearButtonProps={{ 'aria-label': _('Clear') }}
           maw={200}
         />
       </Group>

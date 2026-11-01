@@ -1,4 +1,4 @@
-import { getLocale } from '@/lib/translations';
+import { _, getLocale } from '@/lib/translations';
 import { DatesProvider, DateTimePicker, type DateTimePickerProps } from '@mantine/dates';
 import { IconCalendarEvent } from '@tabler/icons-react';
 import 'dayjs/locale/es';
@@ -38,6 +38,7 @@ export function DateTimeField({
         valueFormat="D MMMM YYYY, HH:mm"
         leftSection={<IconCalendarEvent size={18} />}
         clearable
+        clearButtonProps={{ 'aria-label': _('Clear') }}
         dropdownType="popover"
         data-field={props.name}
         {...props}
