@@ -7,17 +7,17 @@ return [
     'project_created_title'   => 'Nouveau projet',
     'project_created_message' => ':name a été créé.',
 
-    'approval_requested_title'   => 'Un projet demande l’approbation',
+    'approval_requested_title'   => 'Un projet demande une approbation',
     'approval_requested_message' => ':requester vous demande d’approuver :name.',
 
     'project_approved_title'   => 'Votre projet est illimité',
-    'project_approved_message' => ':name est désormais illimité : il n’a plus de limites.',
+    'project_approved_message' => ':name est désormais illimité.',
 
     'member_joined_title'          => 'Quelqu’un a rejoint le projet',
     'member_joined_message'        => ':name a rejoint le projet.',
     'member_joined_family_message' => ':name a rejoint la famille :family.',
 
-    'invitation_received_title'   => 'Vous êtes invité à un projet',
+    'invitation_received_title'   => 'Invitation à un projet',
     'invitation_received_message' => ':name vous invite à rejoindre :project.',
     'event_published_title'       => 'Nouvel événement',
     'event_published_message'     => ':title est au calendrier.',
@@ -36,19 +36,19 @@ return [
     'join_requested_title'    => 'Quelqu’un demande à rejoindre le projet',
     'join_requested_message'  => ':name demande à rejoindre :project.',
     'join_accepted_title'     => 'Vous êtes dans le projet',
-    'join_accepted_message'   => 'Les admins de :project ont accepté votre demande.',
+    'join_accepted_message'   => 'Les administrateurs de :project ont accepté votre demande.',
     'join_declined_title'     => 'Votre demande n’a pas été acceptée',
-    'join_declined_message'   => 'Les admins de :project n’ont pas accepté votre demande.',
+    'join_declined_message'   => 'Les administrateurs de :project n’ont pas accepté votre demande.',
 
     'lottery_completed_title'   => 'Le tirage est fait',
     'lottery_completed_message' => 'Chaque famille a son logement. Voir les résultats.',
 
-    'lottery_failed_title' => 'Le tirage n’a pas pu aboutir',
+    'lottery_failed_title' => 'Le tirage n’a pas pu se terminer',
 
-    'lottery_failed_message' => 'Voyez sur la page du tirage ce qui s’est passé. Il peut être relancé.',
+    'lottery_failed_message' => 'Regardez sur la page du tirage ce qui s’est passé. Il peut être relancé.',
 
     'lottery_invalidated_title'   => 'Le tirage a été annulé',
-    'lottery_invalidated_message' => ':name a annulé le tirage : « :reason ». Il sera refait.',
+    'lottery_invalidated_message' => ':name a annulé le tirage : « :reason ». Il sera relancé.',
 
     'forum_topic_title'        => 'Nouveau sujet dans le forum',
     'forum_topic_message'      => ':name a ouvert « :title ».',
@@ -59,7 +59,7 @@ return [
     'family_declined_title'    => 'Votre demande a été refusée',
     'family_declined_message'  => 'La famille :family a refusé votre demande.',
     'family_gone_title'        => 'Une famille n’est plus là',
-    'family_gone_message'      => 'La famille :family n’a plus personne : votre demande est close. Cherchez la vôtre, ou créez-la.',
-    'family_discarded_title'   => 'Une famille s’est vidée',
+    'family_gone_message'      => 'La famille :family n’a plus personne : votre demande est close. Recherchez la vôtre, ou créez-la.',
+    'family_discarded_title'   => 'Une famille est restée vide',
     'family_discarded_message' => 'La famille :family n’a plus personne ni invitation en cours : elle a été archivée. Invitez quelqu’un pour la faire revenir.',
 ];
