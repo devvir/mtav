@@ -1,4 +1,10 @@
-import { ArchivedList, ArchiveSwitch, type ArchiveState } from '@/components/domain/Archive';
+import {
+  ArchivedList,
+  ArchiveSwitch,
+  type ArchivedItem,
+  type ArchiveState,
+} from '@/components/domain/Archive';
+import { ArchivedFamilyHistory } from '@/components/domain/ArchivedFamilyHistory';
 import { FamilyDetails, type FamilyRequest } from '@/components/domain/FamilyDetails';
 import { PeopleViews } from '@/components/domain/PeopleViews';
 import { Pagination } from '@/components/feedback/Pagination';
@@ -49,6 +55,7 @@ export default function FamiliesIndex({
   guests: { name: string; email: string }[];
 }) {
   const [reviving, setReviving] = useState<Ref | null>(null);
+  const [looking, setLooking] = useState<ArchivedItem | null>(null);
   const details = useDetailsInAddress('family');
   const project = usePage().props.project!;
   const own = project.family?.id;
@@ -107,12 +114,17 @@ export default function FamiliesIndex({
           archive={archive}
           kind="families"
           action={(item) => (
-            <Button
-              variant="default"
-              onClick={() => setReviving({ id: item.id, name: item.title })}
-            >
-              {_('Invite someone into it')}
-            </Button>
+            <Group gap="xs">
+              <Button variant="default" onClick={() => setLooking(item)}>
+                {_('History')}
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => setReviving({ id: item.id, name: item.title })}
+              >
+                {_('Invite someone into it')}
+              </Button>
+            </Group>
           )}
         />
       ) : nothingYet ? (
@@ -178,6 +190,7 @@ export default function FamiliesIndex({
                 </Group>
                 <Text className="ds-caption">
                   {_n('{count} person', '{count} people', family.members_count ?? 0)}
+                  {family.unit_type ? ` · ${family.unit_type.name}` : null}
                 </Text>
                 {family.members?.length ? (
                   <Text size="sm" mt={6} lineClamp={2}>
@@ -222,6 +235,8 @@ export default function FamiliesIndex({
           />
         ) : null}
       </Modal>
+
+      <ArchivedFamilyHistory family={looking} onClose={() => setLooking(null)} />
 
       <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.name} size="lg">
         {shown ? <FamilyDetails family={shown} unitTypes={unitTypes} requests={requests} /> : null}

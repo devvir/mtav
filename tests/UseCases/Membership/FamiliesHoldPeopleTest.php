@@ -519,18 +519,6 @@ describe('An admin moving or removing someone', function () {
     })->with([['1abc'], [[1]]]);
 });
 
-describe('A family\'s decline and its name', function () {
-    it('cannot be got around by starting a family under the archived one\'s name', function () {
-        FamilyJoinRequest::create(['project_id' => $this->project->id, 'family_id' => $this->family->id, 'user_id' => $this->guest->id, 'declined_at' => now()]);
-        $this->family->delete();
-
-        $this->as($this->guest, $this->project)->post(route('families.store'), ['name' => 'Pereira', 'unit_type_id' => $this->type->id])
-            ->assertSessionHasErrors('name');
-
-        expect($this->family->fresh()->trashed())->toBeTrue();
-    });
-});
-
 describe('A family emptied while the lottery held it', function () {
     it('goes when the run fails', function () {
         $empty = aFamily($this->project, $this->type, ['name' => 'Emptied']);

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Family;
 use App\Models\Project;
 use App\Models\UnitType;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,16 +14,9 @@ class FamilyRequest extends FormRequest
     {
         /** @var Project $project */
         $project = $this->route('project');
-        /** @var Family|null $family */
-        $family = $this->route('family');
 
         return [
-            'name' => [
-                'required', 'string', 'between:2,120',
-                // Someone starting theirs takes back an archived one of that name
-                Rule::unique('families', 'name')->where('project_id', $project->id)->ignore($family)
-                    ->when($this->routeIs('families.store'), fn ($rule) => $rule->withoutTrashed()),
-            ],
+            'name'         => ['required', 'string', 'between:2,120'],
             'unit_type_id' => ['required', Rule::exists(UnitType::class, 'id')->where('project_id', $project->id)],
         ];
     }

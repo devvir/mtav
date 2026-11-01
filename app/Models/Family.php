@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * The lottery participant: it ranks the units of its type and receives one of them. It exists
- * while it holds someone (FamilyService): archived otherwise, inviting someone brings it back.
+ * while it holds someone (FamilyService): archived otherwise, for those who were in it to come
+ * back to, or an admin to add someone to. Its name need not be the only one of its kind.
  */
 class Family extends Model
 {
@@ -67,6 +68,12 @@ class Family extends Model
             ->withTimestamps();
     }
 
+    /** Everyone who was ever in it, as long as they have an account */
+    public function everyone(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'family_people')->withPivot('created_at')->orderByPivot('created_at');
+    }
+
     /**
      * The unit the lottery assigned to this family.
      */
@@ -85,6 +92,36 @@ class Family extends Model
             ->withPivot('rank')
             ->orderByPivot('rank')
             ->withTimestamps();
+    }
+
+    /**
+     * For a list that names families: where a name repeats, each says who is in it (or which it
+     * is, when nobody is).
+     *
+     * @param iterable<array{id: int, name: string}> $rows
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    public static function tellingApart(iterable $rows): array
+    {
+        $rows = collect($rows);
+        $repeated = $rows->countBy(fn (array $row) => mb_strtolower($row['name']))->filter(fn (int $times) => $times > 1);
+        $tied = $rows->filter(fn (array $row) => $repeated->has(mb_strtolower($row['name'])));
+
+        if ($tied->isEmpty()) {
+            return $rows->values()->all();
+        }
+
+        $people = self::withTrashed()->whereKey($tied->pluck('id'))->with('members:id,firstname')->get()->keyBy('id');
+
+        return $rows->map(function (array $row) use ($repeated, $people) {
+            if ($repeated->has(mb_strtolower($row['name']))) {
+                $who = $people->get($row['id'])?->members->pluck('firstname')->join(', ') ?: "#{$row['id']}";
+                $row['name'] .= " ({$who})";
+            }
+
+            return $row;
+        })->values()->all();
     }
 
     public function scopeAlphabetically(Builder $query): void

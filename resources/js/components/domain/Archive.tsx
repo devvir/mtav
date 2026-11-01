@@ -12,6 +12,9 @@ export interface ArchivedItem {
   id: number;
   title: string;
   deleted_at: string;
+  /** For a family: its history */
+  created_at?: string;
+  people?: string[];
 }
 
 export interface ArchiveState {
@@ -51,8 +54,8 @@ export function ArchivedList({
   return (
     <Card p={0}>
       {archive.items.map((item) => (
-        <Group key={item.id} className="row" wrap="nowrap">
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <Group key={item.id} className="row">
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
             <Text fw={600} className="ds-truncate">
               {item.title}
             </Text>

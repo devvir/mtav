@@ -17,7 +17,6 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 class FamilyController extends Controller
@@ -102,7 +101,11 @@ class FamilyController extends Controller
         return to_route('projects.show', $project)->with('success', __('flash.family_left'));
     }
 
-    /** Someone taking part with no family starts theirs, and is in it */
+    /**
+     * Someone taking part with no family starts theirs, and is in it. Under the name of an
+     * archived family they were in, that family takes them back, ranking and all (not one that
+     * declined them); anyone else gets a new family of that name.
+     */
     public function store(FamilyRequest $request, Project $project): RedirectResponse
     {
         $this->authorize('createOwnFamily', $project);
@@ -111,12 +114,11 @@ class FamilyController extends Controller
 
         DB::transaction(function () use ($request, $project, $user) {
             $data = $request->validated();
-            $family = Family::onlyTrashed()->where('project_id', $project->id)->firstWhere('name', $data['name']);
-
-            // A family's name does not get around its decline
-            if ($family && $family->joinRequests()->declined()->where('user_id', $user->id)->exists()) {
-                throw ValidationException::withMessages(['name' => __('validation.family_declined_them')]);
-            }
+            $family = Family::onlyTrashed()->where('project_id', $project->id)->where('name', $data['name'])
+                ->whereHas('everyone', fn ($query) => $query->whereKey($user->id))
+                ->whereDoesntHave('joinRequests', fn ($query) => $query->declined()->where('user_id', $user->id))
+                ->latest('deleted_at')
+                ->first();
 
             $family?->restore();
             $family?->update($data);

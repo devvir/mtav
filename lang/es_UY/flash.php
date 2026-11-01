@@ -47,16 +47,17 @@ return [
     'superadmin_revoked' => ':name ya no es superadministrador.',
 
     /** Estructura */
-    'family_created'    => 'Agregamos la familia.',
-    'family_updated'    => 'Guardamos la familia.',
-    'family_deleted'    => 'La familia fue quitada.',
-    'unit_type_created' => 'Agregamos el tipo de vivienda.',
-    'unit_type_updated' => 'Guardamos el tipo de vivienda.',
-    'unit_type_deleted' => 'El tipo de vivienda fue quitado.',
-    'unit_created'      => 'Agregamos la vivienda.',
-    'unit_updated'      => 'Guardamos la vivienda.',
-    'unit_deleted'      => 'La vivienda fue quitada.',
-    'plan_updated'      => 'Guardamos el plano.',
+    'family_created'          => 'Agregamos la familia.',
+    'family_updated'          => 'Guardamos la familia.',
+    'family_deleted'          => 'La familia fue quitada.',
+    'family_deleted_for_good' => 'La familia se eliminó definitivamente.',
+    'unit_type_created'       => 'Agregamos el tipo de vivienda.',
+    'unit_type_updated'       => 'Guardamos el tipo de vivienda.',
+    'unit_type_deleted'       => 'El tipo de vivienda fue quitado.',
+    'unit_created'            => 'Agregamos la vivienda.',
+    'unit_updated'            => 'Guardamos la vivienda.',
+    'unit_deleted'            => 'La vivienda fue quitada.',
+    'plan_updated'            => 'Guardamos el plano.',
 
     /** Comunidad */
     'event_created'      => 'Creamos el evento.',

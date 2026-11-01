@@ -155,8 +155,10 @@ decision taken on the way is listed below for review.
   it: a person either is in that family or is not. Someone in the wrong family asks to join the
   right one or creates it in one step, staying where they are until it is settled; where guests
   are allowed they can also just leave. Admins add a family together with someone invited into it.
-  A family left with nobody is archived, ranking kept, and its admins are told; inviting someone
-  (by email, or a guest already here) brings it back. Families are never merged. A family with only
+  A family left with nobody is archived, ranking kept, and its admins are told; an admin inviting
+  someone (by email, or a guest already here) brings it back, as does someone who was in it
+  starting a family under its name. Nobody else can join it, and names may repeat. An admin can
+  delete an archived family for good, after seeing who was in it. Families are never merged. A family with only
   an invitation may reach the lottery: the admin is warned, and decides. It stays out of the way:
   guests reach it from the menu and their profile, and those in a family from a quiet link on
   their family's card; the guide and the Assistant explain it.

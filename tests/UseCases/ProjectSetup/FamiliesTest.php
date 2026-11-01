@@ -67,17 +67,6 @@ describe('An admin', function () {
         expect($this->project->families()->where('name', 'Foreign')->exists())->toBeFalse();
     });
 
-    it('cannot reuse a family name within the same project', function () {
-        aFamily($this->project, $this->type, ['name' => 'García']);
-
-        $this->as($this->admin, $this->project)->post(route('manage.families.store'), [
-            'name'         => 'García',
-            'unit_type_id' => $this->type->id,
-        ])->assertSessionHasErrors('name');
-
-        expect($this->project->families()->where('name', 'García')->count())->toBe(1);
-    });
-
     it('cannot change families of a project they do not manage', function () {
         $otherProject = aProject();
         $foreignFamily = aFamily($otherProject, null, ['name' => 'Original']);

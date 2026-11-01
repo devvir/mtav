@@ -78,7 +78,9 @@ Inside a project, a family exists while it holds someone (`FamilyService`): memb
 invitation, or the unit it received. People ask to join one (`FamilyJoinRequest`), any member
 answering; a decline stays until a member lifts it. Whatever leaves a family with nobody archives
 it and tells the admins (`Membership` and `Invitation` events, and a job sent ahead to each
-invitation's expiry); an invitation brings it back, ranking included.
+invitation's expiry). An admin's invitation brings it back, ranking included, as does someone who
+was in it (`family_people` keeps who ever was) starting a family under its name; anyone else
+choosing that name gets a new family, since names repeat.
 
 Someone with neither a family nor a role is a **guest**, where the project `allows_guests`:
 they take part in everything but ranking and inviting, and never see people's email or phone

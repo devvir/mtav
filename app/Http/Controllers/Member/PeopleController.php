@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MemberResource;
+use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -39,7 +40,7 @@ class PeopleController extends Controller
                 'family' => $request->integer('family') ?: null,
                 'admins' => $request->boolean('admins'),
             ],
-            'families' => $project->families()->alphabetically()->get(['id', 'name']),
+            'families' => Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray()),
             // Someone's details, shown over the list (?person=19)
             'person' => fn () => $request->integer('person')
                 ? $this->details($request, $project, $request->integer('person'))
@@ -66,7 +67,7 @@ class PeopleController extends Controller
             'person' => MemberResource::make($member),
             // For admins, who change people's role and family here
             'families' => $request->user()->can('update', $project)
-                ? $project->families()->alphabetically()->get(['id', 'name'])
+                ? Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray())
                 : null,
         ] : null;
     }

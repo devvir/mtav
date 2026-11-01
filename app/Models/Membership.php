@@ -7,6 +7,7 @@ use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A user's part in a project: as an admin, as a member of a family, or both.
@@ -37,6 +38,16 @@ class Membership extends Model
         static::saving(function (Membership $membership) {
             if ($membership->family_id && $membership->isDirty('family_id')) {
                 Family::onlyTrashed()->find($membership->family_id)?->restore();
+            }
+        });
+        // Who was ever in a family: it may take them back, and nobody else
+        static::saved(function (Membership $membership) {
+            if ($membership->family_id && ($membership->wasRecentlyCreated || $membership->wasChanged('family_id'))) {
+                DB::table('family_people')->insertOrIgnore([
+                    'family_id'  => $membership->family_id,
+                    'user_id'    => $membership->user_id,
+                    'created_at' => now(),
+                ]);
             }
         });
         static::created(function (Membership $membership) {

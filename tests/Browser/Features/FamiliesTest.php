@@ -66,3 +66,26 @@ it('says why a family that received a unit cannot be removed, to the pointer and
     $page->wait(0.3)->assertDontSee('Remove the Pereira family?');
     expect($this->family->fresh())->not->toBeNull();
 });
+
+it('shows an archived family\'s history, and deletes it for good from there', function () {
+    $admin = anAdminOf($this->project);
+    $archived = aFamily($this->project, $this->type, ['name' => 'Ferreira']);
+    aMemberOf($archived, ['firstname' => 'Lucía', 'lastname' => 'Rey']);
+    $archived->memberships()->sole()->update(['family_id' => null]);
+
+    $this->as($admin);
+
+    visit(route('families.index', [$this->project, 'archived' => 1]))
+        ->assertSee('Ferreira')
+        ->click(button('History'))
+        ->assertSee('Who was in it')
+        ->assertSee('Lucía Rey')
+        ->click(inDialog('Delete for good'))
+        ->assertSee('Delete the Ferreira family for good?')
+        ->click(inDialog('Delete for good'))
+        ->assertSee('deleted for good')
+        ->assertDontSee('Lucía Rey')
+        ->assertNoSmoke();
+
+    expect($archived->fresh())->toBeNull();
+});

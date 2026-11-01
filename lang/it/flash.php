@@ -47,16 +47,17 @@ return [
     'superadmin_revoked' => ':name non è più superadmin.',
 
     /** Structure */
-    'family_created'    => 'La famiglia è stata aggiunta.',
-    'family_updated'    => 'La famiglia è stata salvata.',
-    'family_deleted'    => 'La famiglia è stata tolta.',
-    'unit_type_created' => 'Il tipo di unità è stato aggiunto.',
-    'unit_type_updated' => 'Il tipo di unità è stato salvato.',
-    'unit_type_deleted' => 'Il tipo di unità è stato tolto.',
-    'unit_created'      => 'L’unità è stata aggiunta.',
-    'unit_updated'      => 'L’unità è stata salvata.',
-    'unit_deleted'      => 'L’unità è stata tolta.',
-    'plan_updated'      => 'La planimetria è stata salvata.',
+    'family_created'          => 'La famiglia è stata aggiunta.',
+    'family_updated'          => 'La famiglia è stata salvata.',
+    'family_deleted'          => 'La famiglia è stata tolta.',
+    'family_deleted_for_good' => 'La famiglia è stata eliminata definitivamente.',
+    'unit_type_created'       => 'Il tipo di unità è stato aggiunto.',
+    'unit_type_updated'       => 'Il tipo di unità è stato salvato.',
+    'unit_type_deleted'       => 'Il tipo di unità è stato tolto.',
+    'unit_created'            => 'L’unità è stata aggiunta.',
+    'unit_updated'            => 'L’unità è stata salvata.',
+    'unit_deleted'            => 'L’unità è stata tolta.',
+    'plan_updated'            => 'La planimetria è stata salvata.',
 
     /** Community */
     'event_created'      => 'L’evento è stato creato.',

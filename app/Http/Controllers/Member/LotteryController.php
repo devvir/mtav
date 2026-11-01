@@ -10,6 +10,7 @@ use App\Http\Resources\EventResource;
 use App\Http\Resources\LotteryRunResource;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\UnitResource;
+use App\Models\Family;
 use App\Models\LotteryRun;
 use App\Models\Project;
 use App\Models\Unit;
@@ -62,8 +63,8 @@ class LotteryController extends Controller
             'ranking' => $family ? UnitResource::collection($this->preferences->ranking($family)) : null,
             /** Once decided, everyone sees which unit each family received */
             'assignment' => $activeRun?->status === LotteryRunStatus::COMPLETED
-                ? $project->families()->with('unit:id,family_id,identifier')->alphabetically()->get()
-                    ->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'unit' => $f->unit?->only('id', 'identifier')])
+                ? Family::tellingApart($project->families()->with('unit:id,family_id,identifier')->alphabetically()->get()
+                    ->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'unit' => $f->unit?->only('id', 'identifier')]))
                 : null,
             'canRank' => $user->can('rankUnits', $project) && ! $activeRun,
             'setup'   => Inertia::defer(fn () => app(ProjectService::class)->setupChecklist($project)),
@@ -108,6 +109,7 @@ class LotteryController extends Controller
         $record = new RunRecord($lotteryRun);
         abort_unless($record->exists(), 404);
         $family = $request->user()->familyIn($project);
+        $summary = $record->summary();
 
         return inertia('Member/LotteryRecord', [
             'run' => [
@@ -118,8 +120,9 @@ class LotteryController extends Controller
                 'by'          => $lotteryRun->starter?->name,
                 'solver'      => $lotteryRun->solver,
             ],
-            ...$record->summary(),
-            'own' => $family ? [
+            ...$summary,
+            'families' => Family::tellingApart($summary['families']),
+            'own'      => $family ? [
                 'id'      => $family->id,
                 'ranking' => Unit::whereIn('id', $ids = $record->rankingOf($family->id))->pluck('identifier', 'id')
                     ->sortBy(fn ($identifier, $id) => array_search($id, $ids, true))->values(),

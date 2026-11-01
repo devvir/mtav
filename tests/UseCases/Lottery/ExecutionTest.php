@@ -332,6 +332,45 @@ describe('Its record', function () {
         expect($fingerprint())->not->toBe($before);
     });
 
+    it('still shows after a family in it is archived or deleted, with the same fingerprint', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $record = fn () => $this->as($this->admin, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertOk();
+        $before = $record()->inertiaProps();
+        [$archived, $gone] = $families;
+        $archived->delete();
+        $gone->delete();
+
+        $this->as($this->admin, $this->project)->delete(route('manage.archive.families.destroy', $gone->id))->assertSessionHasNoErrors();
+
+        $after = $record()->inertiaProps();
+        $shown = collect($after['families'])->keyBy('id');
+
+        expect($after['fingerprint'])->toBe($before['fingerprint'])
+            ->and($after['worst'])->toBe($before['worst'])
+            ->and($after['average'])->toBe($before['average'])
+            ->and($shown[$archived->id]['name'])->toBe($archived->name)
+            ->and($shown[$gone->id]['name'])->toBe("Deleted family #{$gone->id}")
+            ->and($shown[$gone->id]['unit'])->toEqual(collect($before['families'])->firstWhere('id', $gone->id)['unit']);
+        $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk()->assertJsonPath('fingerprint', $before['fingerprint']);
+    });
+
+    it('tells apart families of the same name', function () {
+        [$families] = familiesRanking([[0, 1], [1, 0]]);
+        $families->each->update(['name' => 'García']);
+        $names = $families->map(fn ($family) => 'García (' . $family->members()->value('firstname') . ')');
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+
+        $shown = collect($this->as($this->admin, $this->project)->get(route('lottery.record', [$this->project, $run]))->inertiaProps('families'))->pluck('name', 'id');
+
+        expect($shown[$families[0]->id])->toBe($names[0])
+            ->and($shown[$families[1]->id])->toBe($names[1]);
+    });
+
     it('lets admins download the whole record, and no one else', function () {
         [$families] = familiesRanking([[0, 1], [1, 0]]);
         lotteryIsDue();

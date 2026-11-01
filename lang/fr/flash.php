@@ -47,16 +47,17 @@ return [
     'superadmin_revoked' => ':name n’est plus superadmin.',
 
     /** Structure */
-    'family_created'    => 'La famille a été ajoutée.',
-    'family_updated'    => 'La famille a été enregistrée.',
-    'family_deleted'    => 'La famille a été retirée.',
-    'unit_type_created' => 'Le type de logement a été ajouté.',
-    'unit_type_updated' => 'Le type de logement a été enregistré.',
-    'unit_type_deleted' => 'Le type de logement a été retiré.',
-    'unit_created'      => 'Le logement a été ajouté.',
-    'unit_updated'      => 'Le logement a été enregistré.',
-    'unit_deleted'      => 'Le logement a été retiré.',
-    'plan_updated'      => 'Le plan a été enregistré.',
+    'family_created'          => 'La famille a été ajoutée.',
+    'family_updated'          => 'La famille a été enregistrée.',
+    'family_deleted'          => 'La famille a été retirée.',
+    'family_deleted_for_good' => 'La famille a été supprimée définitivement.',
+    'unit_type_created'       => 'Le type de logement a été ajouté.',
+    'unit_type_updated'       => 'Le type de logement a été enregistré.',
+    'unit_type_deleted'       => 'Le type de logement a été retiré.',
+    'unit_created'            => 'Le logement a été ajouté.',
+    'unit_updated'            => 'Le logement a été enregistré.',
+    'unit_deleted'            => 'Le logement a été retiré.',
+    'plan_updated'            => 'Le plan a été enregistré.',
 
     /** Community */
     'event_created'      => 'L’événement a été créé.',

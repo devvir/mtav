@@ -36,7 +36,7 @@ class RunRecord
     {
         $rankings = $this->rankings();
         $picks = $this->audit(LotteryAuditType::PROJECT_EXECUTION)['picks'] ?? [];
-        $names = Family::whereIn('id', array_keys($rankings))->pluck('name', 'id');
+        $names = Family::withTrashed()->whereIn('id', array_keys($rankings))->pluck('name', 'id');
         $units = Unit::whereIn('id', array_values($picks))->pluck('identifier', 'id');
 
         $families = collect($rankings)->map(function (array $ranking, int $family) use ($picks, $names, $units) {
@@ -45,7 +45,7 @@ class RunRecord
 
             return [
                 'id'    => $family,
-                'name'  => $names[$family] ?? "#{$family}",
+                'name'  => $names[$family] ?? __('lottery.family_gone', ['id' => $family]),
                 'unit'  => $unit === null ? null : ['id' => $unit, 'identifier' => $units[$unit] ?? "#{$unit}"],
                 'place' => $place === false ? null : $place + 1,
                 'of'    => count($ranking),

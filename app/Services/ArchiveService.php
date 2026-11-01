@@ -34,7 +34,8 @@ class ArchiveService
         return [
             'count' => (clone $query)->count(),
             'shown' => $shown,
-            'items' => $shown ? (clone $query)->latest('deleted_at')->limit(200)->get()
+            'items' => $shown ? (clone $query)->when($kind === 'families', fn ($families) => $families->with('everyone:id,firstname,lastname'))
+                ->latest('deleted_at')->limit(200)->get()
                 ->map(fn ($item) => [
                     'id'    => $item->id,
                     'title' => match (true) {
@@ -43,6 +44,11 @@ class ArchiveService
                         default                 => $item->title,
                     },
                     'deleted_at' => $item->deleted_at,
+                    // Its history, to know for sure which one it is
+                    ...($item instanceof Family ? [
+                        'created_at' => $item->created_at,
+                        'people'     => $item->everyone->pluck('name'),
+                    ] : []),
                 ]) : null,
         ];
     }
@@ -53,6 +59,12 @@ class ArchiveService
         abort_if($kind === 'families', 404);
 
         $this->query($project, $kind)->findOrFail($id)->restore();
+    }
+
+    /** Bookkeeping: no conditions, nobody told. What a lottery's record says of it stays there */
+    public function deleteFamily(Project $project, int $id): void
+    {
+        $this->query($project, 'families')->findOrFail($id)->forceDelete();
     }
 
     private function query(Project $project, string $kind): Builder

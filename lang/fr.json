@@ -1103,5 +1103,11 @@
   "Until {date}": "Jusqu’au {date}",
   "The lottery is running": "Le tirage est en cours",
   "Demo account": "Compte de démonstration",
-  "Enter without a password": "Entrer sans mot de passe"
+  "Enter without a password": "Entrer sans mot de passe",
+  "History": "Historique",
+  "Who was in it": "Qui en a fait partie",
+  "Nobody on record": "Personne d’enregistré",
+  "Delete the {name} family for good?": "Supprimer définitivement la famille {name} ?",
+  "It cannot be brought back. Past lottery records still show its place.": "Impossible de la récupérer. Les comptes rendus des tirages passés montrent toujours sa place.",
+  "Family created": "Famille créée"
 }

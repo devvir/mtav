@@ -281,6 +281,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                     Route::resource('events', Manage\EventController::class)->only('store', 'update', 'destroy')
                         ->middleware(EnsureFeature::class . ':events');
                     Route::put('archive/{kind}/{id}', [Manage\ArchiveController::class, 'restore'])->whereNumber('id')->name('archive.restore');
+                    Route::delete('archive/families/{id}', [Manage\ArchiveController::class, 'destroyFamily'])->whereNumber('id')->name('archive.families.destroy');
 
                     Route::put('lottery', [Manage\LotteryController::class, 'schedule'])->name('lottery.schedule');
                     Route::post('lottery/runs', [Manage\LotteryController::class, 'run'])->name('lottery.run');

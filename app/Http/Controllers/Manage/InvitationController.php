@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Manage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InvitationRequest;
 use App\Http\Resources\InvitationResource;
+use App\Models\Family;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\Project;
@@ -36,7 +37,7 @@ class InvitationController extends Controller
                     'created_at' => $joinRequest->created_at,
                 ]),
             'allowsGuests' => $project->allows_guests,
-            'families'     => $project->families()->alphabetically()->get(['id', 'name']),
+            'families'     => Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray()),
             'limits'       => $project->isApproved() ? null : [
                 'members'             => $project->limit('members'),
                 'invitations_per_day' => $project->limit('invitations_per_day'),

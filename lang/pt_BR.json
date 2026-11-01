@@ -1103,5 +1103,11 @@
   "Until {date}": "Até {date}",
   "The lottery is running": "O sorteio está em andamento",
   "Demo account": "Conta de demonstração",
-  "Enter without a password": "Entrar sem senha"
+  "Enter without a password": "Entrar sem senha",
+  "History": "Histórico",
+  "Who was in it": "Quem fez parte",
+  "Nobody on record": "Ninguém registrado",
+  "Delete the {name} family for good?": "Excluir definitivamente a família {name}?",
+  "It cannot be brought back. Past lottery records still show its place.": "Não dá para recuperar. Os registros de sorteios anteriores continuam mostrando a posição dela.",
+  "Family created": "Família criada"
 }
