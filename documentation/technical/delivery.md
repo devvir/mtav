@@ -148,7 +148,10 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    Actions read and write; Deployments, Contents and Metadata read); without either,
    the page is hidden.
 3. **The proxy in front**: each domain to its environment's ports, the websocket path
-   (`/app`) to `MTAV_WS_PORT`, the rest to `MTAV_WEB_PORT`.
+   (`/app`) to `MTAV_WS_PORT`, the rest to `MTAV_WEB_PORT`, with `X-Forwarded-For` and
+   `X-Forwarded-Proto` set. The app ignores forwarded hosts and ports, and takes any host
+   but `APP_URL`'s (with or without www) for `APP_URL`'s, so a wrong header can never
+   send a link anywhere else.
 4. **GitHub**: the repository's secrets `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) and
    `DEPLOY_TARGET` (`mtav-deploy@<host>`); the environments `dev`, `staging` and
    `production`, each with its own `DEPLOY_SSH_KEY` (the private half of its key) and

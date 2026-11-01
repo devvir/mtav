@@ -30,11 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 '172.16.0.0/12',  // Docker networks
                 '192.168.0.0/16', // private network
             ],
+            // Who and how, never where: anyone may send a forwarded host, and the proxies pass it on
             headers: Request::HEADER_X_FORWARDED_FOR |
-                Request::HEADER_X_FORWARDED_HOST |
-                Request::HEADER_X_FORWARDED_PORT |
                 Request::HEADER_X_FORWARDED_PROTO
         );
+        $middleware->append(\App\Http\Middleware\EnsureOwnHost::class);
 
         // Read by the server, and of no use to anyone but this browser
         $middleware->encryptCookies(except: ['locale']);
