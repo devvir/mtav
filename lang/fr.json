@@ -1110,5 +1110,7 @@
   "Withdraw the request to {project}": "Retirer la demande à {project}",
   "Decline the invitation to {project}": "Décliner l’invitation à {project}",
   "Removed files stay stored, and count.": "Les fichiers retirés restent stockés et comptent.",
-  "Assistant": "Assistant"
+  "Assistant": "Assistant",
+  "Pause the pictures": "Mettre les photos en pause",
+  "Play the pictures": "Faire défiler les photos"
 }

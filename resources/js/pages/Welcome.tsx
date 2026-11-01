@@ -7,6 +7,7 @@ import { route } from '@/lib/route';
 import { _, getLocale } from '@/lib/translations';
 import { Head, Link, router } from '@inertiajs/react';
 import {
+  ActionIcon,
   Anchor,
   Button,
   Divider,
@@ -25,6 +26,8 @@ import {
   IconDice5,
   IconLanguage,
   IconMap,
+  IconPlayerPause,
+  IconPlayerPlay,
   IconUsersGroup,
 } from '@tabler/icons-react';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -300,21 +303,24 @@ const HERO_MS = 6000;
 
 /**
  * The first pictures, one after another by themselves (still while pointed at or focused,
- * and for whoever asks for less motion); a dot for each picks it
+ * and for whoever asks for less motion); a button stops them for good, a dot for each picks
+ * it and stops them too. Only a picture someone chose has its caption read out.
  */
 function HeroPhotos({ photos, captions }: { photos: string[]; captions: Record<string, string> }) {
   const [shown, setShown] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [held, setHeld] = useState(false);
+  const rotates = !paused && !still && photos.length > 1;
   const still = useReducedMotion();
 
   useEffect(() => {
-    if (held || still || photos.length < 2) return undefined;
+    if (held || !rotates) return undefined;
     const timer = window.setTimeout(
       () => setShown((index) => (index + 1) % photos.length),
       HERO_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [shown, held, still, photos.length]);
+  }, [shown, held, rotates, photos.length]);
 
   return (
     <figure
@@ -337,17 +343,33 @@ function HeroPhotos({ photos, captions }: { photos: string[]; captions: Record<s
           />
         ))}
       </div>
-      <figcaption aria-live="polite">{captions[photos[shown]!]}</figcaption>
-      <div className="welcome-hero-dots">
-        {photos.map((photo, index) => (
-          <button
-            key={photo}
-            type="button"
-            aria-label={captions[photo]}
-            aria-current={index === shown || undefined}
-            onClick={() => setShown(index)}
-          />
-        ))}
+      <figcaption aria-live={rotates ? 'off' : 'polite'}>{captions[photos[shown]!]}</figcaption>
+      <div className="welcome-hero-controls">
+        <div className="welcome-hero-dots">
+          {photos.map((photo, index) => (
+            <button
+              key={photo}
+              type="button"
+              aria-label={captions[photo]}
+              aria-current={index === shown || undefined}
+              onClick={() => {
+                setShown(index);
+                setPaused(true);
+              }}
+            />
+          ))}
+        </div>
+        {still || photos.length < 2 ? null : (
+          <ActionIcon
+            size="sm"
+            variant="subtle"
+            color="gray"
+            aria-label={paused ? _('Play the pictures') : _('Pause the pictures')}
+            onClick={() => setPaused(!paused)}
+          >
+            {paused ? <IconPlayerPlay size={14} /> : <IconPlayerPause size={14} />}
+          </ActionIcon>
+        )}
       </div>
     </figure>
   );

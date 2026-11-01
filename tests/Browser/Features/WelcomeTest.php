@@ -55,6 +55,45 @@ it('shows every photo it names, families building among them', function () {
     expect($page->script("() => [...document.querySelectorAll('.welcome-photo img')].filter((img) => !img.naturalWidth).map((img) => img.src)"))->toBe([]);
 });
 
+it('never reads out a picture changing by itself, only one someone picked', function () {
+    visit(route('home'))
+        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'off')
+        ->click('.welcome-hero-dots button >> nth=1')
+        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'polite');
+});
+
+it('stops its first pictures for good with a button, and starts them again', function () {
+    $caption = fn ($page) => $page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent");
+
+    $page = visit(route('home'))
+        ->click('[aria-label="Pause the pictures"]')
+        ->assertPresent('[aria-label="Play the pictures"]')
+        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'polite')
+        // Away from the pictures, where they would otherwise go on
+        ->hover('.welcome-heading >> nth=0');
+    $stopped = $caption($page);
+
+    $page->wait(7);
+    expect($caption($page))->toBe($stopped);
+
+    $page->click('[aria-label="Play the pictures"]')
+        ->hover('.welcome-heading >> nth=0')
+        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'off')
+        ->wait(7);
+    expect($caption($page))->not->toBe($stopped);
+});
+
+it('keeps a picture someone picked, whatever the pointer does next', function () {
+    $page = visit(route('home'))
+        ->click('.welcome-hero-dots button >> nth=1')
+        ->hover('.welcome-heading >> nth=0');
+    $picked = $page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent");
+
+    $page->wait(7);
+
+    expect($page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent"))->toBe($picked);
+});
+
 it('shows its first pictures one after another, VICMAN among them', function () {
     visit(route('home'))
         ->click('.welcome-hero-dots button >> nth=0')
