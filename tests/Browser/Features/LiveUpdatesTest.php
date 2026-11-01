@@ -2,6 +2,7 @@
 
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
+use App\Services\ChatService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -53,6 +54,34 @@ it('shows an event someone else adds, without reloading', function () {
     ]));
 
     $page->assertSee('Night walk around the site');
+});
+
+it('shows a message in the conversation open, and takes it away when it is taken back', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->admin, [$this->member->id]);
+    $page = visit(route('chat.show', [$this->project, $conversation]));
+    listening($page, "users.{$this->member->id}");
+
+    $message = $chat->send($conversation, $this->admin, 'Are you coming on Saturday?');
+    $page->assertSeeIn('.chat-messages', 'Are you coming on Saturday?');
+
+    $chat->remove($message);
+    $page->assertDontSeeIn('.chat-messages', 'Are you coming on Saturday?');
+});
+
+it('counts a conversation with something new once, and says who wrote, away from the chat', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->admin, [$this->member->id]);
+    $page = visit(route('projects.show', $this->project));
+    listening($page, "users.{$this->member->id}");
+
+    $chat->send($conversation, $this->admin, 'One');
+    $page->assertSee("New message from {$this->admin->firstname}");
+
+    $chat->send($conversation, $this->admin, 'Two');
+    $page->assertPresent('.chat-launcher');
+
+    expect($conversation->participants()->whereKey($this->member->id)->first()->pivot->read_up_to)->toBeNull();
 });
 
 it('rings the bell the moment a notification is sent', function () {
