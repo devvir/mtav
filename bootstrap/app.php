@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['locale']);
 
         $middleware->web(append: [
+            \App\Http\Middleware\IgnoreListFilters::class,
             \App\Http\Middleware\SignOutBlocked::class,
             \App\Http\Middleware\SetLocale::class,
             AddLinkHeadersForPreloadedAssets::class,
