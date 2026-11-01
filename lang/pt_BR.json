@@ -1115,5 +1115,6 @@
   "Play the pictures": "Passar as fotos",
   "Skip to content": "Ir para o conteúdo",
   "Decline the invitation to {project}?": "Recusar o convite para {project}?",
-  "Someone in the project would have to invite you again.": "Alguém do projeto teria que convidar você de novo."
+  "Someone in the project would have to invite you again.": "Alguém do projeto teria que convidar você de novo.",
+  "Withdraw the invitation to {email}": "Retirar o convite para {email}"
 }

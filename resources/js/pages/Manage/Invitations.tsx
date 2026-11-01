@@ -225,7 +225,10 @@ export default function ManageInvitations({
                       : null}
                   </Text>
                 </div>
-                <ActionIcon aria-label={_('Withdraw')} onClick={() => withdraw(invitation)}>
+                <ActionIcon
+                  aria-label={_('Withdraw the invitation to {email}', { email: invitation.email })}
+                  onClick={() => withdraw(invitation)}
+                >
                   <IconX size={18} />
                 </ActionIcon>
               </Group>

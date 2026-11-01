@@ -98,7 +98,12 @@ export default function FamilyInvitations({
                   </Text>
                 </div>
                 {invitation.can.delete ? (
-                  <ActionIcon aria-label={_('Withdraw')} onClick={() => withdraw(invitation)}>
+                  <ActionIcon
+                    aria-label={_('Withdraw the invitation to {email}', {
+                      email: invitation.email,
+                    })}
+                    onClick={() => withdraw(invitation)}
+                  >
                     <IconX size={18} />
                   </ActionIcon>
                 ) : null}

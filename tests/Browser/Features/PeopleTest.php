@@ -279,3 +279,15 @@ it('keeps the invitation when declining is thought better of', function () {
 
     expect(\App\Models\Invitation::count())->toBe(1);
 });
+
+it('names whom each row\'s withdrawal is for', function () {
+    foreach (['ana@example.com', 'luis@example.com'] as $email) {
+        app(\App\Services\InvitationService::class)->invite($this->project, $this->admin, ['email' => $email], $this->family, false);
+    }
+    $this->as($this->admin);
+
+    visit(route('manage.invitations.index', $this->project))
+        ->assertPresent('[aria-label="Withdraw the invitation to ana@example.com"]')
+        ->assertPresent('[aria-label="Withdraw the invitation to luis@example.com"]')
+        ->assertNotPresent('[aria-label="Withdraw"]');
+});
