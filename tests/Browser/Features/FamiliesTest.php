@@ -83,8 +83,10 @@ it('says why a family with people cannot be removed', function () {
 it('shows an archived family\'s history, and deletes it for good from there', function () {
     $admin = anAdminOf($this->project);
     $archived = aFamily($this->project, $this->type, ['name' => 'Ferreira']);
+    // Two of the same name are two people, and read as such
     aMemberOf($archived, ['firstname' => 'Lucía', 'lastname' => 'Rey']);
-    $archived->memberships()->sole()->update(['family_id' => null]);
+    aMemberOf($archived, ['firstname' => 'Lucía', 'lastname' => 'Rey']);
+    $archived->memberships()->get()->each->update(['family_id' => null]);
 
     $this->as($admin);
 

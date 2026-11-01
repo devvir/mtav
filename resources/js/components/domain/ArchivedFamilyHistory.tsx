@@ -50,7 +50,7 @@ export function ArchivedFamilyHistory({
           <div>
             <Text className="ds-caption">{_('Who was in it')}</Text>
             {family.people?.length ? (
-              family.people.map((person) => <Text key={person}>{person}</Text>)
+              family.people.map((person, index) => <Text key={`${person}-${index}`}>{person}</Text>)
             ) : (
               <Text>{_('Nobody on record')}</Text>
             )}
