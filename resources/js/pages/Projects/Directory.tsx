@@ -148,9 +148,7 @@ export default function Directory({
         </SimpleGrid>
       ) : (
         <EmptyState icon={IconSearch} title={_('No projects found')}>
-          {filters.q
-            ? _('Try other words.')
-            : _('No project is listed yet. You can start your own.')}
+          {filters.q ? _('Try other words.') : _('No project here yet. You can start your own.')}
         </EmptyState>
       )}
       <Pagination page={listing} />

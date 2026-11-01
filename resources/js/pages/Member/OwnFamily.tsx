@@ -63,7 +63,7 @@ export default function OwnFamily({
     const ok = await confirm({
       title: _('Leave the {family} family?', { family: own!.name }),
       message: own!.alone
-        ? _('You are the only one in it: it is removed. You stay in the project.')
+        ? _('You are the only one in it, so it is removed. You stay in the project.')
         : _('You stay in the project.'),
       confirmLabel: _('Leave'),
       danger: true,
@@ -90,11 +90,11 @@ export default function OwnFamily({
         description={
           own
             ? _(
-                'You are in the {family} family. Ask to join yours, or create it: you stay where you are until it is settled.',
+                'You are in the {family} family. Ask to join yours, or create it. You stay where you are until it is settled.',
                 { family: own.name },
               )
             : _(
-                'Everyone in {project} takes part as a family. If yours is already here, ask to join it; if not, create it.',
+                'Everyone in {project} takes part as a family. If yours is already here, ask to join it. If not, create it.',
                 { project: project.name },
               )
         }

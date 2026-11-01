@@ -39,7 +39,9 @@ export function MembershipForm({
           {
             value: '',
             label:
-              form.data.is_admin || !allowsGuests ? _('Not joined a family yet') : _('As a guest'),
+              form.data.is_admin || !allowsGuests
+                ? _('Not joined their family yet')
+                : _('As a guest'),
           },
           ...families.map((family) => ({ value: String(family.id), label: family.name })),
         ]}
@@ -47,7 +49,7 @@ export function MembershipForm({
       />
       <Checkbox
         label={_('Admin of the project')}
-        description={_('Admins configure the project and run the lottery.')}
+        description={_('Admins set up the project and run the lottery.')}
         {...checkbox(form, 'is_admin')}
       />
       {roleError ? (
