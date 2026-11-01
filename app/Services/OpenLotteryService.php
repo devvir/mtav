@@ -214,10 +214,10 @@ class OpenLotteryService implements LotteryHost
     }
 
     /** It decided nothing: the organizer may try again */
-    public function fail(LotteryRun $run, string $userMessage, array $debug = []): void
+    public function fail(LotteryRun $run, string $messageKey, array $messageParams = [], array $debug = []): void
     {
-        $this->audits->record($run->id, LotteryAuditType::FAILURE, ['message' => $userMessage, ...$debug]);
-        $run->update(['status' => LotteryRunStatus::FAILED, 'finished_at' => now(), 'failure' => $userMessage]);
+        $this->audits->record($run->id, LotteryAuditType::FAILURE, ['message' => __($messageKey, $messageParams), ...$debug]);
+        $run->update(['status' => LotteryRunStatus::FAILED, 'finished_at' => now(), 'failure' => LotteryRun::failureOf($messageKey, $messageParams)]);
 
         $this->changed($run->openLottery);
     }

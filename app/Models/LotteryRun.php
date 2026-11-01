@@ -38,6 +38,20 @@ class LotteryRun extends Model
         'invalidation_reason',
     ];
 
+    /** How a run's failure is kept: words to say, not yet said in anyone's language */
+    public static function failureOf(string $messageKey, array $messageParams = []): string
+    {
+        return json_encode(['key' => $messageKey, 'params' => $messageParams], JSON_UNESCAPED_UNICODE);
+    }
+
+    /** Why it failed, in the language of whoever reads it */
+    public function failureMessage(): ?string
+    {
+        $failure = json_decode((string) $this->failure, true);
+
+        return is_array($failure) ? __($failure['key'], $failure['params']) : $this->failure;
+    }
+
     protected $casts = [
         'status'         => LotteryRunStatus::class,
         'options'        => 'array',

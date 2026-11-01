@@ -215,7 +215,7 @@ describe('An admin', function () {
 
         $run = test()->project->lotteryRuns()->latest('id')->first();
         expect($run->status)->toBe(LotteryRunStatus::FAILED)
-            ->and($run->failure)->toBe(__('lottery.execution_failed'))
+            ->and($run->failureMessage())->toBe(__('lottery.execution_failed'))
             ->and(assignment($families))->toBe([null, null])
             ->and(Notification::for(test()->admin)->where('target_id', test()->admin->id)->exists())->toBeTrue();
 
@@ -250,6 +250,44 @@ describe('An admin', function () {
         $this->delete(route('manage.families.destroy', $families[0]))->assertSessionHasErrors('lottery');
 
         expect($units[0]->fresh())->not->toBeNull()->and($families[0]->fresh())->not->toBeNull();
+    });
+
+    it('says why it failed in the language of whoever reads it, whatever the worker spoke', function () {
+        $run = aLotteryInProgress($this->project);
+
+        app(App\Services\LotteryService::class)->fail($run, 'lottery.glpk_timeout');
+
+        $inEach = collect(['en', 'es_UY', 'fr'])->mapWithKeys(fn ($locale) => [$locale => (function () use ($locale, $run) {
+            app()->setLocale($locale);
+
+            return App\Http\Resources\LotteryRunResource::make($run->fresh())->resolve(request())['failure'];
+        })()]);
+
+        expect($inEach['en'])->toBe(trans('lottery.glpk_timeout', [], 'en'))
+            ->and($inEach['es_UY'])->toBe(trans('lottery.glpk_timeout', [], 'es_UY'))
+            ->and($inEach['fr'])->toBe(trans('lottery.glpk_timeout', [], 'fr'))
+            ->and($inEach['es_UY'])->not->toBe($inEach['en']);
+    });
+
+    it('keeps the words a solver gave as its reason, blanks and all, to say later', function () {
+        config()->set('lottery.solvers.broken', ['solver' => SolverGivingReason::class]);
+        config()->set('lottery.default', 'broken');
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+
+        runLottery();
+
+        $run = $this->project->lotteryRuns()->latest('id')->first();
+
+        expect($run->status)->toBe(LotteryRunStatus::FAILED)
+            ->and(json_decode($run->failure, true))->toBe(['key' => 'lottery.cannot_run_x', 'params' => ['count' => 3]]);
+    });
+
+    it('shows as it is a reason kept whole before reasons were kept as words to say', function () {
+        $run = aLotteryInProgress($this->project);
+        $run->update(['status' => LotteryRunStatus::FAILED, 'failure' => 'No se pudo.']);
+
+        expect($run->fresh()->failureMessage())->toBe('No se pudo.');
     });
 
     it('leaves a run that finished as it is, whatever fails after it', function () {
@@ -288,6 +326,15 @@ describe('A member', function () {
         }
     });
 });
+
+/** A solver that fails saying why, in words of the app's */
+class SolverGivingReason implements SolverInterface
+{
+    public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
+    {
+        throw App\Services\Lottery\Exceptions\LotteryExecutionException::withUserMessage('lottery.cannot_run_x', ['count' => 3]);
+    }
+}
 
 /** A solver that breaks, as an unreachable or crashing one would */
 class BrokenSolver implements SolverInterface

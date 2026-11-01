@@ -21,7 +21,7 @@ class LotteryRunResource extends JsonResource
             'started_at'          => $this->started_at,
             'finished_at'         => $this->finished_at,
             'started_by'          => $this->whenLoaded('starter', fn () => $this->starter?->name),
-            'failure'             => $this->failure,
+            'failure'             => $this->failureMessage(),
             'invalidated_at'      => $this->invalidated_at,
             'invalidated_by'      => $this->whenLoaded('invalidator', fn () => $this->invalidator?->name),
             'invalidation_reason' => $this->invalidation_reason,

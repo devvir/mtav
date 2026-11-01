@@ -156,9 +156,10 @@ class LotteryService implements LotteryHost
 
     /**
      * Close a run that could not finish; the lottery can be run again. A run that already
-     * finished stays as it is (what failed came after it).
+     * finished stays as it is (what failed came after it). The reason is kept as words to say,
+     * for each viewer in their language.
      */
-    public function fail(LotteryRun $run, string $userMessage, array $debug = []): void
+    public function fail(LotteryRun $run, string $messageKey, array $messageParams = [], array $debug = []): void
     {
         if ($run->fresh()?->status !== LotteryRunStatus::RUNNING) {
             return;
@@ -167,11 +168,11 @@ class LotteryService implements LotteryHost
         $run->update([
             'status'      => LotteryRunStatus::FAILED,
             'finished_at' => now(),
-            'failure'     => $userMessage,
+            'failure'     => LotteryRun::failureOf($messageKey, $messageParams),
         ]);
 
         $this->audits->record($run->id, LotteryAuditType::FAILURE, [
-            'message' => $userMessage,
+            'message' => __($messageKey, $messageParams),
             ...$debug,
         ]);
 

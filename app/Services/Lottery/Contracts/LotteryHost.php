@@ -19,5 +19,5 @@ interface LotteryHost
 
     public function complete(LotteryRun $run, ExecutionResult $result): void;
 
-    public function fail(LotteryRun $run, string $userMessage, array $debug = []): void;
+    public function fail(LotteryRun $run, string $messageKey, array $messageParams = [], array $debug = []): void;
 }

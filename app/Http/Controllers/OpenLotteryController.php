@@ -67,7 +67,7 @@ class OpenLotteryController extends Controller
                 default                                    => 'open',
             },
             'pace'    => $run?->status === LotteryRunStatus::RUNNING ? ['started_at' => $run->started_at, 'reveal_at' => $run->reveal_at] : null,
-            'failure' => $run?->status === LotteryRunStatus::FAILED ? $run->failure : null,
+            'failure' => $run?->status === LotteryRunStatus::FAILED ? $run->failureMessage() : null,
             'items'   => $lottery->items()->get(['id', 'name']),
             'people'  => $people->map(fn (OpenLotteryParticipant $person) => [
                 'id'     => $person->id,

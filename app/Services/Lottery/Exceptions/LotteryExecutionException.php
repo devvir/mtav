@@ -23,6 +23,16 @@ class LotteryExecutionException extends RuntimeException
         return $exception;
     }
 
+    public function getUserMessageKey(): string
+    {
+        return $this->userMessageKey;
+    }
+
+    public function getUserMessageParams(): array
+    {
+        return $this->userMessageParams;
+    }
+
     public function getUserMessage(): string
     {
         return __($this->userMessageKey, $this->userMessageParams);
