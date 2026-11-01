@@ -2,7 +2,7 @@ import { hasTour, startTour } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 import { ActionIcon, Button, Group, Popover, Text } from '@mantine/core';
 import { IconArrowRight, IconHelpCircle } from '@tabler/icons-react';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 
 /**
  * A (?) next to something that needs explaining: a short text, and — where a tour exists
@@ -18,11 +18,13 @@ export function InfoTip({
   children: ReactNode;
 }) {
   const [opened, setOpened] = useState(false);
+  const tip = useRef<HTMLButtonElement>(null);
 
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom-start" width={340} withArrow>
       <Popover.Target>
         <ActionIcon
+          ref={tip}
           variant="subtle"
           color="gray"
           radius="xl"
@@ -50,6 +52,8 @@ export function InfoTip({
               rightSection={<IconArrowRight size={14} />}
               onClick={() => {
                 setOpened(false);
+                // What the tour gives the focus back to, this button going with the explanation
+                tip.current?.focus();
                 setTimeout(() => startTour(tour), 0);
               }}
             >

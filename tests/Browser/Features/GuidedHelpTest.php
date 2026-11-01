@@ -172,3 +172,42 @@ it('offers each page\'s tour from the (?) by its title', function (string $as, s
     'superadmins'          => ['superadmin', 'admin.superadmins.index', 'Superadmins', 'Who has the role'],
     'platform settings'    => ['superadmin', 'admin.settings.edit', 'Platform settings', 'How long a lottery takes'],
 ]);
+
+it('keeps the focus inside a step, and gives it back where it was when the tour ends', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+    $inCard = '() => document.activeElement.closest(".tour-card") !== null';
+
+    $page = openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
+        ->click('Tell me more')
+        ->assertSee('Step 1 of');
+
+    // Past "Next", and on around: never out to the dimmed page
+    foreach (range(1, 6) as $_) {
+        $page->keys(':focus', 'Tab');
+        expect($page->script($inCard))->toBeTrue();
+    }
+    $page->keys(':focus', 'Shift+Tab');
+    expect($page->script($inCard))->toBeTrue();
+
+    $page->keys(':focus', 'Escape')->assertMissing('.tour-card');
+    expect($page->script('() => document.activeElement.getAttribute("aria-label")'))->toBe('About: How the lottery works');
+});
+
+it('leaves the question after a tour for whoever wants it, without taking the focus', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
+        ->click('Tell me more')
+        ->assertSee('Step 1 of')
+        ->keys(':focus', 'Escape')
+        ->assertSee('Show no more tours?')
+        ->assertPresent('.tour-offer[role="status"]');
+
+    expect($page->script('() => document.activeElement.closest(".tour-offer") === null'))->toBeTrue();
+});

@@ -13,7 +13,7 @@ import {
 } from '@/lib/tour';
 import { _ } from '@/lib/translations';
 import { router } from '@inertiajs/react';
-import { ActionIcon, Button, Group, Portal, Text } from '@mantine/core';
+import { ActionIcon, Button, FocusTrap, Group, Portal, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconX } from '@tabler/icons-react';
 import {
@@ -53,6 +53,19 @@ export function TourHost() {
       setRect((current && findTarget(current.target)?.getBoundingClientRect()) ?? null);
     });
   }, []);
+
+  // The focus goes back where it was when the tour began, if that is still there and nothing
+  // else took it (a tour ending by leaving the page: the page's heading)
+  const playing = Boolean(step);
+  useLayoutEffect(() => {
+    if (!playing) return undefined;
+    const before = document.activeElement as HTMLElement | null;
+    return () => {
+      if (before?.isConnected && document.activeElement === document.body) {
+        before.focus({ preventScroll: true });
+      }
+    };
+  }, [playing]);
 
   useLayoutEffect(() => {
     if (!step) return undefined;
@@ -154,50 +167,53 @@ export function TourHost() {
           <div className="tour-dim" style={{ inset: 0 }} />
         )}
 
-        <div
-          ref={card}
-          role="dialog"
-          aria-modal="true"
-          aria-label={step.title}
-          tabIndex={-1}
-          className="tour-card ds-floating"
-          style={position}
-        >
-          <Group align="flex-start" gap="sm" wrap="nowrap">
-            <div style={{ flex: 1, minWidth: 0 }} aria-live="polite">
-              <Text className="ds-label">
-                {_('Step {n} of {total}', { n: state.index + 1, total: state.steps.length })}
-              </Text>
-              <Text fw={700} mt={4}>
-                {step.title}
-              </Text>
-              <Text size="sm" c="dimmed" mt={4}>
-                {step.body}
-              </Text>
-            </div>
-            <ActionIcon aria-label={_('End the tour')} onClick={() => stopTour()} radius="xl">
-              <IconX size={18} />
-            </ActionIcon>
-          </Group>
-          <Group justify="space-between" mt="md" gap="xs">
-            <Button variant="subtle" color="gray" size="xs" px={6} onClick={endAllTours}>
-              {_('No more tours')}
-            </Button>
-            <Group gap="xs">
-              <Button
-                variant="subtle"
-                size="xs"
-                disabled={state.index === 0}
-                onClick={previousStep}
-              >
-                {_('Back')}
-              </Button>
-              <Button size="xs" onClick={nextStep}>
-                {last ? _('Done') : _('Next')}
-              </Button>
+        <FocusTrap>
+          <div
+            ref={card}
+            role="dialog"
+            aria-modal="true"
+            aria-label={step.title}
+            tabIndex={-1}
+            className="tour-card ds-floating"
+            style={position}
+          >
+            <FocusTrap.InitialFocus />
+            <Group align="flex-start" gap="sm" wrap="nowrap">
+              <div style={{ flex: 1, minWidth: 0 }} aria-live="polite">
+                <Text className="ds-label">
+                  {_('Step {n} of {total}', { n: state.index + 1, total: state.steps.length })}
+                </Text>
+                <Text fw={700} mt={4}>
+                  {step.title}
+                </Text>
+                <Text size="sm" c="dimmed" mt={4}>
+                  {step.body}
+                </Text>
+              </div>
+              <ActionIcon aria-label={_('End the tour')} onClick={() => stopTour()} radius="xl">
+                <IconX size={18} />
+              </ActionIcon>
             </Group>
-          </Group>
-        </div>
+            <Group justify="space-between" mt="md" gap="xs">
+              <Button variant="subtle" color="gray" size="xs" px={6} onClick={endAllTours}>
+                {_('No more tours')}
+              </Button>
+              <Group gap="xs">
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  disabled={state.index === 0}
+                  onClick={previousStep}
+                >
+                  {_('Back')}
+                </Button>
+                <Button size="xs" onClick={nextStep}>
+                  {last ? _('Done') : _('Next')}
+                </Button>
+              </Group>
+            </Group>
+          </div>
+        </FocusTrap>
       </div>
     </Portal>
   );
@@ -218,7 +234,7 @@ function endAllTours() {
 function TourOffer() {
   return (
     <Portal>
-      <div className="tour-offer ds-floating" role="dialog" aria-label={_('Tours')}>
+      <div className="tour-offer ds-floating" role="status" aria-label={_('Tours')}>
         <Text fw={700}>{_('Show no more tours?')}</Text>
         <Text size="sm" c="dimmed" mt={4}>
           {_("You can always take one from the ? by each page's title.")}
