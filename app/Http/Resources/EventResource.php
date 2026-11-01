@@ -16,10 +16,11 @@ class EventResource extends JsonResource
         $user = $request->user();
 
         return [
-            'id'           => $this->id,
-            'type'         => $this->type->value,
-            'title'        => $this->title,
-            'description'  => $this->description,
+            'id'   => $this->id,
+            'type' => $this->type->value,
+            // The lottery's words are the app's, in each reader's language, until admins describe it
+            'title'        => $this->isLottery() ? __('lottery.title') : $this->title,
+            'description'  => $this->isLottery() ? ($this->description ?: __('lottery.default_description')) : $this->description,
             'location'     => $this->location,
             'start_date'   => $this->start_date,
             'end_date'     => $this->end_date,

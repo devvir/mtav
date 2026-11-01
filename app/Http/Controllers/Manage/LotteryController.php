@@ -32,6 +32,11 @@ class LotteryController extends Controller
             'start_date'  => ['nullable', 'date'],
         ]);
 
+        // Given just a date, the words they were shown stay everyone's in their own language
+        if ($data['description'] === __('lottery.default_description')) {
+            $data['description'] = '';
+        }
+
         try {
             $this->lottery->schedule($project->lottery, $data);
         } catch (LotteryExecutionException $e) {

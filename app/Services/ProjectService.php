@@ -39,11 +39,12 @@ class ProjectService
             ]);
 
             Event::create([
-                'project_id'   => $project->id,
-                'creator_id'   => $creator->id,
-                'type'         => EventType::LOTTERY,
-                'title'        => __('lottery.title'),
-                'description'  => __('lottery.default_description'),
+                'project_id' => $project->id,
+                'creator_id' => $creator->id,
+                'type'       => EventType::LOTTERY,
+                'title'      => __('lottery.title'),
+                // Each reader gets these in their language (EventResource), until admins describe it
+                'description'  => '',
                 'is_published' => true,
             ]);
 
@@ -66,7 +67,7 @@ class ProjectService
             params: ['name' => $project->name],
             url: route('admin.projects.index', ['q' => $project->name]),
             trigger: $creator,
-        );
+        ));
 
         return $project;
     }

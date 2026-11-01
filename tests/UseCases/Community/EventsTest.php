@@ -222,3 +222,54 @@ describe('The lottery event', function () {
             ->start_date->toEqual($date);
     });
 });
+
+describe('The lottery\'s own words', function () {
+    function lotteryAsReadBy($test, $user, $project): array
+    {
+        return $test->as($user, $project)->get(route('lottery.show'))->inertiaProps('lottery');
+    }
+
+    beforeEach(function () {
+        $this->creator = aUser(['locale' => 'es_UY']);
+        app()->setLocale('es_UY');
+        $this->started = app(App\Services\ProjectService::class)->create($this->creator, ['name' => 'Los Ceibos', 'description' => 'A place']);
+        app()->setLocale('en');
+        $this->reader = aMemberOf(aFamily($this->started, aUnitType($this->started)), ['locale' => 'pt_BR']);
+    });
+
+    it('reach each reader in their language, whoever started the project', function () {
+        expect(lotteryAsReadBy($this, $this->reader, $this->started))
+            ->title->toBe(trans('lottery.title', [], 'pt_BR'))
+            ->description->toBe(trans('lottery.default_description', [], 'pt_BR'));
+        expect(lotteryAsReadBy($this, $this->creator, $this->started))
+            ->title->toBe(trans('lottery.title', [], 'es_UY'))
+            ->description->toBe(trans('lottery.default_description', [], 'es_UY'));
+    });
+
+    it('stay so when admins set just the date, leaving the words they were shown', function () {
+        $this->as($this->creator, $this->started)->put(route('manage.lottery.schedule'), [
+            'description' => trans('lottery.default_description', [], 'es_UY'),
+            'start_date'  => now()->addWeek()->toDateTimeString(),
+        ])->assertSessionHasNoErrors();
+
+        expect(lotteryAsReadBy($this, $this->reader, $this->started)['description'])->toBe(trans('lottery.default_description', [], 'pt_BR'));
+    });
+
+    it('give way to what admins write, for everyone, under the same title', function () {
+        $this->as($this->creator, $this->started)->put(route('manage.lottery.schedule'), [
+            'description' => 'Nos juntamos en el salón',
+        ])->assertSessionHasNoErrors();
+
+        expect(lotteryAsReadBy($this, $this->reader, $this->started))
+            ->title->toBe(trans('lottery.title', [], 'pt_BR'))
+            ->description->toBe('Nos juntamos en el salón');
+    });
+
+    it('leave other events as they were written', function () {
+        $event = anEvent($this->started, ['title' => 'Asamblea', 'description' => 'En el salón']);
+
+        $seen = App\Http\Resources\EventResource::make($event)->resolve(request());
+
+        expect($seen)->title->toBe('Asamblea')->description->toBe('En el salón');
+    });
+});
