@@ -235,7 +235,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                 });
 
                 Route::get('lottery', [Member\LotteryController::class, 'show'])->name('lottery.show');
-                Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->name('lottery.preferences');
+                Route::put('lottery/preferences', [Member\LotteryController::class, 'rank'])->middleware('throttle:120,1')->name('lottery.preferences');
                 Route::get('lottery/runs/{lotteryRun}', [Member\LotteryController::class, 'record'])->name('lottery.record');
                 Route::get('lottery/runs/{lotteryRun}/record.json', [Member\LotteryController::class, 'download'])
                     ->name('lottery.download');

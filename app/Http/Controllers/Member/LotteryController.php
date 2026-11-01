@@ -29,6 +29,9 @@ use Inertia\Response;
  */
 class LotteryController extends Controller
 {
+    /** More units of one type than any cooperative has */
+    private const MOST_RANKED = 1000;
+
     public function __construct(private PreferencesService $preferences)
     {
     }
@@ -86,10 +89,9 @@ class LotteryController extends Controller
     {
         $this->authorize('rankUnits', $project);
 
-        $units = $request->validate([
-            'preferences'   => ['present', 'array'],
-            'preferences.*' => ['integer'],
-        ])['preferences'];
+        // Its size first: a rule on each of them would read them all
+        $request->validate(['preferences' => ['present', 'array', 'max:' . self::MOST_RANKED]]);
+        $units = $request->validate(['preferences.*' => ['integer']])['preferences'] ?? [];
 
         try {
             $this->preferences->rank($request->user()->familyIn($project), $units);

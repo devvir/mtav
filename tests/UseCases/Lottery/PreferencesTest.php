@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
+
 /**
  * Each family ranks the units of its own type, from most to least wanted. Any member
  * of the family can change the ranking until the lottery starts. Families see only
@@ -92,4 +94,47 @@ it('cannot be changed once the lottery has started', function () {
     rank($this, $this->member, $this->units->reverse())->assertSessionHas('error');
 
     expect(rankingSeenBy($this, $this->member))->toBe($before);
+});
+
+describe('A ranking sent', function () {
+    function ranksRaw($test, $member, mixed $preferences)
+    {
+        return $test->as($member, $test->project)->put(route('lottery.preferences'), ['preferences' => $preferences]);
+    }
+
+    it('is refused past 1000 units, without reading them', function () {
+        DB::enableQueryLog();
+
+        ranksRaw($this, $this->member, range(1, 1001))->assertSessionHasErrors('preferences');
+
+        expect(collect(DB::getQueryLog())->pluck('query')->filter(fn ($query) => str_contains($query, 'from `units`') && str_contains($query, ' in (')))->toBeEmpty()
+            ->and($this->family->preferences()->count())->toBe(0);
+    });
+
+    it('takes every unit of a type up to that size', function () {
+        ranksRaw($this, $this->member, $this->units->pluck('id')->all())->assertSessionHasNoErrors();
+
+        expect($this->family->preferences()->count())->toBe(3);
+    });
+
+    it('may be empty, which clears it', function () {
+        rank($this, $this->member, $this->units);
+
+        ranksRaw($this, $this->member, [])->assertSessionHasNoErrors();
+
+        expect($this->family->preferences()->count())->toBe(0);
+    });
+
+    it('takes only whole numbers', function () {
+        ranksRaw($this, $this->member, ['a'])->assertSessionHasErrors('preferences.0');
+        ranksRaw($this, $this->member, 'a')->assertSessionHasErrors('preferences');
+    });
+
+    it('is limited to 120 a minute for each person', function () {
+        foreach (range(1, 120) as $_) {
+            rank($this, $this->member, $this->units)->assertSessionMissing('error');
+        }
+
+        rank($this, $this->member, $this->units)->assertSessionHas('error', __('flash.too_many_attempts'));
+    });
 });

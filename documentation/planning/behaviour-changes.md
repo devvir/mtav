@@ -40,6 +40,7 @@ Nothing changed in what it does or how.
    - Every member sees who invalidated, when and why, on the lottery page and in a notification.
 6. **Preferences.**
    - Families may rank only some units. Old: they had to rank all.
+   - A ranking sent holds at most 1000 units, and a person sends at most 120 a minute.
    - Admins who belong to a family can rank. Guests cannot.
    - Other families' full rankings no longer leak through the lottery page data. Old: the audit records sent to every member held them, with the admin's email.
    - Admins can read every family's ranking in a run's JSON download; everyone else sees only places.
