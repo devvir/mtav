@@ -1101,5 +1101,7 @@
   "Live since {date}": "En ligne depuis {date}",
   "Kept until {date}.": "Conservé jusqu’au {date}.",
   "Until {date}": "Jusqu’au {date}",
-  "The lottery is running": "Le tirage est en cours"
+  "The lottery is running": "Le tirage est en cours",
+  "Demo account": "Compte de démonstration",
+  "Enter without a password": "Entrer sans mot de passe"
 }

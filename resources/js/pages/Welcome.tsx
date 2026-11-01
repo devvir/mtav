@@ -1,4 +1,4 @@
-import { SignInForm } from '@/components/auth/SignInForm';
+import { SignInForm, type DemoAccount } from '@/components/auth/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import { useCurrentPage } from '@/components/layout/page';
 import { DialogHost } from '@/components/overlays/DialogHost';
@@ -39,6 +39,8 @@ interface Props {
   dialog: Auth | null;
   /** Google sign-in is set up */
   google: boolean;
+  /** Accounts to enter as with no password, where those exist */
+  demo: DemoAccount[] | null;
   /** The languages to pick from, each named in itself */
   locales: Record<string, string>;
 }
@@ -76,7 +78,7 @@ const addressFor = (auth: Auth | null) =>
  * What the platform is, for those who arrive: what a cooperative does with it, in pictures
  * of cooperatives that built their homes. Signing in is the way on, over this page.
  */
-export default function Welcome({ dialog, google, locales }: Props) {
+export default function Welcome({ dialog, google, demo, locales }: Props) {
   const { props } = useCurrentPage();
   const [open, setOpen] = useState<Auth | null>(dialog);
   const show = (next: Auth | null) => {
@@ -286,7 +288,7 @@ export default function Welcome({ dialog, google, locales }: Props) {
             <Divider label={_('or')} labelPosition="center" my="md" />
           </>
         ) : null}
-        {open === 'register' ? <SignUpForm /> : <SignInForm />}
+        {open === 'register' ? <SignUpForm /> : <SignInForm demo={demo} />}
       </Modal>
       <DialogHost />
     </div>

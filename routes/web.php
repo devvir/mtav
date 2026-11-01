@@ -49,6 +49,7 @@ Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
 Route::middleware(['module:accounts', 'guest'])->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('login/demo', [AuthenticatedSessionController::class, 'demo'])->middleware('throttle:30,1')->name('login.demo');
 
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,10');

@@ -1087,7 +1087,7 @@
   "No event matches": "Nenhum evento corresponde",
   "Nothing matches": "Nada corresponde",
   "No project matches": "Nenhum projeto corresponde",
-  "No account matches": "Nenhuma conta corresponde",
+  "No account matches": "Nenhuma conta encontrada",
   "Deploy {branch} to dev?": "Implantar {branch} em dev?",
   "Everything in dev, people and uploaded files included, is replaced by the demo data.": "Tudo o que dev tem, pessoas e arquivos enviados incluídos, é substituído pelos dados de demonstração.",
   "{app} home": "Início de {app}",
@@ -1101,5 +1101,7 @@
   "Live since {date}": "No ar desde {date}",
   "Kept until {date}.": "Guardado até {date}.",
   "Until {date}": "Até {date}",
-  "The lottery is running": "O sorteio está em andamento"
+  "The lottery is running": "O sorteio está em andamento",
+  "Demo account": "Conta de demonstração",
+  "Enter without a password": "Entrar sem senha"
 }

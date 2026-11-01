@@ -16,7 +16,7 @@ demo data. Then:
 
 | What | Where |
 |---|---|
-| The app | http://localhost:8000 (demo accounts: see `database/seeders`, password `password`) |
+| The app | http://localhost:8000 (demo accounts: pick one on the sign-in page, or see `database/seeders`, password `password`) |
 | Mail it sends | http://localhost:8025 (Mailpit) |
 | Vite (hot reload) | port 5173 |
 | MySQL | port 3307 |

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\HomeController;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
+use App\Support\DemoSignIn;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +23,21 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('home', absolute: false));
+    }
+
+    /** No password: only a demo account, only where demo sign-in exists */
+    public function demo(Request $request): RedirectResponse
+    {
+        abort_unless(DemoSignIn::allowed(), 404);
+
+        $user = User::find($request->integer('user'));
+
+        abort_unless($user && DemoSignIn::isDemo($user) && ! $user->isBlocked(), 404);
+
+        Auth::login($user);
         $request->session()->regenerate();
 
         return redirect()->intended(route('home', absolute: false));

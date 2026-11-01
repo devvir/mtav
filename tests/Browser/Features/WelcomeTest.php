@@ -115,3 +115,28 @@ it('shows its first pictures one after another, VICMAN among them', function () 
         ->assertSeeIn('.welcome-hero-slides figcaption', 'VICMAN, the first housing cooperative in Uruguay')
         ->assertPresent('.welcome-hero-frame img[data-shown][src*="vicman"]');
 });
+
+it('enters as a demo account picked from the list, with no password', function () {
+    config(['app.deployment' => 'staging']);
+    aUser(['email' => 'pedro@example.com', 'firstname' => 'Pedro', 'lastname' => 'Rey']);
+    $ana = aUser(['email' => 'ana@example.com', 'firstname' => 'Ana', 'lastname' => 'Silva']);
+
+    visit(route('login'))
+        ->fill('[role="dialog"] >> internal:label="Demo account"', 'Silva')
+        ->click('[role="option"]:has-text("Ana Silva")')
+        ->click(inDialog('Enter without a password'))
+        ->assertPathIsNot('/login')
+        ->assertNoSmoke();
+
+    $this->assertAuthenticatedAs($ana);
+});
+
+it('shows no demo accounts where there are none', function () {
+    config(['app.deployment' => 'production']);
+    aUser(['email' => 'ana@example.com']);
+
+    visit(route('login'))
+        ->assertSee('Keep me signed in')
+        ->assertDontSee('Demo account')
+        ->assertNoSmoke();
+});

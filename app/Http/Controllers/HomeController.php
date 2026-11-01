@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Auth\GoogleController;
+use App\Support\DemoSignIn;
 use App\Support\Variant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,7 @@ class HomeController extends Controller
             'dialog'  => $dialog,
             'google'  => GoogleController::enabled(),
             'locales' => config('app.locales'),
+            'demo'    => DemoSignIn::allowed() ? DemoSignIn::accounts() : null,
         ]);
     }
 }
