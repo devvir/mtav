@@ -3,6 +3,7 @@
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Services\ChatService;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -128,6 +129,58 @@ it('lets those in a group rename it, add people, and leave it; one on one stays 
     $pair = Conversation::where('is_group', false)->where('is_assistant', false)->sole();
     expect($this->as($this->ana, $this->project)->put(route('chat.update', [$this->project, $pair]), ['people' => [$dora->id]]))->toBeDenied()
         ->and($this->delete(route('chat.leave', [$this->project, $pair])))->toBeDenied();
+});
+
+describe('A group with no name of its own', function () {
+    beforeEach(function () {
+        $this->dora = aMemberOf(aFamily($this->project), ['firstname' => 'Dora']);
+        $this->group = app(ChatService::class)->start($this->project, $this->ana, [$this->beto->id, $this->carla->id]);
+        $this->update = fn (array $data) => $this->as($this->ana, $this->project)->putJson(route('chat.update', $this->group), $data);
+    });
+
+    it('stays so when people are added', function () {
+        ($this->update)(['people' => [$this->dora->id]])->assertOk();
+
+        expect($this->group->fresh()->title)->toBeNull()
+            ->and($this->group->participants()->count())->toBe(4);
+    });
+
+    it('keeps the name it has when people are added', function () {
+        $this->group->update(['title' => 'Roof']);
+
+        ($this->update)(['people' => [$this->dora->id]])->assertOk();
+
+        expect($this->group->fresh()->title)->toBe('Roof');
+    });
+
+    it('tells the window the name it was given, apart from what it shows', function () {
+        $panel = fn () => $this->as($this->ana, $this->project)
+            ->getJson(route('chat.panel', ['conversation' => $this->group->id]))->json('conversation');
+
+        expect($panel()['name'])->toBeNull()
+            ->and($panel()['title'])->toContain('Carla');
+
+        $this->group->update(['title' => 'Roof']);
+        expect($panel()['name'])->toBe('Roof');
+    });
+
+    it('loses its name when asked to, an empty one', function () {
+        $this->group->update(['title' => 'Roof']);
+
+        ($this->update)(['title' => ''])->assertOk();
+
+        expect($this->group->fresh()->title)->toBeNull();
+    });
+
+    it('changes nothing when someone added is refused', function () {
+        app(ChatService::class)->start($this->project, $this->dora, [$this->beto->id, $this->carla->id]);
+        config(['limits.chat_groups_per_person' => 1]);
+
+        ($this->update)(['title' => 'Roof', 'people' => [$this->dora->id]])->assertUnprocessable();
+
+        expect($this->group->fresh()->title)->toBeNull()
+            ->and($this->group->participants()->count())->toBe(3);
+    });
 });
 
 it('lets whoever wrote a message take it back, and nobody else', function () {

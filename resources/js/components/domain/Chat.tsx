@@ -87,6 +87,7 @@ interface AssistantAction {
 }
 
 type OpenConversation = ConversationSummary & {
+  name: string | null;
   people: ChatPerson[];
   can: { update: boolean; leave: boolean };
 };
@@ -667,7 +668,7 @@ function RenameGroup({
   onChange: () => Promise<void>;
 }) {
   const { project } = usePage().props;
-  const [title, setTitle] = useState(conversation.title);
+  const [title, setTitle] = useState(conversation.name ?? '');
   const [saving, setSaving] = useState(false);
 
   const save = async (event: FormEvent) => {
@@ -724,10 +725,7 @@ function AddPeople({
     event.preventDefault();
     setSaving(true);
     const url = route('chat.update', { project: project!.id, conversation: conversation.id });
-    const response = await sendJson('PUT', url, {
-      title: conversation.title,
-      people: chosen.map(Number),
-    });
+    const response = await sendJson('PUT', url, { people: chosen.map(Number) });
     if (response.ok) {
       setChosen([]);
       await onChange();

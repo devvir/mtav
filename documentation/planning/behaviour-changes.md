@@ -494,7 +494,7 @@ Unchanged, checked at both commits: anyone in the project shares files with a de
 - Old: files of unrecognized content were stored under category `unknown` → New: only listed types are accepted, checked by content (`mimetypes`); stored under the extension guessed from content, not the client's name. (`2c8e8b13:app/Enums/MediaCategory.php`, `2c8e8b13:app/Services/MediaService.php` mime2category/getClientOriginalExtension; `app/Http/Requests/MediaRequest.php`, `app/Services/MediaService.php` storeOne)
 - New: images over 50 megapixels are refused (also for avatars). (`app/Services/MediaService.php` MAX_MEGAPIXELS, test "refuses an image of more pixels than can be opened")
 - New: at most 20 files per share, and a share is bounded by the server's request size. (`app/Http/Requests/MediaRequest.php` MAX_FILES, `app/Services/MediaService.php` maxBatchKb)
-- Limited projects: 25 MB per file and 500 MB in all (usage shown on the media page); old had no total. Archived files do not count toward the 500 MB. (`config/limits.php`, `app/Services/MediaService.php` ensureStorageAvailable, `app/Http/Controllers/Member/MediaController.php` storage)
+- Limited projects: 25 MB per file and 500 MB in all (usage shown on the media page); old had no total. Archived files count toward the 500 MB, since they stay stored, and the page says so. A file removed within its first hour frees its room; beyond that only unlimited lifts the limit. A share goes in whole or not at all, and shares at the same moment cannot go over together. (`config/limits.php`, `app/Services/MediaService.php` store, bytesUsed, ensureStorageAvailable, `app/Http/Controllers/Member/MediaController.php` storage; `tests/UseCases/Community/MediaTest.php` "The storage of an unapproved project", "stores a share whole or not at all")
 - New: with the gallery off a project takes no photo or video, with files off no document or audio. (`app/Http/Requests/MediaRequest.php`, `tests/UseCases/ProjectSetup/FeaturesTest.php` "takes in no file of a kind that is off")
 - Avatars: old any image up to 2 MB stored as uploaded → New: JPEG/PNG/WebP only, up to 8 MB and 50 MP, redrawn at most 512 px as WebP, or JPEG where the server cannot write WebP (location metadata dropped). (`2c8e8b13:app/Http/Requests/Settings/AvatarUpdateRequest.php`; `app/Http/Controllers/Settings/AvatarController.php`)
 
@@ -561,7 +561,7 @@ Old: none reachable. Soft deletes existed, with no restore route. (`2c8e8b13:rou
   - a topic with no replies removed within 60 minutes;
   - an event never published, or published less than 60 minutes ago with no answers.
 - **Everything else is archived.** A file keeps its bytes and a topic its posts. (`Media`, `Topic`, `Post`, `Event` worthKeeping; `app/Services/MediaService.php` delete)
-- **Archived files do not count** toward a Limited project's 500 MB, though they stay stored; restoring one can take a project over it. Read in code, not run. (`MediaService` ensureStorageAvailable: `$project->media()` leaves soft-deleted rows out)
+- **Archived files count** toward a Limited project's 500 MB, as they stay stored; restoring one changes nothing there. (`MediaService` bytesUsed; `tests/UseCases/Community/MediaTest.php` "counts archived files…", "never goes over by restoring")
 - **An archived reply cannot be restored.** It stays hidden; the archive lists topics only. (`ArchiveService` query)
 - **No expiry.** Nothing purges the archive; only deleting the project for good does. (no scheduled task in `routes/console.php` or `bootstrap/app.php`)
 
@@ -582,7 +582,7 @@ Old: none. (no forum route, model or page at `2c8e8b13`)
 - **Sizes:** title 160 characters, post 20,000. **Rates:** 20 new topics and 60 replies a minute per person. Edits have no rate limit. (`Member/ForumController`; `routes/web.php`)
 - **A closed topic** takes replies only from admins. (`TopicPolicy` reply; test "takes no replies in a closed topic, but from its admins")
 - **No pictures or files in posts.** Text only. (`Member/ForumController` validates only `title` and `body`)
-- **Who is told:** a new topic, the whole project; a reply, everyone who wrote in that topic, whoever replied excepted. That includes writers who have since left the project, since nothing checks membership. Editing, pinning or closing tells nobody. (`app/Services/ForumService.php`; test "tells whoever wrote in a topic of each reply…")
+- **Who is told:** a new topic, the whole project; a reply, everyone still in the project who wrote in that topic, and superadmins who did, whoever replied excepted. Editing, pinning or closing tells nobody. (`app/Services/ForumService.php`; test "tells whoever wrote in a topic of each reply…")
 - **Removed topics and posts** follow the archive's rules above.
 - **After leaving,** a person's posts stay under their name. After deleting the account, they stay with no name. (`database/migrations/2026_10_30_000003_create_forum.php` nullOnDelete)
 
@@ -594,7 +594,7 @@ Old: none. (no chat route, model or page at `2c8e8b13`)
 
 - **Start a conversation** with anyone in the project: one other person gives their one conversation, whoever starts it; several give a new group, named or not. (`app/Services/ChatService.php` start; `tests/UseCases/Community/ChatTest.php` "gives two people one conversation…", "starts a group…")
 - **Community.** Every project has one group with everyone in it, pinned to begin with. Nobody leaves or renames it. Anyone in it writes. (`app/Models/Project.php` booted; `app/Models/Membership.php`; `app/Policies/ConversationPolicy.php`; tests "The Community group")
-- **In a group,** anyone in it renames it, adds people and leaves. Nobody can remove someone else. There is no group admin. The last to leave takes it along. (`ConversationPolicy` manageGroup, leaveGroup; `ChatService` leave; tests "lets those in a group rename it…", "stay with one person left…")
+- **In a group,** anyone in it renames it, adds people and leaves. A group with no name shows its people's names until someone gives it one; adding people leaves its name as it is, and someone refused leaves everything as it was. (test "A group with no name of its own") Nobody can remove someone else. There is no group admin. The last to leave takes it along. (`ConversationPolicy` manageGroup, leaveGroup; `ChatService` leave; tests "lets those in a group rename it…", "stay with one person left…")
 - **Take back one's own message.** Deleted for good, for everyone, with no time limit. No editing. (`ConversationPolicy` unsendMessage; `ChatService` remove; test "lets whoever wrote a message take it back, and nobody else")
 - **Pin** a conversation, for oneself only. (`ChatService` pin; tests "Pins")
 
@@ -631,7 +631,7 @@ Each message goes through these in order. (`Assistant::answer`)
 3. **Driver off:** "not available", with a button to the guide. (`Assistant::overLimit`; test "asks nothing when it is off, and says so")
 4. **Over the person's limit,** then **over the deployment's:** a kind refusal saying to write again tomorrow, with the guide. Free. (tests "asks nothing past a person's messages of the day", "…past the deployment's…")
 5. **Resting:** "cannot answer right now", with the guide. Free. (test "rests after failing a few times…")
-6. **The model.** No answer or an error: "Sorry, I could not answer just now", with the guide. Free. It counts as one failure, and goes to the error log. (test "says sorry when there is no answer, or it breaks")
+6. **The model.** An error reaching it: "Sorry, I could not answer just now", with the guide. Free. It counts as one failure, and goes to the error log. An answer with nothing usable in it, cut short or refused: the same words, and it counts as one of the person's messages, not as a failure. (tests "says sorry when there is no answer, or it breaks", "does not rest for what one person's questions make of it…")
 
 ### Limits and rules
 
@@ -640,7 +640,7 @@ Each message goes through these in order. (`Assistant::answer`)
 - **Deployment:** 2,000 messages a day across all projects (`ASSISTANT_PER_DAY`).
 - **What counts:** a person's messages in Assistant conversations today not marked free. Taking back a message removes it from the count, so the limit can be stepped around. Read in code, not run. (`Assistant::overLimit`; `ConversationPolicy` unsendMessage)
 - **The day** starts at midnight UTC, which is 21:00 in Uruguay. (`config/app.php` timezone; `Assistant::overLimit` startOfDay)
-- **Rest:** 3 failed answers within 10 minutes rest it for 15 minutes, for the whole deployment, asking nothing; ready answers still work. Any good answer resets the count of failures. (`Assistant.php` STUMBLES_TO_REST, STUMBLES_FOR, REST; tests "When it cannot answer")
+- **Rest:** 3 errors reaching the model within 10 minutes rest it for 15 minutes, for the whole deployment, asking nothing; ready answers still work. Any good answer resets the count of errors. (`Assistant.php` STUMBLES_TO_REST, STUMBLES_FOR, REST; tests "When it cannot answer")
 - **Sizes:** a message up to 1000 characters; it sees the latest 10 messages of the conversation; up to 700 tokens back, cut to 1500 characters as plain text; at most 3 buttons, labels up to 60 characters. Also the chat's 120 messages a minute. (`config/assistant.php`; `Assistant.php`; `Member/ChatController` send; tests "takes a short message only", "offers replies, at most three things…")
 - **Timing.** One try only, killed at 120 s by the queue. Killed: no answer, no failure counted, and the question still counts. "Answering" shows for at most 2 minutes. `assistant.timeout` (60 s) applies only to the command line; the API call's own timeout is unverified (checked `ApiBrain.php`, no timeout passed; the SDK default was not read). It needs a queue worker. (`app/Jobs/AnswerInChat.php`; `Member/ChatController` summary)
 
@@ -716,8 +716,8 @@ Old: none. (no service worker or push code at `2c8e8b13`)
 - **A bundle** (files, families or units added by the same person within 30 minutes) reaches devices only the first time. (`NotificationService` bundle)
 - **Signing out does not stop it.** Nothing unsubscribes on sign-out, so a device keeps receiving the person's notifications and messages until it is turned off, or someone else turns it on there and takes the device over. Read in code, not run. (`resources/js/lib/push.ts`; `PushSubscriptionController` store; test "gives a device to whoever allows it last…")
 - **iPhone and iPad** need the app added to the home screen first. (`resources/js/lib/push.ts`)
-- **Delivery.** In the background, needing a queue worker, 3 tries, kept by the push service for 24 hours. A device the browser dropped is forgotten. Any other failure goes to the error log. (`app/Jobs/PushNotification.php`; `app/Jobs/PushMessage.php`; `app/Services/Push/WebPushSender.php`; test "forgets a device its browser dropped")
-- **Registering:** 20 a minute; https addresses only. (`routes/web.php`; test "takes only secure push addresses")
+- **Delivery.** In the background, needing a queue worker, kept by the push service for 24 hours. A device the browser dropped is forgotten. Any other failure goes to the error log and stops nobody else's notification. (`app/Jobs/PushNotification.php`; `app/Jobs/PushMessage.php`; `app/Services/Push/PushService.php` push; `app/Services/Push/WebPushSender.php`; tests "forgets a device its browser dropped", "A device in trouble")
+- **Registering:** 20 a minute; https addresses of the browsers' push services only (Google's, Mozilla's, Apple's, Microsoft's), with keys a notification can be encrypted with. A browser using any other service is told and its switch stays off. (`routes/web.php`; `app/Models/PushSubscription.php` SERVICES; `resources/js/lib/push.ts`; tests "takes only secure push addresses", "takes no address that would have the server calling elsewhere", "takes only keys a notification can be encrypted with")
 - **Deleting an account** removes its devices. (`push_subscriptions` cascade; `tests/UseCases/Accounts/DeleteAccountTest.php` "deletes an account confirmed with its email…")
 
 ## Platform / superadmin

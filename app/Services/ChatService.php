@@ -90,21 +90,28 @@ class ChatService
     }
 
     /**
-     * A group's name, and more people in it
+     * A group's name (with none given, it stays as it is), and more people in it. All of it
+     * or, someone being refused, none.
      *
-     * @param list<int> $people
+     * @param array{title?: ?string, people?: list<int>} $changes
      */
-    public function update(Conversation $conversation, ?string $title, array $people = []): void
+    public function update(Conversation $conversation, array $changes): void
     {
-        $conversation->update(['title' => $title ?: null]);
-        if ($people) {
+        $added = [];
+        if ($changes['people'] ?? []) {
             $added = array_values(array_diff(
-                $this->ofProject($conversation->project, $people),
+                $this->ofProject($conversation->project, $changes['people']),
                 $conversation->participants()->pluck('users.id')->all(),
             ));
             $this->ensureRoomForAGroup($conversation->project, $added);
-            $conversation->participants()->syncWithoutDetaching($added);
         }
+
+        DB::transaction(function () use ($conversation, $changes, $added) {
+            if (array_key_exists('title', $changes)) {
+                $conversation->update(['title' => $changes['title'] ?: null]);
+            }
+            $conversation->participants()->syncWithoutDetaching($added);
+        });
     }
 
     /** Pinned, it stays at the top of that person's list */

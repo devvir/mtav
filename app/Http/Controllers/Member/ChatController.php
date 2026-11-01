@@ -103,7 +103,7 @@ class ChatController extends Controller
             'people.*' => ['integer'],
         ]);
 
-        $this->chat->update($conversation, $data['title'] ?? null, $data['people'] ?? []);
+        $this->chat->update($conversation, $data);
 
         return $request->wantsJson() ? response()->json([]) : back();
     }
@@ -161,6 +161,8 @@ class ChatController extends Controller
             ])->values(),
             'conversation' => $open ? [
                 ...$this->summary($open->load('participants:id,firstname,lastname,avatar'), $user),
+                // The name it was given, if any: `title` may be made up of its people
+                'name'   => $open->title,
                 'people' => $open->participants->map(fn (User $person) => $this->person($person))->values(),
                 'can'    => [
                     'update' => $user->can('manageGroup', $open),
