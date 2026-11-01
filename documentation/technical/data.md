@@ -64,7 +64,8 @@ A hosted service (Sentry, GlitchTip) can be added beside it later.
 ## Giving data back
 
 - **Exports**: a project's admins download its people, families and units as
-  spreadsheets (CSV, from Settings → Project), headings in their language.
+  spreadsheets (CSV, from Settings → Project), headings in their language; the people
+  with or without their email, phone and ID number.
 - **The lottery's record**: anyone in the project reads it; admins download it whole.
 - **Deleting an account**: the person does it from their profile, typing their email.
   They leave every project; what they gave (files, events, posts, lottery records) stays,

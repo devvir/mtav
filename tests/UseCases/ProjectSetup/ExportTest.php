@@ -27,6 +27,26 @@ it('gives admins the people, with their ID numbers and families', function () {
         ->and(rows($response->streamedContent()))->toContain(['Ana García', $this->member->email, '', '1.234.567-8', 'García', '', $this->member->memberships()->first()->created_at->toDateString()]);
 });
 
+it('leaves out email, phone and ID number when asked, keeping the names', function () {
+    $this->member->update(['phone' => '099 123 456']);
+
+    $csv = $this->as($this->admin, $this->project)
+        ->get(route('manage.export.people', [$this->project, 'without_personal_data' => 1]))->assertOk()->streamedContent();
+
+    expect(rows($csv)[0])->toBe(['Name', 'Family', 'Admin', 'Joined'])
+        ->and(rows($csv))->toContain(['Ana García', 'García', '', $this->member->memberships()->first()->created_at->toDateString()])
+        ->and($csv)->not->toContain($this->member->email)
+        ->not->toContain($this->admin->email)
+        ->not->toContain('099 123 456')
+        ->not->toContain('1.234.567-8');
+});
+
+it('keeps email, phone and ID number by default', function () {
+    $headings = rows($this->as($this->admin, $this->project)->get(route('manage.export.people', $this->project))->streamedContent())[0];
+
+    expect($headings)->toBe(['Name', 'Email', 'Phone', 'ID number', 'Family', 'Admin', 'Joined']);
+});
+
 it('gives admins the families with their people and units, and the units with their families', function () {
     $families = rows($this->as($this->admin, $this->project)->get(route('manage.export.families', $this->project))->streamedContent());
     $units = rows($this->as($this->admin, $this->project)->get(route('manage.export.units', $this->project))->streamedContent());

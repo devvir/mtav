@@ -104,7 +104,7 @@ Nothing changed in what it does or how.
 22. **Activity and error logs for superadmins.**
     - Old: `/logs` filled only by the seeder.
     - New: every change to 15 kinds of records and every sign-in, failed ones too, with name and IP; failed sign-ins kept 90 days, the rest with no time limit. Errors counted once each, and the owner emailed the first time one appears.
-23. **Exports.** Old: none. New: admins download people, families and units as CSV. The people list holds every email, phone and ID number, whatever the person's sharing choice.
+23. **Exports.** Old: none. New: admins download people, families and units as CSV. The people list holds every email, phone and ID number, whatever the person's sharing choice, unless the admin chooses to leave them out.
 
 ## Possibly missing from the new app
 
@@ -808,14 +808,15 @@ Old: none. (no export or CSV route at `2c8e8b13`)
 ### What people can do
 
 - **Admins and superadmins** download, from the project's settings, three CSV lists: (`routes/web.php` manage.export.*; `app/Http/Controllers/Manage/ExportController.php`; `resources/js/pages/Manage/Settings.tsx`; `tests/UseCases/ProjectSetup/ExportTest.php`)
-  - **people:** name, email, phone, ID number, family, admin, date joined;
+  - **people:** name, email, phone, ID number, family, admin, date joined; or, with "Without email, phone or ID number" ticked, the same list without those three;
   - **families:** family, unit type, people, unit;
   - **units:** unit, unit type, family.
 
 ### Limits and rules
 
 - **Nobody else.** (test "gives the lists to no one but admins")
-- **The people list holds every email, phone and ID number,** whatever the person's sharing choice. (test "gives admins the people, with their ID numbers and families")
+- **Where they are offered,** a message says personal data must never be used or shared without people's consent.
+- **By default the people list holds every email, phone and ID number,** whatever the person's sharing choice. (test "gives admins the people, with their ID numbers and families")
 - **No limit, no record.** No rate limit, and downloads are not in the activity log.
 - **Language and format.** Headings in the admin's language, UTF-8 with a byte order mark, named `<project>-<list>-<date>.csv`. (test "writes the headings in the admin's language")
 - **What people wrote never runs as a formula.** A cell starting with `=`, `+`, `-`, `@`, a tab or a return, or holding one right after a semicolon, gets a leading `'` there, which spreadsheet programs may show. A phone number such as `+598 99 123 456` stays as it is. (`ExportController` asText; test "What people wrote in the cells")

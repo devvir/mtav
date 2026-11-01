@@ -198,3 +198,16 @@ it('says nothing about room in an unlimited project', function () {
         ->assertDontSee('Unlimited')
         ->assertNotPresent('button[aria-expanded]:has-text("Limited")');
 });
+
+it('offers the people\'s list without their email, phone or ID number, saying consent comes first', function () {
+    $project = aProject();
+    $this->as(anAdminOf($project));
+    $href = fn ($page) => $page->script('() => [...document.querySelectorAll("a[download]")].find((link) => link.textContent.trim() === "People").getAttribute("href")');
+
+    $page = visit(route('manage.settings.edit', $project))
+        ->assertSee('Personal data must never be used or shared without people\'s consent.');
+    expect($href($page))->not->toContain('without_personal_data');
+
+    $page->click('label:has-text("Without email, phone or ID number")')->assertNoSmoke();
+    expect($href($page))->toContain('without_personal_data=1');
+});

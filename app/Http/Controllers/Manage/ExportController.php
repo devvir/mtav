@@ -4,27 +4,27 @@ namespace App\Http\Controllers\Manage;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * A project's lists as spreadsheets (CSV), for its admins: its people, its families and
  * its units, with the headings in the admin's language. Opened by any spreadsheet program
  * (the byte order mark makes Excel read accents right). People choose what the cells say:
- * none is ever run as a formula.
+ * none is ever run as a formula. The people can go without their email, phone and ID number.
  */
 class ExportController extends Controller
 {
-    public function people(Project $project): StreamedResponse
+    public function people(Request $request, Project $project): StreamedResponse
     {
         $families = $project->families()->pluck('name', 'id');
+        $contact = ! $request->boolean('without_personal_data');
 
         return $this->csv($project, 'people', [
-            __('Name'), __('Email'), __('Phone'), __('ID number'), __('Family'), __('Admin'), __('Joined'),
+            __('Name'), ...($contact ? [__('Email'), __('Phone'), __('ID number')] : []), __('Family'), __('Admin'), __('Joined'),
         ], $project->members()->alphabetically()->get()->map(fn ($person) => [
             $person->name,
-            $person->email,
-            $person->phone,
-            $person->legal_id,
+            ...($contact ? [$person->email, $person->phone, $person->legal_id] : []),
             $families[$person->pivot->family_id] ?? '',
             $person->pivot->is_admin ? __('Yes') : '',
             $person->pivot->created_at?->toDateString(),

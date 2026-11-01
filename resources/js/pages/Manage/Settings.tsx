@@ -11,12 +11,14 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Project } from '@/types/models';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Button, Card, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
+import { Button, Card, Checkbox, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
 import { IconAlertTriangle, IconDownload, IconTableExport, IconTrash } from '@tabler/icons-react';
+import { useState } from 'react';
 
 /** The project's details, and deleting it (its page prop is `settings`: `project` is shared) */
 export default function Settings({ settings: project }: { settings: Project }) {
   const { featureChoices } = usePage().props;
+  const [withoutPersonalData, setWithoutPersonalData] = useState(false);
   const form = useForm({
     name: project.name,
     description: project.description,
@@ -87,9 +89,24 @@ export default function Settings({ settings: project }: { settings: Project }) {
         <Text c="dimmed" mt="sm">
           {_('As spreadsheets, to open in Excel, LibreOffice or Google Sheets.')}
         </Text>
+        <Text mt="sm">
+          {_("Personal data must never be used or shared without people's consent.")}
+        </Text>
+        <Checkbox
+          mt="md"
+          label={_('Without email, phone or ID number')}
+          checked={withoutPersonalData}
+          onChange={(event) => setWithoutPersonalData(event.currentTarget.checked)}
+        />
         <Group gap="sm" mt="md">
           {[
-            [_('People'), route('manage.export.people')],
+            [
+              _('People'),
+              route(
+                'manage.export.people',
+                withoutPersonalData ? { without_personal_data: 1 } : {},
+              ),
+            ],
             [_('Families'), route('manage.export.families')],
             [_('Units'), route('manage.export.units')],
           ].map(([label, href]) => (
