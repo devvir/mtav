@@ -40,7 +40,7 @@ to what; and signing in, out, failing to, resetting a password. Never what peopl
 
 - Models opt in with `RecordsActivity`; `ActivityLog::record()` writes the rest.
 - A person's own details are noted by field only (that their phone changed, not to
-  what); their roles with values. Secrets (passwords, tokens) never.
+  what); their roles with values. Secrets (passwords, tokens) and a lottery's held result never.
 - Names are kept as they were, so an entry still says who did it after their account
   is gone.
 - Writing it never fails what it records.

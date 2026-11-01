@@ -2,6 +2,7 @@
 
 use App\Enums\LotteryRunStatus;
 use App\Jobs\PublishLotteryRun;
+use App\Models\Activity;
 use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Queue;
 
@@ -72,6 +73,21 @@ it('fails a run whose held result cannot be written, so the lottery can run agai
     (new PublishLotteryRun($run))->failed(new RuntimeException('The database went away'));
 
     expect($run->fresh()->status)->toBe(LotteryRunStatus::FAILED);
+});
+
+it('keeps the held result out of the activity log, where a superadmin would read it before the reveal', function () {
+    PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 30);
+    Queue::fake([PublishLotteryRun::class]);
+
+    $this->as($this->admin, $this->project)->post(route('manage.lottery.run'))->assertSessionHasNoErrors();
+
+    $run = $this->project->lotteryRuns()->sole();
+    expect($run->result['picks'])->not->toBeEmpty();
+
+    $entries = Activity::where('subject_type', 'lottery_run')->where('subject_id', $run->id)->get();
+
+    expect($entries)->not->toBeEmpty()
+        ->and($entries->pluck('changes')->filter()->flatMap(fn ($changes) => array_keys($changes))->all())->not->toContain('result');
 });
 
 it('keeps away the record of a run whose held result was never applied', function () {

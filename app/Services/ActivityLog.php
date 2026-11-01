@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Activity;
+use App\Models\LotteryRun;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,9 @@ class ActivityLog
 {
     /** Never written down, whatever changes */
     private const SECRET = ['password', 'remember_token', 'token', 'token_hash', 'google_id', 'updated_at', 'created_at'];
+
+    /** Who gets what is held from everyone until the reveal: this log is no way around that */
+    private const HELD = [LotteryRun::class => ['result']];
 
     /** A person's fields whose values are the platform's business (their roles) */
     private const ROLES = ['is_superadmin', 'is_owner'];
@@ -57,6 +61,7 @@ class ActivityLog
 
         return collect($model->getChanges())
             ->except(self::SECRET)
+            ->except(self::HELD[$model::class] ?? [])
             ->mapWithKeys(fn ($value, $field) => [
                 $field => $personal && ! in_array($field, self::ROLES, true) ? null : [$model->getOriginal($field), $value],
             ])
