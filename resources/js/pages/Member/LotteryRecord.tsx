@@ -3,6 +3,7 @@ import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useCurrentPage } from '@/components/layout/page';
 import { Panel, Stat, Status } from '@/design';
+import { decimal } from '@/lib/app';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { Badge, Button, Code, Group, SimpleGrid, Text } from '@mantine/core';
@@ -98,9 +99,7 @@ export default function LotteryRecord({ run, families, worst, average, fingerpri
         />
         <Stat
           label={_('Average place')}
-          value={
-            average === null ? '—' : average.toLocaleString(undefined, { maximumFractionDigits: 2 })
-          }
+          value={average === null ? '—' : decimal(average, 2)}
           icon={IconListNumbers}
           tone="info"
         />
