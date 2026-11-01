@@ -34,7 +34,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
     $laura = User::firstWhere('email', 'laura@example.com');
     $link = URL::temporarySignedRoute('verification.verify', now()->addHour(), ['id' => $laura->id, 'hash' => sha1($laura->email)]);
 
-    visit($link)->assertSee('Your email address is confirmed. Welcome!');
+    visit($link)->assertSee('Your email address is confirmed. Welcome.');
 
     visit(route('projects.create'))
         ->fill('name', 'Cooperativa Las Acacias')

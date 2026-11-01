@@ -98,7 +98,7 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
     $this->as($tutor);
     $page = pickDay(visit(route('lottery.show', $project)), 'start_date', now())
         ->click('[data-tour="lottery.schedule"] button[type="submit"]')
-        ->assertSee('The lottery was scheduled');
+        ->assertSee('The lottery date was set');
     runTheLottery($page)->assertSee('The lottery is done: every family has its unit.')->assertNoSmoke();
 
     // (whose first choice it is depends on the others' rankings: each family gets a unit)

@@ -13,10 +13,10 @@ return [
     |
     */
 
-    'reset'     => 'Sua senha foi redefinida.',
-    'sent'      => 'Enviamos por e-mail o link para redefinir sua senha.',
-    'throttled' => 'Aguarde antes de tentar de novo.',
-    'token'     => 'Este link para redefinir a senha não é válido.',
-    'user'      => 'Não encontramos nenhuma conta com esse endereço de e-mail.',
+    'reset'     => 'Sua senha foi mudada.',
+    'sent'      => 'Enviamos por e-mail um link para você escolher uma nova senha.',
+    'throttled' => 'Espere um pouco e tente de novo.',
+    'token'     => 'Este link para mudar a senha não vale mais. Peça um novo.',
+    'user'      => 'Não encontramos nenhuma conta com esse e-mail.',
 
 ];

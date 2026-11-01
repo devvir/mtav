@@ -76,7 +76,7 @@ it('lets members say whether they go, and shows who goes', function () {
     visit(route('events.show', [$this->project, $event]))
         ->assertSee('Will you go?')
         ->click('Yes')
-        ->assertSee('Great, see you there!')
+        ->assertSee('Great, see you there.')
         ->assertSee('Going (1)')
         ->assertSee('Ana García')
         ->click('No')
