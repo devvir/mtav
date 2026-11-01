@@ -2,6 +2,9 @@
 
 use App\Enums\MediaCategory;
 use App\Models\Media;
+use App\Services\ArchiveService;
+use App\Services\MediaService;
+use App\Services\MediaThumbnailService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -159,6 +162,74 @@ it('limits the storage of an unapproved project', function () {
     upload($this, $admin, UploadedFile::fake()->image('more.jpg')->size(800))->assertSessionHasErrors('files');
 
     expect($project->media()->count())->toBe(1);
+});
+
+describe('The storage of an unapproved project', function () {
+    beforeEach(function () {
+        config()->set('limits.unapproved.media_storage_mb', 1);
+        $this->project = anUnapprovedProject();
+        $this->owner = $this->project->admins()->first();
+        upload($this, $this->owner, UploadedFile::fake()->image('big.jpg')->size(800))->assertSessionHasNoErrors();
+    });
+
+    it('counts archived files, which stay stored', function () {
+        $this->travel(61)->minutes();
+        $this->as($this->owner, $this->project)->delete(route('media.destroy', $this->project->media()->sole()));
+
+        expect($this->project->media()->withTrashed()->sole()->trashed())->toBeTrue();
+        upload($this, $this->owner, UploadedFile::fake()->image('more.jpg')->size(800))->assertSessionHasErrors('files');
+        expect($this->as($this->owner, $this->project)->get(route('media.index'))->inertiaProps('storage.used_mb'))->toEqual(0.8)
+            ->and(Storage::disk(Media::DISK)->allFiles())->toHaveCount(2); // the file and its preview
+    });
+
+    it('frees what is removed for good, within the hour', function () {
+        $this->as($this->owner, $this->project)->delete(route('media.destroy', $this->project->media()->sole()));
+
+        upload($this, $this->owner, UploadedFile::fake()->image('more.jpg')->size(800))->assertSessionHasNoErrors();
+        expect($this->project->media()->count())->toBe(1);
+    });
+
+    it('never goes over by restoring', function () {
+        $this->travel(61)->minutes();
+        $media = $this->project->media()->sole();
+        $this->as($this->owner, $this->project)->delete(route('media.destroy', $media));
+        $used = MediaService::bytesUsed($this->project);
+
+        app(ArchiveService::class)->restore($this->project, 'gallery', $media->id);
+
+        expect(MediaService::bytesUsed($this->project))->toBe($used)
+            ->and($this->project->media()->count())->toBe(1);
+    });
+
+    it('holds with shares at the same moment: over the limit, the later share goes whole', function () {
+        // Another share lands once this one has passed its check
+        Media::creating(function (Media $media) {
+            static $once = false;
+            if (! $once) {
+                $once = true;
+                Media::withoutEvents(fn () => Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->owner->id, 'file_size' => 150 * 1024]));
+            }
+        });
+
+        upload($this, $this->owner, UploadedFile::fake()->image('more.jpg')->size(100))->assertSessionHasErrors('files');
+
+        expect($this->project->media()->where('file_size', 100 * 1024)->count())->toBe(0)
+            ->and(Storage::disk(Media::DISK)->allFiles())->toHaveCount(2); // the first file's, nothing of this share
+    });
+});
+
+it('stores a share whole or not at all', function () {
+    $thumbnails = Mockery::mock(MediaThumbnailService::class);
+    $thumbnails->shouldReceive('generate')->once()->andReturnNull();
+    $thumbnails->shouldReceive('generate')->once()->andThrow(new RuntimeException('Out of disk'));
+    app()->instance(MediaThumbnailService::class, $thumbnails);
+    $this->withoutExceptionHandling();
+
+    expect(fn () => upload($this, $this->member, UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')))
+        ->toThrow(RuntimeException::class);
+
+    expect($this->project->media()->withTrashed()->count())->toBe(0)
+        ->and(Storage::disk(Media::DISK)->allFiles())->toHaveCount(1); // the one that failed, found by no row
 });
 
 it('limits the file size of an unapproved project', function () {

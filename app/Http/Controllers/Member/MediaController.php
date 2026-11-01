@@ -148,7 +148,7 @@ class MediaController extends Controller
         $limit = $project->limit('media_storage_mb');
 
         return $limit === null ? null : [
-            'used_mb'  => round($project->media()->sum('file_size') / 1024 / 1024, 1),
+            'used_mb'  => round(MediaService::bytesUsed($project) / 1024 / 1024, 1),
             'limit_mb' => $limit,
         ];
     }

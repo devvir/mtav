@@ -27,7 +27,7 @@ class ProjectController extends Controller
             ->withCount(['memberships', 'families', 'units', 'media', 'lotteryRuns',
                 // Its lottery's own event aside
                 'events' => fn ($q) => $q->where('type', '!=', EventType::LOTTERY)])
-            ->withSum('media', 'file_size')
+            ->withSum(['media' => fn ($q) => $q->withTrashed()], 'file_size')
             ->when($filter === 'archived', fn ($q) => $q->onlyTrashed())
             ->when($request->q, fn ($q, $search) => $q->search($search))
             ->when($filter === 'awaiting', fn ($q) => $q->whereNull('approved_at')->whereNotNull('approval_requested_at'))

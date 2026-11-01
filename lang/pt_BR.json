@@ -1108,5 +1108,6 @@
   "Owner": "Dono",
   "Ask to join {project}": "Pedir para participar de {project}",
   "Withdraw the request to {project}": "Retirar o pedido a {project}",
-  "Decline the invitation to {project}": "Recusar o convite para {project}"
+  "Decline the invitation to {project}": "Recusar o convite para {project}",
+  "Removed files stay stored, and count.": "Os arquivos removidos continuam guardados e contam."
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Manage;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\MediaService;
 use App\Services\ProjectService;
 use Inertia\Response;
 
@@ -35,7 +36,7 @@ class OverviewController extends Controller
                     'members'          => $project->memberships_count,
                     'units'            => $project->units_count,
                     'families'         => $project->families_count,
-                    'media_storage_mb' => round($project->media()->sum('file_size') / 1024 / 1024, 1),
+                    'media_storage_mb' => round(MediaService::bytesUsed($project) / 1024 / 1024, 1),
                 ],
             ],
         ]);

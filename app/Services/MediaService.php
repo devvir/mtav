@@ -91,7 +91,31 @@ class MediaService
     {
         $this->ensureStorageAvailable($project, $files);
 
-        return array_map(fn (UploadedFile $file) => $this->storeOne($project, $owner, $file, $description), $files);
+        $stored = [];
+
+        try {
+            foreach ($files as $file) {
+                $stored[] = $this->storeOne($project, $owner, $file, $description);
+            }
+
+            // Shares at the same moment each passed the check above: with all of them in, it holds or they go
+            $this->ensureStorageAvailable($project, []);
+        } catch (Throwable $failure) {
+            // A share goes in whole or not at all: trying again leaves no copies
+            foreach ($stored as $media) {
+                $this->erase($media);
+            }
+
+            throw $failure;
+        }
+
+        return $stored;
+    }
+
+    /** What a project's files take up, the archived among them: they stay stored, to be restored whole */
+    public static function bytesUsed(Project $project): int
+    {
+        return (int) $project->media()->withTrashed()->sum('file_size');
     }
 
     public function delete(Media $media): void
@@ -103,9 +127,7 @@ class MediaService
             return;
         }
 
-        Storage::disk(Media::DISK)->delete(array_filter([$media->path, $media->thumbnail]));
-
-        $media->forceDelete();
+        $this->erase($media);
     }
 
     public static function categoryOf(string $mimeType): ?MediaCategory
@@ -117,6 +139,13 @@ class MediaService
         }
 
         return null;
+    }
+
+    private function erase(Media $media): void
+    {
+        Storage::disk(Media::DISK)->delete(array_filter([$media->path, $media->thumbnail]));
+
+        $media->forceDelete();
     }
 
     private function storeOne(Project $project, User $owner, UploadedFile $file, string $description): Media
@@ -151,7 +180,7 @@ class MediaService
             return;
         }
 
-        $used = $project->media()->sum('file_size');
+        $used = self::bytesUsed($project);
         $incoming = array_sum(array_map(fn (UploadedFile $file) => $file->getSize(), $files));
 
         if ($used + $incoming > $quotaMb * 1024 * 1024) {

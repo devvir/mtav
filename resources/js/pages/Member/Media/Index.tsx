@@ -157,6 +157,9 @@ export default function MediaIndex({
             size="sm"
             aria-label={_('Storage used')}
           />
+          <Text className="ds-caption" mt={6}>
+            {_('Removed files stay stored, and count.')}
+          </Text>
         </div>
       ) : null}
 
