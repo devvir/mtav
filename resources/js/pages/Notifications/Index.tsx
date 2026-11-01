@@ -23,7 +23,7 @@ export default function NotificationsIndex({ notifications, filters }: Props) {
         help={
           <InfoTip title={_('Notifications')} tour="account.notifications">
             {_(
-              'What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.',
+              'What happened in your projects, newest first. The bell shows the latest. Open one to go there.',
             )}
           </InfoTip>
         }
