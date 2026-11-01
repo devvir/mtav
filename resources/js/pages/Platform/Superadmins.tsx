@@ -14,6 +14,7 @@ interface Superadmin {
   id: number;
   name: string;
   email: string;
+  is_owner: boolean;
 }
 
 /**
@@ -75,7 +76,7 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
                 <Text fw={700}>{user.name}</Text>
                 <Text className="ds-caption ds-truncate">{user.email}</Text>
               </div>
-              {user.id !== me ? (
+              {user.id !== me && !user.is_owner ? (
                 <Button
                   variant="default"
                   color="red"
@@ -87,7 +88,7 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
                   {_('Remove the role')}
                 </Button>
               ) : (
-                <IconShieldCheck size={20} aria-label={_('You')} />
+                <IconShieldCheck size={20} aria-label={user.id === me ? _('You') : _('Owner')} />
               )}
             </Group>
           ))}

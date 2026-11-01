@@ -32,7 +32,8 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // A blocked account is never signed in, and answers as a wrong password does
+        if (! Auth::attemptWhen($this->only('email', 'password'), fn ($user) => ! $user->isBlocked(), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -41,12 +42,6 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
-
-        if (Auth::user()->isBlocked()) {
-            Auth::guard('web')->logout();
-
-            throw ValidationException::withMessages(['email' => __('auth.blocked')]);
-        }
     }
 
     /**

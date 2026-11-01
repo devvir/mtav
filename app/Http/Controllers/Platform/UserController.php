@@ -58,8 +58,7 @@ class UserController extends Controller
         $this->ensureNotProtected($request, $user);
 
         $name = $user->name;
-        $accounts->ensureCanGo($user, 'account');
-        $accounts->delete($user);
+        $accounts->deleteIfItCanGo($user, 'account');
 
         return back()->with('success', __('flash.account_deleted', ['name' => $name]));
     }
@@ -67,7 +66,7 @@ class UserController extends Controller
     /** Not oneself, nor anyone who runs the platform: their role goes first */
     private function ensureNotProtected(Request $request, User $user): void
     {
-        if ($user->is($request->user()) || $user->isSuperadmin()) {
+        if ($user->is($request->user()) || $user->isSuperadmin() || $user->is_owner) {
             throw ValidationException::withMessages(['account' => __('validation.account_protected')]);
         }
     }
@@ -77,11 +76,11 @@ class UserController extends Controller
     {
         return inertia('Platform/Superadmins', [
             'superadmins' => User::where('is_superadmin', true)->alphabetically()->get()
-                ->map(fn (User $user) => $user->only('id', 'name', 'email')),
+                ->map(fn (User $user) => $user->only('id', 'name', 'email', 'is_owner')),
         ]);
     }
 
-    /** Giving the role to an account named by its exact email */
+    /** Giving the role to an account named by its exact email, once confirmed and not blocked */
     public function grant(Request $request): RedirectResponse
     {
         // Emails are kept in lower case
@@ -89,6 +88,7 @@ class UserController extends Controller
         $user = User::where('email', $email)->first()
             ?? throw ValidationException::withMessages(['email' => __('validation.no_account_with_email')]);
 
+        $this->ensureCanHoldRole($user, 'email');
         $user->forceFill(['is_superadmin' => true])->save();
 
         return back()->with('success', __('flash.superadmin_granted', ['name' => $user->name]));
@@ -102,8 +102,22 @@ class UserController extends Controller
             throw ValidationException::withMessages(['grant' => __('validation.cannot_revoke_self')]);
         }
 
+        // The deployment's first superadmin stays one: nobody could bring them back
+        if (! $grant && $user->is_owner) {
+            throw ValidationException::withMessages(['grant' => __('validation.owner_keeps_role')]);
+        }
+
+        $grant && $this->ensureCanHoldRole($user, 'grant');
         $user->forceFill(['is_superadmin' => $grant])->save();
 
         return back()->with('success', __($grant ? 'flash.superadmin_granted' : 'flash.superadmin_revoked', ['name' => $user->name]));
+    }
+
+    /** An address nobody proved could be anyone's; a closed account stays closed */
+    private function ensureCanHoldRole(User $user, string $errorKey): void
+    {
+        if (! $user->hasVerifiedEmail() || $user->isBlocked()) {
+            throw ValidationException::withMessages([$errorKey => __('validation.superadmin_unconfirmed')]);
+        }
     }
 }
