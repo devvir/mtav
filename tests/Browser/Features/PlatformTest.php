@@ -67,6 +67,22 @@ it('previews the components in either scheme', function () {
         ->assertScript("document.documentElement.getAttribute('data-mantine-color-scheme')", 'light');
 });
 
+it('leaves nothing of the states it holds still once one leaves the lab', function () {
+    $held = '() => {
+        const has = (list) => [...list.cssRules].some((rule) => rule.selectorText?.includes(".ps-hover") || (rule.cssRules && has(rule)));
+        return [...document.styleSheets].some((sheet) => { try { return has(sheet); } catch { return false; } });
+    }';
+
+    $page = visit(route('admin.lab'))->assertPresent('.lab-head');
+    expect($page->script($held))->toBeTrue();
+
+    $page->click('.shell-nav >> a:has-text("Accounts")')->assertMissing('.lab-head');
+    expect($page->script($held))->toBeFalse();
+
+    $page->click('.shell-nav >> a:has-text("UI Lab")')->assertPresent('.lab-head');
+    expect($page->script($held))->toBeTrue();
+});
+
 it('restores an archived project, or deletes it for good after its summary and its name', function () {
     $kept = aProject(['name' => 'Cooperativa Vuelta']);
     $gone = aProject(['name' => 'Cooperativa Final']);

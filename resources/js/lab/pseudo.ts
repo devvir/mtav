@@ -24,7 +24,18 @@ const twin = (selector: string): string | null => {
   return held === selector ? null : held;
 };
 
-const done = new WeakSet<CSSStyleSheet>();
+let done = new WeakSet<CSSStyleSheet>();
+/** What was put in, to take out on leaving */
+let added: { list: CSSStyleSheet | CSSGroupingRule; rule: CSSRule }[] = [];
+
+const insert = (list: CSSStyleSheet | CSSGroupingRule, text: string, at: number) => {
+  try {
+    list.insertRule(text, at);
+    added.push({ list, rule: list.cssRules[at]! });
+  } catch {
+    /* a selector this browser cannot parse */
+  }
+};
 
 /**
  * Every rule of a list (a sheet, or a media or layer block in it), twinned
@@ -40,23 +51,12 @@ const twinRules = (list: CSSStyleSheet | CSSGroupingRule, outside: string[] = []
       if (selector) {
         const text = `${selector} { ${rule.style.cssText} }`;
         if (list instanceof CSSMediaRule && /hover/.test(list.conditionText)) outside.unshift(text);
-        else
-          try {
-            list.insertRule(text, at + 1);
-          } catch {
-            /* a selector this browser cannot parse */
-          }
+        else insert(list, text, at + 1);
       }
     } else if (rule instanceof CSSGroupingRule) {
       const lifted: string[] = [];
       twinRules(rule, lifted);
-      for (const text of lifted.reverse()) {
-        try {
-          list.insertRule(text, at + 1);
-        } catch {
-          /* as above */
-        }
-      }
+      for (const text of lifted.reverse()) insert(list, text, at + 1);
     }
   }
 };
@@ -73,12 +73,23 @@ const twinSheets = () => {
   }
 };
 
-/** Holds states from now on, for the sheets there now and those that arrive (an edit, reloaded in place). */
+/**
+ * Holds states from now on, for the sheets there now and those that arrive (an edit, reloaded
+ * in place), until what it returns is called: everything goes back as it was, for the rest of
+ * the app.
+ */
 export const holdStates = () => {
   twinSheets();
-  new MutationObserver(() => twinSheets()).observe(document.head, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-  });
+  const arriving = new MutationObserver(() => twinSheets());
+  arriving.observe(document.head, { childList: true, subtree: true, characterData: true });
+
+  return () => {
+    arriving.disconnect();
+    for (const { list, rule } of added) {
+      const at = [...list.cssRules].indexOf(rule);
+      if (at >= 0) list.deleteRule(at);
+    }
+    added = [];
+    done = new WeakSet();
+  };
 };
