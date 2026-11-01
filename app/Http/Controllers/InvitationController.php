@@ -6,6 +6,8 @@ use App\Models\Invitation;
 use App\Models\User;
 use App\Services\InvitationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -25,6 +27,10 @@ class InvitationController extends Controller
     {
         $invitation = Invitation::findByToken($token);
 
+        if ($joined = $this->alreadyJoined($request, $invitation)) {
+            return $joined;
+        }
+
         if (! $invitation?->isPending()) {
             return inertia('Auth/InvitationInvalid');
         }
@@ -34,9 +40,7 @@ class InvitationController extends Controller
         $hasAccount = User::where('email', $invitation->email)->exists();
 
         if (! $user && $hasAccount) {
-            redirect()->setIntendedUrl(route('invitation.show', $token));
-
-            return to_route('login')->with('info', __('flash.invitation_sign_in', ['email' => $invitation->email]));
+            return $this->toSignIn($invitation, $token);
         }
 
         return inertia('Auth/Invitation', [
@@ -59,9 +63,13 @@ class InvitationController extends Controller
     {
         $invitation = Invitation::findByToken($token);
 
+        if ($joined = $this->alreadyJoined($request, $invitation)) {
+            return $joined;
+        }
+
         abort_unless($invitation?->isPending(), 404);
 
-        $user = $request->user() ?? $this->createAccount($request, $invitation);
+        $user = $request->user() ?? $this->createAccount($request, $invitation, $token);
 
         abort_unless($user->email === $invitation->email, 403);
 
@@ -90,9 +98,27 @@ class InvitationController extends Controller
             ->with('success', __('flash.invitation_accepted', ['project' => $invitation->project->name]));
     }
 
-    private function createAccount(Request $request, Invitation $invitation): User
+    /** The link used again by whoever already accepted it: on to the project */
+    private function alreadyJoined(Request $request, ?Invitation $invitation): ?RedirectResponse
     {
-        abort_if(User::where('email', $invitation->email)->exists(), 409);
+        $accepted = $invitation?->accepted_at && $request->user()?->email === $invitation->email;
+
+        return $accepted ? to_route('projects.show', $invitation->project_id) : null;
+    }
+
+    private function toSignIn(Invitation $invitation, string $token): RedirectResponse
+    {
+        redirect()->setIntendedUrl(route('invitation.show', $token));
+
+        return to_route('login')->with('info', __('flash.invitation_sign_in', ['email' => $invitation->email]));
+    }
+
+    /** With an account already there (opened meanwhile, or by a double tap), on to signing in */
+    private function createAccount(Request $request, Invitation $invitation, string $token): User
+    {
+        if (User::where('email', $invitation->email)->exists()) {
+            throw new HttpResponseException($this->toSignIn($invitation, $token));
+        }
 
         $data = $request->validate([
             'firstname' => ['required', 'string', 'between:2,80'],
@@ -100,7 +126,11 @@ class InvitationController extends Controller
             'password'  => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $user = User::create([...$data, 'email' => $invitation->email]);
+        try {
+            $user = User::create([...$data, 'email' => $invitation->email]);
+        } catch (UniqueConstraintViolationException) {
+            throw new HttpResponseException($this->toSignIn($invitation, $token));
+        }
 
         Auth::login($user);
         $request->session()->regenerate();

@@ -41,7 +41,9 @@ export default function Invitation({ token, invitation, mismatch }: Props) {
       ? _('to help manage {project}, as a member of the {family} family', { project, family })
       : is_admin
         ? _('to help manage {project}', { project })
-        : _('to join the {family} family in {project}', { project, family: family ?? '' });
+        : family
+          ? _('to join the {family} family in {project}', { project, family })
+          : _('to join {project}', { project });
 
   return (
     <>

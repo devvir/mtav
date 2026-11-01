@@ -1,5 +1,6 @@
 <?php
 
+use App\Notifications\InvitationNotification;
 use App\Enums\LotteryRunStatus;
 use App\Models\Invitation;
 use App\Models\User;
@@ -39,6 +40,27 @@ function lotteryDecided($project): void
 
 describe('In a project with guests', function () {
     beforeEach(fn () => $this->project->update(['allows_guests' => true]));
+
+    it('invites a guest in words that name no family, by email and on the page', function () {
+        Notification::fake();
+
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), ['email' => 'guest@example.com'])
+            ->assertSessionHasNoErrors();
+
+        $link = null;
+        Notification::assertSentOnDemand(InvitationNotification::class, function ($notification) use (&$link) {
+            $link = route('invitation.show', $notification->token);
+            expect($notification->toMail()->introLines[0])->toBe(__('emails.invitation_guest', [
+                'inviter' => $this->admin->name,
+                'project' => $this->project->name,
+            ]));
+
+            return true;
+        });
+
+        auth()->logout();
+        $this->get($link)->assertInertia(fn ($page) => $page->where('invitation.family', null)->where('invitation.is_admin', false));
+    });
 
     it('an admin invites someone with no family', function () {
         $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), ['email' => 'guest@example.com'])

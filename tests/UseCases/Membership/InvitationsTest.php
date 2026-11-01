@@ -250,6 +250,15 @@ it('writes each notification in the language of whoever reads it', function () {
         ->and(__('notifications.lottery_invalidated_title', [], 'fr'))->not->toBe(__('notifications.lottery_invalidated_title', [], 'es_UY'));
 });
 
+it('tells no one in the app when the account never confirmed the address: it may not be theirs', function () {
+    User::factory()->unverified()->create(['email' => 'new.person@example.com']);
+
+    invite($this, $this->admin, ['family_id' => $this->family->id])->assertSessionHasNoErrors();
+
+    expect(App\Models\Notification::where('type', 'invitation_received')->count())->toBe(0);
+    Notification::assertSentOnDemand(InvitationNotification::class);
+});
+
 it('tells no one in the app when the person has no account yet (the email is theirs)', function () {
     invite($this, $this->admin, ['family_id' => $this->family->id])->assertSessionHasNoErrors();
 
@@ -269,4 +278,65 @@ it('tells admins, on every page of the project, how many invitations nobody answ
     expect($this->as($this->admin, $this->project)->get(route('manage.overview'))->inertiaProps('project.pending_invitations'))->toBe(2)
         // Members are told nothing of it
         ->and($this->as(aMemberOf($this->family), $this->project)->get(route('projects.show'))->inertiaProps('project.pending_invitations'))->toBeNull();
+});
+
+describe('An invitation accepted twice', function () {
+    beforeEach(function () {
+        invite($this, $this->admin, ['family_id' => $this->family->id]);
+        $this->link = invitationLink();
+        auth()->logout();
+    });
+
+    it('joins once and tells the project once, whichever way the second comes', function () {
+        $person = aUser(['email' => 'new.person@example.com']);
+        $invitation = Invitation::firstWhere('email', 'new.person@example.com');
+        $service = app(App\Services\InvitationService::class);
+
+        // As the second of two at once: it read the invitation before the first finished
+        $stale = $invitation->fresh();
+        $service->accept($invitation, $person);
+        $membership = $service->accept($stale, $person);
+
+        expect($membership->exists)->toBeTrue()
+            ->and($this->project->memberships()->where('user_id', $person->id)->count())->toBe(1)
+            ->and(App\Models\Notification::where('type', 'member_joined')->count())->toBe(1);
+    });
+
+    it('takes whoever accepted it on to the project, from the form or from the link', function () {
+        $person = aUser(['email' => 'new.person@example.com']);
+
+        $this->as($person)->post($this->link)->assertRedirect(route('projects.show', $this->project));
+        $this->as($person)->post($this->link)->assertRedirect(route('projects.show', $this->project));
+        $this->as($person)->get($this->link)->assertRedirect(route('projects.show', $this->project));
+    });
+
+    it('stays invalid for anyone else', function () {
+        $this->as(aUser(['email' => 'new.person@example.com']))->post($this->link);
+
+        $this->as(aUser())->get($this->link)->assertInertia(fn ($page) => $page->component('Auth/InvitationInvalid'));
+        expect($this->as(aUser())->post($this->link))->toBeDenied();
+    });
+
+    it('leads to signing in when the account was opened in the meantime', function () {
+        aUser(['email' => 'new.person@example.com']);
+
+        $this->post($this->link, [
+            'firstname' => 'Ana', 'password' => 'a-Strong-pass-123', 'password_confirmation' => 'a-Strong-pass-123',
+        ])->assertRedirect(route('login'))->assertSessionHas('info');
+    });
+
+    it('leads to signing in when the account is opened at that very moment', function () {
+        // Between the check and the insert, as the other tap would
+        User::creating(function () {
+            User::flushEventListeners();
+            aUser(['email' => 'new.person@example.com']);
+        });
+
+        $this->post($this->link, [
+            'firstname' => 'Ana', 'password' => 'a-Strong-pass-123', 'password_confirmation' => 'a-Strong-pass-123',
+        ])->assertRedirect(route('login'));
+
+        expect(User::where('email', 'new.person@example.com')->count())->toBe(1);
+        $this->assertGuest();
+    });
 });

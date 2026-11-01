@@ -82,7 +82,10 @@ class InvitationService
 
         Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
 
-        if ($invitee = User::firstWhere('email', $email)) {
+        // An account never confirmed may not be the address's owner: the email reaches them alone
+        $invitee = User::firstWhere('email', $email);
+
+        if ($invitee?->hasVerifiedEmail()) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
                 NotificationType::INVITATION_RECEIVED,
@@ -107,15 +110,24 @@ class InvitationService
     }
 
     /**
-     * Accept an invitation on behalf of a (new or existing) user.
+     * Accept an invitation on behalf of a (new or existing) user. Accepted twice at the same
+     * moment (a double tap), the second finds it done.
      */
     public function accept(Invitation $invitation, User $user): Membership
     {
-        $membership = DB::transaction(function () use ($invitation, $user) {
+        $alreadyAccepted = false;
+
+        $membership = DB::transaction(function () use ($invitation, $user, &$alreadyAccepted) {
+            $alreadyAccepted = (bool) Invitation::whereKey($invitation->id)->lockForUpdate()->value('accepted_at');
+
             $membership = Membership::firstOrNew([
                 'user_id'    => $user->id,
                 'project_id' => $invitation->project_id,
             ]);
+
+            if ($alreadyAccepted) {
+                return $membership;
+            }
 
             // An invitation brings someone into a family, never out of the one they are in
             // (admins move people, on purpose, from the people page)
@@ -131,6 +143,10 @@ class InvitationService
 
             return $membership;
         });
+
+        if ($alreadyAccepted) {
+            return $membership;
+        }
 
         $this->notifications->send(
             NotificationTarget::PROJECT,

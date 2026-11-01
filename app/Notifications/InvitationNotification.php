@@ -38,7 +38,8 @@ class InvitationNotification extends Notification implements ShouldQueue
         $intro = match (true) {
             $invitation->is_admin && (bool) $invitation->family => 'emails.invitation_admin_family',
             $invitation->is_admin                               => 'emails.invitation_admin',
-            default                                             => 'emails.invitation_family',
+            (bool) $invitation->family                          => 'emails.invitation_family',
+            default                                             => 'emails.invitation_guest',
         };
 
         return (new MailMessage())
