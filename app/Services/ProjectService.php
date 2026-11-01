@@ -57,7 +57,8 @@ class ProjectService
             return $project;
         });
 
-        $this->notifications->send(
+        // Only once it stands: whoever calls this may still take it all back
+        DB::afterCommit(fn () => $this->notifications->send(
             NotificationTarget::GLOBAL,
             NotificationType::RESOURCE_CREATED,
             title: 'notifications.project_created_title',

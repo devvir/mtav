@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 /**
@@ -71,7 +72,12 @@ class ProjectController extends Controller
                 $project->memberships()->create(['user_id' => $user->id, 'is_admin' => true]);
                 $user->unsetRelation('memberships');
             } elseif ($first) {
-                $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
+                try {
+                    $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
+                } catch (ValidationException $refused) {
+                    // Said where the page asks for it
+                    throw ValidationException::withMessages(['first_admin_email' => collect($refused->errors())->flatten()->all()]);
+                }
             }
 
             return $project;

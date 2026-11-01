@@ -112,9 +112,24 @@ describe('A superadmin', function () {
         aUser(['email' => 'blocked@example.com', 'blocked_at' => now()]);
 
         $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'blocked@example.com']))
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasErrors('first_admin_email');
 
         expect(App\Models\Project::count())->toBe(0);
+    });
+
+    it('tells superadmins of a new project only once it stands', function () {
+        aUser(['email' => 'blocked@example.com', 'blocked_at' => now()]);
+        Illuminate\Support\Facades\Event::fake([App\Events\NotificationSent::class]);
+
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'blocked@example.com']));
+
+        Illuminate\Support\Facades\Event::assertNotDispatched(App\Events\NotificationSent::class);
+
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'first@example.com']))
+            ->assertSessionHasNoErrors();
+
+        expect(App\Models\Notification::where('type', App\Enums\NotificationType::RESOURCE_CREATED)->count())->toBe(1);
+        Illuminate\Support\Facades\Event::assertDispatched(App\Events\NotificationSent::class);
     });
 
     it('may be its first admin, shown as any admin', function () {
