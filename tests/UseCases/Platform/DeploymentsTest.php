@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Delivery\GitHub;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -20,23 +21,25 @@ beforeEach(function () {
 });
 
 /** GitHub as it answers: these runs, and staging's deployments (newest first) */
-function githubWith(array $deployments = [], array $runs = []): void
+function githubWith(array $deployments = [], array $runs = [], array $aged = []): void
 {
     $commit = fn ($sha) => ['sha' => $sha, 'commit' => ['message' => "Commit {$sha}\n\nbody", 'committer' => ['date' => '2026-10-29T10:00:00Z']]];
     $fakes = [
-        REPO . 'commits/main'        => Http::response($commit('c3')),
+        REPO . 'commits/main' => Http::response($commit('c3')),
+        ...$aged,
         REPO . 'actions/runs*'       => Http::response(['workflow_runs' => $runs]),
         REPO . 'branches*'           => Http::response([['name' => 'main'], ['name' => 'plan-guides']]),
         REPO . 'compare/*'           => Http::response(['ahead_by' => 2]),
         REPO . 'actions/workflows/*' => Http::response(null, 204),
     ];
-    foreach (['c1', 'c2', 'c3'] as $sha) {
+    foreach (['c1', 'c2', 'c3', str_repeat('a', 40)] as $sha) {
         $fakes[REPO . "commits/{$sha}"] = Http::response($commit($sha));
     }
     foreach ($deployments as $index => [$sha, $run]) {
         $fakes[REPO . "deployments/{$index}/statuses*"] = Http::response([[
-            'state'   => 'success', 'created_at' => "2026-10-29T0{$index}:00:00Z",
-            'log_url' => "https://github.com/devvir/mtav/actions/runs/{$run}/job/1",
+            'state'           => 'success', 'created_at' => "2026-10-29T0{$index}:00:00Z",
+            'log_url'         => "https://github.com/devvir/mtav/actions/runs/{$run}/job/1",
+            'environment_url' => $deployments[$index][2] ?? null,
         ]]);
     }
     $fakes[REPO . 'deployments?environment=staging*'] = Http::response(array_map(
@@ -81,6 +84,83 @@ it('knows a second rollback brought the newer release back again', function () {
     $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
 
     expect($staging['live']['sha'])->toBe('c2');
+});
+
+it('knows a rollback whose run is older than the latest runs', function () {
+    githubWith(
+        [['c3', 12], ['c2', 11], ['c1', 10]],
+        [aRun(11, 'pipeline.yml'), aRun(10, 'pipeline.yml')],
+        [REPO . 'actions/runs/12' => Http::response(aRun(12, 'rollback.yml'))],
+    );
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live'])->sha->toBe('c1')->rolled_back->toBeTrue();
+});
+
+it('takes a run it cannot find any more for a deploy', function () {
+    githubWith([['c2', 11], ['c1', 10]], [aRun(10, 'pipeline.yml')], [REPO . 'actions/runs/11' => Http::response(null, 404)]);
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live']['sha'])->toBe('c2');
+});
+
+it('shows the release a run names, not the commit the run was on', function () {
+    $named = str_repeat('a', 40);
+    githubWith([['c3', 11, "https://www.mtav.uy/#{$named}"]], [aRun(11, 'production.yml')]);
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live']['sha'])->toBe($named);
+});
+
+it('reads an address with nothing named after it as the commit the run was on', function (string $url) {
+    githubWith([['c2', 11, $url]], [aRun(11, 'pipeline.yml')]);
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live']['sha'])->toBe('c2');
+})->with(['https://stg.mtav.uy', 'https://stg.mtav.uy/#', 'https://stg.mtav.uy/#not-a-commit']);
+
+it('knows starting over keeps the release, and when it happened', function () {
+    githubWith([['c3', 12], ['c2', 11], ['c1', 10]], [aRun(12, 'fresh.yml'), aRun(11, 'pipeline.yml'), aRun(10, 'pipeline.yml')]);
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live'])->sha->toBe('c2')->since->toBe('2026-10-29T00:00:00Z')->rolled_back->toBeFalse();
+});
+
+it('rolls back past a start over to the release before', function () {
+    githubWith(
+        [['c3', 13], ['c3', 12], ['c2', 11], ['c1', 10]],
+        [aRun(13, 'rollback.yml'), aRun(12, 'fresh.yml'), aRun(11, 'pipeline.yml'), aRun(10, 'pipeline.yml')],
+    );
+
+    $staging = collect(app(GitHub::class)->environments())->firstWhere('name', 'staging');
+
+    expect($staging['live']['sha'])->toBe('c1');
+});
+
+it('says so on the page when GitHub does not answer a deploy', function () {
+    Http::fake([REPO . 'actions/workflows/*' => fn () => throw new ConnectionException('down')]);
+
+    $this->as($this->deployer)->post(route('admin.deployments.rollback'), ['environment' => 'staging'])
+        ->assertSessionHasErrors(['deploy' => __('flash.deploy_unreachable')]);
+});
+
+it('says so on the page when GitHub refuses a deploy', function () {
+    Http::fake([REPO . 'actions/workflows/*' => Http::response(null, 403)]);
+
+    $this->as($this->deployer)->post(route('admin.deployments.rollback'), ['environment' => 'staging'])
+        ->assertSessionHasErrors(['deploy' => __('flash.deploy_refused', ['status' => 403])]);
+});
+
+it('says so on the page when GitHub does not answer which branches there are', function () {
+    Http::fake([REPO . 'branches*' => fn () => throw new ConnectionException('down')]);
+
+    $this->as($this->deployer)->post(route('admin.deployments.dev'), ['branch' => 'plan-guides'])
+        ->assertSessionHasErrors(['deploy' => __('flash.deploy_unreachable')]);
 });
 
 it('asks GitHub to deploy dev from a branch, production from main, and to roll back', function () {

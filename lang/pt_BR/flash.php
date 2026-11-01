@@ -80,6 +80,7 @@ return [
     'deploy_rollback'         => ':environment volta para a versão anterior.',
     'deploy_fresh'            => ':environment recomeça do zero, com os dados de demonstração. Acompanhe abaixo.',
     'deploy_refused'          => 'O GitHub não iniciou (:status). Verifique o token de implantação.',
+    'deploy_unreachable'      => 'O GitHub não respondeu, então nada foi iniciado. Tente de novo daqui a pouco.',
     'upload_too_large'        => 'Era demais para enviar de uma vez: compartilhe menos arquivos, ou menores.',
     'platform_settings_saved' => 'As configurações da plataforma foram salvas.',
     'page_expired'            => 'A página ficou aberta por muito tempo: tente de novo.',

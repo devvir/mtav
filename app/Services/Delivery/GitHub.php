@@ -107,7 +107,8 @@ class GitHub
     /**
      * The release an environment runs: its history replayed, oldest first. A deploy goes
      * live and keeps the release it replaces idle beside it (blue and green); a rollback
-     * swaps the two.
+     * swaps the two; starting over keeps the release. A record is of the commit its run was
+     * on, unless the run names the one it deployed (production's, which runs on main).
      */
     private function live(string $environment, Collection $runs): ?array
     {
@@ -117,10 +118,13 @@ class GitHub
             if (($status['state'] ?? null) !== 'success') {
                 continue;
             }
-            $run = $runs->get((int) str($status['log_url'] ?? '')->after('/runs/')->before('/')->toString());
+            $run = (int) str($status['log_url'] ?? '')->after('/runs/')->before('/')->toString();
+            $workflow = $runs->get($run)['workflow'] ?? $this->workflowOf($run);
+            $named = str($status['environment_url'] ?? '')->afterLast('#')->toString();
             $history[] = [
-                'rollback' => ($run['workflow'] ?? null) === self::WORKFLOWS['rollback'],
-                'sha'      => $deployment['sha'],
+                'rollback' => $workflow === self::WORKFLOWS['rollback'],
+                'fresh'    => $workflow === self::WORKFLOWS['fresh'],
+                'sha'      => preg_match('/^[0-9a-f]{40}$/', $named) ? $named : $deployment['sha'],
                 'since'    => $status['created_at'],
                 'by'       => $deployment['creator']['login'] ?? null,
                 'run_url'  => $status['log_url'] ?? null,
@@ -129,7 +133,9 @@ class GitHub
 
         [$live, $idle] = [null, null];
         foreach (array_reverse($history) as $event) {
-            if (! $event['rollback']) {
+            if ($event['fresh']) {
+                $live = $live ? [...$live, 'since' => $event['since'], 'by' => $event['by'], 'run_url' => $event['run_url']] : null;
+            } elseif (! $event['rollback']) {
                 [$live, $idle] = [$event, $live];
             } elseif ($idle) {
                 [$live, $idle] = [[...$idle, 'since' => $event['since'], 'by' => $event['by'], 'rolled_back' => true], $live];
@@ -147,6 +153,12 @@ class GitHub
             'run_url'     => $live['run_url'],
             'rolled_back' => $live['rolled_back'] ?? false,
         ];
+    }
+
+    /** The workflow of a run older than the latest ones: that never changes, so kept a while */
+    private function workflowOf(int $run): ?string
+    {
+        return $run ? Cache::remember("delivery.run.{$run}", now()->addDay(), fn () => ($path = $this->client()->get("actions/runs/{$run}")->json('path')) ? basename($path) : null) : null;
     }
 
     /** How many commits of main a release lacks */

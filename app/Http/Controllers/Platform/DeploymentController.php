@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Services\Delivery\GitHub;
+use Illuminate\Http\Client\HttpClientException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,13 @@ class DeploymentController extends Controller
 
     public function dev(Request $request): RedirectResponse
     {
-        $data = $request->validate(['branch' => ['required', 'string', Rule::in($this->github->branches())]]);
+        try {
+            $branches = $this->github->branches();
+        } catch (HttpClientException $e) {
+            throw $this->refused($e);
+        }
+
+        $data = $request->validate(['branch' => ['required', 'string', Rule::in($branches)]]);
 
         return $this->dispatch('dev', $data['branch'], [], __('flash.deploy_dev', ['branch' => $data['branch']]));
     }
@@ -67,13 +74,21 @@ class DeploymentController extends Controller
     {
         try {
             $this->github->dispatch(GitHub::WORKFLOWS[$kind], $ref, $inputs);
-        } catch (RequestException $e) {
-            report($e);
-
-            throw ValidationException::withMessages(['deploy' => __('flash.deploy_refused', ['status' => $e->response->status()])]);
+        } catch (HttpClientException $e) {
+            throw $this->refused($e);
         }
 
         return back()->with('success', $done);
+    }
+
+    /** GitHub said no, or did not answer: said on the page */
+    private function refused(HttpClientException $e): ValidationException
+    {
+        report($e);
+
+        return ValidationException::withMessages(['deploy' => $e instanceof RequestException
+            ? __('flash.deploy_refused', ['status' => $e->response->status()])
+            : __('flash.deploy_unreachable')]);
     }
 
     /** What GitHub answered, or null when it did not (the page says so) */

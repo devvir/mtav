@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-24.04
     environment:
       name: production
-      url: https://www.mtav.uy
+      # After the # the release that went live, for the console: the run itself is on main
+      url: https://www.mtav.uy/#${{ steps.release.outputs.commit }}
     concurrency:
       group: deploy-production
       cancel-in-progress: false

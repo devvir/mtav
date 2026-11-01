@@ -80,6 +80,7 @@ return [
     'deploy_rollback'         => ':environment is going back to the release before.',
     'deploy_fresh'            => 'Starting :environment over, with the demo data. Follow it below.',
     'deploy_refused'          => 'GitHub did not start it (:status). Check the deploy token.',
+    'deploy_unreachable'      => 'GitHub did not answer, so nothing started. Try again in a moment.',
     'upload_too_large'        => 'That was too much to send at once: share fewer files, or smaller ones.',
     'platform_settings_saved' => 'The platform settings were saved.',
     'page_expired'            => 'The page was open for a long time: try again.',

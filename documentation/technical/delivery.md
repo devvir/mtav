@@ -178,4 +178,6 @@ The platform console's Deployments page starts these same workflows through GitH
 (dev from a branch, production from `main`, a rollback of any environment, dev or
 staging started over) and shows
 what each environment runs: GitHub's deployment records, replayed in order (a rollback
-swaps the live release with the one before), against the latest `main`.
+swaps the live release with the one before, starting over keeps it), against the latest
+`main`. A record is of the commit its run was on; production's runs are on `main`, so
+they name the release they deployed in the record's address, after a `#`.
