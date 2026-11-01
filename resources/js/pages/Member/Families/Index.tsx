@@ -201,7 +201,7 @@ export default function FamiliesIndex({
             : _('No family of this type yet.')}
         </Text>
       ) : null}
-      <Pagination page={families} />
+      {archive?.shown ? null : <Pagination page={families} />}
 
       {unitTypes ? (
         <Modal opened={adding.opened} onClose={adding.close} title={_('Add a family')}>

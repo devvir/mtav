@@ -2,6 +2,7 @@
 
 use App\Enums\MediaCategory;
 use App\Models\Media;
+use App\Services\ForumService;
 use App\Services\ProjectService;
 
 /**
@@ -118,4 +119,46 @@ it('shows superadmins the projects awaiting approval apart', function () {
         ->click('.ds-pills >> text=Awaiting approval')
         ->assertSee($waiting->name)
         ->assertDontSee($this->project->name);
+});
+
+it('leaves the live list\'s pager out while the archive is shown', function () {
+    $forum = app(ForumService::class);
+    $this->as($this->admin);
+    foreach (range(1, 31) as $n) {
+        $topic = $forum->open($this->project, $this->admin, "Topic {$n}", 'About it');
+    }
+    $topic->delete();
+    foreach (range(32, 33) as $n) {
+        $forum->open($this->project, $this->admin, "Topic {$n}", 'About it');
+    }
+
+    visit(route('forum.index', $this->project))
+        ->assertPresent('nav[aria-label="Pages"]')
+        ->click('label:has-text("Show archived")')
+        ->assertSee('Topic 31')
+        ->assertNotPresent('nav[aria-label="Pages"]')
+        ->click('label:has-text("Show archived")')
+        ->assertPresent('nav[aria-label="Pages"]');
+});
+
+it('leaves it out on the files and the families too', function () {
+    config(['lists.whole' => 1]);
+    $this->as($this->admin);
+    Media::factory(25)->for($this->project)->create(['owner_id' => $this->admin->id])->first()->delete();
+    Media::factory(25)->for($this->project)->create(['owner_id' => $this->admin->id]);
+    foreach (range(1, 30 + 1) as $n) {
+        aFamily($this->project, $this->type, ['name' => "Family {$n}"]);
+    }
+    aFamily($this->project, $this->type, ['name' => 'Gone'])->delete();
+
+    visit(route('media.index', $this->project))
+        ->assertPresent('nav[aria-label="Pages"]')
+        ->click('label:has-text("Show archived")')
+        ->assertNotPresent('nav[aria-label="Pages"]');
+
+    visit(route('families.index', $this->project))
+        ->assertPresent('nav[aria-label="Pages"]')
+        ->click('label:has-text("Show archived")')
+        ->assertSee('Gone')
+        ->assertNotPresent('nav[aria-label="Pages"]');
 });

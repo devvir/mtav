@@ -149,7 +149,7 @@ export default function ForumIndex({ topics, filters, archive }: Props) {
           {filters.q ? null : _('Questions, ideas and news, for everyone in the project.')}
         </EmptyState>
       )}
-      <Pagination page={topics} />
+      {archive?.shown ? null : <Pagination page={topics} />}
 
       <Modal opened={opening.opened} onClose={opening.close} title={_('Open a topic')} size="lg">
         <TopicForm onDone={opening.close} />

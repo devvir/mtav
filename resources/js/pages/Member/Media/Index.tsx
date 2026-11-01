@@ -142,7 +142,7 @@ export default function MediaIndex({
           {canUpload ? _('Be the first to share something.') : null}
         </EmptyState>
       )}
-      <Pagination page={media} />
+      {archive?.shown ? null : <Pagination page={media} />}
       {storage ? (
         <div style={{ marginTop: 24, maxWidth: 420 }}>
           <Text className="ds-caption" mb={6}>
