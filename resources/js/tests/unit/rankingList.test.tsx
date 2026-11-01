@@ -27,6 +27,21 @@ describe("a family's ranking", () => {
     expect(document.querySelector('[data-ranking-announcement]')?.textContent).toContain('A-103');
   });
 
+  it('keeps the arrows at the ends reachable, moving nothing: the focus stays where it was', () => {
+    const onChange = draw();
+    const up = screen.getByLabelText('Move A-101 up');
+    const down = screen.getByLabelText('Move A-103 down');
+
+    for (const end of [up, down]) {
+      expect(end).toHaveProperty('disabled', false);
+      expect(end.getAttribute('aria-disabled')).toBe('true');
+      fireEvent.click(end);
+    }
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Move A-102 up').getAttribute('aria-disabled')).toBe('false');
+  });
+
   it('cannot be reordered when locked', () => {
     draw({ disabled: true });
 

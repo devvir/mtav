@@ -38,7 +38,13 @@ it('does not offer to remove a unit type in use', function () {
 
     $page = visit(route('units.index', $this->project))->assertSee('Studio');
 
-    expect($page->script('document.querySelector(\'[aria-label="Remove Studio"]\').disabled'))->toBeTrue();
+    expect($page->script('document.querySelector(\'[aria-label="Remove Studio"]\').getAttribute("aria-disabled")'))->toBe('true');
+
+    // It stays reachable, to say why, and pressing it removes nothing
+    $page->keys('[aria-label="Remove Studio"]', 'Shift')
+        ->assertSee('In use by units or families');
+    $page->script('() => document.querySelector(\'[aria-label="Remove Studio"]\').click()');
+    $page->wait(0.3)->assertMissing('[role="dialog"]');
 });
 
 it('adds units one after another, creating a type on the way', function () {

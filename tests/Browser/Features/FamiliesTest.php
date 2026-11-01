@@ -50,3 +50,19 @@ it('keeps changing family out of the way, on one\'s own family\'s card', functio
         ->assertSee('In the wrong family?')
         ->assertNoSmoke();
 });
+
+it('says why a family that received a unit cannot be removed, to the pointer and the keyboard', function () {
+    aUnit($this->type, ['family_id' => $this->family->id, 'identifier' => 'A-101']);
+    $this->as(anAdminOf($this->project));
+
+    $page = visit(route('families.index', ['project' => $this->project, 'family' => $this->family->id]))
+        ->assertPresent('[role="dialog"] button:has-text("Remove")');
+
+    expect($page->script('() => [...document.querySelectorAll("[role=\"dialog\"] button")].find((button) => button.textContent.trim() === "Remove").getAttribute("aria-disabled")'))->toBe('true');
+
+    $page->keys('[role="dialog"] button:has-text("Remove")', 'Shift')->assertSee('It already received a unit');
+    $page->script('() => [...document.querySelectorAll("[role=\"dialog\"] button")].find((button) => button.textContent.trim() === "Remove").click()');
+
+    $page->wait(0.3)->assertDontSee('Remove the Pereira family?');
+    expect($this->family->fresh())->not->toBeNull();
+});

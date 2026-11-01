@@ -226,19 +226,22 @@ function RankingItem({
       </span>
       {!disabled ? (
         <span style={{ display: 'flex', gap: 4 }}>
+          {/* Not `disabled` at the ends: a button that was just pressed keeps the focus */}
           <ActionIcon
             size="lg"
-            disabled={index === 0}
+            data-disabled={index === 0 || undefined}
+            aria-disabled={index === 0}
             aria-label={_('Move {unit} up', { unit: unit.identifier })}
-            onClick={() => onMove(index, index - 1)}
+            onClick={() => index > 0 && onMove(index, index - 1)}
           >
             <IconArrowUp size={18} />
           </ActionIcon>
           <ActionIcon
             size="lg"
-            disabled={last}
+            data-disabled={last || undefined}
+            aria-disabled={last}
             aria-label={_('Move {unit} down', { unit: unit.identifier })}
-            onClick={() => onMove(index, index + 1)}
+            onClick={() => !last && onMove(index, index + 1)}
           >
             <IconArrowDown size={18} />
           </ActionIcon>

@@ -175,6 +175,16 @@ it('does not ask again, on going back, what the server asked before running', fu
     $page->assertPathIs("/projects/{$this->project->id}/lottery")->wait(0.5)->assertMissing('[role="dialog"]');
 });
 
+it('keeps the focus on the arrow that took a unit to the top', function () {
+    $this->as($this->member);
+
+    $page = visit(route('lottery.show', $this->project));
+    $page->keys('[aria-label="Move A-102 up"]', 'Enter');
+    $page->assertPresent('[aria-label="Move A-102 up"][aria-disabled="true"]');
+
+    expect($page->script('() => document.activeElement.getAttribute("aria-label")'))->toBe('Move A-102 up');
+});
+
 it('invalidates a run with a reason everyone reads, and runs again', function () {
     lotteryDue($this);
     $this->as($this->admin);

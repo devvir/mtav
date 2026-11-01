@@ -169,6 +169,7 @@ export function FamilyDetails({
                 <Tooltip
                   label={_('It already received a unit')}
                   disabled={!family.unit}
+                  events={{ hover: true, focus: true, touch: false }}
                   withinPortal
                 >
                   <Button
@@ -176,8 +177,10 @@ export function FamilyDetails({
                     color="red"
                     c={family.unit ? undefined : 'red'}
                     leftSection={<IconTrash size={18} />}
-                    disabled={Boolean(family.unit)}
-                    onClick={remove}
+                    // Not `disabled`: it stays reachable, to say why
+                    data-disabled={family.unit ? true : undefined}
+                    aria-disabled={Boolean(family.unit)}
+                    onClick={family.unit ? undefined : remove}
                   >
                     {_('Remove')}
                   </Button>

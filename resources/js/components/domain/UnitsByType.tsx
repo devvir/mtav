@@ -74,6 +74,7 @@ export function UnitsByType({
                   <Tooltip
                     label={_('In use by units or families')}
                     disabled={!inUse(type)}
+                    events={{ hover: true, focus: true, touch: false }}
                     withinPortal
                   >
                     <ActionIcon
@@ -81,8 +82,10 @@ export function UnitsByType({
                       variant="subtle"
                       color="red"
                       aria-label={_('Remove {name}', { name: type.name })}
-                      disabled={inUse(type)}
-                      onClick={() => removeType(type)}
+                      // Not `disabled`: it stays reachable, to say why
+                      data-disabled={inUse(type) || undefined}
+                      aria-disabled={inUse(type)}
+                      onClick={() => !inUse(type) && removeType(type)}
                     >
                       <IconTrash size={16} />
                     </ActionIcon>
