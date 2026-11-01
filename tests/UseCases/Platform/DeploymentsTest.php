@@ -241,3 +241,25 @@ describe('Production', function () {
         expect(fn () => $this->seed(Database\Seeders\DatabaseSeeder::class))->toThrow(RuntimeException::class, 'Production never holds demo data');
     });
 });
+
+describe('What a deploy leaves', function () {
+    it('gives a stopped worker longer than the longest job and the time the queue holds it', function () {
+        preg_match('/stop_grace_period: (\d+)m/', file_get_contents(base_path('deploy/slot.yml')), $grace);
+
+        expect($grace[1] * 60)->toBeGreaterThanOrEqual((new App\Jobs\RunLottery(new App\Models\LotteryRun()))->timeout)
+            ->and($grace[1] * 60)->toBeGreaterThanOrEqual(config('queue.connections.database.retry_after'));
+    });
+
+    it('keeps its dumps from anyone but root', function () {
+        expect(file_get_contents(base_path('deploy/host/deploy')))
+            ->toContain('install -d -m 700 "$dir/backups"')
+            ->toMatch('/umask 077\s+env_compose exec -T db sh -c/');
+    });
+
+    it('says what runs before waiting on the old worker', function () {
+        $script = file_get_contents(base_path('deploy/host/deploy'));
+
+        expect(strpos($script, '> "$dir/live"'))->toBeLessThan(strpos($script, 'stop worker'))
+            ->and(strrpos($script, '> "$dir/live"'))->toBeLessThan(strrpos($script, 'stop worker'));
+    });
+});

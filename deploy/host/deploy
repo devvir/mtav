@@ -74,9 +74,10 @@ if [[ "$mode" == rollback ]]; then
     say "Back to $previous_image (slot $previous_slot) from $live_image"
     slot_compose "$previous_slot" "$previous_image" up -d --wait --wait-timeout 180
     go_live "$previous_slot" || { say "The slot does not answer: $live_slot stays live"; go_live "$live_slot"; exit 1; }
-    slot_compose "$live_slot" "$live_image" stop worker
     echo "$previous_slot $previous_image" > "$dir/live"
     echo "$live_slot $live_image" > "$dir/previous"
+    # Last: it may wait out a lottery run in hand
+    slot_compose "$live_slot" "$live_image" stop worker
     say "Done: $environment runs $previous_image again (its migrations were kept)"
     exit 0
 fi
@@ -92,12 +93,16 @@ say "The database"
 env_compose up -d --wait db
 
 if [[ -n "$live_slot" ]]; then
-    mkdir -p "$dir/backups"
+    # Everyone's data: for root alone, those there from before too
+    install -d -m 700 "$dir/backups"
     dump="$dir/backups/$(date -u +%Y%m%dT%H%M%SZ)-before-${image##*:}.sql.gz"
     say "Dumping the database to $dump"
-    env_compose exec -T db sh -c \
-        'mariadb-dump --single-transaction -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"' \
-        | gzip > "$dump"
+    (
+        umask 077
+        env_compose exec -T db sh -c \
+            'mariadb-dump --single-transaction -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"' \
+            | gzip > "$dump"
+    )
     ls -1t "$dir"/backups/*.sql.gz | tail -n +21 | xargs -r rm --
 fi
 
@@ -135,12 +140,12 @@ if ! go_live "$next"; then
     exit 1
 fi
 
-# The slot before stays up, without its worker, so going back is instant
-if [[ -n "$live_slot" ]]; then
-    slot_compose "$live_slot" "$live_image" stop worker
-    echo "$live_slot $live_image" > "$dir/previous"
-fi
 echo "$next $image" > "$dir/live"
+[[ -n "$live_slot" ]] && echo "$live_slot $live_image" > "$dir/previous"
+
+# The slot before stays up, without its worker, so going back is instant (last: it may wait
+# out a lottery run in hand)
+[[ -n "$live_slot" ]] && slot_compose "$live_slot" "$live_image" stop worker
 
 # Releases older than the two kept (live, and the one to go back to) leave the host
 docker images ghcr.io/devvir/mtav --format '{{.Repository}}:{{.Tag}}' \

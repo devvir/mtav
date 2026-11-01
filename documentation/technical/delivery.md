@@ -66,12 +66,13 @@ A deploy is blue/green: the release starts in the slot that is not live, and onl
 is healthy does the switch hand it the traffic, so visitors never see the site down.
 
 1. the image is pulled; the database is up;
-2. the database is dumped (`backups/`, the last 20 kept);
+2. the database is dumped (`backups/`, for root alone, the last 20 kept);
 3. migrations run, while the live release keeps serving (so a release's migrations must
    leave the previous release working: add first, remove in a later release);
 4. the release starts in the other slot, and must report healthy within three minutes;
 5. the switch goes over to it, and must answer through it;
-6. the slot before stays up without its worker, so going back is instant.
+6. the slot before stays up without its worker, so going back is instant; a worker with
+   a job in hand finishes it first (up to 11 minutes), and the deploy waits for it.
 
 If step 4 or 5 fails, the new slot is removed and the live release never stopped. With
 `fresh` (only where the environment's `.env` says `MTAV_FRESH_ALLOWED=true`, and never on
@@ -87,7 +88,7 @@ database. If that does not work, restoring a dump from step 2 is a person's deci
 
 ```sh
 cd /mtav/<environment>
-gunzip -c backups/<dump>.sql.gz | docker compose -p mtav-<environment> exec -T db \
+sudo gunzip -c backups/<dump>.sql.gz | docker compose -p mtav-<environment> exec -T db \
   sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"'
 ```
 
