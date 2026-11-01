@@ -4,14 +4,29 @@
 import { execFile } from 'node:child_process';
 import os from 'node:os';
 
-const SITES = { dev: 'https://dev.mtav.uy', staging: 'https://stg.mtav.uy', production: 'https://www.mtav.uy' };
-const SERVER = process.env.MTAV_SERVER ?? 'x@179.27.99.138';
+const SITES = {
+  dev: 'https://dev.mtav.uy',
+  staging: 'https://stg.mtav.uy',
+  production: 'https://www.mtav.uy',
+};
 const ACCOUNTS_VOLUME = 'claude-accounts';
 
 const run = (command, args, { timeout = 20_000, cwd } = {}) =>
   new Promise((resolve, reject) => {
-    execFile(command, args, { timeout, cwd, maxBuffer: 8 * 1024 * 1024 }, (error, stdout, stderr) =>
-      error ? reject(new Error(String(stderr || error.message).trim().slice(0, 300))) : resolve(stdout),
+    execFile(
+      command,
+      args,
+      { timeout, cwd, maxBuffer: 8 * 1024 * 1024 },
+      (error, stdout, stderr) =>
+        error
+          ? reject(
+              new Error(
+                String(stderr || error.message)
+                  .trim()
+                  .slice(0, 300),
+              ),
+            )
+          : resolve(stdout),
     );
   });
 
@@ -26,7 +41,8 @@ export const jsonLines = (text) =>
 export function stacksOf(containers) {
   const stacks = {};
   for (const container of containers) {
-    const project = /com\.docker\.compose\.project=([^,]+)/.exec(container.Labels ?? '')?.[1] ?? 'other';
+    const project =
+      /com\.docker\.compose\.project=([^,]+)/.exec(container.Labels ?? '')?.[1] ?? 'other';
     if (!project.startsWith('mtav')) continue;
     (stacks[project] ??= []).push({
       name: container.Names,
@@ -52,7 +68,12 @@ export const sources = (repo) => ({
   host: {
     every: 5,
     read: async () => {
-      const disk = (await run('df', ['-k', '--output=size,avail', repo])).trim().split('\n').pop().trim().split(/\s+/);
+      const disk = (await run('df', ['-k', '--output=size,avail', repo]))
+        .trim()
+        .split('\n')
+        .pop()
+        .trim()
+        .split(/\s+/);
       return {
         load: os.loadavg().map((value) => Math.round(value * 10) / 10),
         cores: os.cpus().length,
@@ -64,22 +85,32 @@ export const sources = (repo) => ({
 
   stacks: {
     every: 10,
-    read: async () => stacksOf(jsonLines(await run('docker', ['ps', '-a', '--filter', 'name=mtav-', '--format', 'json']))),
+    read: async () =>
+      stacksOf(
+        jsonLines(await run('docker', ['ps', '-a', '--filter', 'name=mtav-', '--format', 'json'])),
+      ),
   },
 
   repository: {
     every: 30,
     read: async () => {
       const git = (...args) => run('git', args, { cwd: repo });
-      const heads = await git('for-each-ref', '--format=%(refname:short) %(objectname:short=8) %(committerdate:relative)', 'refs/remotes/origin');
+      const heads = await git(
+        'for-each-ref',
+        '--format=%(refname:short) %(objectname:short=8) %(committerdate:relative)',
+        'refs/remotes/origin',
+      );
       return {
         branch: (await git('branch', '--show-current')).trim(),
         commit: (await git('log', '-1', '--format=%h %s')).trim(),
         changed: (await git('status', '--short')).split('\n').filter(Boolean).length,
-        remote: heads.split('\n').filter(Boolean).map((line) => {
-          const [name, commit, ...when] = line.split(' ');
-          return { name: name.replace('origin/', ''), commit, when: when.join(' ') };
-        }),
+        remote: heads
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => {
+            const [name, commit, ...when] = line.split(' ');
+            return { name: name.replace('origin/', ''), commit, when: when.join(' ') };
+          }),
       };
     },
   },
@@ -88,7 +119,18 @@ export const sources = (repo) => ({
     every: 60,
     read: async () =>
       JSON.parse(
-        await run('gh', ['run', 'list', '--limit', '10', '--json', 'workflowName,headBranch,headSha,status,conclusion,createdAt,url'], { cwd: repo }),
+        await run(
+          'gh',
+          [
+            'run',
+            'list',
+            '--limit',
+            '10',
+            '--json',
+            'workflowName,headBranch,headSha,status,conclusion,createdAt,url',
+          ],
+          { cwd: repo },
+        ),
       ).map((item) => ({
         workflow: item.workflowName,
         branch: item.headBranch,
@@ -106,7 +148,10 @@ export const sources = (repo) => ({
       const check = async ([name, url]) => {
         const started = Date.now();
         try {
-          const response = await fetch(`${url}/up`, { signal: AbortSignal.timeout(10_000), redirect: 'manual' });
+          const response = await fetch(`${url}/up`, {
+            signal: AbortSignal.timeout(10_000),
+            redirect: 'manual',
+          });
           return { name, url, status: response.status, ms: Date.now() - started };
         } catch (error) {
           return { name, url, status: null, error: String(error.message).slice(0, 120) };
@@ -119,7 +164,21 @@ export const sources = (repo) => ({
   server: {
     every: 60,
     read: async () => {
-      const text = await run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', SERVER, "docker ps --format '{{.Names}} {{.Image}}'; echo ---; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1"], { timeout: 25_000 });
+      const server = process.env.MTAV_SERVER;
+      if (!server) return { notSetUp: true };
+
+      const text = await run(
+        'ssh',
+        [
+          '-o',
+          'BatchMode=yes',
+          '-o',
+          'ConnectTimeout=8',
+          server,
+          "docker ps --format '{{.Names}} {{.Image}}'; echo ---; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
+        ],
+        { timeout: 25_000 },
+      );
       const [containers, stats = ''] = text.split('---\n');
       const [load, memory, disk] = stats.trim().split('\n');
       const [, memoryTotal, , , , , memoryFree] = (memory ?? '').trim().split(/\s+/);
@@ -137,7 +196,18 @@ export const sources = (repo) => ({
     every: 60,
     read: async () => {
       const code = `echo json_encode(collect(['projects', 'users', 'families', 'units', 'memberships', 'messages', 'conversations', 'jobs', 'failed_jobs'])->mapWithKeys(fn ($t) => [$t => Illuminate\\Support\\Facades\\Schema::hasTable($t) ? DB::table($t)->count() : null]));`;
-      return JSON.parse((await run('docker', ['exec', 'mtav-dev-php-1', 'php', 'artisan', 'tinker', '--execute', code], { timeout: 30_000 })).trim().split('\n').pop());
+      return JSON.parse(
+        (
+          await run(
+            'docker',
+            ['exec', 'mtav-dev-php-1', 'php', 'artisan', 'tinker', '--execute', code],
+            { timeout: 30_000 },
+          )
+        )
+          .trim()
+          .split('\n')
+          .pop(),
+      );
     },
   },
 
@@ -146,7 +216,16 @@ export const sources = (repo) => ({
   claude: {
     every: 120,
     read: async () => {
-      const text = await run('docker', ['run', '--rm', '-v', `${ACCOUNTS_VOLUME}:/a:ro`, 'alpine', 'sh', '-c', 'for f in /a/*/.usage.json; do [ -f "$f" ] && echo "$(basename "$(dirname "$f")") $(cat "$f")"; done']);
+      const text = await run('docker', [
+        'run',
+        '--rm',
+        '-v',
+        `${ACCOUNTS_VOLUME}:/a:ro`,
+        'alpine',
+        'sh',
+        '-c',
+        'for f in /a/*/.usage.json; do [ -f "$f" ] && echo "$(basename "$(dirname "$f")") $(cat "$f")"; done',
+      ]);
       return text
         .split('\n')
         .filter(Boolean)

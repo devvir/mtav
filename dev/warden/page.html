@@ -145,6 +145,7 @@
         sites: ['Sites', (d) =>
           d.map((s) => row(s.name, s.status ? `${s.status} · ${s.ms} ms` : esc(s.error), s.status === 200 ? 'good' : s.name === 'production' && s.status === 503 ? 'muted' : 'bad')).join('')],
         server: ['The server', (d) =>
+          d.notSetUp ? row('Not set up', 'MTAV_SERVER is not set') :
           Object.entries(d.releases).map(([env, slots]) => row(env, slots.map((s) => `${esc(s.slot)} ${esc(s.commit)}`).join(', '))).join('') +
           meter('Load', d.load[0] / 4, d.load.join(' / ')) +
           meter('Memory', used(d.memory), `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`) +
