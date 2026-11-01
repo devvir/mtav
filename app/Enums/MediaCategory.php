@@ -14,4 +14,10 @@ enum MediaCategory: string
 
     /** Not stored: a filter meaning documents and audio (the files tab: the project's records) */
     case FILES = 'files';
+
+    /** The project feature this kind of file belongs to */
+    public function feature(): ProjectFeature
+    {
+        return in_array($this, [self::IMAGE, self::VIDEO, self::MEDIA], true) ? ProjectFeature::GALLERY : ProjectFeature::FILES;
+    }
 }

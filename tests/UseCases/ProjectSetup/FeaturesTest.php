@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MediaCategory;
 use App\Models\Media;
 use App\Models\Notification as AppNotification;
 use Illuminate\Http\UploadedFile;
@@ -88,6 +89,52 @@ it('has its media page while either gallery or files is on, showing what is', fu
 
     turnOff($this->project, 'gallery', 'files');
     $this->as($this->member, $this->project)->get(route('media.index'))->assertNotFound();
+});
+
+describe('A kind of file turned off', function () {
+    beforeEach(function () {
+        Storage::fake(Media::DISK);
+        $this->photo = Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->member->id, 'thumbnail' => 'projects/0/photo.jpg']);
+        $this->paper = Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->member->id, 'category' => MediaCategory::DOCUMENT, 'mime_type' => 'application/pdf', 'path' => 'projects/0/paper.pdf']);
+        Storage::disk(Media::DISK)->put($this->photo->path, 'bytes');
+        Storage::disk(Media::DISK)->put($this->photo->thumbnail, 'bytes');
+        Storage::disk(Media::DISK)->put($this->paper->path, 'bytes');
+    });
+
+    it('serves none of its files, by their own addresses, while the other kind stays', function () {
+        turnOff($this->project, 'gallery');
+        $member = $this->as($this->member, $this->project);
+
+        $member->get(route('media.file', $this->photo))->assertNotFound();
+        $member->get(route('media.thumbnail', $this->photo))->assertNotFound();
+        $member->get(route('media.show', $this->photo))->assertNotFound();
+        $member->get(route('media.file', $this->paper))->assertOk();
+    });
+
+    it('serves no file of the other kind the other way round', function () {
+        turnOff($this->project, 'files');
+        $member = $this->as($this->member, $this->project);
+
+        $member->get(route('media.file', $this->paper))->assertNotFound();
+        $member->get(route('media.file', $this->photo))->assertOk();
+        $member->get(route('media.thumbnail', $this->photo))->assertOk();
+    });
+
+    it('shows no details of its files over the page', function () {
+        turnOff($this->project, 'gallery');
+
+        $page = $this->as($this->member, $this->project)->get(route('media.index', ['file' => $this->photo->id]));
+
+        expect($page->inertiaProps('file'))->toBeNull()
+            ->and($page->inertiaProps('carousel'))->toBeNull();
+    });
+
+    it('serves its files again when it comes back', function () {
+        turnOff($this->project, 'gallery');
+        $this->project->forceFill(['feature_choices' => []])->save();
+
+        $this->as($this->member, $this->project->fresh())->get(route('media.file', $this->photo))->assertOk();
+    });
 });
 
 it('takes in no file of a kind that is off', function () {

@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\MediaCategory;
-use App\Enums\ProjectFeature;
 use App\Models\Project;
 use App\Services\MediaService;
 use Closure;
@@ -38,8 +36,7 @@ class MediaRequest extends FormRequest
                     }
                     // A gallery or files turned off takes nothing in
                     if ($file instanceof UploadedFile && ($category = MediaService::categoryOf((string) $file->getMimeType()))) {
-                        $feature = in_array($category, [MediaCategory::IMAGE, MediaCategory::VIDEO], true) ? ProjectFeature::GALLERY : ProjectFeature::FILES;
-                        ! $project->hasFeature($feature) && $fail(__('validation.feature_off'));
+                        ! $project->hasFeature($category->feature()) && $fail(__('validation.feature_off'));
                     }
                 },
             ],

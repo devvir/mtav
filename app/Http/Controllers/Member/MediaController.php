@@ -57,11 +57,11 @@ class MediaController extends Controller
                 'maxFiles'   => MediaRequest::MAX_FILES,
             ] : null,
             // A file's details, shown over the page (?file=12)
-            'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))
+            'file' => fn () => $request->integer('file') && ($file = $project->media()->find($request->integer('file')))?->isOn()
                 ? MediaResource::make($file->load('owner'))
                 : null,
             // Where a photo or video stands among them all, past this page too: the carousel
-            'carousel' => fn () => ($file = $project->media()->find($request->integer('file')))
+            'carousel' => fn () => ($file = $project->media()->find($request->integer('file')))?->isOn()
                 ? $this->carousel($project, $file, $request->q)
                 : null,
         ]);
@@ -70,6 +70,8 @@ class MediaController extends Controller
     /** A file's details open over the media page: its address leads there */
     public function show(Project $project, Media $media): RedirectResponse
     {
+        abort_unless($media->isOn(), 404);
+
         return to_route('media.index', [...$this->tab($media), 'file' => $media->id]);
     }
 

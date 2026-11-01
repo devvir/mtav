@@ -16,6 +16,8 @@ class MediaFileController extends Controller
 {
     public function file(Project $project, Media $media): StreamedResponse
     {
+        abort_unless($media->isOn(), 404);
+
         $disposition = $media->isVisual() || str_starts_with($media->mime_type, 'audio/') || $media->mime_type === 'application/pdf'
             ? 'inline'
             : 'attachment';
@@ -29,7 +31,7 @@ class MediaFileController extends Controller
 
     public function thumbnail(Project $project, Media $media): StreamedResponse
     {
-        abort_unless($media->thumbnail, 404);
+        abort_unless($media->thumbnail && $media->isOn(), 404);
 
         return Storage::disk(Media::DISK)->response($media->thumbnail, null, [
             'Content-Type'           => 'image/jpeg',
