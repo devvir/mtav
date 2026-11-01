@@ -38,6 +38,10 @@ class FamilyService
 
         $joinRequest = $family->joinRequests()->create(['user_id' => $user->id, 'project_id' => $family->project_id]);
 
+        if (! $this->notifications->firstAskInAWhile($user, "family:{$family->id}")) {
+            return $joinRequest;
+        }
+
         $family->members->each(function (User $member) use ($family, $user, $joinRequest) {
             $this->tell($member, NotificationType::FAMILY_REQUESTED, 'family_requested', $family, $user, ['name' => $user->name]);
             $member->notify(new FamilyRequestNotification($joinRequest));

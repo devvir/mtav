@@ -32,6 +32,11 @@ function standingIn($test, $user, Project $project): string
         ->firstWhere('id', $project->id)['standing'];
 }
 
+function joinRequestNotices(App\Models\User $admin): int
+{
+    return App\Models\Notification::where('type', App\Enums\NotificationType::JOIN_REQUESTED)->where('target_id', $admin->id)->count();
+}
+
 describe('The directory', function () {
     it('shows the projects their admins list, and no other', function () {
         $hidden = aProject();
@@ -160,6 +165,41 @@ describe('In a project by request', function () {
 
         expect(standingIn($this, $this->person, $this->project))->toBe('asked');
         expect($this->as($this->person)->post(route('directory.ask', $this->project)))->toBeDenied();
+    });
+
+    it('tells the admins once, however many times someone withdraws and asks again', function () {
+        foreach (range(1, 3) as $time) {
+            $this->as($this->person)->post(route('directory.ask', $this->project))->assertSessionHasNoErrors();
+            $this->as($this->person)->delete(route('directory.withdraw', $this->project));
+        }
+        $this->as($this->person)->post(route('directory.ask', $this->project))->assertSessionHasNoErrors();
+
+        expect(joinRequestNotices($this->admin))->toBe(1)
+            ->and($this->project->joinRequests()->pending()->where('user_id', $this->person->id)->exists())->toBeTrue();
+    });
+
+    it('tells them again once the quiet hours pass', function () {
+        $this->as($this->person)->post(route('directory.ask', $this->project));
+        $this->as($this->person)->delete(route('directory.withdraw', $this->project));
+
+        $this->travel(config('limits.asked_again_quiet_hours') + 1)->hours();
+        $this->as($this->person)->post(route('directory.ask', $this->project));
+
+        expect(joinRequestNotices($this->admin))->toBe(2);
+    });
+
+    it('still tells them of someone else asking, and of the same person asking another project', function () {
+        $other = aProject();
+        $other->update(['listed' => true]);
+        aUnitType($other);
+        $otherAdmin = anAdminOf($other);
+
+        $this->as($this->person)->post(route('directory.ask', $this->project));
+        $this->as($this->person)->post(route('directory.ask', $other));
+        $this->as(aUser())->post(route('directory.ask', $this->project));
+
+        expect(joinRequestNotices($this->admin))->toBe(2)
+            ->and(joinRequestNotices($otherAdmin))->toBe(1);
     });
 
     it('someone withdraws what they asked', function () {

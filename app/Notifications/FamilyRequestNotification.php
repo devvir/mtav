@@ -15,6 +15,9 @@ class FamilyRequestNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /** A request taken back before this leaves has nothing to tell */
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(public FamilyJoinRequest $joinRequest)
     {
         $this->afterCommit();

@@ -142,7 +142,9 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         Route::post('directory/{project}/request', [DirectoryController::class, 'ask'])
             ->middleware('throttle:10,1')
             ->name('directory.ask');
-        Route::delete('directory/{project}/request', [DirectoryController::class, 'withdraw'])->name('directory.withdraw');
+        Route::delete('directory/{project}/request', [DirectoryController::class, 'withdraw'])
+            ->middleware('throttle:10,1')
+            ->name('directory.withdraw');
 
         /** One's projects; starting one */
         Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
@@ -168,7 +170,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                 Route::post('families', [Member\FamilyController::class, 'store'])->name('families.store');
                 Route::delete('family/membership', [Member\FamilyController::class, 'leave'])->name('family.leave');
                 Route::post('families/{family}/requests', [Member\FamilyJoinRequestController::class, 'store'])->middleware('throttle:30,1')->name('family.requests.store');
-                Route::delete('family-requests/{familyJoinRequest}', [Member\FamilyJoinRequestController::class, 'destroy'])->name('family.requests.destroy');
+                Route::delete('family-requests/{familyJoinRequest}', [Member\FamilyJoinRequestController::class, 'destroy'])->middleware('throttle:30,1')->name('family.requests.destroy');
                 Route::put('family-requests/{familyJoinRequest}/accept', [Member\FamilyJoinRequestController::class, 'accept'])->name('family.requests.accept');
                 Route::put('family-requests/{familyJoinRequest}/decline', [Member\FamilyJoinRequestController::class, 'decline'])->name('family.requests.decline');
                 Route::put('family-requests/{familyJoinRequest}/undecline', [Member\FamilyJoinRequestController::class, 'undecline'])->name('family.requests.undecline');

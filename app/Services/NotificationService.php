@@ -10,6 +10,7 @@ use App\Services\Push\PushService;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Creates in-app notifications and pushes them to whoever is online. A notification keeps
@@ -91,6 +92,12 @@ class NotificationService
         rescue(fn () => NotificationSent::dispatch($recent));
 
         return $recent;
+    }
+
+    /** Whether to tell people someone asks this: withdrawing and asking again tells them once */
+    public function firstAskInAWhile(User $by, string $what): bool
+    {
+        return Cache::add("asked:{$by->id}:{$what}", true, now()->addHours(config('limits.asked_again_quiet_hours')));
     }
 
     /** A URL's path, query and fragment: '/projects/1/events?x=1#y' */

@@ -35,6 +35,10 @@ class DirectoryService
             ['declined_at' => null],
         );
 
+        if (! $this->notifications->firstAskInAWhile($user, "project:{$project->id}")) {
+            return $request;
+        }
+
         // A project with no admins left is the platform's to answer for
         $answering = $project->admins()->get();
         if ($answering->isEmpty()) {

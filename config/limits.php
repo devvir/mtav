@@ -37,6 +37,9 @@ return [
     /** Days before someone declined may ask to join the same project again */
     'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),
 
+    /** Hours after someone asks to join in which asking the same again tells nobody again */
+    'asked_again_quiet_hours' => (int) env('ASKED_AGAIN_QUIET_HOURS', 24),
+
     /** Open lotteries: anyone may write in them, so each stays small and none stays for ever */
     'open_lottery' => [
         'participants' => (int) env('OPEN_LOTTERY_PARTICIPANTS', 50),

@@ -63,6 +63,43 @@ describe('Finding one\'s family', function () {
 });
 
 describe('Asking and answering', function () {
+    it('tells the family once, however many times someone cancels and asks again', function () {
+        foreach (range(1, 3) as $time) {
+            ($this->ask)()->assertSessionHasNoErrors();
+            $this->as($this->guest, $this->project)->delete(route('family.requests.destroy', FamilyJoinRequest::sole()));
+        }
+        ($this->ask)()->assertSessionHasNoErrors();
+
+        expect(Notification::where('type', NotificationType::FAMILY_REQUESTED)->where('target_id', $this->member->id)->count())->toBe(1)
+            ->and(FamilyJoinRequest::sole()->user_id)->toBe($this->guest->id);
+        Notifications::assertSentToTimes($this->member, FamilyRequestNotification::class, 1);
+    });
+
+    it('tells them again once the quiet hours pass, and of another family at once', function () {
+        $other = aFamily($this->project, $this->type, ['name' => 'Silva']);
+        $relative = aMemberOf($other);
+
+        ($this->ask)();
+        $this->as($this->guest, $this->project)->delete(route('family.requests.destroy', FamilyJoinRequest::sole()));
+        ($this->ask)(null, $other);
+        expect(toldOf($relative, NotificationType::FAMILY_REQUESTED))->toBeTrue();
+        $this->as($this->guest, $this->project)->delete(route('family.requests.destroy', FamilyJoinRequest::sole()));
+
+        $this->travel(config('limits.asked_again_quiet_hours') + 1)->hours();
+        ($this->ask)();
+
+        expect(Notification::where('type', NotificationType::FAMILY_REQUESTED)->where('target_id', $this->member->id)->count())->toBe(2);
+    });
+
+    it('drops the email of a request taken back before it leaves, rather than failing', function () {
+        $queued = new Illuminate\Notifications\SendQueuedNotifications(
+            collect([$this->member]),
+            new FamilyRequestNotification(new FamilyJoinRequest()),
+        );
+
+        expect($queued->deleteWhenMissingModels)->toBeTrue();
+    });
+
     it('tells every member of the family, in the app and by email', function () {
         ($this->ask)();
 
