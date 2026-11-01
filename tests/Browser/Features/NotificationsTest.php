@@ -67,3 +67,16 @@ it('shows only the unread ones on demand, and marks them all read from the list'
         ->click('Show all')
         ->assertSee('New event: General assembly');
 });
+
+it('names a row by its title and whether it was read, with the rest as its description', function () {
+    $page = visit(route('notifications.index'));
+
+    // Text in a button stays what a button may hold
+    $page->assertScript("document.querySelectorAll('.notification p, .notification div').length", 0);
+
+    $name = "() => { const row = document.querySelector('.notification'); return row.getAttribute('aria-labelledby').split(' ').map((id) => document.getElementById(id).textContent).join(' · '); }";
+    $about = "() => document.getElementById(document.querySelector('.notification').getAttribute('aria-describedby')).textContent";
+
+    expect($page->script($name))->toBe('New event: General assembly · Unread')
+        ->and($page->script($about))->toContain('On Friday at 10, in the communal hall');
+});

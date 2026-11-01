@@ -64,17 +64,32 @@ export default function NotificationsIndex({ notifications, filters }: Props) {
                 <UnstyledButton
                   className="notification"
                   data-unread={notification.read ? undefined : true}
+                  aria-labelledby={`notification-${notification.id} notification-${notification.id}-read`}
+                  aria-describedby={`notification-${notification.id}-about`}
                   onClick={() => openNotification(notification)}
                 >
                   <span className="notification-dot" aria-hidden />
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <Text fw={700}>{notification.title}</Text>
-                    <Text c="dimmed">{notification.message}</Text>
-                    <Text className="ds-caption" mt={4}>
-                      <DateTime value={notification.created_at} relative />
+                    <Text
+                      component="span"
+                      display="block"
+                      fw={700}
+                      id={`notification-${notification.id}`}
+                    >
+                      {notification.title}
                     </Text>
+                    <span id={`notification-${notification.id}-about`}>
+                      <Text component="span" display="block" c="dimmed">
+                        {notification.message}
+                      </Text>
+                      <Text component="span" display="block" className="ds-caption" mt={4}>
+                        <DateTime value={notification.created_at} relative />
+                      </Text>
+                    </span>
                   </span>
-                  <VisuallyHidden>{notification.read ? _('Read') : _('Unread')}</VisuallyHidden>
+                  <VisuallyHidden id={`notification-${notification.id}-read`}>
+                    {notification.read ? _('Read') : _('Unread')}
+                  </VisuallyHidden>
                 </UnstyledButton>
               </li>
             ))}
