@@ -441,6 +441,23 @@ describe('An admin moving or removing someone', function () {
             ->assertSessionHasErrors('lottery');
     });
 
+    it('holds whoever would leave the project while a lottery runs, and says why', function () {
+        runningLottery($this->project);
+
+        $this->as($this->member, $this->project)->delete(route('membership.leave'))->assertSessionHasErrors('lottery');
+
+        expect($this->member->fresh()->familyIn($this->project)?->id)->toBe($this->family->id);
+    });
+
+    it('lets them leave the project once it ended', function () {
+        $run = aLotteryInProgress($this->project);
+        $run->update(['status' => App\Enums\LotteryRunStatus::COMPLETED]);
+
+        $this->as($this->member, $this->project)->delete(route('membership.leave'))->assertSessionHasNoErrors();
+
+        expect($this->member->fresh()->canAccess($this->project))->toBeFalse();
+    });
+
     it('still changes a role while a lottery runs', function () {
         runningLottery($this->project);
 

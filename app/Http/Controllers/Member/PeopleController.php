@@ -81,6 +81,8 @@ class PeopleController extends Controller
 
         abort_unless($membership, 404);
 
+        $project->ensureLotteryNotRunning();
+
         $project->keepingAnAdmin($user, 'membership', fn () => $membership->delete());
 
         return to_route('home')->with('success', __('flash.project_left', ['project' => $project->name]));

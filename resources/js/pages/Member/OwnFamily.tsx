@@ -5,6 +5,7 @@ import { FamilyMark } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { matches } from '@/lib/localList';
 import { route } from '@/lib/route';
+import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
 import type { Ref } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
@@ -75,7 +76,11 @@ export default function OwnFamily({
       confirmLabel: _('Leave'),
       danger: true,
     });
-    if (ok) router.delete(route('membership.leave', { project: project.id }));
+    if (ok)
+      router.delete(route('membership.leave', { project: project.id }), {
+        // Why the server refused: nothing on the page holds a field for it
+        onError: (errors) => toast({ tone: 'error', message: Object.values(errors)[0] ?? '' }),
+      });
   };
 
   return (
