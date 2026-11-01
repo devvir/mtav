@@ -88,7 +88,7 @@ return [
     'page_expired'            => 'The page was open for a long time: try again.',
     'too_many_attempts'       => 'Too many attempts in a row: wait a moment and try again.',
     'changed_meanwhile'       => 'This changed in the meantime: check it and try again.',
-    'account_deleted'         => 'Your account was deleted.',
+    'own_account_deleted'     => 'Your account was deleted.',
     'topic_opened'            => 'Your topic is open.',
     'topic_removed'           => 'The topic was removed.',
     'error_solved'            => 'Marked solved.',

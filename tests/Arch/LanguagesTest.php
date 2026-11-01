@@ -112,3 +112,13 @@ it('keeps in its languages no phrase nothing says', function () {
         expect(array_values($unused))->toBe([], $locale);
     }
 });
+
+it('has each server word once: a repeated key silently takes the last meaning', function () {
+    foreach (array_keys(config('app.locales')) as $locale) {
+        foreach (glob(lang_path("{$locale}/*.php")) as $file) {
+            preg_match_all("/^ {4}'([a-z_]+)'\\s*=>/m", file_get_contents($file), $keys);
+
+            expect(array_keys(array_filter(array_count_values($keys[1]), fn (int $times) => $times > 1)))->toBe([], "{$locale}/" . basename($file));
+        }
+    }
+});

@@ -111,6 +111,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return to_route('home')->with('success', __('flash.account_deleted'));
+        return to_route('home')->with('success', __('flash.own_account_deleted'));
     }
 }

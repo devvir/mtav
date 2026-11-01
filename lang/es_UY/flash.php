@@ -88,7 +88,7 @@ return [
     'page_expired'            => 'La página estuvo abierta mucho tiempo: vuelve a intentarlo.',
     'too_many_attempts'       => 'Demasiados intentos seguidos: esperá un momento y probá de nuevo.',
     'changed_meanwhile'       => 'Esto cambió mientras tanto: miralo y probá de nuevo.',
-    'account_deleted'         => 'Tu cuenta fue borrada.',
+    'own_account_deleted'     => 'Tu cuenta fue borrada.',
     'topic_opened'            => 'Tu tema está abierto.',
     'topic_removed'           => 'Se quitó el tema.',
     'error_solved'            => 'Marcado como resuelto.',

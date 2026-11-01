@@ -88,7 +88,7 @@ return [
     'page_expired'            => 'La page est restée ouverte longtemps : réessayez.',
     'too_many_attempts'       => 'Trop de tentatives d’affilée : patientez un instant, puis réessayez.',
     'changed_meanwhile'       => 'Cela a changé entre-temps : vérifiez, puis réessayez.',
-    'account_deleted'         => 'Votre compte a été supprimé.',
+    'own_account_deleted'     => 'Votre compte a été supprimé.',
     'topic_opened'            => 'Votre sujet est ouvert.',
     'topic_removed'           => 'Le sujet a été retiré.',
     'error_solved'            => 'Marquée comme résolue.',

@@ -83,6 +83,13 @@ describe('Deleting', function () {
         ])->assertSessionHasNoErrors();
     });
 
+    it('tells the superadmin whose account went, not that it was their own', function () {
+        $name = $this->person->name;
+
+        $this->as($this->superadmin)->delete(route('admin.users.destroy', $this->person))
+            ->assertSessionHas('success', "The account of {$name} was deleted.");
+    });
+
     it('is refused for the only admin of a project, saying which', function () {
         $alone = aProject(['name' => 'Alone']);
         $admin = anAdminOf($alone);

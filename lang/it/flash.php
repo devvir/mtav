@@ -88,7 +88,7 @@ return [
     'page_expired'            => 'La pagina è rimasta aperta a lungo: riprova.',
     'too_many_attempts'       => 'Troppi tentativi di seguito: aspetta un momento e riprova.',
     'changed_meanwhile'       => 'Nel frattempo è cambiato: controlla e riprova.',
-    'account_deleted'         => 'Il tuo account è stato eliminato.',
+    'own_account_deleted'     => 'Il tuo account è stato eliminato.',
     'topic_opened'            => 'Il tuo argomento è aperto.',
     'topic_removed'           => 'L’argomento è stato rimosso.',
     'error_solved'            => 'Segnato come risolto.',

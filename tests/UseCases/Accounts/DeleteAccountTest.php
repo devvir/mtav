@@ -25,7 +25,7 @@ function deleteAccount($test, User $user, ?string $password = null)
 it('deletes an account confirmed with its password, signing its person out', function () {
     $this->member->pushSubscriptions()->create(['endpoint' => 'https://push.example.com/1', 'public_key' => 'k', 'auth_token' => 'a']);
 
-    deleteAccount($this, $this->member)->assertRedirect(route('home'));
+    deleteAccount($this, $this->member)->assertRedirect(route('home'))->assertSessionHas('success', 'Your account was deleted.');
 
     expect(User::find($this->member->id))->toBeNull()
         ->and($this->project->members()->count())->toBe(1)
