@@ -176,7 +176,7 @@ export default function PlatformProjects({ projects, counts, filters }: Props) {
         help={
           <InfoTip title={_('About approvals')} tour="platform.approvals">
             {_(
-              'Anyone can start a project. Until a superadmin approves it, it works within limits, to prevent abuse.',
+              'Anyone can start a project. It has limits until a superadmin approves it, to prevent abuse.',
             )}
           </InfoTip>
         }
