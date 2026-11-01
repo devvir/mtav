@@ -101,7 +101,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
     <>
       <PageHeader
         tour="manage.setup"
-        title={_('Settings')}
+        title={_('Setting up the project')}
         description={project.name}
         actions={isSetUp(checklist) ? null : <ChecklistCorner setup={checklist} />}
         help={

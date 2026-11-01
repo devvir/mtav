@@ -48,7 +48,7 @@ export default function Settings({ settings: project }: { settings: Project }) {
             )}
           </InfoTip>
         }
-        title={_('Settings')}
+        title={_('Project settings')}
         description={_('Its name, what it is about, and whether others can find it.')}
         tour="manage.settings"
       />

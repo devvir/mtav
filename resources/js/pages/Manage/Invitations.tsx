@@ -99,7 +99,7 @@ export default function ManageInvitations({
     <>
       <PageHeader
         tour="manage.invitations"
-        title={_('Settings')}
+        title={_('Invitations')}
         description={_('People join the project from the link they receive by email.')}
         help={
           <InfoTip title={_('How invitations work')} tour="manage.invitations">

@@ -188,3 +188,13 @@ it('keeps the page clear while its project\'s places load in the background', fu
     // The places are kept for offline a few seconds after arriving: no trip, no dimming
     visit(route('projects.show', $this->project))->wait(6)->assertNotPresent('.shell-page[data-loading]');
 });
+
+it('gives each part of a project\'s settings its own title and heading', function () {
+    $this->as(anAdminOf($this->project));
+
+    foreach (['manage.overview' => 'Setting up the project', 'manage.invitations.index' => 'Invitations', 'manage.settings.edit' => 'Project settings'] as $name => $title) {
+        visit(route($name, $this->project))
+            ->assertTitleContains($title)
+            ->assertScript("document.querySelector('h1').textContent", $title);
+    }
+});
