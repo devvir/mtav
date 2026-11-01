@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Conversation;
+use App\Services\ChatService;
 
 /**
  * The chat: starting a conversation, writing in it, and the other person finding it
@@ -11,6 +12,43 @@ beforeEach(function () {
     $this->project = aProject();
     $this->ana = aMemberOf(aFamily($this->project), ['firstname' => 'Ana', 'lastname' => 'Pérez']);
     $this->beto = aMemberOf(aFamily($this->project), ['firstname' => 'Beto', 'lastname' => 'Silva']);
+});
+
+it('says who wrote each message and when, to whoever cannot see the bubbles, and announces new ones', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $chat->send($conversation, $this->beto, 'Hola Ana');
+    $this->as($this->beto);
+
+    visit(route('chat.show', [$this->project, $conversation]))
+        ->assertPresent('.chat-messages[role="log"][aria-live="polite"][aria-relevant="additions"]')
+        ->assertPresent('.chat-message time[datetime]')
+        ->assertSeeIn('.chat-message:has-text("Hola Beto") .chat-bubble', 'Ana Pérez:')
+        ->assertSeeIn('.chat-message:has-text("Hola Ana") .chat-bubble', 'You:')
+        ->assertNoSmoke();
+});
+
+it('names a group with no name by its people, offers an empty name to rename it, and leaves it nameless on adding people', function () {
+    $carla = aMemberOf(aFamily($this->project), ['firstname' => 'Carla', 'lastname' => 'Díaz']);
+    $dora = aMemberOf(aFamily($this->project), ['firstname' => 'Dora', 'lastname' => 'Luz']);
+    $group = app(ChatService::class)->start($this->project, $this->ana, [$this->beto->id, $carla->id]);
+    $this->as($this->ana);
+
+    $page = visit(route('chat.show', [$this->project, $group]))
+        ->click('[aria-label="Conversation options"]')
+        ->click('Add people')
+        ->click('[role="dialog"] input[role="combobox"]')
+        ->click('[role="option"]:has-text("Dora Luz")')
+        ->click(inDialog('Add'))
+        ->assertMissing('[role="dialog"]');
+
+    expect($group->fresh()->title)->toBeNull()
+        ->and($group->participants()->whereKey($dora->id)->exists())->toBeTrue();
+
+    $page->click('[aria-label="Conversation options"]')
+        ->click('Rename the group')
+        ->assertValue('[role="dialog"] input', '');
 });
 
 it('starts a conversation with someone, and they find it waiting, unread until opened', function () {

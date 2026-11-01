@@ -23,6 +23,7 @@ import {
   Text,
   Textarea,
   TextInput,
+  VisuallyHidden,
 } from '@mantine/core';
 import {
   IconArrowLeft,
@@ -522,6 +523,10 @@ function Thread({
       <div
         ref={scroller}
         className="chat-messages"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={conversation.title}
         onScroll={(event) => {
           const element = event.currentTarget;
           atBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
@@ -556,19 +561,27 @@ function Thread({
               >
                 {message.from_assistant && !sameAuthor ? <AssistantFace size={28} /> : null}
                 {!message.mine && conversation.is_group && !sameAuthor ? (
-                  <Text className="chat-author">
+                  <Text className="chat-author" aria-hidden>
                     {message.author?.name ?? _('Someone who left')}
                   </Text>
                 ) : null}
                 <div className="chat-bubble">
+                  <VisuallyHidden>
+                    {message.mine
+                      ? _('You')
+                      : message.from_assistant
+                        ? _('Assistant')
+                        : (message.author?.name ?? _('Someone who left'))}
+                    :
+                  </VisuallyHidden>
                   <Text component="div" className="chat-body">
                     {message.body}
                   </Text>
-                  <span className="chat-time">
+                  <time className="chat-time" dateTime={message.created_at}>
                     {new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(
                       new Date(message.created_at),
                     )}
-                  </span>
+                  </time>
                 </div>
                 {message.actions?.length ? (
                   <AssistantActions

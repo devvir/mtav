@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\Media;
 use App\Models\User;
+use App\Services\ChatService;
+use App\Services\ForumService;
 
 /**
  * Nobody sees or reaches another project's data unless they take part in it.
@@ -51,6 +54,35 @@ it('does not reach another project\'s records through their own project for :dat
     foreach ($pages as $page) {
         expect($this->as($user)->get($page))->toBeNotFound();
     }
+})->with('outsiders');
+
+it('does not reach another project\'s files, topics or conversations through their own project for :dataset', function ($user) {
+    $owner = $this->otherMember;
+    $file = Media::factory()->create(['project_id' => $this->other->id, 'owner_id' => $owner->id, 'thumbnail' => 'projects/0/preview.jpg']);
+    $topic = app(ForumService::class)->open($this->other, $owner, 'Theirs', 'Theirs alone');
+    $post = $topic->posts()->sole();
+    $conversation = app(ChatService::class)->start($this->other, $owner, [anAdminOf($this->other)->id]);
+    $message = app(ChatService::class)->send($conversation, $owner, 'Between us');
+    $as = fn () => $this->as($user, $this->project);
+
+    foreach ([
+        route('media.show', [$this->project, $file]),
+        route('media.file', [$this->project, $file]),
+        route('media.thumbnail', [$this->project, $file]),
+        route('forum.show', [$this->project, $topic]),
+        route('chat.show', [$this->project, $conversation]),
+    ] as $page) {
+        expect($as()->get($page))->toBeNotFound();
+    }
+
+    expect($as()->delete(route('media.destroy', [$this->project, $file])))->toBeNotFound()
+        ->and($as()->post(route('forum.reply', [$this->project, $topic]), ['body' => 'Mine']))->toBeNotFound()
+        ->and($as()->delete(route('forum.posts.destroy', [$this->project, $post])))->toBeNotFound()
+        ->and($as()->post(route('chat.send', [$this->project, $conversation]), ['body' => 'Mine']))->toBeNotFound()
+        ->and($as()->delete(route('chat.messages.destroy', [$this->project, $message])))->toBeNotFound()
+        ->and($file->fresh())->not->toBeNull()
+        ->and($message->fresh())->not->toBeNull()
+        ->and($topic->posts()->count())->toBe(1);
 })->with('outsiders');
 
 it('lists only the project\'s own members', function () {
