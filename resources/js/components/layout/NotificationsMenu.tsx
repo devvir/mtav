@@ -15,6 +15,7 @@ import {
   ScrollArea,
   Text,
   UnstyledButton,
+  VisuallyHidden,
 } from '@mantine/core';
 import { IconBell, IconBellOff, IconChecks } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -116,6 +117,9 @@ export function NotificationsMenu() {
                     >
                       <span className="notification-dot" aria-hidden />
                       <span style={{ flex: 1, minWidth: 0 }}>
+                        {notification.read ? null : (
+                          <VisuallyHidden component="span">{_('Unread')}</VisuallyHidden>
+                        )}
                         <Text fw={650} size="sm">
                           {notification.title}
                         </Text>

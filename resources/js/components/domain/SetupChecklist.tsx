@@ -1,7 +1,7 @@
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { Link, usePage } from '@inertiajs/react';
-import { Transition, UnstyledButton } from '@mantine/core';
+import { Transition, UnstyledButton, VisuallyHidden } from '@mantine/core';
 import { useClickOutside } from '@mantine/hooks';
 import { useEffect, useState, type ReactNode } from 'react';
 
@@ -49,6 +49,7 @@ function Steps({ setup }: { setup: Setup }) {
           <>
             <HandMark done={step.done} />
             <span>{step.label}</span>
+            {step.done ? <VisuallyHidden component="span">{_('Done')}</VisuallyHidden> : null}
           </>
         );
         return (

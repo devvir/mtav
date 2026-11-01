@@ -7,7 +7,7 @@ import { heldOffline } from '@/lib/offline';
 import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { startTour } from '@/lib/tour';
-import { _ } from '@/lib/translations';
+import { _, languageTag } from '@/lib/translations';
 import { router, usePage } from '@inertiajs/react';
 import {
   ActionIcon,
@@ -43,6 +43,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -222,7 +223,11 @@ function ConversationList({
       ) : null}
       {!listed.length ? (
         <Text c="dimmed" ta="center" p="lg" size="sm">
-          {_('No one-on-one chats yet.')}
+          {words
+            ? _('Nothing matches')
+            : kind === 'chats'
+              ? _('No one-on-one chats yet.')
+              : _('No groups yet.')}
         </Text>
       ) : null}
       {listed.map((conversation) => (
@@ -252,7 +257,11 @@ function ConversationList({
                   : _('No messages yet')}
               </Text>
             </div>
-            {conversation.unread ? <span className="chat-unread" aria-label={_('Unread')} /> : null}
+            {conversation.unread ? (
+              <span className="chat-unread">
+                <VisuallyHidden component="span">{_('Unread')}</VisuallyHidden>
+              </span>
+            ) : null}
           </button>
           <ActionIcon
             variant="subtle"
@@ -396,6 +405,7 @@ function Thread({
   const [renaming, setRenaming] = useState(false);
   const [adding, setAdding] = useState(false);
   const last = messages.data.at(-1)?.id;
+  const clock = useMemo(() => new Intl.DateTimeFormat(languageTag(), { timeStyle: 'short' }), []);
 
   // The latest in view as the conversation opens and as messages arrive (unless reading
   // further up)
@@ -578,9 +588,7 @@ function Thread({
                     {message.body}
                   </Text>
                   <time className="chat-time" dateTime={message.created_at}>
-                    {new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(
-                      new Date(message.created_at),
-                    )}
+                    {clock.format(new Date(message.created_at))}
                   </time>
                 </div>
                 {message.actions?.length ? (

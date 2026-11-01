@@ -947,6 +947,7 @@
   "Chats": "Discussions",
   "Groups": "Groupes",
   "No one-on-one chats yet.": "Pas encore de discussion à deux.",
+  "No groups yet.": "Pas encore de groupe.",
   "Not taking anyone new right now": "N’accueille personne de nouveau pour l’instant",
   "Block {name}?": "Bloquer {name} ?",
   "They leave every project at once and cannot sign in. Their email stays taken, so they cannot join again.": "Cette personne quitte aussitôt tous les projets et ne peut plus se connecter. Son e-mail reste pris : elle ne peut pas revenir.",

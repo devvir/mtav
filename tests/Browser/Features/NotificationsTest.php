@@ -80,3 +80,9 @@ it('names a row by its title and whether it was read, with the rest as its descr
     expect($page->script($name))->toBe('New event: General assembly · Unread')
         ->and($page->script($about))->toContain('On Friday at 10, in the communal hall');
 });
+
+it('says which are unread to whoever cannot see the mark', function () {
+    visit(route('projects.show', $this->project))
+        ->click('[aria-label="Notifications, 1 unread"]')
+        ->assertSeeIn('.bell-list .notification[data-unread]', 'Unread');
+});

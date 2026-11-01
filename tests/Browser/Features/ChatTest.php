@@ -190,3 +190,70 @@ it('gets over a message that could not leave: the button stops waiting, it says 
         ->assertSeeIn('.chat-messages', 'Sin conexión')
         ->assertValue('[aria-label="Message"]', '');
 });
+
+it('takes the focus into the window as it opens, and back to the bubble as it folds', function () {
+    $this->as($this->ana);
+    $inWindow = '() => document.activeElement.closest(".chat-window") !== null';
+    $onBubble = '() => document.activeElement.classList.contains("chat-launcher")';
+
+    $page = visit(route('projects.show', $this->project))->click('.chat-launcher')->assertPresent('.chat-window');
+    expect($page->script($inWindow))->toBeTrue();
+
+    $page->click('.chat-window [aria-label="Minimize"]')->wait(0.3)->assertMissing('.chat-window');
+    expect($page->script($onBubble))->toBeTrue();
+
+    // By the keyboard too
+    $page->script('() => document.querySelector(".chat-launcher").click()');
+    $page->assertPresent('.chat-window')->keys('.chat-window', 'Escape')->wait(0.3)->assertMissing('.chat-window');
+    expect($page->script($onBubble))->toBeTrue();
+});
+
+it('says which conversations are unread to whoever cannot see the mark', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $this->as($this->beto);
+
+    visit(route('chat.index', $this->project))
+        ->assertPresent('.chat-list-item .chat-unread')
+        ->assertSeeIn('.chat-list-item', 'Unread');
+});
+
+it('writes each message\'s time in the app\'s language, whatever the browser\'s', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $this->beto->update(['locale' => 'es_UY']);
+    $this->as($this->beto);
+
+    $page = visit(route('chat.show', [$this->project, $conversation]))->assertPresent('.chat-time');
+
+    expect($page->script('() => {
+        const time = document.querySelector(".chat-time");
+        return time.textContent === new Intl.DateTimeFormat("es-UY", { timeStyle: "short" }).format(new Date(time.dateTime));
+    }'))->toBeTrue();
+});
+
+it('says there are no groups, not no chats, on the groups of someone who has none', function () {
+    $this->project->conversations()->delete();
+    app(ChatService::class)->start($this->project, $this->ana, [$this->beto->id]);
+    $this->as($this->ana);
+
+    $page = visit(route('chat.index', $this->project))
+        ->click('.chat-kinds >> text=Groups')
+        ->assertSee('No groups yet.');
+
+    expect($page->script('() => document.querySelector(".chat-list").innerText.includes("No one-on-one chats yet.")'))->toBeFalse();
+});
+
+it('says nothing matches, not that there are no chats, when a search finds none', function () {
+    $people = collect(range(1, 13))->map(fn ($n) => aMemberOf(aFamily($this->project), ['firstname' => "Persona{$n}"]));
+    $chat = app(ChatService::class);
+    $people->each(fn ($person) => $chat->start($this->project, $this->ana, [$person->id]));
+    $this->as($this->ana);
+
+    visit(route('chat.index', $this->project))
+        ->fill('[aria-label="Search conversations"]', 'nadie')
+        ->assertSee('Nothing matches')
+        ->assertDontSee('No one-on-one chats yet.');
+});

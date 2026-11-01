@@ -105,3 +105,13 @@ it('shows everyone the road to the lottery on a note, growing over itself and ba
         ->assertMissing('.note-sheet')
         ->assertNoSmoke();
 })->with(['projects.show', 'lottery.show']);
+
+it('says which steps of the road to the lottery are done to whoever cannot see the tick', function () {
+    aUnitType($this->project);
+    $this->as(aMemberOf(aFamily($this->project)));
+
+    visit(route('projects.show', $this->project))
+        ->click('.note-mini')
+        ->assertSeeIn('.note-sheet li:has-text("Add the unit types")', 'Done')
+        ->assertDontSeeIn('.note-sheet li:has-text("Run the lottery")', 'Done');
+});

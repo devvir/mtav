@@ -2124,6 +2124,9 @@ html[data-carrying] * {
     height: min(38rem, calc(100dvh - 15rem));
   }
 }
+.chat-window:focus {
+  outline: none;
+}
 .chat-window .chat {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;

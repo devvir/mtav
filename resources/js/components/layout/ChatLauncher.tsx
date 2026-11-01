@@ -7,7 +7,7 @@ import { _, _n } from '@/lib/translations';
 import { usePage } from '@inertiajs/react';
 import { Transition } from '@mantine/core';
 import { IconChevronDown, IconMessageCircle } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /** Once a visit, whatever the server's word on the next page */
 let welcomed = false;
@@ -22,6 +22,22 @@ export function ChatLauncher() {
   const { open } = useChat();
   const here = routeIs('chat.*');
   const welcome = project?.welcome;
+  const launcher = useRef<HTMLButtonElement>(null);
+  const chatWindow = useRef<HTMLElement>(null);
+
+  // Opening takes the focus into the window, unless someone is at work elsewhere…
+  const windowOpened = useCallback((element: HTMLElement | null) => {
+    chatWindow.current = element;
+    const active = document.activeElement;
+    if (element && (active === launcher.current || active === document.body)) {
+      element.focus({ preventScroll: true });
+    }
+  }, []);
+
+  // …and folding it back takes it to the bubble, rather than nowhere
+  useEffect(() => {
+    if (!open && chatWindow.current?.contains(document.activeElement)) launcher.current?.focus();
+  }, [open]);
 
   // Someone's first arrival: the Assistant greets them, and offers the tour the page would play
   useEffect(() => {
@@ -50,12 +66,19 @@ export function ChatLauncher() {
     <>
       <Transition mounted={open} transition="pop-bottom-right" duration={220} keepMounted={false}>
         {(styles) => (
-          <section className="chat-window ds-surface" style={styles} aria-label={_('Messages')}>
+          <section
+            ref={windowOpened}
+            tabIndex={-1}
+            className="chat-window ds-surface"
+            style={styles}
+            aria-label={_('Messages')}
+          >
             <Chat key={project.id} popup />
           </section>
         )}
       </Transition>
       <button
+        ref={launcher}
         type="button"
         className="chat-launcher"
         aria-expanded={open}
