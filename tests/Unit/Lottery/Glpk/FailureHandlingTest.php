@@ -45,8 +45,9 @@ describe('Failure Handling', function () {
     });
 
     test('cleans up temp files even when execution fails', function () {
-        $tempDir = sys_get_temp_dir();
-        $beforeFiles = glob($tempDir . '/mtav_*');
+        // Its own folder, so whatever a failed run leaves behind is seen, whatever it is called
+        $tempDir = sys_get_temp_dir() . '/' . uniqid('glpk-failure-');
+        mkdir($tempDir);
 
         config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',
@@ -60,16 +61,13 @@ describe('Failure Handling', function () {
         );
         $manifest = mockManifest(1, [10 => ['participants' => $spec->participants, 'items' => $spec->items]]);
 
-        try {
-            app(GlpkSolver::class)->execute($manifest, $spec);
-        } catch (GlpkException $e) {
-            // Expected failure
-        }
+        expect(fn () => app(GlpkSolver::class)->execute($manifest, $spec))->toThrow(GlpkException::class);
 
-        $afterFiles = glob($tempDir . '/mtav_*');
+        $left = array_diff(scandir($tempDir), ['.', '..']);
+        array_map(fn (string $file) => unlink("{$tempDir}/{$file}"), $left);
+        rmdir($tempDir);
 
-        // Should not leak files even on failure
-        expect(count($afterFiles))->toBe(count($beforeFiles));
+        expect($left)->toBe([]);
     });
 
     test('throws exception when execution times out', function () {

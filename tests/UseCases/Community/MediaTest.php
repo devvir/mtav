@@ -109,6 +109,30 @@ it('rejects SVG images, which can carry scripts', function () {
     expect($this->project->media()->exists())->toBeFalse();
 });
 
+describe('A file that says it is something else', function () {
+    it('is refused for what its bytes are', function (string $bytes, string $name, string $type) {
+        upload($this, $this->member, anUpload($bytes, $name, $type))->assertSessionHasErrors('files.0');
+
+        expect($this->project->media()->exists())->toBeFalse()
+            ->and(Storage::disk(Media::DISK)->allFiles())->toBe([]);
+    })->with([
+        'a script as a photo'     => ['<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>', 'photo.jpg', 'image/jpeg'],
+        'a web page as a photo'   => ['<!doctype html><html><body><script>alert(1)</script></body></html>', 'photo.png', 'image/png'],
+        'a program as a document' => ["MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xFF\xFF\x00\x00" . str_repeat("\x00", 64) . 'PE', 'minutes.pdf', 'application/pdf'],
+    ]);
+
+    it('is kept as what its bytes are, whatever it claimed', function () {
+        ob_start();
+        imagepng(imagecreatetruecolor(8, 8));
+
+        upload($this, $this->member, anUpload(ob_get_clean(), 'photo.jpg', 'image/jpeg'))->assertSessionHasNoErrors();
+
+        $media = $this->project->media()->sole();
+        expect($media)->mime_type->toBe('image/png')->category->toBe(MediaCategory::IMAGE)
+            ->and($media->path)->toEndWith('.png');
+    });
+});
+
 it('lets the owner edit the description, and nobody else', function () {
     $media = Media::factory()->create(['project_id' => $this->project->id, 'owner_id' => $this->member->id]);
     $neighbour = aMemberOf(aFamily($this->project));

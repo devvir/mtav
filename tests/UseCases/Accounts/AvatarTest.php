@@ -31,6 +31,15 @@ it('refuses what is not an image, and an image of more pixels than can be opened
     expect($this->user->fresh()->avatar)->toBeNull();
 });
 
+it('refuses what only says it is a picture', function () {
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
+
+    $this->as($this->user)->post(route('avatar.update'), ['avatar' => anUpload($svg, 'me.jpg', 'image/jpeg')])
+        ->assertSessionHasErrors('avatar');
+
+    expect($this->user->fresh()->avatar)->toBeNull();
+});
+
 it('lets go of the previous picture', function () {
     $this->as($this->user)->post(route('avatar.update'), ['avatar' => UploadedFile::fake()->image('one.png', 100, 100)]);
     $first = $this->user->fresh()->avatar;

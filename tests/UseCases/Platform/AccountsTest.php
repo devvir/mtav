@@ -92,7 +92,8 @@ describe('Deleting', function () {
 });
 
 it('protects superadmins and oneself', function (string $how) {
-    $other = aSuperadmin();
+    $other = User::factory()->superadmin()->create();
+    expect($other->is($this->superadmin))->toBeFalse();
     $act = fn (User $target) => $how === 'block'
         ? $this->as($this->superadmin)->put(route('admin.users.block', $target), ['block' => true])
         : $this->as($this->superadmin)->delete(route('admin.users.destroy', $target));
@@ -100,7 +101,8 @@ it('protects superadmins and oneself', function (string $how) {
     $act($other)->assertSessionHasErrors('account');
     $act($this->superadmin)->assertSessionHasErrors('account');
 
-    expect($other->fresh()->isBlocked())->toBeFalse();
+    expect($other->fresh())->not->toBeNull()->isBlocked()->toBeFalse()
+        ->and($this->superadmin->fresh())->not->toBeNull()->isBlocked()->toBeFalse();
 })->with(['block', 'delete']);
 
 it('is for superadmins alone', function () {

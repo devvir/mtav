@@ -46,6 +46,39 @@ it('gives the role only to an account that confirmed its email and is not blocke
     'blocked'     => [['blocked_at' => '2026-01-01 00:00:00']],
 ]);
 
+describe('Taking the role back', function () {
+    beforeEach(function () {
+        $this->superadmin = aSuperadmin();
+        $this->other = User::factory()->superadmin()->create();
+    });
+
+    it('takes it from another superadmin', function () {
+        $this->as($this->superadmin)
+            ->put(route('admin.users.superadmin', $this->other), ['grant' => false])
+            ->assertSessionHasNoErrors();
+
+        expect($this->other->fresh()->isSuperadmin())->toBeFalse();
+    });
+
+    it('refuses taking it from oneself', function () {
+        $this->as($this->superadmin)
+            ->put(route('admin.users.superadmin', $this->superadmin), ['grant' => false])
+            ->assertSessionHasErrors(['grant' => __('validation.cannot_revoke_self')]);
+
+        expect($this->superadmin->fresh()->isSuperadmin())->toBeTrue();
+    });
+
+    it('is for superadmins alone, either way', function () {
+        $ana = aUser();
+
+        expect($this->as($ana)->put(route('admin.users.superadmin', $ana), ['grant' => true]))->toBeDenied()
+            ->and($this->as($ana)->put(route('admin.users.superadmin', $this->other), ['grant' => false]))->toBeDenied();
+
+        expect($ana->fresh()->isSuperadmin())->toBeFalse()
+            ->and($this->other->fresh()->isSuperadmin())->toBeTrue();
+    });
+});
+
 describe('The owner', function () {
     beforeEach(function () {
         $this->owner = aUser();

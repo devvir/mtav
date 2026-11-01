@@ -160,6 +160,54 @@ it('lets members pin nothing, and admins remove a topic with its posts', functio
     expect(Topic::count())->toBe(0);
 });
 
+describe('Removing a post', function () {
+    beforeEach(function () {
+        openTopic($this, $this->ana);
+        $this->topic = Topic::sole();
+        replyTo($this, $this->beto, $this->topic);
+        $this->reply = $this->topic->posts()->where('author_id', $this->beto->id)->sole();
+        $this->remove = fn ($user, Post $post) => $this->as($user, $this->project)
+            ->delete(route('forum.posts.destroy', [$this->project, $post]));
+    });
+
+    it('lets whoever wrote a reply remove it, alone', function () {
+        ($this->remove)($this->beto, $this->reply)->assertSessionHasNoErrors();
+
+        expect(Post::find($this->reply->id))->toBeNull()
+            ->and($this->topic->fresh())->not->toBeNull()->replies_count->toBe(0);
+    });
+
+    it('lets an admin remove anyone\'s reply', function () {
+        ($this->remove)($this->admin, $this->reply)->assertSessionHasNoErrors();
+
+        expect(Post::find($this->reply->id))->toBeNull();
+    });
+
+    it('keeps a neighbour from removing someone else\'s reply', function () {
+        expect(($this->remove)($this->ana, $this->reply))->toBeDenied();
+
+        expect(Post::find($this->reply->id))->not->toBeNull();
+    });
+
+    it('takes the topic with its opening post, which its writer may do only while nobody replied', function () {
+        $opening = $this->topic->opening;
+
+        expect(($this->remove)($this->ana, $opening))->toBeDenied();
+        expect(Topic::find($this->topic->id))->not->toBeNull();
+
+        ($this->remove)($this->beto, $this->reply);
+        ($this->remove)($this->ana, $opening->fresh())->assertRedirect(route('forum.index', $this->project));
+
+        expect(Topic::find($this->topic->id))->toBeNull();
+    });
+
+    it('lets an admin take a topic that has replies, through its opening post', function () {
+        ($this->remove)($this->admin, $this->topic->opening)->assertRedirect(route('forum.index', $this->project));
+
+        expect(Topic::find($this->topic->id))->toBeNull();
+    });
+});
+
 it('keeps the forum from people outside the project', function () {
     openTopic($this, $this->ana);
     $outsider = aMemberOf(aFamily(aProject()));

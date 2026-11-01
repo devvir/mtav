@@ -62,3 +62,11 @@ it('lets each person listen only to their own notifications', function () {
     expect($channel($this->member, $this->member->id))->toBeTrue()
         ->and($channel($this->member, $this->admin->id))->toBeFalse();
 });
+
+it('lets only superadmins listen to the platform\'s notices', function () {
+    $channel = Broadcast::driver()->getChannels()['superadmins'];
+
+    expect($channel(aSuperadmin()))->toBeTrue()
+        ->and($channel($this->admin))->toBeFalse()
+        ->and($channel($this->member))->toBeFalse();
+});

@@ -20,6 +20,10 @@ use Illuminate\Support\Str;
  * would. They are the only test code that knows how roles and memberships are stored.
  */
 
+/**
+ * The deployment's superadmin: the same one on every call. A second one is
+ * User::factory()->superadmin()->create().
+ */
 function aSuperadmin(): User
 {
     return User::firstWhere('is_superadmin', true) ?? User::factory()->superadmin()->create();
@@ -130,6 +134,19 @@ function aLotteryInProgress(Project $project): LotteryRun
  * A PNG that is a few bytes yet claims to be enormous (what opening it would cost): a
  * real header, no picture behind it
  */
+/**
+ * A file as a browser uploads it: bytes on disk, with whatever name and type the sender claims.
+ * The server reads its type from the bytes, which a fake upload does not (it reports what it
+ * was told, or guesses from the name).
+ */
+function anUpload(string $bytes, string $claimedName, string $claimedType): Illuminate\Http\UploadedFile
+{
+    $path = tempnam(sys_get_temp_dir(), 'upload');
+    file_put_contents($path, $bytes);
+
+    return new Illuminate\Http\UploadedFile($path, $claimedName, $claimedType, null, true);
+}
+
 function aPixelBomb(string $name = 'bomb.png', int $side = 20000): Illuminate\Http\UploadedFile
 {
     $chunk = fn (string $type, string $data) => pack('N', strlen($data)) . $type . $data . pack('N', crc32($type . $data));

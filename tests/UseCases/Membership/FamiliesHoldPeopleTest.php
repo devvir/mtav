@@ -466,6 +466,26 @@ describe('An admin moving or removing someone', function () {
             ->assertSessionHasNoErrors();
     });
 
+    it('refuses removing the only admin, who stays', function () {
+        $project = aProject();
+        $only = anAdminOf($project);
+
+        $this->as($only, $project)->delete(route('manage.people.destroy', $only))
+            ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
+
+        expect($only->fresh()->manages($project))->toBeTrue();
+    });
+
+    it('removes an admin while another is left', function () {
+        $project = aProject();
+        $first = anAdminOf($project);
+        $second = anAdminOf($project);
+
+        $this->as($first, $project)->delete(route('manage.people.destroy', $second))->assertSessionHasNoErrors();
+
+        expect($second->fresh()->canAccess($project))->toBeFalse();
+    });
+
     it('keeps an old admin invitation from bringing someone back who was removed', function () {
         $invitation = app(InvitationService::class)->invite($this->project, $this->admin, ['email' => $this->member->email], null, true);
 
