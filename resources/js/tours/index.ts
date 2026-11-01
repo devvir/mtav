@@ -24,7 +24,7 @@ const lotteryIntro = (): TourStep[] => [
     target: 'lottery.status',
     title: _('How it decides'),
     body: _(
-      'Each family ranks the units of its type. The lottery first makes the worst-off family as well off as possible, then the whole project as satisfied as possible; only ties are drawn at random.',
+      'Each family ranks the units of its type. The lottery first gives the family that would be worst off the best it can, then makes the whole project as happy as possible. Only ties are settled at random.',
     ),
   },
 ];

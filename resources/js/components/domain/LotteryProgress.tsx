@@ -37,7 +37,7 @@ export function LotteryProgress({
   const steps = [
     _("Reading every family's preferences"),
     _('Weighing the units of each type'),
-    _('Finding the assignment that gives every family the most'),
+    _('Finding what gives every family the most'),
     _("Checking every family's result"),
   ];
   const share = end > start ? Math.min(1, Math.max(0, (now - start) / (end - start))) : 1;
