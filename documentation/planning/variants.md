@@ -1,7 +1,8 @@
 # Variants
 
 A **variant** is what a deployment is made to be. All variants are one codebase and one release
-image; a deployment picks its variant with `MTAV_VARIANT`. MTAV is the variant with everything.
+image; a deployment picks its variant with `MTAV_VARIANT`. MTAV is the variant with everything, and
+what a deployment is when it names none.
 Open Lottery, the first other one, is the far end: no accounts and no app behind a login, so
 whatever works for it works for anything in between.
 
@@ -55,7 +56,8 @@ Runs, the audit, its record and the reveal are the same for both.
 
 ## Open Lottery
 
-A landing page and one page per lottery. No sign-up, no login, no accounts, no email.
+A proof of concept for now, there to make us think broadly about variants and how they translate to
+code. A landing page and one page per lottery. No sign-up, no login, no accounts, no email.
 
 **The flow.** Someone creates a lottery and gets a link to share. People open it, add themselves
 and rank the items. Everyone sees who is in and whether they have ranked, never what. The organizer
@@ -104,11 +106,12 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
 ### Before it goes live
 
 - A privacy page of its own: the one every variant shows today speaks of accounts and the Assistant.
-- Its own name (`APP_NAME`), domain and environment on the server.
+- Its own name (`APP_NAME`), and an environment on the server. Its address is `sorteo.mtav.uy`, on the
+  environment ports 8003 and 8083.
 
 ### Out of it, for now
 
-Deadlines, identical items in quantity, several items per person, choosing groups inside a
+Moving the page data and the cookie identity out of its controller, and comparing it with MTAV's
+lottery for code to share. Deadlines, identical items in quantity, several items per person, choosing groups inside a
 lottery, a repeatable tie-break for recomputing a result, a lighter JavaScript bundle (the variant
-ships the whole app's pages today), and an environment of its own on the server: that needs a
-domain, and a deployment set up with `MTAV_VARIANT=open_lottery`.
+ships the whole app's pages today).
