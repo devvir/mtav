@@ -34,10 +34,13 @@ class ActivityLog
                 'subject_type' => $subject ? Str::snake(class_basename($subject)) : null,
                 'subject_id'   => is_int($subject?->getKey()) ? $subject->getKey() : null,
                 'subject'      => $subject ? self::label($subject) : null,
-                'project_id'   => $subject instanceof Project ? $subject->getKey() : ($subject?->getAttributes()['project_id'] ?? null),
-                'changes'      => $changes ?: null,
-                'ip'           => app()->runningInConsole() ? null : request()->ip(),
-                'created_at'   => now(),
+                // A project deleted for good is no project to point at: its name and id say which
+                'project_id' => $subject instanceof Project
+                    ? ($subject->exists ? $subject->getKey() : null)
+                    : ($subject?->getAttributes()['project_id'] ?? null),
+                'changes'    => $changes ?: null,
+                'ip'         => app()->runningInConsole() ? null : request()->ip(),
+                'created_at' => now(),
             ]);
         }, report: false);
     }

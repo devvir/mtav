@@ -89,3 +89,44 @@ it('pages the log without counting it', function () {
         ->and($page['meta'])->not->toHaveKey('total')
         ->and($page['links']['next'])->not->toBeNull();
 });
+
+describe('A project deleted', function () {
+    it('for good says who did it, and which project, once it is gone', function () {
+        $superadmin = aSuperadmin();
+        $project = aProject(['name' => 'Los Ceibos']);
+        $id = $project->id;
+        aFamily($project, aUnitType($project));
+        $project->delete();
+
+        $this->as($superadmin)->delete(route('admin.projects.destroy', $id), ['confirmation' => 'Los Ceibos'])->assertSessionHasNoErrors();
+
+        expect(App\Models\Project::withTrashed()->find($id))->toBeNull();
+        expect(Activity::where('subject_type', 'project')->where('subject_id', $id)->where('action', 'deleted')->latest('id')->first())
+            ->user_id->toBe($superadmin->id)
+            ->subject->toBe('Los Ceibos')
+            ->project_id->toBeNull();
+    });
+
+    it('for good by its admin, having no history, says so too', function () {
+        $admin = aUser();
+        $project = anUnapprovedProject($admin);
+        $id = $project->id;
+        $name = $project->name;
+
+        $this->as($admin, $project)->delete(route('manage.settings.destroy'), ['confirmation' => $name]);
+
+        expect(App\Models\Project::withTrashed()->find($id))->toBeNull();
+        expect(Activity::where('subject_type', 'project')->where('subject_id', $id)->where('action', 'deleted')->sole())
+            ->user_id->toBe($admin->id)
+            ->subject->toBe($name)
+            ->project_id->toBeNull();
+    });
+
+    it('but only archived stays on its own project\'s record', function () {
+        $project = aProject();
+
+        $project->delete();
+
+        expect(Activity::where('subject_type', 'project')->where('action', 'deleted')->sole()->project_id)->toBe($project->id);
+    });
+});
