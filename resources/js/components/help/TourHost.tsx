@@ -209,7 +209,7 @@ function endAllTours() {
   noMoreTours();
   toast({
     tone: 'info',
-    message: _('No more tours. Preferences turns them back on.'),
+    message: _('No more tours. You can turn them back on in Preferences.'),
     href: route('profile.edit', { section: 'preferences' }),
   });
 }
