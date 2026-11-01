@@ -99,6 +99,39 @@ it('restores an archived project, or deletes it for good after its summary and i
     expect(Project::find($kept->id))->not->toBeNull();
 });
 
+it('names each error for those who cannot see its card, and tells them the trace opened', function () {
+    [$runtime] = collect([RuntimeException::class, LogicException::class])->map(fn ($class) => App\Models\ErrorEntry::create([
+        'fingerprint'   => sha1($class), 'class' => $class, 'message' => 'Could not', 'trace' => '#0 here',
+        'first_seen_at' => now(), 'last_seen_at' => now(),
+    ]));
+    $toggle = "button[aria-controls=\"trace-{$runtime->id}\"]";
+
+    $page = visit(route('admin.errors.index'))
+        ->assertPresent('h2:has-text("RuntimeException")')
+        ->assertPresent('button[aria-label="Mark RuntimeException solved"]')
+        ->assertPresent('button[aria-label="Mark LogicException solved"]')
+        ->assertPresent("{$toggle}[aria-expanded=\"false\"]");
+
+    $page->click($toggle)
+        ->assertPresent("{$toggle}[aria-expanded=\"true\"]")
+        ->assertNoSmoke();
+
+    $page->click('button[aria-label="Mark LogicException solved"]')
+        ->assertSee('Marked solved.');
+    expect(App\Models\ErrorEntry::where('class', LogicException::class)->exists())->toBeFalse();
+});
+
+it('pages a long activity log without saying how long it is', function () {
+    App\Models\Activity::insert(array_fill(0, 51, ['action' => 'signed_in', 'actor' => 'Ana', 'created_at' => now()]));
+
+    visit(route('admin.activity.index'))
+        ->assertSee('1–50')
+        ->assertDontSee('1–50 of')
+        ->click('nav[aria-label="Pages"] a[aria-label="Next page"]')
+        ->assertSee('51–')
+        ->assertNoSmoke();
+});
+
 it('shows superadmins what changed, and narrows it to a project', function () {
     $project = aProject(['name' => 'Los Ceibos']);
     aUnit(aUnitType($project), ['identifier' => 'A-101']);

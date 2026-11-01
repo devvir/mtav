@@ -27,13 +27,14 @@ interface ErrorEntry {
 /** An error: what and where, how often and since when; its trace on demand */
 function ErrorCard({ error }: { error: ErrorEntry }) {
   const [open, setOpen] = useState(false);
+  const name = error.class.split('\\').pop();
 
   return (
     <Card p="md" data-tour="errors.list">
       <Group justify="space-between" wrap="nowrap" align="flex-start">
         <div style={{ minWidth: 0 }}>
-          <Text fw={700} className="ds-truncate">
-            {error.class.split('\\').pop()}
+          <Text component="h2" fw={700} m={0} className="ds-truncate">
+            {name}
           </Text>
           <Text size="sm" style={{ overflowWrap: 'anywhere' }}>
             {error.message}
@@ -55,6 +56,7 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
             size="xs"
             variant="default"
             leftSection={<IconCheck size={14} />}
+            aria-label={_('Mark {error} solved', { error: name ?? '' })}
             onClick={() =>
               router.delete(route('admin.errors.destroy', error.id), { preserveScroll: true })
             }
@@ -65,10 +67,18 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
       </Group>
       {error.trace ? (
         <>
-          <Button variant="subtle" size="xs" mt="xs" px={0} onClick={() => setOpen(!open)}>
+          <Button
+            variant="subtle"
+            size="xs"
+            mt="xs"
+            px={0}
+            aria-expanded={open}
+            aria-controls={`trace-${error.id}`}
+            onClick={() => setOpen(!open)}
+          >
             {open ? _('Hide the trace') : _('Show the trace')}
           </Button>
-          <Collapse expanded={open} transitionDuration={220}>
+          <Collapse id={`trace-${error.id}`} expanded={open} transitionDuration={220}>
             <Code block mt="xs" style={{ maxHeight: 320, overflow: 'auto' }}>
               {error.trace}
             </Code>
