@@ -389,6 +389,45 @@ describe('A guest', function () {
         expect($this->person->fresh()->familyIn($this->project)?->id)->toBe($family->id);
     });
 
+    it('never pulls in an admin with no family: they are invited, and it is theirs to accept', function () {
+        $family = aFamily($this->project, $this->type);
+        $relative = aMemberOf($family);
+
+        $this->as($relative, $this->project)->post(route('invitations.store'), ['email' => $this->admin->email])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success', __('flash.invitation_sent', ['email' => $this->admin->email]));
+
+        expect($this->admin->fresh()->familyIn($this->project))->toBeNull();
+
+        $this->as($this->admin->fresh())->post(route('invitations.respond', $this->project->invitations()->sole()), ['accept' => true]);
+
+        expect($this->admin->fresh()->familyIn($this->project)?->id)->toBe($family->id)
+            ->and($this->admin->fresh()->membershipIn($this->project)->is_admin)->toBeTrue();
+    });
+
+    it('asks another admin too, when an admin adds them', function () {
+        $family = aFamily($this->project, $this->type);
+        $other = anAdminOf($this->project);
+
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), [
+            'email' => $other->email, 'family_id' => $family->id,
+        ])->assertSessionHasNoErrors();
+
+        expect($other->fresh()->familyIn($this->project))->toBeNull()
+            ->and($this->project->invitations()->count())->toBe(1);
+    });
+
+    it('takes at once an admin who adds themselves', function () {
+        $family = aFamily($this->project, $this->type);
+
+        $this->as($this->admin, $this->project)->post(route('manage.invitations.store'), [
+            'email' => $this->admin->email, 'family_id' => $family->id,
+        ])->assertSessionHasNoErrors();
+
+        expect($this->admin->fresh()->familyIn($this->project)?->id)->toBe($family->id)
+            ->and($this->project->invitations()->count())->toBe(0);
+    });
+
     it('has any invitation waiting for them settled by it', function () {
         $family = aFamily($this->project, $this->type);
         $this->project->invitations()->create([

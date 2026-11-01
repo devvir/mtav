@@ -21,8 +21,8 @@ use Illuminate\Validation\ValidationException;
  * People join a project by invitation: an emailed link, valid for a few days, that
  * creates their account (or adds the project to an existing one). Someone who already has
  * an account also finds it in the app, under its bell, leading to where they join.
- * Someone already taking part with no family needs no invitation to enter one: they are
- * added at once, and told.
+ * Someone already taking part with no family, other than an admin, needs no invitation to
+ * enter one: they are added at once, and told.
  */
 class InvitationService
 {
@@ -48,7 +48,10 @@ class InvitationService
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
 
         $familyless = $family && ! $asAdmin
-            ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)->first()
+            ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)
+                // An admin with no family chose so: they are asked, unless they do it themselves
+                ->where(fn ($query) => $query->where('is_admin', false)->orWhere('user_id', $inviter->id))
+                ->first()
             : null;
 
         // Limits first: a refused invitation brings no archived family back, empty

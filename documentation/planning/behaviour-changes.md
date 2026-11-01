@@ -25,7 +25,7 @@ Nothing changed in what it does or how.
    - Old: admin or member was global, and a member was in one project only.
 3. **Invitations are records that expire and can be revoked.**
    - They last 14 days, and only a hash of the token is stored. Old: the token was the account's first password and never expired.
-   - People who already have an account can be invited. Someone already in the project, who has not joined a family here, is put in the family at once, with no invitation to accept; they are told in the app and by email.
+   - People who already have an account can be invited. Someone already in the project who has not joined a family here, other than an admin, is put in the family at once, with no invitation to accept; they are told in the app and by email. An admin with no family gets an invitation like anyone, unless they are the one adding themselves.
    - Invitees accept or decline.
    - Members still invite only into their own family. Guests cannot invite.
    - A blocked account cannot be invited.
