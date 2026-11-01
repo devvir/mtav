@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\NotificationType;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Topic;
+use App\Services\ForumService;
 
 /**
  * The forum: anyone in the project opens topics and replies; a new topic is told to the
@@ -46,6 +48,43 @@ it('tells whoever wrote in a topic of each reply, but not the one replying', fun
     $told = Notification::where('type', 'forum_reply')->pluck('target_id')->sort()->values()->all();
     expect($told)->toBe(collect([$this->ana->id, $this->ana->id, $this->beto->id])->sort()->values()->all())
         ->and($topic->fresh()->replies_count)->toBe(2);
+});
+
+describe('A reply, to those who wrote before and have left', function () {
+    beforeEach(function () {
+        $this->topic = app(ForumService::class)->open($this->project, $this->admin, 'The roof', 'Opinions?');
+        $this->gone = $this->beto;
+        app(ForumService::class)->reply($this->topic, $this->gone, 'Green, please');
+    });
+
+    $replies = fn ($user) => Notification::where('type', NotificationType::FORUM_REPLY)->where('target_id', $user->id)->count();
+
+    it('tells them nothing once they left the project', function () use ($replies) {
+        $this->gone->memberships()->where('project_id', $this->project->id)->delete();
+
+        app(ForumService::class)->reply($this->topic->fresh(), $this->ana, 'Red');
+
+        expect($replies($this->gone))->toBe(0)
+            ->and($replies($this->admin))->toBe(2);
+    });
+
+    it('tells them nothing while they belong to another project only', function () use ($replies) {
+        $this->gone->memberships()->where('project_id', $this->project->id)->delete();
+        aFamily(aProject())->project->memberships()->create(['user_id' => $this->gone->id]);
+
+        app(ForumService::class)->reply($this->topic->fresh(), $this->ana, 'Red');
+
+        expect($replies($this->gone->fresh()))->toBe(0);
+    });
+
+    it('still tells a superadmin who wrote there, with no membership', function () use ($replies) {
+        $superadmin = aSuperadmin();
+        app(ForumService::class)->reply($this->topic, $superadmin, 'I can help');
+
+        app(ForumService::class)->reply($this->topic->fresh(), $this->ana, 'Thanks');
+
+        expect($replies($superadmin))->toBe(1);
+    });
 });
 
 it('lists pinned topics first, then the liveliest', function () {

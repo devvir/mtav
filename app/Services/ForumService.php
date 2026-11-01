@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * A project's forum: opening topics and replying to them. A new topic is told to the
- * project; a reply, to everyone who wrote in the topic before (never to its writer).
+ * project; a reply, to everyone still in the project who wrote in the topic before (never to its writer).
  */
 class ForumService
 {
@@ -46,7 +46,12 @@ class ForumService
 
     public function reply(Topic $topic, User $author, string $body): Post
     {
-        $earlier = $topic->participants()->whereKeyNot($author->id)->pluck('id');
+        // Whoever has left the project hears no more of it
+        $earlier = $topic->participants()->whereKeyNot($author->id)
+            ->where(fn ($people) => $people
+                ->where('is_superadmin', true)
+                ->orWhereHas('memberships', fn ($q) => $q->where('project_id', $topic->project_id)))
+            ->pluck('id');
 
         $post = DB::transaction(function () use ($topic, $author, $body) {
             $post = $this->post($topic, $author, $body);
