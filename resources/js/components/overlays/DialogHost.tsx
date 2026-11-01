@@ -1,7 +1,16 @@
 import { dialogQueue, settle, type DialogRequest } from '@/lib/dialogs';
 import { useStore } from '@/lib/store';
 import { _ } from '@/lib/translations';
-import { Button, Group, Modal, Stack, Text, TextInput, Textarea } from '@mantine/core';
+import {
+  Button,
+  Group,
+  Modal,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+  Textarea,
+} from '@mantine/core';
 import { useState } from 'react';
 
 /**
@@ -25,7 +34,15 @@ function Question({ request }: { request: DialogRequest }) {
       : answer.trim().length >= (request.options.minLength ?? 1);
 
   const answerWith = (confirmed: boolean) =>
-    settle(request.kind === 'confirm' ? confirmed : confirmed ? answer.trim() : null);
+    settle(
+      request.kind === 'confirm'
+        ? confirmed
+        : !confirmed
+          ? null
+          : request.options.password
+            ? answer
+            : answer.trim(),
+    );
 
   return (
     <Modal opened onClose={() => answerWith(false)} title={options.title} size="md">
@@ -50,7 +67,15 @@ function Question({ request }: { request: DialogRequest }) {
           ) : null}
 
           {request.kind === 'prompt' ? (
-            request.options.multiline ? (
+            request.options.password ? (
+              <PasswordInput
+                label={request.options.label}
+                value={answer}
+                onChange={(event) => setAnswer(event.currentTarget.value)}
+                autoComplete="current-password"
+                data-autofocus
+              />
+            ) : request.options.multiline ? (
               <Textarea
                 label={request.options.label}
                 placeholder={request.options.placeholder}

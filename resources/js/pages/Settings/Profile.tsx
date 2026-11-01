@@ -3,6 +3,7 @@ import { DeleteAccount } from '@/components/account/DeleteAccount';
 import { DeviceNotifications } from '@/components/account/DeviceNotifications';
 import { LanguageSettings } from '@/components/account/LanguageSettings';
 import { PasswordForm } from '@/components/account/PasswordForm';
+import { PasswordLink } from '@/components/account/PasswordLink';
 import { TourSettings } from '@/components/account/TourSettings';
 import { Form, FormActions } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
@@ -18,6 +19,7 @@ import {
   Fieldset,
   FileButton,
   Group,
+  PasswordInput,
   SimpleGrid,
   Stack,
   Switch,
@@ -25,6 +27,7 @@ import {
   Text,
   TextInput,
   Textarea,
+  Transition,
 } from '@mantine/core';
 import { IconCamera, IconKey, IconPalette, IconUser } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -63,12 +66,17 @@ export default function Profile({ profile, languages, pushKey }: Props) {
     firstname: profile.firstname,
     lastname: profile.lastname ?? '',
     email: profile.email,
+    current_password: '',
     phone: profile.phone ?? '',
     email_public: profile.email_public,
     phone_public: profile.phone_public,
     legal_id: profile.legal_id ?? '',
     about: profile.about ?? '',
   });
+
+  // Only a new address asks for the password
+  const typedEmail = form.data.email.toLowerCase();
+  const changingEmail = typedEmail !== profile.email && typedEmail !== profile.new_email;
 
   const [section, setSection] = useState<Section>(sectionInUrl);
   const open = (value: string | null) => {
@@ -140,7 +148,14 @@ export default function Profile({ profile, languages, pushKey }: Props) {
               {errors.avatar}
             </Text>
           ) : null}
-          <Form onSubmit={() => form.patch(route('profile.update'), { preserveScroll: true })}>
+          <Form
+            onSubmit={() =>
+              form.patch(route('profile.update'), {
+                preserveScroll: true,
+                onSuccess: () => form.reset('current_password'),
+              })
+            }
+          >
             <SimpleGrid cols={{ base: 1, sm: 2 }}>
               <TextInput
                 label={_('First name')}
@@ -166,6 +181,26 @@ export default function Profile({ profile, languages, pushKey }: Props) {
               }
               {...field(form, 'email')}
             />
+            <Transition
+              mounted={changingEmail}
+              transition="fade"
+              duration={220}
+              keepMounted={false}
+            >
+              {(styles) => (
+                <Stack gap="xs" align="flex-start" style={styles}>
+                  <PasswordInput
+                    label={_('Your password')}
+                    description={_('Needed to change your email')}
+                    withAsterisk
+                    autoComplete="current-password"
+                    w="100%"
+                    {...field(form, 'current_password')}
+                  />
+                  <PasswordLink />
+                </Stack>
+              )}
+            </Transition>
             <SimpleGrid cols={{ base: 1, sm: 2 }}>
               <TextInput
                 label={_('Phone')}
@@ -198,7 +233,7 @@ export default function Profile({ profile, languages, pushKey }: Props) {
             <Textarea label={_('About you')} autosize minRows={3} {...field(form, 'about')} />
             <FormActions submit={_('Save')} processing={form.processing} />
           </Form>
-          <DeleteAccount email={profile.email} />
+          <DeleteAccount />
         </Tabs.Panel>
         <Tabs.Panel value="password" className="ds-surface profile-section">
           <PasswordForm />

@@ -57,8 +57,6 @@ Route::middleware(['module:accounts', 'guest'])->group(function () {
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
         ->middleware('throttle:3,5')
         ->name('password.email');
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
     Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
     Route::get('auth/google/callback', [GoogleController::class, 'callback'])
@@ -81,6 +79,12 @@ Route::middleware('module:accounts')->group(function () {
     Route::post('invitations/{token}', [InvitationController::class, 'accept'])
         ->middleware('throttle:10,1')
         ->name('invitation.accept');
+
+    /** The emailed link works signed in too (a password asked for from the profile) */
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('password.store');
 });
 
 Route::middleware(['module:accounts', 'auth'])->group(function () {
@@ -102,10 +106,21 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
     /** Settings */
     Route::redirect('settings', '/settings/profile');
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('settings/avatar', [AvatarController::class, 'update'])->name('avatar.update');
-    Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
+    Route::patch('settings/profile', [ProfileController::class, 'update'])
+        ->middleware('throttle:20,1')
+        ->name('profile.update');
+    Route::delete('settings/profile', [ProfileController::class, 'destroy'])
+        ->middleware('throttle:10,1')
+        ->name('profile.destroy');
+    Route::post('settings/avatar', [AvatarController::class, 'update'])
+        ->middleware('throttle:10,1')
+        ->name('avatar.update');
+    Route::put('settings/password', [PasswordController::class, 'update'])
+        ->middleware('throttle:10,1')
+        ->name('password.update');
+    Route::post('settings/password/link', [PasswordController::class, 'link'])
+        ->middleware('throttle:3,5')
+        ->name('password.link');
 
     /** Notifications */
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

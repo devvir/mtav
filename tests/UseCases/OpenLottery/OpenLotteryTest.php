@@ -76,7 +76,10 @@ describe('Creating one', function () {
             $this->post(route('open.store'), ['name' => "Lottery {$i}", 'items_name' => 'Rooms']);
         }
 
-        $this->post(route('open.store'), ['name' => 'One more', 'items_name' => 'Rooms'])->assertTooManyRequests();
+        $this->post(route('open.store'), ['name' => 'One more', 'items_name' => 'Rooms'])
+            ->assertSessionHas('error', __('flash.too_many_attempts'));
+
+        expect(OpenLottery::count())->toBe(10);
     });
 });
 

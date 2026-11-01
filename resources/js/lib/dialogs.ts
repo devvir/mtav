@@ -17,6 +17,8 @@ export interface PromptOptions extends Omit<ConfirmOptions, 'typeToConfirm'> {
   multiline?: boolean;
   /** Minimum length of the answer */
   minLength?: number;
+  /** The answer is the person's password: hidden, and taken exactly as typed */
+  password?: boolean;
 }
 
 export type DialogRequest = { id: number } & (

@@ -13,6 +13,7 @@ const contentFor = (status: number) =>
       title: _('Page not found'),
       message: _('This page does not exist, or you do not have access to it.'),
     },
+    429: { title: _('Too many attempts'), message: _('Wait a moment and try again.') },
     503: {
       title: _('Back soon'),
       message: _('We are doing some maintenance. Please try again in a few minutes.'),

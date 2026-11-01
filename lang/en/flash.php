@@ -83,6 +83,8 @@ return [
     'upload_too_large'        => 'That was too much to send at once: share fewer files, or smaller ones.',
     'platform_settings_saved' => 'The platform settings were saved.',
     'page_expired'            => 'The page was open for a long time: try again.',
+    'too_many_attempts'       => 'Too many attempts in a row: wait a moment and try again.',
+    'changed_meanwhile'       => 'This changed in the meantime: check it and try again.',
     'account_deleted'         => 'Your account was deleted.',
     'topic_opened'            => 'Your topic is open.',
     'topic_removed'           => 'The topic was removed.',

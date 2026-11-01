@@ -1,3 +1,4 @@
+import { PasswordLink } from '@/components/account/PasswordLink';
 import { Form, FormActions } from '@/components/forms/Form';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
@@ -21,6 +22,7 @@ export function PasswordForm() {
         autoComplete="current-password"
         {...field(form, 'current_password')}
       />
+      <PasswordLink />
       <PasswordInput
         label={_('New password')}
         description={_('At least 8 characters')}

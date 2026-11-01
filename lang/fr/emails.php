@@ -6,6 +6,7 @@ return [
 
     'invitation_subject'      => 'Vous êtes invité à :project',
     'invitation_family'       => ':inviter vous invite à rejoindre la famille :family dans :project.',
+    'invitation_guest'        => ':inviter vous invite à rejoindre :project.',
     'invitation_admin'        => ':inviter vous invite à aider à gérer :project.',
     'invitation_admin_family' => ':inviter vous invite à aider à gérer :project, comme membre de la famille :family.',
     'invitation_action'       => 'Accepter l’invitation',

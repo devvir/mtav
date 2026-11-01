@@ -10,12 +10,14 @@ use Illuminate\Http\RedirectResponse;
 use App\Services\Push\PushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    private const EMAIL_CHANGES_PER_HOUR = 5;
+
     public function edit(Request $request): Response
     {
         $user = $request->user();
@@ -31,30 +33,38 @@ class ProfileController extends Controller
     }
 
     /**
-     * A new email address replaces the current one once confirmed from the new inbox.
+     * A new email address replaces the current one once confirmed from the new inbox, and
+     * asking for it takes the password. Whether another account has it shows only then: this
+     * form tells nobody who has an account. Going back to the current one drops what was
+     * pending.
      */
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $email = $request->input('email');
+        $newEmail = is_string($email) ? strtolower($email) : null;
+        $changing = $newEmail !== $user->email && $newEmail !== $user->new_email;
 
         $data = $request->validate([
             'firstname' => ['required', 'string', 'between:2,80'],
             'lastname'  => ['nullable', 'string', 'between:2,80'],
-            'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
+            'email'     => ['required', 'email', 'max:255'],
             'phone'     => ['nullable', 'string', 'between:4,30'],
             // Whether the people of their projects see them (admins always do)
-            'email_public' => ['boolean'],
-            'phone_public' => ['boolean'],
-            'legal_id'     => ['nullable', 'string', 'between:2,30'],
-            'about'        => ['nullable', 'string', 'max:1000'],
+            'email_public'     => ['boolean'],
+            'phone_public'     => ['boolean'],
+            'legal_id'         => ['nullable', 'string', 'between:2,30'],
+            'about'            => ['nullable', 'string', 'max:1000'],
+            'current_password' => $changing ? ['required', 'current_password'] : [],
         ]);
 
-        $newEmail = strtolower($data['email']);
-        unset($data['email']);
+        unset($data['email'], $data['current_password']);
+
+        $changing && $this->ensureMayChangeEmail($user->id);
 
         $user->update($data);
 
-        if ($newEmail !== $user->email && $newEmail !== $user->new_email) {
+        if ($changing) {
             $user->update(['new_email' => $newEmail]);
             // The link to the new address (owning it is what it proves); word of it to the old
             $user->notify(new VerifyEmailNotification($newEmail));
@@ -63,11 +73,25 @@ class ProfileController extends Controller
             return back()->with('info', __('flash.email_verification_sent', ['email' => $newEmail]));
         }
 
+        $newEmail === $user->email && $user->update(['new_email' => null]);
+
         return back()->with('success', __('flash.profile_updated'));
     }
 
+    /** Each change mails an address they typed: a few an hour, never a way to send mail */
+    private function ensureMayChangeEmail(int $userId): void
+    {
+        $key = "email-change:{$userId}";
+
+        if (RateLimiter::tooManyAttempts($key, self::EMAIL_CHANGES_PER_HOUR)) {
+            throw ValidationException::withMessages(['email' => __('validation.email_changes_limit')]);
+        }
+
+        RateLimiter::hit($key, 3600);
+    }
+
     /**
-     * Someone deletes their own account: their memberships, devices and answers go with
+     * Someone deletes their own account, giving their password: their memberships, devices and answers go with
      * it; what they gave their projects (files, events, lottery records) stays there,
      * without their name. Never the deployment's owner, nor a project's only admin (it
      * would be left without anyone to run it).
@@ -75,17 +99,13 @@ class ProfileController extends Controller
     public function destroy(Request $request, AccountService $accounts): RedirectResponse
     {
         $user = $request->user();
-        $request->validate(['confirmation' => ['required', Rule::in([$user->email])]], [
-            'confirmation.in' => __('validation.confirm_with_email'),
-        ]);
+        $request->validate(['password' => ['required', 'current_password']]);
 
         if ($user->is_owner) {
             throw ValidationException::withMessages(['confirmation' => __('validation.owner_stays')]);
         }
 
-        $accounts->ensureCanGo($user);
-        Auth::logout();
-        $accounts->delete($user);
+        $accounts->deleteIfItCanGo($user, first: fn () => Auth::logout());
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

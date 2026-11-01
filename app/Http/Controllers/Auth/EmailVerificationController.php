@@ -39,7 +39,12 @@ class EmailVerificationController extends Controller
         abort_unless((string) $user->id === $id, 403);
 
         if ($user->new_email && hash_equals(sha1($user->new_email), $hash)) {
-            abort_if(User::where('email', $user->new_email)->exists(), 409, __('validation.email_taken'));
+            // Taken in the meantime, or from the start (the profile never tells)
+            if (User::where('email', $user->new_email)->exists()) {
+                $user->forceFill(['new_email' => null])->save();
+
+                return to_route('profile.edit')->with('error', __('validation.email_taken'));
+            }
 
             $user->forceFill(['email' => $user->new_email, 'new_email' => null, 'email_verified_at' => now()])->save();
 

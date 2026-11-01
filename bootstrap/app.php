@@ -79,7 +79,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return back()->with('error', __('flash.page_expired'));
             }
 
-            if ($request->expectsJson() || ! in_array($status, [403, 404, 500, 503])) {
+            // Too many tries, or something that changed under an open page: said on it
+            if (in_array($status, [409, 429]) && ! $request->expectsJson() && ! $request->isMethod('GET')) {
+                return back()->with('error', __($status === 429 ? 'flash.too_many_attempts' : 'flash.changed_meanwhile'));
+            }
+
+            if ($request->expectsJson() || ! in_array($status, [403, 404, 429, 500, 503])) {
                 return $response;
             }
 

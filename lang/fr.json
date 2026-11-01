@@ -1097,5 +1097,12 @@
   "Share photos": "Partager des photos",
   "Gallery": "Galerie",
   "The project's records: documents and recordings.": "Les archives du projet : documents et enregistrements.",
-  "The project's photos and videos.": "Les photos et vidéos du projet."
+  "The project's photos and videos.": "Les photos et vidéos du projet.",
+  "to join {project}": "à rejoindre {project}",
+  "Your password": "Votre mot de passe",
+  "Needed to change your email": "Nécessaire pour changer votre e-mail",
+  "Email me a link to choose a password": "M’envoyer un lien pour choisir un mot de passe",
+  "Too many attempts": "Trop de tentatives",
+  "Wait a moment and try again.": "Patientez un instant, puis réessayez.",
+  "Owner": "Propriétaire"
 }

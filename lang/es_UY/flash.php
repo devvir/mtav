@@ -83,6 +83,8 @@ return [
     'upload_too_large'        => 'Era demasiado para enviar de una vez: comparte menos archivos, o más livianos.',
     'platform_settings_saved' => 'Se guardó la configuración de la plataforma.',
     'page_expired'            => 'La página estuvo abierta mucho tiempo: vuelve a intentarlo.',
+    'too_many_attempts'       => 'Demasiados intentos seguidos: esperá un momento y probá de nuevo.',
+    'changed_meanwhile'       => 'Esto cambió mientras tanto: miralo y probá de nuevo.',
     'account_deleted'         => 'Tu cuenta fue borrada.',
     'topic_opened'            => 'Tu tema está abierto.',
     'topic_removed'           => 'Se quitó el tema.',

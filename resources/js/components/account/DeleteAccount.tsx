@@ -1,5 +1,6 @@
+import { PasswordLink } from '@/components/account/PasswordLink';
 import { Glyph } from '@/design';
-import { confirm } from '@/lib/dialogs';
+import { prompt } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { router, usePage } from '@inertiajs/react';
@@ -8,26 +9,25 @@ import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 
 /**
  * Deleting one's own account, at the end of the profile: said plainly what goes and what
- * stays, confirmed by typing one's email
+ * stays, confirmed with one's password
  */
-export function DeleteAccount({ email }: { email: string }) {
-  const error = (usePage().props.errors as Record<string, string | undefined>).confirmation;
+export function DeleteAccount() {
+  const errors = usePage().props.errors as Record<string, string | undefined>;
+  const error = errors.password ?? errors.confirmation;
 
   const destroy = async () => {
-    const ok = await confirm({
+    const password = await prompt({
       title: _('Delete your account?'),
       message: _(
         'You leave every project, and your profile is gone. What you shared stays with the projects, without your name. This cannot be undone.',
       ),
-      typeToConfirm: email,
+      label: _('Your password'),
+      password: true,
       confirmLabel: _('Delete my account'),
       danger: true,
     });
-    if (ok)
-      router.delete(route('profile.destroy'), {
-        data: { confirmation: email },
-        preserveScroll: true,
-      });
+    if (password)
+      router.delete(route('profile.destroy'), { data: { password }, preserveScroll: true });
   };
 
   return (
@@ -45,6 +45,11 @@ export function DeleteAccount({ email }: { email: string }) {
         <Text c="red" size="sm" mt="sm" role="alert">
           {error}
         </Text>
+      ) : null}
+      {errors.password ? (
+        <div style={{ marginTop: 8 }}>
+          <PasswordLink />
+        </div>
       ) : null}
       <Button
         color="red"

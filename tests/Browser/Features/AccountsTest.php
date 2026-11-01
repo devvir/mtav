@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 
@@ -85,7 +86,8 @@ it('resets a forgotten password from the emailed link', function () {
 
     visit(route('password.request'))
         ->fill('email', 'ana@example.com')
-        ->click('Send the link');
+        ->click('Send the link')
+        ->assertSee('We have emailed your password reset link.');
 
     visit(passwordResetLinkFor($user))
         ->fill('password', 'a-New-pass-123')
@@ -118,13 +120,20 @@ it('changes the password, checking the current one', function () {
 
 it('changes the email only once the new address is confirmed', function () {
     Notification::fake();
-    $user = aUser(['email' => 'old@example.com']);
+    $user = aUser(['email' => 'old@example.com', 'password' => 'the-Right-pass-1']);
     $this->as($user);
 
     visit(route('profile.edit'))
+        ->assertMissing('[name="current_password"]')
         ->fill('email', 'new@example.com')
+        ->assertSee('Needed to change your email')
+        ->fill('current_password', 'not-it')
         ->click('Save')
-        ->assertSee('We sent a confirmation link to new@example.com');
+        ->assertSee('The password is incorrect.')
+        ->fill('current_password', 'the-Right-pass-1')
+        ->click('Save')
+        ->assertSee('We sent a confirmation link to new@example.com')
+        ->assertDontSee('Needed to change your email');
 
     expect($user->fresh()->email)->toBe('old@example.com');
 
@@ -132,6 +141,42 @@ it('changes the email only once the new address is confirmed', function () {
         ->assertSee('Your email address was changed.');
 
     expect($user->fresh()->email)->toBe('new@example.com');
+});
+
+it('deletes the account only with the password, offering a link to whoever has none', function () {
+    Notification::fake();
+    $user = aUser(['password' => 'the-Right-pass-1']);
+    $this->as($user);
+
+    $page = visit(route('profile.edit'))
+        ->click('Delete my account')
+        ->fill('[role="dialog"] >> nth=-1 >> input[type="password"]', 'not-it')
+        ->click(inDialog('Delete my account'))
+        ->assertSee('The password is incorrect.')
+        ->click('Email me a link to choose a password')
+        ->assertSee('We have emailed your password reset link.');
+
+    Notification::assertSentTo($user, ResetPasswordNotification::class);
+    expect($user->fresh())->not->toBeNull();
+
+    $page->click('Delete my account')
+        ->fill('[role="dialog"] >> nth=-1 >> input[type="password"]', 'the-Right-pass-1')
+        ->click(inDialog('Delete my account'))
+        ->assertSee('Your account was deleted.');
+
+    expect(User::find($user->id))->toBeNull();
+});
+
+it('offers no removing the owner on the superadmins page', function () {
+    $owner = User::factory()->superadmin()->create(['firstname' => 'Olga']);
+    $owner->forceFill(['is_owner' => true])->save();
+    User::factory()->superadmin()->create(['firstname' => 'Tina']);
+    $this->as(User::factory()->superadmin()->create());
+
+    visit(route('admin.superadmins.index'))
+        ->assertSee('Olga')
+        ->assertSee('Tina')
+        ->assertCount('[data-tour="superadmins.list"] button', 1);
 });
 
 it('edits the profile', function () {

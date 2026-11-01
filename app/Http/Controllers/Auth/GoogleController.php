@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
@@ -26,7 +26,7 @@ class GoogleController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(): RedirectResponse
+    public function callback(AccountService $accounts): RedirectResponse
     {
         abort_unless(self::enabled(), 404);
 
@@ -60,7 +60,7 @@ class GoogleController extends Controller
                 'password'          => Str::password(40),
                 'remember_token'    => Str::random(60),
             ])->save();
-            DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+            $accounts->endSessions($user);
         } elseif ($user) {
             $user->forceFill(['google_id' => $google->getId()])->save();
         } else {
@@ -68,7 +68,7 @@ class GoogleController extends Controller
                 'email'     => $google->getEmail(),
                 'firstname' => $google->user['given_name'] ?? Str::before((string) $google->getName(), ' '),
                 'lastname'  => $google->user['family_name'] ?? null,
-                // Never typed: the account opens with Google (a password can be set later)
+                // Never typed: the account opens with Google (a link by email gives it one, in the profile)
                 'password' => Str::password(40),
             ]);
             $user->forceFill(['google_id' => $google->getId(), 'email_verified_at' => now()])->save();

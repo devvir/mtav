@@ -22,7 +22,7 @@ class AccountService
      */
     public function ensureCanGo(User $user, string $errorKey = 'confirmation'): void
     {
-        $alone = $user->projects()->wherePivot('is_admin', true)->get()
+        $alone = $user->projects()->wherePivot('is_admin', true)->orderBy('projects.id')->lockForUpdate()->get()
             ->filter(fn ($project) => $project->admins()->count() === 1);
 
         if ($alone->isNotEmpty()) {
@@ -30,6 +30,23 @@ class AccountService
                 'projects' => $alone->pluck('name')->join(', '),
             ])]);
         }
+    }
+
+    /**
+     * Deleting, with the account's projects held still: two admins of one project leaving at
+     * the same moment cannot both pass.
+     *
+     * @param  ?callable  $first  What must happen once it may go, before the account is gone
+     *
+     * @throws ValidationException when it is the only admin of a project
+     */
+    public function deleteIfItCanGo(User $user, string $errorKey = 'confirmation', ?callable $first = null): void
+    {
+        DB::transaction(function () use ($user, $errorKey, $first) {
+            $this->ensureCanGo($user, $errorKey);
+            $first && $first();
+            $this->delete($user);
+        });
     }
 
     public function delete(User $user): void
@@ -52,8 +69,17 @@ class AccountService
             $user->unsetRelation('memberships');
             Invitation::pending()->where('email', $user->email)->delete();
             JoinRequest::where('user_id', $user->id)->delete();
-            DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+            $this->endSessions($user);
         });
+    }
+
+    /** Signed out everywhere, but for the session named (the browser that just proved itself) */
+    public function endSessions(User $user, ?string $except = null): void
+    {
+        DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $user->id)
+            ->when($except, fn ($sessions) => $sessions->where('id', '!=', $except))
+            ->delete();
     }
 
     public function unblock(User $user): void

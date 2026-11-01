@@ -38,3 +38,16 @@ it('lets go of the previous picture', function () {
 
     Storage::disk('public')->assertMissing($first);
 });
+
+it('takes only so many pictures a minute: each one is heavy to draw', function () {
+    foreach (range(1, 10) as $_) {
+        $this->as($this->user)->post(route('avatar.update'), ['avatar' => UploadedFile::fake()->image('me.jpg', 10, 10)]);
+    }
+
+    $before = $this->user->fresh()->avatar;
+
+    $this->as($this->user)->post(route('avatar.update'), ['avatar' => UploadedFile::fake()->image('me.jpg', 10, 10)])
+        ->assertSessionHas('error', __('flash.too_many_attempts'));
+
+    expect($this->user->fresh()->avatar)->toBe($before);
+});
