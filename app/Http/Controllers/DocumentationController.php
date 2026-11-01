@@ -29,7 +29,6 @@ class DocumentationController extends Controller
             'title'       => $faqData['title'],
             'description' => $faqData['description'],
             'guideText'   => $faqData['guideText'],
-            'userRole'    => $role,
         ]);
     }
 
@@ -48,7 +47,6 @@ class DocumentationController extends Controller
             $guidePath = resource_path("views/guides/en/guide.{$role}.html");
         }
 
-        $content = File::get($guidePath);
         return inertia('Documentation/Guide', [
             'content' => strtr(File::get($guidePath), ['{app}' => e(config('app.name'))]),
         ]);

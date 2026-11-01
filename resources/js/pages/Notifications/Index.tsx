@@ -13,7 +13,7 @@ import { IconBellOff, IconChecks } from '@tabler/icons-react';
 
 interface Props {
   notifications: Paginated<Notification>;
-  filters: { q: string | null; unread: boolean };
+  filters: { unread: boolean };
 }
 
 export default function NotificationsIndex({ notifications, filters }: Props) {

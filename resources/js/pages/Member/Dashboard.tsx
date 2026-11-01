@@ -38,7 +38,6 @@ interface Props {
     status: string | null;
     unit: { id: number; identifier: string } | null;
   };
-  /** For someone with no family yet, who can start theirs: the types it can have */
   /** What is left on the way to the lottery (it follows the page) */
   setup?: Setup | null;
   events?: ProjectEvent[];
@@ -85,7 +84,6 @@ function MonthBackdrop() {
   );
 }
 
-/** Someone who joined with no family: they start theirs, or someone of it adds them */
 /**
  * The project's home, in the order people look for things: its figures, what was shared,
  * the lottery and what is coming up, its people, its units; the path to the lottery on a note

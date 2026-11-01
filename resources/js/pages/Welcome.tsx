@@ -43,8 +43,7 @@ interface Props {
   locales: Record<string, string>;
 }
 
-/** The photos shown, each credited as its licence asks (all resized from the originals) */
-/** The pictures, with their credit when they came from a public collection */
+/** The pictures, resized, with the credit their licence asks when from a public collection */
 const PHOTOS: Record<string, { src: string; author?: string; source?: string }> = {
   mesa1: {
     src: '/images/welcome/mesa-1.webp',
@@ -308,10 +307,10 @@ const HERO_MS = 6000;
  */
 function HeroPhotos({ photos, captions }: { photos: string[]; captions: Record<string, string> }) {
   const [shown, setShown] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [held, setHeld] = useState(false);
-  const rotates = !paused && !still && photos.length > 1;
+  const [paused, setPaused] = useState(false);
   const still = useReducedMotion();
+  const rotates = !paused && !still && photos.length > 1;
 
   useEffect(() => {
     if (held || !rotates) return undefined;
@@ -379,16 +378,14 @@ function Photo({
   photo,
   caption,
   className,
-  eager,
 }: {
   photo: string;
   caption: string;
   className?: string;
-  eager?: boolean;
 }) {
   return (
     <figure className={className ? `welcome-photo ${className}` : 'welcome-photo'}>
-      <img src={PHOTOS[photo]!.src} alt={caption} loading={eager ? 'eager' : 'lazy'} />
+      <img src={PHOTOS[photo]!.src} alt={caption} loading="lazy" />
       <figcaption>{caption}</figcaption>
     </figure>
   );

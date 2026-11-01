@@ -72,3 +72,11 @@ it('keeps a name with odd characters from becoming part of a guide\'s page', fun
         ->toContain('Sur &lt;b&gt;&amp; co&lt;/b&gt;')
         ->not->toContain('<b>&');
 });
+
+it('sends the guide and the questions only what they show', function () {
+    $project = aProject();
+    $this->as(anAdminOf($project), $project);
+
+    $this->get(route('documentation.guide'))->assertInertia(fn ($page) => $page->missing('userRole'));
+    $this->get(route('documentation.faq'))->assertInertia(fn ($page) => $page->missing('userRole'));
+});
