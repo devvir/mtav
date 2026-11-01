@@ -9,12 +9,19 @@
 
 # ---------------------------------------------------------------------------------------
 # The frontend, built once
-FROM node:26.12.0-alpine AS assets
+FROM node:26.12.0-alpine@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5 AS assets
 
+# A new version brings new checksums (the release's assets on GitHub show them)
 ARG PNPM_VERSION=12.15.0
-RUN arch=$(case "$(uname -m)" in x86_64) echo x64;; aarch64) echo arm64;; esac) \
+RUN case "$(uname -m)" in \
+        x86_64) arch=x64 sum=d33802cc987dcfbe02a991473764ba25ad1b2344189e2097a2570baed66f008a;; \
+        aarch64) arch=arm64 sum=1188ef8a57bfc5786f3f739a98067242e531a4636e3f52e9e9ddc75564ea804d;; \
+    esac \
     && mkdir -p /opt/pnpm \
-    && wget -qO- "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-${arch}-musl.tar.gz" | tar xz -C /opt/pnpm \
+    && wget -qO /tmp/pnpm.tar.gz "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-${arch}-musl.tar.gz" \
+    && echo "${sum}  /tmp/pnpm.tar.gz" | sha256sum -c - \
+    && tar xzf /tmp/pnpm.tar.gz -C /opt/pnpm \
+    && rm /tmp/pnpm.tar.gz \
     && ln -s /opt/pnpm/pnpm /usr/local/bin/pnpm
 
 WORKDIR /app
@@ -28,7 +35,7 @@ RUN pnpm run build
 
 # ---------------------------------------------------------------------------------------
 # The app
-FROM dunglas/frankenphp:1.13.4-php8.5.12-alpine AS app
+FROM dunglas/frankenphp:1.13.4-php8.5.12-alpine@sha256:974e767f7694964fdb23ead3172dd0a12cedefbd929fbe0db7f69a680663295d AS app
 
 # What the app calls besides PHP: glpsol solves the lottery, ffmpeg makes video thumbnails
 RUN apk add --no-cache ffmpeg glpk \
@@ -40,7 +47,7 @@ RUN apk add --no-cache libgcc libstdc++ ripgrep npm \
     && npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && apk del npm
 
-COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.2@sha256:d020706319701a44468968321dccd0fce6620190159a7a9ec195d78e6e971c71 /usr/bin/composer /usr/bin/composer
 COPY deploy/php.ini $PHP_INI_DIR/conf.d/99-mtav.ini
 
 WORKDIR /app

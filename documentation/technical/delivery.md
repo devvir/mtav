@@ -33,6 +33,10 @@ process), unprivileged, listening on 8080. The same image runs every role (web s
 websocket server, queue worker), chosen by its command, and every environment: nothing
 about an environment is built in. It also carries its own deploy steps (`deploy/`).
 
+What it is built with cannot change under it: base images by digest, the pnpm download by
+checksum, third-party actions by commit. Dependabot proposes newer ones each month, to `dev`
+(`.github/dependabot.yml`).
+
 `release-image.yml` builds it and publishes it to `ghcr.io/devvir/mtav`, tagged by commit
 (`sha-<commit>`); `main` also tags the latest as `main`. The package is public, like the
 code: hosts pull it without credentials. Nothing is ever built on a host.
