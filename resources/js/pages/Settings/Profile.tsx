@@ -27,6 +27,7 @@ import {
   Text,
   TextInput,
   Textarea,
+  Title,
   Transition,
 } from '@mantine/core';
 import { IconCamera, IconKey, IconPalette, IconUser } from '@tabler/icons-react';
@@ -240,22 +241,22 @@ export default function Profile({ profile, languages, pushKey }: Props) {
         </Tabs.Panel>
         <Tabs.Panel value="preferences" className="ds-surface profile-section">
           <LanguageSettings languages={languages} />
-          <Text fw={650} mt="xl" mb={4}>
+          <Title order={2} fz="md" fw={650} mt="xl" mb={4}>
             {_('Appearance')}
-          </Text>
+          </Title>
           <Text className="ds-caption" mb="md">
             {_('Only on this device.')}
           </Text>
           <AppearanceSettings />
-          <Text fw={650} mt="xl" mb="md">
+          <Title order={2} fz="md" fw={650} mt="xl" mb="md">
             {_('Help')}
-          </Text>
+          </Title>
           <TourSettings />
           {pushKey ? (
             <>
-              <Text fw={650} mt="xl" mb="md">
+              <Title order={2} fz="md" fw={650} mt="xl" mb="md">
                 {_('Notifications')}
-              </Text>
+              </Title>
               <DeviceNotifications pushKey={pushKey} />
             </>
           ) : null}

@@ -198,3 +198,24 @@ it('gives each part of a project\'s settings its own title and heading', functio
             ->assertScript("document.querySelector('h1').textContent", $title);
     }
 });
+
+it('has one main heading on the guide, whoever reads it', function () {
+    $this->as($this->member);
+
+    visit(route('documentation.guide'))
+        ->assertTitleContains('Guide')
+        ->assertScript("document.querySelectorAll('h1').length", 1)
+        ->assertScript("document.querySelector('h1').textContent", 'Member guide');
+
+    $this->as(anAdminOf($this->project));
+
+    visit(route('documentation.guide'))->assertScript("document.querySelectorAll('h1').length", 1);
+});
+
+it('has headings for the groups of the preferences', function () {
+    $this->as($this->member);
+
+    visit(route('profile.edit', ['tab' => 'preferences']))
+        ->click('[role="tab"]:has-text("Preferences")')
+        ->assertScript("['Appearance', 'Help'].every((name) => [...document.querySelectorAll('h2')].some((heading) => heading.textContent === name))", true);
+});
