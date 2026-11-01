@@ -380,6 +380,12 @@
 .welcome-hero-frame img[data-shown] {
   opacity: 1;
 }
+.welcome-hero-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
 .welcome-hero-dots {
   display: flex;
   gap: 8px;
@@ -401,12 +407,6 @@
   transform: scale(1.25);
 }
 .welcome-section {
-.welcome-hero-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
   padding-block: 40px;
 }
 .welcome-heading {
