@@ -465,8 +465,8 @@ Old: none. Audits reached members only as raw page data. (`2c8e8b13:app/Http/Con
 
 ### Limits and rules
 
-- **A run that decided nothing** has no record: 404. (test "has no record for a run that decided nothing")
-- **Invalidated runs keep theirs.** (`RunRecord` exists checks only the audit)
+- **A run that decided nothing** has no record: 404. That goes for a failed run even if the solver had answered before its result could be applied. (test "has no record for a run that decided nothing"; `tests/UseCases/Lottery/PaceTest.php` "keeps away the record of a run whose held result was never applied")
+- **Invalidated runs keep theirs.** (`RunRecord` exists)
 - **The fingerprint** changes if the stored record is changed. Nothing stores it elsewhere, so comparing needs an earlier copy. (`RunRecord` fingerprint; test "keeps its fingerprint for as long as the record is untouched…")
 - **The record waits for the reveal.** While a run shows as running, its record and download answer 404, for everyone. (`app/Services/Lottery/RunRecord.php` exists; `tests/UseCases/Lottery/PaceTest.php` "keeps the record of a run away…")
 - **Deleting a project for good** deletes its records. (`ProjectService` purge)

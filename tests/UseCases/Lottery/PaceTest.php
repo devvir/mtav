@@ -74,6 +74,17 @@ it('fails a run whose held result cannot be written, so the lottery can run agai
     expect($run->fresh()->status)->toBe(LotteryRunStatus::FAILED);
 });
 
+it('keeps away the record of a run whose held result was never applied', function () {
+    PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 30);
+    Queue::fake([PublishLotteryRun::class]);
+    $this->as($this->admin, $this->project)->post(route('manage.lottery.run'));
+    $run = $this->project->lotteryRuns()->sole();
+    (new PublishLotteryRun($run))->failed(new RuntimeException('The database went away'));
+
+    $this->as($this->member, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertNotFound();
+    $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertNotFound();
+});
+
 it('lets only superadmins set how long it takes, within bounds', function () {
     $this->as($this->admin)->put(route('admin.settings.update'), ['lottery_seconds' => 5])->assertNotFound();
     $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 9999])

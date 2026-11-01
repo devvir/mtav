@@ -22,10 +22,10 @@ class RunRecord
     {
     }
 
-    /** Whether the run decided anything to show (a failed one did not; a running one's result is held) */
+    /** Whether the run decided anything to show (a failed one did not, even if the solver answered; a running one's result is held) */
     public function exists(): bool
     {
-        return $this->run->status !== LotteryRunStatus::RUNNING && $this->audit(LotteryAuditType::INIT) && $this->audit(LotteryAuditType::PROJECT_EXECUTION);
+        return in_array($this->run->status, [LotteryRunStatus::COMPLETED, LotteryRunStatus::INVALIDATED], true) && $this->audit(LotteryAuditType::INIT) && $this->audit(LotteryAuditType::PROJECT_EXECUTION);
     }
 
     /**
