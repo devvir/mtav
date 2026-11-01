@@ -33,6 +33,30 @@ export function connectRealtime(given: RealtimeServer | null) {
 /** Live updates are on when a websocket server is configured */
 export const realtimeEnabled = (): boolean => server !== null;
 
+/** How many listen on each private channel: the last to stop leaves it */
+const listening = new Map<string, number>();
+
+/**
+ * Listens on a private channel, shared with whoever else in the page listens there, until
+ * what it returns is called: only these handlers stop, and nobody listening means subscribed
+ * no more.
+ */
+export function listenOn(name: string, handlers: Record<string, (data: never) => void>) {
+  const channel = echo().private(name);
+  Object.entries(handlers).forEach(([event, handler]) => channel.listen(event, handler));
+  listening.set(name, (listening.get(name) ?? 0) + 1);
+
+  return () => {
+    Object.entries(handlers).forEach(([event, handler]) => channel.stopListening(event, handler));
+    const left = (listening.get(name) ?? 1) - 1;
+    if (left) listening.set(name, left);
+    else {
+      listening.delete(name);
+      echo().leaveChannel(`private-${name}`);
+    }
+  };
+}
+
 export interface ProjectChange {
   resource: string;
   action: 'created' | 'updated' | 'deleted';
@@ -58,12 +82,7 @@ export function useProjectChanges(reloads: Record<string, string[]>) {
   useEffect(() => {
     if (!projectId || !realtimeEnabled()) return undefined;
 
-    const channel = `projects.${projectId}`;
-    echo().private(channel).listen('.changed', onChange);
-
-    return () => {
-      echo().private(channel).stopListening('.changed');
-    };
+    return listenOn(`projects.${projectId}`, { '.changed': onChange });
   }, [projectId, userId]);
 }
 
@@ -119,11 +138,9 @@ export function useLiveNotifications() {
         },
       });
 
-    channels.forEach((name) => echo().private(name).listen('.notification', onNotification));
+    const stops = channels.map((name) => listenOn(name, { '.notification': onNotification }));
 
-    return () => {
-      channels.forEach((name) => echo().private(name).stopListening('.notification'));
-    };
+    return () => stops.forEach((stop) => stop());
   }, [user?.id, user?.is_superadmin, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
@@ -210,11 +227,6 @@ export function useLiveMessages() {
 
   useEffect(() => {
     if (!user || !project?.can.chat || !realtimeEnabled()) return undefined;
-    const channel = `users.${user.id}`;
-    echo().private(channel).listen('.message', onMessage).listen('.message-removed', onRemoved);
-
-    return () => {
-      echo().private(channel).stopListening('.message').stopListening('.message-removed');
-    };
+    return listenOn(`users.${user.id}`, { '.message': onMessage, '.message-removed': onRemoved });
   }, [user?.id, project?.id, project?.can.chat]); // eslint-disable-line react-hooks/exhaustive-deps
 }

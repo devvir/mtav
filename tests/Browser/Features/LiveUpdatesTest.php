@@ -131,3 +131,23 @@ it('does not ask whether to leave the plan when something arrives while it is un
     expect($page->script('() => window.asked'))->toBe(0);
     $page->assertPresent('[aria-label="Plan editor"]');
 });
+
+it('stays live on a channel after a page that listened there goes', function () {
+    $page = visit(route('lottery.show', $this->project))->assertPathIs("/projects/{$this->project->id}/lottery");
+    listening($page, "projects.{$this->project->id}");
+
+    // The page's own listeners stop and start; the shell's go on
+    $page->click('.shell-sidebar >> a:has-text("Home")')->assertPathIs("/projects/{$this->project->id}");
+    listening($page, "projects.{$this->project->id}");
+
+    byTheAdmin($this, fn () => app(NotificationService::class)->send(
+        NotificationTarget::PROJECT,
+        NotificationType::RESOURCE_CREATED,
+        'New event: General assembly',
+        'On Friday at 10',
+        url: route('events.index', $this->project),
+        targetId: $this->project->id,
+    ));
+
+    $page->assertPresent('[aria-label="Notifications, 1 unread"]');
+});
