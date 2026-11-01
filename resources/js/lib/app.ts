@@ -17,3 +17,9 @@ export const decimal = (value: number, digits: number): string =>
 /** A size in megabytes, as people read it: gigabytes from one on */
 export const megabytes = (mb: number): string =>
   mb >= 1024 ? `${decimal(mb / 1024, 1)} GB` : `${decimal(mb, 1)} MB`;
+
+/** A size in bytes, as people read it: "820 KB", "3.4 MB" */
+export const fileSize = (bytes: number): string =>
+  bytes >= 1024 * 1024
+    ? `${decimal(bytes / 1024 / 1024, 1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;

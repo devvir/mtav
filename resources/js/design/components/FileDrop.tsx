@@ -3,12 +3,6 @@ import { Dropzone, type DropzoneProps } from '@mantine/dropzone';
 import { IconFile, IconFileUpload, IconX } from '@tabler/icons-react';
 import { useState, type ReactNode } from 'react';
 
-/** A size people read: KB under a megabyte, MB above */
-export const fileSize = (bytes: number) =>
-  bytes > 1024 * 1024
-    ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
-    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-
 /**
  * Pick or drop files; shows what was chosen, each removable, the ones too large marked, and
  * says which were refused for their kind. The words are the caller's.
@@ -34,6 +28,8 @@ export function FileDrop({
     prompt: ReactNode;
     limit?: ReactNode;
     tooLarge: ReactNode;
+    /** A file's size, written */
+    size: (bytes: number) => string;
     /** Said of a file of a kind that is not accepted */
     refused: (name: string) => string;
     remove: (name: string) => string;
@@ -90,7 +86,7 @@ export function FileDrop({
                   {file.name}
                 </Text>
                 <Text className="ds-caption" c={tooLarge ? 'red' : undefined}>
-                  {tooLarge ? words.tooLarge : fileSize(file.size)}
+                  {tooLarge ? words.tooLarge : words.size(file.size)}
                 </Text>
                 <ActionIcon
                   aria-label={words.remove(file.name)}

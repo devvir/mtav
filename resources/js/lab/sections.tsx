@@ -10,6 +10,7 @@ import {
   Status,
   type Tone,
 } from '@/design';
+import { fileSize } from '@/lib/app';
 import { confirm, prompt } from '@/lib/dialogs';
 import { toast } from '@/lib/toasts';
 import {
@@ -296,6 +297,7 @@ function DropSample() {
         prompt: 'Choose files or drop them here',
         limit: 'Up to 5 MB each',
         tooLarge: 'Too large',
+        size: fileSize,
         refused: (name) => `${name} cannot be shared`,
         remove: (name) => `Remove ${name}`,
       }}

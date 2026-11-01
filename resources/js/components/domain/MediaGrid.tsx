@@ -1,15 +1,10 @@
+import { detailsQuery } from '@/lib/listFilters';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { VisuallyHidden } from '@mantine/core';
 import { IconFileText, IconMusic, IconPlayerPlayFilled } from '@tabler/icons-react';
-
-/** The current query (the tab, a search), with this file's details */
-const detailsQuery = (id: number) => ({
-  ...Object.fromEntries(new URLSearchParams(window.location.search)),
-  file: id,
-});
 
 /**
  * Files as tiles: photos and videos by their thumbnail, the rest by their kind and words.
@@ -24,7 +19,7 @@ export function MediaGrid({ media }: { media: Media[] }) {
         return (
           <li key={item.id}>
             <Link
-              href={route('media.index', here ? detailsQuery(item.id) : { file: item.id })}
+              href={route('media.index', here ? detailsQuery('file', item.id) : { file: item.id })}
               {...(here ? { only: ['file'], preserveState: true, preserveScroll: true } : {})}
               className="media-tile ds-surface"
             >

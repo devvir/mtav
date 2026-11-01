@@ -1,4 +1,4 @@
-import { checkbox, dateTime, field } from '@/lib/forms';
+import { checkbox, dateTime, field, toLocalInput } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
@@ -17,13 +17,6 @@ import { IconMapPin, IconVideo } from '@tabler/icons-react';
 import { DateTimeField } from './DateTimeField';
 import { Form, FormActions } from './Form';
 
-/** <input type="datetime-local"> wants local time without a zone */
-const local = (iso: string | null | undefined) => {
-  if (!iso) return '';
-  const date = new Date(iso);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-
 /** An event's details: creating one, or changing one (in a dialog; `onDone` closes it) */
 export function EventForm({ event, onDone }: { event?: ProjectEvent; onDone: () => void }) {
   const form = useForm({
@@ -31,8 +24,8 @@ export function EventForm({ event, onDone }: { event?: ProjectEvent; onDone: () 
     title: event?.title ?? '',
     description: event?.description ?? '',
     location: event?.location ?? '',
-    start_date: local(event?.start_date),
-    end_date: local(event?.end_date),
+    start_date: toLocalInput(event?.start_date),
+    end_date: toLocalInput(event?.end_date),
     is_published: event?.is_published ?? true,
     allows_rsvp: event?.allows_rsvp ?? false,
   });

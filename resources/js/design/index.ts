@@ -6,7 +6,7 @@ export { MANTINE_COLOR, toneStyle, type Tone } from './tone';
 
 export { EmptyState } from './components/EmptyState';
 export { FamilyMark } from './components/FamilyMark';
-export { FileDrop, fileSize } from './components/FileDrop';
+export { FileDrop } from './components/FileDrop';
 export { Glyph } from './components/Glyph';
 export { Logo } from './components/Logo';
 export { NavItem } from './components/NavItem';

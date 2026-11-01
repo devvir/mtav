@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { detailsQuery } from '@/lib/listFilters';
 import { heldOffline } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
 import { _, languageTag } from '@/lib/translations';
@@ -7,12 +8,6 @@ import { Link, router } from '@inertiajs/react';
 import { Anchor, Badge, Button, Card, Group, Stack } from '@mantine/core';
 import { IconCalendarQuestion, IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
-
-/** The current query (the tab, a search), with this event's details */
-const detailsQuery = (id: number) => ({
-  ...Object.fromEntries(new URLSearchParams(window.location.search)),
-  event: id,
-});
 
 /**
  * An event in a list: when, where, and one-tap attendance when it asks for it (shown at
@@ -68,7 +63,10 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
               component={Link}
               href={
                 href ??
-                route('events.index', detailsHere ? detailsQuery(event.id) : { event: event.id })
+                route(
+                  'events.index',
+                  detailsHere ? detailsQuery('event', event.id) : { event: event.id },
+                )
               }
               // On the events list, its details open over it without reloading the list
               {...(detailsHere

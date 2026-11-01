@@ -12,3 +12,9 @@ export function setFilter(param: string, value: string | number | boolean | null
     { preserveState: true, preserveScroll: true, replace: true },
   );
 }
+
+/** The current query (the tab, a search), with one thing's details open */
+export const detailsQuery = (param: string, id: number) => ({
+  ...Object.fromEntries(new URLSearchParams(window.location.search)),
+  [param]: id,
+});

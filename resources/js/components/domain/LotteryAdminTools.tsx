@@ -4,7 +4,7 @@ import { Form } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
 import { Panel, Status, type Tone } from '@/design';
 import { confirm as ask, prompt } from '@/lib/dialogs';
-import { dateTime, field } from '@/lib/forms';
+import { dateTime, field, toLocalInput } from '@/lib/forms';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
@@ -45,12 +45,6 @@ interface Props extends LotteryAdmin {
   status: 'running' | 'completed' | null;
 }
 
-const local = (iso: string | null) => {
-  if (!iso) return '';
-  const date = new Date(iso);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-
 const TONES: Record<LotteryRun['status'], Tone> = {
   running: 'info',
   completed: 'positive',
@@ -72,7 +66,7 @@ export function LotteryAdminTools({
   const { confirm } = usePage().flash;
   const schedule = useForm({
     description: lottery.description,
-    start_date: local(lottery.start_date),
+    start_date: toLocalInput(lottery.start_date),
   });
 
   useProjectChanges({

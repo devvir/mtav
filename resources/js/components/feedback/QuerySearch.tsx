@@ -1,6 +1,6 @@
 import { SearchField } from '@/design';
+import { setFilter } from '@/lib/listFilters';
 import { _ } from '@/lib/translations';
-import { router } from '@inertiajs/react';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { useState } from 'react';
 
@@ -23,17 +23,7 @@ export function QuerySearch({
 }) {
   const [text, setText] = useState(value ?? '');
 
-  const search = useDebouncedCallback((query: string) => {
-    const url = new URL(window.location.href);
-    if (query) url.searchParams.set(param, query);
-    else url.searchParams.delete(param);
-    url.searchParams.delete('page');
-    router.get(
-      url.pathname + url.search,
-      {},
-      { preserveState: true, preserveScroll: true, replace: true },
-    );
-  }, 350);
+  const search = useDebouncedCallback((query: string) => setFilter(param, query), 350);
 
   return (
     <SearchField

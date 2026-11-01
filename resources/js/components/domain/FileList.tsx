@@ -1,4 +1,6 @@
 import { DateTime } from '@/components/feedback/DateTime';
+import { fileSize } from '@/lib/app';
+import { detailsQuery } from '@/lib/listFilters';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Media } from '@/types/models';
@@ -17,21 +19,9 @@ const SPEEDS = [1, 1.25, 1.5, 2, 0.75];
 /** The one recording playing: starting another pauses it */
 let playing: HTMLAudioElement | null = null;
 
-/** A size as people read it: "820 KB", "3.4 MB" */
-const size = (bytes: number) =>
-  bytes >= 1024 * 1024
-    ? `${Math.round((bytes / 1024 / 1024) * 10) / 10} MB`
-    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-
 /** A moment of a recording: "1:05" */
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
-
-/** The current query (the tab, a search), with this file's details */
-const detailsQuery = (id: number) => ({
-  ...Object.fromEntries(new URLSearchParams(window.location.search)),
-  file: id,
-});
 
 /**
  * The project's records: documents and recordings, one per row, newest first. Each opens
@@ -75,7 +65,7 @@ function FileWords({ item, here }: { item: Media; here: boolean }) {
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
       <Link
-        href={route('media.index', here ? detailsQuery(item.id) : { file: item.id })}
+        href={route('media.index', here ? detailsQuery('file', item.id) : { file: item.id })}
         {...(here ? { only: ['file'], preserveState: true, preserveScroll: true } : {})}
         className="file-name"
       >
@@ -83,7 +73,7 @@ function FileWords({ item, here }: { item: Media; here: boolean }) {
       </Link>
       <Text className="ds-caption" truncate>
         {item.owner ? `${item.owner.name} · ` : null}
-        <DateTime value={item.created_at} time={false} /> · {size(item.file_size)}
+        <DateTime value={item.created_at} time={false} /> · {fileSize(item.file_size)}
       </Text>
     </div>
   );

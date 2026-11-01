@@ -60,3 +60,10 @@ export function nativeSelect<T extends Data>(form: InertiaFormProps<T>, name: ke
     error: (form.errors as Record<string, string | undefined>)[name],
   };
 }
+
+/** A moment as <input type="datetime-local"> wants it: local time without a zone */
+export const toLocalInput = (iso: string | null | undefined) => {
+  if (!iso) return '';
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};

@@ -1,6 +1,6 @@
 import { Form, FormActions } from '@/components/forms/Form';
-import { FileDrop, fileSize } from '@/design';
-import { megabytes } from '@/lib/app';
+import { FileDrop } from '@/design';
+import { fileSize, megabytes } from '@/lib/app';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -68,6 +68,7 @@ export function ShareFilesForm({
               prompt: _('Choose files or drop them here'),
               limit: _('Up to {size} each', { size: fileSize(limits.maxFileKb * 1024) }),
               tooLarge: _('Too large'),
+              size: fileSize,
               refused: (name) =>
                 _(
                   '{name} cannot be shared: photos, videos, audio, PDF and office documents only.',

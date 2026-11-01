@@ -1,5 +1,6 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { EmptyState } from '@/design';
+import { setFilter } from '@/lib/listFilters';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { router } from '@inertiajs/react';
@@ -23,23 +24,11 @@ export interface ArchiveState {
 export function ArchiveSwitch({ archive }: { archive?: ArchiveState | null }) {
   if (!archive || (!archive.count && !archive.shown)) return null;
 
-  const toggle = (on: boolean) => {
-    const url = new URL(window.location.href);
-    if (on) url.searchParams.set('archived', '1');
-    else url.searchParams.delete('archived');
-    url.searchParams.delete('page');
-    router.get(
-      url.pathname + url.search,
-      {},
-      { preserveState: true, preserveScroll: true, replace: true },
-    );
-  };
-
   return (
     <Switch
       label={_('Show archived ({count})', { count: archive.count })}
       checked={archive.shown}
-      onChange={(event) => toggle(event.currentTarget.checked)}
+      onChange={(event) => setFilter('archived', event.currentTarget.checked)}
     />
   );
 }
