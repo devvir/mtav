@@ -61,3 +61,54 @@ it('shows in every guide only pictures it has', function () {
         }
     }
 });
+
+/** What vendor views say through __(): their words live with ours, nothing here names them */
+const VENDOR_WORDS = [
+    'Whoops!',
+    'Regards,',
+    'All rights reserved.',
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:",
+];
+
+/** The app's own code, comments and tests apart */
+function appCode(): string
+{
+    $files = collect(File::allFiles(resource_path('js')))
+        ->reject(fn ($file) => str_contains($file->getPathname(), '/tests/'));
+
+    return preg_replace(['~/\*.*?\*/~s', '~^\s*//.*$~m'], '', $files->map->getContents()->implode("\n"));
+}
+
+/** The phrases written out in _('…'), _n('…', '…') and _nodes('…') */
+function phrasesInCode(): array
+{
+    $text = '([\'"`])((?:\\\\.|(?!\1).)*)\1';
+    preg_match_all('/(?<![\w$.])_(?:n|nodes)?\(\s*' . $text . '(?:\s*,\s*' . str_replace('\1', '\3', $text) . ')?/s', appCode(), $found);
+
+    return array_values(array_unique(array_map('stripslashes', array_filter([...$found[2], ...$found[4]], 'strlen'))));
+}
+
+it('has in every language every phrase the app says', function () {
+    $phrases = phrasesInCode();
+    expect(count($phrases))->toBeGreaterThan(500);
+
+    foreach (array_diff(array_keys(config('app.locales')), ['en']) as $locale) {
+        $words = json_decode(file_get_contents(lang_path("{$locale}.json")), true);
+
+        expect(array_values(array_filter($phrases, fn ($phrase) => ! isset($words[$phrase]))))->toBe([], $locale);
+    }
+});
+
+it('keeps in its languages no phrase nothing says', function () {
+    $code = stripslashes(appCode());
+    foreach (['app', 'config', 'routes', 'resources/views'] as $folder) {
+        $code .= collect(File::allFiles(base_path($folder)))->map->getContents()->implode("\n");
+    }
+
+    foreach (array_diff(array_keys(config('app.locales')), ['en']) as $locale) {
+        $words = json_decode(file_get_contents(lang_path("{$locale}.json")), true);
+        $unused = array_filter(array_keys($words), fn ($word) => ! in_array($word, VENDOR_WORDS, true) && ! str_contains($code, $word));
+
+        expect(array_values($unused))->toBe([], $locale);
+    }
+});
