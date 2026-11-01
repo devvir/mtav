@@ -161,10 +161,11 @@ return [
     */
 
     'requirements' => [
-        //        'min-quality' => 0,
-        //        'min-complexity' => 0,
-        //        'min-architecture' => 0,
-        //        'min-style' => 0,
+        // A little under where the code stands: a push that lowers it much is refused
+        'min-quality'      => 80,
+        'min-complexity'   => 85,
+        'min-architecture' => 75,
+        'min-style'        => 80,
         //        'disable-security-check' => false,
     ],
 

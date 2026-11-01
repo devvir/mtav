@@ -83,5 +83,8 @@ Never run two invocations of the same kind of tests at once: Pest and Vitest sha
 ## Code style
 
 Pint (PHP), ESLint and Prettier (TypeScript, CSS) and `tsc` run in the pipeline and in
-the pre-commit hook. Comments say what something is for, in plain words; names say what
+the pre-commit hook. PHPStan reads `app/` in the pipeline (`vendor/bin/phpstan analyse`, in
+the dev container): level 1, with what it found at first kept in `phpstan-baseline.neon`. PHP
+Insights runs before a push and refuses one that lowers its scores below the floors in
+`config/insights.php`. Comments say what something is for, in plain words; names say what
 things are. Every fix comes with a test that would have caught it.

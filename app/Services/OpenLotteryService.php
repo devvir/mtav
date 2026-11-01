@@ -163,7 +163,7 @@ class OpenLotteryService implements LotteryHost
                 'status'     => LotteryRunStatus::RUNNING,
                 'solver'     => config('lottery.default'),
                 'started_at' => now(),
-                'reveal_at'  => now()->addSeconds((int) PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS, 20)),
+                'reveal_at'  => now()->addSeconds((int) PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS)),
             ]);
         });
 

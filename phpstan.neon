@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    # Above this, nearly all it says comes from relations that do not declare their models
+    level: 1
+    paths:
+        - app
