@@ -155,8 +155,11 @@ export function projectNav(
 /** Once the page has settled: the background loading never competes with it */
 const KEEP_PLACES_AFTER_MS = 4000;
 
-/** The places kept on the device: a project's every place but its actions */
-const tabsOf = (id: number) => projectPlaces({ id }).filter((item) => !item.action);
+/** The places kept on the device: a project's every place it has on, but its actions */
+export const keptPlaces = (id: number, features?: Partial<ProjectFeatures>) =>
+  projectPlaces({ id, features })
+    .filter((item) => !item.action)
+    .map((item) => item.href);
 
 /** A project's pages, the same for everyone; admins find their tools on them */
 export function ProjectLayout({ children }: { children: ReactNode }) {
@@ -197,11 +200,12 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!id) return undefined;
     const later = window.setTimeout(
-      () => keepPlaces(tabsOf(id).map((item) => item.href)),
+      () => keepPlaces(keptPlaces(id, project?.features)),
       KEEP_PLACES_AFTER_MS,
     );
     return () => window.clearTimeout(later);
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, features]);
 
   // Leaving a project that is gone (deleted, or left): the next page brings its own frame
   if (!project) return children;
