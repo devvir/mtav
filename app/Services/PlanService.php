@@ -70,6 +70,7 @@ class PlanService
 
             $kept = [];
             $created = [];
+            $items = $plan->items()->get()->keyBy('id');
 
             foreach (array_values($data['items']) as $position => $item) {
                 $attributes = [
@@ -81,7 +82,7 @@ class PlanService
                     'metadata' => isset($item['color']) ? ['color' => $item['color']] : null,
                 ];
 
-                $existing = isset($item['id']) ? $plan->items()->whereKey($item['id'])->first() : null;
+                $existing = isset($item['id']) ? $items->get($item['id']) : null;
 
                 if ($existing) {
                     // A unit stays a unit; any other shape may change its kind

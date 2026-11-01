@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
+
 /**
  * The plan: its admins draw the land and what is on it, of every kind people choose by
  * (buildings, streets, green areas, common spaces, parking, playgrounds, entrances).
@@ -130,4 +132,58 @@ it('opens the plan for drawing at its own address, for its admins only', functio
         ->and($this->get(route('units.index'))->inertiaProps('editPlan'))->toBeFalse();
 
     $this->as(aMemberOf(aFamily($this->project)), $this->project)->get(route('units.edit'))->assertForbidden();
+});
+
+describe('Saving a plan with many shapes', function () {
+    function saveShapes($test, array $items)
+    {
+        return $test->as($test->admin, $test->project)->put(route('manage.plan.update'), [
+            'width'   => 800,
+            'height'  => 600,
+            'polygon' => [[0, 0], [800, 0], [800, 600], [0, 600]],
+            'items'   => $items,
+        ]);
+    }
+
+    function shapesOf($project): array
+    {
+        return $project->plan->items()->get(['id', 'type', 'floor', 'polygon'])
+            ->map(fn ($item) => ['id' => $item->id, 'type' => $item->type, 'floor' => $item->floor, 'polygon' => $item->polygon])->all();
+    }
+
+    function shapeReads(callable $save): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $save();
+
+        return collect(DB::getQueryLog())->filter(fn ($query) => str_starts_with($query['query'], 'select') && str_contains($query['query'], 'plan_items'))->count();
+    }
+
+    it('reads the same however many shapes it has', function () {
+        drawPlan($this, $this->admin, ['building', 'street']);
+        $few = shapeReads(fn () => saveShapes($this, shapesOf($this->project))->assertSessionHasNoErrors());
+
+        drawPlan($this, $this->admin, array_fill(0, 30, 'green'));
+        $many = shapeReads(fn () => saveShapes($this, shapesOf($this->project))->assertSessionHasNoErrors());
+
+        expect($many)->toBe($few);
+    });
+
+    it('updates the shapes it has, and takes a shape of another plan for a new one', function () {
+        drawPlan($this, $this->admin, ['building']);
+        $mine = shapesOf($this->project)[0];
+
+        $other = aProject();
+        $foreign = $other->plan->items()->create(['type' => 'green', 'floor' => 0, 'polygon' => $mine['polygon']]);
+
+        saveShapes($this, [
+            ['id' => $mine['id'], 'type' => 'street', 'floor' => 2, 'polygon' => $mine['polygon']],
+            ['id' => $foreign->id, 'type' => 'parking', 'floor' => 0, 'polygon' => $mine['polygon']],
+        ])->assertSessionHasNoErrors();
+
+        expect($this->project->plan->items()->find($mine['id']))->type->toBe('street')->floor->toBe(2)
+            ->and($this->project->plan->items()->pluck('type')->sort()->values()->all())->toBe(['parking', 'street'])
+            ->and($foreign->fresh()->type)->toBe('green');
+    });
 });

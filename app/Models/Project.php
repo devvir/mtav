@@ -224,16 +224,17 @@ class Project extends Model
     }
 
     /**
-     * Its admins want it listed, and the platform trusts them: a project nobody has
-     * vetted yet is not shown to everyone.
-     */
-    /**
      * Whether someone new has a way to take part. With guests they always do; without, they
      * need a family, which takes unit types to choose from and a lottery yet to decide.
+     * A list of projects asks it of each: withExists('unitTypes', 'activeLotteryRun') spares
+     * the queries.
      */
     public function acceptsNewcomers(): bool
     {
-        return $this->allows_guests || ($this->unitTypes()->exists() && ! $this->lotteryLocked());
+        return $this->allows_guests || (
+            ($this->unit_types_exists ?? $this->unitTypes()->exists())
+            && ! ($this->active_lottery_run_exists ?? $this->lotteryLocked())
+        );
     }
 
     /** What the variant has of it, and then what the project chose where it may */
@@ -257,6 +258,10 @@ class Project extends Model
             ->all();
     }
 
+    /**
+     * Its admins want it listed, and the platform trusts them: a project nobody has
+     * vetted yet is not shown to everyone.
+     */
     public function isInDirectory(): bool
     {
         return $this->listed && $this->isApproved();
@@ -281,9 +286,6 @@ class Project extends Model
     }
 
     /**
-     * Whether preferences are locked: a lottery run is running or decided the assignment.
-     */
-    /**
      * A run is being solved: who takes part, and what is given out, holds still until it
      * ends (what it decides from is what its audit recorded).
      *
@@ -301,6 +303,9 @@ class Project extends Model
         return $this->hasMany(FamilyJoinRequest::class);
     }
 
+    /**
+     * Whether preferences are locked: a lottery run is running or decided the assignment.
+     */
     public function lotteryLocked(): bool
     {
         return $this->activeLotteryRun()->exists();

@@ -3,6 +3,7 @@
 use App\Models\JoinRequest;
 use App\Models\Project;
 use App\Notifications\JoinedNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -38,6 +39,40 @@ function joinRequestNotices(App\Models\User $admin): int
 }
 
 describe('The directory', function () {
+    it('costs the same to list however many projects it shows', function () {
+        $queries = function () {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->as($this->person)->get(route('directory.index'))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        $queries();
+        $few = $queries();
+
+        foreach (range(1, 5) as $more) {
+            aProject(['listed' => true]);
+        }
+
+        expect($queries())->toBe($few);
+    });
+
+    it('says who takes newcomers, without being asked one by one', function (Closure $change, string $standing) {
+        $change($this->project);
+
+        expect(standingIn($this, $this->person, $this->project))->toBe($standing);
+    })->with([
+        'with unit types'      => [fn ($project) => null, 'can_ask'],
+        'no unit types'        => [fn ($project) => $project->unitTypes()->delete(), 'closed'],
+        'lottery running'      => [fn ($project) => aLotteryInProgress($project), 'closed'],
+        'lottery done'         => [fn ($project) => aLotteryInProgress($project)->update(['status' => App\Enums\LotteryRunStatus::COMPLETED]), 'closed'],
+        'lottery done, guests' => [function ($project) {
+            aLotteryInProgress($project)->update(['status' => App\Enums\LotteryRunStatus::COMPLETED]);
+            $project->update(['allows_guests' => true]);
+        }, 'can_ask'],
+        'lottery failed' => [fn ($project) => aLotteryInProgress($project)->update(['status' => App\Enums\LotteryRunStatus::FAILED]), 'can_ask'],
+    ]);
+
     it('joining twice leaves them in once, and tells the project once', function () {
         $this->project->update(['open_to_join' => true]);
         $directory = app(App\Services\DirectoryService::class);

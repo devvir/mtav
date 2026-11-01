@@ -31,6 +31,7 @@ class DirectoryController extends Controller
                 ->orWhere('description', 'like', "%{$search}%")))
             ->with(['joinRequests' => fn ($asked) => $asked->where('user_id', $user->id)])
             ->withCount('members', 'units')
+            ->withExists(['unitTypes', 'activeLotteryRun'])
             ->orderBy('name')
             ->paginate(24)
             ->withQueryString();
