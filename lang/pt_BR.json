@@ -1112,5 +1112,15 @@
   "This action asks for your password once more.": "Esta ação pede sua senha mais uma vez.",
   "Members": "Membros",
   "Families, members or admins": "Famílias, membros ou admins",
-  "See the cooperative family by family, every member, or the admins. One search looks in all three.": "Veja a cooperativa família por família, cada membro ou os admins. Uma só busca procura nas três."
+  "See the cooperative family by family, every member, or the admins. One search looks in all three.": "Veja a cooperativa família por família, cada membro ou os admins. Uma só busca procura nas três.",
+  "Reports": "Relatos",
+  "What people tell the team through the Assistant, by person.": "O que as pessoas contam à equipe pelo Assistente, por pessoa.",
+  "Problems and ideas people sent from their conversation with the Assistant, a few a day each. Reply by email if something needs an answer.": "Problemas e ideias que as pessoas enviaram da conversa com o Assistente, poucos por dia cada uma. Responda por e-mail se algo precisar de resposta.",
+  "{count} report": "{count} relato",
+  "{count} reports": "{count} relatos",
+  "From deleted accounts": "De contas apagadas",
+  "No reports yet": "Ainda não há relatos",
+  "People can send them from their conversation with the Assistant.": "As pessoas podem enviá-los pela conversa com o Assistente.",
+  "Sent": "Enviado",
+  "Sent. Thank you for telling us.": "Enviado. Obrigado por nos contar."
 }

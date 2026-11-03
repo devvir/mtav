@@ -6,6 +6,7 @@ use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class Assistant
     private const ACTIONS = 3;
     private const LABEL_CHARS = 60;
     private const TEXT_CHARS = 1500;
+    private const REPORT_CHARS = 1500;
     private const RESTING = 'assistant.resting';
     private const REST = 900;
     private const STUMBLES = 'assistant.stumbles';
@@ -202,7 +204,7 @@ class Assistant
      * What the brain offered, as far as this person may have it: a place not on their list is
      * dropped, and every address is the server's own.
      *
-     * @return list<array{type: string, label: string, href?: string, tour?: string}>
+     * @return list<array{type: string, label: string, href?: string, tour?: string, message?: string}>
      */
     private function actions(mixed $offered, User $user, Conversation $conversation): array
     {
@@ -211,10 +213,12 @@ class Assistant
         }
 
         $places = $this->places->for($user, $conversation->project);
+        $admins = $this->places->hasAdmins($user, $conversation->project);
+        $reports = Report::leftToday($user) > 0;
         $project = ['project' => $conversation->project_id];
 
         return collect($offered)
-            ->map(function ($action) use ($places, $project) {
+            ->map(function ($action) use ($places, $admins, $reports, $project) {
                 $label = is_array($action) ? Str::limit(trim(strip_tags((string) ($action['label'] ?? ''))), self::LABEL_CHARS) : '';
                 $type = is_array($action) ? ($action['type'] ?? null) : null;
                 if ($label === '') {
@@ -222,6 +226,16 @@ class Assistant
                 }
                 if ($type === 'reply') {
                     return ['type' => 'reply', 'label' => $label];
+                }
+                // Writing to an admin: which one, the server says when it is tapped
+                if ($type === 'message') {
+                    return $admins ? ['type' => 'message', 'label' => $label] : null;
+                }
+                // Words for the platform's team, sent only if the person taps it
+                if ($type === 'report') {
+                    $words = Str::limit(trim(strip_tags((string) ($action['message'] ?? ''))), self::REPORT_CHARS);
+
+                    return $reports && $words !== '' ? ['type' => 'report', 'label' => $label, 'message' => $words] : null;
                 }
 
                 $place = $places[$action['place'] ?? ''] ?? null;

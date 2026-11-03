@@ -214,6 +214,8 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                     Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
                     Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
                     Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
+                    Route::post('chat/messages/{message}/report', [Member\ChatController::class, 'report'])->middleware('throttle:10,1')->name('chat.report');
+                    Route::post('chat/admin', [Member\ChatController::class, 'writeToAdmin'])->middleware('throttle:30,1')->name('chat.admin');
                 });
 
                 /** The forum: topics, each a conversation */
@@ -316,6 +318,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         Route::inertia('lab', 'Platform/Lab')->name('lab');
         Route::get('activity', [Platform\ActivityController::class, 'index'])->name('activity.index');
         Route::get('errors', [Platform\ErrorController::class, 'index'])->name('errors.index');
+        Route::get('reports', [Platform\ReportController::class, 'index'])->name('reports.index');
         Route::delete('errors/{error}', [Platform\ErrorController::class, 'destroy'])->name('errors.destroy');
         Route::get('settings', [Platform\SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [Platform\SettingsController::class, 'update'])->name('settings.update');

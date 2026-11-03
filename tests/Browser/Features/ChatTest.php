@@ -166,6 +166,29 @@ it('leads somewhere from the Assistant\'s buttons, and sends its replies with a 
         ->assertNoSmoke();
 });
 
+it('sends a report it drafted as shown, once, and opens a conversation with an admin', function () {
+    $admin = anAdminOf($this->project);
+    $conversation = Conversation::where('pair', "assistant:{$this->ana->id}")->sole();
+    app(App\Services\Assistant\Assistant::class)->say($conversation, 'I can tell the team', [
+        ['type' => 'report', 'label' => 'Send the report', 'message' => 'The plan does not open on my phone'],
+        ['type' => 'message', 'label' => 'Write to an admin'],
+    ]);
+    $this->as($this->ana);
+
+    visit(route('projects.show', $this->project))
+        ->click('.chat-launcher')
+        ->click('.chat-list-item:has-text("Assistant")')
+        ->assertSeeIn('.chat-report', 'The plan does not open on my phone')
+        ->click('.chat-actions button:has-text("Send the report")')
+        ->assertSeeIn('.chat-actions', 'Sent')
+        ->click('.chat-actions button:has-text("Write to an admin")')
+        ->assertSeeIn('.chat-window', 'Say hello')
+        ->assertNoSmoke();
+
+    expect(App\Models\Report::sole()->body)->toBe('The plan does not open on my phone')
+        ->and(Conversation::where('pair', Conversation::pairOf($this->ana->id, $admin->id))->exists())->toBeTrue();
+});
+
 it('gets over a message that could not leave: the button stops waiting, it says so, and the next one goes', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);

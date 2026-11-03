@@ -8,6 +8,7 @@ import {
   IconFlask,
   IconFolders,
   IconHistory,
+  IconMessageReport,
   IconRocket,
   IconShieldCheck,
   IconUser,
@@ -55,6 +56,12 @@ export function PlatformLayout({ children }: { children: ReactNode }) {
               href: route('admin.errors.index'),
               icon: IconBug,
               active: routeIs('admin.errors.*'),
+            },
+            {
+              label: _('Reports'),
+              href: route('admin.reports.index'),
+              icon: IconMessageReport,
+              active: routeIs('admin.reports.*'),
             },
             {
               label: _('Settings'),

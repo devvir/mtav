@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
+use App\Models\Report;
 use App\Models\User;
+use App\Services\Assistant\Places;
 use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -130,6 +132,57 @@ class ChatController extends Controller
         $this->chat->remove($message);
 
         return $request->wantsJson() ? response()->json([]) : back();
+    }
+
+    /**
+     * A conversation with one of the project's admins, for whoever asks: the one they already
+     * talk with, if any, or any of them. Who they are is the server's to know.
+     */
+    public function writeToAdmin(Request $request, Project $project, Places $places): JsonResponse
+    {
+        $this->authorize('startChat', [Conversation::class, $project]);
+        $user = $request->user();
+        $admins = $places->admins($user, $project)->pluck('users.id');
+        abort_if($admins->isEmpty(), 404);
+
+        $talked = Conversation::where('project_id', $project->id)
+            ->whereIn('pair', $admins->map(fn (int $admin) => Conversation::pairOf($user->id, $admin)))
+            ->latest('last_message_at')
+            ->first();
+
+        return response()->json(['conversation' => ($talked ?? $this->chat->start($project, $user, [$admins->random()]))->id]);
+    }
+
+    /**
+     * A report the Assistant drafted, sent to the platform's team as it was shown: its words
+     * come from the message, never from the browser. Each is sent once, a few a day.
+     */
+    public function report(Request $request, Project $project, Message $message): JsonResponse
+    {
+        $conversation = $message->conversation;
+        abort_unless($message->from_assistant && $conversation->project_id === $project->id && $conversation->is_assistant, 404);
+        $this->authorize('readChat', $conversation);
+        $index = $request->integer('action');
+
+        return DB::transaction(function () use ($request, $project, $message, $index) {
+            $message = Message::whereKey($message->id)->lockForUpdate()->first();
+            $action = $message->extras['actions'][$index] ?? null;
+            abort_unless(($action['type'] ?? null) === 'report', 404);
+
+            if (! empty($action['sent'])) {
+                return response()->json(['sent' => true]);
+            }
+            if (Report::leftToday($request->user()) === 0) {
+                return response()->json(['message' => __('chat.report_limit')], 429);
+            }
+
+            Report::create(['user_id' => $request->user()->id, 'project_id' => $project->id, 'body' => $action['message']]);
+            $extras = $message->extras;
+            $extras['actions'][$index]['sent'] = true;
+            $message->forceFill(['extras' => $extras])->save();
+
+            return response()->json(['sent' => true]);
+        });
     }
 
     /** The conversations, the one open (if any) with its latest messages, and who may join */

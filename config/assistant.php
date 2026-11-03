@@ -32,4 +32,7 @@ return [
     /** Messages a day that reach the model: for one person (half in a limited project), and for the whole deployment */
     'per_person_per_day' => (int) env('ASSISTANT_PER_PERSON_PER_DAY', 40),
     'per_day'            => (int) env('ASSISTANT_PER_DAY', 2000),
+
+    /** Reports a day one person may send the platform's team through it */
+    'reports_per_day' => (int) env('ASSISTANT_REPORTS_PER_DAY', 3),
 ];

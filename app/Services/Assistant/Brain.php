@@ -21,11 +21,12 @@ interface Brain
                 'items' => [
                     'type'       => 'object',
                     'properties' => [
-                        'type'  => ['type' => 'string', 'enum' => ['link', 'tour', 'reply']],
-                        'label' => ['type' => 'string'],
-                        'place' => ['type' => 'string'],
+                        'type'    => ['type' => 'string', 'enum' => ['link', 'tour', 'reply', 'message', 'report']],
+                        'label'   => ['type' => 'string'],
+                        'place'   => ['type' => 'string'],
+                        'message' => ['type' => 'string'],
                     ],
-                    'required'             => ['type', 'label', 'place'],
+                    'required'             => ['type', 'label', 'place', 'message'],
                     'additionalProperties' => false,
                 ],
             ],

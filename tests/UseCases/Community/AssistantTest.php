@@ -4,6 +4,7 @@ use App\Events\MessageSent;
 use App\Jobs\AnswerInChat;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Report;
 use App\Services\Assistant\Assistant;
 use App\Services\Assistant\Brain;
 use App\Services\Assistant\Brains\CliBrain;
@@ -276,8 +277,88 @@ describe('What it may answer with', function () {
     });
 });
 
+describe('Writing to an admin, and reporting', function () {
+    $answering = fn (array $actions) => brainAnswering(['text' => 'Here', 'actions' => $actions]);
+
+    it('offers to write to an admin with nothing of who they are, and only when there is one', function () use ($answering) {
+        $answering([['type' => 'message', 'label' => 'Write to an admin', 'place' => 'admins', 'message' => '']]);
+
+        expect(askAssistant($this->member, $this->project)->extras['actions'])->toBe([['type' => 'message', 'label' => 'Write to an admin']]);
+
+        $this->project->memberships()->where('user_id', $this->admin->id)->update(['is_admin' => false]);
+
+        expect(askAssistant($this->member, $this->project)->extras)->toBeNull();
+    });
+
+    it('opens a conversation with an admin: the one already written to, else any of them', function () {
+        $other = anAdminOf($this->project);
+        $write = fn () => $this->as($this->member, $this->project)->postJson(route('chat.admin', $this->project))->assertOk()->json('conversation');
+
+        $first = Conversation::findOrFail($write());
+        expect($first->includes($this->member))->toBeTrue()
+            ->and($first->participants()->whereKey([$this->admin->id, $other->id])->count())->toBe(1)
+            ->and($write())->toBe($first->id);
+
+        // Already talking with the other one: that conversation, not a new one
+        $talking = app(ChatService::class)->start($this->project, $this->member, [$first->participants()->whereKey($this->admin->id)->exists() ? $other->id : $this->admin->id]);
+        $talking->forceFill(['last_message_at' => now()->addMinute()])->save();
+        expect($write())->toBe($talking->id);
+    });
+
+    it('opens nothing when there is no admin to write to, and never with oneself', function () {
+        $this->as($this->admin, $this->project)->postJson(route('chat.admin', $this->project))->assertNotFound();
+    });
+
+    it('drafts a report the person sends with a tap, once, in the words that were shown', function () use ($answering) {
+        $answering([['type' => 'report', 'label' => 'Send it', 'place' => '', 'message' => 'The plan does not load on my phone']]);
+        $answer = askAssistant($this->member, $this->project);
+        $send = fn (array $data = ['action' => 0]) => $this->as($this->member, $this->project)
+            ->postJson(route('chat.report', [$this->project, $answer]), [...$data, 'body' => 'Something else entirely']);
+
+        $send()->assertOk();
+        $send()->assertOk();
+
+        expect(Report::sole())->toMatchArray(['user_id' => $this->member->id, 'project_id' => $this->project->id, 'body' => 'The plan does not load on my phone'])
+            ->and($answer->fresh()->extras['actions'][0]['sent'])->toBeTrue();
+    });
+
+    it('takes a few reports a day from each person, and offers none past them', function () use ($answering) {
+        Report::insert(array_fill(0, 3, ['user_id' => $this->member->id, 'body' => 'Before', 'created_at' => now(), 'updated_at' => now()]));
+        $brain = $answering([['type' => 'report', 'label' => 'Send it', 'place' => '', 'message' => 'One more']]);
+
+        expect(askAssistant($this->member, $this->project)->extras)->toBeNull()
+            ->and($brain->asked[0]['context'])->toContain('Reports they can send today: 0');
+    });
+
+    it('refuses a fourth report in a day, and a report of a message that is not the person\'s', function () use ($answering) {
+        $answering([['type' => 'report', 'label' => 'Send it', 'place' => '', 'message' => 'Late']]);
+        $answer = askAssistant($this->member, $this->project);
+        Report::insert(array_fill(0, 3, ['user_id' => $this->member->id, 'body' => 'Before', 'created_at' => now(), 'updated_at' => now()]));
+
+        $this->as($this->member, $this->project)->postJson(route('chat.report', [$this->project, $answer]), ['action' => 0])
+            ->assertStatus(429)->assertJson(['message' => __('chat.report_limit')]);
+        $this->as($this->admin, $this->project)->postJson(route('chat.report', [$this->project, $answer]), ['action' => 0])
+            ->assertForbidden();
+        $this->as($this->member, $this->project)->postJson(route('chat.report', [$this->project, $answer]), ['action' => 5])
+            ->assertNotFound();
+
+        expect(Report::where('body', 'Late')->exists())->toBeFalse();
+    });
+
+    it('shows superadmins the reports by person, the latest first, and nobody else', function () {
+        Report::create(['user_id' => $this->member->id, 'project_id' => $this->project->id, 'body' => 'An idea', 'created_at' => now()->subHour()]);
+        Report::create(['user_id' => $this->admin->id, 'project_id' => $this->project->id, 'body' => 'A problem']);
+
+        $people = $this->as(aSuperadmin())->get(route('admin.reports.index'))->assertOk()->inertiaProps('people.data');
+
+        expect(collect($people)->pluck('id')->all())->toBe([$this->admin->id, $this->member->id])
+            ->and($people[1]['reports'][0])->toMatchArray(['body' => 'An idea', 'project' => $this->project->name]);
+        $this->as($this->admin)->get(route('admin.reports.index'))->assertNotFound();
+    });
+});
+
 describe('What it knows', function () {
-    it('holds nothing about anyone else', function () {
+    it('holds nothing about anyone else but the admins\' names, to point to them', function () {
         aMemberOf($this->family, ['firstname' => 'Zulema', 'lastname' => 'Secreta', 'email' => 'zulema@example.com', 'phone' => '099111222', 'legal_id' => '1.234.567-8']);
         $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
 
@@ -307,6 +388,36 @@ describe('What it knows', function () {
         askAssistant($this->member->fresh(), $this->project);
 
         expect($brain->asked[0]['context'])->toContain('Español')->toContain('Ana')->toContain($this->family->name)->not->toContain('forum');
+    });
+
+    it('knows whether there are admins to write to, never who they are', function () {
+        $this->admin->update(['firstname' => 'Beatriz', 'lastname' => 'Olivera']);
+        $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
+
+        askAssistant($this->member, $this->project);
+        askAssistant($this->admin, $this->project);
+
+        expect($brain->asked[0]['context'])->toContain('Admins to write to: yes')->not->toContain('Beatriz')->not->toContain('Olivera')
+            ->and($brain->asked[1]['context'])->toContain('Admins to write to: none right now');
+    });
+
+    it('takes superadmins for admins like any other, and an admin in a family for a member too', function () {
+        $superadmin = aSuperadmin();
+        $this->project->memberships()->create(['user_id' => $superadmin->id, 'family_id' => aFamily($this->project, $this->family->unitType)->id]);
+        $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
+
+        askAssistant($superadmin->fresh(), $this->project);
+
+        expect($brain->asked[0]['context'])->toContain('an admin of the project, and a member in a family')
+            ->not->toContain('oversees the platform');
+    });
+
+    it('knows the top bar changes text size, language and light or dark', function () {
+        $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
+
+        askAssistant($this->member, $this->project);
+
+        expect($brain->asked[0]['instructions'])->toContain('The bar at the top of every page has three buttons');
     });
 
     it('takes a name people typed as data, not as a rule', function () {

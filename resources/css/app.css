@@ -2555,6 +2555,16 @@ html[data-carrying] * {
 .chat-actions {
   margin-top: 6px;
 }
+/* A report the Assistant drafted, shown as it will be sent */
+.chat-report {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--mtav-brand);
+  border-radius: 6px;
+  font-size: var(--mantine-font-size-sm);
+  background: color-mix(in srgb, var(--mtav-brand) 8%, transparent);
+  white-space: pre-line;
+}
 .chat-answering {
   display: flex;
   gap: 4px;
@@ -2589,4 +2599,10 @@ html[data-carrying] * {
   .chat-answering span {
     animation: none;
   }
+}
+
+/* A report in the platform console: one after another, each apart */
+.report-item + .report-item {
+  padding-top: 10px;
+  border-top: 1px solid var(--mtav-border);
 }

@@ -28,6 +28,7 @@ import {
 import {
   IconArrowLeft,
   IconArrowRight,
+  IconCheck,
   IconDoorExit,
   IconDots,
   IconMinus,
@@ -80,12 +81,18 @@ interface ChatMessage {
   created_at: string;
 }
 
-/** A button under an Assistant's message: to a place (its tour too), or a reply sent with a tap */
+/**
+ * A button under an Assistant's message: to a place (its tour too), a reply sent with a tap,
+ * writing to one of the project's admins, or a report for the platform's team
+ */
 interface AssistantAction {
-  type: 'link' | 'tour' | 'reply';
+  type: 'link' | 'tour' | 'reply' | 'message' | 'report';
   label: string;
   href?: string;
   tour?: string;
+  /** What a "report" says, as it will be sent; `sent` once it was */
+  message?: string;
+  sent?: boolean;
 }
 
 type OpenConversation = ConversationSummary & {
@@ -344,14 +351,56 @@ function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
 
 /** The buttons under an Assistant's message; leading somewhere, the window folds out of the way */
 function AssistantActions({
+  message,
   actions,
   onReply,
+  onChange,
 }: {
+  /** The Assistant's message they are under (none for its greeting) */
+  message?: number;
   actions: AssistantAction[];
   onReply: (words: string) => void;
+  onChange?: () => Promise<void>;
 }) {
-  const press = (action: AssistantAction) => {
+  const { project } = useChatProject();
+  const [sent, setSent] = useState<number[]>([]);
+  const [busy, setBusy] = useState<number | null>(null);
+
+  const press = async (action: AssistantAction, index: number) => {
     if (action.type === 'reply') return onReply(action.label);
+    if (heldOffline()) return undefined;
+
+    // Writing to an admin: their conversation opens right here, in the chat
+    if (action.type === 'message') {
+      setBusy(index);
+      const response = await sendJson('POST', route('chat.admin', { project: project!.id }), {});
+      setBusy(null);
+      if (!response.ok) return refused();
+      const { conversation } = (await response.json()) as { conversation: number };
+      showConversation(conversation);
+      return onChange?.();
+    }
+
+    if (action.type === 'report' && message) {
+      setBusy(index);
+      const response = await sendJson(
+        'POST',
+        route('chat.report', { project: project!.id, message }),
+        {
+          action: index,
+        },
+      );
+      setBusy(null);
+      if (response.status === 429) {
+        return toast({
+          tone: 'warning',
+          message: ((await response.json()) as { message: string }).message,
+        });
+      }
+      if (!response.ok) return refused();
+      setSent((done) => [...done, index]);
+      return toast({ tone: 'success', message: _('Sent. Thank you for telling us.') });
+    }
 
     minimizeChat();
     router.visit(action.href!, {
@@ -363,19 +412,40 @@ function AssistantActions({
   };
 
   return (
-    <Group gap="xs" className="chat-actions">
-      {actions.map((action) => (
-        <Button
-          key={`${action.type}-${action.label}`}
-          size="xs"
-          variant={action.type === 'reply' ? 'default' : 'light'}
-          rightSection={action.type === 'reply' ? null : <IconArrowRight size={14} />}
-          onClick={() => press(action)}
-        >
-          {action.label}
-        </Button>
-      ))}
-    </Group>
+    <Stack gap="xs" className="chat-actions">
+      {actions
+        .map((action, index) => ({ action, index }))
+        .filter(({ action }) => action.type === 'report')
+        .map(({ action, index }) => (
+          <blockquote key={`report-${index}`} className="chat-report">
+            {action.message}
+          </blockquote>
+        ))}
+      <Group gap="xs">
+        {actions.map((action, index) => {
+          const done = action.type === 'report' && (action.sent || sent.includes(index));
+          return (
+            <Button
+              key={`${action.type}-${action.label}`}
+              size="xs"
+              variant={action.type === 'reply' ? 'default' : 'light'}
+              rightSection={
+                done ? (
+                  <IconCheck size={14} />
+                ) : action.type === 'reply' ? null : (
+                  <IconArrowRight size={14} />
+                )
+              }
+              loading={busy === index}
+              disabled={done}
+              onClick={() => void press(action, index)}
+            >
+              {done ? _('Sent') : action.label}
+            </Button>
+          );
+        })}
+      </Group>
+    </Stack>
   );
 }
 
@@ -593,8 +663,10 @@ function Thread({
                 </div>
                 {message.actions?.length ? (
                   <AssistantActions
+                    message={message.id}
                     actions={message.actions}
                     onReply={(words) => void send(undefined, words)}
+                    onChange={onChange}
                   />
                 ) : null}
                 {message.mine ? (

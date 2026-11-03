@@ -7,6 +7,7 @@ return [
     'assistant'         => 'Assistente',
     'assistant_off'     => 'O Assistente ainda não está disponível aqui. Enquanto isso, o guia e o (?) ao lado de cada título podem ajudar.',
     'assistant_limit'   => 'Obrigado por perguntar! Por hoje já respondi tudo o que podia. Escreva de novo amanhã e ajudo com prazer. Até lá, o guia tem muitas respostas.',
+    'report_limit'      => 'Você já enviou todos os relatos possíveis hoje. Amanhã pode enviar outro.',
     'assistant_busy'    => 'Recebi muitas perguntas hoje e não consigo responder mais. Tente de novo amanhã e ajudo com prazer. Até lá, o guia tem muitas respostas.',
     'assistant_trouble' => 'Desculpe, não consegui responder agora. Tente de novo em instantes.',
     'assistant_resting' => 'Agora não consigo responder. Tente de novo daqui a pouco e ajudo com prazer. Até lá, o guia tem muitas respostas.',

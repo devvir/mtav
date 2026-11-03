@@ -5,6 +5,7 @@ namespace App\Services\Assistant;
 use App\Enums\ProjectFeature;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Where the Assistant may send someone: only what they could reach by themselves, each place
@@ -40,5 +41,17 @@ class Places
             'your_projects'    => ['about' => 'every project they take part in', 'route' => 'projects.index', 'tour' => 'account.projects'],
             'guide'            => ['about' => 'the illustrated guide', 'route' => 'documentation.guide'],
         ]);
+    }
+
+    /** Whether the project has an admin this person may write to (anyone but themselves) */
+    public function hasAdmins(User $user, Project $project): bool
+    {
+        return $this->admins($user, $project)->exists();
+    }
+
+    /** The project's admins this person may write to: who exactly, only the server knows */
+    public function admins(User $user, Project $project): BelongsToMany
+    {
+        return $project->admins()->whereNull('blocked_at')->whereKeyNot($user->id);
     }
 }
