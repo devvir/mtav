@@ -138,6 +138,8 @@
 
       main {
         display: grid;
+        /* As wide as the window, whatever the cards inside would like */
+        grid-template-columns: minmax(0, 1fr);
         gap: 16px;
         max-width: 1400px;
         margin: 0 auto;
@@ -151,8 +153,14 @@
       .tiles {
         grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       }
-      .two {
-        grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      /* The rest packs itself: cards flow into as many columns as fit, never split */
+      .flow {
+        columns: 2 460px;
+        column-gap: 16px;
+      }
+      .flow > section {
+        break-inside: avoid;
+        margin-bottom: 16px;
       }
       @media (max-width: 560px) {
         header,
@@ -160,8 +168,8 @@
           padding-left: 16px;
           padding-right: 16px;
         }
-        .two {
-          grid-template-columns: 1fr;
+        .flow {
+          columns: 1;
         }
       }
 
@@ -675,18 +683,16 @@
                 : ''),
           ) +
           card('Claude accounts', 'as their own readings say', r.claude, accounts) +
-          `<div class="grid two">` +
-          card('Pipelines', 'the latest run of each', r.pipelines, pipelines) +
-          card('Branches', '', r.repository, repository) +
-          `</div><div class="grid two">` +
-          card('Local stacks', '', r.stacks, stacks) +
-          `<div class="grid">` +
+          `<div class="flow">` +
           card('This machine', '', r.host, (d) => machine(d, d.cores)) +
           card('The server', '', r.server, (d) =>
             d.notSetUp
               ? '<div class="empty">MTAV_SERVER is not set</div>'
               : machine(d, serverCores),
           ) +
+          card('Pipelines', 'the latest run of each', r.pipelines, pipelines) +
+          card('Branches', '', r.repository, repository) +
+          card('Local stacks', '', r.stacks, stacks) +
           card(
             'The app, locally',
             'rows in its database',
@@ -699,7 +705,7 @@
                 )
                 .join('')}</div>`,
           ) +
-          `</div></div>`;
+          `</div>`;
         document.getElementById('updated').textContent =
           'updated ' + new Date().toLocaleTimeString([], { timeStyle: 'short' });
       }
