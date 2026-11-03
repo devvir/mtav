@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Variant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Inertia\Response;
@@ -66,7 +67,7 @@ class DocumentationController extends Controller
     /** What is kept about people, who sees it, and their rights */
     public function privacy(): Response
     {
-        return $this->public(__('Privacy'), 'legal/{locale}/privacy.html', [
+        return $this->public(__('Privacy'), 'legal/{locale}/' . Variant::privacy(), [
             '{app}'     => e(config('app.name')),
             '{contact}' => e(config('app.contact') ?: config('app.owner.email') ?: config('mail.from.address')),
         ]);

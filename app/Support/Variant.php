@@ -43,6 +43,12 @@ class Variant
         return self::spec('landing');
     }
 
+    /** Its privacy page, one of resources/views/legal/<locale>/ */
+    public static function privacy(): string
+    {
+        return self::spec('privacy');
+    }
+
     /** Whether a route is open here: its middleware names the module, unless it opts out */
     public static function opens(Route $route): bool
     {

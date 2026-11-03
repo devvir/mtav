@@ -50,6 +50,21 @@ describe('Creating one', function () {
         $this->get(route('home'))->assertOk()->assertInertia(fn ($page) => $page->component('Open/Landing'));
     });
 
+    it('has a privacy page of its own: no accounts, no emails, no Assistant', function () {
+        config(['app.name' => 'Sorteo', 'app.contact' => 'datos@example.org']);
+
+        $english = $this->get(route('privacy'), ['Accept-Language' => 'en-US'])->assertOk()->inertiaProps('content');
+        expect($english)
+            ->toContain('There are no accounts and no emails')
+            ->toContain('A lottery nobody has touched for 90 days is deleted')
+            ->toContain('mailto:datos@example.org')
+            ->not->toContain('Assistant')
+            ->not->toContain('{app}');
+
+        expect($this->get(route('privacy'), ['Accept-Language' => 'es-UY'])->inertiaProps('content'))
+            ->toContain('No hay cuentas ni correos');
+    });
+
     it('gives a short link, and makes its creator the organizer', function () {
         $this->post(route('open.store'), ['name' => 'August', 'items_name' => 'Rooms', 'items' => ['Attic']])
             ->assertRedirect()->assertCookie('open_organizer_' . OpenLottery::sole()->slug);

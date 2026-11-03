@@ -19,4 +19,5 @@ return [
         'events'    => $choice,
     ],
     'landing' => 'Welcome',
+    'privacy' => 'privacy.html',
 ];

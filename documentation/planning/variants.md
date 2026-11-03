@@ -18,7 +18,8 @@ It says:
   `manual`, `open_lottery`);
 - **features**: each with what a project starts with (`default`) and whether a project may change
   it (`configurable`);
-- **landing**: the page people arrive at.
+- **landing**: the page people arrive at;
+- **privacy**: its privacy page, saying only what that variant keeps.
 
 ## Closed at the door
 
@@ -105,7 +106,6 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
 
 ### Before it goes live
 
-- A privacy page of its own: the one every variant shows today speaks of accounts and the Assistant.
 - Its own name (`APP_NAME`), and an environment on the server. Its address is `sorteo.mtav.uy`, on the
   environment ports 8003 and 8083.
 

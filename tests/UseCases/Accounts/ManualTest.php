@@ -40,10 +40,11 @@ it('has whom to write about data without a contact set: the owner', function () 
     expect($this->get(route('privacy'))->inertiaProps('content'))->toContain('mailto:owner@example.org');
 });
 
-it('has the privacy page in every language it speaks', function () {
-    foreach (glob(lang_path('*.json')) as $file) {
-        $locale = basename($file, '.json');
-        expect(resource_path("views/legal/{$locale}/privacy.html"))->toBeFile();
+it('has every variant\'s privacy page in every language it speaks', function () {
+    foreach (config('variants') as $variant) {
+        foreach (glob(lang_path('*.json')) as $file) {
+            expect(resource_path('views/legal/' . basename($file, '.json') . "/{$variant['privacy']}"))->toBeFile();
+        }
     }
 });
 

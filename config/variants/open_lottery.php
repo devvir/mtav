@@ -8,4 +8,6 @@ return [
     'modules'  => ['open_lottery'],
     'features' => [],
     'landing'  => 'Open/Landing',
+    // No accounts, emails or Assistant here: a page that says only what this variant keeps
+    'privacy' => 'privacy.open-lottery.html',
 ];
