@@ -258,7 +258,12 @@ function ConversationList({
                   </Text>
                 ) : null}
               </Group>
-              <Text size="sm" c="dimmed" truncate>
+              <Text
+                size="sm"
+                c="dimmed"
+                truncate
+                className={conversation.last ? undefined : 'chat-note'}
+              >
                 {conversation.last
                   ? `${conversation.last.mine ? _('You') + ': ' : conversation.is_group && conversation.last.author ? conversation.last.author + ': ' : ''}${conversation.last.body}`
                   : _('No messages yet')}
@@ -620,7 +625,7 @@ function Thread({
           </Group>
         ) : null}
         {messages.data.length || conversation.is_assistant ? null : (
-          <Text c="dimmed" ta="center" py="xl">
+          <Text c="dimmed" ta="center" py="xl" className="chat-note">
             {_('Say hello: the first message starts the conversation.')}
           </Text>
         )}

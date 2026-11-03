@@ -1053,6 +1053,20 @@
 .plan-view .plan-canvas[data-zoomed] {
   cursor: grab;
 }
+/* A unit's surroundings: a square, still, the unit at its heart */
+.unit-place {
+  margin-bottom: var(--mantine-spacing-md);
+  overflow: hidden;
+  border-radius: var(--mtav-radius-card);
+}
+.plan-around .plan-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 1;
+  touch-action: auto;
+}
 .plan-view .plan-canvas[data-zoomed]:active {
   cursor: grabbing;
 }
@@ -2087,9 +2101,11 @@ html[data-carrying] * {
   font-weight: 700;
   line-height: 1.25rem;
   text-align: center;
-  color: var(--mtav-brand);
-  background: var(--mtav-surface, #fff);
-  box-shadow: 0 0 0 1px var(--mtav-border);
+  /* Like the bell's: white on red, ringed by the page, so it reads on any theme */
+  color: #fff;
+  background: var(--mantine-color-red-filled);
+  box-shadow: 0 0 0 2px var(--mtav-canvas, var(--mantine-color-body));
+  z-index: 1;
 }
 @media (min-width: 48em) {
   .chat-launcher {
@@ -2554,6 +2570,11 @@ html[data-carrying] * {
 }
 .chat-actions {
   margin-top: 6px;
+}
+/* What the chat says about itself ("No messages yet"): a note, never mistaken for a message */
+.chat-note {
+  font-style: italic;
+  opacity: 0.7;
 }
 /* A report the Assistant drafted, shown as it will be sent */
 .chat-report {
