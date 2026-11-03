@@ -8,8 +8,6 @@
  */
 const PAGES = 'mtav-pages-v1';
 const FILES = 'mtav-files-v1';
-/** Past this, a slow answer gives way to the kept copy (when there is one) */
-const PATIENCE_MS = 6000;
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
@@ -81,36 +79,25 @@ async function documentFrom(cache, request) {
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
+/**
+ * The server's answer whenever it gives one, however long it takes: slow is not offline. Only
+ * when it cannot be reached does the kept copy answer, and the page is told.
+ */
 async function networkFirst(request) {
   const cache = await caches.open(PAGES);
   const key = keyOf(request);
-  const fresh = fetch(request).then((response) => {
+  try {
+    const response = await fetch(request);
     // A redirect is not the page (a browser refuses it in its place later)
     if (response.ok && !response.redirected) cache.put(key, response.clone());
     tell(true);
     return response;
-  });
-
-  try {
-    return await Promise.race([
-      fresh,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('slow')), PATIENCE_MS)),
-    ]);
   } catch {
+    tell(false);
     const kept =
       (await cache.match(key, { ignoreVary: true })) ??
       (request.mode === 'navigate' ? await documentFrom(cache, request) : undefined);
-    if (kept) {
-      tell(false);
-      return kept;
-    }
-    // Nothing kept: wait for the network after all, or fail as the network does
-    try {
-      return await fresh;
-    } catch {
-      tell(false);
-      return Response.error();
-    }
+    return kept ?? Response.error();
   }
 }
 
