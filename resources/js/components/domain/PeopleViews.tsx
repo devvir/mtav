@@ -13,7 +13,8 @@ export type Found = { families: Family[]; members: Person[]; admins: Person[] };
 /**
  * The cooperative's people, three ways: by family, every member, or the admins. One place in
  * the navigation; each view keeps its own address and details, and one search looks in all
- * three. A view's own link starts it afresh, its search left behind.
+ * three. While its results show, no view is lit; a view's own link starts it afresh, and
+ * clearing the search goes back to the view it started from (the address keeps it).
  */
 export function PeopleViews({ q }: { q: string | null }) {
   const page = usePage<{ filters?: { admins?: boolean } }>();
@@ -27,17 +28,21 @@ export function PeopleViews({ q }: { q: string | null }) {
   return (
     <Group mb="md" gap="sm" justify="space-between" wrap="wrap">
       <nav className="people-views" aria-label={_('How to see them')} data-tour="people.views">
-        {views.map((view) => (
-          <Link
-            key={view.label}
-            href={view.href}
-            className="ds-pill floor-tab"
-            data-active={view.active || undefined}
-            aria-current={view.active ? 'page' : undefined}
-          >
-            {view.label}
-          </Link>
-        ))}
+        {views.map((view) => {
+          // While a search shows its results, no view is the one showing: any tab is a way back
+          const showing = view.active && !q;
+          return (
+            <Link
+              key={view.label}
+              href={view.href}
+              className="ds-pill floor-tab"
+              data-active={showing || undefined}
+              aria-current={showing ? 'page' : undefined}
+            >
+              {view.label}
+            </Link>
+          );
+        })}
       </nav>
       <QuerySearch
         key={q ? 'searching' : 'afresh'}

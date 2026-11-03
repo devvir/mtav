@@ -27,7 +27,12 @@ it('finds families and people in one search, each kind under its own heading', f
         ->assertSeeIn('section[aria-label="Families"]', 'Pérez')
         ->assertSeeIn('section[aria-label="Members"]', 'Bruno Pérez')
         ->assertNotPresent('section[aria-label="Admins"]')
-        ->assertDontSee('García');
+        ->assertDontSee('García')
+        ->assertNotPresent('.people-views [aria-current="page"]')
+        // Cleared, it is back on the view it started from
+        ->clear('[aria-label="Search families or people"]')
+        ->assertPresent('.people-views a[aria-current="page"]:has-text("Families")')
+        ->assertSee('García');
 
     // By a person's name, from a link with the query (typing is checked above)
     visit(route('families.index', [$this->project, 'q' => 'Ana']))
