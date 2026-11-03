@@ -256,26 +256,24 @@ describe('GlpkSolver', function () {
         ];
         $items = [10, 20];
 
-        $tempDir = sys_get_temp_dir();
-        $beforeFiles = glob($tempDir . '/mtav_*');
+        // A folder of its own: tests running alongside leave their files elsewhere
+        $tempDir = ownTempDir();
 
         config()->set('lottery.solvers.glpk.config.temp_dir', $tempDir);
         $spec = new LotterySpec($participants, $items);
         $manifest = mockManifest(1, [10 => ['participants' => $participants, 'items' => $items]]);
         app(GlpkSolver::class)->execute($manifest, $spec);
 
-        $afterFiles = glob($tempDir . '/mtav_*');
-
         // Should not leak temp files
-        expect(count($afterFiles))->toBe(count($beforeFiles));
+        expect(glob($tempDir . '/*'))->toBe([]);
+        rmdir($tempDir);
     });
 
     test('temp files are cleaned up after failure', function () {
         $participants = [1 => [10, 20]];
         $items = [10, 20];
 
-        $tempDir = sys_get_temp_dir();
-        $beforeFiles = glob($tempDir . '/mtav_*');
+        $tempDir = ownTempDir();
 
         config()->set('lottery.solvers.glpk.config', [
             'glpsol_path' => '/nonexistent/glpsol',
@@ -291,9 +289,17 @@ describe('GlpkSolver', function () {
             // Expected
         }
 
-        $afterFiles = glob($tempDir . '/mtav_*');
-
         // Should not leak temp files even on failure
-        expect(count($afterFiles))->toBe(count($beforeFiles));
+        expect(glob($tempDir . '/*'))->toBe([]);
+        rmdir($tempDir);
     });
 });
+
+/** An empty folder only this test writes to */
+function ownTempDir(): string
+{
+    $dir = sys_get_temp_dir() . '/mtav-test-' . bin2hex(random_bytes(6));
+    mkdir($dir);
+
+    return $dir;
+}

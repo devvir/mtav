@@ -8,12 +8,14 @@ would have caught what it fixes. The tests run in their own Docker environments
 
 ```sh
 ./mtav pest                              # PHP: Arch, Unit, UseCases
+./mtav pest --parallel                   # the same, one process per core, as the pipeline runs it
 ./mtav pest --filter="runs the lottery"  # by name
 ./mtav pest --testsuite Stress           # the slow GLPK scenarios (opt in; solver.yml runs them in GitHub)
 ./mtav vitest                            # frontend units
 ./mtav e2e                               # the browser suite
 ./mtav e2e --group=critical              # its quick part
 ./mtav e2e --filter='LotteryTest|PlanTest'
+./mtav e2e --shard=1/3                   # a third of its files, as each of the pipeline's three parts
 ./mtav precommit                         # Pest without the slow group, and Vitest
 ```
 
@@ -83,7 +85,8 @@ them sets `localStorage['mtav.tours'] = 'on'`.
 ## Before committing
 
 **Locally and in CI.** The whole browser suite is for GitHub's pipeline, which runs it on every
-push to any branch (the repository is public: its minutes are free). Locally, `--group=critical`
+push to any branch (the repository is public: its minutes are free), split in three parts that
+run at once; Pest runs there in parallel, each process with its own database. Locally, `--group=critical`
 and the tests of what changed are enough; a `task/...` branch runs the whole pipeline without
 deploying anything, while work moves on.
 

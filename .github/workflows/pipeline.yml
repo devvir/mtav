@@ -79,8 +79,9 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       # The same isolated environment as on a developer's machine (docker/testing)
+      # One process per core, each with a database of its own
       - name: Business rules and lottery (Pest)
-        run: ./mtav pest
+        run: ./mtav pest --parallel
 
       - name: Frontend logic (Vitest)
         run: ./mtav vitest
@@ -95,21 +96,28 @@ jobs:
           name: testing-logs
           path: testing-logs.txt
 
+  # The slowest job, split by test file across runners that run at once, each with its own
+  # app and database: the suite takes the time of its longest part
   browser:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
-    name: Browser suite
+    name: Browser suite (${{ matrix.shard }} of 3)
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    strategy:
+      # Every part runs to the end: one failing says nothing of the others
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Every page, form and journey in a real browser (docker/e2e)
-        run: ./mtav e2e
+        run: ./mtav e2e --shard=${{ matrix.shard }}/3
 
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         if: failure()
         with:
-          name: browser-screenshots
+          name: browser-screenshots-${{ matrix.shard }}
           path: tests/Browser/Screenshots
 
   image:
