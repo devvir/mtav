@@ -56,7 +56,7 @@ it('enters with no password where it exists', function (string $environment, ?st
 it('lists the demo accounts where it exists', function (string $environment, ?string $deployment) {
     runningAs($environment, $deployment);
 
-    expect(demoListOnLanding($this))->toBe([['id' => $this->demo->id, 'name' => 'Ana Silva', 'email' => 'ana@example.com']]);
+    expect(demoListOnLanding($this))->toBe([['id' => $this->demo->id, 'name' => 'Ana Silva', 'email' => 'ana@example.com', 'roles' => []]]);
 })->with('allowed stages');
 
 it('does not exist anywhere else, and sends no list', function (string $environment, ?string $deployment) {
@@ -121,4 +121,21 @@ describe('Where it exists', function () {
 
         $this->assertAuthenticatedAs($someone);
     });
+});
+
+it('tells each demo account\'s roles: support, admin, member, several at once, support first', function () {
+    config(['app.deployment' => 'staging']);
+    $project = aProject();
+    aSuperadmin()->update(['email' => 'support@example.com']);
+    $both = anAdminOf($project);
+    $both->update(['email' => 'both@example.com']);
+    aProject()->memberships()->create(['user_id' => $both->id, 'is_admin' => false]);
+    $member = aMemberOf(aFamily($project), ['email' => 'member@example.com']);
+
+    $roles = collect($this->get('/')->inertiaProps('demo'))->pluck('roles', 'email');
+
+    expect($roles['support@example.com'])->toBe(['support'])
+        ->and($roles['both@example.com'])->toBe(['admin', 'member'])
+        ->and($roles['member@example.com'])->toBe(['member'])
+        ->and($roles->keys()->first())->toBe('support@example.com');
 });

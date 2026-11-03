@@ -1,4 +1,4 @@
-import { SignInForm, type DemoAccount } from '@/components/auth/SignInForm';
+import { DemoSignIn, SignInForm, type DemoAccount } from '@/components/auth/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import { useCurrentPage } from '@/components/layout/page';
 import { DialogHost } from '@/components/overlays/DialogHost';
@@ -263,6 +263,13 @@ export default function Welcome({ dialog, google, demo, locales }: Props) {
         title={open === 'register' ? _('Create an account') : _('Sign in')}
         size={open === 'register' ? 'lg' : 'md'}
       >
+        {/* Where nothing is real, the quickest way in comes first */}
+        {demo ? (
+          <>
+            <DemoSignIn accounts={demo} />
+            <Divider label={_('or')} labelPosition="center" my="md" />
+          </>
+        ) : null}
         <SegmentedControl
           fullWidth
           mb="lg"
@@ -288,7 +295,7 @@ export default function Welcome({ dialog, google, demo, locales }: Props) {
             <Divider label={_('or')} labelPosition="center" my="md" />
           </>
         ) : null}
-        {open === 'register' ? <SignUpForm /> : <SignInForm demo={demo} />}
+        {open === 'register' ? <SignUpForm /> : <SignInForm />}
       </Modal>
       <DialogHost />
     </div>

@@ -1096,8 +1096,6 @@
   "Kept until {date}.": "Conservé jusqu’au {date}.",
   "Until {date}": "Jusqu’au {date}",
   "The lottery is running": "Le tirage est en cours",
-  "Demo account": "Compte de démonstration",
-  "Enter without a password": "Entrer sans mot de passe",
   "History": "Historique",
   "Who was in it": "Qui en a fait partie",
   "Nobody on record": "Personne d’enregistré",
@@ -1122,5 +1120,9 @@
   "No reports yet": "Aucun signalement pour le moment",
   "People can send them from their conversation with the Assistant.": "Chacun peut en envoyer depuis sa conversation avec l'Assistant.",
   "Sent": "Envoyé",
-  "Sent. Thank you for telling us.": "Envoyé. Merci de nous l’avoir dit."
+  "Sent. Thank you for telling us.": "Envoyé. Merci de nous l’avoir dit.",
+  "Support": "Support",
+  "Member": "Membre",
+  "Enter as a demo account": "Entrer avec un compte de démonstration",
+  "Choose an account: no password needed": "Choisissez un compte : pas besoin de mot de passe"
 }

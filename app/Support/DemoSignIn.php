@@ -29,14 +29,30 @@ class DemoSignIn
         return in_array(strtolower(substr(strrchr($user->email, '@') ?: '', 1)), self::DEMO_DOMAINS, true);
     }
 
-    /** @return Collection<int, array{id: int, name: string, email: string}> */
+    /**
+     * Every demo account, with what it is: support (a superadmin), admin of a project, member of
+     * one; several at once when so. By role, then by name.
+     *
+     * @return Collection<int, array{id: int, name: string, email: string, roles: list<string>}>
+     */
     public static function accounts(): Collection
     {
         return User::query()
             ->whereNull('blocked_at')
             ->where(fn ($query) => collect(self::DEMO_DOMAINS)->each(fn ($domain) => $query->orWhere('email', 'like', "%@{$domain}")))
-            ->orderBy('email')
-            ->get(['id', 'firstname', 'lastname', 'email'])
-            ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email]);
+            ->withExists([
+                'memberships as admin'  => fn ($query) => $query->where('is_admin', true),
+                'memberships as member' => fn ($query) => $query->where('is_admin', false),
+            ])
+            ->get(['id', 'firstname', 'lastname', 'email', 'is_superadmin'])
+            ->map(fn (User $user) => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'roles' => array_keys(array_filter(['support' => $user->is_superadmin, 'admin' => $user->admin, 'member' => $user->member])),
+            ])
+            // Support first, then admins, then members: each kind found together
+            ->sortBy(fn (array $account) => [array_search($account['roles'][0] ?? 'none', ['support', 'admin', 'member', 'none'], true), mb_strtolower($account['name'])])
+            ->values();
     }
 }

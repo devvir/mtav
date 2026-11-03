@@ -116,15 +116,17 @@ it('shows its first pictures one after another, VICMAN among them', function () 
         ->assertPresent('.welcome-hero-frame img[data-shown][src*="vicman"]');
 });
 
-it('enters as a demo account picked from the list, with no password', function () {
+it('enters as a demo account as soon as it is picked, found by its role too, with no password', function () {
     config(['app.deployment' => 'staging']);
     aUser(['email' => 'pedro@example.com', 'firstname' => 'Pedro', 'lastname' => 'Rey']);
-    $ana = aUser(['email' => 'ana@example.com', 'firstname' => 'Ana', 'lastname' => 'Silva']);
+    $ana = anAdminOf(aProject());
+    $ana->update(['email' => 'ana@example.com', 'firstname' => 'Ana', 'lastname' => 'Silva']);
 
     visit(route('login'))
-        ->fill('[role="dialog"] >> internal:label="Demo account"', 'Silva')
+        ->fill('[role="dialog"] >> internal:label="Enter as a demo account"', 'admin')
+        ->assertSeeIn('[role="option"]:has-text("Ana Silva")', 'Admin')
+        ->assertDontSee('Pedro Rey')
         ->click('[role="option"]:has-text("Ana Silva")')
-        ->click(inDialog('Enter without a password'))
         ->assertPathIsNot('/login')
         ->assertNoSmoke();
 
@@ -137,6 +139,6 @@ it('shows no demo accounts where there are none', function () {
 
     visit(route('login'))
         ->assertSee('Keep me signed in')
-        ->assertDontSee('Demo account')
+        ->assertDontSee('Enter as a demo account')
         ->assertNoSmoke();
 });

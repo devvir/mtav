@@ -5,20 +5,23 @@ import { _ } from '@/lib/translations';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
   Anchor,
+  Badge,
   Button,
   Checkbox,
-  Divider,
   Group,
+  Loader,
   PasswordInput,
   Select,
+  Text,
   TextInput,
 } from '@mantine/core';
 import { useState } from 'react';
 
-export type DemoAccount = { id: number; name: string; email: string };
+export type DemoRole = 'support' | 'admin' | 'member';
+export type DemoAccount = { id: number; name: string; email: string; roles: DemoRole[] };
 
-/** Signing in with an email and password; where demo accounts exist, as one of them too */
-export function SignInForm({ demo }: { demo: DemoAccount[] | null }) {
+/** Signing in with an email and password */
+export function SignInForm() {
   const form = useForm({ email: '', password: '', remember: false });
 
   return (
@@ -46,56 +49,76 @@ export function SignInForm({ demo }: { demo: DemoAccount[] | null }) {
           {_('Sign in')}
         </Button>
       </Form>
-      {demo ? (
-        <>
-          <Divider label={_('or')} labelPosition="center" my="md" />
-          <DemoSignIn accounts={demo} />
-        </>
-      ) : null}
     </>
   );
 }
 
-/** Any demo account, found by name or email, with no password */
-function DemoSignIn({ accounts }: { accounts: DemoAccount[] }) {
-  const [user, setUser] = useState<string | null>(null);
+const ROLE_COLOURS: Record<DemoRole, string> = { support: 'grape', admin: 'blue', member: 'teal' };
+
+const roleLabel = (role: DemoRole) =>
+  ({ support: _('Support'), admin: _('Admin'), member: _('Member') })[role];
+
+/**
+ * Where demo accounts exist (dev, staging, a developer's machine), the way in: any of them,
+ * found by name, email or role, and entered as soon as it is picked, with no password
+ */
+export function DemoSignIn({ accounts }: { accounts: DemoAccount[] }) {
   const [entering, setEntering] = useState(false);
+  const byId = new Map(accounts.map((account) => [String(account.id), account]));
 
   return (
-    <Form
-      onSubmit={() =>
+    <Select
+      label={_('Enter as a demo account')}
+      placeholder={_('Choose an account: no password needed')}
+      size="md"
+      data={accounts.map(({ id, name }) => ({ value: String(id), label: name }))}
+      searchable
+      disabled={entering}
+      rightSection={entering ? <Loader size="xs" /> : undefined}
+      withCheckIcon={false}
+      maxDropdownHeight={320}
+      nothingFoundMessage={_('No account matches')}
+      // By name, email or what they are ("admin"), whatever the accents
+      filter={({ options, search }) => {
+        const words = plain(search);
+        return (options as { value: string; label: string }[]).filter((option) => {
+          const account = byId.get(option.value)!;
+          return plain(
+            [account.name, account.email, ...account.roles.map(roleLabel)].join(' '),
+          ).includes(words);
+        });
+      }}
+      renderOption={({ option }) => {
+        const account = byId.get(option.value)!;
+        return (
+          <Group gap="xs" wrap="nowrap" w="100%" title={account.email}>
+            <Text size="sm" className="ds-truncate" style={{ flex: 1, minWidth: 0 }}>
+              {account.name}
+            </Text>
+            {account.roles.map((role) => (
+              <Badge key={role} size="sm" variant="light" color={ROLE_COLOURS[role]}>
+                {roleLabel(role)}
+              </Badge>
+            ))}
+          </Group>
+        );
+      }}
+      onChange={(user) => {
+        if (!user) return;
         router.post(
           route('login.demo'),
           { user },
-          {
-            onStart: () => setEntering(true),
-            onFinish: () => setEntering(false),
-          },
-        )
-      }
-    >
-      <Select
-        label={_('Demo account')}
-        data={accounts.map(({ id, name, email }) => ({
-          value: String(id),
-          label: `${name} (${email})`,
-        }))}
-        value={user}
-        onChange={setUser}
-        searchable
-        withCheckIcon={false}
-        nothingFoundMessage={_('No account matches')}
-      />
-      <Button
-        type="submit"
-        variant="default"
-        fullWidth
-        size="md"
-        disabled={!user}
-        loading={entering}
-      >
-        {_('Enter without a password')}
-      </Button>
-    </Form>
+          { onStart: () => setEntering(true), onFinish: () => setEntering(false) },
+        );
+      }}
+    />
   );
 }
+
+/** Whatever the capitals and accents */
+const plain = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
