@@ -8,12 +8,13 @@ use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * A deployment is used only once it has an owner, its first superadmin. With no account at
- * all, OWNER_EMAIL / OWNER_PASSWORD create the owner; without them the site stays closed,
+ * all, APP_OWNER (name:email:password hash) creates the owner; without them the site stays closed,
  * showing only that it is under construction (its public documents stay readable: the
  * privacy page, the manual, the app's manifest). Once anyone exists, this costs nothing:
  * the answer is kept.
@@ -56,9 +57,11 @@ class RequireOwner
 
         try {
             (new User())->forceFill([
-                'email'             => strtolower($email),
-                'password'          => $password,
-                'firstname'         => config('app.owner.name') ?: 'Owner',
+                'email'    => strtolower($email),
+                'password' => $password,
+                // "Diego Barreiro": the first word is the first name, the rest the last name
+                'firstname'         => Str::before(config('app.owner.name') ?: 'Owner', ' '),
+                'lastname'          => Str::contains((string) config('app.owner.name'), ' ') ? Str::after(config('app.owner.name'), ' ') : null,
                 'email_verified_at' => now(),
                 'is_superadmin'     => true,
                 'is_owner'          => true,

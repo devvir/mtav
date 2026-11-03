@@ -28,8 +28,8 @@ Dialogs that add something open from the address too (`?new=1`; `lib/addressedDi
 ## People and roles
 
 - A **user** is one person's account. `is_superadmin` marks the platform's superadmins;
-  `is_owner` the deployment's owner, its first superadmin (from `OWNER_EMAIL` and
-  `OWNER_PASSWORD` while there is no account at all; until then the site shows only that
+  `is_owner` the deployment's owner, its first superadmin (from `APP_OWNER`, name, email
+  and password hash, while there is no account at all; until then the site shows only that
   it is under construction, but for its public documents).
 - A **membership** is a user's part in one project: as an admin, in a family, or both.
 - A **family** is who the lottery gives a unit to: it ranks the units of its type.

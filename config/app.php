@@ -35,14 +35,15 @@ return [
     'demo_password' => env('DEMO_PASSWORD'),
 
     /*
-    | The deployment's owner, its first superadmin: created from these while there is no
-    | account at all (without them, the site shows only that it is under construction)
+    | The deployment's owner, its first superadmin: created from APP_OWNER (name:email:password
+    | hash) while there is no account at all; without it, the site shows only that it is under
+    | construction. The hash is never the password itself: php artisan tinker, Hash::make().
     */
-    'owner' => [
-        'email'    => env('OWNER_EMAIL'),
-        'password' => env('OWNER_PASSWORD'),
-        'name'     => env('OWNER_NAME'),
-    ],
+    'owner' => (static function (): array {
+        [$name, $email, $password] = array_pad(explode(':', (string) env('APP_OWNER'), 3), 3, '');
+
+        return ['name' => trim($name) ?: null, 'email' => trim($email) ?: null, 'password' => $password ?: null];
+    })(),
 
     /*
     |--------------------------------------------------------------------------

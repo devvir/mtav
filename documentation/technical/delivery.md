@@ -140,7 +140,8 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    on demo data (dev, and staging) needs `MTAV_FRESH_ALLOWED=true` and `DEMO_PASSWORD`,
    the demo accounts' password (`superadmin@example.com`, `admin@example.com`,
    `member@example.com`, …). An environment without demo data needs its owner, its first
-   superadmin: `OWNER_EMAIL` and `OWNER_PASSWORD` (and `OWNER_NAME`), taken while it has
+   superadmin: `APP_OWNER`, as `'name:email:password hash'` (single quotes: a hash holds `$`; the
+   password itself is never written down), taken while it has
    no account at all; until
    then the site shows only that it is under construction. Where demo data is seeded,
    its first account is the owner. Signing in with

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\RequireOwner;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Database\Seeders\DatabaseSeeder;
 
 /**
@@ -41,6 +42,23 @@ it('creates its owner from the settings on the first visit, a superadmin who sig
         ->is_owner->toBeTrue()->is_superadmin->toBeTrue()
         ->and($owner->hasVerifiedEmail())->toBeTrue();
     $this->assertAuthenticatedAs($owner);
+});
+
+it('reads the owner from one setting, name, email and password hash, and signs them in by that password', function () {
+    $hash = Hash::make('the-Owner-pass-1');
+    $before = getenv('APP_OWNER');
+    putenv("APP_OWNER=Diego Barreiro:Diego@Example.org:{$hash}");
+    $owner = (require base_path('config/app.php'))['owner'];
+    putenv($before === false ? 'APP_OWNER' : "APP_OWNER={$before}");
+
+    expect($owner)->toBe(['name' => 'Diego Barreiro', 'email' => 'Diego@Example.org', 'password' => $hash]);
+
+    config(['app.owner' => $owner]);
+    $this->get(route('home'))->assertOk();
+    $this->post(route('login'), ['email' => 'diego@example.org', 'password' => 'the-Owner-pass-1']);
+
+    expect(User::sole())->firstname->toBe('Diego')->lastname->toBe('Barreiro')->password->toBe($hash);
+    $this->assertAuthenticatedAs(User::sole());
 });
 
 it('ignores the settings once anyone has an account', function () {
