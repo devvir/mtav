@@ -5,6 +5,7 @@ use App\Jobs\AnswerInChat;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Report;
+use App\Notifications\NewReportNotice;
 use App\Services\Assistant\Assistant;
 use App\Services\Assistant\Brain;
 use App\Services\Assistant\Brains\CliBrain;
@@ -12,6 +13,7 @@ use App\Services\ChatService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 
@@ -310,6 +312,9 @@ describe('Writing to an admin, and reporting', function () {
     });
 
     it('drafts a report the person sends with a tap, once, in the words that were shown', function () use ($answering) {
+        Notification::fake();
+        $owner = aSuperadmin();
+        $owner->forceFill(['is_owner' => true])->save();
         $answering([['type' => 'report', 'label' => 'Send it', 'place' => '', 'message' => 'The plan does not load on my phone']]);
         $answer = askAssistant($this->member, $this->project);
         $send = fn (array $data = ['action' => 0]) => $this->as($this->member, $this->project)
@@ -320,6 +325,11 @@ describe('Writing to an admin, and reporting', function () {
 
         expect(Report::sole())->toMatchArray(['user_id' => $this->member->id, 'project_id' => $this->project->id, 'body' => 'The plan does not load on my phone'])
             ->and($answer->fresh()->extras['actions'][0]['sent'])->toBeTrue();
+        // The owner hears of it once, by email, and replying reaches who wrote it
+        Notification::assertSentToTimes($owner, NewReportNotice::class, 1);
+        $mail = (new NewReportNotice(Report::sole()))->toMail($owner);
+        expect($mail->replyTo[0][0])->toBe($this->member->email)
+            ->and($mail->introLines)->toContain('The plan does not load on my phone');
     });
 
     it('takes a few reports a day from each person, and offers none past them', function () use ($answering) {

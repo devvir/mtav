@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\Project;
 use App\Models\Report;
 use App\Models\User;
+use App\Notifications\NewReportNotice;
 use App\Services\Assistant\Places;
 use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
@@ -176,7 +177,9 @@ class ChatController extends Controller
                 return response()->json(['message' => __('chat.report_limit')], 429);
             }
 
-            Report::create(['user_id' => $request->user()->id, 'project_id' => $project->id, 'body' => $action['message']]);
+            $report = Report::create(['user_id' => $request->user()->id, 'project_id' => $project->id, 'body' => $action['message']]);
+            // The owner hears of it by email, and can answer by replying
+            DB::afterCommit(fn () => User::where('is_owner', true)->first()?->notify(new NewReportNotice($report)));
             $extras = $message->extras;
             $extras['actions'][$index]['sent'] = true;
             $message->forceFill(['extras' => $extras])->save();
