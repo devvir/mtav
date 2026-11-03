@@ -14,7 +14,7 @@ On GitHub Actions:
 | | `staging`, once all of that passes | the image published, and staging deployed |
 | | `main`, once all of that passes | the image published (and tagged `main`) |
 | `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev, from fresh demo data |
-| `production.yml` | by hand, from `main` | the release staging runs (or a commit on `main`), deployed to production |
+| `production.yml` | by hand, from `main` | the release staging runs (or a commit on `main`), deployed to production or to sorteo (the Open Lottery variant) |
 | `rollback.yml` | by hand | an environment back on the release before |
 | `fresh.yml` | by hand | dev or staging started over with the demo data, on the release it runs |
 | `watch.yml` | every morning | every site answers, and every certificate has three weeks left |

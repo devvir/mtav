@@ -1,11 +1,17 @@
-# Production is deployed by hand, from main only: "Run workflow" on main. It deploys the
-# release staging runs (already tried there), or a commit named, which must be on main.
+# The released environments are deployed by hand, from main only: "Run workflow" on main.
+# Production, or sorteo (the Open Lottery variant), each gets the release staging runs
+# (already tried there), or a commit named, which must be on main.
 name: production
-run-name: Deploy production${{ inputs.commit && format(' at {0}', inputs.commit) || '' }}
+run-name: Deploy ${{ inputs.environment || 'production' }}${{ inputs.commit && format(' at {0}', inputs.commit) || '' }}
 
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: Environment to deploy
+        type: choice
+        options: [production, sorteo]
+        default: production
       commit:
         description: Commit to deploy (empty for the one staging runs)
         required: false
@@ -17,14 +23,14 @@ permissions:
 jobs:
   production:
     if: github.ref == 'refs/heads/main'
-    name: Deploy to production
+    name: Deploy to ${{ inputs.environment || 'production' }}
     runs-on: ubuntu-24.04
     environment:
-      name: production
+      name: ${{ inputs.environment || 'production' }}
       # After the # the release that went live, for the console: the run itself is on main
-      url: https://www.mtav.uy/#${{ steps.release.outputs.commit }}
+      url: ${{ inputs.environment == 'sorteo' && 'https://sorteo.mtav.uy' || 'https://www.mtav.uy' }}/#${{ steps.release.outputs.commit }}
     concurrency:
-      group: deploy-production
+      group: deploy-${{ inputs.environment || 'production' }}
       cancel-in-progress: false
     env:
       SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -46,4 +52,4 @@ jobs:
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
       - name: Deploy
-        run: deploy/ci/deploy deploy production "${{ steps.release.outputs.commit }}"
+        run: deploy/ci/deploy deploy "${{ inputs.environment || 'production' }}" "${{ steps.release.outputs.commit }}"

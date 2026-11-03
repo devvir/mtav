@@ -9,7 +9,7 @@ on:
       environment:
         description: Environment to put back
         type: choice
-        options: [staging, dev, production]
+        options: [staging, dev, production, sorteo]
 
 permissions:
   contents: read
