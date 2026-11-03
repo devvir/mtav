@@ -29,10 +29,27 @@ export const frame = (plan: Plan) => {
 };
 
 /**
+ * A square around one unit, which takes about half of it: what lies near it shows, and past
+ * the canvas's edge the plain ground, like anywhere outside the boundary. Null when the unit
+ * is not on the plan.
+ */
+export const around = (plan: Plan, unitId: number) => {
+  const item = plan.items.find((one) => one.unit?.id === unitId && one.placed !== false);
+  if (!item) return null;
+  const box = bounds(item.polygon);
+  const side = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1) * 2;
+  const x = (box.minX + box.maxX) / 2 - side / 2;
+  const y = (box.minY + box.maxY) / 2 - side / 2;
+
+  return { viewBox: `${x} ${y} ${side} ${side}`, floor: item.floor };
+};
+
+/**
  * The project plan, read-only: the boundary and every shape, units labelled. Units of the
  * viewer's type stand out; the viewer's own unit most. Given a ranking, each of its units
  * shows its place in it. It zooms and moves as a map does. `focused` lights a unit up (the
- * one a ranking is moving); `onUnitPress` hears a press on a unit `pressable` allows.
+ * one a ranking is moving); `onUnitPress` hears a press on a unit `pressable` allows. Given
+ * `around`, it shows only that unit's surroundings, still: no zoom, no moving.
  */
 export function PlanView({
   plan,
@@ -43,6 +60,7 @@ export function PlanView({
   focused,
   pressable,
   onUnitPress,
+  around: aroundUnit,
 }: {
   plan: Plan;
   floor?: number;
@@ -53,11 +71,17 @@ export function PlanView({
   focused?: number | null;
   pressable?: (unitId: number) => boolean;
   onUnitPress?: (unitId: number, event: ReactPointerEvent) => void;
+  /** A unit to show the surroundings of, still */
+  around?: number;
 }) {
   const id = `plan${useId().replace(/:/g, '')}`;
   const frameRef = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
-  const zoom = usePanZoom(svg, frame(plan));
+  const unmoved = useRef<SVGSVGElement>(null);
+  const still = aroundUnit === undefined ? null : around(plan, aroundUnit);
+  // Still, the zoom listens to nothing: the frame is the unit's
+  const zoom = usePanZoom(still ? unmoved : svg, frame(plan));
+  floor = still?.floor ?? floor;
   // A unit waiting to be placed is not on the plan yet
   const placed = plan.items.filter((item) => item.placed !== false);
   const onFloor = layered(placed.filter((item) => item.floor === floor));
@@ -75,10 +99,13 @@ export function PlanView({
   };
 
   return (
-    <div className="plan-frame plan-view" ref={frameRef}>
+    <div
+      className={still ? 'plan-frame plan-view plan-around' : 'plan-frame plan-view'}
+      ref={frameRef}
+    >
       <svg
         ref={svg}
-        viewBox={zoom.viewBox}
+        viewBox={still?.viewBox ?? zoom.viewBox}
         className="plan-canvas ds-surface"
         data-zoomed={zoom.zoomed || undefined}
         role="img"
@@ -159,7 +186,7 @@ export function PlanView({
           );
         })}
       </svg>
-      <ZoomControls zoom={zoom} />
+      {still ? null : <ZoomControls zoom={zoom} />}
       <PlanHint host={frameRef} />
     </div>
   );

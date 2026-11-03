@@ -161,7 +161,9 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editP
       ) : null}
 
       <Modal opened={Boolean(shown)} onClose={details.close} title={shown?.identifier}>
-        {shown ? <UnitDetails unit={shown} unitTypes={canManage ? unitTypes : null} /> : null}
+        {shown ? (
+          <UnitDetails unit={shown} unitTypes={canManage ? unitTypes : null} plan={plan} />
+        ) : null}
       </Modal>
     </>
   );

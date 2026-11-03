@@ -1,21 +1,25 @@
+import { around, PlanView } from '@/components/domain/PlanView';
 import { UnitForm } from '@/components/forms/UnitForm';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import type { Unit, UnitType } from '@/types/models';
+import type { Plan, Unit, UnitType } from '@/types/models';
 import { Link, router } from '@inertiajs/react';
 import { Anchor, Button, Divider, Group, Text, Tooltip } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 
-/** A unit: its type and who received it; admins edit or remove it */
+/** A unit: where it is, its type and who received it; admins edit or remove it */
 export function UnitDetails({
   unit,
   unitTypes,
+  plan,
 }: {
   unit: Unit;
   /** For admins, who edit units here */
   unitTypes: UnitType[] | null;
+  /** The project's plan: the unit shows among its neighbours, when it is on it */
+  plan?: Plan;
 }) {
   const [editing, setEditing] = useState(false);
   const remove = async () => {
@@ -35,6 +39,11 @@ export function UnitDetails({
 
   return (
     <>
+      {plan && around(plan, unit.id) ? (
+        <div className="unit-place">
+          <PlanView plan={plan} around={unit.id} focused={unit.id} />
+        </div>
+      ) : null}
       {unit.type ? (
         <Text c="dimmed" mb="sm">
           {unit.type.name}
