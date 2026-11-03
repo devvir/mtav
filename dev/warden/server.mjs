@@ -16,7 +16,9 @@ const PORT = Number(process.env.MTAV_WARDEN_PORT ?? 9190);
 const IDLE_AFTER_MS = 60_000;
 
 const watched = sources(path.resolve(HERE, '../..'));
-const readings = Object.fromEntries(Object.keys(watched).map((name) => [name, { at: null, data: null, error: null, reading: false }]));
+const readings = Object.fromEntries(
+  Object.keys(watched).map((name) => [name, { at: null, data: null, error: null, reading: false }]),
+);
 let lastLook = 0;
 
 async function refresh(name) {
@@ -36,13 +38,17 @@ async function refresh(name) {
 setInterval(() => {
   if (Date.now() - lastLook > IDLE_AFTER_MS) return;
   for (const [name, source] of Object.entries(watched)) {
-    if (!readings[name].at || Date.now() - readings[name].at >= source.every * 1000) void refresh(name);
+    if (!readings[name].at || Date.now() - readings[name].at >= source.every * 1000)
+      void refresh(name);
   }
 }, 1000);
 
 const server = createServer(async (request, response) => {
   // For this machine alone, whatever asks: nothing here is for another page or address
-  if (request.headers.host?.split(':')[0] !== 'localhost' && request.headers.host?.split(':')[0] !== '127.0.0.1') {
+  if (
+    request.headers.host?.split(':')[0] !== 'localhost' &&
+    request.headers.host?.split(':')[0] !== '127.0.0.1'
+  ) {
     response.writeHead(403).end();
     return;
   }
@@ -56,7 +62,10 @@ const server = createServer(async (request, response) => {
 
   if (request.url === '/' || request.url === '') {
     lastLook = Date.now();
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
     response.end(await readFile(path.join(HERE, 'page.html')));
     return;
   }

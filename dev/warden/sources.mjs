@@ -89,6 +89,42 @@ export function usageOf(stats) {
   );
 }
 
+/** MTAV_SERVERS: user@host, comma separated */
+export const serversOf = (setting) =>
+  String(setting ?? '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
+
+/** One server's releases and figures, over ssh */
+async function readServer(host) {
+  const text = await run(
+    'ssh',
+    [
+      '-o',
+      'BatchMode=yes',
+      '-o',
+      'ConnectTimeout=8',
+      host,
+      "docker ps --format '{{.Names}} {{.Image}}'; for f in /mtav/*/live; do echo \"live $(basename $(dirname $f)) $(cut -d' ' -f1 $f)\"; done; echo ---; nproc; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
+    ],
+    { timeout: 25_000 },
+  );
+  const [containers, stats = ''] = text.split('---\n');
+  const [cores, load, memory, disk] = stats.trim().split('\n');
+  const [, memoryTotal, , , , , memoryFree] = (memory ?? '').trim().split(/\s+/);
+  const [diskTotal, diskFree] = (disk ?? '').trim().split(/\s+/);
+  return {
+    releases: releasesOf(containers),
+    figures: {
+      cores: Number(cores) || 1,
+      load: (load ?? '').split(' ').map(Number),
+      memory: { total: Number(memoryTotal), free: Number(memoryFree) },
+      disk: { total: Number(diskTotal), free: Number(diskFree) },
+    },
+  };
+}
+
 export const sources = (repo) => ({
   host: {
     every: 5,
@@ -212,30 +248,23 @@ export const sources = (repo) => ({
   server: {
     every: 60,
     read: async () => {
-      const server = process.env.MTAV_SERVER;
-      if (!server) return { notSetUp: true };
+      const hosts = serversOf(process.env.MTAV_SERVERS);
+      if (!hosts.length) return { notSetUp: true };
 
-      const text = await run(
-        'ssh',
-        [
-          '-o',
-          'BatchMode=yes',
-          '-o',
-          'ConnectTimeout=8',
-          server,
-          "docker ps --format '{{.Names}} {{.Image}}'; for f in /mtav/*/live; do echo \"live $(basename $(dirname $f)) $(cut -d' ' -f1 $f)\"; done; echo ---; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
-        ],
-        { timeout: 25_000 },
-      );
-      const [containers, stats = ''] = text.split('---\n');
-      const [load, memory, disk] = stats.trim().split('\n');
-      const [, memoryTotal, , , , , memoryFree] = (memory ?? '').trim().split(/\s+/);
-      const [diskTotal, diskFree] = (disk ?? '').trim().split(/\s+/);
+      // Each on its own: one that does not answer says so, the others still do
+      const answers = await Promise.allSettled(hosts.map(readServer));
       return {
-        releases: releasesOf(containers),
-        load: (load ?? '').split(' ').map(Number),
-        memory: { total: Number(memoryTotal), free: Number(memoryFree) },
-        disk: { total: Number(diskTotal), free: Number(diskFree) },
+        servers: answers.map((answer, index) =>
+          answer.status === 'fulfilled'
+            ? { host: hosts[index], ...answer.value.figures }
+            : { host: hosts[index], error: answer.reason.message },
+        ),
+        releases: Object.assign(
+          {},
+          ...answers
+            .filter((answer) => answer.status === 'fulfilled')
+            .map((answer) => answer.value.releases),
+        ),
       };
     },
   },

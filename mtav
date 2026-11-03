@@ -684,7 +684,8 @@ case $COMMAND in
     warden)
         # This machine's Node (a shell function under nvm, unknown to this script), or any
         node_bin=$(command -v node 2>/dev/null || ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | tail -1)
-        exec "$node_bin" "$(dirname "$0")/dev/warden/server.mjs"
+        # The repository's .env may name the servers to watch (MTAV_SERVERS)
+        exec "$node_bin" --env-file-if-exists="$(dirname "$0")/.env" "$(dirname "$0")/dev/warden/server.mjs"
         ;;
     compose)
         env="${1:-}"

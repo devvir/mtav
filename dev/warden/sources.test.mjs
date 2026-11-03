@@ -1,7 +1,7 @@
 /* global process */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { jsonLines, releasesOf, sources, stacksOf, usageOf } from './sources.mjs';
+import { jsonLines, releasesOf, serversOf, sources, stacksOf, usageOf } from './sources.mjs';
 
 test('reads one object a line', () => {
   assert.deepEqual(jsonLines('{"a":1}\n\n{"a":2}\n'), [{ a: 1 }, { a: 2 }]);
@@ -59,13 +59,13 @@ live production blue
   assert.equal(releases.production[0].commit, '497ce33e');
 });
 
-test('says the server is not set up without MTAV_SERVER, instead of failing', async () => {
-  const before = process.env.MTAV_SERVER;
-  delete process.env.MTAV_SERVER;
+test('says the server is not set up without MTAV_SERVERS, instead of failing', async () => {
+  const before = process.env.MTAV_SERVERS;
+  delete process.env.MTAV_SERVERS;
   try {
     assert.deepEqual(await sources('.').server.read(), { notSetUp: true });
   } finally {
-    if (before !== undefined) process.env.MTAV_SERVER = before;
+    if (before !== undefined) process.env.MTAV_SERVERS = before;
   }
 });
 
@@ -76,4 +76,9 @@ test("reads each container's CPU and memory", () => {
       'mtav-dev-php-1': { cpu: 12.5, memory: '148.4MiB' },
     },
   );
+});
+
+test('reads the servers to watch, comma separated', () => {
+  assert.deepEqual(serversOf(' x@one, y@two ,,'), ['x@one', 'y@two']);
+  assert.deepEqual(serversOf(undefined), []);
 });

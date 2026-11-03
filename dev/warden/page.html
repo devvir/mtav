@@ -634,7 +634,9 @@
         const answering = sites.filter((site) => site.status === 200).length;
         const host = r.host?.data;
         const server = r.server?.data;
-        const serverCores = 4;
+        const busiest = (server?.servers ?? [])
+          .filter((one) => one.load)
+          .sort((a, b) => b.load[0] / b.cores - a.load[0] / a.cores)[0];
 
         const tiles = [
           tile(
@@ -660,14 +662,14 @@
                 toneOf(host.load[0] / host.cores),
               )
             : tile('This machine', '—'),
-          server?.load
+          busiest
             ? tile(
-                'The server',
-                `${Math.round((server.load[0] / serverCores) * 100)}%`,
-                `load ${server.load[0]} on ${serverCores} cores`,
-                toneOf(server.load[0] / serverCores),
+                server.servers.length > 1 ? 'The busiest server' : 'The server',
+                `${Math.round((busiest.load[0] / busiest.cores) * 100)}%`,
+                `load ${busiest.load[0]} on ${busiest.cores} cores`,
+                toneOf(busiest.load[0] / busiest.cores),
               )
-            : tile('The server', '—', server?.notSetUp ? 'MTAV_SERVER is not set' : ''),
+            : tile('The server', '—', server?.notSetUp ? 'MTAV_SERVERS is not set' : ''),
         ].join('');
 
         document.getElementById('page').innerHTML =
@@ -679,17 +681,23 @@
             () =>
               environments(sites, server?.notSetUp ? null : server) +
               (server?.notSetUp
-                ? '<div class="empty">What each runs needs MTAV_SERVER, the server to read over ssh.</div>'
+                ? '<div class="empty">What each runs needs MTAV_SERVERS, the servers to read over ssh.</div>'
                 : ''),
           ) +
           card('Claude accounts', 'as their own readings say', r.claude, accounts) +
           `<div class="flow">` +
           card('This machine', '', r.host, (d) => machine(d, d.cores)) +
-          card('The server', '', r.server, (d) =>
-            d.notSetUp
-              ? '<div class="empty">MTAV_SERVER is not set</div>'
-              : machine(d, serverCores),
-          ) +
+          (server?.servers ?? [null])
+            .map((one) =>
+              card(one?.host ?? 'The server', one ? 'a server' : '', r.server, () =>
+                !one
+                  ? '<div class="empty">MTAV_SERVERS is not set: user@host, comma separated</div>'
+                  : one.error
+                    ? `<div class="error">${esc(one.error)}</div>`
+                    : machine(one, one.cores),
+              ),
+            )
+            .join('') +
           card('Pipelines', 'the latest run of each', r.pipelines, pipelines) +
           card('Branches', '', r.repository, repository) +
           card('Local stacks', '', r.stacks, stacks) +
