@@ -6,26 +6,35 @@
     <title>MTAV warden</title>
     <style>
       :root {
-        color-scheme: light dark;
-        --bg: #f6f5f3;
-        --card: #fff;
-        --text: #1c1917;
-        --muted: #6b6560;
-        --line: #e7e3df;
-        --good: #1f7a44;
-        --bad: #c0392b;
-        --warn: #b7791f;
+        color-scheme: dark;
+        --bg: #0c0d12;
+        --card: #15171e;
+        --card-2: #1b1e27;
+        --line: #262a35;
+        --text: #e8e9ee;
+        --muted: #8b90a0;
+        --faint: #5f6475;
+        --accent: #e8743b;
+        --good: #34c27a;
+        --warn: #e5b53d;
+        --bad: #f0605a;
+        --info: #4f8ef7;
+        --radius: 14px;
       }
-      @media (prefers-color-scheme: dark) {
+      @media (prefers-color-scheme: light) {
         :root {
-          --bg: #121110;
-          --card: #1c1b19;
-          --text: #ece9e4;
-          --muted: #9b958e;
-          --line: #2e2c29;
-          --good: #57c283;
-          --bad: #ef7d6e;
-          --warn: #e0b050;
+          color-scheme: light;
+          --bg: #f4f4f7;
+          --card: #ffffff;
+          --card-2: #f7f7fa;
+          --line: #e3e4ea;
+          --text: #181a22;
+          --muted: #616678;
+          --faint: #9196a6;
+          --good: #17914f;
+          --warn: #b7841a;
+          --bad: #d43c36;
+          --info: #2f6fdb;
         }
       }
       * {
@@ -33,67 +42,310 @@
       }
       body {
         margin: 0;
-        padding: 20px;
-        font: 14px/1.45 system-ui, sans-serif;
+        font:
+          14px/1.45 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
         color: var(--text);
         background: var(--bg);
       }
-      h1 {
-        margin: 0 0 16px;
-        font-size: 20px;
+      a {
+        color: inherit;
+        text-decoration: none;
       }
-      main {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 14px;
-        align-items: start;
+      a:hover {
+        color: var(--accent);
       }
-      section {
-        padding: 14px 16px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: var(--card);
+      .num,
+      td.num,
+      code {
+        font-variant-numeric: tabular-nums;
       }
-      h2 {
-        display: flex;
-        justify-content: space-between;
-        margin: 0 0 10px;
-        font-size: 13px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+      code {
+        font:
+          12.5px ui-monospace,
+          'SF Mono',
+          Menlo,
+          monospace;
         color: var(--muted);
       }
-      h2 small {
-        font-weight: 400;
-        letter-spacing: 0;
-        text-transform: none;
-      }
-      .row {
+
+      /* The bar along the top */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
         display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 3px 0;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(8px);
       }
-      .row > :last-child {
-        text-align: right;
+      header {
+        flex-wrap: wrap;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        color: #fff;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f08a4b, #c4502a);
+      }
+      .brand span {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-left: auto;
+      }
+      nav a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 11px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        color: var(--muted);
+        background: var(--card);
+      }
+      nav a:hover {
+        color: var(--text);
+        border-color: var(--faint);
+      }
+      .updated {
+        color: var(--faint);
+        font-size: 12px;
+      }
+
+      main {
+        display: grid;
+        gap: 16px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px 24px 40px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+        align-items: start;
+      }
+      .tiles {
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      }
+      .two {
+        grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      }
+      @media (max-width: 560px) {
+        header,
+        main {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .two {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Summary figures */
+      .tile {
+        position: relative;
+        overflow: hidden;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: linear-gradient(160deg, var(--card-2), var(--card));
+      }
+      .tile::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 2px;
+        background: var(--tone, var(--faint));
+        opacity: 0.8;
+      }
+      .tile h3 {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .tile .value {
+        margin-top: 8px;
+        font-size: 28px;
+        font-weight: 700;
         font-variant-numeric: tabular-nums;
+      }
+      .tile .note {
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+
+      /* Cards */
+      section {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+      }
+      section > h2 {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        font-size: 15px;
+      }
+      section > h2 small {
+        color: var(--muted);
+        font-size: 12.5px;
+        font-weight: 400;
+      }
+      section > h2 .ago {
+        margin-left: auto;
+        color: var(--faint);
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .body {
+        padding: 14px 18px;
+      }
+      .empty {
+        padding: 14px 18px;
+        color: var(--muted);
+      }
+      .error {
+        padding: 10px 18px;
+        color: var(--bad);
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        padding: 8px 18px;
+        color: var(--faint);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-align: left;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        white-space: nowrap;
+        padding: 9px 18px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:hover td {
+        background: var(--card-2);
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .clip {
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .group td {
+        padding-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--card-2);
+      }
+
+      /* Small marks */
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: var(--tone, var(--faint));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone, var(--faint)) 22%, transparent);
+        vertical-align: 1px;
+      }
+      .pill {
+        display: inline-block;
+        padding: 1px 9px;
+        border: 1px solid color-mix(in srgb, var(--tone, var(--faint)) 45%, transparent);
+        border-radius: 999px;
+        color: var(--tone, var(--muted));
+        font-size: 12px;
+        font-weight: 600;
+        background: color-mix(in srgb, var(--tone, var(--faint)) 12%, transparent);
+        white-space: nowrap;
+      }
+      .good {
+        --tone: var(--good);
+      }
+      .warn {
+        --tone: var(--warn);
+      }
+      .bad {
+        --tone: var(--bad);
+      }
+      .info {
+        --tone: var(--info);
       }
       .muted {
         color: var(--muted);
       }
-      .good {
-        color: var(--good);
+
+      /* Meters */
+      .meter {
+        margin: 2px 0 12px;
       }
-      .bad {
-        color: var(--bad);
-        font-weight: 600;
+      .meter:last-child {
+        margin-bottom: 0;
       }
-      .warn {
-        color: var(--warn);
+      .meter .label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 5px;
+      }
+      .meter .label span:first-child {
+        color: var(--muted);
+      }
+      .meter .label span:last-child {
+        font-variant-numeric: tabular-nums;
       }
       .bar {
         height: 6px;
-        margin: 2px 0 8px;
         overflow: hidden;
         border-radius: 4px;
         background: var(--line);
@@ -101,81 +353,359 @@
       .bar > i {
         display: block;
         height: 100%;
-        background: var(--good);
+        border-radius: 4px;
+        background: var(--tone, var(--good));
+        transition: width 300ms ease;
       }
-      .bar > i.warn {
-        background: var(--warn);
+
+      /* Claude accounts */
+      .accounts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+        padding: 14px 18px;
       }
-      .bar > i.bad {
-        background: var(--bad);
+      .account {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card-2);
       }
-      h3 {
-        margin: 8px 0 2px;
-        font-size: 13px;
+      .account header {
+        position: static;
+        padding: 0;
+        margin-bottom: 12px;
+        border: 0;
+        background: none;
+        backdrop-filter: none;
+        justify-content: space-between;
       }
-      a {
-        color: inherit;
+      .account h4 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .account .read {
+        margin-top: 10px;
+        color: var(--faint);
+        font-size: 12px;
+      }
+      .figures {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 10px;
+        padding: 14px 18px;
+      }
+      .figure {
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--card-2);
+      }
+      .figure b {
+        display: block;
+        font-size: 20px;
+        font-variant-numeric: tabular-nums;
+      }
+      .figure span {
+        color: var(--muted);
+        font-size: 12px;
       }
     </style>
   </head>
   <body>
-    <h1>MTAV warden</h1>
-    <main id="cards"></main>
+    <header>
+      <div class="brand">
+        <div class="logo">M</div>
+        MTAV <span>/ warden</span>
+      </div>
+      <nav>
+        <a href="http://localhost:8000" target="_blank" rel="noreferrer">App</a>
+        <a href="http://localhost:8000/admin/lab" target="_blank" rel="noreferrer">UI Lab</a>
+        <a href="http://localhost:8025" target="_blank" rel="noreferrer">Mail</a>
+        <a href="https://github.com/devvir/mtav/actions" target="_blank" rel="noreferrer"
+          >Actions</a
+        >
+        <a href="https://github.com/devvir/mtav" target="_blank" rel="noreferrer">Repository</a>
+      </nav>
+      <span class="updated" id="updated"></span>
+    </header>
+    <main id="page"></main>
     <script>
-      const esc = (value) => String(value ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      const esc = (value) =>
+        String(value ?? '').replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
       const gb = (bytes) => (bytes / 1024 ** 3).toFixed(1) + ' GB';
-      const row = (label, value, tone = '') => `<div class="row"><span class="muted">${esc(label)}</span><span class="${tone}">${value}</span></div>`;
-      const meter = (label, share, text) => {
-        const percent = Math.round(share * 100);
-        const tone = percent > 90 ? 'bad' : percent > 75 ? 'warn' : '';
-        return `${row(label, esc(text ?? percent + '%'))}<div class="bar"><i class="${tone}" style="width:${Math.min(percent, 100)}%"></i></div>`;
-      };
       const used = (part) => 1 - part.free / part.total;
-      const ago = (at) => (at ? Math.round((Date.now() - at) / 1000) + 's ago' : 'reading…');
-      const when = (at) => new Date(at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
-
-      const views = {
-        host: ['This machine', (d) =>
-          meter('CPU', d.load[0] / d.cores, `load ${d.load.join(' / ')} on ${d.cores} cores`) +
-          meter('Memory', used(d.memory), `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`) +
-          meter('Disk', used(d.disk), `${gb(d.disk.free)} free`)],
-        stacks: ['Local stacks', (d) =>
-          Object.entries(d).map(([stack, containers]) =>
-            `<h3>${esc(stack)}</h3>` + containers.map((c) => row(c.name.replace(stack + '-', ''), esc(c.status), c.healthy ? 'good' : c.state === 'running' ? 'warn' : 'muted')).join('')).join('') || '<span class="muted">Nothing running</span>'],
-        sites: ['Sites', (d) =>
-          d.map((s) => row(s.name, s.status ? `${s.status} · ${s.ms} ms` : esc(s.error), s.status === 200 ? 'good' : s.name === 'production' && s.status === 503 ? 'muted' : 'bad')).join('')],
-        server: ['The server', (d) =>
-          d.notSetUp ? row('Not set up', 'MTAV_SERVER is not set') :
-          Object.entries(d.releases).map(([env, slots]) => row(env, slots.map((s) => `${esc(s.slot)} ${esc(s.commit)}`).join(', '))).join('') +
-          meter('Load', d.load[0] / 4, d.load.join(' / ')) +
-          meter('Memory', used(d.memory), `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`) +
-          meter('Disk', used(d.disk), `${gb(d.disk.free)} free`)],
-        pipelines: ['Pipelines', (d) =>
-          d.map((r) => row(`${r.workflow} · ${r.branch} · ${r.commit}`, `<a href="${esc(r.url)}" target="_blank" rel="noreferrer">${esc(r.conclusion || r.status)}</a> · ${when(r.at)}`, r.conclusion === 'success' ? 'good' : r.conclusion ? 'bad' : 'warn')).join('')],
-        repository: ['Repository', (d) =>
-          row('Here', `${esc(d.branch)}, ${d.changed} changed`) + `<div class="muted">${esc(d.commit)}</div>` +
-          d.remote.filter((r) => r.name !== 'origin').map((r) => row(r.name, `${esc(r.commit)} · ${esc(r.when)}`)).join('')],
-        claude: ['Claude accounts', (d) =>
-          d.map((a) => {
-            const five = a.reading?.five_hour?.percent;
-            const week = a.reading?.weekly?.percent;
-            return `<h3>${esc(a.account)}</h3>` + (five != null ? meter('5 hours', five / 100) : '') + (week != null ? meter('Week', week / 100) : '') + (five == null && week == null ? '<span class="muted">No reading</span>' : '');
-          }).join('')],
-        app: ['The app, locally', (d) =>
-          Object.entries(d).map(([name, count]) => row(name.replace('_', ' '), count ?? '—', name === 'failed_jobs' && count ? 'bad' : '')).join('')],
+      const toneOf = (share) => (share > 0.9 ? 'bad' : share > 0.75 ? 'warn' : 'good');
+      const since = (ms) => {
+        const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+        if (s < 60) return `${s}s ago`;
+        if (s < 3600) return `${Math.round(s / 60)} min ago`;
+        if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+        return `${Math.round(s / 86400)} d ago`;
       };
+      const until = (iso) => {
+        const m = Math.round((new Date(iso) - Date.now()) / 60000);
+        if (!Number.isFinite(m) || m <= 0) return '';
+        return m < 60
+          ? `${m} min`
+          : m < 1440
+            ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`
+            : `${Math.round(m / 1440)} days`;
+      };
+      const meter = (label, share, text) =>
+        `<div class="meter"><div class="label"><span>${esc(label)}</span><span>${esc(text)}</span></div>` +
+        `<div class="bar"><i class="${toneOf(share)}" style="width:${Math.min(Math.round(share * 100), 100)}%"></i></div></div>`;
+      const pill = (text, tone) => `<span class="pill ${tone}">${esc(text)}</span>`;
+      const dot = (tone) => `<span class="dot ${tone}"></span>`;
+      const tile = (title, value, note, tone) =>
+        `<div class="tile ${tone}"><h3>${esc(title)}</h3><div class="value">${value}</div><div class="note">${note ?? '&nbsp;'}</div></div>`;
+      const card = (title, about, reading, body) =>
+        `<section><h2>${esc(title)}${about ? ` <small>${esc(about)}</small>` : ''}<span class="ago">${reading?.at ? since(reading.at) : 'reading…'}</span></h2>` +
+        (reading?.error ? `<div class="error">${esc(reading.error)}</div>` : '') +
+        (reading?.data
+          ? scrolling(body(reading.data))
+          : reading?.error
+            ? ''
+            : '<div class="empty">Reading…</div>') +
+        '</section>';
+      /** A table wider than its card scrolls inside it, rather than being cut */
+      const scrolling = (html) =>
+        html
+          .replaceAll('<table>', '<div class="scroll"><table>')
+          .replaceAll('</table>', '</table></div>');
+      const resultTone = (run) =>
+        run.conclusion === 'success'
+          ? 'good'
+          : run.conclusion === 'skipped' || run.conclusion === 'cancelled'
+            ? ''
+            : run.conclusion
+              ? 'bad'
+              : 'info';
+
+      const ENVIRONMENTS = ['production', 'sorteo', 'staging', 'dev'];
+
+      /** The environments: the site's answer beside what each slot runs */
+      function environments(sites, server) {
+        const byName = Object.fromEntries((sites ?? []).map((site) => [site.name, site]));
+        const releases = server?.releases ?? {};
+        const rows = ENVIRONMENTS.map((name) => {
+          const site = byName[name];
+          const slots = releases[name] ?? [];
+          const live = slots.find((slot) => slot.live) ?? (slots.length === 1 ? slots[0] : null);
+          const idle = slots.find((slot) => slot !== live);
+          const answer = !site
+            ? '<span class="muted">—</span>'
+            : site.status === 200
+              ? `${dot('good')}<span class="num">${site.ms} ms</span>`
+              : `${dot('bad')}${esc(site.status ?? site.error)}`;
+          return `<tr><td><b>${esc(name)}</b></td>
+            <td>${site ? `<a href="${esc(site.url)}" target="_blank" rel="noreferrer">${esc(site.url.replace('https://', ''))}</a>` : ''}</td>
+            <td>${answer}</td>
+            <td>${live ? `<code>${esc(live.commit)}</code> <span class="muted">${esc(live.slot)}</span>` : '<span class="muted">—</span>'}</td>
+            <td>${idle ? `<code>${esc(idle.commit)}</code> <span class="muted">${esc(idle.slot)}</span>` : '<span class="muted">—</span>'}</td></tr>`;
+        }).join('');
+        return `<table><thead><tr><th>Environment</th><th>Address</th><th>Site</th><th>Live</th><th>Idle beside it</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }
+
+      function accounts(list) {
+        return `<div class="accounts">${list
+          .map((account) => {
+            const five = account.reading?.five_hour;
+            const week = account.reading?.weekly;
+            const resting = account.quiet_until && account.quiet_until * 1000 > Date.now();
+            const state = resting ? pill('resting', 'warn') : '';
+            const line = (label, part) =>
+              part?.percent != null
+                ? meter(
+                    label,
+                    part.percent / 100,
+                    `${part.percent}%${until(part.resets_at) ? ' · resets in ' + until(part.resets_at) : ''}`,
+                  )
+                : '';
+            const body = line('5 hours', five) + line('Week', week);
+            return (
+              `<div class="account"><header><h4>${esc(account.account)}</h4>${state}</header>${body || '<div class="muted">No reading yet</div>'}` +
+              (account.read_at
+                ? `<div class="read">Read ${since(account.read_at * 1000)}</div>`
+                : '') +
+              '</div>'
+            );
+          })
+          .join('')}</div>`;
+      }
+
+      /** The latest run of each workflow on each branch; Dependabot's counted apart */
+      function pipelines(runs) {
+        const seen = new Set();
+        const latest = runs.filter((run) => {
+          const key = `${run.workflow}|${run.branch}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        const ours = latest.filter(
+          (run) => !run.branch.startsWith('dependabot/') && run.workflow !== 'Dependabot Updates',
+        );
+        const theirs = latest.length - ours.length;
+        const rows = ours
+          .slice(0, 12)
+          .map(
+            (
+              run,
+            ) => `<tr><td>${esc(run.workflow)}</td><td class="clip" title="${esc(run.branch)}">${esc(run.branch)}</td>
+              <td><code>${esc(run.commit)}</code></td>
+              <td><a href="${esc(run.url)}" target="_blank" rel="noreferrer">${pill(run.conclusion || run.status.replace('_', ' '), resultTone(run))}</a></td>
+              <td class="num muted">${since(new Date(run.at))}</td></tr>`,
+          )
+          .join('');
+        return (
+          `<table><thead><tr><th>Workflow</th><th style="width:40%">Branch</th><th>Commit</th><th>Result</th><th class="num">Started</th></tr></thead><tbody>${rows}</tbody></table>` +
+          (theirs
+            ? `<div class="empty">And ${theirs} from Dependabot, its proposed updates.</div>`
+            : '')
+        );
+      }
+
+      function stacks(groups) {
+        const names = Object.keys(groups);
+        if (!names.length) return '<div class="empty">Nothing running</div>';
+        return `<table><thead><tr><th>Container</th><th>State</th><th class="num">CPU</th><th class="num">Memory</th></tr></thead><tbody>${names
+          .map(
+            (stack) =>
+              `<tr class="group"><td colspan="4">${esc(stack)}</td></tr>` +
+              groups[stack]
+                .map((c) => {
+                  const tone = c.healthy ? 'good' : c.state === 'running' ? 'warn' : 'bad';
+                  return `<tr><td>${dot(tone)}${esc(c.name.replace(stack + '-', ''))}</td><td class="muted">${esc(c.status)}</td>
+                    <td class="num">${c.cpu != null ? c.cpu.toFixed(1) + '%' : ''}</td><td class="num">${esc(c.memory ?? '')}</td></tr>`;
+                })
+                .join(''),
+          )
+          .join('')}</tbody></table>`;
+      }
+
+      function repository(repo) {
+        const kept = ['main', 'staging', 'dev', 'claude/app-review-2026-11-01'];
+        const branches = repo.remote
+          .filter((branch) => !branch.name.startsWith('dependabot/'))
+          .sort((a, b) => b.at - a.at)
+          .map((branch) => {
+            const mark = kept.includes(branch.name)
+              ? pill('kept', '')
+              : branch.merged
+                ? pill('in main', 'good')
+                : pill('open', 'info');
+            return `<tr><td class="clip" title="${esc(branch.name)}">${esc(branch.name)}</td><td><code>${esc(branch.commit)}</code></td><td>${mark}</td><td class="num muted">${since(branch.at)}</td></tr>`;
+          })
+          .join('');
+        const bots = repo.remote.filter((branch) => branch.name.startsWith('dependabot/')).length;
+        return (
+          `<div class="body"><b>${esc(repo.branch)}</b> <span class="muted">here, ${repo.changed} changed</span><br /><code>${esc(repo.commit)}</code></div>` +
+          `<table><thead><tr><th style="width:50%">Branch</th><th>Commit</th><th></th><th class="num">Last commit</th></tr></thead><tbody>${branches}</tbody></table>` +
+          (bots ? `<div class="empty">And ${bots} Dependabot branches.</div>` : '')
+        );
+      }
+
+      const machine = (d, cores) =>
+        `<div class="body">${meter('Load', d.load[0] / cores, `${d.load.join(' / ')} on ${cores} cores`)}` +
+        meter(
+          'Memory',
+          used(d.memory),
+          `${gb(d.memory.total - d.memory.free)} of ${gb(d.memory.total)}`,
+        ) +
+        meter('Disk', used(d.disk), `${gb(d.disk.free)} free`) +
+        '</div>';
+
+      function render(r) {
+        const local = Object.values(r.stacks?.data ?? {}).flat();
+        const running = local.filter((c) => c.state === 'running').length;
+        const unwell = local.filter((c) => c.state === 'running' && !c.healthy).length;
+        const sites = r.sites?.data ?? [];
+        const answering = sites.filter((site) => site.status === 200).length;
+        const host = r.host?.data;
+        const server = r.server?.data;
+        const serverCores = 4;
+
+        const tiles = [
+          tile(
+            'Sites answering',
+            `${answering} / ${sites.length || '—'}`,
+            sites
+              .filter((s) => s.status !== 200)
+              .map((s) => esc(s.name))
+              .join(', ') || 'every one',
+            answering === sites.length ? 'good' : 'bad',
+          ),
+          tile(
+            'Local containers',
+            `${running} / ${local.length}`,
+            unwell ? `${unwell} unwell` : 'all well',
+            unwell ? 'warn' : 'good',
+          ),
+          host
+            ? tile(
+                'This machine',
+                `${Math.round((host.load[0] / host.cores) * 100)}%`,
+                `load ${host.load[0]} on ${host.cores} cores`,
+                toneOf(host.load[0] / host.cores),
+              )
+            : tile('This machine', '—'),
+          server?.load
+            ? tile(
+                'The server',
+                `${Math.round((server.load[0] / serverCores) * 100)}%`,
+                `load ${server.load[0]} on ${serverCores} cores`,
+                toneOf(server.load[0] / serverCores),
+              )
+            : tile('The server', '—', server?.notSetUp ? 'MTAV_SERVER is not set' : ''),
+        ].join('');
+
+        document.getElementById('page').innerHTML =
+          `<div class="grid tiles">${tiles}</div>` +
+          card(
+            'Environments',
+            'what each site runs, and whether it answers',
+            r.sites,
+            () =>
+              environments(sites, server?.notSetUp ? null : server) +
+              (server?.notSetUp
+                ? '<div class="empty">What each runs needs MTAV_SERVER, the server to read over ssh.</div>'
+                : ''),
+          ) +
+          card('Claude accounts', 'as their own readings say', r.claude, accounts) +
+          `<div class="grid two">` +
+          card('Pipelines', 'the latest run of each', r.pipelines, pipelines) +
+          card('Branches', '', r.repository, repository) +
+          `</div><div class="grid two">` +
+          card('Local stacks', '', r.stacks, stacks) +
+          `<div class="grid">` +
+          card('This machine', '', r.host, (d) => machine(d, d.cores)) +
+          card('The server', '', r.server, (d) =>
+            d.notSetUp
+              ? '<div class="empty">MTAV_SERVER is not set</div>'
+              : machine(d, serverCores),
+          ) +
+          card(
+            'The app, locally',
+            'rows in its database',
+            r.app,
+            (d) =>
+              `<div class="figures">${Object.entries(d)
+                .map(
+                  ([name, count]) =>
+                    `<div class="figure ${name === 'failed_jobs' && count ? 'bad' : ''}"><b>${count ?? '—'}</b><span>${esc(name.replace('_', ' '))}</span></div>`,
+                )
+                .join('')}</div>`,
+          ) +
+          `</div></div>`;
+        document.getElementById('updated').textContent =
+          'updated ' + new Date().toLocaleTimeString([], { timeStyle: 'short' });
+      }
 
       async function look() {
-        const readings = await (await fetch('/api')).json();
-        document.getElementById('cards').innerHTML = Object.entries(views).map(([name, [title, view]]) => {
-          const reading = readings[name];
-          let body = '<span class="muted">Reading…</span>';
-          if (reading.data) {
-            try { body = view(reading.data); } catch (error) { body = `<span class="bad">${esc(error.message)}</span>`; }
-          }
-          if (reading.error) body = `<div class="bad">${esc(reading.error)}</div>` + (reading.data ? body : '');
-          return `<section><h2>${esc(title)} <small>${ago(reading.at)}</small></h2>${body}</section>`;
-        }).join('');
+        render(await (await fetch('/api')).json());
       }
 
       look();

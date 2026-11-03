@@ -8,6 +8,7 @@ const SITES = {
   dev: 'https://dev.mtav.uy',
   staging: 'https://stg.mtav.uy',
   production: 'https://www.mtav.uy',
+  sorteo: 'https://sorteo.mtav.uy',
 };
 const ACCOUNTS_VOLUME = 'claude-accounts';
 
@@ -54,14 +55,38 @@ export function stacksOf(containers) {
   return stacks;
 }
 
-/** What each app slot of the server runs: `name image` lines */
+/**
+ * What each app slot of the server runs (`name image` lines), and which one is live (`live
+ * <environment> <slot>` lines)
+ */
 export function releasesOf(text) {
   const releases = {};
+  const live = {};
+  for (const line of text.split('\n')) {
+    const said = /^live (\w+) (blue|green)/.exec(line.trim());
+    if (said) live[said[1]] = said[2];
+  }
   for (const line of text.split('\n')) {
     const match = /^mtav-(\w+)-(blue|green)-app-1 .*sha-([0-9a-f]{8})/.exec(line.trim());
-    if (match) (releases[match[1]] ??= []).push({ slot: match[2], commit: match[3] });
+    if (match) {
+      (releases[match[1]] ??= []).push({
+        slot: match[2],
+        commit: match[3],
+        live: live[match[1]] === match[2],
+      });
+    }
   }
   return releases;
+}
+
+/** docker stats' figures by container name */
+export function usageOf(stats) {
+  return Object.fromEntries(
+    stats.map((row) => [
+      row.Name,
+      { cpu: parseFloat(row.CPUPerc), memory: row.MemUsage.split(' / ')[0] },
+    ]),
+  );
 }
 
 export const sources = (repo) => ({
@@ -85,10 +110,18 @@ export const sources = (repo) => ({
 
   stacks: {
     every: 10,
-    read: async () =>
-      stacksOf(
+    read: async () => {
+      const stacks = stacksOf(
         jsonLines(await run('docker', ['ps', '-a', '--filter', 'name=mtav-', '--format', 'json'])),
-      ),
+      );
+      const usage = usageOf(
+        jsonLines(await run('docker', ['stats', '--no-stream', '--format', 'json'])),
+      );
+      for (const containers of Object.values(stacks)) {
+        for (const container of containers) Object.assign(container, usage[container.name] ?? {});
+      }
+      return stacks;
+    },
   },
 
   repository: {
@@ -97,8 +130,15 @@ export const sources = (repo) => ({
       const git = (...args) => run('git', args, { cwd: repo });
       const heads = await git(
         'for-each-ref',
-        '--format=%(refname:short) %(objectname:short=8) %(committerdate:relative)',
+        '--format=%(refname:short) %(objectname:short=8) %(committerdate:unix) %(committerdate:relative)',
         'refs/remotes/origin',
+      );
+      // Branches main already has: done with, unless kept on purpose
+      const merged = new Set(
+        (await git('branch', '-r', '--merged', 'origin/main'))
+          .split('\n')
+          .map((line) => line.trim().replace('origin/', ''))
+          .filter(Boolean),
       );
       return {
         branch: (await git('branch', '--show-current')).trim(),
@@ -108,9 +148,17 @@ export const sources = (repo) => ({
           .split('\n')
           .filter(Boolean)
           .map((line) => {
-            const [name, commit, ...when] = line.split(' ');
-            return { name: name.replace('origin/', ''), commit, when: when.join(' ') };
-          }),
+            const [name, commit, at, ...when] = line.split(' ');
+            const short = name.replace('origin/', '');
+            return {
+              name: short,
+              commit,
+              at: Number(at) * 1000,
+              when: when.join(' '),
+              merged: merged.has(short),
+            };
+          })
+          .filter((branch) => branch.name !== 'origin' && branch.name !== 'HEAD'),
       };
     },
   },
@@ -125,7 +173,7 @@ export const sources = (repo) => ({
             'run',
             'list',
             '--limit',
-            '10',
+            '30',
             '--json',
             'workflowName,headBranch,headSha,status,conclusion,createdAt,url',
           ],
@@ -175,7 +223,7 @@ export const sources = (repo) => ({
           '-o',
           'ConnectTimeout=8',
           server,
-          "docker ps --format '{{.Names}} {{.Image}}'; echo ---; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
+          "docker ps --format '{{.Names}} {{.Image}}'; for f in /mtav/*/live; do echo \"live $(basename $(dirname $f)) $(cut -d' ' -f1 $f)\"; done; echo ---; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
         ],
         { timeout: 25_000 },
       );
