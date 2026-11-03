@@ -242,7 +242,7 @@ it('shows the cooperative\'s people in one place, by family or everyone', functi
         ->click('.shell-sidebar >> text=People')
         ->assertPathIs("/projects/{$project->id}/families")
         ->assertSee('Rodríguez')
-        ->click('.people-views >> text=Everyone')
+        ->click('.people-views >> text=Members')
         ->assertPathIs("/projects/{$project->id}/people")
         ->assertSee('Lucía Rodríguez')
         ->assertPresent('.shell-sidebar a[aria-current="page"], .shell-sidebar [data-active]')

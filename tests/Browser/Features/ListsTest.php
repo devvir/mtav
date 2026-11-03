@@ -19,12 +19,14 @@ beforeEach(function () {
     $this->admin = anAdminOf($this->project);
 });
 
-it('finds families by their name or their people\'s', function () {
+it('finds families and people in one search, each kind under its own heading', function () {
     $this->as($this->ana);
 
     visit(route('families.index', $this->project))
         ->type('[aria-label="Search families or people"]', 'Pér')
-        ->assertSee('Pérez')
+        ->assertSeeIn('section[aria-label="Families"]', 'Pérez')
+        ->assertSeeIn('section[aria-label="Members"]', 'Bruno Pérez')
+        ->assertNotPresent('section[aria-label="Admins"]')
         ->assertDontSee('García');
 
     // By a person's name, from a link with the query (typing is checked above)
@@ -34,11 +36,20 @@ it('finds families by their name or their people\'s', function () {
         ->assertDontSee('Pérez');
 });
 
-it('finds people by name', function () {
+it('finds people by name, and a view\'s own tab starts it afresh', function () {
     $this->as($this->ana);
 
     visit(route('people.index', $this->project))
-        ->type('[aria-label="Search by name"]', 'Bruno')
+        ->type('[aria-label="Search families or people"]', 'Bruno')
+        ->assertSee('Bruno Pérez')
+        ->assertDontSee('Ana García')
+        ->click('.people-views >> text=Families')
+        ->assertValue('[aria-label="Search families or people"]', '')
+        ->assertSee('García')
+        ->assertSee('Pérez');
+
+    visit(route('people.index', $this->project))
+        ->type('[aria-label="Search families or people"]', 'Bruno')
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García');
 });
@@ -53,8 +64,9 @@ it('narrows people to a family, or to the admins', function () {
         ->assertQueryStringHas('family', (string) $this->perez->id);
 
     visit(route('people.index', $this->project))
-        ->check('admins')
+        ->click('.people-views >> text=Admins')
         ->assertQueryStringHas('admins', '1')
+        ->assertSee($this->admin->name)
         ->assertDontSee('Bruno Pérez');
 });
 
@@ -101,7 +113,7 @@ it('finds people, and shows units by type', function () {
     $this->as($this->admin);
 
     visit(route('people.index', $this->project))
-        ->type('[aria-label="Search by name or email"]', 'Bruno')
+        ->type('[aria-label="Search families or people"]', 'Bruno')
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García');
 

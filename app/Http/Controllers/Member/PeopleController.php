@@ -7,6 +7,7 @@ use App\Http\Resources\MemberResource;
 use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\PeopleSearch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -41,6 +42,7 @@ class PeopleController extends Controller
                 'admins' => $request->boolean('admins'),
             ],
             'families' => Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray()),
+            'found'    => fn () => $request->filled('q') ? app(PeopleSearch::class)->find($project, $request->user(), (string) $request->q) : null,
             // Someone's details, shown over the list (?person=19)
             'person' => fn () => $request->integer('person')
                 ? $this->details($request, $project, $request->integer('person'))

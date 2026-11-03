@@ -6,25 +6,25 @@ import {
 } from '@/components/domain/Archive';
 import { ArchivedFamilyHistory } from '@/components/domain/ArchivedFamilyHistory';
 import { FamilyDetails, type FamilyRequest } from '@/components/domain/FamilyDetails';
-import { PeopleViews } from '@/components/domain/PeopleViews';
+import { FamilyCard } from '@/components/domain/PeopleCards';
+import { FoundPeople, PeopleViews, type Found } from '@/components/domain/PeopleViews';
 import { Pagination } from '@/components/feedback/Pagination';
-import { QuerySearch } from '@/components/feedback/QuerySearch';
 import { FamilyForm } from '@/components/forms/FamilyForm';
 import { FamilyInvitationForm } from '@/components/forms/FamilyInvitationForm';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { EmptyState, FamilyMark } from '@/design';
+import { EmptyState } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { setFilter } from '@/lib/listFilters';
-import { activeFilters, matches, useLocalFilters } from '@/lib/localList';
+import { activeFilters, useLocalFilters } from '@/lib/localList';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _, _n } from '@/lib/translations';
+import { _ } from '@/lib/translations';
 import type { Family, Paginated, Ref, UnitType } from '@/types/models';
-import { Link, usePage } from '@inertiajs/react';
-import { Badge, Button, Card, Group, Modal, NativeSelect, SimpleGrid, Text } from '@mantine/core';
-import { IconHome, IconPlus, IconUsersGroup } from '@tabler/icons-react';
+import { usePage } from '@inertiajs/react';
+import { Button, Group, Modal, NativeSelect, SimpleGrid, Text } from '@mantine/core';
+import { IconPlus, IconUsersGroup } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function FamiliesIndex({
@@ -34,6 +34,7 @@ export default function FamiliesIndex({
   types,
   unitTypes,
   family: shown,
+  found,
   requests,
   archive,
   guests,
@@ -48,6 +49,8 @@ export default function FamiliesIndex({
   unitTypes: UnitType[] | null;
   /** A family's details, shown over the list (?family=12) */
   family: Family | null;
+  /** What a search found, people and admins too */
+  found: Found | null;
   /** For those in that family: who asks to join */
   requests: FamilyRequest[] | null;
   /** For admins: the families archived, each to bring back by inviting someone */
@@ -63,19 +66,10 @@ export default function FamiliesIndex({
   const nothingYet = !families.data.length && !filters.q && !filters.unit_type;
   const [local, setLocal] = useLocalFilters(filters);
   const current = whole ? local : filters;
-  // A family is found by its name, its type, and its members' names (and emails, where shown)
   const listed = whole
-    ? families.data.filter(
-        (family) =>
-          matches(
-            local.q,
-            family.name,
-            family.unit_type?.name,
-            ...(family.members ?? []).flatMap((member) => [member.name, member.email]),
-          ) &&
-          (!local.unit_type || family.unit_type?.id === local.unit_type),
-      )
+    ? families.data.filter((family) => !local.unit_type || family.unit_type?.id === local.unit_type)
     : families.data;
+  const searching = Boolean(found && filters.q);
   const adding = useAddressedDialog('new', canManage);
   useProjectChanges({
     families: ['families', 'family'],
@@ -103,13 +97,15 @@ export default function FamiliesIndex({
           </InfoTip>
         }
       />
-      <PeopleViews />
-      {archive ? (
+      <PeopleViews q={filters.q} />
+      {archive && !searching ? (
         <Group mb="md">
           <ArchiveSwitch archive={archive} />
         </Group>
       ) : null}
-      {archive?.shown ? (
+      {searching ? (
+        <FoundPeople found={found!} q={filters.q!} own={own} />
+      ) : archive?.shown ? (
         <ArchivedList
           archive={archive}
           kind="families"
@@ -141,12 +137,6 @@ export default function FamiliesIndex({
         </EmptyState>
       ) : (
         <Group mb="md" gap="sm">
-          <QuerySearch
-            value={filters.q}
-            placeholder={_('Search families or people')}
-            maw={360}
-            onSearch={whole ? (query) => setLocal('q', query || null) : undefined}
-          />
           {types.length > 1 ? (
             <NativeSelect
               aria-label={_('Unit type')}
@@ -165,56 +155,29 @@ export default function FamiliesIndex({
           ) : null}
         </Group>
       )}
-      <SimpleGrid
-        cols={{ base: 1, sm: 2, lg: 3 }}
-        style={archive?.shown ? { display: 'none' } : undefined}
-      >
-        {listed.map((family) => (
-          <Card
-            key={family.id}
-            component={Link}
-            href={route('families.index', { ...activeFilters(current), family: family.id })}
-            only={['family']}
-            preserveState
-            preserveScroll
-            p="md"
-            className="ds-interactive"
-            data-own={family.id === own || undefined}
+      {searching ? null : (
+        <>
+          <SimpleGrid
+            cols={{ base: 1, sm: 2, lg: 3 }}
+            style={archive?.shown ? { display: 'none' } : undefined}
           >
-            <Group wrap="nowrap" align="flex-start">
-              <FamilyMark name={family.name} size={44} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <Group gap="xs">
-                  <Text fw={700}>{family.name}</Text>
-                  {family.id === own ? <Badge color="green">{_('your family')}</Badge> : null}
-                </Group>
-                <Text className="ds-caption">
-                  {_n('{count} person', '{count} people', family.members_count ?? 0)}
-                  {family.unit_type ? ` · ${family.unit_type.name}` : null}
-                </Text>
-                {family.members?.length ? (
-                  <Text size="sm" mt={6} lineClamp={2}>
-                    {family.members.map((member) => member.firstname).join(', ')}
-                  </Text>
-                ) : null}
-                {family.unit ? (
-                  <Group gap={4} mt={6} c="var(--mtav-positive)" fw={650} fz="sm">
-                    <IconHome size={16} /> {family.unit.identifier}
-                  </Group>
-                ) : null}
-              </div>
-            </Group>
-          </Card>
-        ))}
-      </SimpleGrid>
-      {!listed.length && !nothingYet && !archive?.shown ? (
-        <Text ta="center" c="dimmed" py="xl">
-          {current.q
-            ? _('No family or person matches “{q}”.', { q: current.q })
-            : _('No family of this type yet.')}
-        </Text>
-      ) : null}
-      {archive?.shown ? null : <Pagination page={families} />}
+            {listed.map((family) => (
+              <FamilyCard
+                key={family.id}
+                family={family}
+                own={family.id === own}
+                href={route('families.index', { ...activeFilters(current), family: family.id })}
+              />
+            ))}
+          </SimpleGrid>
+          {!listed.length && !nothingYet && !archive?.shown ? (
+            <Text ta="center" c="dimmed" py="xl">
+              {_('No family of this type yet.')}
+            </Text>
+          ) : null}
+          {archive?.shown ? null : <Pagination page={families} />}
+        </>
+      )}
 
       {unitTypes ? (
         <Modal opened={adding.opened} onClose={adding.close} title={_('Add a family')}>

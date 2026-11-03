@@ -128,6 +128,31 @@ it('finds people by email only for admins, so that nobody learns who has an addr
     expect($this->as($this->member, $this->project)->get($families)->inertiaProps('families.data'))->toBeEmpty();
 });
 
+it('finds families, members and admins in one search, from either page', function () {
+    $family = aFamily($this->project, null, ['name' => 'Olivera']);
+    $ana = aMemberOf($family, ['firstname' => 'Ana', 'lastname' => 'Olivera']);
+    $admin = tap(anAdminOf($this->project))->update(['firstname' => 'Beatriz', 'lastname' => 'Olivera']);
+    $found = fn (string $page) => $this->as($this->member, $this->project)->get(route($page, [$this->project, 'q' => 'Olivera']))->inertiaProps('found');
+
+    foreach (['families.index', 'people.index'] as $page) {
+        $groups = $found($page);
+        expect(collect($groups['families'])->pluck('id')->all())->toBe([$family->id])
+            ->and(collect($groups['members'])->pluck('id')->all())->toEqualCanonicalizing([$ana->id, $admin->id])
+            ->and(collect($groups['admins'])->pluck('id')->all())->toBe([$admin->id]);
+    }
+
+    expect($this->as($this->member, $this->project)->get(route('people.index', $this->project))->inertiaProps('found'))->toBeNull();
+});
+
+it('finds by email in the one search only where the address is shown', function () {
+    aMemberOf(aFamily($this->project), ['firstname' => 'Neighbour', 'email' => 'secret.neighbour@example.com']);
+    $found = fn (User $viewer) => $this->as($viewer, $this->project)->get(route('people.index', [$this->project, 'q' => 'secret.neighbour']))->inertiaProps('found');
+
+    expect($found($this->member))->toMatchArray(['families' => [], 'members' => [], 'admins' => []])
+        ->and(collect($found($this->admin)['members'])->pluck('name')->first())->toStartWith('Neighbour')
+        ->and(collect($found($this->admin)['families']))->toHaveCount(1);
+});
+
 it('filters people by family and role, and families by unit type', function () {
     config()->set('lists.whole', 0); // the server searches and filters (long lists)
 

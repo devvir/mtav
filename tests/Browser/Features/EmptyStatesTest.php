@@ -44,8 +44,7 @@ it('tells members where the families will show up', function () {
     $this->as($member);
 
     visit(route('families.index', $this->project))
-        ->assertSee('Families show up here as people join them.')
-        ->assertNotPresent('[aria-label="Search families or people"]');
+        ->assertSee('Families show up here as people join them.');
 });
 
 it('says when a search finds nothing', function () {

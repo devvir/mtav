@@ -282,16 +282,20 @@ defineTour('member.home', () => [
 defineTour('member.families', () => [
   {
     target: 'people.views',
-    title: _('By family, or everyone'),
-    body: _('See the cooperative family by family, or every person at once.'),
+    title: _('Families, members or admins'),
+    body: _(
+      'See the cooperative family by family, every member, or the admins. One search looks in all three.',
+    ),
   },
 ]);
 
 defineTour('member.people', () => [
   {
     target: 'people.views',
-    title: _('By family, or everyone'),
-    body: _('See the cooperative family by family, or every person at once.'),
+    title: _('Families, members or admins'),
+    body: _(
+      'See the cooperative family by family, every member, or the admins. One search looks in all three.',
+    ),
   },
 ]);
 

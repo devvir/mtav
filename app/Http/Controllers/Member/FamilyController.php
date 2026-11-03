@@ -14,6 +14,7 @@ use App\Models\Project;
 use App\Services\ArchiveService;
 use App\Services\FamilyService;
 use App\Services\NotificationService;
+use App\Services\PeopleSearch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,7 @@ class FamilyController extends Controller
             'whole'     => $whole,
             'filters'   => ['q' => $request->q, 'unit_type' => $request->integer('unit_type') ?: null],
             'types'     => $project->unitTypes()->alphabetically()->get(['id', 'name']),
+            'found'     => fn () => $request->filled('q') ? app(PeopleSearch::class)->find($project, $request->user(), (string) $request->q) : null,
             'unitTypes' => $this->unitTypesFor($request, $project),
             // A family's details, shown over the list (?family=12)
             'family' => fn () => $request->integer('family') && ($family = $project->families()->find($request->integer('family')))

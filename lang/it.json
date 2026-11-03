@@ -284,7 +284,6 @@
   "Once its date arrives, you run the lottery and every family receives a unit from its ranking, fairly and in one go. The result is final, and recorded.": "Quando arriva la data, esegui il sorteggio e ogni famiglia riceve un’unità della propria classifica, in modo equo e in una volta sola. Il risultato è definitivo e registrato.",
   "One hour if empty": "Un’ora se vuoto",
   "Online": "Online",
-  "Only admins": "Solo admin",
   "Only admins see it": "Lo vedono solo gli admin",
   "Only in exceptional cases: invalidating clears every assignment and asks for a reason, which everyone in the project reads.": "Solo in casi eccezionali: annullare cancella tutte le assegnazioni e chiede un motivo, che tutti nel progetto leggono.",
   "Only on this device.": "Solo su questo dispositivo.",
@@ -367,7 +366,6 @@
   "Saving…": "Salvataggio…",
   "Schedule the lottery": "Programma il sorteggio",
   "Search": "Cerca",
-  "Search by name": "Cerca per nome",
   "Search by name or email": "Cerca per nome o email",
   "Search families or people": "Cerca famiglie o persone",
   "Sections": "Sezioni",
@@ -624,7 +622,6 @@
   "How the platform works for every project.": "Come funziona la piattaforma per ogni progetto.",
   "How long a lottery takes, in seconds": "Quanto dura un sorteggio, in secondi",
   "Everyone sees it work, step by step, for at least this long; the result is the same.": "Tutti lo vedono lavorare, passo dopo passo, almeno per questo tempo; il risultato è lo stesso.",
-  "Everyone": "Tutti",
   "How to see them": "Come vederli",
   "VICMAN, the first housing cooperative in Uruguay": "VICMAN, la prima cooperativa edilizia dell’Uruguay",
   "carousel": "carosello",
@@ -665,8 +662,6 @@
   "Its families, people and units: each leads to its page.": "Le sue famiglie, i soci e le unità: ognuno porta alla sua pagina.",
   "The lottery": "Il sorteggio",
   "When it happens, and once it has, which unit your family received.": "Quando si fa e, una volta fatto, quale unità ha ricevuto la tua famiglia.",
-  "By family, or everyone": "Per famiglia, o tutti",
-  "See the cooperative family by family, or every person at once.": "Guarda la cooperativa famiglia per famiglia, o tutte le persone insieme.",
   "What happened in your projects, newest first. The bell shows the latest; opening one takes you to it.": "Cosa è successo nei tuoi progetti, le più recenti prima. La campanella mostra le ultime; aprirne una ti ci porta.",
   "How others see you, how you sign in, your language and the look of the app.": "Come ti vedono gli altri, come accedi, la tua lingua e l’aspetto dell’app.",
   "Every project you take part in, and the invitations waiting for you.": "Ogni progetto a cui partecipi, e gli inviti che ti aspettano.",
@@ -1114,5 +1109,8 @@
   "Without email, phone or ID number": "Senza email, telefono né numero del documento",
   "Personal data must never be used or shared without people's consent.": "I dati personali non devono mai essere usati né condivisi senza il consenso delle persone.",
   "Confirm your password": "Conferma la tua password",
-  "This action asks for your password once more.": "Questa azione chiede di nuovo la tua password."
+  "This action asks for your password once more.": "Questa azione chiede di nuovo la tua password.",
+  "Members": "Membri",
+  "Families, members or admins": "Famiglie, membri o admin",
+  "See the cooperative family by family, every member, or the admins. One search looks in all three.": "Guarda la cooperativa famiglia per famiglia, ogni membro o gli admin. Una sola ricerca cerca in tutte e tre."
 }
