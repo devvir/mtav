@@ -404,6 +404,30 @@ describe('Its record', function () {
         $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk()->assertJsonPath('fingerprint', $before['fingerprint']);
     });
 
+    it('shows a run recorded before the lottery spoke of participants, as it was written', function () {
+        [$families, $units] = familiesRanking([[0, 1, 2], [0, 2, 1], [1, 0, 2]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $member = $families[1]->members()->first();
+        $record = fn () => $this->as($member, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertOk()->inertiaProps();
+        $before = $record();
+
+        // The words it was written in then: families and units
+        $init = $run->audits()->where('type', 'init')->sole();
+        $written = $init->audit;
+        foreach ($written['manifest']['data'] as $type => $group) {
+            $written['manifest']['data'][$type] = ['families' => $group['participants'], 'units' => $group['items']];
+        }
+        $init->update(['audit' => $written]);
+
+        $after = $record();
+
+        expect($after['families'])->toEqual($before['families'])
+            ->and($after['worst'])->toBe(2)
+            ->and($after['own']['ranking'])->toBe([$units[0]->identifier, $units[2]->identifier, $units[1]->identifier]);
+    });
+
     it('tells apart families of the same name', function () {
         [$families] = familiesRanking([[0, 1], [1, 0]]);
         $families->each->update(['name' => 'García']);

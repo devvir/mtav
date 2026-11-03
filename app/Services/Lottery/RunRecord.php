@@ -102,10 +102,11 @@ class RunRecord
     private function rankings(): array
     {
         // The manifest's participants are families, its items units. Family ids are the keys:
-        // joined, never renumbered
+        // joined, never renumbered. Runs recorded before the lottery spoke of participants
+        // named them families, and their record is read as it was written
         return array_reduce(
             $this->audit(LotteryAuditType::INIT)['manifest']['data'] ?? [],
-            fn (array $all, array $group) => $all + ($group['participants'] ?? []),
+            fn (array $all, array $group) => $all + ($group['participants'] ?? $group['families'] ?? []),
             [],
         );
     }
