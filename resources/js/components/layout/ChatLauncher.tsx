@@ -1,10 +1,9 @@
 import { Chat } from '@/components/domain/Chat';
-import { minimizeChat, openChat, useChat } from '@/lib/chat';
+import { minimizeChat, openChat, useChat, useChatProject } from '@/lib/chat';
 import { sendJson } from '@/lib/json';
 import { route, routeIs } from '@/lib/route';
 import { AUTO_AFTER_MS, drivenBrowser, offerTourInstead } from '@/lib/tour';
 import { _, _n } from '@/lib/translations';
-import { usePage } from '@inertiajs/react';
 import { Transition } from '@mantine/core';
 import { IconChevronDown, IconMessageCircle } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef } from 'react';
@@ -18,10 +17,11 @@ let welcomed = false;
  * phones the chat is one more place of the menu, and its own page has it there.
  */
 export function ChatLauncher() {
-  const project = usePage().props.project;
+  const { project, prop } = useChatProject();
   const { open } = useChat();
   const here = routeIs('chat.*');
-  const welcome = project?.welcome;
+  const welcome = prop === 'project' ? project?.welcome : null;
+  const projectId = project?.id;
   const launcher = useRef<HTMLButtonElement>(null);
   const chatWindow = useRef<HTMLElement>(null);
 
@@ -41,13 +41,13 @@ export function ChatLauncher() {
 
   // Someone's first arrival: the Assistant greets them, and offers the tour the page would play
   useEffect(() => {
-    if (!welcome || here || welcomed || drivenBrowser()) return undefined;
+    if (!welcome || !projectId || here || welcomed || drivenBrowser()) return undefined;
     welcomed = true;
     offerTourInstead();
-    void sendJson('POST', route('chat.welcomed', { project: project.id }), {});
+    void sendJson('POST', route('chat.welcomed', { project: projectId }), {});
     const later = window.setTimeout(() => openChat(welcome), AUTO_AFTER_MS);
     return () => window.clearTimeout(later);
-  }, [welcome, here, project?.id]);
+  }, [welcome, here, projectId]);
 
   useEffect(() => {
     if (!open) return undefined;

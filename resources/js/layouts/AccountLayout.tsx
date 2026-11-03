@@ -12,9 +12,14 @@ import { projectNav, projectPlaces } from './ProjectLayout';
  * only one; someone in several also finds all their projects here.
  */
 export function AccountLayout({ children }: { children: ReactNode }) {
-  const { projects, lastProject } = useCurrentPage().props;
+  const { projects, lastProject, chatProject } = useCurrentPage().props;
   const only = projects.length === 1 ? projects[0]! : null;
-  const within = projects.find((project) => project.id === lastProject) ?? only;
+  const listed = projects.find((project) => project.id === lastProject) ?? only;
+  // The server's fuller word on the same project brings its chat into the menu (on phones)
+  const within =
+    listed && chatProject?.id === listed.id
+      ? { ...listed, ...chatProject, is_admin: listed.is_admin }
+      : listed;
 
   const nav: NavGroup[] = [
     ...(within ? projectNav(within, within.is_admin) : []),

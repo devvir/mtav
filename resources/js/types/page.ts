@@ -34,6 +34,8 @@ export interface SharedProps {
   };
   projects: { id: Id; name: string; organization: string | null; is_admin: boolean }[];
   lastProject: Id | null;
+  /** On the person's own pages, the project whose chat they carry (lib/chat.ts) */
+  chatProject: SharedProps['project'];
   project: {
     id: Id;
     name: string;

@@ -257,3 +257,14 @@ it('says nothing matches, not that there are no chats, when a search finds none'
         ->assertSee('Nothing matches')
         ->assertDontSee('No one-on-one chats yet.');
 });
+
+it('is at hand on one\'s own pages too, in the project last browsed', function () {
+    $this->as($this->ana);
+    visit(route('projects.show', $this->project))->assertPresent('.chat-launcher');
+
+    visit(route('profile.edit'))
+        ->click('.chat-launcher')
+        ->assertPresent('.chat-window')
+        ->assertSeeIn('.chat-window', 'Assistant')
+        ->assertNoSmoke();
+});

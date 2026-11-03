@@ -480,3 +480,16 @@ it('names a conversation with many people without loading them all', function ()
 
     expect(collect($listed)->firstWhere('is_community', true)['faces'])->toHaveCount(3);
 });
+
+it('brings the chat of the project last browsed to one\'s own pages, and nowhere else', function () {
+    $this->as($this->ana, $this->project)->get(route('projects.show', $this->project))->assertOk();
+    $chatOf = fn (string $page, array $query = []) => $this->as($this->ana)->get(route($page, $query))->inertiaProps('chatProject');
+
+    expect($chatOf('profile.edit'))->toMatchArray(['id' => $this->project->id])
+        ->and($chatOf('profile.edit')['can']['chat'])->toBeTrue()
+        ->and($chatOf('notifications.index')['id'])->toBe($this->project->id)
+        ->and($this->as($this->ana, $this->project)->get(route('families.index', $this->project))->inertiaProps('chatProject'))->toBeNull();
+
+    // Someone with no project has no chat to bring
+    expect($this->as(aUser())->get(route('profile.edit'))->inertiaProps('chatProject'))->toBeNull();
+});

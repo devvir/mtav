@@ -71,7 +71,11 @@ class HandleInertiaRequests extends Middleware
             'projects'  => fn () => $user ? $this->projects($user) : [],
             'project'   => fn () => ($project = currentProject()) && $user ? $this->project($project, $user) : null,
             /** The project last browsed: the person's own pages stay in its frame */
-            'lastProject'   => fn () => $request->session()->get('last_project'),
+            'lastProject' => fn () => $request->session()->get('last_project'),
+            /** On those pages, the project whose chat they carry: the same frame's */
+            'chatProject' => fn () => $user && $request->routeIs(self::FRAMED) && ($framing = $this->framing($request, $user))
+                ? $this->project($framing, $user)
+                : null,
             'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
             /** The latest few, for the bell's menu: sent only when it asks (a partial reload) */
             'recentNotifications' => Inertia::optional(fn () => $user
@@ -131,6 +135,21 @@ class HandleInertiaRequests extends Middleware
                 'is_admin'     => $user->isSuperadmin() || $managed->contains($project->id),
             ])
             ->all();
+    }
+
+    /** The person's own pages, framed by a project (resources/js/layouts/AccountLayout.tsx) */
+    private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create'];
+
+    /**
+     * The project the person's own pages stay in the frame of: the one last browsed, or their
+     * only one (the account layout frames them the same way).
+     */
+    private function framing(Request $request, User $user): ?Project
+    {
+        $projects = $user->reachableProjects();
+
+        return (clone $projects)->find($request->session()->get('last_project'))
+            ?? ((clone $projects)->count() === 1 ? $projects->first() : null);
     }
 
     /**

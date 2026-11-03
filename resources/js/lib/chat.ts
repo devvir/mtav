@@ -1,3 +1,5 @@
+import type { SharedProps } from '@/types/page';
+import { usePage } from '@inertiajs/react';
 import { useSyncExternalStore } from 'react';
 
 /**
@@ -34,3 +36,17 @@ export const useChat = () =>
     },
     () => state,
   );
+
+/**
+ * The project whose chat this page carries: the one being browsed, or, on the person's own
+ * pages (profile, notifications), the one framing them. `prop` is where the page holds it.
+ */
+export function useChatProject(): {
+  project: SharedProps['project'];
+  prop: 'project' | 'chatProject';
+} {
+  const { project, chatProject } = usePage<SharedProps>().props;
+  return project
+    ? { project, prop: 'project' }
+    : { project: chatProject ?? null, prop: 'chatProject' };
+}

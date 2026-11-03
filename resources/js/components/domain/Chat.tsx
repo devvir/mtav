@@ -1,6 +1,6 @@
 import { DateTime, formatDate } from '@/components/feedback/DateTime';
 import { PersonAvatar } from '@/design';
-import { minimizeChat, showConversation, useChat } from '@/lib/chat';
+import { minimizeChat, showConversation, useChat, useChatProject } from '@/lib/chat';
 import { confirm } from '@/lib/dialogs';
 import { fieldErrors, sendJson } from '@/lib/json';
 import { heldOffline } from '@/lib/offline';
@@ -8,7 +8,7 @@ import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { startTour } from '@/lib/tour';
 import { _, languageTag } from '@/lib/translations';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import {
   ActionIcon,
   Avatar,
@@ -159,7 +159,7 @@ function ConversationList({
   popup: boolean;
   onChange: () => Promise<void>;
 }) {
-  const projectId = usePage().props.project!.id;
+  const projectId = useChatProject().project!.id;
   const [query, setQuery] = useState('');
   const groups = conversations.filter((conversation) => conversation.is_group);
   const chats = conversations.filter((conversation) => !conversation.is_group);
@@ -302,7 +302,7 @@ function dayLabel(value: string) {
 
 /** Before the first message: what it is, and a few things to ask with a tap */
 function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
-  const project = usePage().props.project;
+  const { project } = useChatProject();
   const can = project?.can;
   const asks = [
     _('What can I do here?'),
@@ -395,7 +395,7 @@ function Thread({
   onChange: () => Promise<void>;
   onEarlier: (count: number) => Promise<void>;
 }) {
-  const { project } = usePage().props;
+  const { project } = useChatProject();
   const at = { project: project!.id, conversation: conversation.id };
   const scroller = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
@@ -688,7 +688,7 @@ function RenameGroup({
   conversation: OpenConversation;
   onChange: () => Promise<void>;
 }) {
-  const { project } = usePage().props;
+  const { project } = useChatProject();
   const [title, setTitle] = useState(conversation.name ?? '');
   const [saving, setSaving] = useState(false);
 
@@ -736,7 +736,7 @@ function AddPeople({
   people: ChatPerson[];
   onChange: () => Promise<void>;
 }) {
-  const { project } = usePage().props;
+  const { project } = useChatProject();
   const [chosen, setChosen] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
@@ -794,7 +794,7 @@ function NewConversation({
   people: ChatPerson[];
   onChange: () => Promise<void>;
 }) {
-  const { project } = usePage().props;
+  const { project } = useChatProject();
   const [chosen, setChosen] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [saving, setSaving] = useState(false);
@@ -873,7 +873,8 @@ export function Chat({
   initial?: ChatData;
   popup?: boolean;
 }): ReactNode {
-  const projectId = usePage().props.project!.id;
+  const { project: chatProject, prop: projectProp } = useChatProject();
+  const projectId = chatProject!.id;
   const { conversation: open, version } = useChat();
   const [data, setData] = useState<ChatData | null>(initial ?? seen.get(projectId) ?? null);
   // How many messages were asked for, of the conversation they were asked for
@@ -916,9 +917,9 @@ export function Chat({
       seen.set(projectId, next);
       setData(next);
       // Read now: whatever counts the conversations with something new follows
-      if (wasUnread) router.reload({ only: ['project'] });
+      if (wasUnread) router.reload({ only: [projectProp] });
     },
-    [projectId, open, count],
+    [projectId, projectProp, open, count],
   );
 
   useEffect(() => {
