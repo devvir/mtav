@@ -17,7 +17,7 @@ jobs:
     env:
       CERTIFICATES: mtav.uy www.mtav.uy stg.mtav.uy dev.mtav.uy sorteo.mtav.uy
       # The sites a release runs on (each answers /up)
-      SITES: www.mtav.uy stg.mtav.uy dev.mtav.uy
+      SITES: www.mtav.uy stg.mtav.uy dev.mtav.uy sorteo.mtav.uy
       MIN_DAYS: 21
     steps:
       - name: Certificates
