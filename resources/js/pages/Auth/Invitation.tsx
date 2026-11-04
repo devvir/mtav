@@ -20,13 +20,15 @@ interface Props {
     inviter: string | null;
   };
   mismatch: boolean;
+  /** An invitation to a support account (a superadmin) of the app, `project` its name */
+  support?: boolean;
 }
 
 /**
  * Where an invitation link lands: join with a new account, join as the signed-in person,
  * or learn that the invitation is meant for someone else.
  */
-export default function Invitation({ token, invitation, mismatch }: Props) {
+export default function Invitation({ token, invitation, mismatch, support = false }: Props) {
   const user = usePage().props.auth.user;
   const form = useForm({
     firstname: invitation.firstname ?? '',
@@ -34,11 +36,13 @@ export default function Invitation({ token, invitation, mismatch }: Props) {
     password: '',
     password_confirmation: '',
   });
-  const accept = () => form.post(route('invitation.accept', token));
+  const accept = () =>
+    form.post(route(support ? 'support-invitation.accept' : 'invitation.accept', token));
 
   const { is_admin, family, project } = invitation;
-  const what =
-    is_admin && family
+  const what = support
+    ? _('to give support in {project}, with an account of its own', { project })
+    : is_admin && family
       ? _('to help manage {project}, as a member of the {family} family', { project, family })
       : is_admin
         ? _('to help manage {project}', { project })
@@ -67,7 +71,7 @@ export default function Invitation({ token, invitation, mismatch }: Props) {
             {_('Sign out to accept it')}
           </Button>
         </>
-      ) : user ? (
+      ) : user && !support ? (
         <Button fullWidth size="md" loading={form.processing} onClick={accept}>
           {_('Join {project}', { project })}
         </Button>
@@ -104,7 +108,7 @@ export default function Invitation({ token, invitation, mismatch }: Props) {
           />
           <RequiredNote />
           <Button type="submit" fullWidth size="md" loading={form.processing}>
-            {_('Join {project}', { project })}
+            {support ? _('Create the support account') : _('Join {project}', { project })}
           </Button>
         </Form>
       )}

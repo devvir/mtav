@@ -13,9 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MediaPolicy extends ProjectResourcePolicy
 {
+    /** Its people share; a support account too, to try it out */
     public function create(User $user, Project $project): bool
     {
-        return (bool) $user->membershipIn($project);
+        return (bool) $user->membershipIn($project) || $user->isSuperadmin();
     }
 
     /**

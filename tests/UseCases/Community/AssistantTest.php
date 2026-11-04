@@ -411,15 +411,13 @@ describe('What it knows', function () {
             ->and($brain->asked[1]['context'])->toContain('Admins to write to: none right now');
     });
 
-    it('takes superadmins for admins like any other, and an admin in a family for a member too', function () {
-        $superadmin = aSuperadmin();
-        $this->project->memberships()->create(['user_id' => $superadmin->id, 'family_id' => aFamily($this->project, $this->family->unitType)->id]);
+    it('takes an admin in a family for a member too', function () {
+        $this->project->memberships()->where('user_id', $this->admin->id)->update(['family_id' => $this->family->id]);
         $brain = brainAnswering(['text' => 'Ok', 'actions' => []]);
 
-        askAssistant($superadmin->fresh(), $this->project);
+        askAssistant($this->admin->fresh(), $this->project);
 
-        expect($brain->asked[0]['context'])->toContain('an admin of the project, and a member in a family')
-            ->not->toContain('oversees the platform');
+        expect($brain->asked[0]['context'])->toContain('an admin of the project, and a member in a family');
     });
 
     it('knows the top bar changes text size, language and light or dark', function () {

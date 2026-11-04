@@ -21,14 +21,14 @@ beforeEach(function () {
 });
 
 dataset('grave actions', [
-    'granting the role'    => [fn () => test()->post(route('admin.superadmins.store'), ['email' => test()->other->email])],
-    'granting it by id'    => [fn () => test()->put(route('admin.users.superadmin', test()->other), ['grant' => true])],
-    'deleting an account'  => [fn () => test()->delete(route('admin.users.destroy', test()->other))],
-    'deleting a project'   => [fn () => test()->delete(route('admin.projects.destroy', aProject(['name' => 'Gone'])), ['confirmation' => 'Gone'])],
-    'deploying dev'        => [fn () => test()->post(route('admin.deployments.dev'), [])],
-    'deploying production' => [fn () => test()->post(route('admin.deployments.production'), [])],
-    'rolling back'         => [fn () => test()->post(route('admin.deployments.rollback'), [])],
-    'starting over'        => [fn () => test()->post(route('admin.deployments.fresh'), [])],
+    'inviting a support account' => [fn () => test()->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com'])],
+    'removing the role'          => [fn () => test()->put(route('admin.users.superadmin', test()->other), ['grant' => false])],
+    'deleting an account'        => [fn () => test()->delete(route('admin.users.destroy', test()->other))],
+    'deleting a project'         => [fn () => test()->delete(route('admin.projects.destroy', aProject(['name' => 'Gone'])), ['confirmation' => 'Gone'])],
+    'deploying dev'              => [fn () => test()->post(route('admin.deployments.dev'), [])],
+    'deploying production'       => [fn () => test()->post(route('admin.deployments.production'), [])],
+    'rolling back'               => [fn () => test()->post(route('admin.deployments.rollback'), [])],
+    'starting over'              => [fn () => test()->post(route('admin.deployments.fresh'), [])],
 ]);
 
 it('asks for the password first, doing nothing', function (Closure $action) {
@@ -59,19 +59,20 @@ it('leaves the account and the project in place when asking', function () {
 });
 
 it('does it once the password was given, for a while', function () {
-    $this->post(route('admin.superadmins.store'), ['email' => $this->other->email])->assertRedirect(route('password.confirm'));
+    $this->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com'])->assertRedirect(route('password.confirm'));
 
     $this->post(route('password.confirm'), ['password' => 'the-Right-pass-1'])->assertSessionHasNoErrors();
 
-    $this->post(route('admin.superadmins.store'), ['email' => $this->other->email])->assertSessionHasNoErrors();
-    expect($this->other->fresh()->isSuperadmin())->toBeTrue();
+    $this->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com'])->assertSessionHasNoErrors();
+    expect(App\Models\SupportInvitation::where('email', 'new.support@example.com')->exists())->toBeTrue();
+    $this->other->forceFill(['is_superadmin' => true])->save();
 
     $this->put(route('admin.users.superadmin', $this->other), ['grant' => false])->assertSessionHasNoErrors();
     expect($this->other->fresh()->isSuperadmin())->toBeFalse();
 });
 
 it('returns them to the page they were on', function () {
-    $this->from(route('admin.superadmins.index'))->post(route('admin.superadmins.store'), ['email' => $this->other->email]);
+    $this->from(route('admin.superadmins.index'))->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com']);
 
     $this->post(route('password.confirm'), ['password' => 'the-Right-pass-1'])
         ->assertRedirect(route('admin.superadmins.index'))
@@ -129,7 +130,7 @@ it('lets an account opened with Google choose a password by email, and go on wit
     // A new password ends its sessions: signed in again, it gives that one, and goes on
     $this->as($google->fresh());
     $this->post(route('password.confirm'), ['password' => 'a-Chosen-pass-1'])->assertSessionHasNoErrors();
-    $this->post(route('admin.superadmins.store'), ['email' => $this->other->email])->assertSessionHasNoErrors();
+    $this->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com'])->assertSessionHasNoErrors();
 
-    expect($this->other->fresh()->isSuperadmin())->toBeTrue();
+    expect(App\Models\SupportInvitation::where('email', 'new.support@example.com')->exists())->toBeTrue();
 });

@@ -107,14 +107,13 @@ describe('A superadmin', function () {
     beforeEach(fn () => $this->superadmin = aSuperadmin());
 
     it('starts an approved project', function () {
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'me']))->assertSessionHasNoErrors();
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'first@example.com']))->assertSessionHasNoErrors();
 
         expect(theNewProject()->isApproved())->toBeTrue();
     });
 
     it('has to say who its first admin is', function () {
-        $this->as($this->superadmin)->post(route('projects.store'), projectData())->assertSessionHasErrors('first_admin');
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone']))->assertSessionHasErrors('first_admin_email');
+        $this->as($this->superadmin)->post(route('projects.store'), projectData())->assertSessionHasErrors('first_admin_email');
 
         expect(App\Models\Project::count())->toBe(0);
     });
@@ -122,7 +121,7 @@ describe('A superadmin', function () {
     it('leaves no project behind when the first admin\'s invitation is refused', function () {
         aUser(['email' => 'blocked@example.com', 'blocked_at' => now()]);
 
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'blocked@example.com']))
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'blocked@example.com']))
             ->assertSessionHasErrors('first_admin_email');
 
         expect(App\Models\Project::count())->toBe(0);
@@ -132,27 +131,28 @@ describe('A superadmin', function () {
         aUser(['email' => 'blocked@example.com', 'blocked_at' => now()]);
         Illuminate\Support\Facades\Event::fake([App\Events\NotificationSent::class]);
 
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'blocked@example.com']));
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'blocked@example.com']));
 
         Illuminate\Support\Facades\Event::assertNotDispatched(App\Events\NotificationSent::class);
 
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'first@example.com']))
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'first@example.com']))
             ->assertSessionHasNoErrors();
 
         expect(App\Models\Notification::where('type', App\Enums\NotificationType::RESOURCE_CREATED)->count())->toBe(1);
         Illuminate\Support\Facades\Event::assertDispatched(App\Events\NotificationSent::class);
     });
 
-    it('may be its first admin, shown as any admin', function () {
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'me']))->assertSessionHasNoErrors();
+    it('takes no place in it: its first admin is invited', function () {
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'first@example.com']))->assertSessionHasNoErrors();
 
-        expect(theNewProject()->admins()->pluck('users.id')->all())->toBe([$this->superadmin->id]);
+        expect(theNewProject()->memberships()->count())->toBe(0)
+            ->and(theNewProject()->invitations()->pending()->value('email'))->toBe('first@example.com');
     });
 
     it('may invite its first admin instead', function () {
         Illuminate\Support\Facades\Notification::fake();
 
-        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin' => 'someone', 'first_admin_email' => 'first@example.com']))
+        $this->as($this->superadmin)->post(route('projects.store'), projectData(['first_admin_email' => 'first@example.com']))
             ->assertSessionHasNoErrors();
 
         expect(theNewProject()->invitations()->sole())->email->toBe('first@example.com')->is_admin->toBeTrue()

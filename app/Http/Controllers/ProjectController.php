@@ -11,7 +11,6 @@ use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
@@ -28,7 +27,8 @@ class ProjectController extends Controller
             'projects' => ProjectResource::collection(
                 $user->reachableProjects()->withCount('members', 'families')->orderBy('name')->get()
             ),
-            'invitations' => Invitation::pending()->where('email', $user->email)
+            // A support account is invited to no project: whatever was sent to its address is not for it
+            'invitations' => Invitation::pending()->where('email', $user->isSuperadmin() ? null : $user->email)
                 ->with('project:id,name', 'family:id,name', 'inviter')->get()
                 ->map(fn (Invitation $invitation) => [
                     'id'         => $invitation->id,
@@ -58,20 +58,16 @@ class ProjectController extends Controller
 
         $user = $request->user();
 
-        // Anyone else is its first admin; a superadmin says who is: themselves, or someone invited
+        // Anyone else is its first admin; a superadmin takes no place in it, and invites who is
         $first = $user->isSuperadmin() ? $request->validate([
-            'first_admin'       => ['required', Rule::in(['me', 'someone'])],
-            'first_admin_email' => ['required_if:first_admin,someone', 'nullable', 'email', 'max:255'],
+            'first_admin_email' => ['required', 'email', 'max:255'],
         ]) : null;
 
         // One whole: an invitation refused leaves no project behind, holding its name
         $project = DB::transaction(function () use ($projects, $invitations, $request, $user, $first) {
             $project = $projects->create($user, $request->validated());
 
-            if ($first && $first['first_admin'] === 'me') {
-                $project->memberships()->create(['user_id' => $user->id, 'is_admin' => true]);
-                $user->unsetRelation('memberships');
-            } elseif ($first) {
+            if ($first) {
                 try {
                     $invitations->invite($project, $user, ['email' => $first['first_admin_email']], null, asAdmin: true);
                 } catch (ValidationException $refused) {

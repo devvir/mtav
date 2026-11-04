@@ -19,7 +19,8 @@ interface Superadmin {
 
 /**
  * Who manages the whole platform. A rare decision, so it lives here, apart: never a button
- * offered on every account. Giving the role takes the account's exact email, twice.
+ * offered on every account. A support account is invited, on an address not in the app yet:
+ * it is never anyone's own account, which stays as it is.
  */
 export default function Superadmins({ superadmins }: { superadmins: Superadmin[] }) {
   const me = usePage().props.auth.user?.id;
@@ -27,12 +28,12 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
 
   const grant = async () => {
     const ok = await confirm({
-      title: _('Give the superadmin role?'),
+      title: _('Invite a support account?'),
       message: _(
         'Superadmins see and manage every project on the platform, approve them and delete them for good.',
       ),
       typeToConfirm: form.data.email,
-      confirmLabel: _('Give the role'),
+      confirmLabel: _('Send the invitation'),
     });
     if (ok)
       form.post(route('admin.superadmins.store'), {
@@ -94,15 +95,15 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
           ))}
         </Card>
         <Panel
-          title={_('Give the role to someone')}
+          title={_('Invite a support account')}
           icon={IconShieldPlus}
           tone="warning"
           data-tour="superadmins.grant"
         >
           <Form onSubmit={grant}>
             <TextInput
-              label={_('Their account’s email')}
-              description={_('Exactly as they sign in')}
+              label={_('An email not in use here yet')}
+              description={_('A support account is apart from anyone’s own')}
               withAsterisk
               type="email"
               autoComplete="off"
@@ -110,7 +111,7 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
             />
             <Group justify="flex-end">
               <Button type="submit" variant="default" loading={form.processing}>
-                {_('Give the superadmin role')}
+                {_('Send the invitation')}
               </Button>
             </Group>
           </Form>

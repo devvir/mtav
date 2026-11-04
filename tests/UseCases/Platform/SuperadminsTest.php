@@ -1,52 +1,86 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\SupportInvitationNotification;
+use App\Models\SupportInvitation;
 
 /**
- * The superadmin role: given apart, to an account named by its exact email.
+ * The superadmin role, a support account: invited apart, on an address with no account yet, so
+ * it is never anyone's own account. It takes no place in a project: it reaches every one.
  */
 
 beforeEach(fn () => $this->withPasswordConfirmed());
 
-it('gives the role to the account with that exact email', function () {
-    $ana = aUser(['email' => 'ana@example.com']);
+it('invites a support account to an address with no account, which becomes a superadmin in no project', function () {
+    Notification::fake();
+
+    $this->as(aSuperadmin())->post(route('admin.superadmins.store'), ['email' => 'New.Support@Example.com'])->assertSessionHasNoErrors();
+
+    $token = null;
+    Notification::assertSentOnDemand(SupportInvitationNotification::class, function ($notice) use (&$token) {
+        $token = $notice->token;
+
+        return true;
+    });
+    auth()->logout();
+    $this->get(route('support-invitation.show', $token))->assertOk()->assertInertia(fn ($page) => $page->component('Auth/Invitation')->where('support', true));
+    $this->post(route('support-invitation.accept', $token), ['firstname' => 'Sol', 'password' => 'the-Support-pass-1', 'password_confirmation' => 'the-Support-pass-1'])
+        ->assertRedirect(route('admin.projects.index'));
+
+    $support = User::firstWhere('email', 'new.support@example.com');
+    expect($support->isSuperadmin())->toBeTrue()
+        ->and($support->hasVerifiedEmail())->toBeTrue()
+        ->and($support->memberships()->count())->toBe(0);
+    $this->get(route('support-invitation.show', $token))->assertInertia(fn ($page) => $page->component('Auth/InvitationInvalid'));
+});
+
+it('refuses an address that already has an account: a support account is apart from anyone\'s own', function () {
+    aUser(['email' => 'ana@example.com']);
 
     $this->as(aSuperadmin())
         ->post(route('admin.superadmins.store'), ['email' => 'ana@example.com'])
-        ->assertSessionHasNoErrors();
-
-    expect($ana->fresh()->isSuperadmin())->toBeTrue();
+        ->assertSessionHasErrors(['email' => __('validation.support_email_taken')]);
+    expect(SupportInvitation::count())->toBe(0);
 });
 
-it('says when no account has that email', function () {
-    $this->as(aSuperadmin())
-        ->post(route('admin.superadmins.store'), ['email' => 'nobody@example.com'])
-        ->assertSessionHasErrors(['email' => __('validation.no_account_with_email')]);
-});
-
-it('keeps the role away from anyone else', function () {
+it('never gives the role to an existing account', function () {
     $ana = aUser(['email' => 'ana@example.com']);
 
-    expect($this->as(aUser())->post(route('admin.superadmins.store'), ['email' => 'ana@example.com']))->toBeDenied();
-    expect($ana->fresh()->isSuperadmin())->toBeFalse();
-});
-
-it('gives the role only to an account that confirmed its email and is not blocked', function (array $state) {
-    $ana = aUser(['email' => 'ana@example.com']);
-    $ana->forceFill($state)->save();
-
-    $this->as(aSuperadmin())
-        ->post(route('admin.superadmins.store'), ['email' => 'ana@example.com'])
-        ->assertSessionHasErrors(['email' => __('validation.superadmin_unconfirmed')]);
     $this->as(aSuperadmin())
         ->put(route('admin.users.superadmin', $ana), ['grant' => true])
-        ->assertSessionHasErrors(['grant' => __('validation.superadmin_unconfirmed')]);
-
+        ->assertSessionHasErrors(['grant' => __('validation.support_by_invitation')]);
     expect($ana->fresh()->isSuperadmin())->toBeFalse();
-})->with([
-    'unconfirmed' => [['email_verified_at' => null]],
-    'blocked'     => [['blocked_at' => '2026-01-01 00:00:00']],
-]);
+});
+
+it('keeps the invitations away from anyone else', function () {
+    expect($this->as(aUser())->post(route('admin.superadmins.store'), ['email' => 'new@example.com']))->toBeDenied();
+    expect(SupportInvitation::count())->toBe(0);
+});
+
+it('takes a support account into no project: invitations to its address look sent, and stay unanswered', function () {
+    Notification::fake();
+    $support = aSuperadmin();
+    $project = aProject();
+
+    $this->as(anAdminOf($project), $project)
+        ->post(route('manage.invitations.store', $project), ['email' => $support->email, 'is_admin' => true])
+        ->assertSessionHas('success', __('flash.invitation_sent', ['email' => $support->email]));
+
+    Notification::assertNothingSent();
+    expect($project->invitations()->pending()->where('email', $support->email)->exists())->toBeTrue()
+        ->and($this->as($support)->get(route('projects.index'))->inertiaProps('invitations'))->toBe([])
+        ->and(fn () => $project->memberships()->create(['user_id' => $support->id]))->toThrow(LogicException::class);
+});
+
+it('lets a support account into any project\'s chat and files, to try them, as nobody\'s member', function () {
+    $project = aProject();
+    $member = aMemberOf(aFamily($project));
+    $support = aSuperadmin();
+
+    $this->as($support, $project)->get(route('projects.show', $project))->assertInertia(fn ($page) => $page->where('project.can.chat', true)->where('project.can.upload', true));
+    $this->as($support, $project)->postJson(route('chat.store', $project), ['people' => [$member->id]])->assertOk();
+});
 
 describe('Taking the role back', function () {
     beforeEach(function () {

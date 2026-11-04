@@ -11,6 +11,7 @@ use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\SupportInvitationController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\Manage;
@@ -81,6 +82,12 @@ Route::middleware('module:accounts')->group(function () {
     Route::post('invitations/{token}', [InvitationController::class, 'accept'])
         ->middleware('throttle:10,1')
         ->name('invitation.accept');
+
+    /** The link to a support account: an address with no account becomes a superadmin */
+    Route::get('support-invitations/{token}', [SupportInvitationController::class, 'show'])->name('support-invitation.show');
+    Route::post('support-invitations/{token}', [SupportInvitationController::class, 'accept'])
+        ->middleware('throttle:10,1')
+        ->name('support-invitation.accept');
 
     /** The emailed link works signed in too (a password asked for from the profile) */
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');

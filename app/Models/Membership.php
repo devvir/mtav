@@ -8,6 +8,7 @@ use App\Models\Concerns\BroadcastsProjectChanges;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 /**
  * A user's part in a project: as an admin, as a member of a family, or both.
@@ -34,6 +35,12 @@ class Membership extends Model
     /** Everyone taking part is in the project's Community group, pinned to begin with, and only they */
     protected static function booted(): void
     {
+        // A support account reaches every project by its role, and takes no place in any
+        static::creating(function (Membership $membership) {
+            if (User::whereKey($membership->user_id)->where('is_superadmin', true)->exists()) {
+                throw new LogicException('A superadmin takes no place in a project');
+            }
+        });
         // A family is shown while someone is in it, however they got there
         static::saving(function (Membership $membership) {
             if ($membership->family_id && $membership->isDirty('family_id')) {

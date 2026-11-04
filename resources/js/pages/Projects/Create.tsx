@@ -9,17 +9,7 @@ import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { useForm, usePage } from '@inertiajs/react';
-import {
-  Card,
-  Collapse,
-  List,
-  Radio,
-  Stack,
-  Text,
-  Textarea,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Card, List, Text, Textarea, TextInput, Title } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 
 export default function ProjectsCreate({
@@ -27,7 +17,7 @@ export default function ProjectsCreate({
   asksFirstAdmin,
 }: {
   limits: Record<string, number> | null;
-  /** A superadmin says who its first admin is: themselves, or someone invited */
+  /** A superadmin names its first admin, who is invited */
   asksFirstAdmin: boolean;
 }) {
   const { featureChoices } = usePage().props;
@@ -36,7 +26,6 @@ export default function ProjectsCreate({
     description: '',
     organization: '',
     ...optionsOf(featureChoices),
-    first_admin: 'me',
     first_admin_email: '',
   });
 
@@ -83,32 +72,18 @@ export default function ProjectsCreate({
               onChange={(organization) => form.setData('organization', organization)}
               error={form.errors.organization}
             />
+            {/* A support account takes no place in it: someone is invited to run it */}
             {asksFirstAdmin ? (
-              <Radio.Group
-                label={_('Its first admin')}
-                withAsterisk
-                value={form.data.first_admin}
-                onChange={(value) => form.setData('first_admin', value)}
-                data-tour="start.first_admin"
-              >
-                <Stack gap="xs" mt="xs">
-                  <Radio value="me" label={_('Me: I take part in it as an admin')} />
-                  <Radio value="someone" label={_('Someone I invite')} />
-                </Stack>
-              </Radio.Group>
-            ) : null}
-            <Collapse
-              expanded={asksFirstAdmin && form.data.first_admin === 'someone'}
-              transitionDuration={250}
-            >
               <TextInput
-                label={_('Their email')}
+                label={_('Its first admin’s email')}
+                description={_('They receive an invitation to run it')}
                 withAsterisk
                 type="email"
                 autoComplete="off"
+                data-tour="start.first_admin"
                 {...field(form, 'first_admin_email')}
               />
-            </Collapse>
+            ) : null}
             <ProjectOptions
               values={form.data}
               onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}

@@ -246,16 +246,11 @@ describe('In a project without guests', function () {
 });
 
 describe('A superadmin', function () {
-    it('can be admin and in a family too, shown as anyone else', function () {
+    it('takes no place in a project: it reaches every one by its role', function () {
         $superadmin = aSuperadmin();
-        $this->project->memberships()->create(['user_id' => $superadmin->id, 'is_admin' => true, 'family_id' => $this->family->id]);
-        $superadmin = $superadmin->fresh();
 
-        $seen = collect($this->as($this->admin, $this->project)->get(route('people.index'))->inertiaProps('people.data'))->firstWhere('id', $superadmin->id);
-        expect($seen['is_admin'])->toBeTrue()
-            ->and($seen['family']['id'])->toBe($this->family->id)
-            ->and($seen)->not->toHaveKey('is_superadmin')
-            ->and($superadmin->can('rankUnits', $this->project))->toBeTrue();
+        expect(fn () => $this->project->memberships()->create(['user_id' => $superadmin->id, 'is_admin' => true]))->toThrow(LogicException::class)
+            ->and($superadmin->can('update', $this->project))->toBeTrue();
     });
 
     it('does anything an admin can in a project they are not in; ranking takes a family', function () {

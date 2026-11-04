@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers\Platform;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
+use App\Notifications\SupportInvitationNotification;
+use App\Models\SupportInvitation;
+use App\Models\Invitation;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AccountService;
@@ -80,44 +86,57 @@ class UserController extends Controller
         ]);
     }
 
-    /** Giving the role to an account named by its exact email, once confirmed and not blocked */
+    /**
+     * A support account (a superadmin) is invited, on an address with no account: it is apart
+     * from anyone's place in a project. Whoever already has an account uses another address.
+     */
     public function grant(Request $request): RedirectResponse
     {
         // Emails are kept in lower case
         $email = strtolower($request->validate(['email' => ['required', 'email']])['email']);
-        $user = User::where('email', $email)->first()
-            ?? throw ValidationException::withMessages(['email' => __('validation.no_account_with_email')]);
 
-        $this->ensureCanHoldRole($user, 'email');
-        $user->forceFill(['is_superadmin' => true])->save();
+        if (User::where('email', $email)->exists()) {
+            throw ValidationException::withMessages(['email' => __('validation.support_email_taken')]);
+        }
 
-        return back()->with('success', __('flash.superadmin_granted', ['name' => $user->name]));
+        $token = Str::random(48);
+        $invitation = DB::transaction(function () use ($request, $email, $token) {
+            // A newer invitation replaces any pending one for the same address
+            SupportInvitation::where('email', $email)->whereNull('accepted_at')->delete();
+
+            return SupportInvitation::create([
+                'email'      => $email,
+                'token_hash' => Invitation::hashToken($token),
+                'invited_by' => $request->user()->id,
+                'expires_at' => now()->addDays(config('limits.invitation_days')),
+            ]);
+        });
+
+        Notification::route('mail', $email)->notify(new SupportInvitationNotification($invitation, $token));
+
+        return back()->with('success', __('flash.invitation_sent', ['email' => $email]));
     }
 
+    /** The role is taken away here; it is only ever given by an invitation (grant) */
     public function superadmin(Request $request, User $user): RedirectResponse
     {
         $grant = $request->validate(['grant' => ['required', 'boolean']])['grant'];
 
-        if (! $grant && $user->is($request->user())) {
+        if ($grant) {
+            throw ValidationException::withMessages(['grant' => __('validation.support_by_invitation')]);
+        }
+
+        if ($user->is($request->user())) {
             throw ValidationException::withMessages(['grant' => __('validation.cannot_revoke_self')]);
         }
 
         // The deployment's first superadmin stays one: nobody could bring them back
-        if (! $grant && $user->is_owner) {
+        if ($user->is_owner) {
             throw ValidationException::withMessages(['grant' => __('validation.owner_keeps_role')]);
         }
 
-        $grant && $this->ensureCanHoldRole($user, 'grant');
-        $user->forceFill(['is_superadmin' => $grant])->save();
+        $user->forceFill(['is_superadmin' => false])->save();
 
-        return back()->with('success', __($grant ? 'flash.superadmin_granted' : 'flash.superadmin_revoked', ['name' => $user->name]));
-    }
-
-    /** An address nobody proved could be anyone's; a closed account stays closed */
-    private function ensureCanHoldRole(User $user, string $errorKey): void
-    {
-        if (! $user->hasVerifiedEmail() || $user->isBlocked()) {
-            throw ValidationException::withMessages([$errorKey => __('validation.superadmin_unconfirmed')]);
-        }
+        return back()->with('success', __('flash.superadmin_revoked', ['name' => $user->name]));
     }
 }

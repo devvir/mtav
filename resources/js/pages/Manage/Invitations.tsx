@@ -168,7 +168,7 @@ export default function ManageInvitations({
                         label: !families.length
                           ? _('No families yet')
                           : form.data.is_admin
-                            ? _('Not joined a family yet')
+                            ? _('Assign no family')
                             : _('As a guest'),
                       },
                     ]

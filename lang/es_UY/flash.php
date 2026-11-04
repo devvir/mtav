@@ -99,4 +99,5 @@ return [
     'family_ask_declined'     => 'Rechazaste a :name.',
     'family_ask_undeclined'   => ':name puede volver a pedirlo.',
     'family_left'             => 'Saliste de tu familia.',
+    'support_account_ready'   => 'Tu cuenta de soporte está lista.',
 ];

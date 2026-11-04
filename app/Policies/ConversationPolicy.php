@@ -16,9 +16,10 @@ use App\Models\User;
  */
 class ConversationPolicy
 {
+    /** Its people talk; a support account too, to try it out (it is nobody's place in it) */
     public function startChat(User $user, Project $project): bool
     {
-        return (bool) $user->membershipIn($project);
+        return (bool) $user->membershipIn($project) || $user->isSuperadmin();
     }
 
     public function readChat(User $user, Conversation $conversation): bool
@@ -28,7 +29,7 @@ class ConversationPolicy
             return false;
         }
 
-        return $user->membershipIn($conversation->project_id) && $conversation->includes($user);
+        return ($user->membershipIn($conversation->project_id) || $user->isSuperadmin()) && $conversation->includes($user);
     }
 
     public function writeChat(User $user, Conversation $conversation): bool

@@ -160,7 +160,7 @@ class HandleInertiaRequests extends Middleware
         $family = $user->familyIn($project);
         $manages = $user->can('update', $project);
         // Without guests, until they have a family, finding it is all there is for them
-        $inChat = ! $user->needsFamilyIn($project) && ($project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project)));
+        $inChat = ! $user->needsFamilyIn($project) && $project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project) || $user->isSuperadmin());
 
         return [
             'id'                    => $project->id,

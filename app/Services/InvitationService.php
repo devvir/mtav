@@ -83,11 +83,16 @@ class InvitationService
         // Nothing else happens the moment it expires
         $family && DiscardFamilyIfEmpty::dispatch($family->id)->delay(now()->addDays(config('limits.invitation_days'))->addMinute());
 
+        // A support account's address is nobody's business: the invitation looks sent, and stays
+        // unanswered (no email, no notice; it can never be accepted)
+        $invitee = User::firstWhere('email', $email);
+        if ($invitee?->isSuperadmin()) {
+            return $invitation;
+        }
+
         Notification::route('mail', $email)->notify(new InvitationNotification($invitation, $token));
 
         // An account never confirmed may not be the address's owner: the email reaches them alone
-        $invitee = User::firstWhere('email', $email);
-
         if ($invitee?->hasVerifiedEmail()) {
             $this->notifications->send(
                 NotificationTarget::PRIVATE,
@@ -118,6 +123,8 @@ class InvitationService
      */
     public function accept(Invitation $invitation, User $user): Membership
     {
+        abort_if($user->isSuperadmin(), 404);
+
         $alreadyAccepted = false;
 
         $membership = DB::transaction(function () use ($invitation, $user, &$alreadyAccepted) {

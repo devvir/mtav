@@ -4,11 +4,13 @@ import { keepPlaces } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { ProjectFeature, ProjectFeatures } from '@/types/models';
+import { Alert } from '@mantine/core';
 import {
   IconCalendarEvent,
   IconDice5,
   IconHome,
   IconLayoutGrid,
+  IconLifebuoy,
   IconMessageCircle,
   IconMessages,
   IconPhoto,
@@ -212,6 +214,20 @@ export function ProjectLayout({ children }: { children: ReactNode }) {
 
   return (
     <AppShell heading={project.name} nav={nav} tabs={tabs}>
+      {/* A support account sees and does what anyone here does: it should never pass for one of them */}
+      {props.auth.user?.is_superadmin ? (
+        <Alert
+          className="support-account"
+          color="grape"
+          variant="light"
+          mb="md"
+          icon={<IconLifebuoy size={18} />}
+        >
+          {_(
+            'You are in a support account. What you write here, the project’s people read: use it only to try things out.',
+          )}
+        </Alert>
+      ) : null}
       {children}
     </AppShell>
   );

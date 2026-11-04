@@ -259,4 +259,6 @@ return [
     'family_none'            => 'You have not joined a family here.',
     'family_cannot_leave'    => 'Here everyone takes part as a family: ask to join yours, or create it.',
     'family_declined_them'   => 'This family declined this person: only someone in it can lift that.',
+    'support_email_taken'    => 'That email already has an account here. A support account needs an address of its own.',
+    'support_by_invitation'  => 'The support role comes only with an invitation, to an address not in use here yet.',
 ];

@@ -259,4 +259,6 @@ return [
     'family_none'            => 'Vous n’avez pas encore rejoint de famille ici.',
     'family_cannot_leave'    => 'Ici, chacun participe en famille : demandez à rejoindre la vôtre, ou créez-la.',
     'family_declined_them'   => 'Cette famille a refusé cette personne : seul l’un de ses membres peut l’annuler.',
+    'support_email_taken'    => 'Cet e-mail a déjà un compte ici. Un compte de support a besoin de sa propre adresse.',
+    'support_by_invitation'  => 'Le rôle de support ne s’obtient que par une invitation, à une adresse pas encore utilisée ici.',
 ];
