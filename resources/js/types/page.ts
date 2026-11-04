@@ -36,6 +36,8 @@ export interface SharedProps {
   lastProject: Id | null;
   /** On the person's own pages, the project whose chat they carry (lib/chat.ts) */
   chatProject: SharedProps['project'];
+  /** On those pages with no project framing them: their own chat with the Assistant */
+  accountChat: { unread: number; welcome: Id | null } | null;
   project: {
     id: Id;
     name: string;

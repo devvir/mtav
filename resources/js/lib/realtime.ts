@@ -3,7 +3,7 @@ import type { RealtimeServer } from '@/types/page';
 import { router, usePage } from '@inertiajs/react';
 import { configureEcho, echo } from '@laravel/echo-react';
 import { useEffect, useEffectEvent } from 'react';
-import { chatState, openChat, refreshChat } from './chat';
+import { chatState, openChat, refreshChat, useChatProject } from './chat';
 import { route, routeIs } from './route';
 import { toast } from './toasts';
 import { _ } from './translations';
@@ -177,14 +177,16 @@ const unread = unreadCount();
  * only if it can move.
  */
 export function useLiveMessages() {
-  const { props } = usePage();
-  const user = props.auth.user;
-  const project = props.project;
+  const user = usePage().props.auth.user;
+  // Whichever chat the page holds: the project's, one framing the person's own pages, or theirs
+  const { project, account, prop } = useChatProject();
+  const chatting = Boolean(project?.can.chat || account);
+  const chatKey = project?.id ?? 0;
   const onMessage = useEffectEvent((message: MessageArrived) => {
     if (message.by === user?.id) return;
 
     const { open, conversation } = chatState();
-    const inChat = open || routeIs('chat.*');
+    const inChat = open || routeIs('chat.*', 'account.chat.*');
 
     if (inChat && conversation === message.conversation_id) {
       unread.inSight(message.conversation_id);
@@ -193,7 +195,7 @@ export function useLiveMessages() {
     }
 
     refreshListSoon();
-    if (unread.arrives(message.conversation_id)) router.reload({ only: ['project'] });
+    if (unread.arrives(message.conversation_id)) router.reload({ only: [prop] });
 
     // Already in sight: the list it comes to
     if (inChat && !conversation) return;
@@ -208,10 +210,11 @@ export function useLiveMessages() {
           ? _('New message from {name}', { name: message.author ?? _('Assistant') })
           : _('New message'),
       onClick: withWindow ? () => openChat(message.conversation_id) : undefined,
-      href:
-        !withWindow && project
+      href: withWindow
+        ? null
+        : project
           ? route('chat.show', { project: project.id, conversation: message.conversation_id })
-          : null,
+          : route('account.chat.index'),
     });
   });
 
@@ -219,14 +222,15 @@ export function useLiveMessages() {
   const onRemoved = useEffectEvent((removed: MessageRemoved) => {
     if (removed.by === user?.id) return;
     refreshChat();
-    router.reload({ only: ['project'] });
+    router.reload({ only: [prop] });
   });
 
-  useEffect(() => unread.reset, [project?.id]);
-  useEffect(() => unread.known(project?.unread_messages), [project?.unread_messages]);
+  const known = project ? project.unread_messages : account?.unread;
+  useEffect(() => unread.reset, [chatKey]);
+  useEffect(() => unread.known(known), [known]);
 
   useEffect(() => {
-    if (!user || !project?.can.chat || !realtimeEnabled()) return undefined;
+    if (!user || !chatting || !realtimeEnabled()) return undefined;
     return listenOn(`users.${user.id}`, { '.message': onMessage, '.message-removed': onRemoved });
-  }, [user?.id, project?.id, project?.can.chat]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, chatKey, chatting]); // eslint-disable-line react-hooks/exhaustive-deps
 }

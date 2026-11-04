@@ -23,6 +23,8 @@ return [
         'can_do_rank'    => 'Vous pouvez aussi classer les logements que votre famille souhaite.',
         'can_do_manage'  => 'En tant qu’admin, vous préparez aussi le projet et invitez les gens.',
         'can_do_action'  => 'Faire le tour',
+        'outside'        => 'Hors d’un projet, vous en trouvez un à rejoindre, lancez le vôtre ou réglez votre compte. Ouvrez un projet pour voir tout ce qu’il contient.',
+        'outside_action' => 'Trouver un projet',
         'lottery'        => 'Chaque famille classe les logements de son type, du plus souhaité au moins souhaité. À la date prévue, un admin lance le tirage : il rend d’abord la famille qui serait la moins bien lotie aussi satisfaite que possible, puis tout le projet aussi satisfait que possible. Seules les égalités sont départagées au hasard.',
         'lottery_action' => 'Voir comment ça marche',
         'rank'           => 'Dans Tirage, vous classez les logements du type de votre famille, du plus souhaité au moins souhaité. Chaque changement est enregistré aussitôt, pour toute la famille, jusqu’au tirage. Personne d’autre que votre famille ne voit votre classement.',

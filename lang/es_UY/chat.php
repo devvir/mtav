@@ -23,6 +23,8 @@ return [
         'can_do_rank'    => 'También puedes ordenar las viviendas que le gustarían a tu familia.',
         'can_do_manage'  => 'Como admin, además pones a punto el proyecto e invitas a la gente.',
         'can_do_action'  => 'Muéstrame cómo es',
+        'outside'        => 'Fuera de un proyecto, puedes encontrar uno para sumarte, empezar el tuyo o ajustar tu cuenta. Abre un proyecto para ver todo lo que tiene.',
+        'outside_action' => 'Encontrar un proyecto',
         'lottery'        => 'Cada familia ordena las viviendas de su tipo, de la que más quiere a la que menos. En la fecha, un admin hace el sorteo: primero hace que a la familia peor ubicada le toque lo mejor posible, y después deja al proyecto entero lo más conforme posible. Solo los empates se resuelven al azar.',
         'lottery_action' => 'Ver cómo funciona',
         'rank'           => 'En Sorteo ordenas las viviendas del tipo de tu familia, de la que más quieres a la que menos. Cada cambio se guarda al instante, para toda la familia, hasta que se haga el sorteo. Nadie fuera de tu familia ve tu orden.',

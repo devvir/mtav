@@ -1,6 +1,7 @@
+import { route } from '@/lib/route';
 import type { SharedProps } from '@/types/page';
 import { usePage } from '@inertiajs/react';
-import { useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 /**
  * The chat's window, wherever one is in the app: whether it is open, which conversation it
@@ -38,15 +39,32 @@ export const useChat = () =>
   );
 
 /**
- * The project whose chat this page carries: the one being browsed, or, on the person's own
- * pages (profile, notifications), the one framing them. `prop` is where the page holds it.
+ * The chat this page carries. A project's: the one being browsed, or, on the person's own
+ * pages (profile, notifications), the one framing them. With none framing them, their own,
+ * with the Assistant alone (`account`). `prop` is where the page holds it.
  */
 export function useChatProject(): {
   project: SharedProps['project'];
-  prop: 'project' | 'chatProject';
+  account: SharedProps['accountChat'];
+  prop: 'project' | 'chatProject' | 'accountChat';
 } {
-  const { project, chatProject } = usePage<SharedProps>().props;
-  return project
-    ? { project, prop: 'project' }
-    : { project: chatProject ?? null, prop: 'chatProject' };
+  const { project, chatProject, accountChat } = usePage<SharedProps>().props;
+  if (project) return { project, account: null, prop: 'project' };
+  if (chatProject) return { project: chatProject, account: null, prop: 'chatProject' };
+  return { project: null, account: accountChat ?? null, prop: 'accountChat' };
+}
+
+/**
+ * The address of one of the chat's actions: the project's, or (in none) the person's own. The
+ * same function while the project stays (what loads the chat depends on it)
+ */
+export function useChatRoute() {
+  const projectId = useChatProject().project?.id;
+  return useCallback(
+    (name: string, params: Record<string, string | number> = {}) =>
+      projectId
+        ? route(`chat.${name}`, { project: projectId, ...params })
+        : route(`account.chat.${name}`, params),
+    [projectId],
+  );
 }

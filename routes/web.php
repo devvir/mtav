@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountChatController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -133,6 +134,17 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
     Route::post('settings/password/link', [PasswordController::class, 'link'])
         ->middleware('throttle:3,5')
         ->name('password.link');
+
+    /** The chat outside any project: someone's own conversation with the Assistant */
+    Route::prefix('chat')->name('account.chat.')->controller(AccountChatController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('panel', 'panel')->name('panel');
+        Route::post('welcomed', 'welcomed')->name('welcomed');
+        Route::put('{conversation}/pin', 'pin')->name('pin');
+        Route::post('{conversation}/messages', 'send')->middleware('throttle:120,1')->name('send');
+        Route::delete('messages/{message}', 'destroyMessage')->name('messages.destroy');
+        Route::post('messages/{message}/report', 'report')->middleware('throttle:10,1')->name('report');
+    });
 
     /** Notifications */
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

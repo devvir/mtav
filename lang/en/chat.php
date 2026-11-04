@@ -23,6 +23,8 @@ return [
         'can_do_rank'    => 'You can also rank the units your family would like.',
         'can_do_manage'  => 'As an admin, you also set the project up and invite people.',
         'can_do_action'  => 'Show me around',
+        'outside'        => 'Outside a project, you find one to join, start your own, or adjust your account. Open a project to see everything in it.',
+        'outside_action' => 'Find a project',
         'lottery'        => 'Each family ranks the units of its type, from the most to the least wanted. On its date, an admin runs the lottery: it first makes the family that would be worst off as well off as possible, then the whole project as satisfied as possible. Only ties are broken at random.',
         'lottery_action' => 'See how it works',
         'rank'           => 'In Lottery you rank the units of your family\'s type, from the most to the least wanted. Every change is saved at once, for the whole family, until the lottery runs. Nobody but your family sees your ranking.',

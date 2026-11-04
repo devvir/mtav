@@ -291,3 +291,25 @@ it('is at hand on one\'s own pages too, in the project last browsed', function (
         ->assertSeeIn('.chat-window', 'Assistant')
         ->assertNoSmoke();
 });
+
+it('is at hand outside any project too: the Assistant alone, with nobody to start a conversation with', function () {
+    $this->as(aUser(['firstname' => 'Luz']));
+
+    visit(route('projects.index'))
+        ->click('.chat-launcher')
+        ->assertSeeIn('.chat-window', 'Assistant')
+        ->assertMissing('.chat-window [data-tour="chat.new"]')
+        ->click('.chat-list-item:has-text("Assistant")')
+        ->assertSeeIn('.chat-window', 'I am the Assistant of this app')
+        ->click('.chat-window button:has-text("What can I do here?")')
+        ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
+        ->click('.chat-actions button:has-text("' . __('chat.ready.outside_action') . '")')
+        ->assertPathIs(route('directory.index', absolute: false))
+        ->assertNoSmoke();
+
+    // Its own page, where phones have it: the conversation open from the start
+    visit(route('account.chat.index'))
+        ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
+        ->assertMissing('[data-tour="chat.new"]')
+        ->assertNoSmoke();
+});

@@ -42,7 +42,10 @@ class Assistant
         $conversation = $question->conversation;
         $user = $question->author;
 
-        if (! $user || ! $user->membershipIn($conversation->project_id)) {
+        // Theirs alone, and only while they still have a place where it is (a support account
+        // has every project, and none of its own)
+        $there = $conversation->project_id ? $user?->membershipIn($conversation->project_id) || $user?->isSuperadmin() : true;
+        if (! $user || ! $there || ! $conversation->includes($user)) {
             return;
         }
 
@@ -158,7 +161,7 @@ class Assistant
     }
 
     /** The words of a refusal, or nothing: it costs nothing to say no here */
-    private function overLimit(User $user, Project $project): ?string
+    private function overLimit(User $user, ?Project $project): ?string
     {
         if (config('assistant.driver') === 'off') {
             return 'chat.assistant_off';
@@ -168,9 +171,9 @@ class Assistant
             ->whereHas('conversation', fn ($q) => $q->where('is_assistant', true))
             ->where('from_assistant', false)
             ->whereNull('extras');
-        // A limited project's people have half
+        // A limited project's people have half; so has someone in no project yet
         $theirs = (int) config('assistant.per_person_per_day');
-        $theirs = $project->isApproved() ? $theirs : intdiv($theirs, 2);
+        $theirs = $project?->isApproved() ? $theirs : intdiv($theirs, 2);
 
         return match (true) {
             (clone $today)->where('user_id', $user->id)->count() > $theirs => 'chat.assistant_limit',
@@ -215,7 +218,7 @@ class Assistant
         $places = $this->places->for($user, $conversation->project);
         $admins = $this->places->hasAdmins($user, $conversation->project);
         $reports = Report::leftToday($user) > 0;
-        $project = ['project' => $conversation->project_id];
+        $project = $conversation->project_id ? ['project' => $conversation->project_id] : [];
 
         return collect($offered)
             ->map(function ($action) use ($places, $admins, $reports, $project) {

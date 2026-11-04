@@ -23,6 +23,8 @@ return [
         'can_do_rank'    => 'Puoi anche ordinare le unità che la tua famiglia desidera.',
         'can_do_manage'  => 'Come admin, prepari anche il progetto e inviti le persone.',
         'can_do_action'  => 'Fammi vedere',
+        'outside'        => 'Fuori da un progetto, ne trovi uno a cui unirti, avvii il tuo o sistemi il tuo account. Apri un progetto per vedere tutto quello che contiene.',
+        'outside_action' => 'Trova un progetto',
         'lottery'        => 'Ogni famiglia ordina le unità del proprio tipo, dalla più desiderata alla meno desiderata. Alla data stabilita, un admin avvia il sorteggio: prima rende la famiglia che starebbe peggio il più soddisfatta possibile, poi tutto il progetto il più soddisfatto possibile. Solo i pareggi si decidono a caso.',
         'lottery_action' => 'Vedi come funziona',
         'rank'           => 'In Sorteggio ordini le unità del tipo della tua famiglia, dalla più desiderata alla meno desiderata. Ogni modifica si salva subito, per tutta la famiglia, fino al sorteggio. Solo la tua famiglia vede il tuo ordine.',

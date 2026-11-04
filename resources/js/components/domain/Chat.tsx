@@ -1,6 +1,6 @@
 import { DateTime, formatDate } from '@/components/feedback/DateTime';
 import { PersonAvatar } from '@/design';
-import { minimizeChat, showConversation, useChat, useChatProject } from '@/lib/chat';
+import { minimizeChat, showConversation, useChat, useChatProject, useChatRoute } from '@/lib/chat';
 import { confirm } from '@/lib/dialogs';
 import { fieldErrors, sendJson } from '@/lib/json';
 import { heldOffline } from '@/lib/offline';
@@ -166,7 +166,9 @@ function ConversationList({
   popup: boolean;
   onChange: () => Promise<void>;
 }) {
-  const projectId = useChatProject().project!.id;
+  // Outside any project there is nobody to start one with: the Assistant is all there is
+  const { project } = useChatProject();
+  const chatRoute = useChatRoute();
   const [query, setQuery] = useState('');
   const groups = conversations.filter((conversation) => conversation.is_group);
   const chats = conversations.filter((conversation) => !conversation.is_group);
@@ -181,7 +183,7 @@ function ConversationList({
     .filter((conversation) => conversation.title.toLowerCase().includes(words))
     .sort((one, other) => Number(other.pinned ?? false) - Number(one.pinned ?? false));
   const pin = async (conversation: ConversationSummary) => {
-    const url = route('chat.pin', { project: projectId, conversation: conversation.id });
+    const url = chatRoute('pin', { conversation: conversation.id });
     if ((await sendJson('PUT', url, { pinned: !conversation.pinned })).ok) await onChange();
     else refused();
   };
@@ -194,15 +196,17 @@ function ConversationList({
         <Group justify="space-between" wrap="nowrap" mb="xs">
           <Text fw={700}>{_('Messages')}</Text>
           <Group gap={4} wrap="nowrap">
-            <Button
-              size="xs"
-              variant="light"
-              leftSection={<IconPlus size={16} />}
-              data-tour="chat.new"
-              onClick={onNew}
-            >
-              {_('New conversation')}
-            </Button>
+            {project ? (
+              <Button
+                size="xs"
+                variant="light"
+                leftSection={<IconPlus size={16} />}
+                data-tour="chat.new"
+                onClick={onNew}
+              >
+                {_('New conversation')}
+              </Button>
+            ) : null}
             {popup ? <MinimizeButton /> : null}
           </Group>
         </Group>
@@ -368,6 +372,7 @@ function AssistantActions({
   onChange?: () => Promise<void>;
 }) {
   const { project } = useChatProject();
+  const chatRoute = useChatRoute();
   const [sent, setSent] = useState<number[]>([]);
   const [busy, setBusy] = useState<number | null>(null);
 
@@ -376,9 +381,10 @@ function AssistantActions({
     if (heldOffline()) return undefined;
 
     // Writing to an admin: their conversation opens right here, in the chat
-    if (action.type === 'message') {
+    // (only in a project: outside one there is nobody to write to, and the server offers none)
+    if (action.type === 'message' && project) {
       setBusy(index);
-      const response = await sendJson('POST', route('chat.admin', { project: project!.id }), {});
+      const response = await sendJson('POST', route('chat.admin', { project: project.id }), {});
       setBusy(null);
       if (!response.ok) return refused();
       const { conversation } = (await response.json()) as { conversation: number };
@@ -388,13 +394,9 @@ function AssistantActions({
 
     if (action.type === 'report' && message) {
       setBusy(index);
-      const response = await sendJson(
-        'POST',
-        route('chat.report', { project: project!.id, message }),
-        {
-          action: index,
-        },
-      );
+      const response = await sendJson('POST', chatRoute('report', { message }), {
+        action: index,
+      });
       setBusy(null);
       if (response.status === 429) {
         return toast({
@@ -470,8 +472,8 @@ function Thread({
   onChange: () => Promise<void>;
   onEarlier: (count: number) => Promise<void>;
 }) {
-  const { project } = useChatProject();
-  const at = { project: project!.id, conversation: conversation.id };
+  const chatRoute = useChatRoute();
+  const at = { conversation: conversation.id };
   const scroller = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
   const [body, setBody] = useState('');
@@ -495,7 +497,7 @@ function Thread({
     atBottom.current = true;
     setSending(true);
     setBodyError(undefined);
-    const response = await sendJson('POST', route('chat.send', at), { body: words });
+    const response = await sendJson('POST', chatRoute('send', at), { body: words });
     if (response.ok) {
       setBody('');
       await onChange();
@@ -522,7 +524,7 @@ function Thread({
     if (
       await confirm({ title: _('Delete this message?'), confirmLabel: _('Delete'), danger: true })
     ) {
-      const url = route('chat.messages.destroy', { project: project!.id, message: message.id });
+      const url = chatRoute('messages.destroy', { message: message.id });
       if ((await sendJson('DELETE', url, {})).ok) await onChange();
       else refused();
     }
@@ -537,7 +539,7 @@ function Thread({
         danger: true,
       })
     ) {
-      if ((await sendJson('DELETE', route('chat.leave', at), {})).ok) {
+      if ((await sendJson('DELETE', chatRoute('leave', at), {})).ok) {
         showConversation(null);
         await onChange();
       } else refused();
@@ -951,7 +953,9 @@ export function Chat({
   popup?: boolean;
 }): ReactNode {
   const { project: chatProject, prop: projectProp } = useChatProject();
-  const projectId = chatProject!.id;
+  const chatRoute = useChatRoute();
+  // What it remembers is kept per project; 0 is the person's own, outside any
+  const projectId = chatProject?.id ?? 0;
   const { conversation: open, version } = useChat();
   const [data, setData] = useState<ChatData | null>(initial ?? seen.get(projectId) ?? null);
   // How many messages were asked for, of the conversation they were asked for
@@ -966,8 +970,7 @@ export function Chat({
   const load = useCallback(
     async (messages = count) => {
       const ask = ++asked.current;
-      const url = route('chat.panel', {
-        project: projectId,
+      const url = chatRoute('panel', {
         ...(open ? { conversation: open, count: messages } : {}),
         ...(peopleOf.current === projectId ? { known_people: 1 } : {}),
       });
@@ -996,7 +999,7 @@ export function Chat({
       // Read now: whatever counts the conversations with something new follows
       if (wasUnread) router.reload({ only: [projectProp] });
     },
-    [projectId, projectProp, open, count],
+    [projectId, projectProp, open, count, chatRoute],
   );
 
   useEffect(() => {
@@ -1040,7 +1043,11 @@ export function Chat({
           {open ? (
             <Skeleton h="100%" w="100%" radius="md" />
           ) : (
-            <Text c="dimmed">{_('Pick a conversation, or start a new one.')}</Text>
+            <Text c="dimmed">
+              {chatProject
+                ? _('Pick a conversation, or start a new one.')
+                : _('Pick a conversation.')}
+            </Text>
           )}
         </div>
       )}

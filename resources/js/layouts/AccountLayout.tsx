@@ -2,7 +2,13 @@ import { AppShell, type NavGroup } from '@/components/layout/AppShell';
 import { useCurrentPage } from '@/components/layout/page';
 import { route, routeIs } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { IconBell, IconFolders, IconSearch, IconUser } from '@tabler/icons-react';
+import {
+  IconBell,
+  IconFolders,
+  IconMessageCircle,
+  IconSearch,
+  IconUser,
+} from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { projectNav, projectPlaces } from './ProjectLayout';
 
@@ -12,7 +18,7 @@ import { projectNav, projectPlaces } from './ProjectLayout';
  * only one; someone in several also finds all their projects here.
  */
 export function AccountLayout({ children }: { children: ReactNode }) {
-  const { projects, lastProject, chatProject } = useCurrentPage().props;
+  const { projects, lastProject, chatProject, accountChat } = useCurrentPage().props;
   const only = projects.length === 1 ? projects[0]! : null;
   const listed = projects.find((project) => project.id === lastProject) ?? only;
   // The server's fuller word on the same project brings its chat into the menu (on phones)
@@ -42,6 +48,19 @@ export function AccountLayout({ children }: { children: ReactNode }) {
           icon: IconSearch,
           active: routeIs('directory.*'),
         },
+        // With no project framing them, their own chat (on phones: elsewhere, its bubble)
+        ...(accountChat
+          ? [
+              {
+                label: _('Messages'),
+                href: route('account.chat.index'),
+                icon: IconMessageCircle,
+                active: routeIs('account.chat.*'),
+                phoneOnly: true,
+                count: accountChat.unread || undefined,
+              },
+            ]
+          : []),
         {
           label: _('Notifications'),
           href: route('notifications.index'),

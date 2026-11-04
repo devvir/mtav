@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A chat between people of a project: two of them (one per pair), or a group with its
  * name. Only those in it read it; nobody else does, the project's admins included. Each
  * project has one Community group, with everyone in it and nobody able to leave, and each
- * person has one conversation with the Assistant (App\Services\Assistant).
+ * person has one conversation with the Assistant (App\Services\Assistant). Outside any project
+ * (in none yet, or none chosen), someone has one more, of no project: with the Assistant alone.
  */
 class Conversation extends Model
 {
@@ -56,14 +57,15 @@ class Conversation extends Model
         return $this->participants()->whereKey($user->id)->exists();
     }
 
-    /** The conversations someone is in, in a project */
-    public function scopeOf(Builder $query, User $user, Project|int $project): void
+    /** The conversations someone is in, in a project; with none, their own with the Assistant */
+    public function scopeOf(Builder $query, User $user, Project|int|null $project): void
     {
-        $project = $project instanceof Project ? $project : Project::find($project);
+        $project = $project === null || $project instanceof Project ? $project : Project::find($project);
 
         $query->where('project_id', $project?->id)
             ->whereHas('participants', fn (Builder $query) => $query->whereKey($user->id))
-            ->when(! $project?->hasFeature(ProjectFeature::ASSISTANT), fn (Builder $query) => $query->where('is_assistant', false));
+            ->when($project && ! $project->hasFeature(ProjectFeature::ASSISTANT), fn (Builder $query) => $query->where('is_assistant', false))
+            ->when(! $project, fn (Builder $query) => $query->where('is_assistant', true));
     }
 
     /**

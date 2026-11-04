@@ -9,6 +9,7 @@ use App\Models\Media;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\ChatService;
 use App\Support\Variant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,7 +21,7 @@ use Tighten\Ziggy\Ziggy;
 class HandleInertiaRequests extends Middleware
 {
     /** The person's own pages, framed by a project (resources/js/layouts/AccountLayout.tsx) */
-    private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create'];
+    private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create', 'account.chat.*'];
     protected $rootView = 'app';
 
     public function share(Request $request): array
@@ -53,8 +54,12 @@ class HandleInertiaRequests extends Middleware
             /** The project last browsed: the person's own pages stay in its frame */
             'lastProject' => fn () => $request->session()->get('last_project'),
             /** On those pages, the project whose chat they carry: the same frame's */
-            'chatProject' => fn () => $user && $request->routeIs(self::FRAMED) && ($framing = $this->framing($request, $user))
+            'chatProject' => fn () => $user && $request->routeIs(self::FRAMED) && ! $request->routeIs('account.chat.*') && ($framing = $this->framing($request, $user))
                 ? $this->project($framing, $user)
+                : null,
+            /** On those pages with no project framing them (and on its own page): theirs with the Assistant */
+            'accountChat' => fn () => $user && $request->routeIs(self::FRAMED) && ($request->routeIs('account.chat.*') || ! $this->framing($request, $user))
+                ? $this->accountChat($user)
                 : null,
             'notifications' => fn () => $user ? ['unread' => Notification::for($user)->unreadBy($user)->count()] : null,
             /** The latest few, for the bell's menu: sent only when it asks (a partial reload) */
@@ -149,6 +154,22 @@ class HandleInertiaRequests extends Middleware
 
         return (clone $projects)->find($request->session()->get('last_project'))
             ?? ((clone $projects)->count() === 1 ? $projects->first() : null);
+    }
+
+    /**
+     * The chat outside any project: someone's own conversation with the Assistant, nobody else.
+     * Someone's first arrival (signed up, invited nowhere) opens it to greet them.
+     *
+     * @return array{unread: int, welcome: int|null}
+     */
+    private function accountChat(User $user): array
+    {
+        $welcome = ! $user->welcomed_at && config('assistant.driver') !== 'off';
+
+        return [
+            'unread'  => Conversation::of($user, null)->unreadBy($user)->count(),
+            'welcome' => $welcome ? app(ChatService::class)->assistantFor($user)->id : null,
+        ];
     }
 
     /**

@@ -67,7 +67,7 @@ class Prompt
     }
 
     /** What never changes for people of this role and language: cached by the API */
-    public function instructions(User $user, Project $project): string
+    public function instructions(User $user, ?Project $project): string
     {
         $guides = collect($this->guidesFor($user, $project))
             ->map(fn (string $guide) => $this->guideText($guide))
@@ -77,9 +77,13 @@ class Prompt
         return self::RULES . "\n\n# What you know about the app\n\n<guides>\n{$guides}\n</guides>";
     }
 
-    /** About this person and their project, today */
-    public function context(User $user, Project $project): string
+    /** About this person and their project, today (or, in none, where they stand) */
+    public function context(User $user, ?Project $project): string
     {
+        if (! $project) {
+            return $this->outside($user);
+        }
+
         $family = $user->familyIn($project);
         // Superadmins are, here, admins like any other: nothing more is said of them
         $role = match (true) {
@@ -128,12 +132,43 @@ class Prompt
         TEXT;
     }
 
+    /**
+     * On their own pages, in no project: who they are, and how many projects they have. Nothing
+     * of any project's goes in: that is for the chat of the project, once opened.
+     */
+    private function outside(User $user): string
+    {
+        $count = $user->reachableProjects()->count();
+        $where = match (true) {
+            $user->isSuperadmin() => 'a support account of the platform: it reaches every project, and belongs to none',
+            $count > 0            => "in {$count} project(s), none open right now: questions about one need it open first (their projects are under \"your_projects\")",
+            default               => 'in no project yet: they can find one in the directory and ask to join, wait for an invitation by email, or start their own',
+        };
+        $places = collect($this->places->for($user, null))
+            ->map(fn (array $place, string $key) => "- {$key}: {$place['about']}" . (isset($place['tour']) ? ' (has a tour)' : ''))
+            ->join("\n");
+
+        return <<<TEXT
+        # About this person
+        - First name: {$this->clean($user->firstname)}
+        - Language to write in: {$this->languageName()}
+        - Where they are: on their own pages, outside any project
+        - Their projects: {$where}
+        - Admins to write to: none here (only inside a project)
+        - Reports they can send today: {$this->reportsLeft($user)}
+        - Today: {$this->today()}
+
+        # Places
+        {$places}
+        TEXT;
+    }
+
     /** @return list<string> */
-    private function guidesFor(User $user, Project $project): array
+    private function guidesFor(User $user, ?Project $project): array
     {
         $guides = ['guide.member.html', 'FAQ.member.json'];
 
-        if ($user->manages($project)) {
+        if ($project && $user->manages($project)) {
             array_push($guides, 'guide.admin.html', 'FAQ.admin.json');
         }
 

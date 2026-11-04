@@ -66,6 +66,29 @@ class ChatService
         }
     }
 
+    /**
+     * Their conversation with the Assistant where joining gave them none: outside any project,
+     * or in one a support account looks after. One, started when first wanted.
+     */
+    public function assistantFor(User $user, ?Project $project = null): Conversation
+    {
+        $mine = fn () => Conversation::where('project_id', $project?->id)->where('pair', "assistant:{$user->id}")->first();
+
+        // A null project repeats under the unique key: two first visits at once take turns
+        return $mine() ?? DB::transaction(function () use ($user, $project, $mine) {
+            User::whereKey($user->id)->lockForUpdate()->first();
+            if ($found = $mine()) {
+                return $found;
+            }
+
+            $conversation = (new Conversation())->forceFill(['project_id' => $project?->id, 'is_assistant' => true, 'pair' => "assistant:{$user->id}"]);
+            $conversation->save();
+            $conversation->participants()->attach($user->id, ['pinned_at' => now()]);
+
+            return $conversation;
+        });
+    }
+
     public function send(Conversation $conversation, User $author, string $body): Message
     {
         $message = DB::transaction(function () use ($conversation, $author, $body) {

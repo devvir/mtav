@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Enums\ProjectFeature;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -21,7 +22,8 @@ use Inertia\Response;
 
 /**
  * A project's chat: someone's conversations (the latest first), one of them open, and
- * starting new ones with anyone of the project.
+ * starting new ones with anyone of the project. With no project (AccountChatController), the
+ * same for someone's own conversation with the Assistant, the only one there.
  */
 class ChatController extends Controller
 {
@@ -32,11 +34,14 @@ class ChatController extends Controller
     {
     }
 
-    public function index(Request $request, Project $project): Response
+    public function index(Request $request, ?Project $project = null): Response
     {
         $this->authorize('startChat', [Conversation::class, $project]);
 
-        return $this->page($request, $project);
+        $assistant = $this->withAssistant($request->user(), $project);
+
+        // Outside any project it is the only conversation: open from the start
+        return $this->page($request, $project, $project ? null : $assistant);
     }
 
     public function show(Request $request, Project $project, Conversation $conversation): Response
@@ -48,13 +53,14 @@ class ChatController extends Controller
     }
 
     /** The chat's window, which never leaves the page it opens over: all it shows, in JSON */
-    public function panel(Request $request, Project $project): JsonResponse
+    public function panel(Request $request, ?Project $project = null): JsonResponse
     {
         $this->authorize('startChat', [Conversation::class, $project]);
+        $this->withAssistant($request->user(), $project);
 
         $open = null;
         if ($request->integer('conversation')) {
-            $open = $project->conversations()->findOrFail($request->integer('conversation'));
+            $open = Conversation::where('project_id', $project?->id)->findOrFail($request->integer('conversation'));
             $this->authorize('readChat', $open);
             $this->chat->read($open, $request->user());
         }
@@ -63,7 +69,7 @@ class ChatController extends Controller
     }
 
     /** The Assistant greeted them: once, wherever they go next */
-    public function welcomed(Request $request, Project $project): JsonResponse
+    public function welcomed(Request $request, ?Project $project = null): JsonResponse
     {
         $request->user()->forceFill(['welcomed_at' => now()])->save();
 
@@ -86,14 +92,15 @@ class ChatController extends Controller
             : to_route('chat.show', [$project, $conversation]);
     }
 
-    public function send(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
+    public function send(Request $request, ?Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('writeChat', $conversation);
+        abort_unless($conversation->project_id === $project?->id, 404);
         $data = $request->validate(['body' => ['required', 'string', 'max:' . ($conversation->is_assistant ? config('assistant.message_chars') : 5000)]]);
 
         $this->chat->send($conversation, $request->user(), trim($data['body']));
 
-        return $request->wantsJson() ? response()->json([]) : to_route('chat.show', [$project, $conversation]);
+        return $request->wantsJson() ? response()->json([]) : ($project ? to_route('chat.show', [$project, $conversation]) : to_route('account.chat.index'));
     }
 
     /** A group's name, and people added to it */
@@ -111,9 +118,10 @@ class ChatController extends Controller
         return $request->wantsJson() ? response()->json([]) : back();
     }
 
-    public function pin(Request $request, Project $project, Conversation $conversation): RedirectResponse|JsonResponse
+    public function pin(Request $request, ?Project $project, Conversation $conversation): RedirectResponse|JsonResponse
     {
         $this->authorize('readChat', $conversation);
+        abort_unless($conversation->project_id === $project?->id, 404);
         $this->chat->pin($conversation, $request->user(), $request->validate(['pinned' => ['required', 'boolean']])['pinned']);
 
         return $request->wantsJson() ? response()->json([]) : back();
@@ -127,9 +135,10 @@ class ChatController extends Controller
         return $request->wantsJson() ? response()->json([]) : to_route('chat.index', $project)->with('success', __('flash.conversation_left'));
     }
 
-    public function destroyMessage(Request $request, Project $project, Message $message): RedirectResponse|JsonResponse
+    public function destroyMessage(Request $request, ?Project $project, Message $message): RedirectResponse|JsonResponse
     {
         $this->authorize('unsendMessage', [Conversation::class, $message]);
+        abort_unless($message->conversation->project_id === $project?->id, 404);
         $this->chat->remove($message);
 
         return $request->wantsJson() ? response()->json([]) : back();
@@ -158,10 +167,10 @@ class ChatController extends Controller
      * A report the Assistant drafted, sent to the platform's team as it was shown: its words
      * come from the message, never from the browser. Each is sent once, a few a day.
      */
-    public function report(Request $request, Project $project, Message $message): JsonResponse
+    public function report(Request $request, ?Project $project, Message $message): JsonResponse
     {
         $conversation = $message->conversation;
-        abort_unless($message->from_assistant && $conversation->project_id === $project->id && $conversation->is_assistant, 404);
+        abort_unless($message->from_assistant && $conversation->project_id === $project?->id && $conversation->is_assistant, 404);
         $this->authorize('readChat', $conversation);
         $index = $request->integer('action');
 
@@ -177,7 +186,7 @@ class ChatController extends Controller
                 return response()->json(['message' => __('chat.report_limit')], 429);
             }
 
-            $report = Report::create(['user_id' => $request->user()->id, 'project_id' => $project->id, 'body' => $action['message']]);
+            $report = Report::create(['user_id' => $request->user()->id, 'project_id' => $project?->id, 'body' => $action['message']]);
             // The owner hears of it by email, and can answer by replying
             DB::afterCommit(fn () => User::where('is_owner', true)->first()?->notify(new NewReportNotice($report)));
             $extras = $message->extras;
@@ -188,14 +197,27 @@ class ChatController extends Controller
         });
     }
 
-    /** The conversations, the one open (if any) with its latest messages, and who may join */
-    private function page(Request $request, Project $project, ?Conversation $open = null): Response
+    /**
+     * Their conversation with the Assistant, for whoever joining gave none: anyone outside a
+     * project, a support account in one (where the project has the Assistant)
+     */
+    private function withAssistant(User $user, ?Project $project): ?Conversation
     {
-        return inertia('Member/Chat/Index', $this->data($request, $project, $open));
+        if ($project && ($user->membershipIn($project) || ! $project->hasFeature(ProjectFeature::ASSISTANT))) {
+            return null;
+        }
+
+        return $this->chat->assistantFor($user, $project);
+    }
+
+    /** The conversations, the one open (if any) with its latest messages, and who may join */
+    private function page(Request $request, ?Project $project, ?Conversation $open = null): Response
+    {
+        return inertia($project ? 'Member/Chat/Index' : 'Chat/Index', $this->data($request, $project, $open));
     }
 
     /** @return array<string, mixed> */
-    private function data(Request $request, Project $project, ?Conversation $open): array
+    private function data(Request $request, ?Project $project, ?Conversation $open): array
     {
         $user = $request->user();
         $conversations = Conversation::of($user, $project)
@@ -228,9 +250,9 @@ class ChatController extends Controller
             'messages' => $open ? $this->messages($request, $open) : null,
             // Everyone of the project one may talk with, for a new conversation (or a group's new
             // people): a window that asks again because a message came already has them
-            ...($request->boolean('known_people') ? [] : ['people' => $project->members()->whereKeyNot($user->id)
+            ...($request->boolean('known_people') ? [] : ['people' => $project?->members()->whereKeyNot($user->id)
                 ->orderBy('firstname')->orderBy('lastname')->get(['users.id', 'firstname', 'lastname', 'avatar'])
-                ->map(fn (User $person) => $this->person($person))->values(),
+                ->map(fn (User $person) => $this->person($person))->values() ?? [],
             ]),
         ];
     }

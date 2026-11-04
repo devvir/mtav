@@ -1,7 +1,7 @@
 import { Chat } from '@/components/domain/Chat';
-import { minimizeChat, openChat, useChat, useChatProject } from '@/lib/chat';
+import { minimizeChat, openChat, useChat, useChatProject, useChatRoute } from '@/lib/chat';
 import { sendJson } from '@/lib/json';
-import { route, routeIs } from '@/lib/route';
+import { routeIs } from '@/lib/route';
 import { AUTO_AFTER_MS, drivenBrowser, offerTourInstead } from '@/lib/tour';
 import { _, _n } from '@/lib/translations';
 import { Transition } from '@mantine/core';
@@ -14,14 +14,18 @@ let welcomed = false;
 /**
  * The project's chat wherever one is, on tablets and up: a bubble at the bottom right corner,
  * and the window that opens from it and folds back into it, without leaving the page. On
- * phones the chat is one more place of the menu, and its own page has it there.
+ * phones the chat is one more place of the menu, and its own page has it there. Outside any
+ * project, the same for the person's own conversation with the Assistant.
  */
 export function ChatLauncher() {
-  const { project, prop } = useChatProject();
+  const { project, account, prop } = useChatProject();
+  const chatRoute = useChatRoute();
   const { open } = useChat();
-  const here = routeIs('chat.*');
-  const welcome = prop === 'project' ? project?.welcome : null;
-  const projectId = project?.id;
+  const here = routeIs('chat.*', 'account.chat.*');
+  const welcome = prop === 'project' ? project?.welcome : (account?.welcome ?? null);
+  const shown = Boolean(project?.can.chat || account);
+  // Each chat is its own: a project's, or (0) the person's own
+  const chatKey = project?.id ?? (account ? 0 : undefined);
   const launcher = useRef<HTMLButtonElement>(null);
   const chatWindow = useRef<HTMLElement>(null);
 
@@ -41,13 +45,13 @@ export function ChatLauncher() {
 
   // Someone's first arrival: the Assistant greets them, and offers the tour the page would play
   useEffect(() => {
-    if (!welcome || !projectId || here || welcomed || drivenBrowser()) return undefined;
+    if (!welcome || here || welcomed || drivenBrowser()) return undefined;
     welcomed = true;
     offerTourInstead();
-    void sendJson('POST', route('chat.welcomed', { project: projectId }), {});
+    void sendJson('POST', chatRoute('welcomed'), {});
     const later = window.setTimeout(() => openChat(welcome), AUTO_AFTER_MS);
     return () => window.clearTimeout(later);
-  }, [welcome, here, projectId]);
+  }, [welcome, here, chatRoute]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -58,9 +62,9 @@ export function ChatLauncher() {
     return () => window.removeEventListener('keydown', escape);
   }, [open]);
 
-  if (!project?.can.chat || here) return null;
+  if (!shown || here) return null;
 
-  const unread = project.unread_messages ?? 0;
+  const unread = (project ? project.unread_messages : account?.unread) ?? 0;
 
   return (
     <>
@@ -73,7 +77,7 @@ export function ChatLauncher() {
             style={styles}
             aria-label={_('Messages')}
           >
-            <Chat key={project.id} popup />
+            <Chat key={chatKey} popup />
           </section>
         )}
       </Transition>

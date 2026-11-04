@@ -19,15 +19,17 @@ class ReadyAnswers
     }
 
     /** @return array{text: string, actions: list<array{type: string, label: string, place: string}>}|null */
-    public function to(string $words, User $user, Project $project): ?array
+    /** In a project, or (none) on their own pages, where only what is theirs is offered */
+    public function to(string $words, User $user, ?Project $project): ?array
     {
         $said = $this->plain($words);
 
         return match (true) {
             $this->isAny($said, __('chat.ready.hello_words'))        => $this->answer(__('chat.ready.hello')),
             $this->isAny($said, __('chat.ready.thanks_words'))       => $this->answer(__('chat.ready.thanks')),
-            $said === $this->plain(__('What can I do here?'))        => $this->whatCanIDo($user, $project),
+            $said === $this->plain(__('What can I do here?'))        => $project ? $this->whatCanIDo($user, $project) : $this->answer(__('chat.ready.outside'), ['link', 'find_project', __('chat.ready.outside_action')]),
             $said === $this->plain(__('How does the lottery work?')) => $this->answer(__('chat.ready.lottery'), ['tour', 'lottery', __('chat.ready.lottery_action')]),
+            ! $project                                               => null,
             $said === $this->plain(__('How do I rank the units?'))   => $user->can('rankUnits', $project) ? $this->answer(__('chat.ready.rank'), ['link', 'lottery', __('chat.ready.rank_action')]) : null,
             $said === $this->plain(__('How do I invite my family?')) => $user->familyIn($project) ? $this->answer(__('chat.ready.invite'), ['link', 'invite_family', __('chat.ready.invite_action')]) : null,
             $said === $this->plain(__('What is left to set up?'))    => $user->manages($project) ? $this->leftToSetUp($project) : null,

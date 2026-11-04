@@ -751,3 +751,118 @@ it('knows what everyone sees of the road to the lottery, and no hour', function 
     expect($brain->asked[0]['context'])->toContain('done: add the unit types')->toContain('not yet: run the lottery')
         ->toContain(now()->addWeek()->toDateString())->not->toContain(now()->addWeek()->toTimeString());
 });
+
+describe('Outside any project', function () {
+    beforeEach(function () {
+        $this->outsider = aUser(['firstname' => 'Luz']);
+    });
+
+    $own = fn ($user) => app(ChatService::class)->assistantFor($user);
+    $ask = function ($user, string $words = 'How do I join a cooperative?') use ($own): Message {
+        app(ChatService::class)->send($own($user), $user, $words);
+
+        return $own($user)->messages()->latest('id')->first();
+    };
+
+    it('is the person\'s own conversation with the Assistant, alone: nobody to talk with', function () {
+        $chat = $this->as($this->outsider)->getJson(route('account.chat.panel'))->assertOk()->json();
+
+        expect($chat['conversations'])->toHaveCount(1)
+            ->and($chat['conversations'][0])->is_assistant->toBeTrue()->pinned->toBeTrue()
+            ->and($chat['people'])->toBe([])
+            ->and(Conversation::whereNull('project_id')->sole()->participants()->pluck('users.id')->all())->toBe([$this->outsider->id]);
+
+        // One, however many times it opens
+        $this->as($this->outsider)->getJson(route('account.chat.panel'));
+        expect(Conversation::whereNull('project_id')->count())->toBe(1);
+    });
+
+    it('shows none of the person\'s projects\' conversations', function () {
+        $member = $this->member;
+        app(ChatService::class)->start($this->project, $member, [$this->admin->id]);
+
+        $listed = collect($this->as($member)->getJson(route('account.chat.panel'))->json('conversations'));
+
+        expect($listed)->toHaveCount(1)->and($listed[0]['is_assistant'])->toBeTrue()
+            ->and(Conversation::find($listed[0]['id'])->project_id)->toBeNull();
+    });
+
+    it('is nobody else\'s to read or write, and takes no project\'s conversation', function () use ($own) {
+        $theirs = $own($this->outsider);
+
+        $this->as($this->member)->getJson(route('account.chat.panel', ['conversation' => $theirs->id]))->assertForbidden();
+        $this->as($this->member)->postJson(route('account.chat.send', $theirs), ['body' => 'Hi'])->assertForbidden();
+        $this->as($this->member)->postJson(route('account.chat.send', assistantOf($this->member, $this->project)), ['body' => 'Hi'])->assertNotFound();
+    });
+
+    it('comes with the person\'s pages that no project frames, and with no other', function () {
+        $props = fn ($user) => $this->as($user)->get(route('profile.edit'))->inertiaProps();
+
+        expect($props($this->outsider))->accountChat->not->toBeNull()->chatProject->toBeNull();
+        // In one project, its chat frames their pages
+        expect($props($this->member))->accountChat->toBeNull()->chatProject->not->toBeNull();
+
+        $second = aProject();
+        $second->memberships()->create(['user_id' => $this->member->id]);
+        // In several, and none chosen yet, the chat is their own
+        expect($props($this->member->fresh()))->accountChat->not->toBeNull()->chatProject->toBeNull();
+    });
+
+    it('greets someone the first time, then stays closed', function () {
+        brainAnswering(null);
+        $welcome = fn () => $this->as($this->outsider)->get(route('projects.index'))->inertiaProps('accountChat.welcome');
+
+        expect($welcome())->toBe(Conversation::whereNull('project_id')->sole()->id);
+
+        $this->as($this->outsider)->postJson(route('account.chat.welcomed'))->assertOk();
+        expect($welcome())->toBeNull();
+    });
+
+    it('answers what it offers with a tap, for what is theirs outside a project', function () use ($ask) {
+        $brain = brainAnswering(['text' => 'Never', 'actions' => []]);
+
+        $answer = $ask($this->outsider, __('What can I do here?'));
+
+        expect($answer->body)->toBe(__('chat.ready.outside'))
+            ->and($answer->extras['actions'])->toBe([['type' => 'link', 'label' => __('chat.ready.outside_action'), 'href' => route('directory.index', absolute: false)]])
+            ->and($brain->asked)->toBe([]);
+    });
+
+    it('knows the person is in no project, and leads only to their own pages', function () use ($ask) {
+        $brain = brainAnswering(['text' => 'Here', 'actions' => [
+            ['type' => 'link', 'label' => 'The lottery', 'place' => 'lottery'],
+            ['type' => 'link', 'label' => 'Find one', 'place' => 'find_project'],
+            ['type' => 'message', 'label' => 'Write to an admin', 'place' => 'admins'],
+        ]]);
+
+        $answer = $ask($this->outsider);
+
+        expect($brain->asked[0]['context'])->toContain('outside any project')->toContain('in no project yet')->not->toContain('# Places' . "\n- home")
+            ->and($answer->extras['actions'])->toBe([['type' => 'link', 'label' => 'Find one', 'href' => route('directory.index', absolute: false)]]);
+    });
+
+    it('gives someone in no project half the messages of a day', function () use ($ask) {
+        config(['assistant.per_person_per_day' => 2]);
+        $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
+
+        $ask($this->outsider);
+
+        expect($ask($this->outsider)->body)->toBe(__('chat.assistant_limit'))
+            ->and($brain->asked)->toHaveCount(1);
+    });
+});
+
+describe('For a support account in a project', function () {
+    it('starts its own conversation with the Assistant there, which answers it', function () {
+        $superadmin = aSuperadmin();
+        brainAnswering(['text' => 'Here it is', 'actions' => []]);
+
+        $listed = collect($this->as($superadmin, $this->project)->getJson(route('chat.panel'))->json('conversations'));
+        $assistant = $listed->firstWhere('is_assistant', true);
+        expect($assistant)->not->toBeNull();
+
+        $this->as($superadmin, $this->project)->postJson(route('chat.send', $assistant['id']), ['body' => 'Where is the plan?'])->assertOk();
+
+        expect(Conversation::find($assistant['id'])->messages()->latest('id')->first()->body)->toBe('Here it is');
+    });
+});

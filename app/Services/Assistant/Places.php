@@ -14,10 +14,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Places
 {
     /**
+     * In a project, or (none) on their own pages: what is theirs whatever the project
+     *
      * @return array<string, array{about: string, route: string, params?: array<string, mixed>, tour?: string}>
      */
-    public function for(User $user, Project $project): array
+    public function for(User $user, ?Project $project): array
     {
+        $theirs = [
+            'profile'       => ['about' => 'their own details, picture, password', 'route' => 'profile.edit', 'tour' => 'account.profile'],
+            'preferences'   => ['about' => 'text size, language, light or dark, guided tours', 'route' => 'profile.edit', 'params' => ['section' => 'preferences']],
+            'find_project'  => ['about' => 'the directory of projects to join', 'route' => 'directory.index', 'tour' => 'account.directory'],
+            'your_projects' => ['about' => 'every project they take part in', 'route' => 'projects.index', 'tour' => 'account.projects'],
+            'guide'         => ['about' => 'the illustrated guide', 'route' => 'documentation.guide'],
+        ];
+
+        if (! $project) {
+            return [...$theirs, 'start_project' => ['about' => 'starting a new project, of which they become the first admin', 'route' => 'projects.create', 'tour' => 'account.start_project']];
+        }
+
         $manages = $user->manages($project);
         $family = (bool) $user->familyIn($project);
 
@@ -35,18 +49,14 @@ class Places
             'invitations'      => $manages ? ['about' => 'admins: inviting people, those asking to join', 'route' => 'manage.invitations.index', 'tour' => 'manage.invitations'] : null,
             'project_settings' => $manages ? ['about' => 'admins: name, directory, guests, features on or off', 'route' => 'manage.settings.edit', 'tour' => 'manage.settings'] : null,
             'edit_plan'        => $manages ? ['about' => 'admins: drawing the plan of the site', 'route' => 'units.edit', 'tour' => 'manage.plan'] : null,
-            'profile'          => ['about' => 'their own details, picture, password', 'route' => 'profile.edit', 'tour' => 'account.profile'],
-            'preferences'      => ['about' => 'text size, language, light or dark, guided tours', 'route' => 'profile.edit', 'params' => ['section' => 'preferences']],
-            'find_project'     => ['about' => 'the directory of projects to join', 'route' => 'directory.index', 'tour' => 'account.directory'],
-            'your_projects'    => ['about' => 'every project they take part in', 'route' => 'projects.index', 'tour' => 'account.projects'],
-            'guide'            => ['about' => 'the illustrated guide', 'route' => 'documentation.guide'],
+            ...$theirs,
         ]);
     }
 
     /** Whether the project has an admin this person may write to (anyone but themselves) */
-    public function hasAdmins(User $user, Project $project): bool
+    public function hasAdmins(User $user, ?Project $project): bool
     {
-        return $this->admins($user, $project)->exists();
+        return $project && $this->admins($user, $project)->exists();
     }
 
     /** The project's admins this person may write to: who exactly, only the server knows */
