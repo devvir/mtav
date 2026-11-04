@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { useState } from 'react';
 
-export type DemoRole = 'support' | 'admin' | 'member';
+export type DemoRole = 'support' | 'admin' | 'member' | 'guest';
 export type DemoAccount = { id: number; name: string; email: string; roles: DemoRole[] };
 
 /** Signing in with an email and password */
@@ -53,10 +53,15 @@ export function SignInForm() {
   );
 }
 
-const ROLE_COLOURS: Record<DemoRole, string> = { support: 'grape', admin: 'blue', member: 'teal' };
+const ROLE_COLOURS: Record<DemoRole, string> = {
+  support: 'grape',
+  admin: 'blue',
+  member: 'teal',
+  guest: 'gray',
+};
 
 const roleLabel = (role: DemoRole) =>
-  ({ support: _('Support'), admin: _('Admin'), member: _('Member') })[role];
+  ({ support: _('Support'), admin: _('Admin'), member: _('Member'), guest: _('Guest') })[role];
 
 /**
  * Where demo accounts exist (dev, staging, a developer's machine), the way in: any of them,

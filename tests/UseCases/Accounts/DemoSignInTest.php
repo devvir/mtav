@@ -123,19 +123,23 @@ describe('Where it exists', function () {
     });
 });
 
-it('tells each demo account\'s roles: support, admin, member, several at once, support first', function () {
+it('tells each demo account\'s roles: support, admin, member, guest, several at once, support first', function () {
     config(['app.deployment' => 'staging']);
     $project = aProject();
     aSuperadmin()->update(['email' => 'support@example.com']);
     $both = anAdminOf($project);
     $both->update(['email' => 'both@example.com']);
-    aProject()->memberships()->create(['user_id' => $both->id, 'is_admin' => false]);
+    $elsewhere = aProject();
+    $elsewhere->memberships()->create(['user_id' => $both->id, 'is_admin' => false, 'family_id' => aFamily($elsewhere)->id]);
     $member = aMemberOf(aFamily($project), ['email' => 'member@example.com']);
+    $guest = aUser(['email' => 'guest@example.com']);
+    $project->memberships()->create(['user_id' => $guest->id]);
 
     $roles = collect($this->get('/')->inertiaProps('demo'))->pluck('roles', 'email');
 
     expect($roles['support@example.com'])->toBe(['support'])
         ->and($roles['both@example.com'])->toBe(['admin', 'member'])
         ->and($roles['member@example.com'])->toBe(['member'])
+        ->and($roles['guest@example.com'])->toBe(['guest'])
         ->and($roles->keys()->first())->toBe('support@example.com');
 });

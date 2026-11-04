@@ -80,7 +80,7 @@ return [
     'deploy_dev'              => 'Se está desplegando dev desde :branch. Síguelo abajo.',
     'deploy_production'       => 'Se está desplegando producción: espera la aprobación en GitHub.',
     'deploy_rollback'         => ':environment vuelve a la versión anterior.',
-    'deploy_fresh'            => ':environment empieza de cero, con los datos de demostración. Síguelo abajo.',
+    'deploy_fresh'            => ':environment empieza de cero, con los datos de prueba. Síguelo abajo.',
     'deploy_refused'          => 'GitHub no lo inició (:status). Revisa el token de despliegue.',
     'deploy_unreachable'      => 'GitHub no respondió, así que no se inició nada. Probá de nuevo en un rato.',
     'upload_too_large'        => 'Era demasiado para enviar de una vez: comparte menos archivos, o más livianos.',
