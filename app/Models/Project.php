@@ -51,18 +51,6 @@ class Project extends Model
         'approved_at'           => 'datetime',
     ];
 
-    /** Every project has its Community group, whether or not its chat is on */
-    protected static function booted(): void
-    {
-        static::created(function (Project $project) {
-            (new Conversation())->forceFill([
-                'project_id'   => $project->id,
-                'is_group'     => true,
-                'is_community' => true,
-            ])->save();
-        });
-    }
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -238,10 +226,8 @@ class Project extends Model
      */
     public function acceptsNewcomers(): bool
     {
-        return $this->allows_guests || (
-            ($this->unit_types_exists ?? $this->unitTypes()->exists())
-            && ! ($this->active_lottery_run_exists ?? $this->lotteryLocked())
-        );
+        return $this->allows_guests || (($this->unit_types_exists ?? $this->unitTypes()->exists())
+            && ! ($this->active_lottery_run_exists ?? $this->lotteryLocked()));
     }
 
     /** What the variant has of it, and then what the project chose where it may */
@@ -326,5 +312,17 @@ class Project extends Model
     public function scopeSearch(Builder $query, string $q): void
     {
         $query->whereLike('name', Like::containing($q));
+    }
+
+    /** Every project has its Community group, whether or not its chat is on */
+    protected static function booted(): void
+    {
+        static::created(function (Project $project) {
+            (new Conversation())->forceFill([
+                'project_id'   => $project->id,
+                'is_group'     => true,
+                'is_community' => true,
+            ])->save();
+        });
     }
 }

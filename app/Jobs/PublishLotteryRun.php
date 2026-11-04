@@ -39,7 +39,7 @@ class PublishLotteryRun implements ShouldQueue
     public function failed(?Throwable $e): void
     {
         $this->run->host()->fail($this->run, 'lottery.execution_failed', debug: [
-            'exception' => $e ? get_class($e) : null,
+            'exception' => $e ? $e::class : null,
             'error'     => $e?->getMessage(),
         ]);
     }

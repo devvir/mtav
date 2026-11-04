@@ -104,14 +104,14 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
 
     private function validateInputs(string $size, string $scenario, int $iterations, int $timeout): void
     {
-        if (!ctype_digit($size) || (int) $size <= 0) {
+        if (! ctype_digit($size) || (int) $size <= 0) {
             $this->error('Size must be a positive integer');
             exit(1);
         }
 
         $validScenarios = ['identical', 'random', 'opposite', 'realistic'];
 
-        if (!in_array($scenario, $validScenarios)) {
+        if (! in_array($scenario, $validScenarios)) {
             $this->error('Scenario must be one of: ' . implode(', ', $validScenarios));
             exit(1);
         }

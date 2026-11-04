@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\Archivable;
-use App\Models\Concerns\RecordsActivity;
-use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\EventType;
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\RecordsActivity;
 use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -76,22 +76,6 @@ class Event extends Model
         return $this->type === EventType::LOTTERY;
     }
 
-    /**
-     * upcoming (no date yet, or not started), ongoing, or completed.
-     */
-    protected function status(): Attribute
-    {
-        return Attribute::get(function () {
-            if (! $this->start_date || $this->start_date->isFuture()) {
-                return 'upcoming';
-            }
-
-            $end = $this->end_date ?? $this->start_date->copy()->addMinutes(self::IMPLICIT_DURATION);
-
-            return $end->isPast() ? 'completed' : 'ongoing';
-        });
-    }
-
     public function scopePublished(Builder $query): void
     {
         $query->where('is_published', true);
@@ -130,5 +114,21 @@ class Event extends Model
             ->whereLike('title', Like::containing($q))
             ->orWhereLike('description', Like::containing($q))
             ->orWhereLike('location', Like::containing($q)));
+    }
+
+    /**
+     * upcoming (no date yet, or not started), ongoing, or completed.
+     */
+    protected function status(): Attribute
+    {
+        return Attribute::get(function () {
+            if (! $this->start_date || $this->start_date->isFuture()) {
+                return 'upcoming';
+            }
+
+            $end = $this->end_date ?? $this->start_date->copy()->addMinutes(self::IMPLICIT_DURATION);
+
+            return $end->isPast() ? 'completed' : 'ongoing';
+        });
     }
 }

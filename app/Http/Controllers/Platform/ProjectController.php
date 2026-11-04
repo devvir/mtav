@@ -9,8 +9,8 @@ use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 /**
@@ -26,7 +26,8 @@ class ProjectController extends Controller
         $projects = Project::with('creator:id,firstname,lastname,email', 'archiver:id,firstname,lastname')
             ->withCount(['memberships', 'families', 'units', 'media', 'lotteryRuns',
                 // Its lottery's own event aside
-                'events' => fn ($q) => $q->where('type', '!=', EventType::LOTTERY)])
+                'events' => fn ($q) => $q->where('type', '!=', EventType::LOTTERY),
+            ])
             ->withSum(['media' => fn ($q) => $q->withTrashed()], 'file_size')
             ->when($filter === 'archived', fn ($q) => $q->onlyTrashed())
             ->when($request->q, fn ($q, $search) => $q->search($search))

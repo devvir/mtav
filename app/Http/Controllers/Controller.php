@@ -31,7 +31,8 @@ abstract class Controller
             // One page holding them all, without counting them again
             return [new OnePage($query->get(), $count, max(1, $whole), 1, [
                 'path' => Paginator::resolveCurrentPath(),
-            ]), true];
+            ]), true,
+            ];
         }
 
         return [$narrow($query)->paginate($perPage)->withQueryString(), false];

@@ -66,14 +66,6 @@ class PreferencesService
         })->all();
     }
 
-    /** The units ranked, then the rest in the family's own order */
-    private function complete(Family $family, Collection $units, Collection $ranked): Collection
-    {
-        $unranked = $units->diff($ranked)->sortBy(fn (int $unitId) => $this->defaultOrder($family, $unitId));
-
-        return $ranked->concat($unranked)->values();
-    }
-
     /**
      * Replace the family's ranking. Units not listed keep following, in default order.
      *
@@ -100,6 +92,14 @@ class PreferencesService
                 collect($unitIds)->mapWithKeys(fn (int $unitId, int $index) => [$unitId => ['rank' => $index + 1]])
             );
         });
+    }
+
+    /** The units ranked, then the rest in the family's own order */
+    private function complete(Family $family, Collection $units, Collection $ranked): Collection
+    {
+        $unranked = $units->diff($ranked)->sortBy(fn (int $unitId) => $this->defaultOrder($family, $unitId));
+
+        return $ranked->concat($unranked)->values();
     }
 
     private function defaultOrder(Family $family, int $unitId): string

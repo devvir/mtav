@@ -7,8 +7,8 @@ namespace App\Console\Commands;
 use App\Models\LotteryAudit;
 use App\Services\Lottery\AuditService;
 use App\Services\Lottery\DataObjects\LotteryManifest;
-use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\DataObjects\LotterySpec;
+use App\Services\Lottery\Enums\LotteryAuditType;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkInfeasibleException;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkTimeoutException;
 use App\Services\Lottery\Solvers\GlpkSolver;
@@ -47,7 +47,7 @@ abstract class BenchmarkGlpkBase extends Command
     {
         $directory = dirname($outputPath);
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
 
@@ -59,7 +59,7 @@ abstract class BenchmarkGlpkBase extends Command
             exit(1);
         }
 
-        if (!$fileExists && $writeHeader) {
+        if (! $fileExists && $writeHeader) {
             fputcsv($this->csv, ['size', 'scenario', 'iteration', 'time_ms', 'status', 'error', 'spec', 'result']);
         }
     }
@@ -141,7 +141,7 @@ abstract class BenchmarkGlpkBase extends Command
         };
 
         $this->line(sprintf(
-            "| <fg=cyan>%3d</> | <fg=gray>%-4s</> | <fg=gray>%-8s</> | <fg=yellow>%9.2f</> | <%s>%-11s</> |%s",
+            '| <fg=cyan>%3d</> | <fg=gray>%-4s</> | <fg=gray>%-8s</> | <fg=yellow>%9.2f</> | <%s>%-11s</> |%s',
             $iteration,
             $size,
             $scenario,
@@ -173,7 +173,7 @@ abstract class BenchmarkGlpkBase extends Command
 
         $this->newLine();
         $this->line(sprintf(
-            "| <fg=bright-cyan>%3s</> | <fg=gray>%-4s</> | <fg=gray>%-8s</> | <fg=bright-yellow>%9.2f</> | <fg=bright-green>%-6s</> |",
+            '| <fg=bright-cyan>%3s</> | <fg=gray>%-4s</> | <fg=gray>%-8s</> | <fg=bright-yellow>%9.2f</> | <fg=bright-green>%-6s</> |',
             '',
             '',
             '',
@@ -187,6 +187,5 @@ abstract class BenchmarkGlpkBase extends Command
         if ($this->csv) {
             fclose($this->csv);
         }
-
     }
 }

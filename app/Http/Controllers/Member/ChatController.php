@@ -230,7 +230,8 @@ class ChatController extends Controller
             // people): a window that asks again because a message came already has them
             ...($request->boolean('known_people') ? [] : ['people' => $project->members()->whereKeyNot($user->id)
                 ->orderBy('firstname')->orderBy('lastname')->get(['users.id', 'firstname', 'lastname', 'avatar'])
-                ->map(fn (User $person) => $this->person($person))->values()]),
+                ->map(fn (User $person) => $this->person($person))->values(),
+            ]),
         ];
     }
 

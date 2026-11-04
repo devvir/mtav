@@ -19,7 +19,6 @@ use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
-
     /** The person's own pages, framed by a project (resources/js/layouts/AccountLayout.tsx) */
     private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create'];
     protected $rootView = 'app';

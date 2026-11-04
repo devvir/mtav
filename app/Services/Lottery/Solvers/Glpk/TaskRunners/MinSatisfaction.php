@@ -60,7 +60,7 @@ class MinSatisfaction extends TaskRunner
                 FeasibilityResult::FEASIBLE   => $hi = $candidateS - 1,
                 FeasibilityResult::INFEASIBLE => $lo = $candidateS + 1,
 
-                default => throw new InvalidArgumentException("Invalid feedback: " . ($feedback ?? 'null')),
+                default => throw new InvalidArgumentException('Invalid feedback: ' . ($feedback ?? 'null')),
             };
         }
 

@@ -28,7 +28,7 @@ class Logger
         ?string $solFile
     ): void {
         $context = [
-            'exception_type'    => get_class($e),
+            'exception_type'    => $e::class,
             'exception_message' => $e->getMessage(),
             'phase'             => 1,
             'participant_count' => count($spec->participants),
@@ -74,7 +74,7 @@ class Logger
         ?string $solFile
     ): void {
         $context = [
-            'exception_type'    => get_class($e),
+            'exception_type'    => $e::class,
             'exception_message' => $e->getMessage(),
             'phase'             => 2,
             'phase1_result'     => $minSatisfaction,

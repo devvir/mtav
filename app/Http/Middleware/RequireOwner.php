@@ -23,11 +23,11 @@ class RequireOwner
 {
     private const KNOWN = 'mtav.has-owner';
 
-    /** Known in this process (the cache keeps it for the others) */
-    public static bool $owned = false;
-
     /** Readable even before there is an owner */
     private const PUBLIC = ['privacy', 'manual', 'manifest'];
+
+    /** Known in this process (the cache keeps it for the others) */
+    public static bool $owned = false;
 
     public function handle(Request $request, Closure $next): Response
     {

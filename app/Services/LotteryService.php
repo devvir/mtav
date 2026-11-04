@@ -243,14 +243,13 @@ class LotteryService implements LotteryHost
         $maxFamilies = $project->limit('families');
 
         match (true) {
-            $project->activeLotteryRun()->exists() => throw CannotExecuteLotteryException::because('already_run'),
-            ! Workers::running()                   => throw CannotExecuteLotteryException::because('no_worker'),
-            ! $lottery->start_date                 => throw CannotExecuteLotteryException::because('not_scheduled'),
-            $lottery->start_date->isFuture()       => throw CannotExecuteLotteryException::because('not_due'),
-            $families < 2                          => throw CannotExecuteLotteryException::because('too_few_families'),
-            $maxFamilies !== null && $families > $maxFamilies
-                    => throw CannotExecuteLotteryException::because('too_large', ['max' => $maxFamilies]),
-            default => null,
+            $project->activeLotteryRun()->exists()            => throw CannotExecuteLotteryException::because('already_run'),
+            ! Workers::running()                              => throw CannotExecuteLotteryException::because('no_worker'),
+            ! $lottery->start_date                            => throw CannotExecuteLotteryException::because('not_scheduled'),
+            $lottery->start_date->isFuture()                  => throw CannotExecuteLotteryException::because('not_due'),
+            $families < 2                                     => throw CannotExecuteLotteryException::because('too_few_families'),
+            $maxFamilies !== null && $families > $maxFamilies => throw CannotExecuteLotteryException::because('too_large', ['max' => $maxFamilies]),
+            default                                           => null,
         };
 
         if (in_array('mismatch-allowed', $options)) {

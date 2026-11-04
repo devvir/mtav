@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Support\Variant;
 use App\Models\Project;
+use App\Support\Variant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -44,6 +44,7 @@ class ProjectRequest extends FormRequest
             if ($guests) {
                 $validator->errors()->add('allows_guests', __('validation.guests_remain', ['count' => $guests]));
             }
-        }];
+        },
+        ];
     }
 }

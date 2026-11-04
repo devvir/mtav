@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Services\FamilyService;
-use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\RecordsActivity;
+use App\Services\FamilyService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,12 +16,6 @@ class Invitation extends Model
 {
     use RecordsActivity;
     use BroadcastsProjectChanges;
-
-    protected static function booted(): void
-    {
-        // Revoked: a family waiting only for this one may have nobody left
-        static::deleted(fn (Invitation $invitation) => app(FamilyService::class)->discardIfEmpty($invitation->family));
-    }
 
     protected $fillable = [
         'project_id',
@@ -80,5 +74,11 @@ class Invitation extends Model
     public function scopePending(Builder $query): void
     {
         $query->whereNull('accepted_at')->where('expires_at', '>', now())->whereHas('project');
+    }
+
+    protected static function booted(): void
+    {
+        // Revoked: a family waiting only for this one may have nobody left
+        static::deleted(fn (Invitation $invitation) => app(FamilyService::class)->discardIfEmpty($invitation->family));
     }
 }

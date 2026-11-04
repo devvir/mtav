@@ -35,7 +35,7 @@ class ExecutionResult
     {
         foreach ($picks as $participantId => $itemId) {
             if (! is_numeric($participantId) || ! is_numeric($itemId)) {
-                throw new InvalidArgumentException("ExecutionResult: picks must be array<int, int>.");
+                throw new InvalidArgumentException('ExecutionResult: picks must be array<int, int>.');
             }
 
             $sanitized[(int) $participantId] = (int) $itemId;
@@ -55,7 +55,7 @@ class ExecutionResult
         $orphans['items'] ??= [];
 
         if (! is_array($orphans['participants']) || ! is_array($orphans['items'])) {
-            throw new InvalidArgumentException("ExecutionResult: orphans.participants and orphans.items must be arrays.");
+            throw new InvalidArgumentException('ExecutionResult: orphans.participants and orphans.items must be arrays.');
         }
 
         return [

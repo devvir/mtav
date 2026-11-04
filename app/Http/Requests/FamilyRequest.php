@@ -31,6 +31,7 @@ class FamilyRequest extends FormRequest
             if (! $this->route('family') && $max !== null && $project->families()->count() >= $max) {
                 $validator->errors()->add('name', __('validation.limit_families', ['max' => $max]));
             }
-        }];
+        },
+        ];
     }
 }

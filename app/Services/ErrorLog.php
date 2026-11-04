@@ -31,7 +31,7 @@ class ErrorLog
         }
 
         rescue(function () use ($error) {
-            $fingerprint = sha1(get_class($error) . '|' . self::origin($error) . '|' . ($error instanceof QueryException ? $error->getSql() : ''));
+            $fingerprint = sha1($error::class . '|' . self::origin($error) . '|' . ($error instanceof QueryException ? $error->getSql() : ''));
             $message = Str::limit(self::message($error), 2000);
             $now = now();
 
@@ -46,7 +46,7 @@ class ErrorLog
 
             $entry = ErrorEntry::create([
                 'fingerprint' => $fingerprint,
-                'class'       => get_class($error),
+                'class'       => $error::class,
                 'message'     => $message,
                 'file'        => Str::after($error->getFile(), base_path() . '/'),
                 'line'        => $error->getLine(),

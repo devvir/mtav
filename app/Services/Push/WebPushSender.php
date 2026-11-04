@@ -45,6 +45,7 @@ class WebPushSender implements PushSender
             'subject'    => config('services.push.subject'),
             'publicKey'  => config('services.push.public_key'),
             'privateKey' => config('services.push.private_key'),
-        ]]);
+        ],
+        ]);
     }
 }

@@ -57,6 +57,7 @@ class PlanRequest extends FormRequest
             if ($claimed->contains(fn ($id) => ! $unitItems->contains($id))) {
                 $validator->errors()->add('items', __('validation.plan_unit_items'));
             }
-        }];
+        },
+        ];
     }
 }

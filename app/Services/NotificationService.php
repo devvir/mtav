@@ -6,10 +6,10 @@ use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use App\Events\NotificationSent;
 use App\Jobs\PushNotification;
-use App\Services\Push\PushService;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Push\PushService;
 use Illuminate\Support\Facades\Cache;
 
 /**

@@ -71,6 +71,7 @@ class LotterySpec
      * Validate and sanitize participants array.
      *
      * @param  array<int|string, array<int|string>>  $participants  participant_id => [item_id, ...]
+     *
      * @throws InvalidArgumentException if validation fails
      */
     protected function validateParticipants(array $participants): array
@@ -108,6 +109,7 @@ class LotterySpec
      * Validate and sanitize items array.
      *
      * @param  array<int|string>  $items
+     *
      * @throws InvalidArgumentException if validation fails
      */
     protected function validateItems(array $items): array
@@ -130,6 +132,7 @@ class LotterySpec
      * Sanitize array of item IDs (numeric or mock string IDs).
      *
      * @throws InvalidArgumentException if any value is invalid
+     *
      * @deprecated No longer used - kept for backward compatibility
      */
     protected function sanitizeItemIdArray(array $values, string $fieldName): array

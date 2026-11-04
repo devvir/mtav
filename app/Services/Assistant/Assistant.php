@@ -50,6 +50,26 @@ class Assistant
         $this->withLocale($user->preferredLocale() ?? config('app.locale'), fn () => $this->answerTo($question, $conversation, $user));
     }
 
+    /** In the conversation, like any message; to whoever has it open, at once */
+    public function say(Conversation $conversation, string $text, array $actions = []): Message
+    {
+        $message = DB::transaction(function () use ($conversation, $text, $actions) {
+            $message = new Message(['body' => $text]);
+            $message->forceFill([
+                'conversation_id' => $conversation->id,
+                'from_assistant'  => true,
+                'extras'          => $actions ? ['actions' => $actions] : null,
+            ])->save();
+            $conversation->forceFill(['last_message_id' => $message->id, 'last_message_at' => $message->created_at])->save();
+
+            return $message;
+        });
+
+        rescue(fn () => MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all()));
+
+        return $message;
+    }
+
     private function answerTo(Message $question, Conversation $conversation, User $user): void
     {
         // Written again before the answer came: the later message answers them all, for one ask
@@ -107,26 +127,6 @@ class Assistant
         Cache::forget(self::STUMBLES);
 
         $this->say($conversation, $text, $this->actions($answer['actions'] ?? null, $user, $conversation));
-    }
-
-    /** In the conversation, like any message; to whoever has it open, at once */
-    public function say(Conversation $conversation, string $text, array $actions = []): Message
-    {
-        $message = DB::transaction(function () use ($conversation, $text, $actions) {
-            $message = new Message(['body' => $text]);
-            $message->forceFill([
-                'conversation_id' => $conversation->id,
-                'from_assistant'  => true,
-                'extras'          => $actions ? ['actions' => $actions] : null,
-            ])->save();
-            $conversation->forceFill(['last_message_id' => $message->id, 'last_message_at' => $message->created_at])->save();
-
-            return $message;
-        });
-
-        rescue(fn () => MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all()));
-
-        return $message;
     }
 
     /**

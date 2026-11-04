@@ -47,8 +47,8 @@ class ParticipantItemMismatchException extends LotteryRequiresConfirmationExcept
                 'units'     => $itemsCount,
                 'families'  => $participantsCount,
             ]);
-        })->join(", ");
+        })->join(', ');
 
-        return __('lottery.unit_family_mismatch_intro') . " " . $details;
+        return __('lottery.unit_family_mismatch_intro') . ' ' . $details;
     }
 }

@@ -88,7 +88,8 @@ class DeploymentController extends Controller
 
         return ValidationException::withMessages(['deploy' => $e instanceof RequestException
             ? __('flash.deploy_refused', ['status' => $e->response->status()])
-            : __('flash.deploy_unreachable')]);
+            : __('flash.deploy_unreachable'),
+        ]);
     }
 
     /** What GitHub answered, or null when it did not (the page says so) */

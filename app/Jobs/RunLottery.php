@@ -57,7 +57,7 @@ class RunLottery implements ShouldQueue
                 ? [$e->getUserMessageKey(), $e->getUserMessageParams()]
                 : ['lottery.execution_failed', []];
 
-            $lottery->fail($run, ...$reason, debug: ['exception' => get_class($e), 'error' => $e->getMessage()]);
+            $lottery->fail($run, ...$reason, debug: ['exception' => $e::class, 'error' => $e->getMessage()]);
         }
     }
 
@@ -68,7 +68,7 @@ class RunLottery implements ShouldQueue
     public function failed(?Throwable $e): void
     {
         $this->run->host()->fail($this->run, 'lottery.execution_failed', debug: [
-            'exception' => $e ? get_class($e) : null,
+            'exception' => $e ? $e::class : null,
             'error'     => $e?->getMessage(),
         ]);
     }

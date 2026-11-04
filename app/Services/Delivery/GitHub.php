@@ -13,11 +13,10 @@ use Illuminate\Support\Facades\Http;
  */
 class GitHub
 {
-    /** Reads are kept this long: a page reloaded often asks GitHub once */
-    private const FRESH_SECONDS = 30;
-
     /** What each kind of request runs */
     public const WORKFLOWS = ['dev' => 'dev.yml', 'production' => 'production.yml', 'rollback' => 'rollback.yml', 'fresh' => 'fresh.yml'];
+    /** Reads are kept this long: a page reloaded often asks GitHub once */
+    private const FRESH_SECONDS = 30;
 
     public static function configured(): bool
     {

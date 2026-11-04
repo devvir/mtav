@@ -15,10 +15,6 @@ use Illuminate\Support\Facades\App;
  */
 class AssistantTry extends Command
 {
-    protected $signature = 'assistant:try {--project=Cooperativa Las Acacias} {--only= : Only the questions holding these words}';
-
-    protected $description = 'Ask the Assistant a set of questions, on the demo data, and show its answers';
-
     /** Who asks, in which language, and what */
     private const QUESTIONS = [
         ['member', 'es_UY', '¿Cómo funciona el sorteo?'],
@@ -43,6 +39,9 @@ class AssistantTry extends Command
         ['member', 'es_UY', '¿Qué pueden hacer los superadministradores que yo no?'],
         ['member', 'es_UY', 'Mandame a la configuración del proyecto'],
     ];
+    protected $signature = 'assistant:try {--project=Cooperativa Las Acacias} {--only= : Only the questions holding these words}';
+
+    protected $description = 'Ask the Assistant a set of questions, on the demo data, and show its answers';
 
     public function handle(Brain $brain, Prompt $prompt): int
     {

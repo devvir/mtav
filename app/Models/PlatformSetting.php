@@ -19,9 +19,9 @@ class PlatformSetting extends Model
         self::LOTTERY_SECONDS => 20,
     ];
 
-    protected $primaryKey = 'key';
-
     public $incrementing = false;
+
+    protected $primaryKey = 'key';
 
     protected $keyType = 'string';
 

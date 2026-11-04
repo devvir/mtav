@@ -36,6 +36,7 @@ class Process
      * allowing forced termination if the process exceeds the timeout.
      *
      * @param  string  $command  Shell command to execute
+     *
      * @return string Process output
      *
      * @throws GlpkException if process fails
@@ -103,6 +104,7 @@ class Process
      * @param resource $process Process resource
      * @param array<int, resource> $pipes Pipe resources
      * @param int $startTime Start timestamp
+     *
      * @return array{string, string} Array of [stdout, stderr]
      *
      * @throws GlpkTimeoutException if timeout is exceeded
@@ -115,12 +117,12 @@ class Process
         $failsafeTimeout = (int) ceil($this->timeout * 1.2);
 
         while (true) {
-            if (!is_resource($process)) {
+            if (! is_resource($process)) {
                 break;
             }
 
             $status = proc_get_status($process);
-            if (!$status['running']) {
+            if (! $status['running']) {
                 break;
             }
 

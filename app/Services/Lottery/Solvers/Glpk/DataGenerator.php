@@ -15,6 +15,7 @@ class DataGenerator
      * Generate Phase 1 data file from lottery specification.
      *
      * @param  LotterySpec  $spec  Contains participants (with preferences) and items
+     *
      * @return string GMPL data section
      */
     public function generateData(LotterySpec $spec): string
@@ -47,6 +48,7 @@ GMPL;
      *
      * @param  LotterySpec  $spec  Contains participants (with preferences) and items
      * @param  int  $minSatisfaction  The S value from Phase 1
+     *
      * @return string GMPL data section
      */
     public function generateDataWithS(LotterySpec $spec, int $minSatisfaction): string
@@ -65,6 +67,7 @@ GMPL;
      *
      * @param  LotterySpec  $spec  Contains participants (with preferences) and items
      * @param  int  $itemCount  The M value (number of items to select)
+     *
      * @return string GMPL data section
      */
     public function generateDataWithItemCount(LotterySpec $spec, int $itemCount): string
@@ -83,6 +86,7 @@ GMPL;
      *
      * @param  array  $ids  Array of numeric IDs
      * @param  string  $prefix  Prefix for IDs (e.g., 'p' for participants, 'i' for items)
+     *
      * @return string Space-separated prefixed IDs
      */
     protected function formatSet(array $ids, string $prefix): string
@@ -102,6 +106,7 @@ GMPL;
      *
      * @param  array  $participants  Participant ID => preferences array
      * @param  array  $items  Array of item IDs
+     *
      * @return string GMPL param r matrix
      */
     protected function buildPreferenceMatrix(array $participants, array $items): string

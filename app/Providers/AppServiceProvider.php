@@ -2,26 +2,26 @@
 
 namespace App\Providers;
 
-use App\Services\Queue\Workers;
-use Illuminate\Queue\Events\Looping;
-use Illuminate\Support\Facades\Queue;
 use App\Models\User;
-use App\Services\Delivery\GitHub;
 use App\Services\ActivityLog;
 use App\Services\Assistant\Brain;
 use App\Services\Assistant\Brains\ApiBrain;
 use App\Services\Assistant\Brains\CliBrain;
+use App\Services\Delivery\GitHub;
 use App\Services\Push\PushSender;
 use App\Services\Push\WebPushSender;
+use App\Services\Queue\Workers;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Queue\Events\Looping;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 

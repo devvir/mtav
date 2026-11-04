@@ -30,7 +30,8 @@ class AvatarController extends Controller
                     $fail(__('validation.image_too_large', ['max' => MediaService::MAX_MEGAPIXELS]));
                 }
             },
-        ]]);
+        ],
+        ]);
 
         $user = $request->user();
         $previous = $user->avatar;

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Models\Concerns\Archivable;
+use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;

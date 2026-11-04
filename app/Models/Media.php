@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\Archivable;
-use App\Models\Concerns\RecordsActivity;
-use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Enums\MediaCategory;
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\RecordsActivity;
 use App\Support\Like;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

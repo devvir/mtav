@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Notifications\EmailChangeNotice;
 use App\Notifications\VerifyEmailNotification;
 use App\Services\AccountService;
-use Illuminate\Http\RedirectResponse;
 use App\Services\Push\PushService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -80,18 +80,6 @@ class ProfileController extends Controller
         return back()->with('success', __('flash.profile_updated'));
     }
 
-    /** Each change mails an address they typed: a few an hour, never a way to send mail */
-    private function ensureMayChangeEmail(int $userId): void
-    {
-        $key = "email-change:{$userId}";
-
-        if (RateLimiter::tooManyAttempts($key, self::EMAIL_CHANGES_PER_HOUR)) {
-            throw ValidationException::withMessages(['email' => __('validation.email_changes_limit')]);
-        }
-
-        RateLimiter::hit($key, 3600);
-    }
-
     /**
      * Someone deletes their own account, giving their password: their memberships, devices and answers go with
      * it; what they gave their projects (files, events, lottery records) stays there,
@@ -112,5 +100,17 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return to_route('home')->with('success', __('flash.own_account_deleted'));
+    }
+
+    /** Each change mails an address they typed: a few an hour, never a way to send mail */
+    private function ensureMayChangeEmail(int $userId): void
+    {
+        $key = "email-change:{$userId}";
+
+        if (RateLimiter::tooManyAttempts($key, self::EMAIL_CHANGES_PER_HOUR)) {
+            throw ValidationException::withMessages(['email' => __('validation.email_changes_limit')]);
+        }
+
+        RateLimiter::hit($key, 3600);
     }
 }

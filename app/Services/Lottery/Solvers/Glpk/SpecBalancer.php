@@ -114,6 +114,7 @@ class SpecBalancer
      *
      * @param array<int, array<int, int>> $participants Original participant preferences
      * @param array<string> $mockItems Array of mock item IDs
+     *
      * @return array<int, array<int, int|string>> Updated preferences with mock items appended
      */
     protected function appendMockItemsToPreferences(array $participants, array $mockItems): array

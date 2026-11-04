@@ -31,6 +31,7 @@ class Files
      * @param  string  $prefix  Filename prefix (e.g., 'phase1_', 'data_')
      * @param  string  $suffix  Filename suffix/extension (e.g., '.mod', '.dat')
      * @param  string  $content  Content to write to file
+     *
      * @return string Path to created file
      *
      * @throws GlpkException if file cannot be created or written

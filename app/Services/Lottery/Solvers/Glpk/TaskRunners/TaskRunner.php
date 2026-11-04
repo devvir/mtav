@@ -59,6 +59,7 @@ abstract class TaskRunner
      *
      * @param  int  $timeout  Timeout in seconds for GLPK execution
      * @param  Closure|null  $callback  Optional callback to process solution file (receives filepath as string)
+     *
      * @return mixed Solution file contents if no callback, otherwise callback result
      */
     protected function runGlpk(int $timeout, string $modFile, string $datFile, ?Closure $callback = null): mixed

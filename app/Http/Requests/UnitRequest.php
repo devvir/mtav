@@ -54,6 +54,7 @@ class UnitRequest extends FormRequest
             if (! $this->route('unit') && $max !== null && $project->units()->count() >= $max) {
                 $validator->errors()->add('identifier', __('validation.limit_units', ['max' => $max]));
             }
-        }];
+        },
+        ];
     }
 }

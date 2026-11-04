@@ -43,7 +43,7 @@ class HybridDistribution extends TaskRunner
     /**
      * Search for best distribution using binary search generator with GLPK phase2 feedback.
      *
-     * @return TaskResult[]
+     * @return array<TaskResult>
      */
     protected function searchBestDistribution(Generator $generator, LotterySpec $spec, float $timeout): array
     {
@@ -89,7 +89,7 @@ class HybridDistribution extends TaskRunner
                 FeasibilityResult::FEASIBLE   => $hi = $candidateS - 1,
                 FeasibilityResult::INFEASIBLE => $lo = $candidateS + 1,
 
-                default => throw new InvalidArgumentException("Invalid feedback: " . ($feedback ?? 'null')),
+                default => throw new InvalidArgumentException('Invalid feedback: ' . ($feedback ?? 'null')),
             };
         }
     }

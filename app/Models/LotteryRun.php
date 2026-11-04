@@ -38,6 +38,16 @@ class LotteryRun extends Model
         'invalidation_reason',
     ];
 
+    protected $casts = [
+        'status'         => LotteryRunStatus::class,
+        'options'        => 'array',
+        'result'         => 'array',
+        'reveal_at'      => 'datetime',
+        'started_at'     => 'datetime',
+        'finished_at'    => 'datetime',
+        'invalidated_at' => 'datetime',
+    ];
+
     /** How a run's failure is kept: words to say, not yet said in anyone's language */
     public static function failureOf(string $messageKey, array $messageParams = []): string
     {
@@ -51,16 +61,6 @@ class LotteryRun extends Model
 
         return is_array($failure) ? __($failure['key'], $failure['params']) : $this->failure;
     }
-
-    protected $casts = [
-        'status'         => LotteryRunStatus::class,
-        'options'        => 'array',
-        'result'         => 'array',
-        'reveal_at'      => 'datetime',
-        'started_at'     => 'datetime',
-        'finished_at'    => 'datetime',
-        'invalidated_at' => 'datetime',
-    ];
 
     public function project(): BelongsTo
     {

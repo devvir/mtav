@@ -188,13 +188,6 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->isFamilylessIn($project) && ! $project->allows_guests;
     }
 
-    private function isFamilylessIn(Project $project): bool
-    {
-        $membership = $this->membershipIn($project);
-
-        return $membership && ! $membership->family_id && ! $membership->is_admin;
-    }
-
     public function isBlocked(): bool
     {
         return (bool) $this->blocked_at;
@@ -237,5 +230,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     protected function email(): Attribute
     {
         return Attribute::set(fn (string $value) => strtolower(trim($value)));
+    }
+
+    private function isFamilylessIn(Project $project): bool
+    {
+        $membership = $this->membershipIn($project);
+
+        return $membership && ! $membership->family_id && ! $membership->is_admin;
     }
 }

@@ -28,7 +28,8 @@ class AccountService
         if ($alone->isNotEmpty()) {
             throw ValidationException::withMessages([$errorKey => __('validation.only_admin_of', [
                 'projects' => $alone->pluck('name')->join(', '),
-            ])]);
+            ]),
+            ]);
         }
     }
 

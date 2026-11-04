@@ -17,6 +17,7 @@ class SolutionParser
      * Extract objective value from Phase 1 solution file.
      *
      * @param  string  $solFile  Path to .sol file
+     *
      * @return int Minimum satisfaction level (S)
      */
     public function extractObjective(string $solFile): int
@@ -43,6 +44,7 @@ class SolutionParser
      * Parses variable values to find x[p,i] = 1 (participant p assigned to item i).
      *
      * @param  string  $solFile  Path to .sol file
+     *
      * @return array<int, string|int> Array of participant_id => item_id assignments (item_id can be string for mock items)
      */
     public function extractAssignments(string $solFile): array
@@ -105,6 +107,7 @@ class SolutionParser
      * Parses variable values to find u[i] = 0 (item i not selected).
      *
      * @param  string  $solFile  Path to .sol file
+     *
      * @return array<int> Array of item IDs that were not selected
      */
     public function extractUnusedItems(string $solFile): array

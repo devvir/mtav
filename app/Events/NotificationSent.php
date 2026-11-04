@@ -33,7 +33,8 @@ class NotificationSent implements ShouldBroadcast
             NotificationTarget::PRIVATE => new PrivateChannel("users.{$this->notification->target_id}"),
             NotificationTarget::PROJECT => new PrivateChannel("projects.{$this->notification->target_id}"),
             NotificationTarget::GLOBAL  => new PrivateChannel('superadmins'),
-        }];
+        },
+        ];
     }
 
     /** Apart from what takes long: it reaches people at once */

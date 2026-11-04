@@ -60,7 +60,7 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
 
         $inputFile = $this->resolveInputFile();
 
-        if (!file_exists($inputFile)) {
+        if (! file_exists($inputFile)) {
             $this->error("File not found: {$inputFile}");
             return self::FAILURE;
         }
@@ -79,7 +79,7 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
         $this->createOutputFile($outputPath);
 
         $totalRetries = count($failures) * $iterations;
-        $this->info("Retrying " . count($failures) . " failed cases x{$iterations} iterations = {$totalRetries} total retries");
+        $this->info('Retrying ' . count($failures) . " failed cases x{$iterations} iterations = {$totalRetries} total retries");
         $this->info("Output file: {$outputPath}");
         $this->newLine();
 
@@ -153,11 +153,11 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
             [$size, $scenario, $iteration, $timeMs, $status, $error, $specHash] = $row;
 
             // Only retry failures, timeouts, and infeasible cases
-            if (in_array($status, ['FAILED', 'TIMEOUT', 'INFEASIBLE']) && !empty($specHash)) {
+            if (in_array($status, ['FAILED', 'TIMEOUT', 'INFEASIBLE']) && ! empty($specHash)) {
                 $iterationNum = (int) $iteration;
 
                 // Filter by iteration numbers if --only was specified
-                if ($onlyIterations !== null && !in_array($iterationNum, $onlyIterations)) {
+                if ($onlyIterations !== null && ! in_array($iterationNum, $onlyIterations)) {
                     continue;
                 }
 
@@ -213,8 +213,8 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
         $data = json_decode($specHash, true);
 
         if ($data === null) {
-            $this->warn("JSON decode failed: " . json_last_error_msg());
-            $this->warn("Spec hash (first 200 chars): " . substr($specHash, 0, 200));
+            $this->warn('JSON decode failed: ' . json_last_error_msg());
+            $this->warn('Spec hash (first 200 chars): ' . substr($specHash, 0, 200));
             return null;
         }
 
@@ -222,8 +222,8 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
         $items = $data['items'] ?? null;
 
         if ($preferences === null || $items === null) {
-            $this->warn("Missing items or preferences in decoded data");
-            $this->warn("Available keys: " . implode(', ', array_keys($data)));
+            $this->warn('Missing items or preferences in decoded data');
+            $this->warn('Available keys: ' . implode(', ', array_keys($data)));
             return null;
         }
 
