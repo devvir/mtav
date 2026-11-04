@@ -315,3 +315,39 @@ it('is the Assistant alone outside any project: its conversation, with no list t
         ->assertMissing('.chat-list')
         ->assertNoSmoke();
 });
+
+it('drops a count that came with the page once what it counted was read elsewhere', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $this->as($this->beto);
+
+    $page = visit(route('projects.show', $this->project))
+        ->assertSeeIn('.chat-launcher-count', '1');
+
+    // Read on another device: this page's count is now stale
+    $chat->read($conversation, $this->beto);
+
+    $page->click('.chat-launcher')
+        ->assertPresent('.chat-list-item:has-text("Ana Pérez")')
+        ->assertMissing('.chat-list-item[data-unread]')
+        ->click('.chat-window [aria-label="Minimize"]')
+        ->assertMissing('.chat-launcher-count');
+});
+
+it('enlarges into the chat\'s page, at the conversation open, and folds the window away', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $this->as($this->beto);
+
+    visit(route('projects.show', $this->project))
+        ->click('.chat-launcher')
+        ->click('.chat-list-item:has-text("Ana Pérez")')
+        ->assertSeeIn('.chat-window .chat-messages', 'Hola Beto')
+        ->click('.chat-window [aria-label="Enlarge"]')
+        ->assertPathIs('/projects/' . $this->project->id . '/chat/' . $conversation->id)
+        ->assertSeeIn('.chat-messages', 'Hola Beto')
+        ->assertMissing('.chat-window')
+        ->assertNoSmoke();
+});

@@ -2134,12 +2134,6 @@ html[data-carrying] * {
   width: min(25rem, calc(100vw - 2.5rem));
   height: min(38rem, calc(100dvh - 11rem));
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--mtav-brand) 30%, var(--mtav-border));
-  border-radius: var(--mtav-radius-card);
-  /* The cards' glow, a little stronger: whatever lies behind, the window stands off it */
-  box-shadow:
-    0 12px 40px rgb(0 0 0 / 28%),
-    0 0 28px -6px color-mix(in srgb, var(--mtav-brand) 45%, transparent);
   transform-origin: bottom right;
 }
 @media (max-width: 74.99em) {
@@ -2505,6 +2499,12 @@ html[data-carrying] * {
 
 /* The chat's window: glass, mostly solid and well blurred, so that it reads without effort */
 .chat-window.ds-surface {
+  /* Lit from within, in the brand: whatever lies behind, the window stands off it */
+  border-color: color-mix(in srgb, var(--mtav-brand) 55%, var(--mtav-border));
+  box-shadow:
+    0 16px 48px rgb(0 0 0 / 40%),
+    0 0 0 1px color-mix(in srgb, var(--mtav-brand) 18%, transparent),
+    0 0 36px -2px color-mix(in srgb, var(--mtav-brand) 55%, transparent);
   background: color-mix(in srgb, var(--mantine-color-body) 90%, transparent);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
   backdrop-filter: blur(22px) saturate(140%);

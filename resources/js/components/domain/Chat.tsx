@@ -15,7 +15,7 @@ import { route } from '@/lib/route';
 import { toast } from '@/lib/toasts';
 import { startTour } from '@/lib/tour';
 import { _, languageTag } from '@/lib/translations';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
   ActionIcon,
   Avatar,
@@ -35,6 +35,7 @@ import {
 import {
   IconArrowLeft,
   IconArrowRight,
+  IconArrowsMaximize,
   IconCheck,
   IconDoorExit,
   IconDots,
@@ -210,7 +211,7 @@ function ConversationList({
             >
               {_('New conversation')}
             </Button>
-            {popup ? <MinimizeButton /> : null}
+            {popup ? <WindowButtons /> : null}
           </Group>
         </Group>
         <SegmentedControl
@@ -303,11 +304,29 @@ function ConversationList({
   );
 }
 
-function MinimizeButton() {
+/** The window's own buttons: onto the chat's page, at the same conversation, or back into the bubble */
+function WindowButtons() {
+  const { project } = useChatProject();
+  const chatRoute = useChatRoute();
+  const { conversation } = useChat();
+  // Outside any project the page opens the Assistant on its own
+  const page = project && conversation ? chatRoute('show', { conversation }) : chatRoute('index');
   return (
-    <ActionIcon variant="subtle" color="gray" aria-label={_('Minimize')} onClick={minimizeChat}>
-      <IconMinus size={18} />
-    </ActionIcon>
+    <>
+      <ActionIcon
+        component={Link}
+        href={page}
+        variant="subtle"
+        color="gray"
+        aria-label={_('Enlarge')}
+        onClick={minimizeChat}
+      >
+        <IconArrowsMaximize size={18} />
+      </ActionIcon>
+      <ActionIcon variant="subtle" color="gray" aria-label={_('Minimize')} onClick={minimizeChat}>
+        <IconMinus size={18} />
+      </ActionIcon>
+    </>
   );
 }
 
@@ -618,7 +637,7 @@ function Thread({
               </Menu.Dropdown>
             </Menu>
           ) : null}
-          {popup ? <MinimizeButton /> : null}
+          {popup ? <WindowButtons /> : null}
         </Group>
       </header>
 
@@ -967,8 +986,11 @@ export function Chat({
   initial?: ChatData;
   popup?: boolean;
 }): ReactNode {
-  const { project: chatProject, prop: projectProp } = useChatProject();
+  const { project: chatProject, account, prop: projectProp } = useChatProject();
   const chatRoute = useChatRoute();
+  // What the bubble counts came with the page; the server's latest answer, how many are unread
+  const counted = (chatProject ? chatProject.unread_messages : account?.unread) ?? 0;
+  const [unread, setUnread] = useState<number | null>(null);
   // What it remembers is kept per project; 0 is the person's own, outside any
   const projectId = chatProject?.id ?? 0;
   const { conversation: open, version } = useChat();
@@ -1006,20 +1028,21 @@ export function Chat({
       };
       const next = { ...answer, people: answer.people ?? seen.get(projectId)?.people ?? [] };
       peopleOf.current = projectId;
-      const wasUnread = seen
-        .get(projectId)
-        ?.conversations.some((one) => one.id === open && one.unread);
       seen.set(projectId, next);
       setData(next);
-      // Read now: whatever counts the conversations with something new follows
-      if (wasUnread) router.reload({ only: [projectProp] });
+      setUnread(next.conversations.filter((one) => one.unread).length);
     },
-    [projectId, projectProp, open, count, chatRoute],
+    [projectId, open, count, chatRoute],
   );
 
   useEffect(() => {
     void load();
   }, [load, version]);
+
+  // Read since the page came, here or elsewhere: whatever counts them follows the latest answer
+  useEffect(() => {
+    if (unread !== null && unread !== counted) router.reload({ only: [projectProp] });
+  }, [unread, counted, projectProp]);
 
   // Outside any project the chat is the Assistant alone: its conversation is the one open
   const alone = !chatProject;
