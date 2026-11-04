@@ -39,12 +39,13 @@ class Notification extends Model
         return $this->belongsToMany(User::class, 'notification_reads')->withPivot('read_at');
     }
 
+    /** Whom it tells: never, in a project or the platform, the one who did what it tells */
     public function isFor(User $user): bool
     {
         return match ($this->target) {
             NotificationTarget::PRIVATE => $this->target_id === $user->id,
-            NotificationTarget::PROJECT => $user->canAccess($this->target_id),
-            NotificationTarget::GLOBAL  => $user->isSuperadmin(),
+            NotificationTarget::PROJECT => $user->canAccess($this->target_id) && $this->triggered_by !== $user->id,
+            NotificationTarget::GLOBAL  => $user->isSuperadmin() && $this->triggered_by !== $user->id,
         };
     }
 
@@ -61,7 +62,8 @@ class Notification extends Model
     /**
      * Notifications a user receives, newest first, from their registration on (a project's,
      * from when they joined it), each with a `read` flag for that user. An archived
-     * project's are no longer among them.
+     * project's are no longer among them, nor what they themselves did (joining, posting: it
+     * tells the others).
      */
     public function scopeFor(Builder $query, User $user): void
     {
@@ -81,6 +83,10 @@ class Notification extends Model
                         ->whereColumn('memberships.created_at', '<=', 'notifications.created_at')))
                 ->when($user->isSuperadmin(), fn (Builder $q) => $q
                     ->orWhere('target', NotificationTarget::GLOBAL)))
+            ->where(fn (Builder $q) => $q
+                ->where('target', NotificationTarget::PRIVATE)
+                ->orWhereNull('triggered_by')
+                ->orWhere('triggered_by', '!=', $user->id))
             ->where('created_at', '>=', $user->created_at)
             ->withExists(['readers as read' => fn (Builder $q) => $q->whereKey($user->id)])
             ->orderByDesc('id');

@@ -142,6 +142,29 @@ describe('What a project gains', function () {
         expect($seen($this)->pluck('title'))->toContain(__('notifications.event_published_title'));
     });
 
+    it('never tells someone what they did themselves: only the others hear of it', function () use ($seen) {
+        $this->as($this->gainingAdmin, $this->gaining)->post(route('manage.events.store'), [
+            'title'      => 'Assembly', 'description' => 'All of us', 'type' => 'online', 'is_published' => true,
+            'start_date' => now()->addWeek()->toDateTimeString(), 'end_date' => now()->addWeek()->addHour()->toDateTimeString(),
+        ])->assertSessionHasNoErrors();
+        $notice = Notification::where('type', NotificationType::EVENT_PUBLISHED)->sole();
+
+        expect($seen($this)->pluck('id'))->toContain($notice->id)
+            ->and(Notification::for($this->gainingAdmin)->pluck('id'))->not->toContain($notice->id)
+            ->and(Notification::for($this->gainingAdmin)->unreadBy($this->gainingAdmin)->count())->toBe(0)
+            ->and($notice->isFor($this->gainingAdmin))->toBeFalse();
+    });
+
+    it('tells the project someone joined, but not the one who joined', function () {
+        $newcomer = aUser();
+        $invitation = app(App\Services\InvitationService::class)->invite($this->gaining, $this->gainingAdmin, ['email' => $newcomer->email], null, asAdmin: false);
+        app(App\Services\InvitationService::class)->accept($invitation, $newcomer);
+        $joined = Notification::where('type', NotificationType::MEMBER_JOINED)->sole();
+
+        expect(Notification::for($newcomer->fresh())->pluck('id'))->not->toContain($joined->id)
+            ->and(Notification::for($this->neighbour)->pluck('id'))->toContain($joined->id);
+    });
+
     it('tells people when a draft event goes out, once', function () use ($seen) {
         $event = $this->gaining->events()->create(['creator_id' => $this->gainingAdmin->id, 'title' => 'Draft', 'description' => 'Later', 'type' => 'online', 'is_published' => false, 'start_date' => now()->addWeek(), 'end_date' => now()->addWeek()->addHour()]);
         $update = fn () => $this->as($this->gainingAdmin, $this->gaining)->put(route('manage.events.update', $event), [
