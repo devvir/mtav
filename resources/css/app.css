@@ -2648,3 +2648,8 @@ html[data-carrying] * {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Outside any project the chat is the Assistant alone: its conversation, the whole width */
+.chat[data-alone] {
+  grid-template-columns: minmax(0, 1fr);
+}

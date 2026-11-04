@@ -131,10 +131,13 @@ it('has the Assistant at hand, pinned, offering what to ask, and says when it is
 
     visit(route('projects.show', $this->project))
         ->click('.chat-launcher')
-        ->assertSeeIn('.chat-kinds + .chat-list-row', 'Assistant')
+        ->assertPresent('.chat-kinds + .chat-list-row .chat-list-item:has-text("Assistant")')
         ->assertPresent('.chat-kinds + .chat-list-row .chat-pin[data-pinned]')
+        // Its greeting is there before anything is written: the list says so, not "no messages"
+        ->assertSeeIn('.chat-kinds + .chat-list-row', 'I am the Assistant of this app')
+        ->assertDontSeeIn('.chat-kinds + .chat-list-row', 'No messages yet')
         ->click('.chat-list-item:has-text("Assistant")')
-        ->assertSeeIn('.chat-window', 'I am the Assistant of this app')
+        ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
         ->assertPresent('.chat-window button:has-text("Show me around")')
         ->click('.chat-window button:has-text("How does the lottery work?")')
         ->assertSeeIn('.chat-messages', 'How does the lottery work?')
@@ -288,28 +291,27 @@ it('is at hand on one\'s own pages too, in the project last browsed', function (
     visit(route('profile.edit'))
         ->click('.chat-launcher')
         ->assertPresent('.chat-window')
-        ->assertSeeIn('.chat-window', 'Assistant')
+        ->assertPresent('.chat-window .chat-list-item:has-text("Assistant")')
         ->assertNoSmoke();
 });
 
-it('is at hand outside any project too: the Assistant alone, with nobody to start a conversation with', function () {
+it('is the Assistant alone outside any project: its conversation, with no list to go back to', function () {
     $this->as(aUser(['firstname' => 'Luz']));
 
     visit(route('projects.index'))
         ->click('.chat-launcher')
-        ->assertSeeIn('.chat-window', 'Assistant')
-        ->assertMissing('.chat-window [data-tour="chat.new"]')
-        ->click('.chat-list-item:has-text("Assistant")')
-        ->assertSeeIn('.chat-window', 'I am the Assistant of this app')
+        ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
+        ->assertMissing('.chat-window .chat-list')
+        ->assertMissing('.chat-window .chat-back')
         ->click('.chat-window button:has-text("What can I do here?")')
         ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
         ->click('.chat-actions button:has-text("' . __('chat.ready.outside_action') . '")')
         ->assertPathIs(route('directory.index', absolute: false))
         ->assertNoSmoke();
 
-    // Its own page, where phones have it: the conversation open from the start
+    // Its own page, where phones have it: the same, on its own
     visit(route('account.chat.index'))
         ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
-        ->assertMissing('[data-tour="chat.new"]')
+        ->assertMissing('.chat-list')
         ->assertNoSmoke();
 });

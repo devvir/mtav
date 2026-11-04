@@ -1,6 +1,13 @@
 import { DateTime, formatDate } from '@/components/feedback/DateTime';
 import { PersonAvatar } from '@/design';
-import { minimizeChat, showConversation, useChat, useChatProject, useChatRoute } from '@/lib/chat';
+import {
+  chatState,
+  minimizeChat,
+  showConversation,
+  useChat,
+  useChatProject,
+  useChatRoute,
+} from '@/lib/chat';
 import { confirm } from '@/lib/dialogs';
 import { fieldErrors, sendJson } from '@/lib/json';
 import { heldOffline } from '@/lib/offline';
@@ -166,8 +173,6 @@ function ConversationList({
   popup: boolean;
   onChange: () => Promise<void>;
 }) {
-  // Outside any project there is nobody to start one with: the Assistant is all there is
-  const { project } = useChatProject();
   const chatRoute = useChatRoute();
   const [query, setQuery] = useState('');
   const groups = conversations.filter((conversation) => conversation.is_group);
@@ -196,17 +201,15 @@ function ConversationList({
         <Group justify="space-between" wrap="nowrap" mb="xs">
           <Text fw={700}>{_('Messages')}</Text>
           <Group gap={4} wrap="nowrap">
-            {project ? (
-              <Button
-                size="xs"
-                variant="light"
-                leftSection={<IconPlus size={16} />}
-                data-tour="chat.new"
-                onClick={onNew}
-              >
-                {_('New conversation')}
-              </Button>
-            ) : null}
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconPlus size={16} />}
+              data-tour="chat.new"
+              onClick={onNew}
+            >
+              {_('New conversation')}
+            </Button>
             {popup ? <MinimizeButton /> : null}
           </Group>
         </Group>
@@ -266,11 +269,14 @@ function ConversationList({
                 size="sm"
                 c="dimmed"
                 truncate
-                className={conversation.last ? undefined : 'chat-note'}
+                className={conversation.last || conversation.is_assistant ? undefined : 'chat-note'}
               >
                 {conversation.last
                   ? `${conversation.last.mine ? _('You') + ': ' : conversation.is_group && conversation.last.author ? conversation.last.author + ': ' : ''}${conversation.last.body}`
-                  : _('No messages yet')}
+                  : // The Assistant's greeting is there before anything is written
+                    conversation.is_assistant
+                    ? assistantGreeting()
+                    : _('No messages yet')}
               </Text>
             </div>
             {conversation.unread ? (
@@ -316,6 +322,12 @@ function dayLabel(value: string) {
   return formatDate(value, false);
 }
 
+/** How the Assistant opens: in its conversation before the first message, and in the list */
+const assistantGreeting = () =>
+  _(
+    'Hello! I am the Assistant of this app, an automatic helper. I can explain how things work and take you where you need to go. What would you like to know?',
+  );
+
 /** Before the first message: what it is, and a few things to ask with a tap */
 function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
   const { project } = useChatProject();
@@ -333,9 +345,7 @@ function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
       <AssistantFace size={28} />
       <div className="chat-bubble">
         <Text component="div" className="chat-body">
-          {_(
-            'Hello! I am the Assistant of this app, an automatic helper. I can explain how things work and take you where you need to go. What would you like to know?',
-          )}
+          {assistantGreeting()}
         </Text>
       </div>
       <AssistantActions
@@ -461,6 +471,7 @@ function Thread({
   conversation,
   messages,
   people,
+  alone = false,
   popup,
   onChange,
   onEarlier,
@@ -468,6 +479,8 @@ function Thread({
   conversation: OpenConversation;
   messages: NonNullable<ChatData['messages']>;
   people: ChatPerson[];
+  /** The only conversation there is (the Assistant, outside any project): no way back to a list */
+  alone?: boolean;
   popup: boolean;
   onChange: () => Promise<void>;
   onEarlier: (count: number) => Promise<void>;
@@ -550,14 +563,16 @@ function Thread({
     <section className="chat-thread ds-surface" aria-label={conversation.title}>
       <header className="chat-thread-header">
         <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-          <ActionIcon
-            onClick={() => showConversation(null)}
-            variant="subtle"
-            className="chat-back"
-            aria-label={_('All conversations')}
-          >
-            <IconArrowLeft size={20} />
-          </ActionIcon>
+          {alone ? null : (
+            <ActionIcon
+              onClick={() => showConversation(null)}
+              variant="subtle"
+              className="chat-back"
+              aria-label={_('All conversations')}
+            >
+              <IconArrowLeft size={20} />
+            </ActionIcon>
+          )}
           <Faces conversation={conversation} />
           <div style={{ minWidth: 0 }}>
             <Text fw={700} truncate>
@@ -1006,10 +1021,41 @@ export function Chat({
     void load();
   }, [load, version]);
 
+  // Outside any project the chat is the Assistant alone: its conversation is the one open
+  const alone = !chatProject;
+  const assistant = alone ? data?.conversation?.id : undefined;
+  useEffect(() => {
+    if (assistant && chatState().conversation !== assistant) showConversation(assistant);
+  }, [assistant]);
+
   if (!data) {
     return (
       <div className="chat">
         <Skeleton h="100%" radius="lg" />
+      </div>
+    );
+  }
+
+  if (alone) {
+    return (
+      <div className="chat" data-open data-alone>
+        {data.conversation && data.messages ? (
+          <Thread
+            key={data.conversation.id}
+            conversation={data.conversation}
+            messages={data.messages}
+            people={[]}
+            alone
+            popup={popup}
+            onChange={() => load()}
+            onEarlier={async (more) => {
+              setAsking({ conversation: open, count: more });
+              await load(more);
+            }}
+          />
+        ) : (
+          <Skeleton h="100%" radius="lg" />
+        )}
       </div>
     );
   }
@@ -1043,11 +1089,7 @@ export function Chat({
           {open ? (
             <Skeleton h="100%" w="100%" radius="md" />
           ) : (
-            <Text c="dimmed">
-              {chatProject
-                ? _('Pick a conversation, or start a new one.')
-                : _('Pick a conversation.')}
-            </Text>
+            <Text c="dimmed">{_('Pick a conversation, or start a new one.')}</Text>
           )}
         </div>
       )}

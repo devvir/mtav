@@ -769,6 +769,9 @@ describe('Outside any project', function () {
 
         expect($chat['conversations'])->toHaveCount(1)
             ->and($chat['conversations'][0])->is_assistant->toBeTrue()->pinned->toBeTrue()
+            // It is the chat there: open from the start
+            ->and($chat['conversation'])->is_assistant->toBeTrue()
+            ->and($chat['messages']['data'])->toBe([])
             ->and($chat['people'])->toBe([])
             ->and(Conversation::whereNull('project_id')->sole()->participants()->pluck('users.id')->all())->toBe([$this->outsider->id]);
 

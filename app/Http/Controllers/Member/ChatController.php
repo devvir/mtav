@@ -56,9 +56,11 @@ class ChatController extends Controller
     public function panel(Request $request, ?Project $project = null): JsonResponse
     {
         $this->authorize('startChat', [Conversation::class, $project]);
-        $this->withAssistant($request->user(), $project);
+        $assistant = $this->withAssistant($request->user(), $project);
 
-        $open = null;
+        // Outside any project the chat is the Assistant: its conversation, open from the start
+        $open = $project ? null : $assistant;
+        $open && $this->chat->read($open, $request->user());
         if ($request->integer('conversation')) {
             $open = Conversation::where('project_id', $project?->id)->findOrFail($request->integer('conversation'));
             $this->authorize('readChat', $open);
