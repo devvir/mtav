@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlanResource;
-use App\Http\Resources\UnitResource;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\Project;
 use App\Models\Unit;
@@ -19,6 +18,8 @@ use Inertia\Response;
  */
 class UnitController extends Controller
 {
+    use Concerns\ShowsDetails;
+
     public function index(Request $request, Project $project): Response
     {
         return inertia('Member/Units/Index', [
@@ -32,9 +33,7 @@ class UnitController extends Controller
             // Reached at units/edit: the plan opens for drawing
             'editPlan' => $request->routeIs('units.edit'),
             // A unit's details, shown over the page (?unit=7)
-            'unit' => fn () => $request->integer('unit') && ($unit = $project->units()->find($request->integer('unit')))
-                ? UnitResource::make($unit->load('type', 'family'))
-                : null,
+            'unit' => fn () => $this->unitShown($request, $project),
         ]);
     }
 

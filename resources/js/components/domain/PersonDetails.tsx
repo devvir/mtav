@@ -128,7 +128,7 @@ export function PersonDetails({
         {isMe ? (
           <>
             <Divider my="lg" />
-            <Group>
+            <Group justify="flex-end">
               <Button variant="default" component={Link} href={route('profile.edit')}>
                 {_('Edit your profile')}
               </Button>
@@ -147,7 +147,7 @@ export function PersonDetails({
       {families ? (
         <>
           <Divider my="lg" />
-          <Group gap="sm">
+          <Group gap="sm" justify="flex-end">
             <Button
               variant="default"
               leftSection={<IconUserCog size={18} />}

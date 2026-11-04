@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Project;
+use App\Models\SupportInvitation;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -23,32 +24,38 @@ function confirmPassword(object $page): object
         ->assertSee('Confirmed. Now do it again.');
 }
 
-it('gives the superadmin role from its own page, by exact email, and takes it back', function () {
-    $ana = aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
+it('invites a support account by an email not in use, and takes the role back', function () {
+    Notification::fake();
+    aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
 
     // Never offered on the accounts themselves
     visit(route('admin.users.index'))
         ->assertSee('Ana García')
         ->assertDontSee('Make superadmin');
 
-    $give = fn ($page) => $page->fill('email', 'ana@example.com')
-        ->click('Give the superadmin role')
-        ->fill('[role="dialog"] input', 'ana@example.com')
-        ->click(inDialog('Give the role'));
+    $invite = fn ($page, $email) => $page->fill('email', $email)
+        ->click('form >> text=Send the invitation')
+        ->fill('[role="dialog"] input', $email)
+        ->click(inDialog('Send the invitation'));
 
-    $page = confirmPassword($give(visit(route('admin.superadmins.index'))));
-    expect($ana->fresh()->isSuperadmin())->toBeFalse();
+    $page = confirmPassword($invite(visit(route('admin.superadmins.index')), 'support@example.com'));
+    expect(SupportInvitation::count())->toBe(0);
 
-    $give($page)->assertSee('Ana García');
+    $invite($page, 'support@example.com')->assertSee('Invitation sent to support@example.com.');
+    expect(SupportInvitation::sole()->email)->toBe('support@example.com');
 
-    expect($ana->fresh()->isSuperadmin())->toBeTrue();
+    // Someone already here keeps their own account: a support account takes another address
+    $invite($page, 'ana@example.com')->assertSee(__('validation.support_email_taken'));
+    expect(SupportInvitation::count())->toBe(1);
 
-    // Asked once for a while: taking it back goes straight on
-    $page->click('.row:has-text("Ana García") >> text=Remove the role')
+    // Asked once for a while: taking the role back goes straight on
+    User::factory()->superadmin()->create(['firstname' => 'Bruno', 'lastname' => 'Pérez', 'email' => 'bruno@example.com']);
+    $page = visit(route('admin.superadmins.index'))
+        ->click('.row:has-text("Bruno Pérez") >> text=Remove the role')
         ->click(inDialog('Remove the role'))
-        ->assertDontSee('ana@example.com');
+        ->assertDontSee('bruno@example.com');
 
-    expect($ana->fresh()->isSuperadmin())->toBeFalse();
+    expect(User::where('email', 'bruno@example.com')->sole()->isSuperadmin())->toBeFalse();
 });
 
 it('finds accounts by name or email', function () {
@@ -221,9 +228,9 @@ it('offers the link to choose a password where it asks for one, for an account o
 
     visit(route('admin.superadmins.index'))
         ->fill('email', 'someone@example.com')
-        ->click('Give the superadmin role')
+        ->click('form >> text=Send the invitation')
         ->fill('[role="dialog"] input', 'someone@example.com')
-        ->click(inDialog('Give the role'))
+        ->click(inDialog('Send the invitation'))
         ->assertSee('Confirm your password')
         ->click('Email me a link to choose a password')
         ->assertSee(__('passwords.sent'))

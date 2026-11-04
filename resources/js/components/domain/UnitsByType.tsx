@@ -20,7 +20,7 @@ export function UnitsByType({
   unitTypes: UnitType[];
   /** For admins */
   onEditType?: (type: UnitType) => void;
-  /** Shown away from the units page: a unit opens there */
+  /** Shown away from the units page (the home page): a unit opens over it, and the title leads there */
   away?: boolean;
 }) {
   const total = unitTypes.reduce((sum, type) => sum + (type.units?.length ?? 0), 0);
@@ -41,6 +41,7 @@ export function UnitsByType({
     <FoldablePanel
       name="units-by-type"
       title={_('Units by type')}
+      href={away ? route('units.index') : undefined}
       icon={IconLayoutGrid}
       aside={_n('{count} unit', '{count} units', total)}
       flush
@@ -98,10 +99,14 @@ export function UnitsByType({
                 {type.units.map((unit) => (
                   <Link
                     key={unit.id}
-                    href={route('units.index', { unit: unit.id })}
-                    only={away ? undefined : ['unit']}
-                    preserveState={!away}
-                    preserveScroll={!away}
+                    href={
+                      away
+                        ? route('projects.show', { unit: unit.id })
+                        : route('units.index', { unit: unit.id })
+                    }
+                    only={away ? ['unit', 'unitPlan'] : ['unit']}
+                    preserveState
+                    preserveScroll
                     className="unit-chip"
                     data-given={unit.family ? true : undefined}
                   >

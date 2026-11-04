@@ -22,36 +22,33 @@ use Inertia\Response;
 
 class FamilyController extends Controller
 {
+    use Concerns\ShowsDetails;
+
     public function __construct(private NotificationService $notifications)
     {
     }
 
     public function index(Request $request, Project $project, ArchiveService $archive): Response
     {
-        [$families, $whole] = $this->wholeOrPaged(
+        [$families] = $this->wholeOrPaged(
             $project->families()
                 ->with('unitType:id,name', 'unit:id,family_id,identifier', 'members')
                 ->withCount('members')
                 ->alphabetically(),
             fn ($query) => $query
-                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project), nameOnly: $request->user()->isGuestIn($project)))
-                ->when($request->integer('unit_type'), fn ($q, $typeId) => $q->where('unit_type_id', $typeId)),
+                ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project), nameOnly: $request->user()->isGuestIn($project))),
             30,
         );
 
         return inertia('Member/Families/Index', [
             'families'  => FamilyResource::collection($families),
-            'whole'     => $whole,
-            'filters'   => ['q' => $request->q, 'unit_type' => $request->integer('unit_type') ?: null],
-            'types'     => $project->unitTypes()->alphabetically()->get(['id', 'name']),
+            'filters'   => ['q' => $request->q],
             'found'     => fn () => $request->filled('q') ? app(PeopleSearch::class)->find($project, $request->user(), (string) $request->q) : null,
             'unitTypes' => $this->unitTypesFor($request, $project),
             // A family's details, shown over the list (?family=12)
-            'family' => fn () => $request->integer('family') && ($family = $project->families()->find($request->integer('family')))
-                ? FamilyResource::make($family->load('unitType', 'unit', 'members'))
-                : null,
+            'family' => fn () => $this->familyShown($request, $project),
             // For those in it, who answer them: who asks to join, and who was declined
-            'requests' => fn () => $this->requestsFor($request, $project),
+            'requests' => fn () => $this->requestsShown($request, $project),
             'archive'  => fn () => $archive->forPage($request, $project, 'families'),
             // Someone to bring an archived family back with
             'guests' => fn () => $request->user()->can('update', $project) && $request->boolean('archived')
@@ -138,22 +135,6 @@ class FamilyController extends Controller
     public function show(Project $project, Family $family): RedirectResponse
     {
         return to_route('families.index', ['family' => $family->id]);
-    }
-
-    private function requestsFor(Request $request, Project $project): ?array
-    {
-        $family = $project->families()->find($request->integer('family'));
-
-        if (! $family || ! $request->user()->can('answerRequests', $family)) {
-            return null;
-        }
-
-        return $family->joinRequests()->with('user:id,firstname,lastname')->oldest()->get()
-            ->map(fn (FamilyJoinRequest $joinRequest) => [
-                'id'       => $joinRequest->id,
-                'name'     => $joinRequest->user->name,
-                'declined' => (bool) $joinRequest->declined_at,
-            ])->all();
     }
 
     /** For admins, who register and edit families here: the types a family can have */

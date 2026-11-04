@@ -62,15 +62,15 @@ describe('the square around a unit', () => {
       ],
     }) as unknown as Plan['items'][number];
 
-  it("centres the unit, at half its side, on the unit's floor", () => {
+  it("centres the unit, two and a half times its size, on the unit's floor", () => {
     expect(around(plan([unitAt(100, 200, 40, 20)], [[0, 0]]), 7)).toEqual({
-      viewBox: '80 170 80 80',
+      viewBox: '70 160 100 100',
       floor: 2,
     });
   });
 
   it('reaches past the canvas for a unit against its edge, and is nothing for a unit not on the plan', () => {
-    expect(around(plan([unitAt(0, 0, 30, 30)], [[0, 0]]), 7)?.viewBox).toBe('-15 -15 60 60');
+    expect(around(plan([unitAt(0, 0, 30, 30)], [[0, 0]]), 7)?.viewBox).toBe('-22.5 -22.5 75 75');
     expect(around(plan([unitAt(0, 0, 30, 30)], [[0, 0]]), 8)).toBeNull();
   });
 });

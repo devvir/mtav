@@ -29,7 +29,7 @@ export const frame = (plan: Plan) => {
 };
 
 /**
- * A square around one unit, which takes about half of it: what lies near it shows, and past
+ * A square around one unit, two and a half times its size: what lies near it shows, and past
  * the canvas's edge the plain ground, like anywhere outside the boundary. Null when the unit
  * is not on the plan.
  */
@@ -37,7 +37,7 @@ export const around = (plan: Plan, unitId: number) => {
   const item = plan.items.find((one) => one.unit?.id === unitId && one.placed !== false);
   if (!item) return null;
   const box = bounds(item.polygon);
-  const side = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1) * 2;
+  const side = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1) * 2.5;
   const x = (box.minX + box.maxX) / 2 - side / 2;
   const y = (box.minY + box.maxY) / 2 - side / 2;
 

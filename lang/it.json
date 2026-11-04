@@ -38,8 +38,6 @@
   "All": "Tutti",
   "All events": "Tutti gli eventi",
   "All families": "Tutte le famiglie",
-  "All files": "Tutti i file",
-  "All types": "Tutti i tipi",
   "All your projects": "Tutti i tuoi progetti",
   "Anyone can start a project. Until a superadmin approves it, it works within limits, to prevent abuse.": "Chiunque può avviare un progetto. Finché un superadmin non lo approva, funziona con dei limiti, per evitare abusi.",
   "Appearance": "Aspetto",
@@ -265,7 +263,6 @@
   "Nobody matches.": "Nessuno corrisponde.",
   "Not allowed": "Non consentito",
   "Not approved": "Non approvato",
-  "Not assigned yet: the lottery decides which family receives it.": "Non ancora assegnata: il sorteggio decide quale famiglia la riceve.",
   "Not saved yet": "Non ancora salvato",
   "Not scheduled yet": "Non ancora in programma",
   "Nothing here yet": "Ancora niente qui",
@@ -1125,5 +1122,6 @@
   "to give support in {project}, with an account of its own": "a dare supporto in {project}, con un account a parte",
   "Create the support account": "Crea l’account di supporto",
   "Its first admin’s email": "Email del suo primo admin",
-  "They receive an invitation to run it": "Riceve un invito per gestirlo"
+  "They receive an invitation to run it": "Riceve un invito per gestirlo",
+  "Add a new member to this family": "Aggiungi un nuovo membro a questa famiglia"
 }

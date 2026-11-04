@@ -153,7 +153,7 @@ it('finds by email in the one search only where the address is shown', function 
         ->and(collect($found($this->admin)['families']))->toHaveCount(1);
 });
 
-it('filters people by family and role, and families by unit type', function () {
+it('filters people by family and role', function () {
     config()->set('lists.whole', 0); // the server searches and filters (long lists)
 
     $listed = function (string $list, array $query, string $key) {
@@ -167,8 +167,7 @@ it('filters people by family and role, and families by unit type', function () {
 
     expect($listed('people.index', ['family' => $family->id], 'people'))->toContain($this->member->id)
         ->not->toContain($this->admin->id)
-        ->and($listed('people.index', ['admins' => 1], 'people'))->toBe([$this->admin->id])
-        ->and($listed('families.index', ['unit_type' => $family->unit_type_id], 'families'))->toContain($family->id);
+        ->and($listed('people.index', ['admins' => 1], 'people'))->toBe([$this->admin->id]);
 });
 
 it('shows and finds the email and phone people choose to share, and admins see them all', function () {

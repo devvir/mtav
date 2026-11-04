@@ -4,7 +4,7 @@ import { route } from '@/lib/route';
 import { _, _n } from '@/lib/translations';
 import type { Family, Person } from '@/types/models';
 import { Link } from '@inertiajs/react';
-import { Anchor, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { IconUsersGroup } from '@tabler/icons-react';
 
 export interface Community {
@@ -13,12 +13,15 @@ export interface Community {
   latest: Person[];
 }
 
-/** One person, as a link to their details */
+/** One person: their details open over the home page */
 function PersonRow({ person, caption }: { person: Person; caption?: string | null }) {
   return (
     <Card
       component={Link}
-      href={route('people.index', { person: person.id })}
+      href={route('projects.show', { person: person.id })}
+      only={['person']}
+      preserveState
+      preserveScroll
       p="xs"
       className="ds-interactive"
     >
@@ -35,7 +38,10 @@ function PersonRow({ person, caption }: { person: Person; caption?: string | nul
   );
 }
 
-/** Who the project is: some of its families, who joined last, and its admins */
+/**
+ * Who the project is: some of its families, who joined last, and its admins. Each opens its
+ * details over the home page; the title leads to the people's page.
+ */
 export function CommunityPanel({ community }: { community: Community }) {
   return (
     <FoldablePanel
@@ -43,11 +49,7 @@ export function CommunityPanel({ community }: { community: Community }) {
       title={_('The people of the project')}
       icon={IconUsersGroup}
       tone="brand"
-      actions={
-        <Anchor component={Link} href={route('families.index')} size="sm" fw={600}>
-          {_('All families')}
-        </Anchor>
-      }
+      href={route('families.index')}
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
         <div>
@@ -59,7 +61,10 @@ export function CommunityPanel({ community }: { community: Community }) {
               <Card
                 key={family.id}
                 component={Link}
-                href={route('families.index', { family: family.id })}
+                href={route('projects.show', { family: family.id })}
+                only={['family', 'requests']}
+                preserveState
+                preserveScroll
                 p="xs"
                 className="ds-interactive"
               >

@@ -106,8 +106,8 @@ export function FoundPeople({ found, q, own }: { found: Found; q: string; own?: 
       {groups.map((group) => (
         <section key={group.title} aria-label={group.title}>
           <Title order={2} size="h4" mb="sm">
-            {group.title}{' '}
-            <Text span c="dimmed" fw={500} fz="sm">
+            {group.title}
+            <Text span c="dimmed" fw={500} fz="sm" ml="xs">
               {group.count}
             </Text>
           </Title>

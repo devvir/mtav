@@ -2627,3 +2627,24 @@ html[data-carrying] * {
   padding-top: 10px;
   border-top: 1px solid var(--mtav-border);
 }
+
+/* A panel's title that leads to its page: icon, words and arrow, one link */
+.panel-title-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.panel-title-link .panel-title-arrow {
+  color: var(--mtav-brand);
+  transition: transform 160ms ease;
+}
+.panel-title-link:hover .panel-title-arrow,
+.panel-title-link:focus-visible .panel-title-arrow {
+  transform: translate(2px, -2px);
+}
+.panel-title-link:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

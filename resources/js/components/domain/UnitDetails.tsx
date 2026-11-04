@@ -60,16 +60,12 @@ export function UnitDetails({
             {unit.family.name}
           </Anchor>
         </Text>
-      ) : (
-        <Text c="dimmed">
-          {_('Not assigned yet: the lottery decides which family receives it.')}
-        </Text>
-      )}
+      ) : null}
 
       {unitTypes ? (
         <>
           <Divider my="lg" />
-          <Group gap="sm">
+          <Group gap="sm" justify="flex-end">
             <Button
               variant="default"
               leftSection={<IconPencil size={18} />}

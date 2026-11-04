@@ -18,6 +18,8 @@ use Inertia\Response;
  */
 class PeopleController extends Controller
 {
+    use Concerns\ShowsDetails;
+
     public function index(Request $request, Project $project): Response
     {
         $manages = $request->user()->can('update', $project);
@@ -44,9 +46,7 @@ class PeopleController extends Controller
             'families' => Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray()),
             'found'    => fn () => $request->filled('q') ? app(PeopleSearch::class)->find($project, $request->user(), (string) $request->q) : null,
             // Someone's details, shown over the list (?person=19)
-            'person' => fn () => $request->integer('person')
-                ? $this->details($request, $project, $request->integer('person'))
-                : null,
+            'person' => fn () => $this->personShown($request, $project),
         ]);
     }
 
@@ -54,24 +54,6 @@ class PeopleController extends Controller
     public function show(Project $project, User $member): RedirectResponse
     {
         return to_route('people.index', ['person' => $member->id]);
-    }
-
-    /**
-     * @return array{person: MemberResource, families: mixed}|null
-     */
-    private function details(Request $request, Project $project, int $id): ?array
-    {
-        $member = $project->members()
-            ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family')])
-            ->find($id);
-
-        return $member ? [
-            'person' => MemberResource::make($member),
-            // For admins, who change people's role and family here
-            'families' => $request->user()->can('update', $project)
-                ? Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray())
-                : null,
-        ] : null;
     }
 
     /**

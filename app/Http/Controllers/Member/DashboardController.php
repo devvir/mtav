@@ -23,6 +23,8 @@ use Inertia\Response;
  */
 class DashboardController extends Controller
 {
+    use Concerns\ShowsDetails;
+
     public function __invoke(Request $request, Project $project, ProjectService $projects): Response
     {
         $user = $request->user();
@@ -53,7 +55,13 @@ class DashboardController extends Controller
             'media'     => ! $project->hasFeature(ProjectFeature::GALLERY) ? null : Inertia::defer(fn () => MediaResource::collection(
                 $project->media()->category(MediaCategory::MEDIA)->with('owner')->latest()->limit(8)->get()
             ), 'media'),
-            'units' => Inertia::defer(fn () => UnitTypeResource::collection(
+            // A card's details, shown over the home page, as over the card's own page
+            'family'   => fn () => $this->familyShown($request, $project),
+            'requests' => fn () => $this->requestsShown($request, $project),
+            'person'   => fn () => $this->personShown($request, $project),
+            'unit'     => fn () => $this->unitShown($request, $project),
+            'unitPlan' => fn () => $this->planShown($request, $project),
+            'units'    => Inertia::defer(fn () => UnitTypeResource::collection(
                 $project->unitTypes()->with(['units' => fn ($q) => $q->alphabetically()->with('family:id,name')])
                     ->withCount('families')->alphabetically()->get()
             ), 'units'),

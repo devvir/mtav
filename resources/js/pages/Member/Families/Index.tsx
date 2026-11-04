@@ -16,22 +16,18 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/design';
 import { useAddressedDialog } from '@/lib/addressedDialog';
 import { useDetailsInAddress } from '@/lib/detailsInAddress';
-import { setFilter } from '@/lib/listFilters';
-import { activeFilters, useLocalFilters } from '@/lib/localList';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Family, Paginated, Ref, UnitType } from '@/types/models';
 import { usePage } from '@inertiajs/react';
-import { Button, Group, Modal, NativeSelect, SimpleGrid, Text } from '@mantine/core';
+import { Button, Group, Modal, SimpleGrid, Text } from '@mantine/core';
 import { IconPlus, IconUsersGroup } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function FamiliesIndex({
   families,
-  whole,
   filters,
-  types,
   unitTypes,
   family: shown,
   found,
@@ -40,11 +36,7 @@ export default function FamiliesIndex({
   guests,
 }: {
   families: Paginated<Family>;
-  /** All of them came (a short list): searched and filtered here, with no request */
-  whole: boolean;
-  filters: { q: string | null; unit_type: number | null };
-  /** The project's unit types, to filter by */
-  types: Ref[];
+  filters: { q: string | null };
   /** For admins, who register and edit families here */
   unitTypes: UnitType[] | null;
   /** A family's details, shown over the list (?family=12) */
@@ -63,12 +55,8 @@ export default function FamiliesIndex({
   const project = usePage().props.project!;
   const own = project.family?.id;
   const canManage = project.can.manage;
-  const nothingYet = !families.data.length && !filters.q && !filters.unit_type;
-  const [local, setLocal] = useLocalFilters(filters);
-  const current = whole ? local : filters;
-  const listed = whole
-    ? families.data.filter((family) => !local.unit_type || family.unit_type?.id === local.unit_type)
-    : families.data;
+  const nothingYet = !families.data.length && !filters.q;
+  const listed = families.data;
   const searching = Boolean(found && filters.q);
   const adding = useAddressedDialog('new', canManage);
   useProjectChanges({
@@ -135,26 +123,7 @@ export default function FamiliesIndex({
             ? _('Add each family with its unit type, and invite someone in it.')
             : _('Families show up here as people join them.')}
         </EmptyState>
-      ) : (
-        <Group mb="md" gap="sm">
-          {types.length > 1 ? (
-            <NativeSelect
-              aria-label={_('Unit type')}
-              value={current.unit_type ? String(current.unit_type) : ''}
-              onChange={(event) => {
-                const value = Number(event.currentTarget.value) || null;
-                if (whole) setLocal('unit_type', value);
-                else setFilter('unit_type', value);
-              }}
-              data={[
-                { value: '', label: _('All types') },
-                ...types.map((type) => ({ value: String(type.id), label: type.name })),
-              ]}
-              w={220}
-            />
-          ) : null}
-        </Group>
-      )}
+      ) : null}
       {searching ? null : (
         <>
           <SimpleGrid
@@ -166,7 +135,7 @@ export default function FamiliesIndex({
                 key={family.id}
                 family={family}
                 own={family.id === own}
-                href={route('families.index', { ...activeFilters(current), family: family.id })}
+                href={route('families.index', { family: family.id })}
               />
             ))}
           </SimpleGrid>

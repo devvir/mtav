@@ -1,19 +1,32 @@
 import { CommunityPanel, type Community } from '@/components/domain/CommunityPanel';
 import { EventCard } from '@/components/domain/EventCard';
+import { FamilyDetails, type FamilyRequest } from '@/components/domain/FamilyDetails';
 import { MediaGrid } from '@/components/domain/MediaGrid';
+import { PersonDetails } from '@/components/domain/PersonDetails';
 import { ChecklistCorner, isSetUp, type Setup } from '@/components/domain/SetupChecklist';
+import { UnitDetails } from '@/components/domain/UnitDetails';
 import { UnitsByType } from '@/components/domain/UnitsByType';
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { FoldablePanel } from '@/components/layout/FoldablePanel';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState, Glyph, Stat } from '@/design';
+import { useDetailsInAddress } from '@/lib/detailsInAddress';
 import { useProjectChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
 import { _, _nodes } from '@/lib/translations';
-import type { Media, ProjectEvent, UnitType } from '@/types/models';
+import type {
+  Family,
+  Media,
+  Person,
+  Plan,
+  ProjectEvent,
+  Ref,
+  Unit,
+  UnitType,
+} from '@/types/models';
 import { Deferred, Link, usePage } from '@inertiajs/react';
-import { Anchor, Button, Card, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Modal, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core';
 import {
   IconCalendarEvent,
   IconChevronRight,
@@ -44,6 +57,13 @@ interface Props {
   units?: UnitType[];
   media?: Media[];
   community?: Community;
+  /** A card's details, shown over the page, as over the card's own page (?family=12, ?person=19, ?unit=7) */
+  family: Family | null;
+  requests: FamilyRequest[] | null;
+  person: { person: Person; families: Ref[] | null } | null;
+  unit: Unit | null;
+  /** The plan the unit shown is on */
+  unitPlan: Plan | null;
 }
 
 /**
@@ -98,17 +118,27 @@ export default function Dashboard({
   media,
   community,
   units,
+  family,
+  requests,
+  person,
+  unit,
+  unitPlan,
 }: Props) {
   const project = usePage().props.project!;
+  const familyDetails = useDetailsInAddress('family', ['requests']);
+  const personDetails = useDetailsInAddress('person');
+  const unitDetails = useDetailsInAddress('unit', ['unitPlan']);
+  // Admins change a family or a unit in its details, as on its page: the types it can have
+  const unitTypes = project.can.manage && units ? units : null;
   // Nothing registered yet (no units, no families): no figures worth showing, only what comes next
   const empty = !overview.units_count && !overview.families_count;
   useProjectChanges({
     events: ['events'],
     media: ['media'],
     lottery_runs: ['lottery'],
-    families: ['overview', 'setup', 'community', 'units'],
-    people: ['overview', 'setup', 'community'],
-    units: ['overview', 'setup', 'units'],
+    families: ['overview', 'setup', 'community', 'units', 'family'],
+    people: ['overview', 'setup', 'community', 'family', 'person'],
+    units: ['overview', 'setup', 'units', 'unit', 'unitPlan'],
     unit_types: ['setup', 'units'],
   });
 
@@ -230,11 +260,7 @@ export default function Dashboard({
             title={_('Recently shared')}
             icon={IconPhoto}
             tone="accent"
-            actions={
-              <Anchor component={Link} href={route('media.index')} size="sm" fw={600}>
-                {_('All files')}
-              </Anchor>
-            }
+            href={route('media.index')}
           >
             <Deferred data="media" fallback={<Skeleton h={160} radius="lg" />}>
               {media?.length ? (
@@ -273,11 +299,7 @@ export default function Dashboard({
             name="home.events"
             title={_('Coming up')}
             icon={IconCalendarEvent}
-            actions={
-              <Anchor component={Link} href={route('events.index')} size="sm" fw={600}>
-                {_('All events')}
-              </Anchor>
-            }
+            href={route('events.index')}
           >
             <Deferred data="events" fallback={<Skeleton h={96} radius="lg" />}>
               {events?.length ? (
@@ -322,6 +344,25 @@ export default function Dashboard({
           </Deferred>
         </div>
       ) : null}
+
+      <Modal opened={Boolean(family)} onClose={familyDetails.close} title={family?.name} size="lg">
+        {family ? (
+          <FamilyDetails family={family} unitTypes={unitTypes} requests={requests} />
+        ) : null}
+      </Modal>
+      <Modal
+        opened={Boolean(person)}
+        onClose={personDetails.close}
+        title={person?.person.name}
+        size="lg"
+      >
+        {person ? <PersonDetails person={person.person} families={person.families} /> : null}
+      </Modal>
+      <Modal opened={Boolean(unit)} onClose={unitDetails.close} title={unit?.identifier}>
+        {unit ? (
+          <UnitDetails unit={unit} unitTypes={unitTypes} plan={unitPlan ?? undefined} />
+        ) : null}
+      </Modal>
     </>
   );
 }

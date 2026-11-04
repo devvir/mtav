@@ -100,16 +100,42 @@ it('lists all of someone\'s projects from the switcher and the account menu', fu
         ->assertPathIs(pathOf('projects.index'));
 });
 
-it('leads from home to every event and every file', function () {
+it('leads from the titles on home to every event, file, family and unit', function () {
+    aUnit(aUnitType($this->project), ['identifier' => 'A-101']);
+    anEvent($this->project);
     $this->as($this->member);
 
-    visit(route('projects.show', $this->project))
-        ->click('All events')
-        ->assertPathIs(pathOf('events.index', $this->project));
+    foreach ([
+        'Coming up'                 => 'events.index',
+        'Recently shared'           => 'media.index',
+        'The people of the project' => 'families.index',
+        'Units by type'             => 'units.index',
+    ] as $title => $page) {
+        visit(route('projects.show', $this->project))
+            ->click("a.panel-title-link:has-text(\"{$title}\")")
+            ->assertPathIs(pathOf($page, $this->project));
+    }
+});
 
-    visit(route('projects.show', $this->project))
-        ->click('All files')
-        ->assertPathIs(pathOf('media.index', $this->project));
+it('opens a family, a person or a unit over home, and leaves it there on closing', function () {
+    $family = $this->member->familyIn($this->project);
+    $unit = aUnit(aUnitType($this->project), ['identifier' => 'A-101']);
+    $this->as($this->member);
+
+    // A family's card counts its people; someone's, under "Joined lately", names their family
+    foreach ([
+        "a:has-text(\"{$family->name}\"):has-text(\"1 person\")" => $family->name,
+        "a:has-text(\"{$this->member->name}\")"                  => $this->member->name,
+        'a:has-text("A-101")'                                    => 'A-101',
+    ] as $card => $title) {
+        visit(route('projects.show', $this->project))
+            ->click($card)
+            ->assertSeeIn('[role="dialog"] .mantine-Modal-title', $title)
+            ->assertPathIs(pathOf('projects.show', $this->project))
+            ->click('[role="dialog"] .mantine-Modal-close')
+            ->assertNotPresent('[role="dialog"]')
+            ->assertPathIs(pathOf('projects.show', $this->project));
+    }
 });
 
 it('says when a page does not exist, and leads back to the start', function () {

@@ -46,7 +46,8 @@ it('invites into a family from its details, as one of its members and as an admi
     $this->as($this->admin);
 
     visit(route('families.index', [$this->project, 'family' => $other->id]))
-        ->click(inDialog('Invite a family member'))
+        ->assertDontSee('Invite a family member')
+        ->click(inDialog('Add a new member to this family'))
         ->fill(inDialogField('email'), 'luis@example.com')
         ->click(inDialog('Send the invitation'))
         ->assertSee('Invitation sent to luis@example.com.');
