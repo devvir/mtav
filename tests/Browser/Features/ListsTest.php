@@ -16,7 +16,9 @@ beforeEach(function () {
     $this->perez = aFamily($this->project, $this->type, ['name' => 'Pérez']);
     $this->ana = aMemberOf($this->garcia, ['firstname' => 'Ana', 'lastname' => 'García']);
     $this->bruno = aMemberOf($this->perez, ['firstname' => 'Bruno', 'lastname' => 'Pérez']);
+    // Named apart: a random name may hold what the searches look for
     $this->admin = anAdminOf($this->project);
+    $this->admin->update(['firstname' => 'Carla', 'lastname' => 'Suárez']);
 });
 
 it('finds families and people in one search, each kind under its own heading', function () {

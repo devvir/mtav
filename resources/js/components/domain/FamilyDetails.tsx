@@ -161,7 +161,7 @@ export function FamilyDetails({
             {canInvite ? (
               <Button leftSection={<IconUserPlus size={18} />} onClick={() => setInviting(true)}>
                 {/* One's own family is family; anyone else's, a family one adds people to */}
-                {isOwn ? _('Invite a family member') : _('Add a new member to this family')}
+                {isOwn ? _('Invite a family member') : _('Invite a new member to this family')}
               </Button>
             ) : null}
             {unitTypes ? (

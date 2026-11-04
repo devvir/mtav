@@ -28,19 +28,16 @@ it('lets a superadmin hand a project to an admin, who sets it up and runs its lo
     $tutor = aUser(['firstname' => 'Hugo', 'lastname' => 'Tutor', 'email' => 'tutor@example.com']);
     $this->as(aSuperadmin());
 
-    // The superadmin starts the project, and invites an existing account as its admin
+    // The superadmin starts the project, naming an existing account as its first admin (a
+    // support account takes no place in it)
     visit(route('projects.create'))
         ->fill('name', 'H-18octubre')
         ->fill('description', 'Three homes, three families')
+        ->fill('first_admin_email', 'tutor@example.com')
         ->click('Start the project')
         ->assertPresent('.note-mini');
     $project = Project::firstWhere('name', 'H-18octubre');
-
-    visit(route('manage.invitations.index', $project))
-        ->fill('email', 'tutor@example.com')
-        ->check('is_admin')
-        ->click('Send the invitation')
-        ->assertSee('tutor@example.com');
+    expect($project->invitations()->sole())->email->toBe('tutor@example.com')->is_admin->toBeTrue();
 
     // The admin finds the invitation among their projects, and joins
     $this->as($tutor);
