@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Services\FamilyService;
-use App\Models\Concerns\RecordsActivity;
 use App\Models\Concerns\BroadcastsProjectChanges;
+use App\Models\Concerns\RecordsActivity;
+use App\Services\FamilyService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +31,21 @@ class Membership extends Model
     protected $casts = [
         'is_admin' => 'boolean',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function family(): BelongsTo
+    {
+        return $this->belongsTo(Family::class);
+    }
 
     /** Everyone taking part is in the project's Community group, pinned to begin with, and only they */
     protected static function booted(): void
@@ -103,20 +118,5 @@ class Membership extends Model
     private function assistantConversation(): Builder
     {
         return Conversation::where('project_id', $this->project_id)->where('pair', "assistant:{$this->user_id}");
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function family(): BelongsTo
-    {
-        return $this->belongsTo(Family::class);
     }
 }

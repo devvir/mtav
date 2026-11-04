@@ -172,6 +172,27 @@ class InvitationService
         return $membership;
     }
 
+    /** Whoever someone else put in a family hears of it, in the app and by email */
+    public function tellAddedToFamily(Membership $membership, User $by): void
+    {
+        $user = $membership->user;
+        $family = $membership->family;
+
+        if (! $user->is($by)) {
+            $this->notifications->send(
+                NotificationTarget::PRIVATE,
+                NotificationType::ADDED_TO_FAMILY,
+                title: 'notifications.added_to_family_title',
+                message: 'notifications.added_to_family_message',
+                params: ['name' => $by->name, 'family' => $family->name, 'project' => $membership->project->name],
+                url: route('projects.show', $membership->project_id),
+                trigger: $by,
+                targetId: $user->id,
+            );
+            $user->notify(new JoinedNotification($membership, $by));
+        }
+    }
+
     /**
      * A family's decline stands against admins too, and only its own members can lift it: one
      * inviting the person does. An archived family comes back with someone on the way.
@@ -206,27 +227,6 @@ class InvitationService
         $this->tellAddedToFamily($membership, $by);
 
         return $membership;
-    }
-
-    /** Whoever someone else put in a family hears of it, in the app and by email */
-    public function tellAddedToFamily(Membership $membership, User $by): void
-    {
-        $user = $membership->user;
-        $family = $membership->family;
-
-        if (! $user->is($by)) {
-            $this->notifications->send(
-                NotificationTarget::PRIVATE,
-                NotificationType::ADDED_TO_FAMILY,
-                title: 'notifications.added_to_family_title',
-                message: 'notifications.added_to_family_message',
-                params: ['name' => $by->name, 'family' => $family->name, 'project' => $membership->project->name],
-                url: route('projects.show', $membership->project_id),
-                trigger: $by,
-                targetId: $user->id,
-            );
-            $user->notify(new JoinedNotification($membership, $by));
-        }
     }
 
     private function ensureNotAlreadyIn(Project $project, string $email, ?Family $family, bool $asAdmin): void

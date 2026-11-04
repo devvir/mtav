@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Platform;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\DB;
-use App\Notifications\SupportInvitationNotification;
-use App\Models\SupportInvitation;
-use App\Models\Invitation;
 use App\Http\Controllers\Controller;
+use App\Models\Invitation;
+use App\Models\SupportInvitation;
 use App\Models\User;
+use App\Notifications\SupportInvitationNotification;
 use App\Services\AccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
@@ -67,14 +67,6 @@ class UserController extends Controller
         $accounts->deleteIfItCanGo($user, 'account');
 
         return back()->with('success', __('flash.account_deleted', ['name' => $name]));
-    }
-
-    /** Not oneself, nor anyone who runs the platform: their role goes first */
-    private function ensureNotProtected(Request $request, User $user): void
-    {
-        if ($user->is($request->user()) || $user->isSuperadmin() || $user->is_owner) {
-            throw ValidationException::withMessages(['account' => __('validation.account_protected')]);
-        }
     }
 
     /** Who manages the whole platform: a page of its own, for a rare decision */
@@ -138,5 +130,13 @@ class UserController extends Controller
         $user->forceFill(['is_superadmin' => false])->save();
 
         return back()->with('success', __('flash.superadmin_revoked', ['name' => $user->name]));
+    }
+
+    /** Not oneself, nor anyone who runs the platform: their role goes first */
+    private function ensureNotProtected(Request $request, User $user): void
+    {
+        if ($user->is($request->user()) || $user->isSuperadmin() || $user->is_owner) {
+            throw ValidationException::withMessages(['account' => __('validation.account_protected')]);
+        }
     }
 }

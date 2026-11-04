@@ -11,10 +11,9 @@ use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\SupportInvitationController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\Manage;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\Member;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpenLotteryController;
@@ -24,6 +23,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Settings\AvatarController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\SupportInvitationController;
 use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\EnsureSuperadmin;
 use App\Http\Middleware\ResolveProject;
@@ -302,7 +302,6 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                         ->name('lottery.invalidate');
                 });
             });
-
     });
 
     /**

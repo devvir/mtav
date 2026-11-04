@@ -3,11 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Enums\ProjectFeature;
+use App\Http\Resources\NotificationResource;
 use App\Models\Conversation;
 use App\Models\Media;
 use App\Models\Notification;
 use App\Models\Project;
-use App\Http\Resources\NotificationResource;
 use App\Models\User;
 use App\Support\Variant;
 use Illuminate\Http\Request;
@@ -19,29 +19,10 @@ use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
+
+    /** The person's own pages, framed by a project (resources/js/layouts/AccountLayout.tsx) */
+    private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create'];
     protected $rootView = 'app';
-
-    /**
-     * Shared with every page: kept to what the layout reads.
-     *
-     * @return array<string, mixed>
-     */
-    /**
-     * The routes the browser may call: those of parts of the app this variant has, the
-     * platform console's only for those who enter it
-     */
-    private function routes(bool $console): array
-    {
-        $routes = (new Ziggy())->toArray();
-        $routes['routes'] = array_filter(
-            $routes['routes'],
-            fn (string $name) => ($console || ! str_starts_with($name, 'admin.'))
-                && ($route = Route::getRoutes()->getByName($name)) && Variant::opens($route),
-            ARRAY_FILTER_USE_KEY,
-        );
-
-        return $routes;
-    }
 
     public function share(Request $request): array
     {
@@ -104,6 +85,28 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
+    /**
+     * Shared with every page: kept to what the layout reads.
+     *
+     * @return array<string, mixed>
+     */
+    /**
+     * The routes the browser may call: those of parts of the app this variant has, the
+     * platform console's only for those who enter it
+     */
+    private function routes(bool $console): array
+    {
+        $routes = (new Ziggy())->toArray();
+        $routes['routes'] = array_filter(
+            $routes['routes'],
+            fn (string $name) => ($console || ! str_starts_with($name, 'admin.'))
+                && ($route = Route::getRoutes()->getByName($name)) && Variant::opens($route),
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        return $routes;
+    }
+
     private function user(User $user): array
     {
         return [
@@ -136,9 +139,6 @@ class HandleInertiaRequests extends Middleware
             ])
             ->all();
     }
-
-    /** The person's own pages, framed by a project (resources/js/layouts/AccountLayout.tsx) */
-    private const FRAMED = ['profile.*', 'notifications.*', 'directory.*', 'documentation.*', 'projects.index', 'projects.create'];
 
     /**
      * The project the person's own pages stay in the frame of: the one last browsed, or their
