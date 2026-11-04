@@ -13,13 +13,33 @@ export const connection = createStore<{ online: boolean }>({ online: true });
 
 export const useOnline = () => useStore(connection).online;
 
+/** How often, while it seems out of reach, the server is asked whether it is back */
+export const PROBE_EVERY_MS = 3000;
+let probing: ReturnType<typeof setInterval> | undefined;
+
+/**
+ * Whether the server answers, asked directly (its health address, which the worker leaves
+ * alone): one failed request is no proof, and nothing else may come to say it is back
+ */
+export async function probe(): Promise<void> {
+  try {
+    const response = await fetch('/up', { cache: 'no-store' });
+    if (response.ok) setOnline(true);
+  } catch {
+    // Still out of reach: asked again shortly
+  }
+}
+
 const setOnline = (online: boolean) => {
   if (connection.get().online !== online) connection.set({ online });
+  clearInterval(probing);
+  probing = online ? undefined : setInterval(() => void probe(), PROBE_EVERY_MS);
 };
 
-/** A change attempted while the server cannot be reached: said, and not sent */
+/** A change attempted while the server cannot be reached: said, and not sent (and asked again) */
 export function heldOffline(): boolean {
   if (connection.get().online) return false;
+  void probe();
   toast({
     tone: 'warning',
     title: _('You are offline'),
@@ -56,6 +76,10 @@ export function workOffline(userId: number | null) {
   keepFor(userId);
 
   window.addEventListener('offline', () => setOnline(false));
+  // Back from sleep, or to a tab left a while: what it last heard may be stale
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !connection.get().online) void probe();
+  });
   window.addEventListener('online', () => setOnline(true));
   // Said once, in the bar: not thrown again for every visit, prefetch or part that fails
   router.on('networkError', (event) => {

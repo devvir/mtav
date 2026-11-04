@@ -92,7 +92,10 @@ async function networkFirst(request) {
     if (response.ok && !response.redirected) cache.put(key, response.clone());
     tell(true);
     return response;
-  } catch {
+  } catch (error) {
+    // Called off by the page (a visit replacing another, a refresh superseded): no answer was
+    // wanted, and the server was never found missing
+    if (request.signal?.aborted || error?.name === 'AbortError') return Response.error();
     tell(false);
     const kept =
       (await cache.match(key, { ignoreVary: true })) ??
