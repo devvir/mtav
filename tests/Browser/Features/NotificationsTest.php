@@ -101,18 +101,20 @@ it('keeps this device for pushes, refuses an address no push service has, and fo
                 method: '{$method}',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': token },
                 body: JSON.stringify({ endpoint: '{$endpoint}', keys }),
+                // Not followed: the app's own calls go back to the page they came from, as Inertia does
+                redirect: 'manual',
             });
-            return response.status;
+            return response.type === 'opaqueredirect' ? 302 : response.status;
         }
         JS);
 
     $device = 'https://fcm.googleapis.com/fcm/send/this-device';
-    expect($send('POST', $device))->toBe(200)
+    expect($send('POST', $device))->toBe(302)
         ->and(PushSubscription::where('user_id', $this->member->id)->pluck('endpoint')->all())->toBe([$device]);
 
     expect($send('POST', 'https://push.example.com/elsewhere'))->toBe(422)
         ->and(PushSubscription::count())->toBe(1);
 
-    expect($send('DELETE', $device))->toBe(200)
+    expect($send('DELETE', $device))->toBe(302)
         ->and(PushSubscription::count())->toBe(0);
 });

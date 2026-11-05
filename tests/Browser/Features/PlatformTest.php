@@ -274,13 +274,15 @@ it('asks before a deploy starts dev over, and rolls back, starts over and releas
     expect($dispatched())->toBe(1);
 
     // Putting an environment back, starting one over, releasing: each asked first, each sent to GitHub
-    $page->click(button('Roll back'))
+    // (one environment's: each has its own)
+    $dev = fn (string $label) => '.ds-panel:has(.ds-panel-title:text-is("dev")) '.button($label);
+    $page->click($dev('Roll back'))
         ->assertSee('back to its release before?')
         ->click(inDialog('Roll back'))
         ->wait(0.5);
     expect($dispatched())->toBe(2);
 
-    $page->click(button('Start over'))
+    $page->click($dev('Start over'))
         ->assertSee('is replaced by the demo data')
         ->click(inDialog('Start over'))
         ->wait(0.5);

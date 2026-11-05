@@ -224,7 +224,7 @@ it('offers the people\'s list without their email, phone or ID number, saying co
             const link = [...document.querySelectorAll("a[download]")].find((one) => one.textContent.trim() === "{$label}");
             const response = await fetch(link.href);
             const text = await response.text();
-            return { status: response.status, type: response.headers.get("content-type"), first: text.replace(/^\uFEFF/, "").split("\n")[0] };
+            return { status: response.status, type: response.headers.get("content-type"), first: text.replace(/^\\uFEFF/, "").split("\\n")[0] };
         }
         JS);
     foreach (['People', 'Families', 'Units'] as $list) {

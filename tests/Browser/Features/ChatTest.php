@@ -358,20 +358,28 @@ it('is the Assistant alone outside any project: its conversation, with no list t
     expect(App\Models\Report::sole())->body->toBe('I cannot find my cooperative')->project_id->toBeNull();
 });
 
-it('greets someone on their first arrival, in a project or outside, once', function () {
-    // Its greeting needs the Assistant on, and a browser that plays what plays by itself
+/** Someone's first arrival: the Assistant on, and a browser that plays what plays by itself */
+function arrivesAt(string $url): object
+{
     config(['assistant.driver' => 'api']);
-    $arrives = fn (string $url) => tap(visit($url), fn ($page) => $page->script("() => localStorage.setItem('mtav.tours', 'on')"))->refresh();
 
+    return tap(visit($url), fn ($page) => $page->script("() => localStorage.setItem('mtav.tours', 'on')"))->refresh();
+}
+
+it('greets someone on their first arrival in a project', function () {
     $this->as($this->beto);
-    $arrives(route('projects.show', $this->project))
+    arrivesAt(route('projects.show', $this->project))
         ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
         ->assertNoSmoke();
     expect($this->beto->fresh()->welcomed_at)->not->toBeNull();
+});
 
+// Apart from the one in a project: the browser suite serves the app in its own process, where one person's
+// project would stay in the next one's links
+it('greets someone on their first arrival outside any project', function () {
     $newcomer = aUser(['firstname' => 'Mar']);
     $this->as($newcomer);
-    $arrives(route('projects.index'))
+    arrivesAt(route('projects.index'))
         ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
         ->assertNoSmoke();
     expect($newcomer->fresh()->welcomed_at)->not->toBeNull();
