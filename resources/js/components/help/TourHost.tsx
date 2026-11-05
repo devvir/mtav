@@ -41,6 +41,8 @@ export function TourHost() {
   const step = state.id ? state.steps[state.index] : null;
   const narrow = useMediaQuery('(max-width: 640px)');
   const [rect, setRect] = useState<DOMRect | null>(null);
+  // The step's own height, measured with its element: where it fits depends on it
+  const [height, setHeight] = useState(220);
   const card = useRef<HTMLDivElement>(null);
 
   // One measure per frame, however many scroll events come
@@ -51,6 +53,7 @@ export function TourHost() {
       frame.current = 0;
       const current = currentStep();
       setRect((current && findTarget(current.target)?.getBoundingClientRect()) ?? null);
+      setHeight(card.current?.offsetHeight || 220);
     });
   }, []);
 
@@ -111,20 +114,29 @@ export function TourHost() {
   const last = state.index === state.steps.length - 1;
 
   /**
-   * Below the element if it fits, else above it. On phones, across the screen: at the bottom,
-   * or at the top for an element in the lower half (the tabs)
+   * Below the element if it fits, else above it, else beside it (a sidebar as tall as the
+   * screen); never off the screen. On phones, across the screen: at the bottom, or at the top
+   * for an element in the lower half (the tabs)
    */
   let position: CSSProperties =
     narrow && rect && rect.top + rect.height / 2 > window.innerHeight / 2
       ? { left: 16, right: 16, top: 16 }
       : { left: 16, right: 16, bottom: 16 };
   if (!narrow && rect) {
-    const left = Math.min(Math.max(16, rect.left), window.innerWidth - WIDTH - 16);
-    const below = rect.bottom + PAD + 12;
-    position =
-      below + 220 < window.innerHeight
-        ? { left, top: below, width: WIDTH }
-        : { left, bottom: window.innerHeight - rect.top + PAD + 12, width: WIDTH };
+    const gap = PAD + 12;
+    const across = (value: number) => Math.min(Math.max(16, value), window.innerWidth - WIDTH - 16);
+    const down = (value: number) => Math.min(Math.max(16, value), window.innerHeight - height - 16);
+    if (rect.bottom + gap + height <= window.innerHeight - 16) {
+      position = { left: across(rect.left), top: rect.bottom + gap, width: WIDTH };
+    } else if (rect.top - gap - height >= 16) {
+      position = { left: across(rect.left), top: rect.top - gap - height, width: WIDTH };
+    } else if (rect.right + gap + WIDTH <= window.innerWidth - 16) {
+      position = { left: rect.right + gap, top: down(rect.top), width: WIDTH };
+    } else if (rect.left - gap - WIDTH >= 16) {
+      position = { left: rect.left - gap - WIDTH, top: down(rect.top), width: WIDTH };
+    } else {
+      position = { left: across(rect.left), bottom: 16, width: WIDTH };
+    }
   }
 
   return (

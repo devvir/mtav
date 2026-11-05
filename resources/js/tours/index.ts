@@ -304,7 +304,9 @@ defineTour('member.home', () => [
   {
     target: 'home.events',
     title: _('Coming up'),
-    body: _('The next assemblies, work days and meetings. Say whether you will go right here.'),
+    body: _(
+      'The next assemblies, work days and meetings. You can say whether you are going from here.',
+    ),
   },
   {
     target: 'home.people',
@@ -324,7 +326,7 @@ defineTour('member.home', () => [
   {
     target: 'shell.quick',
     title: _('Quick actions'),
-    body: _('What is done most often, at hand wherever you are.'),
+    body: _('Shortcuts from any page, like inviting someone or sharing photos.'),
   },
   {
     target: 'shell.notifications',

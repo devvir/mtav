@@ -318,3 +318,30 @@ it('plays each page\'s tour on a phone, every step clear of what it points at', 
     'invitations' => ['admin', 'manage.invitations.index', 'How invitations work'],
     'settings'    => ['admin', 'manage.settings.edit', 'Project settings'],
 ]);
+
+it('keeps every step on the screen beside what it points at, the sidebar as tall as the screen too', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = openHelp(visit(route('projects.show', $project))->resize(1440, 900)->assertSee('The people of the project'), 'The project at a glance')
+        ->click('Tell me more');
+    $steps = 0;
+    while ($steps++ < 20) {
+        $page->assertSee("Step {$steps} of")->wait(0.8);
+        expect($page->script(<<<'JS'
+            () => {
+                const card = document.querySelector('.tour-card').getBoundingClientRect();
+                const lit = document.querySelector('.tour-spotlight').getBoundingClientRect();
+                const inside = card.left >= 0 && card.right <= innerWidth && card.top >= 0 && card.bottom <= innerHeight;
+                const apart = card.bottom <= lit.top || card.top >= lit.bottom || card.right <= lit.left || card.left >= lit.right;
+                return inside && apart;
+            }
+            JS))->toBeTrue();
+        if ($page->script("() => [...document.querySelectorAll('.tour-card button')].some((button) => button.textContent === 'Done')")) {
+            break;
+        }
+        $page->click('.tour-card button:has-text("Next")');
+    }
+});
