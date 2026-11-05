@@ -115,7 +115,9 @@ describe('A worker without its database', function () {
             return array_shift($answers);
         };
         $worker->pause = fn () => null;
-        $stop = (fn () => $this->stopIfNecessary(new Illuminate\Queue\WorkerOptions(), 1700000000))->call($worker);
+        // (no memory limit: the whole suite's process is past the worker's own)
+        $options = new Illuminate\Queue\WorkerOptions(memory: PHP_INT_MAX);
+        $stop = (fn () => $this->stopIfNecessary($options, 1700000000))->call($worker);
         expect($stop)->toBeNull()->and($worker->lostConnection)->toBeFalse()->and($answers)->toBe([])->and($reads)->toBe([]);
     });
 
