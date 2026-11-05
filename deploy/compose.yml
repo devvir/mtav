@@ -35,6 +35,9 @@ services:
       MARIADB_USER: ${DB_USERNAME:?}
       MARIADB_PASSWORD: ${DB_PASSWORD:?}
       MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
+    # Its cache in memory: 32 MB holds what each environment's pages use most (its database is a
+    # few hundred MB at most); MariaDB's default, 128 MB, is most of a small server's room
+    command: ['--innodb-buffer-pool-size=32M']
     volumes:
       - database:/var/lib/mysql
     healthcheck:

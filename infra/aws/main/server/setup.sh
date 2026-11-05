@@ -47,8 +47,16 @@ if [[ ! -f /swapfile ]]; then
     echo '/swapfile none swap sw 0 0' >> /etc/fstab
     echo 'vm.swappiness=10' > /etc/sysctl.d/90-mtav.conf && sysctl -q -p /etc/sysctl.d/90-mtav.conf
 fi
+# Docker from Docker's own repository, as on every machine MTAV runs on: Ubuntu's own Compose fails a deploy whose
+# workers have their health check switched off, where Docker's waits for them to be running
+install -d -m 755 /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    > /etc/apt/sources.list.d/docker.list
 apt-get update -qq
-apt-get install -y -qq unattended-upgrades docker.io docker-compose-v2 nginx certbot python3-certbot-dns-route53 jq > /dev/null
+apt-get remove -y -qq docker.io docker-compose-v2 > /dev/null 2>&1 || true
+apt-get install -y -qq unattended-upgrades docker-ce docker-ce-cli containerd.io docker-compose-plugin nginx certbot \
+    python3-certbot-dns-route53 jq > /dev/null
 cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
@@ -64,7 +72,9 @@ cat > /etc/docker/daemon.json <<'EOF'
   "log-opts": { "max-size": "10m", "max-file": "3" }
 }
 EOF
-systemctl enable docker > /dev/null 2>&1
+systemctl daemon-reload
+systemctl enable docker.socket docker > /dev/null 2>&1
+systemctl reset-failed docker 2> /dev/null || true
 systemctl restart docker
 
 # -- 3. the gate, and the environments' directories -------------------------------------------------------------------
