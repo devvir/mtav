@@ -50,3 +50,6 @@ Homestead.yaml
 /infra/**/*.tfplan
 /infra/**/*.tfstate
 /infra/**/*.tfstate.backup
+
+# The warden page, built by ./mtav warden
+/dev/warden/dist

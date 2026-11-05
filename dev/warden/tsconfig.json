@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": { "@/*": ["../../resources/js/*"] },
+    "noEmit": true
+  },
+  "include": ["web", "../../resources/js/types"]
+}

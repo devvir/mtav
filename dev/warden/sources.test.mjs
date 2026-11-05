@@ -1,7 +1,16 @@
 /* global process */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { jsonLines, releasesOf, serversOf, sources, stacksOf, usageOf } from './sources.mjs';
+import {
+  jsonLines,
+  latestBackups,
+  releasesOf,
+  serverFigures,
+  serversOf,
+  sources,
+  stacksOf,
+  usageOf,
+} from './sources.mjs';
 
 test('reads one object a line', () => {
   assert.deepEqual(jsonLines('{"a":1}\n\n{"a":2}\n'), [{ a: 1 }, { a: 2 }]);
@@ -81,4 +90,52 @@ test("reads each container's CPU and memory", () => {
 test('reads the servers to watch, comma separated', () => {
   assert.deepEqual(serversOf(' x@one, y@two ,,'), ['x@one', 'y@two']);
   assert.deepEqual(serversOf(undefined), []);
+});
+
+test('reads what an AWS server says of itself', () => {
+  const figures = serverFigures(
+    [
+      'cores 2',
+      'load 0.08 0.16 0.22',
+      'memory 1924116480 577376256',
+      'disk 19682557952 12458430464',
+      'data 4143677440 3561578496',
+      `live dev blue ghcr.io/devvir/mtav:sha-${'a'.repeat(40)}`,
+      `previous dev green ghcr.io/devvir/mtav:sha-${'b'.repeat(40)}`,
+      'container mtav-dev-blue-app-1 running Up 2 hours (healthy)',
+      'sessions 0',
+      'certificate Feb  3 05:00:00 2027 GMT',
+      'backup ',
+    ].join('\n'),
+  );
+  assert.equal(figures.cores, 2);
+  assert.deepEqual(figures.load, [0.08, 0.16, 0.22]);
+  assert.deepEqual(figures.memory, { total: 1924116480, free: 577376256 });
+  assert.deepEqual(figures.data, { total: 4143677440, free: 3561578496 });
+  assert.deepEqual(figures.live.dev, { slot: 'blue', commit: 'a'.repeat(40) });
+  assert.deepEqual(figures.previous.dev, { slot: 'green', commit: 'b'.repeat(40) });
+  assert.deepEqual(figures.containers, [
+    { name: 'mtav-dev-blue-app-1', state: 'running', status: 'Up 2 hours (healthy)' },
+  ]);
+  assert.equal(figures.sessions, 0);
+  assert.equal(figures.certificate, 'Feb  3 05:00:00 2027 GMT');
+  assert.equal(figures.backup, null);
+});
+
+test("keeps each environment's newest backup, with its files", () => {
+  const latest = latestBackups([
+    { Key: 'preview/dev/2026-11-04/database.sql.gz', Size: 10, LastModified: 'a' },
+    { Key: 'preview/dev/2026-11-05/database.sql.gz', Size: 20, LastModified: 'b' },
+    { Key: 'preview/dev/2026-11-05/files.tar.gz', Size: 5, LastModified: 'c' },
+    { Key: 'preview/staging/2026-11-05/database.sql.gz', Size: 7, LastModified: 'd' },
+    { Key: 'stray', Size: 1, LastModified: 'e' },
+  ]);
+  assert.deepEqual(latest.dev, {
+    server: 'preview',
+    day: '2026-11-05',
+    at: 'b',
+    files: { database: 20, files: 5 },
+  });
+  assert.deepEqual(Object.keys(latest).sort(), ['dev', 'staging']);
+  assert.deepEqual(latestBackups(undefined), {});
 });

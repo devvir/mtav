@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['vendor', 'node_modules', 'packages', 'public', 'bootstrap/ssr', 'storage'] },
+  { ignores: ['vendor', 'node_modules', 'packages', 'public', 'bootstrap/ssr', 'storage', 'dev/warden/dist'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,

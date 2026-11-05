@@ -1,8 +1,10 @@
-/* global process, fetch, AbortSignal */
+/* global process, fetch, AbortSignal, URL */
 // What the warden watches. Each source reads one thing, on its own pace, and either gives what it
 // found or fails on its own: one that is down never hides the others.
 import { execFile } from 'node:child_process';
+import dns from 'node:dns/promises';
 import os from 'node:os';
+import { aws, onServer, servers } from './aws.mjs';
 
 const SITES = {
   dev: 'https://dev.mtav.uy',
@@ -11,6 +13,8 @@ const SITES = {
   sorteo: 'https://sorteo.mtav.uy',
 };
 const ACCOUNTS_VOLUME = 'claude-accounts';
+/** The server MTAV ran on before AWS: a name still leading there has not moved */
+const BEFORE_AWS = '179.27.99.138';
 
 const run = (command, args, { timeout = 20_000, cwd } = {}) =>
   new Promise((resolve, reject) => {
@@ -125,6 +129,61 @@ async function readServer(host) {
   };
 }
 
+/** What one AWS server says of itself (the lines `cloudScript` prints), as figures */
+export function serverFigures(text) {
+  const figures = { live: {}, previous: {}, containers: [] };
+  for (const line of text.split('\n')) {
+    const [what, ...rest] = line.trim().split(' ');
+    if (what === 'cores') figures.cores = Number(rest[0]) || 1;
+    if (what === 'load') figures.load = rest.map(Number);
+    if (what === 'memory') figures.memory = { total: Number(rest[0]), free: Number(rest[1]) };
+    if (what === 'disk') figures.disk = { total: Number(rest[0]), free: Number(rest[1]) };
+    if (what === 'data') figures.data = { total: Number(rest[0]), free: Number(rest[1]) };
+    if (what === 'sessions') figures.sessions = Number(rest[0]);
+    if (what === 'certificate') figures.certificate = rest.join(' ') || null;
+    if (what === 'backup') figures.backup = rest.join(' ') || null;
+    if (what === 'live' || what === 'previous') {
+      const [environment, slot, image] = rest;
+      figures[what][environment] = {
+        slot,
+        commit: /sha-([0-9a-f]{40})/.exec(image ?? '')?.[1] ?? null,
+      };
+    }
+    if (what === 'container') {
+      const [name, state, ...status] = rest;
+      figures.containers.push({ name, state, status: status.join(' ') });
+    }
+  }
+  return figures;
+}
+
+/** What `serverFigures` reads, printed on the server in one go */
+const cloudScript = [
+  'echo "cores $(nproc)"',
+  'echo "load $(cut -d\' \' -f1-3 /proc/loadavg)"',
+  'free -b | awk \'/Mem:/{print "memory", $2, $7}\'',
+  'df -B1 --output=size,avail / | tail -1 | awk \'{print "disk", $1, $2}\'',
+  'df -B1 --output=size,avail /srv/mtav-data 2>/dev/null | tail -1 | awk \'{print "data", $1, $2}\'',
+  'for f in /mtav/*/live /mtav/*/previous; do [ -f "$f" ] && echo "$(basename $f) $(basename $(dirname $f)) $(cat $f)"; done',
+  "docker ps -a --format 'container {{.Names}} {{.State}} {{.Status}}'",
+  'echo "sessions $(ls /run/systemd/sessions 2>/dev/null | grep -vc ref)"',
+  'echo "certificate $(openssl x509 -enddate -noout -in /etc/letsencrypt/live/mtav/cert.pem 2>/dev/null | cut -d= -f2)"',
+  'echo "backup $(systemctl show mtav-backups.service -p ExecMainExitTimestamp --value) $(systemctl show mtav-backups.service -p Result --value)"',
+];
+
+/** The newest backup of each environment, from the bucket's listing (`<server>/<environment>/<day>/<what>`) */
+export function latestBackups(objects) {
+  const latest = {};
+  for (const { Key: key, Size: size, LastModified: at } of objects ?? []) {
+    const [server, environment, day, what] = key.split('/');
+    if (!what) continue;
+    const known = latest[environment];
+    if (!known || day > known.day) latest[environment] = { server, day, at, files: {} };
+    if (latest[environment].day === day) latest[environment].files[what.split('.')[0]] = size;
+  }
+  return latest;
+}
+
 export const sources = (repo) => ({
   host: {
     every: 5,
@@ -230,15 +289,20 @@ export const sources = (repo) => ({
     every: 60,
     read: async () => {
       const check = async ([name, url]) => {
+        // Where its name leads now: the server before AWS, or AWS
+        const leads = await dns
+          .resolve4(new URL(url).hostname)
+          .then((addresses) => (addresses.includes(BEFORE_AWS) ? 'before' : 'aws'))
+          .catch(() => null);
         const started = Date.now();
         try {
           const response = await fetch(`${url}/up`, {
             signal: AbortSignal.timeout(10_000),
             redirect: 'manual',
           });
-          return { name, url, status: response.status, ms: Date.now() - started };
+          return { name, url, leads, status: response.status, ms: Date.now() - started };
         } catch (error) {
-          return { name, url, status: null, error: String(error.message).slice(0, 120) };
+          return { name, url, leads, status: null, error: String(error.message).slice(0, 120) };
         }
       };
       return Promise.all(Object.entries(SITES).map(check));
@@ -311,5 +375,74 @@ export const sources = (repo) => ({
           return { account: line.slice(0, space), ...JSON.parse(line.slice(space + 1)) };
         });
     },
+  },
+
+  // MTAV's servers on AWS: each as AWS has it, and, while running, what it says of itself (one Systems Manager
+  // command each, only while someone looks)
+  cloud: {
+    every: 60,
+    read: async () => {
+      const found = await servers();
+      return Promise.all(
+        found.map(async (server) => {
+          if (server.state !== 'running') return server;
+          try {
+            return {
+              ...server,
+              ...serverFigures(await onServer(server.id, cloudScript, { timeout: 40_000 })),
+            };
+          } catch (error) {
+            return { ...server, error: error.message };
+          }
+        }),
+      );
+    },
+  },
+
+  // What it costs: the free plan's credits left, and this month's spend against the budget (both free to ask;
+  // Cost Explorer would charge each question)
+  money: {
+    every: 900,
+    read: async () => {
+      const [plan, budget] = await Promise.allSettled([
+        aws(['freetier', 'get-account-plan-state'], { region: 'us-east-1' }),
+        aws(
+          [
+            'budgets',
+            'describe-budget',
+            '--account-id',
+            '690260957652',
+            '--budget-name',
+            'mtav-monthly',
+          ],
+          { region: 'us-east-1' },
+        ),
+      ]);
+      const spend = budget.value?.Budget;
+      return {
+        plan: plan.value
+          ? {
+              type: plan.value.accountPlanType,
+              credits: plan.value.accountPlanRemainingCredits?.amount ?? null,
+              until: plan.value.accountPlanExpirationDate,
+            }
+          : null,
+        month: spend
+          ? {
+              spent: Number(spend.CalculatedSpend?.ActualSpend?.Amount ?? 0),
+              forecast: Number(spend.CalculatedSpend?.ForecastedSpend?.Amount ?? 0) || null,
+              limit: Number(spend.BudgetLimit.Amount),
+            }
+          : null,
+      };
+    },
+  },
+
+  backups: {
+    every: 900,
+    read: async () =>
+      latestBackups(
+        (await aws(['s3api', 'list-objects-v2', '--bucket', 'mtav-backups-690260957652'])).Contents,
+      ),
   },
 });

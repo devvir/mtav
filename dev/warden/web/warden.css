@@ -1,0 +1,73 @@
+/* The warden's own frame around MTAV's design system: a bar on top, a page under it */
+body {
+  margin: 0;
+  background: var(--mantine-color-body);
+}
+
+.warden-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+  padding: 0 24px;
+}
+
+.warden-bar-end {
+  margin-left: auto;
+}
+
+.warden-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.warden-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--mantine-spacing-lg);
+  align-items: start;
+}
+
+@media (max-width: 64em) {
+  .warden-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.warden-mono {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.8125rem;
+}
+
+.warden-meter {
+  display: grid;
+  gap: 4px;
+}
+
+.warden-server + .warden-server {
+  padding-top: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--mtav-border);
+}
+
+.warden-server[data-before] {
+  opacity: 0.75;
+}
+
+.warden-output {
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(in srgb, var(--mantine-color-body) 70%, #000);
+}
+
+.warden-output pre {
+  margin: 0;
+  padding: 12px 14px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
