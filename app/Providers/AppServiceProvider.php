@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Queue\SteadyWorker;
+use Illuminate\Queue\Worker;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PushSender::class, WebPushSender::class);
         $this->app->bind(Brain::class, fn () => config('assistant.driver') === 'cli' ? new CliBrain() : new ApiBrain());
+        // The queue worker waits for a database that is not there yet, rather than failing in a loop
+        $this->app->extend('queue.worker', fn (Worker $worker) => SteadyWorker::from($worker));
     }
 
     public function boot(): void
