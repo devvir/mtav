@@ -1,6 +1,10 @@
 # The release image of a commit (deploy/Dockerfile): built, and published to GitHub's
 # registry as ghcr.io/devvir/mtav:sha-<commit> when asked. Used by the pipeline (every
 # push) and by dev deploys (any branch).
+#
+# One image for both kinds of processor: Intel/AMD (amd64) and ARM (arm64, AWS's servers).
+# Each is built natively on GitHub's machine of its kind, side by side, then both are joined
+# under the one name; Docker on each server pulls its own.
 name: release image
 
 on:
@@ -19,22 +23,49 @@ on:
         description: The image, by commit tag
         value: ${{ jobs.image.outputs.image }}
 
+env:
+  IMAGE: ghcr.io/devvir/mtav
+
 jobs:
-  image:
-    name: Release image
+  # A commit already published for both kinds (staging's, deployed to dev) is not built again
+  published:
+    name: Already published?
     runs-on: ubuntu-24.04
+    permissions:
+      packages: read
+    outputs:
+      yes: ${{ steps.check.outputs.yes }}
+    steps:
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        if: inputs.publish
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: check
+        if: inputs.publish && !inputs.latest
+        run: |
+          manifest="$(docker manifest inspect "$IMAGE:sha-$GITHUB_SHA" 2>/dev/null || true)"
+          if grep -q '"architecture": "amd64"' <<< "$manifest" && grep -q '"architecture": "arm64"' <<< "$manifest"; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build (${{ matrix.arch }})
+    needs: published
+    if: needs.published.outputs.yes != 'true'
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
-    outputs:
-      image: ${{ steps.name.outputs.image }}
-    env:
-      IMAGE: ghcr.io/devvir/mtav
     steps:
-      - name: Name
-        id: name
-        run: echo "image=$IMAGE:sha-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         if: inputs.publish
         with:
@@ -42,35 +73,81 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # A commit already published (staging's, deployed to dev) is not built again
-      - name: Already published?
-        id: published
-        if: inputs.publish && !inputs.latest
-        run: |
-          if docker manifest inspect "${{ steps.name.outputs.image }}" > /dev/null 2>&1; then
-            echo "yes=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        if: steps.published.outputs.yes != 'true'
 
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-        if: steps.published.outputs.yes != 'true'
 
+      # Published by its content alone (a digest): the name comes once both kinds are in
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        if: steps.published.outputs.yes != 'true'
+        id: build
         with:
           context: .
           file: deploy/Dockerfile
-          push: ${{ inputs.publish }}
-          tags: |
-            ${{ steps.name.outputs.image }}
-            ${{ inputs.latest && format('{0}:main', env.IMAGE) || '' }}
+          platforms: linux/${{ matrix.arch }}
+          outputs: ${{ inputs.publish && format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', env.IMAGE) || 'type=cacheonly' }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
           # The build cache lives beside the images (uploading to GitHub's Actions cache took
-          # longer than the build). Any branch reads it; only main's publishing builds write
-          # it, so a branch can never plant layers that main's releases then reuse
-          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
-          cache-to: ${{ inputs.publish && github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache,mode=max', env.IMAGE) || '' }}
+          # longer than the build), one per kind. Any branch reads it; only main's publishing
+          # builds write it, so a branch can never plant layers that main's releases then reuse
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch }}
+          cache-to: ${{ inputs.publish && github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache-{1},mode=max', env.IMAGE, matrix.arch) || '' }}
+
+      - name: Keep the digest
+        if: inputs.publish
+        run: |
+          mkdir -p digests
+          touch "digests/${DIGEST#sha256:}"
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        if: inputs.publish
+        with:
+          name: digest-${{ matrix.arch }}
+          path: digests/*
+          retention-days: 1
+
+  # Both kinds under the commit's name (and main's, when asked)
+  image:
+    name: Release image
+    needs: [published, build]
+    if: always() && needs.published.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    outputs:
+      image: ${{ steps.name.outputs.image }}
+    steps:
+      - name: Name
+        id: name
+        run: echo "image=$IMAGE:sha-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        if: inputs.publish && needs.build.result == 'success'
+        with:
+          pattern: digest-*
+          path: digests
+          merge-multiple: true
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        if: inputs.publish && needs.build.result == 'success'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        if: inputs.publish && needs.build.result == 'success'
+
+      - name: Join both kinds
+        if: inputs.publish && needs.build.result == 'success'
+        working-directory: digests
+        run: |
+          tags=(-t "${{ steps.name.outputs.image }}")
+          [[ "${{ inputs.latest }}" == true ]] && tags+=(-t "$IMAGE:main")
+          docker buildx imagetools create "${tags[@]}" \
+            --annotation "index:org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            $(printf "$IMAGE@sha256:%s " *)
+          docker buildx imagetools inspect "${{ steps.name.outputs.image }}"

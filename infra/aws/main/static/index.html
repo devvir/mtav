@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>MTAV · En construcción</title>
+    <!--
+      What MTAV's names show while no server runs their environment (infra/aws/main, a server switched off): the app's
+      own under-construction page, the same words in each of its languages, picked from the visitor's browser.
+    -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --canvas: #faf7f4;
+        --text: #1f1a17;
+        --muted: #6f6660;
+        --brand-4: #ee7f48;
+        --brand-6: #ea621f;
+        --brand-7: #d05113;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas: #120f0d;
+          --text: #f3eeea;
+          --muted: #a59a92;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px 16px;
+        background: var(--canvas);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 440px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        text-align: center;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .mark {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        color: #fff;
+        background: linear-gradient(140deg, var(--brand-4), var(--brand-7));
+        box-shadow:
+          inset 0 1px 0 rgb(255 255 255 / 30%),
+          0 6px 16px -6px var(--brand-6);
+      }
+      .words {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+        text-align: left;
+      }
+      .name {
+        font-weight: 800;
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+      }
+      .institution {
+        font-size: 0.6875rem;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      h1 {
+        margin: 16px 0 0;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="logo">
+        <span class="mark" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 9l5 5v7h-5v-4m0 4h-5v-7l5 -5m1 1v-6a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v17h-8" />
+            <path d="M13 7l0 .01" />
+            <path d="M17 7l0 .01" />
+            <path d="M17 11l0 .01" />
+            <path d="M17 15l0 .01" />
+          </svg>
+        </span>
+        <span class="words">
+          <span class="name">MTAV</span>
+          <span class="institution">FING ≒ UDELAR</span>
+        </span>
+      </span>
+      <h1 id="title">En construcción</h1>
+      <p id="text">Este sitio se está preparando. Vuelve pronto.</p>
+    </main>
+    <script>
+      // The visitor's language, among the app's; Spanish otherwise
+      const words = {
+        en: ['Under construction', 'This site is being set up. Come back soon.'],
+        fr: ['En construction', 'Ce site est en cours de préparation. Revenez bientôt.'],
+        it: ['In costruzione', 'Questo sito è in preparazione. Torna presto.'],
+        pt: ['Em construção', 'Este site está sendo preparado. Volte em breve.'],
+      };
+      const language = (navigator.languages || [navigator.language || 'es'])
+        .map((tag) => tag.slice(0, 2).toLowerCase())
+        .find((tag) => tag === 'es' || words[tag]);
+      if (words[language]) {
+        const [title, text] = words[language];
+        document.documentElement.lang = language;
+        document.title = `MTAV · ${title}`;
+        document.getElementById('title').textContent = title;
+        document.getElementById('text').textContent = text;
+      }
+    </script>
+  </body>
+</html>

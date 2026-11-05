@@ -44,3 +44,9 @@ cookies.txt
 Homestead.json
 Homestead.yaml
 /.in-progress
+
+# OpenTofu: providers, plans and local state (the state lives in its bucket)
+/infra/**/.terraform/
+/infra/**/*.tfplan
+/infra/**/*.tfstate
+/infra/**/*.tfstate.backup
