@@ -2,6 +2,7 @@
 
 use Illuminate\Contracts\Http\Kernel;
 use Tests\Browser\Support\ReadUploadsLikePhp;
+use Tests\Browser\Support\RoutesSeen;
 use Tests\TestCase;
 
 /**
@@ -28,7 +29,10 @@ pest()
  */
 pest()
     ->extend(TestCase::class)
-    ->beforeEach(fn () => app(Kernel::class)->prependMiddleware(ReadUploadsLikePhp::class))
+    ->beforeEach(function () {
+        app(Kernel::class)->prependMiddleware(ReadUploadsLikePhp::class);
+        RoutesSeen::record();
+    })
     ->in('Browser');
 
 pest()->browser()->timeout(20_000);

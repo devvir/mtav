@@ -120,6 +120,16 @@ jobs:
           name: browser-screenshots-${{ matrix.shard }}
           path: tests/Browser/Screenshots
 
+      # Every route this part made the app serve (tests/Browser/Support/RoutesSeen.php): what no journey reaches
+      # shows against the app's routes
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        if: always()
+        with:
+          name: browser-routes-${{ matrix.shard }}
+          path: storage/logs/e2e-routes.log
+          retention-days: 14
+          if-no-files-found: ignore
+
   image:
     needs: [checks, tests, browser]
     permissions:
