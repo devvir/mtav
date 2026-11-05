@@ -58,6 +58,11 @@ const PHOTOS: Record<string, { src: string; author?: string; source?: string }> 
   mutualAid: { src: '/images/welcome/mutual-aid.webp' },
   workDay: { src: '/images/welcome/work-day.webp' },
   frayBentos: { src: '/images/welcome/fray-bentos.webp' },
+  mesa4: { src: '/images/welcome/mesa-4.webp' },
+  // FUCVAM's, credited in their captions as FUCVAM credits them
+  womensDay: { src: '/images/welcome/dia-de-la-mujer.webp' },
+  solidarityDay: { src: '/images/welcome/jornada-solidaria.webp' },
+  buildingSite: { src: '/images/welcome/building-site.webp' },
   brazos: {
     src: '/images/welcome/brazos-unidos.webp',
     author: 'Artigas Pessio, Intendencia de Montevideo',
@@ -93,6 +98,10 @@ export default function Welcome({ dialog, google, demo, locales }: Props) {
     mutualAid: _('Families building their homes, by mutual aid'),
     workDay: _('A work day on the site'),
     frayBentos: _('COVISIN Fray Bentos II, a housing cooperative'),
+    mesa4: _('Mesa 4, the 3 de Abril neighbourhood'),
+    womensDay: _("FUCVAM, Women's Day (Photo: Gustavo Castagnello / FUCVAM, 2007)"),
+    solidarityDay: _('FUCVAM, a solidarity work day (Photo: Gustavo Castagnello / FUCVAM, 2016)'),
+    buildingSite: _('Building by mutual aid, on the site'),
     brazos: _('Brazos Unidos, homes built in Montevideo'),
   };
 
@@ -176,7 +185,10 @@ export default function Welcome({ dialog, google, demo, locales }: Props) {
               {_('Invited by your cooperative? Open the link in your email.')}
             </Text>
           </div>
-          <HeroPhotos photos={['vicman', 'mesa1']} captions={captions} />
+          <HeroPhotos
+            photos={['vicman', 'solidarityDay', 'mesa1', 'buildingSite', 'womensDay', 'mesa4']}
+            captions={captions}
+          />
         </section>
 
         <section className="welcome-section">

@@ -116,6 +116,16 @@ it('shows its first pictures one after another, VICMAN among them', function () 
         ->assertPresent('.welcome-hero-frame img[data-shown][src*="vicman"]');
 });
 
+it('shows the cooperatives in six pictures, FUCVAM\'s with their photographer\'s credit', function () {
+    visit(route('home'))
+        ->assertCount('.welcome-hero-dots button', 6)
+        ->click('.welcome-hero-dots button >> nth=1')
+        ->assertSeeIn('.welcome-hero-slides figcaption', 'Photo: Gustavo Castagnello / FUCVAM, 2016')
+        ->assertPresent('.welcome-hero-frame img[data-shown][src*="jornada-solidaria"]')
+        ->click('.welcome-hero-dots button >> nth=4')
+        ->assertSeeIn('.welcome-hero-slides figcaption', 'Photo: Gustavo Castagnello / FUCVAM, 2007');
+});
+
 it('enters as a demo account as soon as it is picked, found by its role too, with no password', function () {
     config(['app.deployment' => 'staging']);
     aUser(['email' => 'pedro@example.com', 'firstname' => 'Pedro', 'lastname' => 'Rey']);
