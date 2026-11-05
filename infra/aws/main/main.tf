@@ -59,7 +59,6 @@ locals {
       data    = 4
       environments = {
         production = { web = 8002, ws = 8082, names = ["www.mtav.uy"], on_aws = true }
-        sorteo     = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"], on_aws = false }
       }
     }
     preview = {
@@ -70,6 +69,8 @@ locals {
       environments = {
         staging = { web = 8000, ws = 8080, names = ["stg.mtav.uy"], on_aws = false }
         dev     = { web = 8001, ws = 8081, names = ["dev.mtav.uy"], on_aws = false }
+        # The Open Lottery, public, kept running while production is off: small, and it fits here
+        sorteo = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"], on_aws = false }
       }
     }
   }

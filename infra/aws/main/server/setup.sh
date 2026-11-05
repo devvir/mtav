@@ -1,6 +1,6 @@
-# A server's first boot (servers.tf puts SERVER, NAMES, ENVIRONMENTS, APEX, BACKUPS, DATA and GATE above this line).
-# Every step can run again. From here on the server is reached only through Systems Manager, and changed only by
-# deploys.
+# A server's first boot (servers.tf puts SERVER, DATA and GATE above this line; what may change, it reads from its
+# settings, /mtav/<server>/config, through mtav-reconfigure). Every step can run again. From here on the server is
+# reached only through Systems Manager, and changed only by deploys and by mtav-reconfigure.
 #
 #  0. the data disk: the environments' databases, files and settings live there, apart from the server
 #  1. swap, security updates by themselves, services nothing uses stopped
@@ -77,14 +77,36 @@ systemctl enable docker.socket docker > /dev/null 2>&1
 systemctl reset-failed docker 2> /dev/null || true
 systemctl restart docker
 
-# -- 3. the gate, and the environments' directories -------------------------------------------------------------------
+# -- 3. the gate, and the server's settings ---------------------------------------------------------------------------
 echo "$GATE" | base64 -d | gunzip > /usr/local/sbin/mtav-gate
 chown root:root /usr/local/sbin/mtav-gate && chmod 755 /usr/local/sbin/mtav-gate
 install -d -m 755 /mtav
+install -d -m 700 /etc/mtav
+printf "SERVER='%s'\nDATA='%s'\n" "$SERVER" "$DATA" > /etc/mtav/identity
+cat > /usr/local/sbin/mtav-reconfigure <<'SCRIPT'
+#!/bin/bash
+# The server's settings read again (/mtav/<server>/config, kept by infra/aws/main): its environments get their
+# directories, its certificate covers every name it answers for, its front web server routes each one. Run at the
+# first boot, and whenever an environment moves between servers.
+set -euo pipefail
+source /etc/mtav/identity
+config="$(aws ssm get-parameter --region us-east-2 --name "/mtav/$SERVER/config" --query Parameter.Value --output text | cat)"
+[[ -n "$config" ]] || { echo "no settings for $SERVER"; exit 1; }
+{ cat /etc/mtav/identity; echo "$config"; } > /etc/mtav/server.next
+chmod 600 /etc/mtav/server.next && mv /etc/mtav/server.next /etc/mtav/server
+source /etc/mtav/server
 for env in $(jq -r 'keys[]' <<< "$ENVIRONMENTS"); do
-    # Its .env is written once, by hand (deploy/env.example), before its first deploy
+    # Its .env is written before its first deploy (from /mtav/<server>/env/<environment>)
     install -d -m 750 "/mtav/$env"
 done
+echo "settings read: $(jq -r 'keys | join(", ")' <<< "$ENVIRONMENTS"); names: $NAMES"
+# A certificate already issued grows to the names it does not cover yet; none yet: its hourly try does it
+if [[ -f /etc/letsencrypt/live/mtav/fullchain.pem ]]; then
+    /usr/local/sbin/mtav-certificate || echo "the certificate is tried again within the hour"
+fi
+[[ -x /usr/local/sbin/mtav-front ]] && /usr/local/sbin/mtav-front || true
+SCRIPT
+chmod 755 /usr/local/sbin/mtav-reconfigure
 
 # -- 4. the front web server ------------------------------------------------------------------------------------------
 # Written once the certificate is there (step 5): until then nginx serves nothing but its default page, on no name.
@@ -169,15 +191,6 @@ nginx -t -q && systemctl reload nginx
 echo "front web server written for: $(jq -r 'keys | join(", ")' <<< "$ENVIRONMENTS")"
 SCRIPT
 chmod 755 /usr/local/sbin/mtav-front
-install -d -m 700 /etc/mtav
-{
-    printf "SERVER='%s'\n" "$SERVER"
-    printf "NAMES='%s'\n" "$NAMES"
-    printf "ENVIRONMENTS='%s'\n" "$ENVIRONMENTS"
-    printf "APEX='%s'\n" "$APEX"
-    printf "BACKUPS='%s'\n" "$BACKUPS"
-} > /etc/mtav/server
-chmod 600 /etc/mtav/server
 # Nothing on port 80: CloudFront speaks HTTPS to the server, and the certificate is proven over DNS
 rm -f /etc/nginx/sites-enabled/default
 sed -i -E 's/^(\s*listen .*80)/#\1/' /etc/nginx/sites-available/default 2> /dev/null || true
@@ -194,7 +207,7 @@ source /etc/mtav/server
 domains=()
 for name in $NAMES; do domains+=(-d "$name"); done
 certbot certonly --dns-route53 --non-interactive --agree-tos --register-unsafely-without-email \
-    --cert-name mtav --keep-until-expiring "${domains[@]}"
+    --cert-name mtav --keep-until-expiring --expand "${domains[@]}"
 /usr/local/sbin/mtav-front
 systemctl disable --now mtav-certificate.timer 2> /dev/null || true
 SCRIPT
@@ -269,5 +282,6 @@ WantedBy=timers.target
 EOF
 
 systemctl daemon-reload
+/usr/local/sbin/mtav-reconfigure
 systemctl enable --now mtav-certificate.timer mtav-backups.timer > /dev/null 2>&1
 echo "== $(date -u +%FT%TZ) the $SERVER server is set up; the certificate is tried within a minute"

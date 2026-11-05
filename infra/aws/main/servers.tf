@@ -17,17 +17,16 @@ resource "aws_instance" "server" {
   vpc_security_group_ids = [aws_security_group.server[each.key].id]
   iam_instance_profile   = aws_iam_instance_profile.server[each.key].name
 
-  # What the first boot needs to know, then the script itself (server/setup.sh), unchanged: the gate travels compressed.
+  # What never changes for it (its name, its data disk, the gate), then the script itself (server/setup.sh), unpacked
+  # and run; both travel compressed (a first boot's data is at most 16 KB). What may change (its environments, its
+  # names) it reads from its settings (below).
   user_data = join("\n", [
     "#!/bin/bash",
     "SERVER='${each.key}'",
-    "NAMES='${join(" ", concat(local.names[each.key], [local.origin[each.key]]))}'",
-    "ENVIRONMENTS='${jsonencode(each.value.environments)}'",
-    "APEX='${local.apex.server == each.key ? "${local.apex.name} ${local.apex.to}" : ""}'",
-    "BACKUPS='${aws_s3_bucket.backups.bucket}'",
     "DATA='${aws_ebs_volume.data[each.key].id}'",
     "GATE='${base64gzip(file("${path.module}/../../../deploy/host/gate"))}'",
-    file("${path.module}/server/setup.sh"),
+    "echo '${base64gzip(file("${path.module}/server/setup.sh"))}' | base64 -d | gunzip > /root/mtav-setup.sh",
+    "source /root/mtav-setup.sh",
   ])
 
   root_block_device {
@@ -74,6 +73,21 @@ resource "aws_volume_attachment" "data" {
   device_name = "/dev/sdf"
   volume_id   = aws_ebs_volume.data[each.key].id
   instance_id = aws_instance.server[each.key].id
+}
+
+# A server's settings: its environments (ports and names), every name it answers for, the bare domain if it holds it,
+# and where its backups go. Read at its first boot, and again by `mtav-reconfigure` on it whenever they change (an
+# environment moved between servers): its front web server and its certificate follow.
+resource "aws_ssm_parameter" "server_config" {
+  for_each = local.running
+  name     = "/mtav/${each.key}/config"
+  type     = "String"
+  value = join("\n", [
+    "NAMES='${join(" ", concat(local.names[each.key], [local.origin[each.key]]))}'",
+    "ENVIRONMENTS='${jsonencode(each.value.environments)}'",
+    "APEX='${local.apex.server == each.key ? "${local.apex.name} ${local.apex.to}" : ""}'",
+    "BACKUPS='${aws_s3_bucket.backups.bucket}'",
+  ])
 }
 
 # A fixed public address each: the way out (and CloudFront's way in, by the origin name in dns.tf), the same across a
