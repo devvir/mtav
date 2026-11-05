@@ -77,7 +77,7 @@ if [[ "$mode" == rollback ]]; then
     echo "$previous_slot $previous_image" > "$dir/live"
     echo "$live_slot $live_image" > "$dir/previous"
     # Last: it may wait out a lottery run in hand
-    slot_compose "$live_slot" "$live_image" stop worker worker-realtime worker-assistant
+    slot_compose "$live_slot" "$live_image" down
     say "Done: $environment runs $previous_image again (its migrations were kept)"
     exit 0
 fi
@@ -143,9 +143,9 @@ fi
 echo "$next $image" > "$dir/live"
 [[ -n "$live_slot" ]] && echo "$live_slot $live_image" > "$dir/previous"
 
-# The slot before stays up, without its workers, so going back is instant (last: it may wait
-# out a lottery run in hand)
-[[ -n "$live_slot" ]] && slot_compose "$live_slot" "$live_image" stop worker worker-realtime worker-assistant
+# The slot before leaves the host: nothing of an old release stays running. Going back starts
+# it again from its image (last: it may wait out a lottery run in hand)
+[[ -n "$live_slot" ]] && slot_compose "$live_slot" "$live_image" down
 
 # Releases older than the two kept (live, and the one to go back to) leave the host
 docker images ghcr.io/devvir/mtav --format '{{.Repository}}:{{.Tag}}' \

@@ -78,8 +78,9 @@ is healthy does the switch hand it the traffic, so visitors never see the site d
    leave the previous release working: add first, remove in a later release);
 4. the release starts in the other slot, and must report healthy within three minutes;
 5. the switch goes over to it, and must answer through it;
-6. the slot before stays up without its workers, so going back is instant; a worker with
-   a job in hand finishes it first (up to 11 minutes), and the deploy waits for it.
+6. the slot before is taken down: nothing of an old release stays running, and going back
+   starts it again from its image (about a minute); a worker with a job in hand finishes it
+   first (up to 11 minutes), and the deploy waits for it.
 
 If step 4 or 5 fails, the new slot is removed and the live release never stopped. With
 `fresh` (only where the environment's `.env` says `MTAV_FRESH_ALLOWED=true`, and never on

@@ -259,8 +259,16 @@ describe('What a deploy leaves', function () {
 
     it('says what runs before waiting on the old worker', function () {
         $script = file_get_contents(base_path('deploy/host/deploy'));
+        $old = 'slot_compose "$live_slot" "$live_image" down';
 
-        expect(strpos($script, '> "$dir/live"'))->toBeLessThan(strpos($script, 'stop worker'))
-            ->and(strrpos($script, '> "$dir/live"'))->toBeLessThan(strrpos($script, 'stop worker'));
+        expect(strpos($script, '> "$dir/live"'))->toBeLessThan(strpos($script, $old))
+            ->and(strrpos($script, '> "$dir/live"'))->toBeLessThan(strrpos($script, $old));
+    });
+
+    it('leaves nothing of the release before running, on a deploy or a rollback', function () {
+        $script = file_get_contents(base_path('deploy/host/deploy'));
+
+        expect(substr_count($script, 'slot_compose "$live_slot" "$live_image" down'))->toBe(2)
+            ->and($script)->not->toContain('stop worker');
     });
 });

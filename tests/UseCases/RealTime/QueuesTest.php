@@ -44,14 +44,12 @@ describe('On a server', function () {
         expect($workers()->sort()->values()->all())->toBe(['assistant', 'default', 'realtime']);
     });
 
-    it('stops every worker of the slot it leaves, going forward and going back', function () use ($workers) {
-        $stops = collect(file(base_path('deploy/host/deploy')))->filter(fn ($line) => str_contains($line, ' stop worker'));
+    it('stops every worker of the slot it leaves, going forward and going back', function () {
+        // Taken down whole, the slot's every service stops: its workers among them, none left out
+        $downs = collect(file(base_path('deploy/host/deploy')))
+            ->filter(fn ($line) => str_contains($line, 'slot_compose "$live_slot" "$live_image" down'));
 
-        expect($stops)->toHaveCount(2);
-        foreach ($stops as $stop) {
-            foreach ($workers()->keys() as $worker) {
-                expect($stop)->toContain($worker);
-            }
-        }
+        expect($downs)->toHaveCount(2)
+            ->and($downs->every(fn ($line) => trim(\Illuminate\Support\Str::after($line, 'down')) === ''))->toBeTrue();
     });
 });
