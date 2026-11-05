@@ -48,7 +48,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RequireOwner::class,
         ]);
 
-        $middleware->alias(['module' => \App\Http\Middleware\EnsureModule::class]);
+        $middleware->alias([
+            'module' => \App\Http\Middleware\EnsureModule::class,
+            // Each route's rate limit on its own counter
+            'throttle' => \App\Http\Middleware\ThrottlePerRoute::class,
+        ]);
         // Before anything else about the person: a route closed here is not there, for anyone
         $middleware->prependToPriorityList(
             \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,

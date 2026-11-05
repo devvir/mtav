@@ -351,3 +351,16 @@ it('never lets a feature a variant does not offer exist in a project', function 
         ->and($project->features()['chat'])->toBeTrue();
     $this->as(anAdminOf($project), $project)->get(route('forum.index'))->assertNotFound();
 });
+
+describe('Its limits', function () {
+    it('counts each link apart: someone trying personal links does not use the organizer link up', function () {
+        [$lottery, $key] = aLottery();
+
+        foreach (range(1, 20) as $try) {
+            $this->get(route('open.me', [$lottery, "wrong-{$try}"]))->assertNotFound();
+        }
+
+        $this->get(route('open.me', [$lottery, 'one-more']))->assertTooManyRequests();
+        $this->get(route('open.organize', [$lottery, $key]))->assertRedirect(route('open.show', $lottery));
+    });
+});
