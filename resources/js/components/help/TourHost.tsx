@@ -70,7 +70,8 @@ export function TourHost() {
   useLayoutEffect(() => {
     if (!step) return undefined;
     const target = findTarget(step.target);
-    target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // On phones the step's card takes the bottom: the element goes to the top, under the bar
+    target?.scrollIntoView({ block: narrow ? 'start' : 'center', behavior: 'smooth' });
     card.current?.focus({ preventScroll: true });
     // Along with the page as it scrolls the element into view
     const until = performance.now() + FOLLOW_MS;
@@ -81,7 +82,7 @@ export function TourHost() {
     };
     follow = requestAnimationFrame(follow_);
     return () => cancelAnimationFrame(follow);
-  }, [step, measure]);
+  }, [step, measure, narrow]);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
@@ -109,8 +110,14 @@ export function TourHost() {
 
   const last = state.index === state.steps.length - 1;
 
-  /** Below the element if it fits, else above it; pinned to the bottom on phones */
-  let position: CSSProperties = { left: 16, right: 16, bottom: 16 };
+  /**
+   * Below the element if it fits, else above it. On phones, across the screen: at the bottom,
+   * or at the top for an element in the lower half (the tabs)
+   */
+  let position: CSSProperties =
+    narrow && rect && rect.top + rect.height / 2 > window.innerHeight / 2
+      ? { left: 16, right: 16, top: 16 }
+      : { left: 16, right: 16, bottom: 16 };
   if (!narrow && rect) {
     const left = Math.min(Math.max(16, rect.left), window.innerWidth - WIDTH - 16);
     const below = rect.bottom + PAD + 12;
@@ -183,7 +190,7 @@ export function TourHost() {
                 <Text className="ds-label">
                   {_('Step {n} of {total}', { n: state.index + 1, total: state.steps.length })}
                 </Text>
-                <Text fw={700} mt={4}>
+                <Text fw={700} mt={4} className="tour-title">
                   {step.title}
                 </Text>
                 <Text size="sm" c="dimmed" mt={4}>

@@ -73,6 +73,7 @@ export function NotificationsMenu() {
             radius="xl"
             variant="subtle"
             color="gray"
+            data-tour="shell.notifications"
             aria-label={
               unread ? _('Notifications, {count} unread', { count: unread }) : _('Notifications')
             }

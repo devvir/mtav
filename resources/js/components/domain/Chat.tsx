@@ -347,8 +347,11 @@ const assistantGreeting = () =>
     'Hello! I am the Assistant of this app, an automatic helper. I can explain how things work and take you where you need to go. What would you like to know?',
   );
 
-/** Before the first message: what it is, and a few things to ask with a tap */
-function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
+/**
+ * How its conversation starts, always: what it is, and before the first message, a few things
+ * to ask with a tap
+ */
+function AssistantWelcome({ onAsk, asking }: { onAsk: (words: string) => void; asking: boolean }) {
   const { project } = useChatProject();
   const can = project?.can;
   const asks = [
@@ -367,22 +370,24 @@ function AssistantWelcome({ onAsk }: { onAsk: (words: string) => void }) {
           {assistantGreeting()}
         </Text>
       </div>
-      <AssistantActions
-        actions={[
-          ...(project && !project.needs_family
-            ? [
-                {
-                  type: 'tour' as const,
-                  label: _('Show me around'),
-                  href: route('projects.show', { project: project.id }),
-                  tour: 'member.home',
-                },
-              ]
-            : []),
-          ...asks.map((label) => ({ type: 'reply' as const, label })),
-        ]}
-        onReply={onAsk}
-      />
+      {asking ? (
+        <AssistantActions
+          actions={[
+            ...(project && !project.needs_family
+              ? [
+                  {
+                    type: 'tour' as const,
+                    label: _('Show me around'),
+                    href: route('projects.show', { project: project.id }),
+                    tour: 'member.home',
+                  },
+                ]
+              : []),
+            ...asks.map((label) => ({ type: 'reply' as const, label })),
+          ]}
+          onReply={onAsk}
+        />
+      ) : null}
     </div>
   );
 }
@@ -665,8 +670,11 @@ function Thread({
             {_('Say hello: the first message starts the conversation.')}
           </Text>
         )}
-        {!messages.data.length && conversation.is_assistant ? (
-          <AssistantWelcome onAsk={(words) => void send(undefined, words)} />
+        {conversation.is_assistant && !messages.earlier ? (
+          <AssistantWelcome
+            asking={!messages.data.length}
+            onAsk={(words) => void send(undefined, words)}
+          />
         ) : null}
         {messages.data.map((message, index) => {
           const before = messages.data[index - 1];

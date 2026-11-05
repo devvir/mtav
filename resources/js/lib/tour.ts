@@ -101,7 +101,7 @@ export const keepTours = () => tourState.set({ ...tourState.get(), offer: false 
 
 /**
  * Guided tours: a sequence of steps, each pointing at an element of the page (marked
- * data-tour="…"). Steps whose element is not on the page are skipped. Tours are defined
+ * data-tour="…"). Steps whose element is not showing are skipped. Tours are defined
  * once (tours.ts) as functions, so their words are translated when they start.
  */
 export function defineTour(id: string, steps: TourDefinition) {
@@ -110,9 +110,14 @@ export function defineTour(id: string, steps: TourDefinition) {
 
 export const hasTour = (id: string) => tours.has(id);
 
+/** The step's element showing on this screen: a page may mark one for each size (a sidebar, tabs) */
 export const findTarget = (target: string) =>
-  document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
+  [...document.querySelectorAll<HTMLElement>(`[data-tour="${target}"]`)].find((element) =>
+    // Where the browser cannot tell (older ones), any is taken
+    typeof element.checkVisibility === 'function' ? element.checkVisibility() : true,
+  ) ?? null;
 
+/** Steps whose element is not showing (not on the page, or hidden at this size) are left out */
 export function startTour(id: string) {
   const steps =
     tours

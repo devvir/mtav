@@ -12,6 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
   IconBook,
   IconChevronDown,
+  IconFolderPlus,
   IconFolders,
   IconLogout,
   IconMessageQuestion,
@@ -124,7 +125,7 @@ const Navigation = memo(function Navigation({ nav }: { nav: NavGroup[] }) {
   };
 
   return (
-    <nav className="shell-nav" aria-label={_('Navigation')}>
+    <nav className="shell-nav" aria-label={_('Navigation')} data-tour="shell.nav">
       {nav.map((group) => {
         const places = group.items.filter((item) => !item.action);
         const actions = group.items.filter((item) => item.action);
@@ -166,7 +167,7 @@ const Tabs = memo(function Tabs({ tabs }: { tabs: NavEntry[] }) {
   const to = useTrip();
 
   return (
-    <nav className="ds-bar shell-tabs" aria-label={_('Main')}>
+    <nav className="ds-bar shell-tabs" aria-label={_('Main')} data-tour="shell.nav">
       {tabs.map((item) => (
         <Link
           key={item.href}
@@ -284,6 +285,15 @@ export function AppShell({
                 >
                   {_('Find a project')}
                 </Menu.Item>
+                {props.auth.user?.can_start_project ? (
+                  <Menu.Item
+                    component={Link}
+                    href={route('projects.create')}
+                    leftSection={<IconFolderPlus size={16} />}
+                  >
+                    {_('Start a project')}
+                  </Menu.Item>
+                ) : null}
               </Menu.Dropdown>
             </Menu>
           ) : (

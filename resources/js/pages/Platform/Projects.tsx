@@ -26,6 +26,7 @@ import {
 import {
   IconAlertTriangle,
   IconArrowBackUp,
+  IconFolderPlus,
   IconShieldCheck,
   IconTrash,
 } from '@tabler/icons-react';
@@ -180,6 +181,15 @@ export default function PlatformProjects({ projects, counts, filters }: Props) {
               'Anyone can start a project. Until a superadmin approves it, it works within limits, to prevent abuse.',
             )}
           </InfoTip>
+        }
+        actions={
+          <Button
+            component={Link}
+            href={route('projects.create')}
+            leftSection={<IconFolderPlus size={18} />}
+          >
+            {_('New project')}
+          </Button>
         }
       />
 

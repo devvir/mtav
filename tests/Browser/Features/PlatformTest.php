@@ -34,9 +34,9 @@ it('invites a support account by an email not in use, and takes the role back', 
         ->assertDontSee('Make superadmin');
 
     $invite = fn ($page, $email) => $page->fill('email', $email)
-        ->click('form >> text=Send the invitation')
+        ->click('form >> text=Send invite')
         ->fill('[role="dialog"] input', $email)
-        ->click(inDialog('Send the invitation'));
+        ->click(inDialog('Send invite'));
 
     $page = confirmPassword($invite(visit(route('admin.superadmins.index')), 'support@example.com'));
     expect(SupportInvitation::count())->toBe(0);
@@ -228,11 +228,19 @@ it('offers the link to choose a password where it asks for one, for an account o
 
     visit(route('admin.superadmins.index'))
         ->fill('email', 'someone@example.com')
-        ->click('form >> text=Send the invitation')
+        ->click('form >> text=Send invite')
         ->fill('[role="dialog"] input', 'someone@example.com')
-        ->click(inDialog('Send the invitation'))
+        ->click(inDialog('Send invite'))
         ->assertSee('Confirm your password')
         ->click('Email me a link to choose a password')
         ->assertSee(__('passwords.sent'))
+        ->assertNoSmoke();
+});
+
+it('starts a project from the console, naming its first admin', function () {
+    visit(route('admin.projects.index'))
+        ->click('New project')
+        ->assertPathIs('/projects/create')
+        ->assertPresent('[name="first_admin_email"]')
         ->assertNoSmoke();
 });

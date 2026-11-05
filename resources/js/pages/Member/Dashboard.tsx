@@ -257,6 +257,7 @@ export default function Dashboard({
         {project.features.gallery ? (
           <FoldablePanel
             name="home.shared"
+            data-tour="home.shared"
             title={_('Recently shared')}
             icon={IconPhoto}
             tone="accent"
@@ -297,6 +298,7 @@ export default function Dashboard({
         {project.features.events ? (
           <FoldablePanel
             name="home.events"
+            data-tour="home.events"
             title={_('Coming up')}
             icon={IconCalendarEvent}
             href={route('events.index')}
@@ -330,7 +332,7 @@ export default function Dashboard({
       </div>
 
       {!empty ? (
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 24 }} data-tour="home.people">
           <Deferred data="community" fallback={<Skeleton h={220} radius="lg" />}>
             {community ? <CommunityPanel community={community} /> : null}
           </Deferred>
@@ -338,7 +340,7 @@ export default function Dashboard({
       ) : null}
 
       {!empty ? (
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 24 }} data-tour="home.units">
           <Deferred data="units" fallback={<Skeleton h={160} radius="lg" />}>
             {units ? <UnitsByType unitTypes={units} away /> : <></>}
           </Deferred>

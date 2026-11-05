@@ -85,6 +85,7 @@ export function ChatLauncher() {
         ref={launcher}
         type="button"
         className="chat-launcher"
+        data-tour="shell.chat"
         aria-expanded={open}
         aria-label={
           open

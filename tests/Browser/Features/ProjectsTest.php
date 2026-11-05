@@ -152,3 +152,14 @@ it('suggests the federations for a project\'s organization, and takes any other'
 
     expect(App\Models\Project::sole()->organization)->toBe('Cooperativas del Este');
 });
+
+it('lets someone already in a project start another from the switcher, quietly', function () {
+    $project = aProject(['name' => 'Cooperativa Uno']);
+    $this->as(aMemberOf(aFamily($project)), $project);
+
+    visit(route('projects.show', $project))
+        ->click('header .shell-switcher')
+        ->click('[role="menu"] >> text=Start a project')
+        ->assertPathIs('/projects/create')
+        ->assertNoSmoke();
+});

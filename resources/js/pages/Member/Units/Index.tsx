@@ -54,10 +54,7 @@ export default function UnitsIndex({ unitTypes, plan, family, unit: shown, editP
         title={_('Units')}
         description={_("The project's dwellings, by type.")}
         help={
-          <InfoTip
-            title={_('What is a unit type?')}
-            tour={canManage ? 'manage.unit_types' : undefined}
-          >
+          <InfoTip title={_('What is a unit type?')} tour="member.units">
             {_(
               "A group of equivalent units, like '2 bedrooms'. Each family has one type, and receives a unit of that type: each type has, in fact, its own lottery.",
             )}

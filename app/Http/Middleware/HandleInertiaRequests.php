@@ -123,6 +123,8 @@ class HandleInertiaRequests extends Middleware
             'is_superadmin' => $user->isSuperadmin(),
             'can_deploy'    => $user->can('deploy'),
             'verified'      => $user->hasVerifiedEmail(),
+            // Anyone may start another project, within the limits of those not yet approved
+            'can_start_project' => $user->can('create', Project::class),
         ];
     }
 

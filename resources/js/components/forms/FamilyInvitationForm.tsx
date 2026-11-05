@@ -64,7 +64,7 @@ export function FamilyInvitationForm({
           {_('Cancel')}
         </Button>
         <Button type="submit" loading={form.processing} leftSection={<IconSend size={18} />}>
-          {_('Send the invitation')}
+          {_('Send invite')}
         </Button>
       </Group>
     </Form>

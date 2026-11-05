@@ -22,7 +22,7 @@ return [
         'can_do'         => 'Aqui você acompanha o seu projeto: as pessoas, as unidades e o sorteio, tudo em um só lugar.',
         'can_do_rank'    => 'Você também pode classificar as unidades que a sua família gostaria.',
         'can_do_manage'  => 'Como admin, você também prepara o projeto e convida as pessoas.',
-        'can_do_action'  => 'Mostre como é',
+        'can_do_action'  => 'Mostre mais',
         'outside'        => 'Fora de um projeto, você encontra um para participar, começa o seu ou ajusta a sua conta. Abra um projeto para ver tudo o que ele tem.',
         'outside_action' => 'Encontrar um projeto',
         'lottery'        => 'Cada família classifica as unidades do seu tipo, da mais desejada para a menos. Na data marcada, um admin faz o sorteio: primeiro deixa a família que ficaria menos favorecida tão satisfeita quanto possível, depois o projeto inteiro tão satisfeito quanto possível. Só os empates são decididos ao acaso.',

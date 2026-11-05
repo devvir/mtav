@@ -142,6 +142,9 @@ it('has the Assistant at hand, pinned, offering what to ask, and says when it is
         ->click('.chat-window button:has-text("How does the lottery work?")')
         ->assertSeeIn('.chat-messages', 'How does the lottery work?')
         ->assertSeeIn('.chat-messages', 'Each family ranks the units')
+        // Its greeting stays where the conversation starts; what to ask was for before it began
+        ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
+        ->assertMissing('.chat-window button:has-text("How does the lottery work?")')
         ->fill('.chat-composer textarea, .chat-composer input', 'Where do I see the plan?')
         ->keys('.chat-composer textarea, .chat-composer input', 'Enter')
         ->assertSeeIn('.chat-messages', 'The Assistant is not available here yet')

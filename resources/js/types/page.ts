@@ -30,6 +30,7 @@ export interface SharedProps {
       /** A superadmin listed as a deployer */
       can_deploy: boolean;
       verified: boolean;
+      can_start_project: boolean;
     } | null;
   };
   projects: { id: Id; name: string; organization: string | null; is_admin: boolean }[];

@@ -75,7 +75,7 @@ export default function FamilyInvitations({
           <Group justify="flex-end" className="form-actions">
             <RequiredNote />
             <Button type="submit" loading={form.processing} leftSection={<IconSend size={18} />}>
-              {_('Send the invitation')}
+              {_('Send invite')}
             </Button>
           </Group>
         </Form>

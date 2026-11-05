@@ -28,12 +28,12 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
 
   const grant = async () => {
     const ok = await confirm({
-      title: _('Invite a support account?'),
+      title: _('Register a new superadmin?'),
       message: _(
         'Superadmins see and manage every project on the platform, approve them and delete them for good.',
       ),
       typeToConfirm: form.data.email,
-      confirmLabel: _('Send the invitation'),
+      confirmLabel: _('Send invite'),
     });
     if (ok)
       form.post(route('admin.superadmins.store'), {
@@ -95,15 +95,14 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
           ))}
         </Card>
         <Panel
-          title={_('Invite a support account')}
+          title={_('Register a new superadmin')}
           icon={IconShieldPlus}
           tone="warning"
           data-tour="superadmins.grant"
         >
           <Form onSubmit={grant}>
             <TextInput
-              label={_('An email not in use here yet')}
-              description={_('A support account is apart from anyone’s own')}
+              label={_('Email')}
               withAsterisk
               type="email"
               autoComplete="off"
@@ -111,7 +110,7 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
             />
             <Group justify="flex-end">
               <Button type="submit" variant="default" loading={form.processing}>
-                {_('Send the invitation')}
+                {_('Send invite')}
               </Button>
             </Group>
           </Form>

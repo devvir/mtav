@@ -2515,9 +2515,9 @@ html[data-carrying] * {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-/* Messages that come and go, under the bar */
+/* Messages that come and go: over the bar's empty middle, never over the page's own heading */
 .mantine-Notifications-root[data-position='top-center'] {
-  top: 4.5rem;
+  top: 0.5rem;
 }
 /* A conversation in the list, and pinning it */
 .chat-list-row {
@@ -2652,4 +2652,9 @@ html[data-carrying] * {
 /* Outside any project the chat is the Assistant alone: its conversation, the whole width */
 .chat[data-alone] {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* A tour's step scrolls its element into view clear of the bar on top */
+[data-tour] {
+  scroll-margin-top: 5rem;
 }

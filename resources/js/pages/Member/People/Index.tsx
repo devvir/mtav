@@ -89,7 +89,7 @@ export default function PeopleIndex({
               w={220}
             />
           </Group>
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} data-tour="people.list">
             {listed.map((person) => (
               <PersonCard
                 key={person.id}

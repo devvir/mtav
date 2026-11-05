@@ -94,6 +94,7 @@ export function QuickActions() {
           color="gray"
           radius="xl"
           className="shell-quick"
+          data-tour="shell.quick"
           aria-label={_('Quick actions')}
           leftSection={<IconPlus size={18} stroke={1.8} />}
         >

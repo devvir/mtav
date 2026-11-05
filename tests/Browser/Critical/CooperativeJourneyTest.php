@@ -75,7 +75,7 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('email', 'ana@example.com')
         ->fill('firstname', 'Ana')
         ->select('family_id', (string) $garcia->id)
-        ->click('Send the invitation')
+        ->click('Send invite')
         ->assertSee('ana@example.com');
 
     $token = null;

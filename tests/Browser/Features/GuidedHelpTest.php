@@ -211,3 +211,110 @@ it('leaves the question after a tour for whoever wants it, without taking the fo
 
     expect($page->script('() => document.activeElement.closest(".tour-offer") === null'))->toBeTrue();
 });
+
+/** Every step of the tour playing, by its title, to its end */
+function tourTitles(object $page): array
+{
+    $titles = [];
+    while (count($titles) < 20) {
+        $page->assertSee('Step ' . (count($titles) + 1) . ' of');
+        $titles[] = $page->script("() => document.querySelector('.tour-title')?.textContent");
+        if ($page->script("() => [...document.querySelectorAll('.tour-card button')].some((button) => button.textContent === 'Done')")) {
+            break;
+        }
+        $page->click('.tour-card button:has-text("Next")');
+    }
+
+    return $titles;
+}
+
+it('walks through the whole home page, then the ways out of it', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = openHelp(visit(route('projects.show', $project))->resize(1440, 900)->assertSee('The people of the project'), 'The project at a glance')
+        ->click('Tell me more');
+
+    // Until the project is set up, how far it is comes first, for everyone
+    expect(tourTitles($page))->toBe([
+        'Getting to the lottery', 'The project in figures', 'Recently shared', 'Coming up', 'The people of the project', 'The units',
+        'Everything else', 'Quick actions', 'What is new', 'Messages',
+    ]);
+    $page->assertNoSmoke();
+});
+
+it('leaves out on a phone what a phone does not show, and keeps each step clear of what it points at', function () {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $this->as(aMemberOf(aFamily($project, $type)));
+
+    $page = openHelp(visit(route('projects.show', $project))->on()->mobile()->assertSee('The people of the project'), 'The project at a glance')
+        ->click('Tell me more');
+    $clear = fn () => $page->script(<<<'JS'
+        () => {
+            const card = document.querySelector('.tour-card').getBoundingClientRect();
+            const lit = document.querySelector('.tour-spotlight').getBoundingClientRect();
+            return card.bottom <= lit.top || card.top >= lit.bottom || lit.height > innerHeight / 2;
+        }
+        JS);
+
+    $titles = [];
+    while (count($titles) < 20) {
+        $page->wait(0.8);
+        $titles[] = $page->script("() => document.querySelector('.tour-title')?.textContent");
+        expect($clear())->toBeTrue();
+        if ($page->script("() => [...document.querySelectorAll('.tour-card button')].some((button) => button.textContent === 'Done')")) {
+            break;
+        }
+        $page->click('.tour-card button:has-text("Next")');
+    }
+
+    // The tabs at the bottom are the way around; the chat is one of them, not a bubble
+    expect($titles)->toContain('Everything else')->not->toContain('Messages');
+});
+
+it('plays each page\'s tour on a phone, every step clear of what it points at', function (string $as, string $name, string $topic) {
+    $project = aProject();
+    $type = aUnitType($project);
+    aUnit($type, ['identifier' => 'A-101']);
+    $people = [
+        'member' => fn () => aMemberOf(aFamily($project, $type)),
+        'admin'  => fn () => anAdminOf($project),
+    ];
+    $this->as($people[$as]());
+
+    // Once the page has settled at its phone size
+    $page = openHelp(visit(route($name, $project))->on()->mobile()->wait(1.5), $topic)->click('Tell me more');
+    $steps = 0;
+    while ($steps++ < 20) {
+        $page->wait(0.8);
+        expect($page->script(<<<'JS'
+            () => {
+                const card = document.querySelector('.tour-card').getBoundingClientRect();
+                const lit = document.querySelector('.tour-spotlight')?.getBoundingClientRect();
+                const inside = card.left >= 0 && card.right <= innerWidth && card.top >= 0 && card.bottom <= innerHeight;
+                return inside && (!lit || card.bottom <= lit.top || card.top >= lit.bottom || lit.height > innerHeight / 2);
+            }
+            JS))->toBeTrue();
+        if ($page->script("() => [...document.querySelectorAll('.tour-card button')].some((button) => button.textContent === 'Done')")) {
+            break;
+        }
+        $page->click('.tour-card button:has-text("Next")');
+    }
+    $page->assertNoSmoke();
+})->with([
+    'lottery'     => ['member', 'lottery.show', 'How the lottery works'],
+    'families'    => ['member', 'families.index', 'What is a family?'],
+    'people'      => ['member', 'people.index', 'Everyone in the project'],
+    'units'       => ['admin', 'units.index', 'What is a unit type?'],
+    'events'      => ['member', 'events.index', 'About events'],
+    'files'       => ['member', 'media.index', 'About files'],
+    'forum'       => ['member', 'forum.index', 'The forum'],
+    'chat'        => ['member', 'chat.index', 'Messages'],
+    'setup'       => ['admin', 'manage.overview', 'Setting up the project'],
+    'invitations' => ['admin', 'manage.invitations.index', 'How invitations work'],
+    'settings'    => ['admin', 'manage.settings.edit', 'Project settings'],
+]);

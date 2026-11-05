@@ -129,6 +129,7 @@ export default function FamiliesIndex({
           <SimpleGrid
             cols={{ base: 1, sm: 2, lg: 3 }}
             style={archive?.shown ? { display: 'none' } : undefined}
+            data-tour="families.list"
           >
             {listed.map((family) => (
               <FamilyCard

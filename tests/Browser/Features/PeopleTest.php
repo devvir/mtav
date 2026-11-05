@@ -23,7 +23,7 @@ it('invites a fellow admin, without a family', function () {
         ->fill('email', 'pablo@example.com')
         ->check('is_admin')
         ->select('family_id', '')
-        ->click('Send the invitation')
+        ->click('Send invite')
         ->assertSee('Invitation sent to pablo@example.com.')
         ->assertSee('pablo@example.com');
 
@@ -38,7 +38,7 @@ it('invites into a family from its details, as one of its members and as an admi
         ->click(inDialog('Invite a family member'))
         ->assertValue(inDialogField('email'), '')
         ->fill(inDialogField('email'), 'ana@example.com')
-        ->click(inDialog('Send the invitation'))
+        ->click(inDialog('Send invite'))
         ->assertSee('Invitation sent to ana@example.com.')
         ->assertSee('Invite a family member');
 
@@ -49,7 +49,7 @@ it('invites into a family from its details, as one of its members and as an admi
         ->assertDontSee('Invite a family member')
         ->click(inDialog('Invite a new member to this family'))
         ->fill(inDialogField('email'), 'luis@example.com')
-        ->click(inDialog('Send the invitation'))
+        ->click(inDialog('Send invite'))
         ->assertSee('Invitation sent to luis@example.com.');
 
     expect(Invitation::orderBy('id')->pluck('family_id', 'email')->all())
@@ -62,7 +62,7 @@ it('withdraws an invitation, whose link then explains it is no longer valid', fu
     visit(route('manage.invitations.index', $this->project))
         ->fill('email', 'ana@example.com')
         ->select('family_id', (string) $this->family->id)
-        ->click('Send the invitation')
+        ->click('Send invite')
         ->click('[aria-label="Withdraw the invitation to ana@example.com"]')
         ->click(inDialog('Withdraw'))
         ->assertSee('The invitation was withdrawn.');
@@ -83,7 +83,7 @@ it('lets someone with an account join after signing in', function () {
     visit(route('manage.invitations.index', $this->project))
         ->fill('email', 'ana@example.com')
         ->select('family_id', (string) $this->family->id)
-        ->click('Send the invitation')
+        ->click('Send invite')
         ->assertSee('Invitation sent to ana@example.com.');
 
     $link = invitationLinkFor('ana@example.com');
@@ -108,7 +108,7 @@ it('tells someone signed in as another person that the invitation is not theirs'
     visit(route('manage.invitations.index', $this->project))
         ->fill('email', 'ana@example.com')
         ->select('family_id', (string) $this->family->id)
-        ->click('Send the invitation');
+        ->click('Send invite');
 
     $this->as(aUser(['email' => 'someone.else@example.com']));
 
@@ -144,7 +144,7 @@ it('lets a member invite the rest of their family', function () {
         ->click('Invite a family member')
         ->assertSee('Invite the people of the García family')
         ->fill('email', 'cousin@example.com')
-        ->click('Send the invitation')
+        ->click('Send invite')
         ->assertSee('Invitation sent to cousin@example.com.')
         ->assertSee('Waiting for an answer');
 

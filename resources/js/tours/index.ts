@@ -153,7 +153,8 @@ defineTour('manage.setup', () => [
   },
 ]);
 
-defineTour('manage.unit_types', () => [
+/** The units page, for everyone; its first step only where one adds types */
+defineTour('member.units', () => [
   {
     target: 'unit_types.add',
     title: _('Start with the types'),
@@ -163,9 +164,9 @@ defineTour('manage.unit_types', () => [
   },
   {
     target: 'unit_types.list',
-    title: _('Keep them balanced'),
+    title: _('Every unit, by type'),
     body: _(
-      'Each type should have as many units as families. Types that are not balanced are flagged here.',
+      'Each type should have as many units as families; one that does not is flagged. Open a unit to see it on the plan.',
     ),
   },
 ]);
@@ -191,6 +192,13 @@ defineTour('manage.units', () => [
 ]);
 
 defineTour('manage.invitations', () => [
+  {
+    target: 'invite.requests',
+    title: _('Asking to join'),
+    body: _(
+      'People who found the project in the directory and asked to join. Accept or decline each one.',
+    ),
+  },
   {
     target: 'invite.email',
     title: _('Who to invite'),
@@ -266,20 +274,72 @@ defineTour('platform.approvals', () => [
   },
 ]);
 
+/**
+ * The project's home: each part of the page, then the ways out of it. Parts a project does
+ * without (no gallery, no events yet, nothing registered) are not on the page, and so not here.
+ */
 defineTour('member.home', () => [
+  {
+    target: 'setup.checklist',
+    title: _('Getting to the lottery'),
+    body: _('How far the project is from the lottery: each step left, ticked off once done.'),
+  },
   {
     target: 'home.figures',
     title: _('The project in figures'),
-    body: _('Its families, people and units: each leads to its page.'),
+    body: _('Its families, people and units. Each one opens its page.'),
   },
   {
     target: 'home.lottery',
     title: _('The lottery'),
     body: _('When it happens, and once it has, which unit your family received.'),
   },
+  {
+    target: 'home.shared',
+    title: _('Recently shared'),
+    body: _(
+      'The latest photos, plans and documents. Its title leads to all of them; the arrow on the right folds it away.',
+    ),
+  },
+  {
+    target: 'home.events',
+    title: _('Coming up'),
+    body: _('The next assemblies, work days and meetings. Say whether you will go right here.'),
+  },
+  {
+    target: 'home.people',
+    title: _('The people of the project'),
+    body: _('Its families, who joined lately and the admins. Open anyone to see more.'),
+  },
+  {
+    target: 'home.units',
+    title: _('The units'),
+    body: _('Every unit, by type. Open one to see it on the plan.'),
+  },
+  {
+    target: 'shell.nav',
+    title: _('Everything else'),
+    body: _('Every part of the project, from any page.'),
+  },
+  {
+    target: 'shell.quick',
+    title: _('Quick actions'),
+    body: _('What is done most often, at hand wherever you are.'),
+  },
+  {
+    target: 'shell.notifications',
+    title: _('What is new'),
+    body: _('Everything that happened in your projects since you last looked.'),
+  },
+  {
+    target: 'shell.chat',
+    title: _('Messages'),
+    body: _('Write to anyone in the project, or ask the Assistant how something works.'),
+  },
 ]);
 
-defineTour('member.families', () => [
+/** The cooperative's people, the same three views on either page */
+const peopleViews = (list: string, title: string, body: string): TourStep[] => [
   {
     target: 'people.views',
     title: _('Families, members or admins'),
@@ -287,17 +347,24 @@ defineTour('member.families', () => [
       'See the cooperative family by family, every member, or the admins. One search looks in all three.',
     ),
   },
-]);
+  { target: list, title, body },
+];
 
-defineTour('member.people', () => [
-  {
-    target: 'people.views',
-    title: _('Families, members or admins'),
-    body: _(
-      'See the cooperative family by family, every member, or the admins. One search looks in all three.',
-    ),
-  },
-]);
+defineTour('member.families', () =>
+  peopleViews(
+    'families.list',
+    _('Each family'),
+    _('Its people and its unit type. Open one to see who is in it, and its unit once assigned.'),
+  ),
+);
+
+defineTour('member.people', () =>
+  peopleViews(
+    'people.list',
+    _('Each person'),
+    _('Their family, and whether they are an admin. Open anyone to see more.'),
+  ),
+);
 
 /** Account */
 defineTour('account.notifications', () => [
@@ -372,6 +439,11 @@ defineTour('account.start_project', () => [
     ),
   },
   {
+    target: 'start.first_admin',
+    title: _('Its first admin'),
+    body: _('Whoever will run the project. They get an invitation by email, as its admin.'),
+  },
+  {
     target: 'start.room',
     title: _('Room for the project'),
     body: _(
@@ -393,6 +465,13 @@ defineTour('manage.settings', () => [
     title: _('In the directory'),
     body: _(
       'Listed, others can find the project and join it: at once, or when the admins accept them. Then they join their family.',
+    ),
+  },
+  {
+    target: 'settings.features',
+    title: _('What it has'),
+    body: _(
+      'Only what the project uses: the forum, the chat and its Assistant, the gallery, files and events. Change it any time.',
     ),
   },
   {
@@ -447,8 +526,8 @@ defineTour('platform.superadmins', () => [
   },
   {
     target: 'superadmins.grant',
-    title: _('Giving the role'),
-    body: _('To an existing account, by its email, exactly as they sign in.'),
+    title: _('Register a new superadmin'),
+    body: _('They get an invitation by email to set up their support account.'),
   },
 ]);
 
