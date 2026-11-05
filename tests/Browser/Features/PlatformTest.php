@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\Project;
+use App\Models\PlatformSetting;
+use App\Models\Report;
 use App\Models\SupportInvitation;
 use App\Models\User;
+use App\Notifications\SupportInvitationNotification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
@@ -48,6 +51,29 @@ it('invites a support account by an email not in use, and takes the role back', 
     $invite($page, 'ana@example.com')->assertSee(__('validation.support_email_taken'));
     expect(SupportInvitation::count())->toBe(1);
 
+    // The one invited opens the link from the email, signed out, and makes the support account
+    Notification::assertSentOnDemand(SupportInvitationNotification::class, function ($notice) use (&$token) {
+        $token = $notice->token;
+
+        return true;
+    });
+    auth()->logout();
+    visit(route('support-invitation.show', $token))
+        ->assertSee('support@example.com')
+        ->fill('firstname', 'Sofía')
+        ->fill('password', 'Support-pass-1234')
+        ->fill('password_confirmation', 'Support-pass-1234')
+        ->click('Create the support account')
+        ->assertPathIsNot('/support-invitations/' . $token)
+        ->assertNoSmoke();
+    expect(User::where('email', 'support@example.com')->sole()->isSuperadmin())->toBeTrue()
+        ->and(SupportInvitation::sole()->accepted_at)->not->toBeNull();
+
+    // Its link, used, leads nowhere again
+    auth()->logout();
+    visit(route('support-invitation.show', $token))->assertDontSee('Create the support account');
+    $this->as($this->superadmin);
+
     // Asked once for a while: taking the role back goes straight on
     User::factory()->superadmin()->create(['firstname' => 'Bruno', 'lastname' => 'Pérez', 'email' => 'bruno@example.com']);
     $page = visit(route('admin.superadmins.index'))
@@ -58,15 +84,38 @@ it('invites a support account by an email not in use, and takes the role back', 
     expect(User::where('email', 'bruno@example.com')->sole()->isSuperadmin())->toBeFalse();
 });
 
-it('finds accounts by name or email', function () {
-    aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
+it('finds accounts, deletes one for good, reads what people reported, and sets how long a lottery takes', function () {
+    $ana = aUser(['firstname' => 'Ana', 'lastname' => 'García', 'email' => 'ana@example.com']);
     aUser(['firstname' => 'Bruno', 'lastname' => 'Pérez', 'email' => 'bruno@example.com']);
 
-    visit(route('admin.users.index'))
+    $page = visit(route('admin.users.index'))
         ->type('[aria-label="Search by name or email"]', 'bruno@')
         ->assertSee('Bruno Pérez')
         ->assertDontSee('Ana García')
         ->assertQueryStringHas('q', 'bruno@');
+
+    // Deleting an account asks for the password once, then goes for good
+    $delete = fn ($page) => $page->click('[aria-label="Actions for Ana García"]')
+        ->click('[role="menuitem"]:has-text("Delete")')
+        ->click(inDialog('Delete'));
+    $page = confirmPassword($delete(visit(route('admin.users.index'))));
+    $delete($page)->assertDontSee('Ana García')->assertNoSmoke();
+    expect(User::find($ana->id))->toBeNull();
+
+    // What someone told the team through the Assistant
+    Report::create(['user_id' => User::where('email', 'bruno@example.com')->value('id'), 'body' => 'The plan does not load on my phone']);
+    visit(route('admin.reports.index'))
+        ->assertSee('Bruno Pérez')
+        ->assertSee('The plan does not load on my phone')
+        ->assertNoSmoke();
+
+    // How long a lottery takes as people see it
+    visit(route('admin.settings.edit'))
+        ->clear('[name="lottery_seconds"]')
+        ->type('[name="lottery_seconds"]', '45')
+        ->click('Save')
+        ->assertNoSmoke();
+    expect((int) PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS))->toBe(45);
 });
 
 it('pages through long lists', function () {
@@ -188,16 +237,19 @@ it('shows superadmins what changed, and narrows it to a project', function () {
         ->assertNoSmoke();
 });
 
-it('asks before a deploy starts dev over', function () {
+it('asks before a deploy starts dev over, and rolls back, starts over and releases from the same page', function () {
     config(['delivery.deployers' => ['root@example.com'], 'delivery.github.token' => 'token']);
     $repo = 'https://api.github.com/repos/devvir/mtav/';
+    $sha = str_repeat('c3', 20);
     Http::fake([
-        $repo . 'commits/*'           => Http::response(['sha' => 'c3', 'commit' => ['message' => 'A commit', 'committer' => ['date' => '2026-10-29T10:00:00Z']]]),
-        $repo . 'actions/runs*'       => Http::response(['workflow_runs' => []]),
+        $repo . 'commits/*'           => Http::response(['sha' => $sha, 'commit' => ['message' => 'A commit', 'committer' => ['date' => '2026-10-29T10:00:00Z']]]),
+        $repo . 'actions/runs*'       => Http::response(['workflow_runs' => [['id' => 9, 'path' => '.github/workflows/pipeline.yml', 'name' => 'pipeline', 'head_branch' => 'main', 'head_sha' => $sha, 'status' => 'completed', 'conclusion' => 'success', 'html_url' => 'https://github.com/devvir/mtav/actions/runs/9', 'created_at' => '2026-10-29T10:00:00Z']]]),
         $repo . 'branches*'           => Http::response([['name' => 'main']]),
         $repo . 'compare/*'           => Http::response(['ahead_by' => 0]),
         $repo . 'actions/workflows/*' => Http::response(null, 204),
-        $repo . 'deployments*'        => Http::response([]),
+        // Every environment runs the same release, gone live through the pipeline
+        $repo . 'deployments/*' => Http::response([['state' => 'success', 'log_url' => 'https://github.com/devvir/mtav/actions/runs/9/job/1', 'environment_url' => '', 'created_at' => '2026-10-29T10:00:00Z']]),
+        $repo . 'deployments*'  => Http::response([['id' => 1, 'sha' => $sha, 'creator' => ['login' => 'devvir']]]),
     ]);
     $dispatched = fn () => Http::recorded(fn ($request) => str_contains($request->url(), 'actions/workflows/'))->count();
     $this->as(aUser(['email' => 'root@example.com', 'is_superadmin' => true]));
@@ -220,6 +272,23 @@ it('asks before a deploy starts dev over', function () {
     $page->wait(0.5);
     $page->assertPathIs(route('admin.deployments.index', absolute: false));
     expect($dispatched())->toBe(1);
+
+    // Putting an environment back, starting one over, releasing: each asked first, each sent to GitHub
+    $page->click(button('Roll back'))
+        ->assertSee('back to its release before?')
+        ->click(inDialog('Roll back'))
+        ->wait(0.5);
+    expect($dispatched())->toBe(2);
+
+    $page->click(button('Start over'))
+        ->assertSee('is replaced by the demo data')
+        ->click(inDialog('Start over'))
+        ->wait(0.5);
+    expect($dispatched())->toBe(3);
+
+    $page->click(button('Deploy production'))->wait(0.5)->assertNoSmoke();
+    expect($dispatched())->toBe(4)
+        ->and(Http::recorded(fn ($request) => str_contains($request->url(), 'production.yml/dispatches'))->count())->toBe(1);
 });
 
 it('offers the link to choose a password where it asks for one, for an account opened with Google', function () {

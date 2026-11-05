@@ -15,7 +15,7 @@ beforeEach(function () {
     $this->project->memberships()->create(['user_id' => $this->guest->id]);
 });
 
-it('lets a guest join their family from the menu, and its people accept them', function () {
+it('lets a guest ask to join their family, think better of it and ask again; its people decline, lift it and accept; and they leave it later', function () {
     $this->as($this->guest);
 
     visit(route('projects.show', $this->project))
@@ -24,18 +24,49 @@ it('lets a guest join their family from the menu, and its people accept them', f
         ->assertSee('María')
         ->click('.family-option button:has-text("Ask to join")')
         ->assertSee('Waiting for the Pereira family to answer')
+        // Thought better of, then asked again
+        ->click('.family-waiting button:has-text("Cancel")')
+        ->assertDontSee('Waiting for the Pereira family to answer')
+        ->click('.family-option button:has-text("Ask to join")')
+        ->assertSee('Waiting for the Pereira family to answer')
         ->assertNoSmoke();
 
-    expect(FamilyJoinRequest::where('user_id', $this->guest->id)->exists())->toBeTrue();
+    expect(FamilyJoinRequest::where('user_id', $this->guest->id)->count())->toBe(1);
+
+    // Declined by mistake, the decline lifted: they may ask again
+    $this->as($this->member);
+    visit(route('families.index', ['project' => $this->project, 'family' => $this->family->id]))
+        ->assertSeeIn('.family-requests', 'Ana')
+        ->click('.family-requests button:has-text("Decline")')
+        ->click(inDialog('Decline'))
+        ->assertSeeIn('.family-requests', 'declined')
+        ->click('.family-requests button:has-text("Lift the decline")')
+        ->assertMissing('.family-requests')
+        ->assertNoSmoke();
+    expect(FamilyJoinRequest::where('user_id', $this->guest->id)->exists())->toBeFalse();
+
+    $this->as($this->guest->fresh());
+    visit(route('family.create', $this->project))
+        ->click('.family-option button:has-text("Ask to join")')
+        ->assertSee('Waiting for the Pereira family to answer');
 
     $this->as($this->member);
-
     visit(route('families.index', ['project' => $this->project, 'family' => $this->family->id]))
         ->assertSeeIn('.family-requests', 'asks to join your family')
         ->click('.family-requests button:has-text("Accept")')
         ->assertNoSmoke();
 
     expect($this->guest->fresh()->familyIn($this->project)->id)->toBe($this->family->id);
+
+    // Later they leave it, and stay in the project, without one
+    $this->as($this->guest->fresh());
+    visit(route('family.create', $this->project))
+        ->click('button:has-text("Leave my family")')
+        ->click(inDialog('Leave'))
+        ->assertNoSmoke();
+
+    expect($this->guest->fresh()->familyIn($this->project))->toBeNull()
+        ->and($this->guest->fresh()->canAccess($this->project))->toBeTrue();
 });
 
 it('keeps changing family out of the way, on one\'s own family\'s card', function () {

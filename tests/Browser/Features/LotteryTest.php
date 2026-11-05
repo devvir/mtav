@@ -308,4 +308,22 @@ it('lets a family check the result: each family\'s place, its own ranking, the f
         ->assertSee('Fingerprint')
         ->assertDontSee('Download the full record')
         ->assertNoSmoke();
+
+    // The full record is the admins': theirs to download, refused to a member who asks for its address
+    $download = route('lottery.download', [$this->project, LotteryRun::latest('id')->first()]);
+    $fetch = fn ($page) => $page->script(<<<JS
+        async () => {
+            const response = await fetch('{$download}');
+            const body = response.ok ? await response.json() : null;
+            return { status: response.status, type: response.headers.get('content-type'), keys: body ? Object.keys(body) : [] };
+        }
+        JS);
+    expect($fetch(visit(route('lottery.show', $this->project)))['status'])->toBe(403);
+
+    $this->as($this->admin);
+    $page = visit(route('lottery.show', $this->project))->click('Check the result')->assertSee('Download the full record');
+    $answer = $fetch($page);
+    expect($answer['status'])->toBe(200)
+        ->and($answer['type'])->toContain('json')
+        ->and($answer['keys'])->not->toBeEmpty();
 });

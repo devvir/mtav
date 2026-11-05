@@ -149,6 +149,15 @@ it('lets a member invite the rest of their family', function () {
         ->assertSee('Waiting for an answer');
 
     expect(Invitation::sole()->family_id)->toBe($this->family->id);
+
+    // Sent to the wrong address: withdrawn, its link no longer valid
+    visit(route('invitations.index', $this->project))
+        ->click('[aria-label="Withdraw the invitation to cousin@example.com"]')
+        ->click(inDialog('Withdraw'))
+        ->assertDontSee('cousin@example.com')
+        ->assertNoSmoke();
+
+    expect(Invitation::count())->toBe(0);
 });
 
 it('changes someone\'s family and role, keeping at least one admin', function () {

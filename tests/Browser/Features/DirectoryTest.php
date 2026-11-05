@@ -33,29 +33,45 @@ it('finds a project from the selector, joins it, creates a family, and sees ever
         ->assertSee('Invite a family member');
 });
 
-it('asks to join, and an admin accepts from the Invitations tab, whose badge says so', function () {
+it('asks to join, withdraws and asks again; an admin declines one and accepts the other from the Invitations tab, whose badge says so', function () {
     $project = aProject(['name' => 'By request', 'listed' => true]);
     aUnitType($project);
     $admin = anAdminOf($project);
     $person = aUser(['firstname' => 'Ana', 'lastname' => 'Rey']);
+    $other = aUser(['firstname' => 'Beto', 'lastname' => 'Paz']);
 
     $this->as($person);
     visit(route('directory.index'))
         ->click('Ask to join')
         ->assertSee('Request sent')
+        // Thought better of, then asked again
+        ->click('[aria-label="Withdraw the request to By request"]')
+        ->assertDontSee('Request sent')
+        ->click('Ask to join')
+        ->assertSee('Request sent')
         ->assertNoSmoke();
+
+    $this->as($other);
+    visit(route('directory.index'))->click('Ask to join')->assertSee('Request sent');
 
     $this->as($admin);
     visit(route('manage.settings.edit', $project))
-        ->assertSeeIn('.settings-tab-count', '1')
+        ->assertSeeIn('.settings-tab-count', '2')
         ->click('.settings-tab[href*="invitations"]')
+        ->assertSee('Asking to join (2)')
+        ->click('.row:has-text("Beto Paz") button:has-text("Decline")')
+        ->click(inDialog('Decline'))
         ->assertSee('Asking to join (1)')
-        ->assertSee('Ana Rey')
-        ->click('Accept')
+        ->click('.row:has-text("Ana Rey") button:has-text("Accept")')
         ->assertDontSee('Asking to join')
         ->assertNoSmoke();
 
-    expect($person->fresh()->canAccess($project))->toBeTrue();
+    expect($person->fresh()->canAccess($project))->toBeTrue()
+        ->and($other->fresh()->canAccess($project))->toBeFalse();
+
+    // The one declined is told so where they asked
+    $this->as($other);
+    visit(route('directory.index'))->assertSee('The admins did not accept your request');
 });
 
 it('lists a project from its settings, choosing who can join', function () {

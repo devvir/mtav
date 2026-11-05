@@ -84,10 +84,24 @@ it('renders the platform console and the account pages', function () {
     }
 });
 
-it('renders the pages of people who are not signed in', function () {
+it('renders the pages of people who are not signed in, the privacy page and the app\'s manifest among them', function () {
     foreach ([route('login') => 'Sign in', route('register') => 'Create an account', route('password.request') => 'Forgot your password?'] as $url => $text) {
         visit($url)->assertSee($text)->assertNoSmoke();
     }
+
+    visit(route('privacy'))->assertSee('Privacy')->assertNoSmoke();
+
+    // What a phone installs the app from: its name and icons
+    $manifest = visit(route('login'))->script(<<<'JS'
+        async () => {
+            const response = await fetch(document.querySelector('link[rel="manifest"]').href);
+            const manifest = await response.json();
+            return { status: response.status, name: manifest.name, icons: (manifest.icons ?? []).length };
+        }
+        JS);
+    expect($manifest['status'])->toBe(200)
+        ->and($manifest['name'])->not->toBeEmpty()
+        ->and($manifest['icons'])->toBeGreaterThan(0);
 });
 
 it('fits a phone screen on every project page', function () {

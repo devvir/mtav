@@ -166,7 +166,13 @@ it('opens unit types, units and families for editing from their lists', function
 
     visit(route('units.index', $this->project))
         ->click('[aria-label="Edit Studio"]')
-        ->assertValue('[role="dialog"] [name="name"]', 'Studio');
+        ->assertValue('[role="dialog"] [name="name"]', 'Studio')
+        // Renamed there and then
+        ->fill('[role="dialog"] [name="name"]', 'Studio apartment')
+        ->click(inDialog('Save'))
+        ->assertSee('Studio apartment')
+        ->assertNoSmoke();
+    expect($type->fresh()->name)->toBe('Studio apartment');
 
     visit(route('units.show', [$this->project, $unit]))
         ->click('Edit')
@@ -210,4 +216,24 @@ it('offers the people\'s list without their email, phone or ID number, saying co
 
     $page->click('label:has-text("Without email, phone or ID number")')->assertNoSmoke();
     expect($href($page))->toContain('without_personal_data=1');
+
+    // Each list downloads as a spreadsheet: its first line names its columns; the people's, without
+    // personal data, leaves the email out
+    $download = fn (string $label) => $page->script(<<<JS
+        async () => {
+            const link = [...document.querySelectorAll("a[download]")].find((one) => one.textContent.trim() === "{$label}");
+            const response = await fetch(link.href);
+            const text = await response.text();
+            return { status: response.status, type: response.headers.get("content-type"), first: text.replace(/^\uFEFF/, "").split("\n")[0] };
+        }
+        JS);
+    foreach (['People', 'Families', 'Units'] as $list) {
+        $answer = $download($list);
+        expect($answer['status'])->toBe(200)
+            ->and($answer['type'])->toContain('csv')
+            ->and($answer['first'])->not->toBe('');
+    }
+    expect(strtolower($download('People')['first']))->not->toContain('email');
+    $page->click('label:has-text("Without email, phone or ID number")');
+    expect(strtolower($download('People')['first']))->toContain('email');
 });

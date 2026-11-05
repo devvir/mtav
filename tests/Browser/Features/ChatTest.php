@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Conversation;
+use App\Models\User;
 use App\Services\ChatService;
 
 /**
@@ -77,11 +78,11 @@ it('starts a conversation with someone, and they find it waiting, unread until o
     expect(Conversation::where('is_community', false)->where('is_assistant', false)->sole()->messages()->count())->toBe(1);
 });
 
-it('starts a named group for several people', function () {
+it('starts a named group, takes back a message, pins the group and leaves it', function () {
     $carla = aMemberOf(aFamily($this->project), ['firstname' => 'Carla', 'lastname' => 'Díaz']);
     $this->as($this->ana);
 
-    visit(route('chat.index', $this->project))
+    $page = visit(route('chat.index', $this->project))
         ->click('New conversation')
         ->click('[role="dialog"] input[role="combobox"]')
         ->click('[role="option"]:has-text("Beto Silva")')
@@ -91,7 +92,32 @@ it('starts a named group for several people', function () {
         ->click(inDialog('Start the group'))
         ->assertSeeIn('.chat-thread-header', 'Building committee');
 
-    expect(Conversation::where('is_community', false)->where('is_assistant', false)->sole())->is_group->toBeTrue()->title->toBe('Building committee');
+    $group = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
+    expect($group)->is_group->toBeTrue()->title->toBe('Building committee');
+
+    // A message sent too soon, taken back
+    $page->fill('[aria-label="Message"]', 'Meeting on Friday?')
+        ->keys('[aria-label="Message"]', 'Enter')
+        ->assertSeeIn('.chat-messages', 'Meeting on Friday?')
+        ->click('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->click(inDialog('Delete'))
+        ->assertDontSeeIn('.chat-messages', 'Meeting on Friday?');
+    expect($group->messages()->count())->toBe(0);
+
+    // Pinned first in the list of groups
+    $page->click('.chat-kinds label:has-text("Groups")')
+        ->click('.chat-list-row:has-text("Building committee") [aria-label="Pin"]')
+        ->assertPresent('.chat-list-row:has-text("Building committee") [aria-label="Unpin"]');
+
+    // Left: it no longer shows, and the others stay in it
+    $page->click('.chat-list-item:has-text("Building committee")')
+        ->click('[aria-label="Conversation options"]')
+        ->click('[role="menuitem"]:has-text("Leave the group")')
+        ->click(inDialog('Leave'))
+        ->assertMissing('.chat-list-item:has-text("Building committee")')
+        ->assertNoSmoke();
+    expect($group->fresh()->includes($this->ana))->toBeFalse()
+        ->and($group->fresh()->includes($carla))->toBeTrue();
 });
 
 it('opens from its bubble over the page, writes, folds back, and stays open between pages', function () {
@@ -312,11 +338,43 @@ it('is the Assistant alone outside any project: its conversation, with no list t
         ->assertPathIs(route('directory.index', absolute: false))
         ->assertNoSmoke();
 
-    // Its own page, where phones have it: the same, on its own
+    // Its own page, where phones have it: the same, on its own; a question asked, taken back
     visit(route('account.chat.index'))
         ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
         ->assertMissing('.chat-list')
+        ->click('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->click(inDialog('Delete'))
+        ->assertDontSeeIn('.chat-messages', 'What can I do here?')
         ->assertNoSmoke();
+
+    // A report it drafted, sent from outside any project
+    $luz = User::where('firstname', 'Luz')->sole();
+    app(App\Services\Assistant\Assistant::class)->say(app(ChatService::class)->assistantFor($luz), 'I can tell the team', [
+        ['type' => 'report', 'label' => 'Send the report', 'message' => 'I cannot find my cooperative'],
+    ]);
+    visit(route('account.chat.index'))
+        ->click('.chat-actions button:has-text("Send the report")')
+        ->assertSeeIn('.chat-actions', 'Sent');
+    expect(App\Models\Report::sole())->body->toBe('I cannot find my cooperative')->project_id->toBeNull();
+});
+
+it('greets someone on their first arrival, in a project or outside, once', function () {
+    // Its greeting needs the Assistant on, and a browser that plays what plays by itself
+    config(['assistant.driver' => 'api']);
+    $arrives = fn (string $url) => tap(visit($url), fn ($page) => $page->script("() => localStorage.setItem('mtav.tours', 'on')"))->refresh();
+
+    $this->as($this->beto);
+    $arrives(route('projects.show', $this->project))
+        ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
+        ->assertNoSmoke();
+    expect($this->beto->fresh()->welcomed_at)->not->toBeNull();
+
+    $newcomer = aUser(['firstname' => 'Mar']);
+    $this->as($newcomer);
+    $arrives(route('projects.index'))
+        ->assertSeeIn('.chat-window .chat-thread', 'I am the Assistant of this app')
+        ->assertNoSmoke();
+    expect($newcomer->fresh()->welcomed_at)->not->toBeNull();
 });
 
 it('drops a count that came with the page once what it counted was read elsewhere', function () {

@@ -16,7 +16,7 @@ beforeEach(function () {
 });
 
 it('shares a photo, then edits and removes it', function () {
-    attachFile(visit(route('media.index', [$this->project, 'share' => 1])), 'input[type="file"]', pngFile())
+    $page = attachFile(visit(route('media.index', [$this->project, 'share' => 1])), 'input[type="file"]', pngFile())
         ->assertSee('photo.png')
         ->fill(inDialogField('description'), 'Building site, week 12')
         ->click(inDialog('Share'))
@@ -27,8 +27,15 @@ it('shares a photo, then edits and removes it', function () {
         ->click('Edit')
         ->fill('description', 'Building site, week 13')
         ->click('Save')
-        ->assertSee('The description was saved.')
-        ->click('Remove')
+        ->assertSee('The description was saved.');
+
+    // Its own address (a notification's link to it) opens it over the list
+    visit(route('media.show', [$this->project, Media::sole()]))
+        ->assertSee('Shared by')
+        ->assertSee('Building site, week 13')
+        ->assertNoSmoke();
+
+    $page->click('Remove')
         ->click(inDialog('Remove'))
         ->assertSee('The file was removed.')
         ->assertNoSmoke();

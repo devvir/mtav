@@ -28,20 +28,37 @@ it('lets someone open a topic from the forum, and lands them in it', function ()
         ->assertNoSmoke();
 });
 
-it('lets others reply, and shows the topic\'s replies in the list', function () {
+it('lets others reply, edit and remove their reply, and shows the topic\'s replies in the list', function () {
     $topic = app(ForumService::class)->open($this->project, $this->ana, 'Assembly date', 'Which Saturday?');
     $this->as($this->beto);
 
-    visit(route('forum.show', [$this->project, $topic]))
+    $page = visit(route('forum.show', [$this->project, $topic]))
         ->fill('body', 'The 14th works for us')
         ->click('Reply')
         ->assertSee('The 14th works for us')
-        ->navigate(route('forum.index', $this->project))
+        // A second thought, written into the same reply
+        ->click('[aria-label="Post options"]')
+        ->click('[role="menuitem"]:has-text("Edit")')
+        ->fill('.forum-post textarea[aria-label="Message"]', 'The 21st works better for us')
+        ->click('.forum-post button:has-text("Save")')
+        ->assertSee('The 21st works better for us')
+        ->assertSee('edited')
+        ->click('.shell-nav a:has-text("Forum")')
         ->assertSee('Assembly date')
-        ->assertSee('1 reply');
+        ->assertSee('1 reply')
+        ->assertNoSmoke();
+
+    // Removed after all: the list counts none
+    $page->click('a:has-text("Assembly date")')
+        ->click('[aria-label="Post options"]')
+        ->click('[role="menuitem"]:has-text("Remove")')
+        ->click(inDialog('Remove'))
+        ->assertDontSee('The 21st works better for us')
+        ->click('.shell-nav a:has-text("Forum")')
+        ->assertDontSee('1 reply');
 });
 
-it('lets admins close a topic, after which members cannot reply', function () {
+it('lets admins close a topic, after which members cannot reply, and remove it', function () {
     $topic = app(ForumService::class)->open($this->project, $this->ana, 'Assembly date', 'Which Saturday?');
 
     $this->as($this->admin);
@@ -52,4 +69,14 @@ it('lets admins close a topic, after which members cannot reply', function () {
     visit(route('forum.show', [$this->project, $topic]))
         ->assertSee('This topic is closed')
         ->assertNotPresent('textarea[name="body"]');
+
+    // An admin removes it, with everything in it
+    $this->as($this->admin);
+    visit(route('forum.show', [$this->project, $topic]))
+        ->click('[aria-label="Remove the topic"]')
+        ->click(inDialog('Remove'))
+        ->assertPathIs(route('forum.index', $this->project, absolute: false))
+        ->assertDontSee('Assembly date')
+        ->assertNoSmoke();
+    expect(Topic::count())->toBe(0);
 });
