@@ -34,39 +34,26 @@ locals {
 # -- the sites --------------------------------------------------------------------------------------------------------
 
 import {
-  for_each = { for name, site in local.sites : name => site if !site.on_aws }
-  to       = aws_route53_record.site_before[each.key]
-  id       = "${local.zone}_${each.key}_A"
-}
-
-import {
-  for_each = { for name, site in local.sites : name => site if site.on_aws }
+  for_each = local.sites
   to       = aws_route53_record.site[each.key]
   id       = "${local.zone}_${each.key}_A"
 }
 
-# A site not moved yet: still the server before, with a short life, so moving it takes minutes.
-resource "aws_route53_record" "site_before" {
-  for_each = { for name, site in local.sites : name => site if !site.on_aws }
-  zone_id  = aws_route53_zone.mtav.zone_id
-  name     = each.key
-  type     = "A"
-  ttl      = 300
-  records  = [local.before]
-}
-
-# A site moved. With CloudFront: its server's distribution, or the static page's while its server is off (an alias,
-# which also works for the bare domain). Without: the fixed address of its server, or of the one serving the static page.
+# Each site name. Not moved yet (on_aws in main.tf): the server before, with a short life, so moving it takes
+# minutes. Moved, with CloudFront: its server's distribution, or the static page's while its server is off (an alias,
+# which also works for the bare domain). Moved, without: the fixed address of its server, or of the one serving the
+# static page.
 resource "aws_route53_record" "site" {
-  for_each = { for name, site in local.sites : name => site if site.on_aws }
+  for_each = local.sites
   zone_id  = aws_route53_zone.mtav.zone_id
   name     = each.key
   type     = "A"
-  ttl      = local.cloudfront ? null : 300
-  records  = local.cloudfront ? null : [aws_eip.server[local.site_server[each.key]].public_ip]
+  ttl      = each.value.on_aws && local.cloudfront ? null : 300
+  records = (!each.value.on_aws ? [local.before]
+  : local.cloudfront ? null : [aws_eip.server[local.site_server[each.key]].public_ip])
 
   dynamic "alias" {
-    for_each = local.cloudfront ? [local.servers[each.value.server].running
+    for_each = each.value.on_aws && local.cloudfront ? [local.servers[each.value.server].running
     ? aws_cloudfront_distribution.server[each.value.server] : aws_cloudfront_distribution.static[0]] : []
     content {
       name                   = alias.value.domain_name

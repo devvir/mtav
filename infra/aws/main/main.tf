@@ -78,7 +78,7 @@ locals {
         staging = { web = 8000, ws = 8080, names = ["stg.mtav.uy"], on_aws = false }
         dev     = { web = 8001, ws = 8081, names = ["dev.mtav.uy"], on_aws = false }
         # The Open Lottery, public, kept running while production is off: small, and it fits here
-        sorteo = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"], on_aws = false }
+        sorteo = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"], on_aws = true }
       }
     }
   }
