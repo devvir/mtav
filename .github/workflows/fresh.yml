@@ -31,9 +31,8 @@ jobs:
 
       - name: Start over
         env:
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          TARGET: ${{ secrets.DEPLOY_TARGET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
           # What it runs: "<environment> live=<slot>:ghcr.io/devvir/mtav:sha-<commit> previous=…"

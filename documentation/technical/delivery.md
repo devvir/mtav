@@ -100,13 +100,15 @@ sudo gunzip -c backups/<dump>.sql.gz | docker compose -p mtav-<environment> exec
   sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"'
 ```
 
-## Reaching a host
+## Reaching a server
 
-The only step that knows where environments live is `deploy/ci/deploy`: it hands a
-request to the host by SSH. On a single Linux host, the pipeline's key belongs to a user
-of its own (`mtav-deploy`: no password, no Docker) and can run one thing, the **gate**
-(`deploy/host/gate`, installed as `/usr/local/sbin/mtav-gate`, through sudo). The gate
-accepts:
+MTAV runs on AWS (`infra/aws`, OpenTofu: the servers, the mtav.uy zone, backups and the
+deploy identities, each file saying what it makes). The only step that knows where
+environments live is `deploy/ci/deploy`: it finds the server running the environment and
+hands it a request through AWS Systems Manager. Each GitHub environment has an AWS identity
+of its own (`mtav-deploy-<environment>`), which can run one thing on one server, the
+**gate** (`deploy/host/gate`, installed as `/usr/local/sbin/mtav-gate`), for its own
+environment only, and ask any server what it runs. The gate accepts:
 
 | Request | Does |
 |---|---|
@@ -115,29 +117,26 @@ accepts:
 | `status` | what each environment runs (live and previous: slot and image) |
 | `backup <environment> database\|files` | a gzipped copy, streamed back ([data.md](data.md)) |
 
-It refuses anything else, any environment not set up on the host, and any image not built
-from this repository. Backups take their own key (set up as `backups`), which can do
-nothing else; the deploy keys never take them. The deploy's steps come from the release's own image
-(`deploy/host/deploy`), never from the caller, so the key can only run MTAV's releases.
+It refuses anything else, any environment not set up on the server, and any image not built
+from this repository. Backups are the server's own (nightly, to S3); the deploy identities
+never take them. The deploy's steps come from the release's own image
+(`deploy/host/deploy`), never from the caller, so an identity can only run MTAV's releases.
 
-Moving to a cloud provider replaces this step (and the host's proxy) with the provider's
-own: the image, the roles and the slots stay as they are.
+Servers are reached only through Systems Manager: no SSH, anywhere.
 
-## Setting up a host
+## Setting up a server
 
-Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
-
-1. **The host**: copy `deploy/host/setup`, `deploy/host/gate` and the pipeline's public
-   keys (one per environment) to it, then
-   `sudo bash setup dev=dev.pub staging=staging.pub production=production.pub
-   backups=backups.pub`: each key runs the gate for its own environment only (the
-   backups key, for copies only). It installs security updates (and
-   unattended ones from then on), stops services nothing uses, limits nginx to TLS 1.2
-   and 1.3 (no version shown, uploads up to 105 MB), makes Docker publish on the
-   loopback by default, renews the certificates and reloads nginx after every renewal,
-   and creates `mtav-deploy` with the gate. Every step can run again.
-2. **Each environment**: `/mtav/<environment>/.env`, written from `deploy/env.example`
-   (its ports, a new `APP_KEY`, database password and Reverb keys). An environment
+1. **The server**: `infra/aws/main` makes it (`tofu apply`), with its data disk, its
+   address and its settings; its first boot runs `server/setup.sh`, which installs Docker,
+   nginx in front (HTTPS with its own Let's Encrypt certificate, TLS 1.2 and 1.3, no
+   version shown, uploads up to 105 MB), the gate and nightly backups. Every step can run
+   again. Which environments a server runs, and the names each answers to, are in
+   `main.tf`; `mtav-reconfigure` on the server takes a change up. CloudFront can stand in
+   front of the servers (`cloudfront` in `main.tf`); without it, each name leads straight
+   to its server.
+2. **Each environment**: `/mtav/<environment>/.env` on its server (written there through
+   Systems Manager), from `deploy/env.example`: its ports (as in `main.tf`), a new
+   `APP_KEY`, database password and Reverb keys. An environment
    on demo data (dev, and staging) needs `MTAV_FRESH_ALLOWED=true` and `DEMO_PASSWORD`,
    the demo accounts' password (`superadmin@example.com`, `admin@example.com`,
    `member@example.com`, …). An environment without demo data needs its owner, its first
@@ -157,16 +156,16 @@ Once per host (Ubuntu, with Docker, and nginx in front terminating TLS):
    email) and `GITHUB_DEPLOY_TOKEN` (a fine-grained token for this repository only:
    Actions read and write; Deployments, Contents and Metadata read); without either,
    the page is hidden.
-3. **The proxy in front**: each domain to its environment's ports, the websocket path
-   (`/app`) to `MTAV_WS_PORT`, the rest to `MTAV_WEB_PORT`, with `X-Forwarded-For` and
-   `X-Forwarded-Proto` set. The app ignores forwarded hosts and ports, and takes any host
-   but `APP_URL`'s (with or without www) for `APP_URL`'s, so a wrong header can never
-   send a link anywhere else.
-4. **GitHub**: the repository's secrets `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) and
-   `DEPLOY_TARGET` (`mtav-deploy@<host>`); the environments `dev`, `staging` and
-   `production`, each with its own `DEPLOY_SSH_KEY` (the private half of its key) and
-   its branches: staging only from `staging`, production only from `main`, dev from any
-   (by hand). A workflow of any other branch never sees a key that could reach them.
+3. **The proxy in front** (written by the server's `mtav-front`): each name to its
+   environment's ports, the websocket path (`/app`) to `MTAV_WS_PORT`, the rest to
+   `MTAV_WEB_PORT`, with `X-Forwarded-For` and `X-Forwarded-Proto` set. The app ignores
+   forwarded hosts and ports, and takes any host but `APP_URL`'s (with or without www) for
+   `APP_URL`'s, so a wrong header can never send a link anywhere else.
+4. **GitHub**: `infra/aws/deploy-keys.sh` gives each environment of a running server its
+   identity's key, as that GitHub environment's secrets (`AWS_ACCESS_KEY_ID`,
+   `AWS_SECRET_ACCESS_KEY`), and rotates them when run again. The environments keep their
+   branches: staging only from `staging`, production only from `main`, dev from any (by
+   hand). A workflow of any other branch never sees a key that could reach them.
 
 The first deploy creates the switch, the volumes and the database.
 

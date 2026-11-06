@@ -175,7 +175,6 @@ jobs:
 
       - name: Deploy
         env:
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          TARGET: ${{ secrets.DEPLOY_TARGET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: deploy/ci/deploy deploy staging "$GITHUB_SHA"

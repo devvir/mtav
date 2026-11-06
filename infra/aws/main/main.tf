@@ -1,6 +1,7 @@
-# MTAV on AWS, whole: two servers (production and sorteo on one, staging and dev on the other), CloudFront in front of
-# each, the mtav.uy zone, backups, and the way GitHub deploys. Everything is in Ohio (us-east-2), the project's Region,
-# but the HTTPS certificate CloudFront serves, which AWS keeps in Virginia (us-east-1) for every distribution.
+# MTAV on AWS, whole: two servers (production on one; staging, dev and sorteo on the other), CloudFront in front of
+# each (or not: `cloudfront` below), the mtav.uy zone, backups, and the way GitHub deploys. Everything is in Ohio
+# (us-east-2), the project's Region, but the HTTPS certificate CloudFront serves, which AWS keeps in Virginia
+# (us-east-1) for every distribution.
 #
 #   tofu init      # once, and whenever a provider or the backend changes
 #   tofu plan      # what would change, said before anything does
@@ -39,6 +40,13 @@ provider "aws" {
 data "aws_caller_identity" "here" {}
 
 locals {
+  # CloudFront in front of the servers (edge.tf), or the servers facing the internet themselves. On: people reach
+  # CloudFront, which reaches the servers, which answer nothing else. Off: each name leads straight to its server's
+  # fixed address, the server serves HTTPS with its own certificate (as it does for CloudFront), and a running server
+  # serves the static page for the names of a server switched off. Off for now: AWS opens CloudFront to an account only
+  # once it has seen it used for a while (ask again after the first full billing cycle, from December 2026).
+  cloudfront = false
+
   account = data.aws_caller_identity.here.account_id
   zone    = "Z08799512NUF8677Y26UO" # mtav.uy, made before this configuration and adopted by it (dns.tf)
 
@@ -81,14 +89,28 @@ locals {
   # The server MTAV ran on before AWS, where a name not on AWS yet still leads.
   before = "179.27.99.138"
 
-  # Every name a server answers for: its environments', the bare domain on the one that sends it to www, and its own
-  # origin name (CloudFront reaches the server by it).
+  # The servers that are on, which everything made per server follows.
+  running = { for server, it in local.servers : server => it if it.running }
+
+  # The names of the servers switched off, and the bare domain if its server is one of them: the static page's.
+  parked = sort(concat(
+    flatten([for server, it in local.servers : [for env in values(it.environments) : env.names] if !it.running]),
+    local.servers[local.apex.server].running ? [] : [local.apex.name],
+  ))
+  # Who serves the static page without CloudFront: the first server running (none: those names lead nowhere).
+  page_server = local.cloudfront ? null : try(sort(keys(local.running))[0], null)
+
+  # Every name a server answers for: its environments', the bare domain on the one that sends it to www, the static
+  # page's if it serves it, and its own origin name (CloudFront reaches the server by it).
   names = { for server, it in local.servers : server => concat(
     flatten([for env in values(it.environments) : env.names]),
     local.apex.server == server ? [local.apex.name] : [],
+    local.page_server == server ? local.parked : [],
   ) }
   origin = { for server in keys(local.servers) : server => "origin-${server}.mtav.uy" }
 
-  # The servers that are on, which everything made per server follows.
-  running = { for server, it in local.servers : server => it if it.running }
+  # The server each site name leads to: its own, or, its own off, the one serving the static page.
+  site_server = { for name, site in local.sites : name => (
+    local.servers[site.server].running ? site.server : local.page_server
+  ) }
 }

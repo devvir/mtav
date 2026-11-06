@@ -2,8 +2,8 @@
 # adopted here as it was. The domain stays registered at NIC.uy, which hands the zone to these nameservers.
 #
 # Each site name leads where its environment runs: to the server MTAV ran on before (local.before), or, once moved
-# (on_aws in main.tf), to its CloudFront distribution. Each server's origin name leads to its fixed address; only
-# CloudFront uses it. The mail records are Zoho's (mail in and out) and ZeptoMail's (the app's mail), unchanged.
+# (on_aws in main.tf), to its CloudFront distribution, or, without CloudFront, straight to its server's fixed address.
+# Each server's origin name leads to its fixed address; only CloudFront uses it. The mail records are Zoho's (mail in and out) and ZeptoMail's (the app's mail), unchanged.
 
 import {
   to = aws_route53_zone.mtav
@@ -55,19 +55,24 @@ resource "aws_route53_record" "site_before" {
   records  = [local.before]
 }
 
-# A site moved: its server's distribution, or the static page's while its server is off (an alias, which also works
-# for the bare domain).
+# A site moved. With CloudFront: its server's distribution, or the static page's while its server is off (an alias,
+# which also works for the bare domain). Without: the fixed address of its server, or of the one serving the static page.
 resource "aws_route53_record" "site" {
   for_each = { for name, site in local.sites : name => site if site.on_aws }
   zone_id  = aws_route53_zone.mtav.zone_id
   name     = each.key
   type     = "A"
-  alias {
-    name = (local.servers[each.value.server].running
-    ? aws_cloudfront_distribution.server[each.value.server].domain_name : aws_cloudfront_distribution.static.domain_name)
-    zone_id = (local.servers[each.value.server].running
-    ? aws_cloudfront_distribution.server[each.value.server].hosted_zone_id : aws_cloudfront_distribution.static.hosted_zone_id)
-    evaluate_target_health = false
+  ttl      = local.cloudfront ? null : 300
+  records  = local.cloudfront ? null : [aws_eip.server[local.site_server[each.key]].public_ip]
+
+  dynamic "alias" {
+    for_each = local.cloudfront ? [local.servers[each.value.server].running
+    ? aws_cloudfront_distribution.server[each.value.server] : aws_cloudfront_distribution.static[0]] : []
+    content {
+      name                   = alias.value.domain_name
+      zone_id                = alias.value.hosted_zone_id
+      evaluate_target_health = false
+    }
   }
 }
 

@@ -1,6 +1,5 @@
 # One network of MTAV's own (a VPC), with one subnet whose servers each get a public address: the way out, to pull
-# releases, send mail and call Claude. The way in is closed by walls.tf: only CloudFront reaches a server, so a public
-# address is not an open door. (A server with no public address would need a NAT gateway to get out, about 32 US$ a
+# releases, send mail and call Claude. The way in is walls.tf's: only CloudFront, or, without it, people on HTTPS. (A server with no public address would need a NAT gateway to get out, about 32 US$ a
 # month.)
 #
 # The S3 endpoint sends the servers' backups to S3 inside AWS's network, free.

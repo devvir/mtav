@@ -1,23 +1,75 @@
 #!/bin/bash
-# The pipeline's side of a deploy: hands a request to the host's gate (deploy/host/gate),
-# over SSH, and shows what it answers.
+# The pipeline's side of a deploy: hands a request to the gate (deploy/host/gate) on the server that runs the
+# environment, through AWS Systems Manager, and shows what it answers.
 #
 #   deploy deploy <environment> <commit> [fresh]   (fresh: the database and files start over)
 #   deploy rollback <environment>
 #   deploy status
 #
-# Needs SSH_KEY (the pipeline's private key), KNOWN_HOSTS (the host's key line) and TARGET
-# (mtav-deploy@host), from the repository's secrets. This is the only step that knows
+# Runs as the environment's AWS identity (mtav-deploy-<environment>), whose key is that GitHub environment's secret
+# (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: infra/aws/deploy-keys.sh puts it there). It may run that environment's
+# gate and ask any server what it runs, and nothing else (infra/aws/main/deploy.tf). This is the only step that knows
 # where environments live: on another kind of host, it is the step that changes.
 set -euo pipefail
 
-: "${SSH_KEY:?}" "${KNOWN_HOSTS:?}" "${TARGET:?}"
+export AWS_REGION="${AWS_REGION:-us-east-2}"
+[[ -n "${AWS_ACCESS_KEY_ID:-}" ]] || {
+    echo "deploy: this environment has no AWS key: its server is switched off (infra/aws/main), or" \
+        "infra/aws/deploy-keys.sh has not run for it" >&2
+    exit 1
+}
 
-secrets="$(mktemp -d)"
-trap 'rm -rf "$secrets"' EXIT
-printf '%s\n' "$SSH_KEY" > "$secrets/key"
-printf '%s\n' "$KNOWN_HOSTS" > "$secrets/known_hosts"
-chmod 600 "$secrets/key"
+# The running servers, each with the environments it holds: "<instance> <environment,environment>"
+servers() {
+    aws ec2 describe-instances \
+        --filters Name=tag:app,Values=mtav Name=instance-state-name,Values=running \
+        --query 'Reservations[].Instances[].[InstanceId, Tags[?Key==`environments`] | [0].Value]' --output text
+}
 
-exec ssh -i "$secrets/key" -o IdentitiesOnly=yes -o UserKnownHostsFile="$secrets/known_hosts" \
-    -o StrictHostKeyChecking=yes -o BatchMode=yes -o ServerAliveInterval=30 "$TARGET" "$@"
+# The server holding an environment
+server_of() {
+    local instance holds
+    while read -r instance holds; do
+        [[ ",$holds," == *",$1,"* ]] && { echo "$instance"; return; }
+    done < <(servers)
+    echo "deploy: no running server holds '$1'" >&2
+    exit 1
+}
+
+# A document run on one server, waited for, its output shown; fails as the command failed
+run() {
+    local document="$1" instance="$2" request="${3:-}" id status
+    local parameters=()
+    [[ -n "$request" ]] && parameters=(--parameters "request=$request")
+    id="$(aws ssm send-command --document-name "$document" --instance-ids "$instance" "${parameters[@]}" \
+        --cloud-watch-output-config CloudWatchOutputEnabled=true,CloudWatchLogGroupName=/mtav/commands \
+        --query Command.CommandId --output text)"
+    while :; do
+        sleep 5
+        status="$(aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
+            --query Status --output text 2> /dev/null || echo Pending)"
+        [[ "$status" =~ ^(Pending|InProgress|Delayed)$ ]] || break
+    done
+    aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
+        --query StandardOutputContent --output text
+    aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
+        --query StandardErrorContent --output text >&2
+    [[ "$status" == Success ]]
+}
+
+case "${1:-}" in
+    deploy | rollback)
+        environment="${2:?deploy: which environment?}"
+        instance="$(server_of "$environment")"
+        run "mtav-gate-$environment" "$instance" "$*"
+        ;;
+    status)
+        while read -r instance _; do
+            run mtav-status "$instance" | grep -v '^$'
+        done < <(servers)
+        ;;
+    *)
+        echo "usage: deploy deploy <environment> <commit> [fresh] | rollback <environment> | status" >&2
+        exit 64
+        ;;
+esac

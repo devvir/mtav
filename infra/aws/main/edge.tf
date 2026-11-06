@@ -3,6 +3,9 @@
 # adding the secret header the server's front web server asks for. Pages are never cached (each is someone's); the
 # built files (/build/…, named by their content) are cached for a year, close to whoever asks. CloudFront also adds the
 # security headers every answer carries.
+#
+# Only while `cloudfront` is on (main.tf): off, the servers do all this themselves (server/setup.sh, mtav-front). The
+# certificate and the static page's bucket stay either way (both free), so switching it on is one apply.
 
 # One certificate for every name CloudFront serves, proven by records in mtav.uy's zone; renewed by AWS itself.
 resource "aws_acm_certificate" "edge" {
@@ -41,7 +44,7 @@ locals {
 }
 
 resource "aws_cloudfront_distribution" "server" {
-  for_each = local.running
+  for_each = local.cloudfront ? local.running : {}
 
   enabled         = true
   comment         = "MTAV ${each.key}: ${join(", ", keys(each.value.environments))}"
@@ -139,6 +142,7 @@ resource "aws_cloudfront_origin_access_control" "static" {
 }
 
 resource "aws_s3_bucket_policy" "static" {
+  count  = local.cloudfront ? 1 : 0
   bucket = aws_s3_bucket.static.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -148,20 +152,13 @@ resource "aws_s3_bucket_policy" "static" {
       Principal = { Service = "cloudfront.amazonaws.com" }
       Action    = "s3:GetObject"
       Resource  = "${aws_s3_bucket.static.arn}/*"
-      Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.static.arn } }
+      Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.static[0].arn } }
     }]
   })
 }
 
-locals {
-  # The names of the servers switched off, and the bare domain if its server is one of them.
-  parked = sort(concat(
-    flatten([for server, it in local.servers : [for env in values(it.environments) : env.names] if !it.running]),
-    local.servers[local.apex.server].running ? [] : [local.apex.name],
-  ))
-}
-
 resource "aws_cloudfront_distribution" "static" {
+  count               = local.cloudfront ? 1 : 0
   enabled             = true
   comment             = "MTAV: the page for the names of a server switched off"
   aliases             = local.parked

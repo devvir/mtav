@@ -6,7 +6,8 @@
 #  1. swap, security updates by themselves, services nothing uses stopped
 #  2. Docker, publishing on the loopback only, its logs kept small
 #  3. the gate deploys go through (deploy/host/gate), and each environment's directory
-#  4. the front web server: HTTPS for CloudFront alone, each name to its environment's switch
+#  4. the front web server: HTTPS (for CloudFront alone, when it is in front), each name to its environment's switch,
+#     and the static page for the names of a server switched off, if this server serves it
 #  5. its certificate, from Let's Encrypt over DNS, renewed by itself; tried again hourly until it is there
 #  6. nightly backups of every environment's database and files, to S3
 set -euo pipefail
@@ -95,8 +96,15 @@ config="$(aws ssm get-parameter --region us-east-2 --name "/mtav/$SERVER/config"
 { cat /etc/mtav/identity; echo "$config"; } > /etc/mtav/server.next
 chmod 600 /etc/mtav/server.next && mv /etc/mtav/server.next /etc/mtav/server
 source /etc/mtav/server
+# The static page, if this server serves it (without CloudFront, for the names of a server switched off)
+if [[ -n "${PARKED:-}" ]]; then
+    install -d -m 755 /var/www/mtav-static
+    aws ssm get-parameter --region us-east-2 --name "/mtav/$SERVER/static-page" --query Parameter.Value --output text \
+        | cat | base64 -d | gunzip > /var/www/mtav-static/index.html.next
+    chmod 644 /var/www/mtav-static/index.html.next && mv /var/www/mtav-static/index.html.next /var/www/mtav-static/index.html
+fi
 for env in $(jq -r 'keys[]' <<< "$ENVIRONMENTS"); do
-    # Its .env is written before its first deploy (from /mtav/<server>/env/<environment>)
+    # Its .env is written there before its first deploy (documentation/technical/delivery.md)
     install -d -m 750 "/mtav/$env"
 done
 echo "settings read: $(jq -r 'keys | join(", ")' <<< "$ENVIRONMENTS"); names: $NAMES"
@@ -113,29 +121,62 @@ chmod 755 /usr/local/sbin/mtav-reconfigure
 cat > /usr/local/sbin/mtav-front <<'SCRIPT'
 #!/bin/bash
 # Writes the front web server's configuration for this server's environments and reloads it: HTTPS with the
-# server's certificate, answering only requests carrying CloudFront's secret header, each name to its environment's
-# switch (its pages, and /app to its realtime service). Run after the certificate is issued or renewed.
+# server's certificate, each name to its environment's switch (its pages, and /app to its realtime service), and the
+# static page for the names it serves it for. Behind CloudFront it answers only requests carrying CloudFront's secret
+# header, and CloudFront adds the security headers and compresses; facing people itself, it does both, says who asked
+# (never what the request claims), and sends HTTP to HTTPS. Run after the certificate is issued or renewed.
 set -euo pipefail
 source /etc/mtav/server
 [[ -f /etc/letsencrypt/live/mtav/fullchain.pem ]] || { echo "no certificate yet"; exit 0; }
-secret="$(aws ssm get-parameter --region us-east-2 --name "/mtav/$SERVER/origin-secret" --with-decryption --query Parameter.Value --output text)"
+if [[ -n "${CLOUDFRONT:-}" ]]; then
+    secret="$(aws ssm get-parameter --region us-east-2 --name "/mtav/$SERVER/origin-secret" --with-decryption --query Parameter.Value --output text | cat)"
+    guard="if (\$http_x_origin_verify != \"$secret\") { return 403; }"
+    forwarded='$http_x_forwarded_for'
+else
+    guard=''
+    forwarded='$remote_addr'
+fi
 conf=/etc/nginx/sites-available/mtav
 {
     cat <<EOF
-# MTAV (written by mtav-front): HTTPS for CloudFront alone, each name to its environment
+# MTAV (written by mtav-front): each name to its environment$([[ -n "${CLOUDFRONT:-}" ]] && echo ", for CloudFront alone")
 server_tokens off;
 client_max_body_size 105m;
 ssl_certificate /etc/letsencrypt/live/mtav/fullchain.pem;
 ssl_certificate_key /etc/letsencrypt/live/mtav/privkey.pem;
-ssl_protocols TLSv1.2 TLSv1.3;
+ssl_session_cache shared:mtav:10m;
+ssl_session_timeout 1d;
 
-# Whatever name it is asked for, a request without CloudFront's secret gets nothing
+# A name it does not serve gets nothing
 server {
     listen 443 ssl http2 default_server;
     server_name _;
-    return 444;
+    ssl_reject_handshake on;
 }
 EOF
+    if [[ -z "${CLOUDFRONT:-}" ]]; then
+        cat <<'EOF'
+
+# What CloudFront would add: compression (on in nginx.conf, for more than pages here), and the security headers
+# every answer carries
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 5;
+gzip_min_length 1024;
+gzip_types text/css text/plain text/xml application/javascript application/json application/xml image/svg+xml application/manifest+json;
+add_header Strict-Transport-Security "max-age=31536000" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# HTTP only to be sent to HTTPS
+server {
+    listen 80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+}
+EOF
+    fi
     for env in $(jq -r 'keys[]' <<< "$ENVIRONMENTS"); do
         names="$(jq -r --arg e "$env" '.[$e].names | join(" ")' <<< "$ENVIRONMENTS")"
         web="$(jq -r --arg e "$env" '.[$e].web' <<< "$ENVIRONMENTS")"
@@ -146,7 +187,7 @@ EOF
 server {
     listen 443 ssl http2;
     server_name $names;
-    if (\$http_x_origin_verify != "$secret") { return 403; }
+    $guard
     location /app {
         proxy_pass http://127.0.0.1:$ws;
         proxy_http_version 1.1;
@@ -159,7 +200,7 @@ server {
     location / {
         proxy_pass http://127.0.0.1:$web;
         proxy_set_header Host \$host;
-        proxy_set_header X-Forwarded-For \$http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $forwarded;
         proxy_set_header X-Forwarded-Proto https;
         proxy_buffer_size 128k;
         proxy_buffers 4 256k;
@@ -177,21 +218,49 @@ EOF
 server {
     listen 443 ssl http2;
     server_name $apex;
-    if (\$http_x_origin_verify != "$secret") { return 403; }
+    $guard
     return 301 https://$to\$request_uri;
 }
 EOF
     fi
+    if [[ -n "${PARKED:-}" ]]; then
+        cat <<EOF
+
+# The names of a server switched off: the static page, whatever the address
+server {
+    listen 443 ssl http2;
+    server_name $PARKED;
+    root /var/www/mtav-static;
+    location / {
+        add_header Cache-Control "public, max-age=300" always;
+        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        try_files /index.html =404;
+    }
+}
+EOF
+    fi
 } > "$conf.next"
+chmod 640 "$conf.next"
+# Tried before it is served: one nginx refuses keeps the one before
+[[ -f "$conf" ]] && cp -p "$conf" "$conf.before"
 mv "$conf.next" "$conf"
-chmod 640 "$conf"
 ln -sfn "$conf" /etc/nginx/sites-enabled/mtav
 rm -f /etc/nginx/sites-enabled/default
-nginx -t -q && systemctl reload nginx
-echo "front web server written for: $(jq -r 'keys | join(", ")' <<< "$ENVIRONMENTS")"
+if ! nginx -t -q; then
+    [[ -f "$conf.before" ]] && mv "$conf.before" "$conf"
+    echo "nginx refused the new configuration: the one before stays" >&2
+    exit 1
+fi
+systemctl reload nginx
+echo "front web server written for: $(jq -r 'keys | join(", ")' <<< "$ENVIRONMENTS")${PARKED:+; the static page for $PARKED}"
 SCRIPT
 chmod 755 /usr/local/sbin/mtav-front
-# Nothing on port 80: CloudFront speaks HTTPS to the server, and the certificate is proven over DNS
+# TLS 1.2 and 1.3 only (nginx.conf names older ones too; a site cannot narrow what it sets)
+sed -i -E 's/^(\s*)ssl_protocols .*;/\1ssl_protocols TLSv1.2 TLSv1.3;/' /etc/nginx/nginx.conf
+# Port 80 is mtav-front's alone (sending people to HTTPS, without CloudFront): the certificate is proven over DNS
 rm -f /etc/nginx/sites-enabled/default
 sed -i -E 's/^(\s*listen .*80)/#\1/' /etc/nginx/sites-available/default 2> /dev/null || true
 systemctl enable nginx > /dev/null 2>&1

@@ -1,6 +1,7 @@
-# Who may reach each server, and where it may go. Nothing reaches a server from the internet but CloudFront, on HTTPS
-# (443), and the front web server there also asks for the secret header only our distributions add (edge.tf): someone
-# else's distribution passes the first wall, never the second. No SSH, anywhere: people and deploys reach a server
+# Who may reach each server, and where it may go. With CloudFront (main.tf), nothing reaches a server from the internet
+# but CloudFront, on HTTPS (443), and the front web server there also asks for the secret header only our
+# distributions add (edge.tf): someone else's distribution passes the first wall, never the second. Without it, anyone
+# reaches the front web server, on HTTPS, and on HTTP only to be sent to HTTPS. No SSH, anywhere: people and deploys reach a server
 # through Systems Manager. A server goes out only to the web (HTTPS, and HTTP for the package mirrors), to mail servers,
 # and to the network's own DNS, clock and metadata, which are not walled.
 
@@ -30,13 +31,26 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cloudfront" {
-  for_each          = local.running
+  for_each          = local.cloudfront ? local.running : {}
   security_group_id = aws_security_group.server[each.key].id
   description       = "CloudFront, over HTTPS"
   prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443
+}
+
+# Without CloudFront: everyone, on HTTPS, and on HTTP to be sent there.
+resource "aws_vpc_security_group_ingress_rule" "people" {
+  for_each = local.cloudfront ? {} : merge([for server in keys(local.running) : {
+    for name, port in { https = 443, http = 80 } : "${server}-${name}" => { server = server, port = port }
+  }]...)
+  security_group_id = aws_security_group.server[each.value.server].id
+  description       = each.value.port == 443 ? "People, over HTTPS" : "People, sent to HTTPS"
+  ip_protocol       = "tcp"
+  from_port         = each.value.port
+  to_port           = each.value.port
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 resource "aws_vpc_security_group_egress_rule" "out" {

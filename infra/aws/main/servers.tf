@@ -76,7 +76,7 @@ resource "aws_volume_attachment" "data" {
 }
 
 # A server's settings: its environments (ports and names), every name it answers for, the bare domain if it holds it,
-# and where its backups go. Read at its first boot, and again by `mtav-reconfigure` on it whenever they change (an
+# the names it serves the static page for, whether CloudFront is in front of it, and where its backups go. Read at its first boot, and again by `mtav-reconfigure` on it whenever they change (an
 # environment moved between servers): its front web server and its certificate follow.
 resource "aws_ssm_parameter" "server_config" {
   for_each = local.running
@@ -86,12 +86,23 @@ resource "aws_ssm_parameter" "server_config" {
     "NAMES='${join(" ", concat(local.names[each.key], [local.origin[each.key]]))}'",
     "ENVIRONMENTS='${jsonencode(each.value.environments)}'",
     "APEX='${local.apex.server == each.key ? "${local.apex.name} ${local.apex.to}" : ""}'",
+    "PARKED='${local.page_server == each.key ? join(" ", local.parked) : ""}'",
+    "CLOUDFRONT='${local.cloudfront ? "yes" : ""}'",
     "BACKUPS='${aws_s3_bucket.backups.bucket}'",
   ])
 }
 
-# A fixed public address each: the way out (and CloudFront's way in, by the origin name in dns.tf), the same across a
-# stop and start.
+# The static page (static/index.html), for the server that serves it without CloudFront; compressed, as a setting
+# holds at most 4 KB.
+resource "aws_ssm_parameter" "static_page" {
+  for_each = local.page_server == null ? toset([]) : toset([local.page_server])
+  name     = "/mtav/${each.value}/static-page"
+  type     = "String"
+  value    = base64gzip(file("${path.module}/static/index.html"))
+}
+
+# A fixed public address each: the way out, and the way in (people's, or CloudFront's by the origin name in dns.tf),
+# the same across a stop and start.
 resource "aws_eip" "server" {
   for_each = local.running
   instance = aws_instance.server[each.key].id
