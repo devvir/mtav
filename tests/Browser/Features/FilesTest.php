@@ -75,7 +75,7 @@ it('refuses files that could run scripts', function () {
         ->assertSee('logo.svg cannot be shared')
         ->fill(inDialogField('description'), 'A logo')
         ->click(inDialog('Share'))
-        ->assertSee('The files field is required.');
+        ->assertSee('Fill in the files.');
 
     // The server refuses them too (UseCases\Community\MediaTest)
     expect(Media::count())->toBe(0);

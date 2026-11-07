@@ -235,7 +235,7 @@ it('gets over a message that could not leave: the button stops waiting, it says 
 
     $page->fill('[aria-label="Message"]', 'Sin conexión')
         ->keys('[aria-label="Message"]', 'Enter')
-        ->assertSee('That did not work. Please try again.')
+        ->assertSee("That didn't work. Try again.")
         ->assertValue('[aria-label="Message"]', 'Sin conexión')
         ->assertMissing('.chat-composer [data-loading]');
 

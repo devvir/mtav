@@ -432,7 +432,7 @@ it('stays closed, saying why, when the hold cannot be taken', function () {
     $page->script('() => { window.fetch = async () => new Response("{}", { status: 419 }); }');
 
     $page->click('Edit the plan')
-        ->assertSee('That did not work. Please try again.')
+        ->assertSee("That didn't work. Try again.")
         ->assertMissing('[aria-label="Plan editor"]');
 });
 

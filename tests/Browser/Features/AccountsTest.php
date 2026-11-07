@@ -15,14 +15,14 @@ it('explains what is wrong with a sign-up', function () {
 
     visit(route('register'))
         ->click('Create the account')
-        ->assertSee('The first name field is required.')
+        ->assertSee('Fill in the first name.')
         ->fill('firstname', 'Laura')
         ->fill('email', 'taken@example.com')
         ->fill('password', 'a-Strong-pass-123')
         ->fill('password_confirmation', 'something-else')
         ->click('Create the account')
-        ->assertSee('The email has already been taken.')
-        ->assertSee('The password field confirmation does not match.')
+        ->assertSee('That email is already in use.')
+        ->assertSee('The two password boxes do not match. Try again.')
         ->assertNoSmoke();
 
     expect(User::count())->toBe(1);
@@ -270,7 +270,7 @@ it('speaks every language it offers, guides included', function () {
     $project = aProject();
     $member = aMemberOf(aFamily($project, aUnitType($project)));
 
-    foreach (['fr' => ['Préférences', 'Guide des coopérateurs'], 'pt_BR' => ['Preferências', 'Guia dos cooperados'], 'it' => ['Preferenze', 'Guida per i soci']] as $locale => [$preferences, $guide]) {
+    foreach (['fr' => ['Préférences', 'Guide des coopérateurs'], 'pt_BR' => ['Preferências', 'Guia do cooperado'], 'it' => ['Preferenze', 'Guida per i soci']] as $locale => [$preferences, $guide]) {
         $member->update(['locale' => $locale]);
         $this->as($member->fresh());
 

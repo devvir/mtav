@@ -66,7 +66,7 @@ it('asks for a link for online events', function () {
         ->fill('description', 'Monthly call')
         ->fill('location', 'not a link')
         ->click(inDialog('Create the event'))
-        ->assertSee('The location field must be a valid URL.');
+        ->assertSee('The location is not a valid link. Check it and try again.');
 });
 
 it('lets members say whether they go, and shows who goes', function () {

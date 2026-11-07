@@ -97,7 +97,7 @@ it('lets someone with an account join after signing in', function () {
         ->click('[type="submit"]')
         ->assertSee('You are invited')
         ->click('Join Cooperativa Las Acacias')
-        ->assertSee('Welcome to Cooperativa Las Acacias!');
+        ->assertSee('Welcome to Cooperativa Las Acacias.');
 
     expect($ana->fresh()->familyIn($this->project)?->id)->toBe($this->family->id);
 });

@@ -19,7 +19,7 @@ it('manages unit types, refusing duplicates and removing only unused ones', func
     visit(route('units.index', [$this->project, 'new_type' => 1]))
         ->fill('name', 'Studio')
         ->click(inDialog('Add the unit type'))
-        ->assertSee('The name has already been taken.')
+        ->assertSee('That name is already in use.')
         ->fill('name', '2 bedrooms')
         ->fill('description', 'Two bedroom apartment')
         ->click(inDialog('Add the unit type'))
@@ -59,7 +59,7 @@ it('adds units one after another, creating a type on the way', function () {
         ->assertValue('[name="identifier"]', '')
         ->fill('identifier', 'A-101')
         ->click(inDialog('Add the unit'))
-        ->assertSee('The identifier has already been taken.')
+        ->assertSee('That name or number is already in use.')
         ->assertNoSmoke();
 
     $penthouse = UnitType::firstWhere('name', 'Penthouse');
