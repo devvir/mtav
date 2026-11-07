@@ -28,7 +28,7 @@ it('locks signing in for a while after five wrong passwords, even with the right
 
     signIn($this, 'the-Right-pass-1')->assertSessionHasErrors('email');
 
-    expect(session('errors')->first('email'))->toStartWith('Too many login attempts');
+    expect(session('errors')->first('email'))->toStartWith('Too many tries');
 
     $this->assertGuest();
 });
@@ -64,7 +64,7 @@ describe('A blocked account, with the right password', function () {
 
         signIn($this, 'the-Right-pass-1')->assertSessionHasErrors('email');
 
-        expect(session('errors')->first('email'))->toStartWith('Too many login attempts');
+        expect(session('errors')->first('email'))->toStartWith('Too many tries');
     });
 });
 

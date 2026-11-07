@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "¿Cómo me sumo a un proyecto?",
-      "answer": "Con la invitación que recibes por email, de un administrador o de alguien de tu familia. Si no tienes cuenta, eliges una contraseña; si la tienes, entras y aceptas. Las invitaciones pendientes también aparecen en Tus proyectos. También puedes encontrar uno en Encontrar un proyecto, si sus administradores lo muestran."
+      "answer": "Con la invitación que te llega por correo, de un administrador o de alguien de tu familia. Si no tienes cuenta, eliges una contraseña. Si la tienes, entras y aceptas. Las invitaciones pendientes también aparecen en Tus proyectos. También puedes buscar uno en Encontrar un proyecto, si sus administradores lo muestran."
     },
     {
       "question": "¿Quién ve el orden de mi familia?",
@@ -13,27 +13,27 @@
     },
     {
       "question": "¿Tengo que ordenar todas las viviendas?",
-      "answer": "No. Mueve las que te importan; las demás conservan un lugar propio al final de tu orden."
+      "answer": "No. Mueve las que te importan. Las demás conservan un lugar propio al final de tu orden."
     },
     {
-      "question": "¿Podemos cambiar el orden dos personas?",
-      "answer": "Sí: es un solo orden para toda la familia, y cualquier integrante puede cambiarlo hasta que se realice el sorteo. Vale el último cambio."
+      "question": "¿Podemos cambiar el orden entre dos?",
+      "answer": "Sí. Es un solo orden para toda la familia, y cualquier integrante puede cambiarlo hasta que se haga el sorteo. Vale el último cambio."
     },
     {
       "question": "¿Cómo decide el sorteo?",
-      "answer": "Primero hace que a la familia peor ubicada le toque lo mejor posible, y después deja al proyecto entero lo más conforme posible. Solo los empates se resuelven al azar."
+      "answer": "Primero cuida a la familia que quedaría peor, y le da lo mejor posible. Después busca la mayor conformidad de todo el proyecto. Solo los empates se resuelven al azar."
     },
     {
       "question": "¿Puede cambiar el resultado?",
-      "answer": "Es definitivo. Solo en casos excepcionales un administrador puede invalidar un sorteo; todos ven entonces quién lo hizo, cuándo y por qué, y se vuelve a realizar."
+      "answer": "Es definitivo. Solo en casos excepcionales un administrador puede invalidar un sorteo. Entonces todos ven quién lo hizo, cuándo y por qué, y se vuelve a hacer."
     },
     {
       "question": "¿Quién ve los archivos que comparto?",
       "answer": "Todos en el proyecto, y nadie de afuera. Puedes editar la descripción o quitar lo que compartiste."
     },
     {
-      "question": "Cambié mi email y no pasó nada.",
-      "answer": "Enviamos un enlace de confirmación a la nueva dirección. Tu cuenta sigue con la anterior hasta que lo abras."
+      "question": "Cambié mi correo y no pasó nada.",
+      "answer": "Te mandamos un enlace de confirmación a la dirección nueva. Tu cuenta sigue con la anterior hasta que lo abras."
     }
   ]
 }

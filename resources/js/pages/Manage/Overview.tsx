@@ -107,7 +107,7 @@ export default function Overview({ counts, checklist, approval }: Props) {
         help={
           <InfoTip title={_('Setting up the project')} tour="manage.setup">
             {_(
-              'Its families, people and units, a click away; and the checklist, from an empty project to its lottery.',
+              'Its families, people and units, a click away. And the checklist, from an empty project to its lottery.',
             )}
           </InfoTip>
         }

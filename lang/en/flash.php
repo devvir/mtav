@@ -8,7 +8,7 @@ return [
 
     /** Accounts */
     'verification_sent'       => 'We sent you a new confirmation link.',
-    'email_verified'          => 'Your email address is confirmed. Welcome!',
+    'email_verified'          => 'Your email address is confirmed. Welcome.',
     'email_verification_sent' => 'We sent a confirmation link to :email. Your address changes once you confirm it.',
     'email_changed'           => 'Your email address was changed.',
     'profile_updated'         => 'Your profile was saved.',
@@ -29,7 +29,7 @@ return [
     /** People */
     'invitation_sent'     => 'Invitation sent to :email.',
     'invitation_revoked'  => 'The invitation was withdrawn.',
-    'invitation_accepted' => 'Welcome to :project!',
+    'invitation_accepted' => 'Welcome to :project.',
     'invitation_declined' => 'You declined the invitation.',
     'invitation_sign_in'  => 'This invitation is for :email. Sign in with that account to accept it.',
     'restored'            => 'It is back.',
@@ -64,14 +64,14 @@ return [
     'event_created'      => 'The event was created.',
     'event_updated'      => 'The event was saved.',
     'event_deleted'      => 'The event was cancelled.',
-    'rsvp_attending'     => 'Great, see you there!',
+    'rsvp_attending'     => 'Great, see you there.',
     'rsvp_not_attending' => 'Thanks for letting us know.',
     'media_uploaded'     => 'Your file is shared.|Your :count files are shared.',
     'media_updated'      => 'The description was saved.',
     'media_deleted'      => 'The file was removed.',
 
     /** Lottery */
-    'lottery_scheduled'   => 'The lottery was scheduled.',
+    'lottery_scheduled'   => 'The lottery date was set.',
     'lottery_started'     => 'The lottery is running. Results appear here in a moment.',
     'lottery_invalidated' => 'The lottery was invalidated. Everyone in the project can read why.',
 
@@ -83,11 +83,11 @@ return [
     'deploy_fresh'            => 'Starting :environment over, with the demo data. Follow it below.',
     'deploy_refused'          => 'GitHub did not start it (:status). Check the deploy token.',
     'deploy_unreachable'      => 'GitHub did not answer, so nothing started. Try again in a moment.',
-    'upload_too_large'        => 'That was too much to send at once: share fewer files, or smaller ones.',
+    'upload_too_large'        => 'That was too much to send at once. Share fewer files, or smaller ones.',
     'platform_settings_saved' => 'The platform settings were saved.',
-    'page_expired'            => 'The page was open for a long time: try again.',
-    'too_many_attempts'       => 'Too many attempts in a row: wait a moment and try again.',
-    'changed_meanwhile'       => 'This changed in the meantime: check it and try again.',
+    'page_expired'            => 'The page was open for a long time. Try again.',
+    'too_many_attempts'       => 'Too many tries in a row. Wait a moment and try again.',
+    'changed_meanwhile'       => 'This changed in the meantime. Check it and try again.',
     'own_account_deleted'     => 'Your account was deleted.',
     'topic_opened'            => 'Your topic is open.',
     'topic_removed'           => 'The topic was removed.',

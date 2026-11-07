@@ -125,7 +125,7 @@ const MORE = 50;
 /** What was last seen, per project: moving between pages, the window opens on it at once */
 const seen = new Map<number, ChatData>();
 
-const refused = () => toast({ tone: 'error', message: _('That did not work. Please try again.') });
+const refused = () => toast({ tone: 'error', message: _("That didn't work. Try again.") });
 
 /** The Assistant: a small friendly house, the app's subject, looking at you */
 function AssistantFace({ size = 40 }: { size?: number }) {

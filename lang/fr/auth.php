@@ -13,12 +13,12 @@ return [
     |
     */
 
-    'failed'   => 'Ces identifiants ne correspondent pas à nos enregistrements.',
+    'failed'   => 'Cet e-mail ou ce mot de passe n’est pas correct. Vérifiez-les et réessayez.',
     'blocked'  => 'Ce compte est bloqué.',
-    'password' => 'Le mot de passe est incorrect.',
-    'throttle' => 'Trop de tentatives de connexion. Réessayez dans :seconds secondes.',
+    'password' => 'Ce mot de passe n’est pas correct.',
+    'throttle' => 'Trop de tentatives. Réessayez dans :seconds secondes.',
 
-    'google_failed'     => 'La connexion avec Google n’a pas abouti. Réessayez, ou utilisez votre e-mail.',
-    'google_unverified' => 'Google n’a pas encore vérifié cette adresse e-mail : elle ne peut pas ouvrir de compte ici.',
+    'google_failed'     => 'La connexion avec Google n’a pas fonctionné. Réessayez, ou utilisez votre e-mail.',
+    'google_unverified' => 'Google n’a pas encore confirmé cet e-mail : il ne peut donc pas ouvrir de compte ici.',
 
 ];

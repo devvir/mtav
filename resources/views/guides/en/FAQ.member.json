@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "How do I join a project?",
-      "answer": "With the invitation you receive by email, from an admin or from someone in your family. Without an account you choose a password; with one, you sign in and accept. Pending invitations also appear in Your projects. You can also find one under Find a project, if its admins list it."
+      "answer": "With the invitation you receive by email, from an admin or from someone in your family. Without an account you choose a password. With one, you sign in and accept. Pending invitations also appear in Your projects. You can also find one under Find a project, if its admins list it."
     },
     {
       "question": "Who sees my family's ranking?",
@@ -13,19 +13,19 @@
     },
     {
       "question": "Do I have to rank every unit?",
-      "answer": "No. Move the ones you care about; the rest keep a place of their own at the end of your ranking."
+      "answer": "No. Move the ones you care about. The rest keep a place of their own at the end of your ranking."
     },
     {
       "question": "Can two of us change the ranking?",
-      "answer": "Yes: it is one ranking for the whole family, and any member can change it until the lottery runs. The latest change is the one that counts."
+      "answer": "Yes. It is one ranking for the whole family, and any member can change it until the lottery runs. The latest change is the one that counts."
     },
     {
       "question": "How does the lottery decide?",
-      "answer": "It first makes the family that would be worst off as well off as possible, then the whole project as satisfied as possible. Only ties are broken at random."
+      "answer": "It first gives the family that would be worst off the best it can, then makes the whole project as happy as possible. Only ties are settled at random."
     },
     {
       "question": "Can the result change?",
-      "answer": "It is final. Only in exceptional cases an admin may invalidate a run; everyone then sees who did it, when and why, and the lottery runs again."
+      "answer": "It is final. Only in exceptional cases an admin may invalidate a lottery. Everyone then sees who did it, when and why, and the lottery runs again."
     },
     {
       "question": "Who sees the files I share?",

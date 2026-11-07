@@ -13,12 +13,12 @@ return [
     |
     */
 
-    'failed'   => 'These credentials do not match our records.',
+    'failed'   => 'That email or password is not right. Check them and try again.',
     'blocked'  => 'This account is blocked.',
-    'password' => 'The provided password is incorrect.',
-    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'password' => 'That password is not right.',
+    'throttle' => 'Too many tries. Try again in :seconds seconds.',
 
     'google_failed'     => 'Signing in with Google did not work. Try again, or use your email.',
-    'google_unverified' => 'Google has not verified that email address yet, so it cannot open an account here.',
+    'google_unverified' => 'Google has not confirmed that email address yet, so it cannot open an account here.',
 
 ];

@@ -64,7 +64,7 @@ export function PersonCard({ person, href }: { person: Person; href: string }) {
             {person.name}
           </Text>
           <Text className="ds-caption ds-truncate">
-            {person.family?.name ?? _('Not joined a family yet')}
+            {person.family?.name ?? _('Not joined their family yet')}
           </Text>
         </div>
         {person.is_admin ? <Badge color="blue">{_('Admin')}</Badge> : null}

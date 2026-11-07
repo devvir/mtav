@@ -36,7 +36,7 @@ export function ShareFilesForm({
       .map(([, message]) => message),
     ...(tooMuch
       ? [
-          _('Together they weigh {size}: up to {limit} can go at once.', {
+          _('Together they are {size}. You can send up to {limit} at once.', {
             size: fileSize(total),
             limit: fileSize(limits.maxBatchKb * 1024),
           }),

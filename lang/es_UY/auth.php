@@ -13,12 +13,12 @@ return [
     |
     */
 
-    'failed'   => 'Estas credenciales no coinciden con nuestros registros.',
+    'failed'   => 'Ese correo o esa contraseña no son correctos. Revísalos y prueba de nuevo.',
     'blocked'  => 'Esta cuenta está bloqueada.',
-    'password' => 'La contraseña que ingresaste es incorrecta.',
-    'throttle' => 'Demasiados intentos. Intenta de nuevo en :seconds segundos.',
+    'password' => 'Esa contraseña no es correcta.',
+    'throttle' => 'Demasiados intentos. Prueba de nuevo en :seconds segundos.',
 
-    'google_failed'     => 'No se pudo entrar con Google. Prueba otra vez, o usa tu email.',
-    'google_unverified' => 'Google todavía no verificó ese email, así que no puede abrir una cuenta aquí.',
+    'google_failed'     => 'No se pudo entrar con Google. Prueba de nuevo, o usa tu correo.',
+    'google_unverified' => 'Google todavía no confirmó ese correo, así que no puede abrir una cuenta acá.',
 
 ];

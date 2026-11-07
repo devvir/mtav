@@ -104,8 +104,7 @@ export function PlanPanel({
     if (heldOffline()) return;
     const response = await sendJson('POST', route('manage.plan.lock'), {});
     if (response.status === 423) return taken(response);
-    if (!response.ok)
-      return toast({ tone: 'error', message: _('That did not work. Please try again.') });
+    if (!response.ok) return toast({ tone: 'error', message: _("That didn't work. Try again.") });
     lost.current = false;
     setEditing(plan);
   };
@@ -156,7 +155,7 @@ export function PlanPanel({
       leave();
       toast({
         tone: 'info',
-        message: _('The plan closed after a while with nothing drawn; what you drew is saved.'),
+        message: _('The plan closed after a while with no changes. What you drew is saved.'),
       });
       return true;
     },
@@ -260,7 +259,7 @@ export function PlanPanel({
       >
         <Text>
           {_(
-            'The editor closes in {seconds} seconds, saving what you drew, so that others can draw the plan.',
+            'The plan closes in {seconds} seconds and saves what you drew, so others can draw too.',
             { seconds: closesIn ?? 0 },
           )}
         </Text>

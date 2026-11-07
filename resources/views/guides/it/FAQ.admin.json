@@ -1,31 +1,31 @@
 {
   "title": "Domande frequenti",
-  "description": "Risposte rapide per gli admin",
-  "guideText": "Leggi la guida degli admin",
+  "description": "Risposte rapide per gli amministratori",
+  "guideText": "Leggi la guida per gli amministratori",
   "questions": [
     {
       "question": "Perché il mio progetto ha dei limiti?",
-      "answer": "I nuovi progetti funzionano con dei limiti finché un superadmin non li approva, per evitare abusi. Chiedi l’approvazione da Avvio."
+      "answer": "I nuovi progetti hanno dei limiti finché un superamministratore non li approva, per evitare abusi. Chiedi l’approvazione da Preparazione."
     },
     {
-      "question": "Cos’è un tipo di unità?",
-      "answer": "Un gruppo di unità equivalenti, come 2 camere. Ogni famiglia ha un tipo e riceve un’unità di quel tipo."
+      "question": "Cos’è un tipo di alloggio?",
+      "answer": "Un gruppo di alloggi equivalenti, come 2 camere. Ogni famiglia ha un tipo e riceve un alloggio di quel tipo."
     },
     {
-      "question": "E se ci sono più unità che famiglie?",
-      "answer": "Puoi comunque eseguire il sorteggio: ti viene chiesto di confermare, e alcune unità restano senza famiglia (o famiglie senza unità, nel caso opposto)."
+      "question": "E se ci sono più alloggi che famiglie?",
+      "answer": "Puoi comunque fare il sorteggio. Ti chiediamo di confermare, e alcuni alloggi restano senza famiglia (o famiglie senza alloggio, nel caso opposto)."
     },
     {
-      "question": "Come aggiungo molte unità?",
-      "answer": "Usa Aggiungi e continua: il modulo resta pronto per l’unità successiva, dello stesso tipo."
+      "question": "Come aggiungo molti alloggi?",
+      "answer": "Usa Aggiungi e passa al successivo: il modulo resta pronto per l’alloggio successivo, dello stesso tipo."
     },
     {
-      "question": "Un admin può far parte anche di una famiglia?",
-      "answer": "Sì. Invitalo come admin e in una famiglia, oppure cambia il suo ruolo e la sua famiglia in Persone."
+      "question": "Un amministratore può far parte anche di una famiglia?",
+      "answer": "Sì. Invitalo come amministratore e in una famiglia, oppure cambia il suo ruolo e la sua famiglia in Soci."
     },
     {
       "question": "Qualcuno ha perso il suo invito.",
-      "answer": "Ritiralo in Inviti e inviane uno nuovo; il vecchio link smette di funzionare."
+      "answer": "Ritiralo in Inviti e inviane uno nuovo. Il vecchio link smette di funzionare."
     },
     {
       "question": "Posso disfare il sorteggio?",
@@ -33,7 +33,7 @@
     },
     {
       "question": "Chi vede le bozze?",
-      "answer": "Solo gli admin, finché non le pubblichi."
+      "answer": "Solo gli amministratori, finché non le pubblichi."
     }
   ]
 }

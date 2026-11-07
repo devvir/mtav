@@ -5,7 +5,7 @@
   "questions": [
     {
       "question": "¿Por qué mi proyecto tiene límites?",
-      "answer": "Los proyectos nuevos funcionan con límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde Puesta en marcha."
+      "answer": "Los proyectos nuevos tienen límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde Puesta a punto."
     },
     {
       "question": "¿Qué es un tipo de vivienda?",
@@ -13,23 +13,23 @@
     },
     {
       "question": "¿Y si hay más viviendas que familias?",
-      "answer": "Igual puedes realizar el sorteo: se te pide confirmar, y algunas viviendas quedan sin familia (o familias sin vivienda, al revés)."
+      "answer": "Igual puedes hacer el sorteo. Te pedimos que confirmes, y algunas viviendas quedan sin familia (o familias sin vivienda, al revés)."
     },
     {
-      "question": "¿Cómo cargo muchas viviendas?",
+      "question": "¿Cómo agrego muchas viviendas?",
       "answer": "Usa Agregar y seguir con otra: el formulario queda listo para la próxima, con el mismo tipo."
     },
     {
       "question": "¿Un administrador puede estar en una familia?",
-      "answer": "Sí. Invítalo como administrador y a una familia, o cambia su rol y su familia en Personas."
+      "answer": "Sí. Invítalo como administrador y a una familia, o cambia su rol y su familia en Cooperativistas."
     },
     {
       "question": "Alguien perdió su invitación.",
-      "answer": "Retírala en Invitaciones y envía una nueva; el enlace anterior deja de funcionar."
+      "answer": "Retírala en Invitaciones y manda una nueva. El enlace anterior deja de funcionar."
     },
     {
       "question": "¿Puedo deshacer el sorteo?",
-      "answer": "Solo invalidándolo, con un motivo que todos en el proyecto leen. El sorteo queda registrado, y se puede volver a realizar."
+      "answer": "Solo invalidándolo, con un motivo que todos en el proyecto leen. El sorteo queda registrado, y se puede volver a hacer."
     },
     {
       "question": "¿Quién ve los borradores?",

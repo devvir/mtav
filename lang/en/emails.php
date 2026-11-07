@@ -14,20 +14,20 @@ return [
     'invitation_ignore'       => 'If you were not expecting it, you can ignore this email.',
 
     'joined_project_subject' => 'You are in :project',
-    'joined_project'         => 'The admins of :project accepted your request: you are in. You can create your family there, or someone in it can add you.',
+    'joined_project'         => 'The admins of :project accepted your request: you are in. Create your family there, or someone in it can add you.',
     'joined_family_subject'  => 'You are in the :family family',
     'joined_family'          => ':name added you to the :family family in :project. There is nothing else to do.',
     'joined_action'          => 'Open the project',
 
     'reset_password_subject' => 'Choose a new password',
-    'reset_password_intro'   => 'Someone asked to reset the password of your account.',
+    'reset_password_intro'   => 'Someone asked to change the password of your account.',
     'reset_password_action'  => 'Choose a new password',
     'reset_password_expiry'  => 'The link is valid for :minutes minutes.',
-    'reset_password_ignore'  => 'If it was not you, your password stays as it is: ignore this email.',
+    'reset_password_ignore'  => 'If it was not you, ignore this email. Your password stays as it is.',
 
     'verify_email_subject'   => 'Confirm your email address',
-    'verify_email_intro'     => 'Please confirm this is your email address.',
-    'verify_new_email_intro' => 'Please confirm this is your new email address. Your account keeps using the old one until you do.',
+    'verify_email_intro'     => 'Confirm this is your email address.',
+    'verify_new_email_intro' => 'Confirm this is your new email address. Your account keeps using the old one until you do.',
     'verify_email_action'    => 'Confirm my email',
     'verify_email_ignore'    => 'If you did not create an account, ignore this email.',
 

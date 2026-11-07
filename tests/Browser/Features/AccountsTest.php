@@ -74,7 +74,7 @@ it('signs in, refusing a wrong password', function () {
         ->fill('email', 'ana@example.com')
         ->fill('password', 'a-wrong-one')
         ->click('[type="submit"]')
-        ->assertSee('These credentials do not match our records.')
+        ->assertSee('That email or password is not right. Check them and try again.')
         ->fill('password', 'the-Right-pass-1')
         ->click('[type="submit"]')
         ->assertSee('Your projects')
@@ -88,7 +88,7 @@ it('resets a forgotten password from the emailed link', function () {
     visit(route('password.request'))
         ->fill('email', 'ana@example.com')
         ->click('Send the link')
-        ->assertSee('We have emailed your password reset link.');
+        ->assertSee('We emailed you a link to choose a new password.');
 
     visit(passwordResetLinkFor($user))
         ->fill('password', 'a-New-pass-123')
@@ -155,7 +155,7 @@ it('deletes the account only with the password, offering a link to whoever has n
         ->click(inDialog('Delete my account'))
         ->assertSee('The password is incorrect.')
         ->click('Email me a link to choose a password')
-        ->assertSee('We have emailed your password reset link.');
+        ->assertSee('We emailed you a link to choose a new password.');
 
     Notification::assertSentTo($user, ResetPasswordNotification::class);
     expect($user->fresh())->not->toBeNull();

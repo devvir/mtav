@@ -927,12 +927,12 @@ export const PlanEditor = forwardRef<
               ) : null}
             </svg>
             {/* The canvas's bottom edge: dragged, the canvas grows or shrinks */}
-            <Tooltip label={_('Drag to make the canvas taller or shorter')} position="bottom">
+            <Tooltip label={_('Drag to make the plan area taller or shorter')} position="bottom">
               <div
                 className="plan-grip"
                 role="separator"
                 aria-orientation="horizontal"
-                aria-label={_('Canvas height')}
+                aria-label={_('Plan area height')}
                 onPointerDown={startGrow}
               />
             </Tooltip>
@@ -953,7 +953,7 @@ export const PlanEditor = forwardRef<
           {/* What to know */}
           <Text className="ds-caption">
             {_(
-              'Drag to move, or drag an edge to move that side; Ctrl + drag takes a copy. Corners resize; round handles move a corner (double-click an edge to add one). The handle above rotates it, and so does R. Double-click a shape to name it; right-click for more.',
+              'Drag to move, or drag an edge to move that side. Ctrl + drag makes a copy. Corners resize, and round handles move a corner. Double-click an edge to add one. The handle above rotates, and so does R. Double-click a shape to name it. Right-click for more.',
             )}
           </Text>
         </Stack>

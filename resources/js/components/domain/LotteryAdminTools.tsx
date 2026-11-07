@@ -91,7 +91,7 @@ export function LotteryAdminTools({
     const ok = await ask({
       title: _('Run the lottery now?'),
       message: _(
-        'Every family receives a unit from its ranking. The result is final; only an invalidation, with a reason everyone reads, can undo it.',
+        'Every family receives a unit from its ranking. The result is final. Only an invalidation, with a reason everyone reads, can undo it.',
       ),
       typeToConfirm: _('RUN'),
       confirmLabel: _('Run the lottery'),

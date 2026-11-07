@@ -4,28 +4,28 @@
   "guideText": "Ler o guia completo",
   "questions": [
     {
-      "question": "Como entro num projeto?",
-      "answer": "Com o convite que você recebe por e-mail, de um admin ou de alguém da sua família. Sem conta, você escolhe uma senha; com conta, você entra e aceita. Os convites pendentes também aparecem em Seus projetos. Você também pode encontrar um em Encontrar um projeto, se os admins o mostrarem."
+      "question": "Como entro em um projeto?",
+      "answer": "Com o convite que você recebe por e-mail, de um administrador ou de alguém da sua família. Se não tiver conta, escolhe uma senha. Se tiver, entra e aceita. Os convites pendentes também aparecem em Seus projetos. Você também pode encontrar um projeto em Encontrar um projeto, se os administradores o mostrarem lá."
     },
     {
-      "question": "Quem vê a classificação da minha família?",
-      "answer": "Só a sua família. As outras famílias nunca a veem, nem antes nem depois do sorteio."
+      "question": "Quem vê a ordem de preferência da minha família?",
+      "answer": "Só a sua família. As outras famílias nunca veem, nem antes nem depois do sorteio."
     },
     {
-      "question": "Preciso classificar todas as unidades?",
-      "answer": "Não. Mova as que importam para vocês; as demais ficam com um lugar próprio no fim da classificação."
+      "question": "Preciso ordenar todas as moradias?",
+      "answer": "Não. Mova as que importam para vocês. As demais ficam com um lugar próprio no fim da sua ordem."
     },
     {
-      "question": "Duas pessoas podem mudar a classificação?",
-      "answer": "Sim: é uma só classificação para a família inteira, e qualquer membro pode mudá-la até o sorteio. Vale a última mudança."
+      "question": "Duas pessoas da família podem mudar a ordem?",
+      "answer": "Sim. É uma só ordem para a família inteira, e qualquer integrante pode mudar até o sorteio ser feito. Vale a última mudança."
     },
     {
       "question": "Como o sorteio decide?",
-      "answer": "Primeiro deixa a família que ficaria menos favorecida tão satisfeita quanto possível, depois o projeto inteiro tão satisfeito quanto possível. Só os empates são decididos ao acaso."
+      "answer": "Ele cuida primeiro da família que ficaria em pior situação e dá a ela o melhor possível. Depois, busca a maior satisfação de todo o projeto. Só os empates são decididos ao acaso."
     },
     {
       "question": "O resultado pode mudar?",
-      "answer": "É definitivo. Só em casos excepcionais um admin pode anular um sorteio; todos veem então quem fez isso, quando e por quê, e o sorteio é feito de novo."
+      "answer": "É definitivo. Só em casos excepcionais um administrador pode anular um sorteio. Nesse caso, todos veem quem fez isso, quando e por quê, e o sorteio é feito de novo."
     },
     {
       "question": "Quem vê os arquivos que eu compartilho?",
@@ -33,7 +33,7 @@
     },
     {
       "question": "Mudei meu e-mail e nada aconteceu.",
-      "answer": "Enviamos um link de confirmação para o novo endereço. Sua conta continua com o antigo até você abri-lo."
+      "answer": "Enviamos um link de confirmação para o novo endereço. Sua conta continua com o antigo até você abrir o link."
     }
   ]
 }

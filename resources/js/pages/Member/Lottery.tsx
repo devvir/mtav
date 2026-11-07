@@ -118,7 +118,7 @@ export default function Lottery({
           <InfoTip title={_('How the lottery works')} tour="lottery">
             <p>
               {_(
-                'Each family ranks the units of its type. The lottery first makes the worst-off family as well off as possible, then the whole project as satisfied as possible; only ties are drawn at random.',
+                'Each family ranks the units of its type. The lottery first gives the family that would be worst off the best it can, then makes the whole project as happy as possible. Only ties are settled at random.',
               )}
             </p>
             <p>
@@ -191,9 +191,7 @@ export default function Lottery({
       {/* Said before anyone tries: the lottery is held until the server can run it */}
       {!runnable && status !== 'completed' ? (
         <Alert color="yellow" radius="lg" mb="lg" icon={<IconAlertTriangle size={20} />}>
-          {_(
-            'The server cannot run the lottery right now: its background work has stopped. It is being looked into; try again later.',
-          )}
+          {_("The lottery can't run right now. We're looking into it. Try again later.")}
         </Alert>
       ) : null}
 

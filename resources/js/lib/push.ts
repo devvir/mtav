@@ -63,7 +63,7 @@ const tell = (
       // Refused, or never there (the connection, the server failing)
       onFinish: () => {
         if (!took) {
-          toast({ tone: 'error', message: refusal ?? _('That did not work. Please try again.') });
+          toast({ tone: 'error', message: refusal ?? _("That didn't work. Try again.") });
         }
         done(took);
       },

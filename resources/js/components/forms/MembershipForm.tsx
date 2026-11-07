@@ -46,7 +46,7 @@ export function MembershipForm({
       />
       <Checkbox
         label={_('Admin of the project')}
-        description={_('Admins configure the project and run the lottery.')}
+        description={_('Admins set up the project and run the lottery.')}
         {...checkbox(form, 'is_admin')}
       />
       {roleError ? (

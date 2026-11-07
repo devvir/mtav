@@ -48,7 +48,7 @@ export function UnitTypeForm({ unitType, onDone }: { unitType?: UnitType; onDone
           ))}
         </SimpleGrid>
         <Text className="ds-caption" mt={6}>
-          {_('New units of this type start this size on the plan; empty, a plain square.')}
+          {_('New units of this type start this size on the plan. If empty, a plain square.')}
         </Text>
       </div>
       <FormActions

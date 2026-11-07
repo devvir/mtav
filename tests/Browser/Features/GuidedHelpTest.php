@@ -16,7 +16,7 @@ it('explains the lottery and walks a member through their ranking', function () 
 
     // Once the page is whole (its plan arrives after it), the tip standing still
     openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
-        ->assertSee('only ties are drawn at random')
+        ->assertSee('Only ties are settled at random')
         ->click('Tell me more')
         ->assertSee('Step 1 of 6')
         ->assertSee('Where it stands')
@@ -58,9 +58,9 @@ it('closes an explanation once read', function () {
 
     // Once the page is whole (its plan arrives after it), the tip standing still
     openHelp(visit(route('lottery.show', $project))->assertPresent('[aria-label="Project plan"]'), 'How the lottery works')
-        ->assertSee('only ties are drawn at random')
+        ->assertSee('Only ties are settled at random')
         ->click('Got it')
-        ->assertDontSee('only ties are drawn at random');
+        ->assertDontSee('Only ties are settled at random');
 });
 
 it('goes back and forth through a tour, and ends it at any step', function () {
@@ -131,7 +131,7 @@ it('stops every tour from any tour, until Preferences turns them back on', funct
         ->click('No more tours')
         ->assertDontSee('Step 1 of')
         ->assertDontSee('Show no more tours?')
-        ->assertSee('Preferences turns them back on');
+        ->assertSee('You can turn them back on in Preferences');
 
     // Another page's tour, never seen, does not play either
     $page->navigate(route('events.index', $project))->wait(2)->assertDontSee('Step 1 of');

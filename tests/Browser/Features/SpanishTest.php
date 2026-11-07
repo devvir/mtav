@@ -24,8 +24,8 @@ it('speaks Spanish in the admin area and in confirmations', function () {
 
     visit(route('manage.settings.edit', $project))->withLocale('es-UY')
         ->assertSee('Configuración')
-        ->click(button('Eliminar el proyecto'))
-        ->assertSee('Escribe')
+        ->click(button('Borrar el proyecto'))
+        ->assertSee('Escribí')
         ->assertDontSee('Delete the project')
         ->assertNoSmoke();
 });

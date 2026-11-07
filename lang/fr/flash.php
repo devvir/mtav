@@ -4,11 +4,11 @@
  * Confirmation messages shown after an action.
  */
 return [
-    'not_allowed' => 'Vous n’êtes pas autorisé à faire cela.',
+    'not_allowed' => 'Vous n’avez pas l’autorisation de faire cela.',
 
     /** Accounts */
     'verification_sent'       => 'Nous vous avons envoyé un nouveau lien de confirmation.',
-    'email_verified'          => 'Votre adresse e-mail est confirmée. Bienvenue !',
+    'email_verified'          => 'Votre adresse e-mail est confirmée. Bienvenue.',
     'email_verification_sent' => 'Nous avons envoyé un lien de confirmation à :email. Votre adresse change dès que vous la confirmez.',
     'email_changed'           => 'Votre adresse e-mail a été changée.',
     'profile_updated'         => 'Votre profil a été enregistré.',
@@ -29,8 +29,8 @@ return [
     /** People */
     'invitation_sent'     => 'Invitation envoyée à :email.',
     'invitation_revoked'  => 'L’invitation a été retirée.',
-    'invitation_accepted' => 'Bienvenue dans :project !',
-    'invitation_declined' => 'Vous avez décliné l’invitation.',
+    'invitation_accepted' => 'Bienvenue dans :project.',
+    'invitation_declined' => 'Vous avez refusé l’invitation.',
     'invitation_sign_in'  => 'Cette invitation est pour :email. Connectez-vous avec ce compte pour l’accepter.',
     'restored'            => 'C’est de retour.',
     'account_blocked'     => ':name est bloqué : hors de tous les projets, sans pouvoir se connecter.',
@@ -38,14 +38,14 @@ return [
     'account_deleted'     => 'Le compte de :name a été supprimé.',
 
     'added_to_family'    => ':name fait maintenant partie de la famille :family.',
-    'join_requested'     => 'Votre demande est arrivée aux admins de :project.',
+    'join_requested'     => 'Votre demande est arrivée aux administrateurs de :project.',
     'join_withdrawn'     => 'Vous avez retiré votre demande.',
     'join_accepted'      => ':name fait maintenant partie du projet.',
     'join_declined'      => 'Vous avez refusé la demande de :name.',
     'member_updated'     => 'Enregistré.',
     'member_removed'     => 'La personne a été retirée du projet.',
-    'superadmin_granted' => ':name est maintenant superadmin.',
-    'superadmin_revoked' => ':name n’est plus superadmin.',
+    'superadmin_granted' => ':name est maintenant superadministrateur.',
+    'superadmin_revoked' => ':name n’est plus superadministrateur.',
 
     /** Structure */
     'family_created'          => 'La famille a été ajoutée.',
@@ -64,14 +64,14 @@ return [
     'event_created'      => 'L’événement a été créé.',
     'event_updated'      => 'L’événement a été enregistré.',
     'event_deleted'      => 'L’événement a été annulé.',
-    'rsvp_attending'     => 'Parfait, à bientôt !',
+    'rsvp_attending'     => 'Parfait, à bientôt.',
     'rsvp_not_attending' => 'Merci de nous avoir prévenus.',
     'media_uploaded'     => 'Votre fichier est partagé.|Vos :count fichiers sont partagés.',
     'media_updated'      => 'La description a été enregistrée.',
     'media_deleted'      => 'Le fichier a été retiré.',
 
     /** Lottery */
-    'lottery_scheduled'   => 'Le tirage a été programmé.',
+    'lottery_scheduled'   => 'La date du tirage a été fixée.',
     'lottery_started'     => 'Le tirage est en cours. Les résultats apparaissent ici dans un instant.',
     'lottery_invalidated' => 'Le tirage a été annulé. Tout le monde dans le projet peut lire pourquoi.',
 
@@ -83,11 +83,11 @@ return [
     'deploy_fresh'            => ':environment repart de zéro, avec les données de démo. Suivez-le ci-dessous.',
     'deploy_refused'          => 'GitHub ne l’a pas lancé (:status). Vérifiez le jeton de déploiement.',
     'deploy_unreachable'      => 'GitHub n’a pas répondu : rien n’a été lancé. Réessayez dans un instant.',
-    'upload_too_large'        => 'C’était trop à envoyer d’un coup : partagez moins de fichiers, ou des plus légers.',
-    'platform_settings_saved' => 'Les réglages de la plateforme ont été enregistrés.',
-    'page_expired'            => 'La page est restée ouverte longtemps : réessayez.',
-    'too_many_attempts'       => 'Trop de tentatives d’affilée : patientez un instant, puis réessayez.',
-    'changed_meanwhile'       => 'Cela a changé entre-temps : vérifiez, puis réessayez.',
+    'upload_too_large'        => 'C’était trop à envoyer d’un coup. Partagez moins de fichiers, ou des fichiers plus légers.',
+    'platform_settings_saved' => 'Les paramètres de la plateforme ont été enregistrés.',
+    'page_expired'            => 'La page est restée ouverte longtemps. Réessayez.',
+    'too_many_attempts'       => 'Trop de tentatives d’affilée. Patientez un instant, puis réessayez.',
+    'changed_meanwhile'       => 'Cela a changé entre-temps. Vérifiez, puis réessayez.',
     'own_account_deleted'     => 'Votre compte a été supprimé.',
     'topic_opened'            => 'Votre sujet est ouvert.',
     'topic_removed'           => 'Le sujet a été retiré.',

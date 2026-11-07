@@ -11,7 +11,7 @@ return [
     'approval_requested_message' => ':requester te pide que apruebes :name.',
 
     'project_approved_title'   => 'Tu proyecto es ilimitado',
-    'project_approved_message' => ':name ya es ilimitado: no tiene límites.',
+    'project_approved_message' => ':name ya es ilimitado.',
 
     'member_joined_title'          => 'Alguien se sumó',
     'member_joined_message'        => ':name se sumó al proyecto.',
@@ -47,15 +47,15 @@ return [
 
     'lottery_failed_message' => 'Mira en la página del sorteo qué pasó. Se puede volver a hacer.',
 
-    'lottery_invalidated_title'   => 'El sorteo fue invalidado',
-    'lottery_invalidated_message' => ':name invalidó el sorteo: «:reason». Se volverá a realizar.',
+    'lottery_invalidated_title'   => 'Se invalidó el sorteo',
+    'lottery_invalidated_message' => ':name invalidó el sorteo: «:reason». Se va a volver a hacer.',
 
     'forum_topic_title'        => 'Nuevo tema en el foro',
     'forum_topic_message'      => ':name abrió «:title».',
     'forum_reply_title'        => 'Una respuesta en el foro',
     'forum_reply_message'      => ':name respondió en «:title».',
-    'family_requested_title'   => 'Alguien pide unirse a tu familia',
-    'family_requested_message' => ':name pide unirse a la familia :family.',
+    'family_requested_title'   => 'Alguien pide sumarse a tu familia',
+    'family_requested_message' => ':name pide sumarse a la familia :family.',
     'family_declined_title'    => 'Rechazaron tu pedido',
     'family_declined_message'  => 'La familia :family rechazó tu pedido.',
     'family_gone_title'        => 'Una familia ya no está',

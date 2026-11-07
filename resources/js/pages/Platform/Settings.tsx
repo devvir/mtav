@@ -43,7 +43,7 @@ export default function Settings({
           <NumberInput
             label={_('How long a lottery takes, in seconds')}
             description={_(
-              'Everyone sees it work, step by step, for at least this long; the result is the same.',
+              'Everyone sees it work, step by step, for at least this long. The result is the same.',
             )}
             name="lottery_seconds"
             min={0}
