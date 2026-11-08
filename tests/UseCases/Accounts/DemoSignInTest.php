@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Entering as a demo account with no password: on a developer's machine, dev and staging, and
@@ -52,6 +53,14 @@ it('enters with no password where it exists', function (string $environment, ?st
 
     $this->assertAuthenticatedAs($this->demo);
 })->with('allowed stages');
+
+it('keeps the demo account signed in on this device', function () {
+    runningAs('production', 'staging');
+
+    demoSignIn($this, $this->demo)->assertCookie(Auth::guard('web')->getRecallerName());
+
+    expect($this->demo->fresh()->remember_token)->not->toBeEmpty();
+});
 
 it('lists the demo accounts where it exists', function (string $environment, ?string $deployment) {
     runningAs($environment, $deployment);
@@ -132,6 +141,9 @@ it('tells each demo account\'s roles: support, admin, member, guest, several at 
     $elsewhere = aProject();
     $elsewhere->memberships()->create(['user_id' => $both->id, 'is_admin' => false, 'family_id' => aFamily($elsewhere)->id]);
     $member = aMemberOf(aFamily($project), ['email' => 'member@example.com']);
+    // Admin of a project and in one of its families, as the seed's admin: one membership holds both
+    $adminInFamily = aUser(['email' => 'admin.family@example.com']);
+    $project->memberships()->create(['user_id' => $adminInFamily->id, 'is_admin' => true, 'family_id' => aFamily($project)->id]);
     $guest = aUser(['email' => 'guest@example.com']);
     $project->memberships()->create(['user_id' => $guest->id]);
 
@@ -140,6 +152,7 @@ it('tells each demo account\'s roles: support, admin, member, guest, several at 
     expect($roles['support@example.com'])->toBe(['support'])
         ->and($roles['both@example.com'])->toBe(['admin', 'member'])
         ->and($roles['member@example.com'])->toBe(['member'])
+        ->and($roles['admin.family@example.com'])->toBe(['admin', 'member'])
         ->and($roles['guest@example.com'])->toBe(['guest'])
         ->and($roles->keys()->first())->toBe('support@example.com');
 });

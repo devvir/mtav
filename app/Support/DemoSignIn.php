@@ -31,8 +31,8 @@ class DemoSignIn
 
     /**
      * Every demo account, with what it is: support (a superadmin), admin of a project, member of
-     * one (in a family), guest (in one, with no family); several at once when so. By role, then
-     * by name.
+     * one (in a family, admin of it or not), guest (in one, with no family and not its admin);
+     * several at once when so. By role, then by name.
      *
      * @return Collection<int, array{id: int, name: string, email: string, roles: list<string>}>
      */
@@ -43,7 +43,7 @@ class DemoSignIn
             ->where(fn ($query) => collect(self::DEMO_DOMAINS)->each(fn ($domain) => $query->orWhere('email', 'like', "%@{$domain}")))
             ->withExists([
                 'memberships as admin'  => fn ($query) => $query->where('is_admin', true),
-                'memberships as member' => fn ($query) => $query->where('is_admin', false)->whereNotNull('family_id'),
+                'memberships as member' => fn ($query) => $query->whereNotNull('family_id'),
                 'memberships as guest'  => fn ($query) => $query->where('is_admin', false)->whereNull('family_id'),
             ])
             ->get(['id', 'firstname', 'lastname', 'email', 'is_superadmin'])

@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
         return redirect()->intended(route('home', absolute: false));
     }
 
-    /** No password: only a demo account, only where demo sign-in exists */
+    /** No password: only a demo account, only where demo sign-in exists. Kept signed in, as testers would ask */
     public function demo(Request $request): RedirectResponse
     {
         abort_unless(DemoSignIn::allowed(), 404);
@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
 
         abort_unless($user && DemoSignIn::isDemo($user) && ! $user->isBlocked(), 404);
 
-        Auth::login($user);
+        Auth::login($user, remember: true);
         $request->session()->regenerate();
 
         return redirect()->intended(route('home', absolute: false));
