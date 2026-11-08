@@ -30,8 +30,10 @@ use RuntimeException;
  * seed without one).
  *
  *  - superadmin@example.com   platform superadmin, the deployment's owner
- *  - admin@example.com        admin of every project (in a family of Las Acacias)
+ *  - admin@example.com        admin of every project, and in a family of Las Acacias
+ *  - advisor@example.com      admin of Las Acacias and Los Ceibos, in no family: an admin only
  *  - member@example.com       in a family of Las Acacias, and in one of Los Ceibos
+ *  - a guest (in a project, in no family), and people only asking to join, with no role yet
  *
  * Five projects, each at another stage:
  *  - Las Acacias: 32 units of four types (two blocks and four houses, drawn on its site),
@@ -97,6 +99,13 @@ class DatabaseSeeder extends Seeder
         $acacias->topics()->where('is_closed', true)->first()?->delete();
         $acacias->events()->where('type', '!=', EventType::LOTTERY)->oldest('id')->first()?->delete();
         $acacias->media()->oldest('id')->first()?->delete();
+
+        // An admin and nothing else: the technical advisor of the two oldest projects, in no
+        // family. Last, so that everyone seeded before keeps their name
+        $advisor = $this->people->person('Méndez', ['email' => 'advisor@example.com', 'firstname' => 'Laura']);
+        foreach ([$acacias, Project::firstWhere('name', 'Cooperativa Los Ceibos')] as $project) {
+            $project->memberships()->create(['user_id' => $advisor->id, 'is_admin' => true]);
+        }
 
         // The seed is no one's doing: the activity log starts empty
         Activity::query()->delete();

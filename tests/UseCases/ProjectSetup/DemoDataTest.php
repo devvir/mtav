@@ -5,6 +5,7 @@ use App\Models\Activity;
 use App\Models\Media;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\DemoSignIn;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -46,4 +47,12 @@ it('seeds a project ranking its units, one whose lottery ran, and one being set 
         ->and($member->familyIn($ceibos))->not->toBeNull()
         // The seed is no one's doing
         ->and(Activity::count())->toBe(0);
+
+    // Every kind of account there is, to enter as each with no setting up first
+    $roles = DemoSignIn::accounts()->pluck('roles', 'email');
+    expect($roles['superadmin@example.com'])->toBe(['support'])
+        ->and($roles['advisor@example.com'])->toBe(['admin'])
+        ->and($roles['admin@example.com'])->toBe(['admin', 'member'])
+        ->and($roles['member@example.com'])->toBe(['member'])
+        ->and($roles->filter(fn (array $them) => $them === ['guest']))->not->toBeEmpty();
 })->group('slow');
