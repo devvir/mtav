@@ -1,10 +1,9 @@
-/* global process, fetch, AbortSignal, URL */
+/* global fetch, AbortSignal */
 // What the warden watches. Each source reads one thing, on its own pace, and either gives what it
 // found or fails on its own: one that is down never hides the others.
 import { execFile } from 'node:child_process';
-import dns from 'node:dns/promises';
 import os from 'node:os';
-import { aws, onServer, servers } from './aws.mjs';
+import { account, aws, onServer, servers } from './aws.mjs';
 
 const SITES = {
   dev: 'https://dev.mtav.uy',
@@ -13,8 +12,6 @@ const SITES = {
   sorteo: 'https://sorteo.mtav.uy',
 };
 const ACCOUNTS_VOLUME = 'claude-accounts';
-/** The server MTAV ran on before AWS: a name still leading there has not moved */
-const BEFORE_AWS = '179.27.99.138';
 
 const run = (command, args, { timeout = 20_000, cwd } = {}) =>
   new Promise((resolve, reject) => {
@@ -59,30 +56,6 @@ export function stacksOf(containers) {
   return stacks;
 }
 
-/**
- * What each app slot of the server runs (`name image` lines), and which one is live (`live
- * <environment> <slot>` lines)
- */
-export function releasesOf(text) {
-  const releases = {};
-  const live = {};
-  for (const line of text.split('\n')) {
-    const said = /^live (\w+) (blue|green)/.exec(line.trim());
-    if (said) live[said[1]] = said[2];
-  }
-  for (const line of text.split('\n')) {
-    const match = /^mtav-(\w+)-(blue|green)-app-1 .*sha-([0-9a-f]{8})/.exec(line.trim());
-    if (match) {
-      (releases[match[1]] ??= []).push({
-        slot: match[2],
-        commit: match[3],
-        live: live[match[1]] === match[2],
-      });
-    }
-  }
-  return releases;
-}
-
 /** docker stats' figures by container name */
 export function usageOf(stats) {
   return Object.fromEntries(
@@ -91,42 +64,6 @@ export function usageOf(stats) {
       { cpu: parseFloat(row.CPUPerc), memory: row.MemUsage.split(' / ')[0] },
     ]),
   );
-}
-
-/** MTAV_SERVERS: user@host, comma separated */
-export const serversOf = (setting) =>
-  String(setting ?? '')
-    .split(',')
-    .map((host) => host.trim())
-    .filter(Boolean);
-
-/** One server's releases and figures, over ssh */
-async function readServer(host) {
-  const text = await run(
-    'ssh',
-    [
-      '-o',
-      'BatchMode=yes',
-      '-o',
-      'ConnectTimeout=8',
-      host,
-      "docker ps --format '{{.Names}} {{.Image}}'; for f in /mtav/*/live; do echo \"live $(basename $(dirname $f)) $(cut -d' ' -f1 $f)\"; done; echo ---; nproc; cut -d' ' -f1-3 /proc/loadavg; free -b | sed -n 2p; df -B1 --output=size,avail / | tail -1",
-    ],
-    { timeout: 25_000 },
-  );
-  const [containers, stats = ''] = text.split('---\n');
-  const [cores, load, memory, disk] = stats.trim().split('\n');
-  const [, memoryTotal, , , , , memoryFree] = (memory ?? '').trim().split(/\s+/);
-  const [diskTotal, diskFree] = (disk ?? '').trim().split(/\s+/);
-  return {
-    releases: releasesOf(containers),
-    figures: {
-      cores: Number(cores) || 1,
-      load: (load ?? '').split(' ').map(Number),
-      memory: { total: Number(memoryTotal), free: Number(memoryFree) },
-      disk: { total: Number(diskTotal), free: Number(diskFree) },
-    },
-  };
 }
 
 /** What one AWS server says of itself (the lines `cloudScript` prints), as figures */
@@ -143,10 +80,14 @@ export function serverFigures(text) {
     if (what === 'certificate') figures.certificate = rest.join(' ') || null;
     if (what === 'backup') figures.backup = rest.join(' ') || null;
     if (what === 'live' || what === 'previous') {
-      const [environment, slot, image] = rest;
+      // <slot> <image> <commit>: the image by its digest; a record by tag alone names the commit in it
+      const [environment, slot, image, commit] = rest;
       figures[what][environment] = {
         slot,
-        commit: /sha-([0-9a-f]{40})/.exec(image ?? '')?.[1] ?? null,
+        commit: /^[0-9a-f]{40}$/.test(commit ?? '')
+          ? commit
+          : (/sha-([0-9a-f]{40})/.exec(image ?? '')?.[1] ?? null),
+        digest: /@(sha256:[0-9a-f]{64})$/.exec(image ?? '')?.[1] ?? null,
       };
     }
     if (what === 'container') {
@@ -289,47 +230,18 @@ export const sources = (repo) => ({
     every: 60,
     read: async () => {
       const check = async ([name, url]) => {
-        // Where its name leads now: the server before AWS, or AWS
-        const leads = await dns
-          .resolve4(new URL(url).hostname)
-          .then((addresses) => (addresses.includes(BEFORE_AWS) ? 'before' : 'aws'))
-          .catch(() => null);
         const started = Date.now();
         try {
           const response = await fetch(`${url}/up`, {
             signal: AbortSignal.timeout(10_000),
             redirect: 'manual',
           });
-          return { name, url, leads, status: response.status, ms: Date.now() - started };
+          return { name, url, status: response.status, ms: Date.now() - started };
         } catch (error) {
-          return { name, url, leads, status: null, error: String(error.message).slice(0, 120) };
+          return { name, url, status: null, error: String(error.message).slice(0, 120) };
         }
       };
       return Promise.all(Object.entries(SITES).map(check));
-    },
-  },
-
-  server: {
-    every: 60,
-    read: async () => {
-      const hosts = serversOf(process.env.MTAV_SERVERS);
-      if (!hosts.length) return { notSetUp: true };
-
-      // Each on its own: one that does not answer says so, the others still do
-      const answers = await Promise.allSettled(hosts.map(readServer));
-      return {
-        servers: answers.map((answer, index) =>
-          answer.status === 'fulfilled'
-            ? { host: hosts[index], ...answer.value.figures }
-            : { host: hosts[index], error: answer.reason.message },
-        ),
-        releases: Object.assign(
-          {},
-          ...answers
-            .filter((answer) => answer.status === 'fulfilled')
-            .map((answer) => answer.value.releases),
-        ),
-      };
     },
   },
 
@@ -411,7 +323,7 @@ export const sources = (repo) => ({
             'budgets',
             'describe-budget',
             '--account-id',
-            '690260957652',
+            await account(),
             '--budget-name',
             'mtav-monthly',
           ],
@@ -442,7 +354,8 @@ export const sources = (repo) => ({
     every: 900,
     read: async () =>
       latestBackups(
-        (await aws(['s3api', 'list-objects-v2', '--bucket', 'mtav-backups-690260957652'])).Contents,
+        (await aws(['s3api', 'list-objects-v2', '--bucket', `mtav-backups-${await account()}`]))
+          .Contents,
       ),
   },
 });

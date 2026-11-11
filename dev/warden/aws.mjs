@@ -25,6 +25,20 @@ export const aws = (args, { timeout = 30_000, region = REGION } = {}) =>
     );
   });
 
+let known = null;
+
+/** The AWS account the profile acts on, asked once (and again after a failure) */
+export function account() {
+  known ??= aws(['sts', 'get-caller-identity']).then(
+    (identity) => identity.Account,
+    (error) => {
+      known = null;
+      throw error;
+    },
+  );
+  return known;
+}
+
 /** MTAV's servers as AWS has them: each with its state and the environments it holds */
 export async function servers() {
   const answer = await aws([

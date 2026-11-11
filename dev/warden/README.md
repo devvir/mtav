@@ -5,8 +5,8 @@ of MTAV's own design system, on three tabs:
 
 - **Overview**: this machine, the sites, the local stacks, the repository and its pipelines, the local app's figures,
   the Claude accounts' usage.
-- **Deployment**: where each environment runs and what (its live release, the one before, whether it is behind its
-  branch), and doing something with it (deploy, roll back, start over), through the same GitHub workflows as ever;
+- **Deployment**: where each environment runs and what (its live release, by commit and image digest, the one before,
+  whether it is behind its branch), and doing something with it (deploy, roll back, start over), through the same GitHub workflows as ever;
   AWS's servers (state, memory, disk, the data disk, the certificate; start and stop); the infrastructure (Check runs
   OpenTofu's plan, Apply makes exactly that plan); credits and this month's spend; the latest backups, and one taken
   now. Each action's output is followed live.
@@ -16,9 +16,8 @@ of MTAV's own design system, on three tabs:
 ./mtav warden        # builds the page (a few seconds), then http://localhost:9190
 ```
 
-It needs this machine's `docker`, `gh`, `aws` (the `mtav` profile, MTAV's AWS project) and `tofu`. `MTAV_SERVERS`
-names the server before AWS to read over `ssh` (`user@host`, comma separated), from the environment or the
-repository's `.env`; without it, that part says it is not set up, and the others go on.
+It needs this machine's `docker`, `gh`, `aws` (the `mtav` profile, MTAV's AWS project, or `MTAV_AWS_PROFILE`; the
+account is the profile's own) and `tofu`.
 
 It sits on top of the app rather than in it: it is left out of every image, so no deployment can run it. It listens on
 this machine alone, reads nothing with nobody looking, and does something only when its own page asks (a header no

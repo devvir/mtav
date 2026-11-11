@@ -48,10 +48,9 @@ locals {
   cloudfront = false
 
   account = data.aws_caller_identity.here.account_id
-  zone    = "Z08799512NUF8677Y26UO" # mtav.uy, made before this configuration and adopted by it (dns.tf)
 
-  # The servers, and the environments each runs: the ports its switch listens on (as in each environment's .env), the
-  # names people reach it by, and whether those names lead to AWS yet (false: still to the server MTAV ran on before).
+  # The servers, and the environments each runs: the ports its switch listens on (as in each environment's .env), and
+  # the names people reach it by.
   #
   # Each server's data (its environments' databases, uploaded files and settings) lives on a disk of its own (`data`,
   # in GB), apart from the server: it stays when the server goes and is attached again when it comes back.
@@ -66,7 +65,7 @@ locals {
       disk    = 20
       data    = 4
       environments = {
-        production = { web = 8002, ws = 8082, names = ["www.mtav.uy"], on_aws = true }
+        production = { web = 8002, ws = 8082, names = ["www.mtav.uy"] }
       }
     }
     preview = {
@@ -75,19 +74,16 @@ locals {
       disk    = 20
       data    = 4
       environments = {
-        staging = { web = 8000, ws = 8080, names = ["stg.mtav.uy"], on_aws = true }
-        dev     = { web = 8001, ws = 8081, names = ["dev.mtav.uy"], on_aws = true }
+        staging = { web = 8000, ws = 8080, names = ["stg.mtav.uy"] }
+        dev     = { web = 8001, ws = 8081, names = ["dev.mtav.uy"] }
         # The Open Lottery, public, kept running while production is off: small, and it fits here
-        sorteo = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"], on_aws = true }
+        sorteo = { web = 8003, ws = 8083, names = ["sorteo.mtav.uy"] }
       }
     }
   }
 
   # The bare domain is no environment's: it sends people to www, as the server that holds www does.
-  apex = { name = "mtav.uy", server = "production", to = "www.mtav.uy", on_aws = true }
-
-  # The server MTAV ran on before AWS, where a name not on AWS yet still leads.
-  before = "179.27.99.138"
+  apex = { name = "mtav.uy", server = "production", to = "www.mtav.uy" }
 
   # The servers that are on, which everything made per server follows.
   running = { for server, it in local.servers : server => it if it.running }

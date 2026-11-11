@@ -53,10 +53,6 @@ body {
   border-top: 1px solid var(--mtav-border);
 }
 
-.warden-server[data-before] {
-  opacity: 0.75;
-}
-
 .warden-output {
   border-radius: var(--mantine-radius-md);
   background: color-mix(in srgb, var(--mantine-color-body) 70%, #000);

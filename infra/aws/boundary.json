@@ -1,0 +1,81 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OurBuckets",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": ["arn:aws:s3:::mtav-*", "arn:aws:s3:::mtav-*/*"]
+    },
+    {
+      "Sid": "NeverTheState",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "Resource": ["arn:aws:s3:::mtav-tofu-state-{{account}}", "arn:aws:s3:::mtav-tofu-state-{{account}}/*"]
+    },
+    {
+      "Sid": "OurParameters",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"],
+      "Resource": "arn:aws:ssm:us-east-2:{{account}}:parameter/mtav/*"
+    },
+    {
+      "Sid": "Decrypt",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "kms:ViaService": "ssm.us-east-2.amazonaws.com" } }
+    },
+    {
+      "Sid": "Logs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams", "logs:DescribeLogGroups"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReachedThroughSsm",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "ssm:UpdateInstanceInformation", "ssm:ListAssociations", "ssm:ListInstanceAssociations", "ssm:DescribeAssociation",
+        "ssm:GetDocument", "ssm:DescribeDocument", "ssm:PutInventory", "ssm:PutComplianceItems",
+        "ssm:UpdateInstanceAssociationStatus", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel", "ec2messages:*"
+      ]
+    },
+    {
+      "Sid": "Deploying",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "ssm:SendCommand", "ssm:GetCommandInvocation", "ssm:ListCommandInvocations", "ssm:ListCommands",
+        "ec2:DescribeInstances", "cloudfront:CreateInvalidation"
+      ]
+    },
+    {
+      "Sid": "Snapshots",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "ec2:CreateSnapshot", "ec2:CreateSnapshots", "ec2:DeleteSnapshot", "ec2:DescribeInstances", "ec2:DescribeVolumes",
+        "ec2:DescribeSnapshots", "ec2:DescribeSnapshotAttribute", "ec2:CreateTags"
+      ]
+    },
+    {
+      "Sid": "CertificateChallenges",
+      "Effect": "Allow",
+      "Action": "route53:ChangeResourceRecordSets",
+      "Resource": "arn:aws:route53:::hostedzone/{{zone}}",
+      "Condition": {
+        "ForAllValues:StringLike": { "route53:ChangeResourceRecordSetsNormalizedRecordNames": ["_acme-challenge.*"] },
+        "ForAllValues:StringEquals": { "route53:ChangeResourceRecordSetsRecordTypes": ["TXT"] }
+      }
+    },
+    {
+      "Sid": "CertificateChallengesRead",
+      "Effect": "Allow",
+      "Action": ["route53:GetChange", "route53:ListHostedZones", "route53:ListResourceRecordSets"],
+      "Resource": "*"
+    }
+  ]
+}

@@ -2,6 +2,11 @@
 # registry as ghcr.io/devvir/mtav:sha-<commit> when asked. Used by the pipeline (every
 # push) and by dev deploys (any branch).
 #
+# A tag names whatever was pushed under it last, and any branch's workflow can push to the
+# package: environments deploy a release by its digest (sha256:…, a name for its content
+# alone), which this gives out. staging's and main's builds are their own, from scratch or
+# from their own cache: never an image or a cache layer another branch published.
+#
 # One image for both kinds of processor: Intel/AMD (amd64) and ARM (arm64, AWS's servers).
 # Each is built natively on GitHub's machine of its kind, side by side, then both are joined
 # under the one name; Docker on each server pulls its own.
@@ -22,12 +27,16 @@ on:
       image:
         description: The image, by commit tag
         value: ${{ jobs.image.outputs.image }}
+      digest:
+        description: The image's digest (sha256:…), what a deploy names
+        value: ${{ jobs.image.outputs.digest }}
 
 env:
   IMAGE: ghcr.io/devvir/mtav
 
 jobs:
-  # A commit already published for both kinds (staging's, deployed to dev) is not built again
+  # A commit already published for both kinds (staging's, deployed to dev) is not built again for
+  # dev; staging and main always build their own
   published:
     name: Already published?
     runs-on: ubuntu-24.04
@@ -35,6 +44,7 @@ jobs:
       packages: read
     outputs:
       yes: ${{ steps.check.outputs.yes }}
+      digest: ${{ steps.check.outputs.digest }}
     steps:
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         if: inputs.publish
@@ -43,11 +53,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: check
-        if: inputs.publish && !inputs.latest
+        if: inputs.publish && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging'
         run: |
           manifest="$(docker manifest inspect "$IMAGE:sha-$GITHUB_SHA" 2>/dev/null || true)"
           if grep -q '"architecture": "amd64"' <<< "$manifest" && grep -q '"architecture": "arm64"' <<< "$manifest"; then
             echo "yes=true" >> "$GITHUB_OUTPUT"
+            echo "digest=$(docker buildx imagetools inspect "$IMAGE:sha-$GITHUB_SHA" --format '{{json .Manifest}}' | jq -r .digest)" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -76,6 +87,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          version: v0.38.2
+          driver-opts: image=moby/buildkit:v0.34.2@sha256:c5f8862f52499773af85bc07695b2379ef08e8002352b0df2c4864c91d78dabe
 
       # Published by its content alone (a digest): the name comes once both kinds are in
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -88,11 +102,12 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          # The build cache lives beside the images (uploading to GitHub's Actions cache took
-          # longer than the build), one per kind. Any branch reads it; only main's publishing
-          # builds write it, so a branch can never plant layers that main's releases then reuse
-          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.arch }}
-          cache-to: ${{ inputs.publish && github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache-{1},mode=max', env.IMAGE, matrix.arch) || '' }}
+          # The build cache, one per kind, in GitHub's Actions cache: a run reads only what its
+          # own branch and main wrote there, so no other branch can plant layers that staging's
+          # or main's releases reuse (the registry could not keep them apart: any branch can
+          # push any tag). Only staging's and main's publishing builds write it
+          cache-from: type=gha,scope=release-${{ matrix.arch }}
+          cache-to: ${{ inputs.publish && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') && format('type=gha,scope=release-{0},mode=max', matrix.arch) || '' }}
 
       - name: Keep the digest
         if: inputs.publish
@@ -119,6 +134,7 @@ jobs:
       packages: write
     outputs:
       image: ${{ steps.name.outputs.image }}
+      digest: ${{ steps.join.outputs.digest || needs.published.outputs.digest }}
     steps:
       - name: Name
         id: name
@@ -140,14 +156,24 @@ jobs:
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         if: inputs.publish && needs.build.result == 'success'
+        with:
+          version: v0.38.2
+          driver-opts: image=moby/buildkit:v0.34.2@sha256:c5f8862f52499773af85bc07695b2379ef08e8002352b0df2c4864c91d78dabe
 
+      # Its digest is the one this pushed (what the tag names next is anyone's)
       - name: Join both kinds
+        id: join
         if: inputs.publish && needs.build.result == 'success'
         working-directory: digests
         run: |
           tags=(-t "${{ steps.name.outputs.image }}")
           [[ "${{ inputs.latest }}" == true ]] && tags+=(-t "$IMAGE:main")
-          docker buildx imagetools create "${tags[@]}" \
+          sources=()
+          for kind in *; do sources+=("$IMAGE@sha256:$kind"); done
+          docker buildx imagetools create "${tags[@]}" --metadata-file "$RUNNER_TEMP/index.json" \
             --annotation "index:org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
-            $(printf "$IMAGE@sha256:%s " *)
-          docker buildx imagetools inspect "${{ steps.name.outputs.image }}"
+            "${sources[@]}"
+          digest="$(jq -r '."containerimage.descriptor".digest' "$RUNNER_TEMP/index.json")"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::no digest for the image pushed"; exit 1; }
+          docker buildx imagetools inspect "$IMAGE@$digest"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"

@@ -1,9 +1,10 @@
 # MTAV's release image: the whole app in one image, the same in every environment.
 #
-# One image runs every role, chosen by its command (deploy/compose.yml): the web server
+# One image runs every role, chosen by its command (deploy/slot.yml): the web server
 # (FrankenPHP: Caddy and PHP in one process, serving pages and built assets), the
 # websocket server (Reverb) and the queue worker. Everything that differs between
-# environments comes from the environment at run time, never from the build.
+# environments comes from the environment at run time, never from the build. How it is
+# deployed (deploy/host, the compose files) is the host's own, never carried here.
 #
 # Build context: the repository root.
 
@@ -74,10 +75,6 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \
     && rm /usr/bin/composer
 
 COPY deploy/entrypoint.sh /usr/local/bin/mtav-entrypoint
-# How a release deploys itself (taken out of the image by the host's gate)
-COPY deploy/compose.yml deploy/slot.yml deploy/
-COPY deploy/switch/ deploy/switch/
-COPY deploy/host/deploy deploy/host/
 
 # Unprivileged: the web server listens on 8080, behind the environment's switch
 # (and Tinker, for people on the host, keeps its settings in /config/psysh)

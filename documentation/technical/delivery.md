@@ -10,8 +10,8 @@ On GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `pipeline.yml` | every push | style, lint, types and static analysis; tests (Pest, Vitest); the browser suite; the release image |
-| | `staging`, once all of that passes | the image published, and staging deployed |
-| | `main`, once all of that passes | the image published (and tagged `main`) |
+| | `staging`, once all of that passes | the image published and attested, and staging deployed |
+| | `main`, once all of that passes | the image published and attested (and tagged `main`) |
 | `solver.yml` | every push that touches the lottery's solvers; by hand | the Stress suite: GLPK on hard instances. It reports on the commit and holds no release back |
 | `review.yml` | every push to `dev` that changes more than documentation | a cloud Claude Code task reviews it; it decides nothing about deploying |
 | `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev, from fresh demo data |
@@ -33,7 +33,8 @@ themselves; the watch says when that did not happen.
 the PHP code with its production dependencies, on FrankenPHP (Caddy and PHP in one
 process), unprivileged, listening on 8080. The same image runs every role (web server,
 websocket server, queue worker), chosen by its command, and every environment: nothing
-about an environment is built in. It also carries its own deploy steps (`deploy/`).
+about an environment is built in. It is only the app: how it is deployed (the compose
+files, the steps run as root) belongs to the host ([Reaching a server](#reaching-a-server)).
 
 What it is built with cannot change under it: base images by digest, the pnpm download by
 checksum, third-party actions by commit. Dependabot proposes newer ones each month, to `dev`
@@ -42,6 +43,15 @@ checksum, third-party actions by commit. Dependabot proposes newer ones each mon
 `release-image.yml` builds it and publishes it to `ghcr.io/devvir/mtav`, tagged by commit
 (`sha-<commit>`); `main` also tags the latest as `main`. The package is public, like the
 code: hosts pull it without credentials. Nothing is ever built on a host.
+
+A tag is only a name: any branch's workflow can publish to the package, under any tag.
+What a deploy names is the image's **digest** (`sha256:…`), which names its content and
+cannot be made to name anything else; the release workflow gives it out with the image.
+`staging` and `main` always build their own image (never one already published under the
+commit's tag), from a build cache that only their own runs and `main`'s wrote (GitHub's
+Actions cache, which keeps branches apart), and the pipeline then **attests** it: GitHub
+signs that this digest was built by `pipeline.yml`, from this commit, on this branch, on
+GitHub's runners. No other branch's run can sign that of `staging` or `main`.
 
 On start, every role builds Laravel's caches from its environment
 (`deploy/entrypoint.sh`), then runs its command.
@@ -92,8 +102,9 @@ dump of step 2 is the only copy of what was there. Every deploy to dev is fresh;
 is fresh only when `fresh.yml` asks: it deploys again the release staging runs, fresh.
 
 `rollback` puts the release before back on the switch (its slot starts again if it
-had stopped). Migrations run forward only: the release before runs on the newer
-database. If that does not work, restoring a dump from step 2 is a person's decision:
+had stopped), by the digest the host recorded for it, under the compose files the host
+has now. Migrations run forward only: the release before runs on the newer database. If
+that does not work, restoring a dump from step 2 is a person's decision:
 
 ```sh
 cd /mtav/<environment>
@@ -109,19 +120,40 @@ environments live is `deploy/ci/deploy`: it finds the server running the environ
 hands it a request through AWS Systems Manager. Each GitHub environment has an AWS identity
 of its own (`mtav-deploy-<environment>`), which can run one thing on one server, the
 **gate** (`deploy/host/gate`, installed as `/usr/local/sbin/mtav-gate`), for its own
-environment only, and ask any server what it runs. The gate accepts:
+environment only, and ask its server what it runs (production and sorteo, staging's
+server too: they deploy what staging runs). The gate accepts:
 
 | Request | Does |
 |---|---|
-| `deploy <environment> <commit> [fresh]` | that commit's release goes live |
+| `deploy <environment> <commit> <digest> [fresh]` | that release goes live: the image by its digest, which must say it is that commit's |
 | `rollback <environment>` | the release before goes live again |
-| `status` | what each environment runs (live and previous: slot and image) |
+| `status` | what each environment runs (live and previous: slot, commit and digest) |
 | `backup <environment> database\|files` | a gzipped copy, for the server's nightly backups alone ([data.md](data.md)) |
 
-It refuses anything else, any environment not set up on the server, and any image not built
-from this repository. Backups are the server's own (nightly, to S3); the deploy identities
-never take them. The deploy's steps come from the release's own image
-(`deploy/host/deploy`), never from the caller, so an identity can only run MTAV's releases.
+It refuses anything else, any environment not set up on the server, and any image named
+by a tag. Backups are the server's own (nightly, to S3); the deploy identities never take
+them. What a command prints goes to a log group of the environment's own
+(`/mtav/commands/<environment>`; status, to `/mtav/commands`), and an identity reads only
+its own and status: Systems Manager itself shows a command's output only to whoever may
+see every command's. A deploy whose output cannot be read there, or that has not ended
+after 65 minutes (Systems Manager ends the gate after an hour), fails, saying so.
+
+The servers' roles can do no more than `mtav-boundary` allows, their permissions boundary
+(`infra/aws/boundary.json`). `mtav`, which makes the roles, may not change it:
+`infra/aws/boundary.sh`, run as the project's administrator, makes the file the policy's
+new version.
+
+**What runs as root is the host's.** The gate, the deploy it runs
+(`deploy/host/deploy`), the compose files a release runs under (`deploy/compose.yml`,
+`deploy/slot.yml`, `deploy/switch/live.conf.template`: what a container mounts, which
+network it joins, what it may do) and the nightly backups' script are installed on every
+server from `infra/aws/main` (`server/install.sh`, carried by the `mtav-host` Systems
+Manager document): when a server first comes online, and again, by itself, whenever
+`tofu apply` changes any of them. A release brings only its image, run as those files
+say: whatever a branch deployed to dev does, it does inside its containers, with dev's
+`.env`, and never as root on the host. Changed compose files reach each environment at
+its next deploy or rollback, so they must suit the releases a server keeps (the live one
+and the one before).
 
 Servers are reached only through Systems Manager: no SSH, anywhere.
 
@@ -130,9 +162,10 @@ Servers are reached only through Systems Manager: no SSH, anywhere.
 1. **The server**: `infra/aws/main` makes it (`tofu apply`), with its data disk, its
    address and its settings; its first boot runs `server/setup.sh`, which installs Docker,
    nginx in front (HTTPS with its own Let's Encrypt certificate, TLS 1.2 and 1.3, no
-   version shown, uploads up to 105 MB), the gate and nightly backups. Every step can run
-   again. Which environments a server runs, and the names each answers to, are in
-   `main.tf`; `mtav-reconfigure` on the server takes a change up. CloudFront can stand in
+   version shown, uploads up to 105 MB) and nightly backups; its deploy steps (the gate
+   among them) follow as soon as it is online. Every step can run again. Which
+   environments a server runs, and the names each answers to, are in `main.tf`;
+   `mtav-reconfigure` on the server takes a change up. CloudFront can stand in
    front of the servers (`cloudfront` in `main.tf`); without it, each name leads straight
    to its server.
 2. **Each environment**: `/mtav/<environment>/.env` on its server (written there through
@@ -149,7 +182,10 @@ Servers are reached only through Systems Manager: no SSH, anywhere.
    Google needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google Cloud OAuth
    client (Web application) whose authorised redirect URIs include
    `<APP_URL>/auth/google/callback` (one client serves every environment, each with its
-   own URI); without them the option is not offered. Notifications on devices need
+   own URI); without them the option is not offered. Dev's `.env` is read by whatever
+   branch is deployed there, and any branch can use what it holds: it holds no
+   `GITHUB_DEPLOY_TOKEN` (which could start any workflow, production's too) and no secret
+   another environment shares (a mail password, an API key), only dev's own. Notifications on devices need
    `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, a pair of its own per environment
    (`php artisan push:keys`). `CONTACT_EMAIL` is whom the privacy page tells people to
    write to (else the owner). The
@@ -164,11 +200,34 @@ Servers are reached only through Systems Manager: no SSH, anywhere.
    `APP_URL`'s, so a wrong header can never send a link anywhere else.
 4. **GitHub**: `infra/aws/deploy-keys.sh` gives each environment of a running server its
    identity's key, as that GitHub environment's secrets (`AWS_ACCESS_KEY_ID`,
-   `AWS_SECRET_ACCESS_KEY`), and rotates them when run again. The environments keep their
-   branches: staging only from `staging`, production only from `main`, dev from any (by
-   hand). A workflow of any other branch never sees a key that could reach them.
+   `AWS_SECRET_ACCESS_KEY`), and rotates them when run again (`--policies`: only each
+   identity's policy, from `tofu output deploy_policies`, keys kept). The environments
+   keep their branches: staging only from `staging` and `main` (where its rollback and
+   start-over run), production and sorteo only from `main`, dev from any (by hand). A
+   workflow of any other branch never sees a key that could reach them.
 
 The first deploy creates the switch, the volumes and the database.
+
+## Changing how deploys work
+
+A change to the gate's requests, to the deploy identities' policies, or to the host's
+deploy steps reaches GitHub and the servers by different roads, and they must meet. With
+nothing deploying (a deploy started meanwhile fails; the installer waits two minutes for
+one in progress, then leaves its records as they are):
+
+1. `infra/aws/boundary.sh`, if `boundary.json` changed (as the administrator);
+2. `tofu apply` in `infra/aws/main`: the gate's documents, and the deploy steps every
+   server installs by itself (`tofu output host_steps`: the version each should report in
+   `/usr/local/lib/mtav/version`);
+3. `infra/aws/deploy-keys.sh --policies` (as the administrator), if `deploy_policies`
+   changed;
+4. the change pushed to `staging` (its pipeline deploys staging with the new steps), then
+   `main` fast-forwarded to it, then `dev`.
+
+Until then a branch still on the old steps fails wherever it deploys, dev included: it
+deploys again once rebased on them. Production's default (the release staging runs)
+works only once staging runs an image its pipeline attested, and only while staging's
+commit is on `main`.
 
 ## Who decides what runs
 
@@ -184,8 +243,20 @@ Commits move up by fast-forward only: `staging` to `main` always (so production 
 commit, and the image, staging ran), `dev` to `staging` as fits. A push to `main` of a
 commit `staging` never had fails the pipeline, and production refuses it.
 
+What each environment runs is decided by what cannot be forged:
+
+- **Staging** deploys the digest its own pipeline run built, handed from job to job; its
+  key is only in the `staging` GitHub environment, which only `staging` and `main` may
+  use. Starting it over or rolling it back keeps the digest its server recorded.
+- **Production** (and sorteo) deploys the digest staging runs, or, for a commit named,
+  the one its tag names; either way only once GitHub's attestation says that digest was
+  built by the pipeline from that commit on `staging` or `main`. A moved tag, or a
+  server's record changed by someone who took it over, stops the deploy there.
+- **Dev** deploys whatever its branch built: any branch can publish to the package, and
+  those images reach dev alone.
+
 The platform console's Deployments page starts these same workflows through GitHub's API
-(dev from a branch, production from `main`, a rollback of any environment, dev or
+(dev from a branch, production or sorteo from `main`, a rollback of any environment, dev or
 staging started over) and shows
 what each environment runs: GitHub's deployment records, replayed in order (a rollback
 swaps the live release with the one before, starting over keeps it), against the latest

@@ -1,28 +1,33 @@
 #!/bin/bash
 # Deploys a release to an environment on this host, blue/green: the release starts in the
 # slot that is not live, and the switch hands it the traffic only once it is healthy, so
-# visitors never see the site down. Run by the gate (deploy/host/gate) as root, from the
-# release's own deploy/ (taken out of its image):
+# visitors never see the site down. Run by the gate (deploy/host/gate) as root, installed
+# beside it with the compose files it runs (<files>: compose.yml, slot.yml,
+# live.conf.template), all of them the host's own: a release brings only its image.
 #
-#   deploy <environment> <image> <bundle> [fresh]   the release goes live
-#   deploy --rollback <environment> <bundle>        the release before goes live again
+#   deploy <environment> <image> <commit> [fresh]   the release goes live
+#   deploy --rollback <environment>                 the release before goes live again
 #
-# fresh (only where the environment allows it) starts the database and the uploaded files
-# over, with demo data.
+# <image> is named by its digest. fresh (only where the environment allows it) starts the
+# database and the uploaded files over, with demo data.
 #
 # An environment's directory (<home>/<environment>) holds its .env and what the deploys
-# keep: compose.yml and slot.yml (copied from the release), switch/ (the live slot's
-# configuration), live and previous (slot and image of each), backups/ (database dumps).
+# keep: compose.yml, slot.yml and live.conf.template (copied from <files> by each deploy
+# and rollback, so that what runs there is what they last started), switch/ (the live
+# slot's configuration), live and previous (slot, image and commit of each), backups/
+# (database dumps). Changed compose files must serve the releases a host still keeps (the
+# live one, and the one before): a rollback starts the older image with them.
 set -euo pipefail
 
 home="${MTAV_HOME:-/mtav}"
+files="${MTAV_FILES:-/usr/local/lib/mtav}"
 
 say() { echo "[$(date -u +%H:%M:%S)] $*"; }
 
 if [[ "$1" == --rollback ]]; then
-    mode=rollback environment="$2" bundle="$3" image='' fresh=''
+    mode=rollback environment="$2" image='' commit='' fresh=''
 else
-    mode=deploy environment="$1" image="$2" bundle="$3" fresh="${4:-}"
+    mode=deploy environment="$1" image="$2" commit="$3" fresh="${4:-}"
 fi
 # Whatever asked for it, and whatever its .env says: production's data is never started over
 if [[ "$environment" == production && -n "$fresh" ]]; then
@@ -65,28 +70,30 @@ go_live() {
     return 1
 }
 
-live_slot='' live_image='' previous_slot='' previous_image=''
-[[ -f "$dir/live" ]] && read -r live_slot live_image < "$dir/live"
-[[ -f "$dir/previous" ]] && read -r previous_slot previous_image < "$dir/previous"
+live_slot='' live_image='' live_commit='' previous_slot='' previous_image='' previous_commit=''
+[[ -f "$dir/live" ]] && read -r live_slot live_image live_commit < "$dir/live"
+[[ -f "$dir/previous" ]] && read -r previous_slot previous_image previous_commit < "$dir/previous"
+
+# The host's compose files, for this run and whoever reads the environment's directory after it
+cp "$files/compose.yml" "$files/slot.yml" "$files/live.conf.template" "$dir/"
 
 if [[ "$mode" == rollback ]]; then
     [[ -n "$previous_slot" && -n "$live_slot" ]] || { say "Nothing to go back to"; exit 1; }
-    say "Back to $previous_image (slot $previous_slot) from $live_image"
+    say "Back to ${previous_commit:-$previous_image} (slot $previous_slot) from ${live_commit:-$live_image}"
     slot_compose "$previous_slot" "$previous_image" up -d --wait --wait-timeout 180
     go_live "$previous_slot" || { say "The slot does not answer: $live_slot stays live"; go_live "$live_slot"; exit 1; }
-    echo "$previous_slot $previous_image" > "$dir/live"
-    echo "$live_slot $live_image" > "$dir/previous"
+    echo "$previous_slot $previous_image $previous_commit" > "$dir/live"
+    echo "$live_slot $live_image $live_commit" > "$dir/previous"
     # Last: it may wait out a lottery run in hand
     slot_compose "$live_slot" "$live_image" down
-    say "Done: $environment runs $previous_image again (its migrations were kept)"
+    say "Done: $environment runs ${previous_commit:-$previous_image} again (its migrations were kept)"
     exit 0
 fi
 
 next=blue
 [[ "$live_slot" == blue ]] && next=green
-say "Deploying $image to $environment, slot $next (live: ${live_image:-nothing yet})"
+say "Deploying $commit ($image) to $environment, slot $next (live: ${live_commit:-${live_image:-nothing yet}})"
 
-cp "$bundle/compose.yml" "$bundle/slot.yml" "$bundle/switch/live.conf.template" "$dir/"
 docker volume create "mtav-${environment}_files" > /dev/null
 
 say "The database"
@@ -95,7 +102,7 @@ env_compose up -d --wait db
 if [[ -n "$live_slot" ]]; then
     # Everyone's data: for root alone, those there from before too
     install -d -m 700 "$dir/backups"
-    dump="$dir/backups/$(date -u +%Y%m%dT%H%M%SZ)-before-${image##*:}.sql.gz"
+    dump="$dir/backups/$(date -u +%Y%m%dT%H%M%SZ)-before-$commit.sql.gz"
     say "Dumping the database to $dump"
     (
         umask 077
@@ -140,14 +147,21 @@ if ! go_live "$next"; then
     exit 1
 fi
 
-echo "$next $image" > "$dir/live"
-[[ -n "$live_slot" ]] && echo "$live_slot $live_image" > "$dir/previous"
+echo "$next $image $commit" > "$dir/live"
+[[ -n "$live_slot" ]] && echo "$live_slot $live_image $live_commit" > "$dir/previous"
 
 # The slot before leaves the host: nothing of an old release stays running. Going back starts
 # it again from its image (last: it may wait out a lottery run in hand)
 [[ -n "$live_slot" ]] && slot_compose "$live_slot" "$live_image" down
 
-# Releases older than the two kept (live, and the one to go back to) leave the host
-docker images ghcr.io/devvir/mtav --format '{{.Repository}}:{{.Tag}}' \
-    | grep -vxF -e "$image" -e "${live_image:-$image}" | xargs -r docker rmi > /dev/null 2>&1 || true
-say "Done: $environment runs $image"
+# Releases older than the two kept (live, and the one to go back to) leave the host, but
+# those another environment's containers run (removing an image in use fails, and is let
+# be). An image pulled by its digest alone is listed only with --all
+keep=" ${image#*@} ${live_image#*@} "
+docker images --all --digests --format '{{.Repository}} {{.Tag}} {{.Digest}}' ghcr.io/devvir/mtav \
+    | while read -r repository tag digest; do
+        [[ "$keep" == *" $digest "* ]] && continue
+        [[ "$tag" == '<none>' ]] || docker rmi "$repository:$tag"
+        [[ "$digest" == '<none>' ]] || docker rmi "$repository@$digest"
+    done > /dev/null 2>&1 || true
+say "Done: $environment runs $commit"

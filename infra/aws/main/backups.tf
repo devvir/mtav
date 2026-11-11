@@ -1,7 +1,9 @@
 # Backups, two kinds:
 #
 # - every night, each environment's database and uploaded files, through its gate, to a bucket the servers can write
-#   to but never read from or delete from (servers.tf): kept five weeks;
+#   to but never read from or delete from (servers.tf), where every copy is kept five weeks whatever comes after it:
+#   one written again under the same name is a new version beside it, and only an identity allowed to bypass the lock
+#   (no server is) can remove or shorten a version before its five weeks are up;
 # - every day, a snapshot of each server's whole disk, by AWS's own scheduler: kept a week. Restoring one brings back
 #   the server as it was, Docker, settings and all.
 
@@ -26,6 +28,31 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "backups" {
   }
 }
 
+# Every version kept: what is written over is still there.
+resource "aws_s3_bucket_versioning" "backups" {
+  bucket = aws_s3_bucket.backups.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Each version locked for five weeks from its writing. Governance: an identity allowed s3:BypassGovernanceRetention (the
+# project's own, `mtav` and its administrator; never a server) can still remove one before then, a person's decision;
+# compliance would let no one, not even the account. Once on, versioning can never be suspended.
+resource "aws_s3_bucket_object_lock_configuration" "backups" {
+  bucket = aws_s3_bucket.backups.id
+  rule {
+    default_retention {
+      mode = "GOVERNANCE"
+      days = 35
+    }
+  }
+  depends_on = [aws_s3_bucket_versioning.backups]
+}
+
+# Five weeks, then gone: a copy becomes a previous version after 35 days, and a previous version (that one, or one
+# written over sooner) goes a day later, once its lock allows it; what is left of the copy then (its delete marker)
+# goes with it, as S3 does where current versions expire. An upload a server never finished does not linger.
 resource "aws_s3_bucket_lifecycle_configuration" "backups" {
   bucket = aws_s3_bucket.backups.id
   rule {
@@ -33,7 +60,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups" {
     status = "Enabled"
     filter {}
     expiration { days = 35 }
+    noncurrent_version_expiration { noncurrent_days = 1 }
+    abort_incomplete_multipart_upload { days_after_initiation = 1 }
   }
+  depends_on = [aws_s3_bucket_versioning.backups]
 }
 
 resource "aws_s3_bucket_policy" "backups" {

@@ -24,6 +24,8 @@ export interface Space {
 export interface Release {
   slot: string;
   commit: string | null;
+  /** The image's digest (sha256:…), what the gate deployed; null for a release recorded by its tag alone */
+  digest: string | null;
 }
 
 /** One of MTAV's servers on AWS, as AWS has it and, while running, as it says of itself */
@@ -73,24 +75,11 @@ export interface Readings {
     {
       name: string;
       url: string;
-      leads: 'before' | 'aws' | null;
       status: number | null;
       ms?: number;
       error?: string;
     }[]
   >;
-  server: Reading<{
-    notSetUp?: boolean;
-    servers?: {
-      host: string;
-      error?: string;
-      cores?: number;
-      load?: number[];
-      memory?: Space;
-      disk?: Space;
-    }[];
-    releases?: Record<string, { slot: string; commit: string; live: boolean }[]>;
-  }>;
   app: Reading<Record<string, number | null>>;
   claude: Reading<{ account: string; [key: string]: unknown }[]>;
   cloud: Reading<CloudServer[]>;

@@ -50,28 +50,17 @@ const SERVER_TONE: Record<CloudServer['state'], Tone> = {
   stopped: 'neutral',
 };
 
-/** Where an environment runs and what: on an AWS server, still on the server before, or nowhere (its names show the static page) */
+/** Where an environment runs and what: on an AWS server, or nowhere (its names show the static page) */
 function whereIs(environment: Environment, readings?: Readings) {
   const server = readings?.cloud.data?.find((one) => one.environments.includes(environment));
   if (server) {
     return {
       where: `AWS · ${server.name}`,
-      server,
       live: server.live?.[environment] ?? null,
       previous: server.previous?.[environment] ?? null,
     };
   }
-  const before = readings?.server.data?.releases?.[environment];
-  if (before?.length) {
-    const live = before.find((one) => one.live);
-    return {
-      where: 'The server before AWS',
-      server: null,
-      live: live ? { slot: live.slot, commit: live.commit } : null,
-      previous: null,
-    };
-  }
-  return { where: 'Off: the static page', server: null, live: null, previous: null };
+  return { where: 'Off: the static page', live: null, previous: null };
 }
 
 /** A button that asks before doing it */
@@ -237,16 +226,11 @@ export function Deployment({ readings, jobs }: { readings?: Readings; jobs: Job[
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm">{it.where}</Text>
-                      {site?.leads === 'before' && it.server ? (
-                        <Text size="xs" c="yellow">
-                          its name still leads to the server before AWS
-                        </Text>
-                      ) : null}
                     </Table.Td>
                     <Table.Td>
                       {it.live ? (
                         <Tooltip
-                          label={`slot ${it.live.slot}${it.previous ? `, before: ${short(it.previous.commit)}` : ''}`}
+                          label={`slot ${it.live.slot}, image ${it.live.digest ? it.live.digest.slice(7, 19) : 'by tag'}${it.previous ? `, before: ${short(it.previous.commit)}` : ''}`}
                         >
                           <Text size="sm" className="warden-mono">
                             {short(it.live.commit)}
@@ -436,25 +420,6 @@ export function Deployment({ readings, jobs }: { readings?: Readings; jobs: Job[
                           </Group>
                         </Stack>
                       ) : null}
-                    </div>
-                  ))}
-                  {readings?.server.data?.servers?.map((before) => (
-                    <div key={before.host} className="warden-server" data-before>
-                      <Group justify="space-between" mb="xs">
-                        <div>
-                          <Text fw={700}>The server before AWS</Text>
-                          <Text size="xs" c="dimmed">
-                            {before.host}
-                          </Text>
-                        </div>
-                        <Status tone={before.error ? 'negative' : 'neutral'}>
-                          {before.error ? 'does not answer' : 'retiring'}
-                        </Status>
-                      </Group>
-                      <Stack gap={8}>
-                        <Meter label="Memory" space={before.memory} />
-                        <Meter label="Disk" space={before.disk} />
-                      </Stack>
                     </div>
                   ))}
                 </Stack>

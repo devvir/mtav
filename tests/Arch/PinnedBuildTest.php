@@ -15,6 +15,21 @@ it('runs third-party actions by exact commit', function () {
     }
 });
 
+it('builds with an exact buildx and BuildKit', function () {
+    $steps = [];
+    foreach (glob(base_path('.github/workflows/*.yml')) as $workflow) {
+        // Each setup-buildx step, up to the next step
+        preg_match_all('/uses:\s+docker\/setup-buildx-action@.*?(?=\n\s*- |\z)/s', file_get_contents($workflow), $found);
+        $steps = [...$steps, ...$found[0]];
+    }
+
+    expect($steps)->not->toBeEmpty();
+    foreach ($steps as $step) {
+        expect($step)->toMatch('/\n\s+version:\s+v\d+\.\d+\.\d+\s/')
+            ->toMatch('/driver-opts:\s+image=moby\/buildkit:v[\d.]+@sha256:[0-9a-f]{64}\s/');
+    }
+});
+
 it('builds the release from base images by exact digest', function () {
     $dockerfile = file_get_contents(base_path('deploy/Dockerfile'));
 

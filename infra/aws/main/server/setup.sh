@@ -1,15 +1,16 @@
-# A server's first boot (servers.tf puts SERVER, DATA and GATE above this line; what may change, it reads from its
+# A server's first boot (servers.tf puts SERVER and DATA above this line; what may change, it reads from its
 # settings, /mtav/<server>/config, through mtav-reconfigure). Every step can run again. From here on the server is
-# reached only through Systems Manager, and changed only by deploys and by mtav-reconfigure.
+# reached only through Systems Manager, and changed only by deploys, by mtav-reconfigure and by its deploy steps'
+# installer (install.sh, which brings the gate, the deploy and the nightly backups' script: deploy.tf's mtav-host).
 #
 #  0. the data disk: the environments' databases, files and settings live there, apart from the server
 #  1. swap, security updates by themselves, services nothing uses stopped
 #  2. Docker, publishing on the loopback only, its logs kept small
-#  3. the gate deploys go through (deploy/host/gate), and each environment's directory
+#  3. the server's settings, and each environment's directory
 #  4. the front web server: HTTPS (for CloudFront alone, when it is in front), each name to its environment's switch,
 #     and the static page for the names of a server switched off, if this server serves it
 #  5. its certificate, from Let's Encrypt over DNS, renewed by itself; tried again hourly until it is there
-#  6. nightly backups of every environment's database and files, to S3
+#  6. nightly backups of every environment's database and files, to S3 (their script is install.sh's)
 set -euo pipefail
 exec > >(tee -a /var/log/mtav-setup.log) 2>&1
 echo "== $(date -u +%FT%TZ) setting up the $SERVER server"
@@ -78,9 +79,7 @@ systemctl enable docker.socket docker > /dev/null 2>&1
 systemctl reset-failed docker 2> /dev/null || true
 systemctl restart docker
 
-# -- 3. the gate, and the server's settings ---------------------------------------------------------------------------
-echo "$GATE" | base64 -d | gunzip > /usr/local/sbin/mtav-gate
-chown root:root /usr/local/sbin/mtav-gate && chmod 755 /usr/local/sbin/mtav-gate
+# -- 3. the server's settings ----------------------------------------------------------------------------------------
 install -d -m 755 /mtav
 install -d -m 700 /etc/mtav
 printf "SERVER='%s'\nDATA='%s'\n" "$SERVER" "$DATA" > /etc/mtav/identity
@@ -307,31 +306,7 @@ WantedBy=timers.target
 EOF
 
 # -- 6. nightly backups -----------------------------------------------------------------------------------------------
-cat > /usr/local/sbin/mtav-backups <<'SCRIPT'
-#!/bin/bash
-# Every environment with a release live: its database and its uploaded files, through the gate, to S3
-# (s3://<bucket>/<server>/<environment>/<date>/), where the bucket keeps them five weeks. The server can write them,
-# never read them back or delete them.
-set -uo pipefail
-source /etc/mtav/server
-day="$(date -u +%F)"
-failed=0
-for dir in /mtav/*/; do
-    env="$(basename "$dir")"
-    [[ -f "$dir/live" ]] || continue
-    for what in database files; do
-        target="s3://$BACKUPS/$SERVER/$env/$day/$what.$( [[ $what == database ]] && echo sql || echo tar ).gz"
-        if SSH_ORIGINAL_COMMAND="backup $env $what" /usr/local/sbin/mtav-gate backups | aws s3 cp --region us-east-2 --only-show-errors - "$target"; then
-            echo "$env $what: $target"
-        else
-            echo "$env $what: FAILED" >&2
-            failed=1
-        fi
-    done
-done
-exit $failed
-SCRIPT
-chmod 755 /usr/local/sbin/mtav-backups
+# /usr/local/sbin/mtav-backups (backups.sh) comes with the deploy steps, as soon as the server is online
 cat > /etc/systemd/system/mtav-backups.service <<'EOF'
 [Unit]
 Description=MTAV: every environment's database and files, to S3

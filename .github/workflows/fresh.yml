@@ -35,8 +35,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          # What it runs: "<environment> live=<slot>:ghcr.io/devvir/mtav:sha-<commit> previous=…"
-          live="$(deploy/ci/deploy status | awk -v environment="$ENVIRONMENT" '$1 == environment { print $2 }')"
-          commit="${live##*:sha-}"
-          [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || { echo "Nothing runs on $ENVIRONMENT yet: deploy it first"; exit 1; }
-          deploy/ci/deploy deploy "$ENVIRONMENT" "$commit" fresh
+          # What it runs: "<environment> live=<slot>:<commit>@<digest> previous=…"
+          said="$(deploy/ci/deploy status "$ENVIRONMENT")"
+          read -r commit digest < <(sed -nE \
+            "s/^$ENVIRONMENT live=[a-z]+:([0-9a-f]{40})@(sha256:[0-9a-f]{64}) .*/\1 \2/p" <<< "$said") || true
+          [[ -n "${digest:-}" ]] || { echo "Nothing runs on $ENVIRONMENT by its digest yet: deploy it first"; exit 1; }
+          deploy/ci/deploy deploy "$ENVIRONMENT" "$commit" "$digest" fresh

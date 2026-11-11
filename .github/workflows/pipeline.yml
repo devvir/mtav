@@ -1,8 +1,8 @@
 # MTAV's pipeline (documentation/technical/delivery.md):
 #
 #   every push and pull request   checks, tests, browser suite, the release image built
-#   staging, once all that passes the image published, staging deployed
-#   main, once all that passes    the image published (production is deployed by hand)
+#   staging, once all that passes the image published and attested, staging deployed (by digest)
+#   main, once all that passes    the image published and attested (production is deployed by hand)
 #
 # Dev deploys from its own branch (dev.yml), and by hand from any other.
 name: pipeline
@@ -140,6 +140,24 @@ jobs:
       publish: ${{ (github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/staging"]'), github.ref)) || inputs.publish == true }}
       latest: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
+  # GitHub's signed word that this digest was built here, by this workflow, from this commit, on
+  # staging or main: what a production deploy checks before running an image (production.yml).
+  # Only these branches' runs can say it of themselves
+  attest:
+    needs: image
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+    name: Attest the release image
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/devvir/mtav
+          subject-digest: ${{ needs.image.outputs.digest }}
+          create-storage-record: false
+
   # main moves only by fast-forward from staging: a commit staging never had is refused here
   # (and production deploys only commits that are on staging too)
   main-follows-staging:
@@ -156,9 +174,9 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/staging \
             || { echo "::error::main moves only by fast-forward from staging"; exit 1; }
 
-  # Every green push to staging goes there, by itself
+  # Every green push to staging goes there, by itself: the image this run built, by its digest
   staging:
-    needs: image
+    needs: [image, attest]
     if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
     name: Deploy to staging
     runs-on: ubuntu-24.04
@@ -177,4 +195,5 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: deploy/ci/deploy deploy staging "$GITHUB_SHA"
+          DIGEST: ${{ needs.image.outputs.digest }}
+        run: deploy/ci/deploy deploy staging "$GITHUB_SHA" "$DIGEST"

@@ -2,20 +2,34 @@
 # The pipeline's side of a deploy: hands a request to the gate (deploy/host/gate) on the server that runs the
 # environment, through AWS Systems Manager, and shows what it answers.
 #
-#   deploy deploy <environment> <commit> [fresh]   (fresh: the database and files start over)
+#   deploy deploy <environment> <commit> <digest> [fresh]   (fresh: the database and files start over)
 #   deploy rollback <environment>
-#   deploy status
+#   deploy status <environment>                             (what the server holding it runs, every environment there)
 #
-# Runs as the environment's AWS identity (mtav-deploy-<environment>), whose key is that GitHub environment's secret
-# (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: infra/aws/deploy-keys.sh puts it there). It may run that environment's
-# gate and ask any server what it runs, and nothing else (infra/aws/main/deploy.tf). This is the only step that knows
-# where environments live: on another kind of host, it is the step that changes.
+# <digest> is the release image's (sha256:…): the workflow that deploys knows it from the build it trusts
+# (documentation/technical/delivery.md). Runs as the environment's AWS identity (mtav-deploy-<environment>), whose key
+# is that GitHub environment's secret (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: infra/aws/deploy-keys.sh puts it
+# there). It may run that environment's gate on its server, ask its server (and, for production and sorteo, staging's)
+# what it runs, and read what those answered (its environment's log group, and the status one), nothing else
+# (infra/aws/main/deploy.tf). This is the only step that knows where environments live: on another kind of host, it
+# is the step that changes.
 set -euo pipefail
 
 export AWS_REGION="${AWS_REGION:-us-east-2}"
 [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] || {
     echo "deploy: this environment has no AWS key: its server is switched off (infra/aws/main), or" \
         "infra/aws/deploy-keys.sh has not run for it" >&2
+    exit 1
+}
+
+# How long a command may take, all told: Systems Manager ends the gate itself after an hour (its document's
+# timeoutSeconds, infra/aws/main/deploy.tf), and a deploy takes a quarter of that at worst (pulling, three minutes for
+# the release to be healthy, up to eleven for the old worker's job in hand). Past this, Systems Manager has already
+# given its verdict, or will not
+DEADLINE=$((65 * 60))
+
+fail() {
+    echo "deploy: $*" >&2
     exit 1
 }
 
@@ -28,32 +42,65 @@ servers() {
 
 # The server holding an environment
 server_of() {
-    local instance holds
+    local instance holds found
+    found="$(servers)" || fail "cannot list the servers"
     while read -r instance holds; do
         [[ ",$holds," == *",$1,"* ]] && { echo "$instance"; return; }
-    done < <(servers)
-    echo "deploy: no running server holds '$1'" >&2
-    exit 1
+    done <<< "$found"
+    fail "no running server holds '$1'"
 }
 
-# A document run on one server, waited for, its output shown; fails as the command failed
+# An AWS call whose failure says why; a passing hiccup (throttling, the network) is tried again, a refusal never
+aws_or_fail() {
+    local answer tries
+    for tries in 1 2 3 4 5; do
+        if answer="$(aws "$@" 2>&1)"; then
+            printf '%s' "$answer"
+            return
+        fi
+        [[ "$answer" =~ AccessDenied|UnauthorizedOperation|UnrecognizedClient|InvalidClientTokenId|ResourceNotFound|ValidationException|Invalid ]] \
+            && break
+        sleep $((tries * 5))
+    done
+    fail "aws $1 $2: $answer"
+}
+
+# What a command wrote to one of its streams (stdout, stderr, or '' for both)
+written() {
+    aws_or_fail logs filter-log-events --log-group-name "$1" --log-stream-name-prefix "$2" \
+        --query "events[?ends_with(logStreamName, '$3')].message" --output json | jq -r '.[]'
+}
+
+# A document run on one server, waited for, its output shown (from the log group it is written to); fails as the
+# command failed, past the deadline, or when its output cannot be read
 run() {
-    local document="$1" instance="$2" request="${3:-}" id status
+    local document="$1" instance="$2" group="$3" request="${4:-}" id status until
     local parameters=()
     [[ -n "$request" ]] && parameters=(--parameters "request=$request")
-    id="$(aws ssm send-command --document-name "$document" --instance-ids "$instance" "${parameters[@]}" \
-        --cloud-watch-output-config CloudWatchOutputEnabled=true,CloudWatchLogGroupName=/mtav/commands \
+    id="$(aws_or_fail ssm send-command --document-name "$document" --instance-ids "$instance" "${parameters[@]}" \
+        --cloud-watch-output-config "CloudWatchOutputEnabled=true,CloudWatchLogGroupName=$group" \
         --query Command.CommandId --output text)"
+    until=$((SECONDS + DEADLINE))
     while :; do
         sleep 5
-        status="$(aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
-            --query Status --output text 2> /dev/null || echo Pending)"
-        [[ "$status" =~ ^(Pending|InProgress|Delayed)$ ]] || break
+        # None: not listed yet
+        status="$(aws_or_fail ssm list-commands --command-id "$id" --query 'Commands[0].Status' --output text)"
+        [[ "$status" =~ ^(Pending|InProgress|Cancelling|None)$ ]] || break
+        ((SECONDS < until)) || fail "$document on $instance has not ended after $((DEADLINE / 60)) minutes (command $id)"
     done
-    aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
-        --query StandardOutputContent --output text
-    aws ssm get-command-invocation --command-id "$id" --instance-id "$instance" \
-        --query StandardErrorContent --output text >&2
+    # What it wrote reaches the log group within seconds of its end; every gate command writes something
+    local out='' err='' any
+    for _ in $(seq 1 12); do
+        any="$(written "$group" "$id/$instance/" '')"
+        [[ -n "$any" ]] && break
+        sleep 5
+    done
+    sleep 5
+    out="$(written "$group" "$id/$instance/" stdout)"
+    err="$(written "$group" "$id/$instance/" stderr)"
+    [[ -n "$out$err" ]] || fail "$document on $instance ended $status, but nothing it wrote reached $group (command $id)"
+    [[ -z "$out" ]] || printf '%s\n' "$out"
+    [[ -z "$err" ]] || printf '%s\n' "$err" >&2
     [[ "$status" == Success ]]
 }
 
@@ -61,15 +108,14 @@ case "${1:-}" in
     deploy | rollback)
         environment="${2:?deploy: which environment?}"
         instance="$(server_of "$environment")"
-        run "mtav-gate-$environment" "$instance" "$*"
+        run "mtav-gate-$environment" "$instance" "/mtav/commands/$environment" "$*"
         ;;
     status)
-        while read -r instance _; do
-            run mtav-status "$instance" | grep -v '^$'
-        done < <(servers)
+        instance="$(server_of "${2:?deploy: status of the server holding which environment?}")"
+        run mtav-status "$instance" /mtav/commands | grep -v '^$'
         ;;
     *)
-        echo "usage: deploy deploy <environment> <commit> [fresh] | rollback <environment> | status" >&2
+        echo "usage: deploy deploy <environment> <commit> <digest> [fresh] | rollback <environment> | status <environment>" >&2
         exit 64
         ;;
 esac

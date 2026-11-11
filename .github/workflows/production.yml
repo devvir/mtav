@@ -1,6 +1,9 @@
 # The released environments are deployed by hand, from main only: "Run workflow" on main.
 # Production, or sorteo (the Open Lottery variant), each gets the release staging runs
-# (already tried there), or a commit named, which must be on main.
+# (already tried there), or a commit named, which must be on main. Either way the image goes
+# by its digest, and only once GitHub's attestation says the pipeline built it from that
+# commit on staging or main: no other branch's image, nor a server's word alone, can reach
+# here.
 name: production
 run-name: Deploy ${{ inputs.environment || 'production' }}${{ inputs.commit && format(' at {0}', inputs.commit) || '' }}
 
@@ -19,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  attestations: read
 
 jobs:
   production:
@@ -36,6 +40,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       REQUESTED: ${{ inputs.commit }}
+      IMAGE: ghcr.io/devvir/mtav
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,11 +50,44 @@ jobs:
       - name: Which release
         id: release
         run: |
-          staging="$(deploy/ci/deploy status | sed -nE 's/^staging live=[a-z]+:ghcr\.io\/devvir\/mtav:sha-([0-9a-f]{40}).*/\1/p')"
-          commit="$(git rev-parse --verify "${REQUESTED:-${staging:?staging runs no release yet: name a commit}}^{commit}")"
+          # What staging runs: "staging live=<slot>:<commit>@<digest> …"
+          said="$(deploy/ci/deploy status staging)"
+          read -r staging staging_digest < <(sed -nE \
+            's/^staging live=[a-z]+:([0-9a-f]{40})@(sha256:[0-9a-f]{64}) .*/\1 \2/p' <<< "$said") || true
+          commit="$(git rev-parse --verify "${REQUESTED:-${staging:?staging runs no release by its digest yet: name a commit}}^{commit}")"
           git merge-base --is-ancestor "$commit" origin/main || { echo "$commit is not on main"; exit 1; }
           git merge-base --is-ancestor "$commit" origin/staging || { echo "$commit never went through staging"; exit 1; }
+          # Staging's image if it runs that commit, else the one its tag names (anyone may have moved
+          # a tag: the attestation below is what decides)
+          if [[ "$commit" == "$staging" ]]; then
+            digest="$staging_digest"
+          else
+            digest="$(docker buildx imagetools inspect "$IMAGE:sha-$commit" --format '{{json .Manifest}}' | jq -r .digest)"
+          fi
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "No image for $commit"; exit 1; }
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      # Built by this repository's pipeline (the signer, exactly), from that commit, on staging or
+      # main, on GitHub's runners
+      - name: Its attestation
+        env:
+          COMMIT: ${{ steps.release.outputs.commit }}
+          DIGEST: ${{ steps.release.outputs.digest }}
+        run: |
+          for ref in refs/heads/staging refs/heads/main; do
+            if gh attestation verify "oci://$IMAGE@$DIGEST" --repo "$GITHUB_REPOSITORY" \
+              --cert-identity "https://github.com/$GITHUB_REPOSITORY/.github/workflows/pipeline.yml@$ref" \
+              --source-ref "$ref" --source-digest "$COMMIT" --deny-self-hosted-runners > /dev/null; then
+              echo "$DIGEST: built from $COMMIT on ${ref#refs/heads/}"
+              exit 0
+            fi
+          done
+          echo "::error::$DIGEST is not attested as built from $COMMIT on staging or main"
+          exit 1
 
       - name: Deploy
-        run: deploy/ci/deploy deploy "${{ inputs.environment || 'production' }}" "${{ steps.release.outputs.commit }}"
+        env:
+          COMMIT: ${{ steps.release.outputs.commit }}
+          DIGEST: ${{ steps.release.outputs.digest }}
+        run: deploy/ci/deploy deploy "${{ inputs.environment || 'production' }}" "$COMMIT" "$DIGEST"

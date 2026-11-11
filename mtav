@@ -678,7 +678,7 @@ case $COMMAND in
         # Its page, built from dev/warden/web with the app's own design system (a few seconds)
         PATH="$(dirname "$node_bin"):$PATH" "$(dirname "$0")/node_modules/.bin/vite" build --logLevel warn \
             --config "$(dirname "$0")/dev/warden/vite.config.mjs" || exit 1
-        # The repository's .env may name the servers to watch (MTAV_SERVERS)
+        # The repository's .env may set its port and AWS profile (MTAV_WARDEN_PORT, MTAV_AWS_PROFILE)
         exec "$node_bin" --env-file-if-exists="$(dirname "$0")/.env" "$(dirname "$0")/dev/warden/server.mjs"
         ;;
     compose)

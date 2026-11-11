@@ -82,10 +82,16 @@ Three copies, by three means:
   (`/mtav/<environment>/backups/`, the last 20 kept).
 - **Every night** (06:00 UTC), each server sends the database and the uploaded files of
   every environment with a release live to S3 (`mtav-backups`, from
-  `infra/aws/main/server/setup.sh`, through the gate: `backup <environment> database|files`),
+  `infra/aws/main/server/backups.sh`, through the gate: `backup <environment> database|files`),
   to `<server>/<environment>/<day>/` in a bucket the servers can write to but never read
-  from or delete from (`infra/aws/main/backups.tf`). The bucket keeps them five weeks.
-  The warden shows the latest, and takes one when asked.
+  from or delete from (`infra/aws/main/backups.tf`). The bucket keeps every copy five
+  weeks. Each copy written since the bucket keeps versions under S3 Object Lock is locked
+  for those five weeks (governance mode): one written again under the same name (a
+  second backup the same day) is a new version beside the one before, and neither can be
+  removed, nor kept shorter, by a server; only an identity allowed to bypass the lock
+  (the project's own) can, a person's decision. A copy written before then carries no
+  lock, and goes at its five weeks like the rest. The warden shows the latest, and takes
+  one when asked.
 - **Every day** (07:00 UTC), AWS snapshots each server's disks, its own and its data disk:
   the last seven are kept. Restoring one brings the server back as it was.
 

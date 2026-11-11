@@ -1,6 +1,7 @@
 # The servers: AWS's small ARM instances (t4g.small, 2 GB), Ubuntu 24.04. Each boots once through server/setup.sh
-# (Docker, the front web server, its certificate, the gate deploys go through, nightly backups) and is from then on
-# reached only through Systems Manager: no SSH key, no SSH port.
+# (Docker, the front web server, its certificate, nightly backups), installs its deploy steps (the gate deploys go
+# through: mtav-host, deploy.tf) once it is online and again whenever they change, and is from then on reached only
+# through Systems Manager: no SSH key, no SSH port.
 
 # The newest Ubuntu 24.04 for ARM, as Canonical publishes it; read at each plan, but a running server is never
 # replaced for a newer one (ignore_changes below): security updates install themselves on it.
@@ -17,14 +18,13 @@ resource "aws_instance" "server" {
   vpc_security_group_ids = [aws_security_group.server[each.key].id]
   iam_instance_profile   = aws_iam_instance_profile.server[each.key].name
 
-  # What never changes for it (its name, its data disk, the gate), then the script itself (server/setup.sh), unpacked
-  # and run; both travel compressed (a first boot's data is at most 16 KB). What may change (its environments, its
-  # names) it reads from its settings (below).
+  # What never changes for it (its name, its data disk), then the script itself (server/setup.sh), unpacked and run;
+  # it travels compressed (a first boot's data is at most 16 KB). What may change (its environments, its names) it
+  # reads from its settings (below); its deploy steps come from mtav-host (deploy.tf).
   user_data = join("\n", [
     "#!/bin/bash",
     "SERVER='${each.key}'",
     "DATA='${aws_ebs_volume.data[each.key].id}'",
-    "GATE='${base64gzip(file("${path.module}/../../../deploy/host/gate"))}'",
     "echo '${base64gzip(file("${path.module}/server/setup.sh"))}' | base64 -d | gunzip > /root/mtav-setup.sh",
     "source /root/mtav-setup.sh",
   ])
@@ -143,9 +143,11 @@ resource "aws_iam_role_policy" "server" {
       { Effect = "Allow", Action = "kms:Decrypt", Resource = "*",
       Condition = { StringEquals = { "kms:ViaService" = "ssm.us-east-2.amazonaws.com" } } },
       { Effect = "Allow", Action = "s3:PutObject", Resource = "${aws_s3_bucket.backups.arn}/${each.key}/*" },
+      # Systems Manager's agent looks the group up before it writes there: without DescribeLogGroups, nothing arrives
+      { Effect = "Allow", Action = "logs:DescribeLogGroups", Resource = "*" },
       { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"],
-      Resource = "${aws_cloudwatch_log_group.commands.arn}:*" },
-      { Effect = "Allow", Action = "route53:ChangeResourceRecordSets", Resource = "arn:aws:route53:::hostedzone/${local.zone}",
+      Resource = concat(["${aws_cloudwatch_log_group.commands.arn}:*"], [for group in aws_cloudwatch_log_group.deploys : "${group.arn}:*"]) },
+      { Effect = "Allow", Action = "route53:ChangeResourceRecordSets", Resource = "${aws_route53_zone.mtav.arn}",
         Condition = {
           "ForAllValues:StringLike"   = { "route53:ChangeResourceRecordSetsNormalizedRecordNames" = ["_acme-challenge.*"] }
           "ForAllValues:StringEquals" = { "route53:ChangeResourceRecordSetsRecordTypes" = ["TXT"] }
@@ -176,7 +178,8 @@ resource "aws_ssm_parameter" "origin_secret" {
   value    = random_password.origin[each.key].result
 }
 
-# What the servers' commands write (a deploy, every line), as the pipeline and the warden follow it; kept a month.
+# What the servers say they run (status), for every deploy identity to read; each environment's deploys write to a
+# group of their own (deploy.tf). Kept a month.
 resource "aws_cloudwatch_log_group" "commands" {
   name              = "/mtav/commands"
   retention_in_days = 30

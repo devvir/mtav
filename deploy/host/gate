@@ -1,31 +1,34 @@
 #!/bin/bash
-# The only thing that may change MTAV's environments on this server. Installed by
-# infra/aws/main/server/setup.sh, at the server's first boot, as /usr/local/sbin/mtav-gate
-# (owned by root), and run as root, the request in SSH_ORIGINAL_COMMAND:
+# The only thing that may change MTAV's environments on this server. Installed with the rest of the host's deploy
+# steps (infra/aws/main/server/install.sh, which the owner's `tofu apply` sends to every server) as
+# /usr/local/sbin/mtav-gate, owned by root, and run as root, the request in MTAV_REQUEST:
 #
-# - by the pipeline, through Systems Manager (infra/aws/main/deploy.tf): each environment's
-#   document runs it naming that environment alone (mtav-gate <environment>), and
-#   mtav-status runs it naming none, for status;
+# - by the pipeline, through Systems Manager (infra/aws/main/deploy.tf): each environment's document runs it naming
+#   that environment alone (mtav-gate <environment>), and mtav-status runs it naming none, for status;
 # - by the server's nightly backups, as "backups" (mtav-gate backups).
 #
 # It accepts:
 #
-#   deploy <environment> <commit> [fresh]   that commit's release goes live
-#   rollback <environment>                  the release before it goes live again
-#   status                                  what each environment runs
-#   backup <environment> database|files     a copy, gzipped, to standard output
+#   deploy <environment> <commit> <digest> [fresh]   that release goes live
+#   rollback <environment>                           the release before it goes live again
+#   status                                           what each environment runs
+#   backup <environment> database|files              a copy, gzipped, to standard output
 #
-# and refuses anything else. Run as "backups", it takes backups of any environment and does
-# nothing else; run any other way, it never takes them. The environment must be set up here
-# (<home>/<environment> with its .env, written from deploy/env.example); the release must be
-# MTAV's image for that commit; "fresh" (the database and uploaded files started over, with
-# demo data) only where the environment's .env says MTAV_FRESH_ALLOWED=true. The deploy's
-# steps come from the release's own image (deploy/host/deploy), never from the caller: the
-# pipeline can only run MTAV's releases.
+# and refuses anything else. Run as "backups", it takes backups of any environment and does nothing else; run any
+# other way, it never takes them. The environment must be set up here (<home>/<environment> with its .env, written
+# from deploy/env.example). A release is named by its image's digest (sha256:…), which names its content and nothing
+# else: no tag, which anyone who can publish to the package could move. Its image must say it is that commit's.
+# "fresh" (the database and uploaded files started over, with demo data) only where the environment's .env says
+# MTAV_FRESH_ALLOWED=true. What a deploy does, and the compose files it runs, are this host's own (<files>, installed
+# beside the gate), never the release's: a release only brings its containers.
 set -euo pipefail
 
 home="${MTAV_HOME:-/mtav}"
+files="${MTAV_FILES:-/usr/local/lib/mtav}"
+repository=ghcr.io/devvir/mtav
 source="https://github.com/devvir/mtav"
+# The uploaded files' backups are read through this, by digest
+alpine=alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f
 
 refuse() {
     echo "gate: $*" >&2
@@ -35,7 +38,7 @@ refuse() {
 # The environment this caller may deploy (each environment's document names its own; none: every one)
 only="${1:-}"
 
-read -r -a request <<< "${SSH_ORIGINAL_COMMAND:-}"
+read -r -a request <<< "${MTAV_REQUEST:-}"
 action="${request[0]:-}"
 
 # Taking backups and changing never share a caller
@@ -57,19 +60,18 @@ environment_dir() {
     echo "$home/$1"
 }
 
-# The release's deploy/, out of its image, into a directory removed on exit
-bundle_of() {
-    local image="$1" container
-    bundle="$(mktemp -d)"
-    trap 'rm -rf "$bundle"' EXIT
-    container="$(docker create "$image")" || refuse "cannot open $image"
-    docker cp -q "$container:/app/deploy/." "$bundle/" && docker rm "$container" > /dev/null
-    [[ -f "$bundle/host/deploy" ]] || refuse "$image carries no deploy steps"
-}
-
 lock() {
     exec 9> "$1/.deploying"
     flock -n 9 || refuse "a deploy to this environment is already running"
+}
+
+# A release as status says it: "<slot>:<commit>@<digest>" (records hold "<slot> <image> <commit>")
+said() {
+    local slot image commit
+    [[ -f "$1" ]] || { echo -; return; }
+    read -r slot image commit < "$1"
+    [[ -n "$commit" ]] || commit="${image##*:sha-}"
+    if [[ "$image" == *@sha256:* ]]; then echo "$slot:$commit@${image#*@}"; else echo "$slot:$commit"; fi
 }
 
 case "$action" in
@@ -77,18 +79,19 @@ case "$action" in
         [[ ${#request[@]} -eq 1 ]] || refuse "usage: status"
         for dir in "$home"/*/; do
             is_environment "$dir" || continue
-            record() { [[ -f "$dir/$1" ]] && tr ' ' : < "$dir/$1" || echo -; }
-            printf '%s live=%s previous=%s\n' "$(basename "$dir")" "$(record live)" "$(record previous)"
+            printf '%s live=%s previous=%s\n' "$(basename "$dir")" "$(said "$dir/live")" "$(said "$dir/previous")"
         done
         ;;
 
     deploy)
-        [[ ${#request[@]} -eq 3 || ${#request[@]} -eq 4 ]] \
-            || refuse "usage: deploy <environment> <commit> [fresh]"
+        [[ ${#request[@]} -eq 4 || ${#request[@]} -eq 5 ]] \
+            || refuse "usage: deploy <environment> <commit> <digest> [fresh]"
         dir="$(environment_dir "${request[1]}")"
         commit="${request[2]}"
-        fresh="${request[3]:-}"
+        digest="${request[3]}"
+        fresh="${request[4]:-}"
         [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || refuse "not a commit: '$commit'"
+        [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || refuse "not an image digest: '$digest'"
         if [[ -n "$fresh" ]]; then
             [[ "$fresh" == fresh ]] || refuse "unknown option '$fresh'"
             # Whatever its .env says: production's data is never started over
@@ -98,12 +101,13 @@ case "$action" in
         fi
         lock "$dir"
 
-        image="ghcr.io/devvir/mtav:sha-$commit"
-        docker pull --quiet "$image" > /dev/null || refuse "no release for $commit"
-        [[ "$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.source"}}' "$image")" == "$source" ]] \
-            || refuse "$image is not built from $source"
-        bundle_of "$image"
-        MTAV_HOME="$home" bash "$bundle/host/deploy" "${request[1]}" "$image" "$bundle" "$fresh"
+        image="$repository@$digest"
+        docker pull --quiet "$image" > /dev/null || refuse "no image $digest"
+        # What the image says of itself: no proof (the digest is), but a request naming the wrong commit stops here
+        label() { docker image inspect -f "{{index .Config.Labels \"org.opencontainers.image.$1\"}}" "$image"; }
+        [[ "$(label source)" == "$source" && "$(label revision)" == "$commit" ]] \
+            || refuse "$digest is not $source's release of $commit"
+        MTAV_HOME="$home" MTAV_FILES="$files" bash "$files/deploy" "${request[1]}" "$image" "$commit" "$fresh"
         ;;
 
     rollback)
@@ -111,11 +115,11 @@ case "$action" in
         dir="$(environment_dir "${request[1]}")"
         lock "$dir"
         [[ -f "$dir/previous" ]] || refuse "nothing to go back to"
-        read -r _ previous_image < "$dir/previous"
+        read -r _ previous_image _ < "$dir/previous"
+        [[ "$previous_image" == "$repository@sha256:"* ]] \
+            || refuse "the release before is recorded without its digest: deploy it again instead"
         docker pull --quiet "$previous_image" > /dev/null || refuse "$previous_image is gone"
-        # Going back is the older release's own business: its steps, from its image
-        bundle_of "$previous_image"
-        MTAV_HOME="$home" bash "$bundle/host/deploy" --rollback "${request[1]}" "$bundle"
+        MTAV_HOME="$home" MTAV_FILES="$files" bash "$files/deploy" --rollback "${request[1]}"
         ;;
 
     backup)
@@ -131,7 +135,7 @@ case "$action" in
                 ;;
             files)
                 # The uploaded files (media, documents, avatars), read-only, from no network
-                docker run --rm --network none -v "mtav-${request[1]}_files:/files:ro" alpine:3.22 \
+                docker run --rm --network none -v "mtav-${request[1]}_files:/files:ro" "$alpine" \
                     tar czf - -C /files .
                 ;;
             *)
@@ -141,6 +145,6 @@ case "$action" in
         ;;
 
     *)
-        refuse "not allowed: '${SSH_ORIGINAL_COMMAND:-}'"
+        refuse "not allowed: '${MTAV_REQUEST:-}'"
         ;;
 esac
