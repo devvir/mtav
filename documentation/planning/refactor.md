@@ -2,13 +2,14 @@
 
 A staged refactor of MTAV towards a solid, efficient app with a clean, friendly UI.
 Nothing is in production yet: schemas, auth flows and APIs change freely, with no
-backward compatibility. The stack stays (Laravel + Inertia + Vue); any module may be
+backward compatibility. The stack stays (Laravel + Inertia); any module may be
 rewritten from scratch where that is the better path. The work runs autonomously; every
 decision taken on the way is listed below for review.
 
 ## Business rules (fixed)
 
-- **Superadmins** add admins and users, create projects, and can do anything an admin can.
+- **Superadmins** are support accounts, in no project: they create projects (naming each one's
+  first admin), invite other superadmins, and can do anything an admin can, in any project.
 - **Admins** can do what members do, plus configure the projects they manage (0 or more):
   families, member invitations, unit types, units, the project plan, events, the lottery.
 - **Members** belong to a family. They upload media (images, video, audio, documents),
@@ -23,7 +24,8 @@ decision taken on the way is listed below for review.
 ## Decisions (agreed with the author)
 
 - **Per-project roles.** One account per person. A person can take part in any number
-  of projects with a different role in each. Superadmin is a platform-level role.
+  of projects with a different role in each. Superadmin is a platform-level role, held by a
+  support account apart: on an address of its own, in no project, reaching every one.
 - **Open sign-up.** Anyone can sign up and create projects. A new project starts
   *unapproved*, with limits on anything open to easy abuse (media storage and file
   sizes, invitation counts and rate, lottery size, …). A superadmin approval — a
@@ -73,28 +75,32 @@ decision taken on the way is listed below for review.
   rewrite. The thesis's stack chapter is updated at the end, with a note.
 - **Latest everything.** Every dependency moves to its latest major: PHP 8.5, Laravel 13,
   Inertia 3, Pest 5, Vite 8, Node 26, MariaDB 12.3 (LTS), nginx 1.30, pnpm 12, Mailpit
-  in place of the abandoned MailHog. TypeScript waits at 6 until vue-tsc supports 7 (moot once the frontend is React).
+  in place of the abandoned MailHog. TypeScript stays at 6.
 - **Delivery from scratch.** Building, testing and deploying are designed anew; nothing
   of the earlier deployment (its scripts, images or host setup) is kept by default. Every
   push and pull request runs the whole test suite on GitHub Actions and builds one image
   per commit (GitHub's registry); every environment runs those images, nothing is built
-  on a host. Deploying is pushing: each environment follows a branch of its own, `dev` →
-  dev, `staging` → stg, `main` → www, and a green push deploys it by itself. Commits
+  on a host. Each environment follows a branch of its own, `dev` → dev, `staging` → stg,
+  `main` → www: a push to `dev` deploys dev by itself (untested: dev is where things are
+  tried), a green push to `staging` deploys staging by itself, and production (and sorteo,
+  the Open Lottery) is deployed by hand from `main`, by default the release staging runs. Commits
   move up by fast-forward only (`staging` to `main` always, `dev` to `staging` as fits),
   so production runs the very commit, and image, staging ran; `main` takes no commit of
   its own. The tools to deploy otherwise stay (another branch on dev, an earlier image,
   a rollback), triggered on GitHub (its "Run workflow" dialog, the command line, or the
-  console below); only the step that reaches a host is specific to today's single
-  server, so moving to a cloud provider replaces that step alone. Each environment has
-  a deploy key of its own, its secrets limited to its branch, and the host's gate
-  takes an image only for the environment of its branch. First dev and staging by
+  console below); only the step that reaches a host (`deploy/ci/deploy`, through AWS
+  Systems Manager) knows where the environments live, so another kind of host replaces
+  that step alone. Each environment has a deploy identity of its own (an AWS key in its
+  GitHub environment's secrets, limited to its branch) that may run only its own
+  environment's gate. First dev and staging by
   pushing; production follows once the app is more polished. Still open, to settle with
   the author near the end: how rollbacks stay safe with branches that only move forward
   (a deployment concern, perhaps). Design in `documentation/technical/delivery.md`.
 - **Deployment tools in the console** (built). The platform console has a Deployments page: what
   each environment runs against `main`, deploying dev from a branch, production from
-  `main`, and an earlier image again. It is shown only to superadmins whose email is
-  listed in the environment's settings (`DEPLOYERS`), so granting superadmin never
+  `main` (the release staging runs, or a commit named), any environment back to the release
+  before, and dev or staging started over with the demo data. It is shown only to
+  superadmins whose email is listed in the environment's settings (`DEPLOYERS`), so granting superadmin never
   grants deploying; an empty list hides it. The app asks GitHub to run the deploy (a
   token limited to this repository's workflows), so it works the same wherever the
   environments live.
@@ -134,7 +140,8 @@ decision taken on the way is listed below for review.
   each written natively. Adding one is its line in `config/app.php` with its words and
   guides; tests refuse a language with a word, a blank or a guide missing.
 - **Demo data to try and to show every feature**: three projects at three stages (ranking
-  its units, its lottery run, being set up), with sites drawn floor by floor, families
+  its units, its lottery run, being set up) and two small ones listed in the directory (one
+  anyone joins at once, one that accepts who asks), with sites drawn floor by floor, families
   of Uruguayan names, events people answered, forum topics, pending invitations, and
   files of every kind, so nothing needs creating first.
 - **Chat**: the people of a project talk one on one or in groups. Only those in a
@@ -205,10 +212,10 @@ decision taken on the way is listed below for review.
     of the project's data that each page reads); measured worth it before built, as it
     reshapes every page.
 - **An owner per deployment.** A deployment is used only once it has an owner, its first
-  superadmin: while it has no account at all, `OWNER_EMAIL` / `OWNER_PASSWORD` (and
-  `OWNER_NAME`) create it; without them the site shows only that it is under
-  construction. Where demo data is seeded, its first account is the owner. For now an
-  owner is a superadmin like any other (`users.is_owner` keeps the door open).
+  superadmin: while it has no account at all, `APP_OWNER` (`name:email:password hash`)
+  creates it; without it the site shows only that it is under construction. Where demo
+  data is seeded, its first account is the owner. The owner (`users.is_owner`) stays a
+  superadmin and keeps their account, and is emailed of new errors and reports.
 - **Dev and staging run on demo data.** Every deploy to dev starts its database and
   uploaded files over with the demo data; staging starts over only by hand (the console's
   Deployments page, or the `fresh` workflow), at least once, then keeps its data across
@@ -237,8 +244,9 @@ decision taken on the way is listed below for review.
   project. An admin may also belong to a family of the same project (a cooperative's
   admin is often a cooperativist too). Someone with neither is a guest, where the project
   allows guests (see item 20).
-  `users.is_superadmin` replaces the `SUPERADMINS` env list (granted with an artisan
-  command). The Admin/Member model subclasses go.
+  `users.is_superadmin` marks a superadmin, who holds no membership: invited from the
+  platform console on an address with no account (`php artisan mtav:superadmin` grants it
+  to an existing one).
 - **Project in the URL** (`/projects/{project}/families/…`) instead of a "current
   project" cookie: links are shareable, tabs independent, notification links exact.
   Child models are resolved through the project (scoped bindings), and policies check
@@ -256,12 +264,12 @@ decision taken on the way is listed below for review.
 - **Private media.** Files live on a private disk and are streamed by a route that
   checks project access. SVG is not accepted.
 - **GLPK is the default solver**; random only when chosen explicitly.
-- **Forms:** hand-written per entity (`components/forms`) on shared field components
-  (`components/form`); validation lives in one FormRequest per entity. FormService and
-  the two `devvir/*` packages are gone. (The author proposed generating forms and
-  validation from our own entity definitions; still open to revisit.)
-- **Modals:** our own `Modal` (Reka's Dialog primitive; a bottom sheet on phones) and
-  `confirm()` / `prompt()` dialogs called from code.
+- **Forms:** hand-written per entity (`components/forms`) on Mantine's fields
+  (`lib/forms.ts` binds them to the form); validation lives in one FormRequest per entity.
+  (The author proposed generating forms and validation from our own entity definitions;
+  still open to revisit.)
+- **Modals:** Mantine's `Modal` and `confirm()` / `prompt()` dialogs called from code
+  (`lib/dialogs.ts`).
 - **Live updates are best effort:** a websocket server that is down never fails an action.
 - **Families and people, one place.** The navigation has one place for the
   cooperative's people ("People"; "Cooperativistas" in Spanish, "Coopérateurs",
@@ -282,18 +290,17 @@ decision taken on the way is listed below for review.
    routes. Scenario builders follow; the use-case suite goes green.
 3. **Real-time**: notifications broadcast to their channel; resource changes broadcast
    to the project channel; open pages refresh what changed.
-4. **Frontend, resource by resource**: own modal system (on Reka's Dialog primitive)
-   replacing InertiaUI Modal; forms per entity on shared field components (including a
-   dedicated unit type form); pages adapted to the new routes and props.
+4. **Frontend, resource by resource**: dialogs on Mantine's `Modal`, with `confirm()` /
+   `prompt()` from code; forms per entity on Mantine's fields (including a dedicated unit
+   type form); pages adapted to the new routes and props.
 5. **Plan editor**: multiple floors, resizing, polygons, non-unit items.
 6. **Guided help**: info icons (?) explaining concepts where needed, ending, where it
    fits, with "Tell me more", which starts a guided tour of that spot.
 7. **Polish**: containers, documentation rewritten against the code, E2E journeys
    rewritten.
 8. **Parity with the pre-refactor app** (behaviour and rules compared in
-   [behaviour-changes.md](behaviour-changes.md); `452ca64~1`, at stg.mtav.uy with the same demo
-   logins): what it had that the new app lacks, each to keep or drop by decision. Seen
-   so far (home pages as member and admin, menus):
+   [behaviour-changes.md](behaviour-changes.md); `452ca64~1`): what it had that the new
+   app lacks, each to keep or drop by decision. Seen so far (home pages as member and admin, menus):
    - **Home**: counts of units, families, members, admins, media, documents and events;
      a stacked preview of the gallery; the families with their marks; the admins; the
      latest members; every unit by type. The new home has the lottery, three counts, what
@@ -393,7 +400,7 @@ decision taken on the way is listed below for review.
 12. **Delivery** (see *Delivery from scratch*): the pipeline, its documentation, the
     staging deploy (first run with the author), the approval-gated production deploy.
 13. **Full browser coverage** (see the decision): every button, form and edge case.
-14. **Assistant** (see the decision): built on `feature/assistant`.
+14. **Assistant** (see the decision; built: `app/Services/Assistant`).
 15. **A landing page** that invites people in (built: `pages/Welcome.tsx`): what MTAV is
     and who it is for, "Sign in" as the main call to action, signing in and up in a dialog
     over it (`/login` and `/register` open it), a language switch whose choice the account
@@ -413,7 +420,7 @@ decision taken on the way is listed below for review.
     and superadmins' stay in the app.
 17. **Branches and their deploys, with the author**: `main`, `staging`, `dev` (work
     happens on `dev`); the first pushes to `dev` and `staging` deployed, then `main`; the
-    per-environment deploy keys set up on the host (see *Delivery from scratch*).
+    per-environment deploy keys set up (`infra/aws/deploy-keys.sh`; see *Delivery from scratch*).
 18. **The author's queue of 2026-10-30**:
     - The demo seed a plan worth showing: a realistic, non-rectangular site, much green,
       houses set out as they would be, buildings of one, two and three floors (some units
@@ -425,8 +432,8 @@ decision taken on the way is listed below for review.
       offers to show no more, and Preferences turns them back on (the (?) still has them). The tour blurs the rest of
       the page a little; a subtler outline.
     - Agreed ideas, built (see technical/data.md and notifications.md): the app installs
-      on devices; production's database and files pulled every night to the author's
-      machine (its address changes, so the host cannot push); people deleting their own
+      on devices; every environment's database and files backed up every night, to a
+      bucket the servers write to but never read or delete; people deleting their own
       account; people, families and units as spreadsheets for admins; the app keeping its
       own errors (the owner emailed of new ones); every change and every way in recorded
       for superadmins, to make everything auditable, never to watch people; a forum.
@@ -451,12 +458,13 @@ decision taken on the way is listed below for review.
     - Notifications reach people's devices (Web Push), each in its reader's language
       (notifications keep translation keys and values, written out per reader).
 20. **The author's review of 2026-10-30 (evening)**:
-    - Optional features are on or off per project: forum, chat, gallery, files, events (the
+    - Optional features are on or off per project: forum, chat, the Assistant, gallery, files, events (the
       lottery stays, even with events off). Variants
       decide which of these a project is even offered.
     - Guests are a project setting (see technical/architecture.md). A superadmin starting a
-      project says who its first admin is: themselves (shown as any admin) or someone invited.
-      A superadmin can be superadmin, admin and in a family at once.
+      project names its first admin, invited by email; the superadmin takes no place in it.
+      A superadmin is a support account apart, in no project: whoever also takes part in one
+      does so from another account, on another address.
     - Superadmins block accounts (kept, their email taken: they never join again) or delete
       them (bookkeeping: they may sign up again).
     - Removed things worth keeping are archived, for admins to see and restore.

@@ -10,9 +10,10 @@ On GitHub Actions:
 | Workflow | When | What |
 |---|---|---|
 | `pipeline.yml` | every push | style, lint, types and static analysis; tests (Pest, Vitest); the browser suite; the release image |
-| `solver.yml` | every push that touches the lottery's solvers; by hand | the Stress suite: GLPK on hard instances. It reports on the commit and holds no release back |
 | | `staging`, once all of that passes | the image published, and staging deployed |
 | | `main`, once all of that passes | the image published (and tagged `main`) |
+| `solver.yml` | every push that touches the lottery's solvers; by hand | the Stress suite: GLPK on hard instances. It reports on the commit and holds no release back |
+| `review.yml` | every push to `dev` that changes more than documentation | a cloud Claude Code task reviews it; it decides nothing about deploying |
 | `dev.yml` | every push to `dev`; by hand, from any branch | the branch's image (built if not yet published), deployed to dev, from fresh demo data |
 | `production.yml` | by hand, from `main` | the release staging runs (or a commit on `main`), deployed to production or to sorteo (the Open Lottery variant) |
 | `rollback.yml` | by hand | an environment back on the release before |
@@ -96,7 +97,7 @@ database. If that does not work, restoring a dump from step 2 is a person's deci
 
 ```sh
 cd /mtav/<environment>
-sudo gunzip -c backups/<dump>.sql.gz | docker compose -p mtav-<environment> exec -T db \
+sudo gunzip -c backups/<dump>.sql.gz | MTAV_ENV=<environment> docker compose -p mtav-<environment> exec -T db \
   sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"'
 ```
 
@@ -115,7 +116,7 @@ environment only, and ask any server what it runs. The gate accepts:
 | `deploy <environment> <commit> [fresh]` | that commit's release goes live |
 | `rollback <environment>` | the release before goes live again |
 | `status` | what each environment runs (live and previous: slot and image) |
-| `backup <environment> database\|files` | a gzipped copy, streamed back ([data.md](data.md)) |
+| `backup <environment> database\|files` | a gzipped copy, for the server's nightly backups alone ([data.md](data.md)) |
 
 It refuses anything else, any environment not set up on the server, and any image not built
 from this repository. Backups are the server's own (nightly, to S3); the deploy identities

@@ -4,7 +4,6 @@
 # Git
 .git/
 .gitignore
-.gitmodules
 
 # Docker (docker/ itself stays in: Dockerfiles COPY configs from it)
 .dockerignore

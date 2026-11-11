@@ -9,7 +9,7 @@ person's language; only Uruguayan Spanish is shown here (`lang/` has the rest).
 | Word | What it means | In code | Spanish |
 | --- | --- | --- | --- |
 | **Person** | Anyone with an account. One account serves every project. | `User` | persona |
-| **Superadmin** | Oversees the whole deployment: approves projects, and may do what an admin does in any project. Takes part in a project only if also in it. | `is_superadmin` | superadministrador |
+| **Superadmin** | Oversees the whole deployment: approves projects, and may do what an admin does in any project. A support account apart, invited on an address of its own: it takes part in no project. | `is_superadmin` | superadministrador |
 | **Owner** | The deployment's first superadmin. A deployment with no owner stays closed, showing only that it is under construction. | `is_owner` | |
 | **Admin** | Runs a project: sets it up, invites people, runs the lottery. May also be in a family. | `Membership.is_admin` | administrador |
 | **Member** | Someone taking part in a project, in a family. "Member of a family" is the same person seen from the family. | `Membership` with `family_id` | cooperativista, integrante |
@@ -28,13 +28,13 @@ here. Never say someone "has no family", "does not have a family", or "is family
 | --- | --- | --- | --- |
 | **Deployment** | One installation of the app, with its own people and projects: dev, staging or production. | `MTAV_ENV` | |
 | **Variant** | What a deployment is made to be: its name, landing page, words, and which parts of the app it offers. MTAV is one, running as dev, staging and production. Say "app variant" where "variant" alone is unclear. | | |
-| **Module** | A part of the app a variant has or lacks. Every route belongs to one. | `module:…` | |
+| **Module** | A part of the app a variant has or lacks. Every route belongs to one, except the few every variant has. | `module:…` | |
 | **Project** | One housing cooperative building its homes. Everything else belongs to one. | `Project` | proyecto |
 | **Limited** / **unlimited** | A project nobody vetted yet has limits that fit most cooperatives. A superadmin's approval makes it unlimited. A fact, never a warning. | `isApproved()` | limitado |
 | **Directory** | Where listed projects can be found and joined. | `DirectoryService` | Encontrar un proyecto |
 | **Listed** | Shown in the directory. | `listed` | |
 | **Open** | Anyone can join at once; otherwise they ask, and its admins answer. | `open_to_join` | |
-| **Feature** | A part of a project its admins can turn off: forum, chat, gallery, files, events. | `ProjectFeature` | |
+| **Feature** | A part of a project its admins can turn off: forum, chat, the Assistant, gallery, files, events. | `ProjectFeature` | |
 | **Setup** | The road to the lottery, step by step, shown on a paper note. | `setupChecklist` | puesta a punto |
 | **Archived** | Removed, but kept hidden for admins to see and bring back. | `Archivable` | archivado |
 

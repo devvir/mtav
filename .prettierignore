@@ -1,5 +1,3 @@
-resources/js/ziggy.js
-resources/views/mail/*
 
 # Ignore all non-frontend files
 *.php

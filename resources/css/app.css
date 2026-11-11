@@ -1160,8 +1160,8 @@
 .plan-panel[data-full] .plan-palette {
   top: 0;
 }
-/* The text size the person chose (Preferences), everything sized from it: larger than the
-   browser's own by default, since many read the app without glasses or a large screen */
+/* The text size the person chose (Preferences), everything sized from it: Small (the default)
+   is the browser's own, Medium and Large grow from it */
 html {
   font-size: 100%;
 }

@@ -8,7 +8,7 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{js,ts,vue,json,css,scss,html}]
+[*.{js,jsx,mjs,ts,tsx,json,css,html}]
 indent_size = 2
 
 [*.md]

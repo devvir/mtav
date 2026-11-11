@@ -37,7 +37,7 @@ editing the app while it runs makes its results meaningless.
 |---|---|---|
 | UseCases | `tests/UseCases/<area>/` | the business rules, through HTTP, from the actor's side ("an admin runs the lottery…") |
 | Unit | `tests/Unit/` | the lottery's solvers and GLPK, on plain data |
-| Arch | `tests/Arch/` | rules about the code: every language says what English says; no debugging left; models free of HTTP, solvers free of models |
+| Arch | `tests/Arch/` | rules about the code: every language says what English says; no debugging left; models free of HTTP, solvers free of models; the release built from pinned parts; every route belongs to a part of the app |
 | Stress | `tests/Stress/` | GLPK on hard instances (timeouts, binary search against the direct method) |
 | Browser | `tests/Browser/` | the real app in Chromium |
 | Vitest | `resources/js/tests/` | frontend logic: the plan editor, zoom, idle, offline |
@@ -46,8 +46,7 @@ editing the app while it runs makes its results meaningless.
 (`tests/Helpers/scenario.php`: `aProject()`, `anAdminOf()`, `aFamily()`, `aMemberOf()`,
 `aUnitType()`, `aUnit()`, `anEvent()`, `aLotteryInProgress()`…), never fixture ids, and
 act with `$this->as($user, $project)`. Each test starts from an empty schema, inside a
-transaction rolled back after it (after-commit callbacks still run). Two groups mark
-rules not met yet: `bug` (broken) and `new` (decided, not built).
+transaction rolled back after it (after-commit callbacks still run).
 
 **The solver** has its own checks, kept from the first version word for word
 (`tests/Unit/Lottery/Glpk/GlpkSolverTest.php`): exact picks, the worst-off family first,
@@ -90,6 +89,6 @@ run at once; Pest runs there in parallel, each process with its own database. Lo
 and the tests of what changed are enough; a `task/...` branch runs the whole pipeline without
 deploying anything, while work moves on.
 
-The pre-commit hook runs the tests that the staged files touch, against a testing
-environment already up (it skips, with a warning, when none is). The pipeline runs
-everything on every push ([delivery.md](delivery.md)).
+The pre-commit hook runs Arch and Unit (without the slow group) when PHP is staged, and
+Vitest when frontend code is, against a testing environment already up (it skips, with a
+warning, when none is). The pipeline runs everything on every push ([delivery.md](delivery.md)).

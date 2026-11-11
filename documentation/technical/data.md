@@ -76,27 +76,25 @@ A hosted service (Sentry, GlitchTip) can be added beside it later.
 
 ## Backups
 
-Two copies, by two means:
+Three copies, by three means:
 
-- **Before every deploy**, the environment's database is dumped on the host
+- **Before every deploy**, the environment's database is dumped on its server
   (`/mtav/<environment>/backups/`, the last 20 kept).
-- **Every night**, a machine of the owner's pulls the production database and its
-  uploaded files (`deploy/backup/pull`, from cron there): the host's gate streams them
-  (`backup <environment> database|files`) to a key that can do nothing else. Each copy is
-  checked before it is kept; 30 days are kept, and always the newest few.
+- **Every night** (06:00 UTC), each server sends the database and the uploaded files of
+  every environment with a release live to S3 (`mtav-backups`, from
+  `infra/aws/main/server/setup.sh`, through the gate: `backup <environment> database|files`),
+  to `<server>/<environment>/<day>/` in a bucket the servers can write to but never read
+  from or delete from (`infra/aws/main/backups.tf`). The bucket keeps them five weeks.
+  The warden shows the latest, and takes one when asked.
+- **Every day** (07:00 UTC), AWS snapshots each server's disks, its own and its data disk:
+  the last seven are kept. Restoring one brings the server back as it was.
 
-Setting the nightly copy up, once:
-
-1. `ssh-keygen -t ed25519 -f ~/.ssh/mtav-backup` on the machine that keeps the copies.
-2. On the host, run the setup again with that key added:
-   `sudo bash setup dev=dev.pub staging=staging.pub production=production.pub backups=mtav-backup.pub`.
-3. `crontab -e` there: `30 3 * * * /path/to/mtav/deploy/backup/pull production /backups/mtav`.
-
-Restoring a database copy (on the host, a person's decision):
+Restoring a database copy (on the server, a person's decision; a copy from the bucket is
+brought there by someone who may read it, as the servers cannot):
 
 ```sh
 cd /mtav/<environment>
-gunzip -c <copy>.sql.gz | docker compose -p mtav-<environment> exec -T db \
+gunzip -c <copy>.sql.gz | MTAV_ENV=<environment> docker compose -p mtav-<environment> exec -T db \
   sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE"'
 ```
 

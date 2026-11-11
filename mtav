@@ -126,14 +126,6 @@ set_env() {
     fi
 }
 
-init_submodules() {
-    if [ -f .gitmodules ] && [ -z "$(ls -A packages/laravel-instant-api 2>/dev/null)" ]; then
-        echo -e "${BLUE}📦 Initializing git submodules...${NC}"
-        git submodule update --init --recursive
-        echo -e "${GREEN}✅ Submodules initialized${NC}"
-    fi
-}
-
 first_time_setup() {
     echo -e "${BLUE}📦 First-time setup: dependencies and database...${NC}"
 
@@ -185,7 +177,6 @@ up() {
         shift
     fi
 
-    init_submodules
     env_setup
 
     if [ "$env" = "dev" ] && [ ! -f "$FIRST_RUN_WITNESS" ]; then
@@ -383,29 +374,29 @@ run_tests() {
     local test_type="${1:-all}"
     shift 2>/dev/null || true
 
-    if [[ ! "$test_type" =~ ^(all|php|vue|e2e|precommit)$ ]]; then
+    if [[ ! "$test_type" =~ ^(all|php|js|e2e|precommit)$ ]]; then
         echo -e "${RED}❌ Invalid test type: $test_type${NC}"
         echo "Usage: mtav test|pest|vitest|e2e|precommit [additional test args]"
         exit 1
     fi
 
-    local run_php=false run_vue=false run_e2e=false
+    local run_php=false run_js=false run_e2e=false
     local pest_extra_args=()
 
     case $test_type in
-        all) run_php=true; run_vue=true; run_e2e=true ;;
+        all) run_php=true; run_js=true; run_e2e=true ;;
         php) run_php=true ;;
-        vue) run_vue=true ;;
+        js) run_js=true ;;
         e2e) run_e2e=true ;;
         precommit)
             run_php=true
-            run_vue=true
+            run_js=true
             pest_extra_args=(--exclude-group slow)
             ;;
     esac
 
     local test_args=("$@")
-    local php_success=true vue_success=true e2e_success=true
+    local php_success=true js_success=true e2e_success=true
 
     cleanup_environment() {
         echo ""
@@ -422,10 +413,10 @@ run_tests() {
     echo -e "${BLUE}🧪 Test Suite${NC}"
     echo -e "${BLUE}════════════${NC}"
     [ "$run_php" = true ] && echo -e "  • PHP (Pest)"
-    [ "$run_vue" = true ] && echo -e "  • Frontend (Vitest)"
+    [ "$run_js" = true ] && echo -e "  • Frontend (Vitest)"
     [ "$run_e2e" = true ] && echo -e "  • E2E (Playwright)"
 
-    if [ "$run_php" = true ] || [ "$run_vue" = true ]; then
+    if [ "$run_php" = true ] || [ "$run_js" = true ]; then
         echo ""
         echo -e "${BLUE}Starting testing environment...${NC}"
         env_setup
@@ -440,7 +431,7 @@ run_tests() {
             exit 1
         fi
 
-        if [ "$run_vue" = true ]; then
+        if [ "$run_js" = true ]; then
             echo ""
             echo -e "${BLUE}Installing Node dependencies...${NC}"
             if ! cexec testing assets pnpm install; then
@@ -473,7 +464,7 @@ run_tests() {
         fi
     fi
 
-    if [ "$run_vue" = true ]; then
+    if [ "$run_js" = true ]; then
         echo ""
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${YELLOW}🎨 Frontend Tests (Vitest)${NC}"
@@ -485,11 +476,11 @@ run_tests() {
         else
             echo ""
             echo -e "${RED}❌ Frontend tests failed${NC}"
-            vue_success=false
+            js_success=false
         fi
     fi
 
-    if [ "$run_php" = true ] || [ "$run_vue" = true ]; then
+    if [ "$run_php" = true ] || [ "$run_js" = true ]; then
         cleanup_environment
     fi
 
@@ -499,7 +490,7 @@ run_tests() {
         fi
     fi
 
-    if [ "$php_success" = true ] && [ "$vue_success" = true ] && [ "$e2e_success" = true ]; then
+    if [ "$php_success" = true ] && [ "$js_success" = true ] && [ "$e2e_success" = true ]; then
         echo ""
         echo -e "${GREEN}🎉 All tests passed!${NC}"
         exit 0
@@ -666,7 +657,7 @@ case $COMMAND in
         ;;
 
     vitest)
-        run_tests vue "$@"
+        run_tests js "$@"
         ;;
 
     e2e)

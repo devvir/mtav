@@ -26,8 +26,8 @@ It says:
 **Every route belongs to a module, or the build fails.** Routes declare it (`module:accounts`),
 and `EnsureModule` answers 404 where the variant lacks that module: not hidden, gone. A test walks
 all routes and refuses one with no module, unless it is on the short list every variant has (home,
-language, health, privacy, manifest). So a new route is closed by default until someone says what
-it belongs to.
+language, health, privacy, manifest, the websocket sign-in, stored files, the fallback). So a new
+route is closed by default until someone says what it belongs to.
 
 **A feature is the variant's spec, then the project's choice.** `Project::hasFeature()` is the one
 answer, and everything reads it: routes, navigation, the home page, settings, what buttons say.
@@ -70,7 +70,8 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
 - **Words.** The creator is the **organizer** (*owner* already means the deployment's first
   superadmin). The organizer names what is distributed ("Rooms", "Shifts"), and the page uses it.
 - **Identity.** A secret kept in a cookie of that browser. Joining also gives a personal link, to
-  come back on another device; creating gives an organizer link, shown until dismissed. Only hashes
+  come back on another device; creating gives an organizer link, shown to the organizer while the
+  lottery is open. Only hashes
   are stored. A lost organizer link cannot be recovered: nobody knows who anybody is. The lottery
   says so where the link is shown.
 - **Link.** `/l/{slug}`: 10 characters, about 50 bits (the database ignores their case), so links cannot be guessed. Never listed,
@@ -91,7 +92,7 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
   it until pleased. A run that fails to solve may be tried again: it decided nothing. Wanting another
   means creating another.
 - **The organizer may take part** by joining like anyone else; nothing else changes.
-- **Rankings become public when it runs,** since checking the result needs them. Joining says so
+- **Rankings become public when it runs,** since checking the result needs them. The page says so
   in one line.
 - **Everyone is told by the page.** Open pages update live; a page that lost the connection catches
   up within seconds, by asking again. There is nothing to notify anyone else with.
@@ -101,13 +102,8 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
 - 50 people and 100 items per lottery: the sizes the solver answers quickly.
 - Creating is limited per address, as are joining and ranking.
 - A lottery nobody touched for 90 days goes, with its people and record; each page says when.
-- Names of at most 60 characters, and lists are capped, so a page stays small.
+- Names of at most 60 characters (the lottery's own, 80), and lists are capped, so a page stays small.
 - Nothing can be uploaded, and no links are made from what people write.
-
-### Before it goes live
-
-- Its own name (`APP_NAME`), and an environment on the server. Its address is `sorteo.mtav.uy`, on the
-  environment ports 8003 and 8083.
 
 ### Out of it, for now
 

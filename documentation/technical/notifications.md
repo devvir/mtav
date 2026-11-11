@@ -10,7 +10,13 @@ notification on their devices, and email.
 | The lottery done, or invalidated (with who and why) | everyone in the project |
 | A lottery run that failed | the admin who ran it |
 | Someone joined (a family, or the project) | everyone in the project |
-| An invitation, for someone who already has an account | that person |
+| An invitation, for someone who already has a confirmed account | that person |
+| Someone asking to join the project | its admins (the superadmins, if it has none) |
+| That request accepted, or declined | who asked |
+| Someone asking to join a family | its members |
+| Added to a family by someone else, or accepted into it | that person |
+| A request to join a family declined | who asked |
+| A family left with nobody, and archived | the admins, and whoever was asking to join it |
 | A new forum topic | everyone in the project |
 | A reply in a forum topic | whoever wrote in it before |
 | A project started, or asking to be unlimited | the platform's superadmins |
@@ -59,7 +65,8 @@ push service (Google's, Mozilla's, Apple's), encrypted for that browser.
 
 Account mail (confirming an address, resetting a password, an email change), invitations,
 the confirmation of a place someone now has (accepted into a project, added to a family),
-and the owner's notice of a new error (see [data.md](data.md)) go by email, in the
+a request to join a family (to its members), and the owner's notice of a new error (see
+[data.md](data.md)) or of a report sent through the Assistant go by email, in the
 recipient's language (`lang/<locale>/emails.php`). Addresses under the domains in
 `mail.blocked_domains` (on staging, the demo accounts' made-up ones) are skipped
 (`Listeners/SkipBlockedRecipients`).

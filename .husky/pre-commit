@@ -3,19 +3,18 @@
 # - Only runs the suites relevant to the STAGED files (docs-only commits are
 #   instant; PHP-only commits skip Vitest, and vice versa).
 # - Core PHP = Arch + Unit suites minus the 'slow' group (~50s).
-#   Feature tests are NOT run here — run `mtav precommit` (or CI) for the
-#   full suite before pushing/releasing.
+#   The use cases run in `mtav precommit` and in the pipeline.
 # - If the testing env is not up, tests are SKIPPED with a warning instead of
 #   paying the multi-minute compose up/composer install cycle on every commit.
 
 STAGED=$(git diff --cached --name-only)
 
 RUN_PHP=false
-RUN_VUE=false
+RUN_JS=false
 echo "$STAGED" | grep -qE '^(app|bootstrap|config|database|routes|tests|lang)/|\.php$|composer\.(json|lock)$' && RUN_PHP=true
-echo "$STAGED" | grep -qE '^resources/js/|\.(ts|vue|js)$|package\.json$|pnpm-lock\.yaml$|vite\.config' && RUN_VUE=true
+echo "$STAGED" | grep -qE '^resources/js/|\.(ts|tsx|js|mjs)$|package\.json$|pnpm-lock\.yaml$|vite\.config' && RUN_JS=true
 
-if [ "$RUN_PHP" = false ] && [ "$RUN_VUE" = false ]; then
+if [ "$RUN_PHP" = false ] && [ "$RUN_JS" = false ]; then
     echo "✅ No PHP/JS changes staged — skipping tests"
     exit 0
 fi
@@ -30,7 +29,7 @@ fi
 PHP_OK=0
 VITEST_OK=0
 
-if [ "$RUN_VUE" = true ]; then
+if [ "$RUN_JS" = true ]; then
     VITEST_LOG=$(mktemp)
     # Vitest in the background, in parallel with the PHP run
     docker exec mtav-testing-assets-1 pnpm run test --run > "$VITEST_LOG" 2>&1 &
@@ -39,13 +38,12 @@ fi
 
 if [ "$RUN_PHP" = true ]; then
     echo "🧪 Core PHP tests (Arch + Unit, minus slow)..."
-    # Add tests/Feature/Healthcheck etc. here for smoke coverage (~40s more).
     docker exec mtav-testing-php-1 \
         php artisan test tests/Arch tests/Unit --exclude-group slow --compact
     PHP_OK=$?
 fi
 
-if [ "$RUN_VUE" = true ]; then
+if [ "$RUN_JS" = true ]; then
     echo "🎨 Waiting for Vitest..."
     wait $VITEST_PID
     VITEST_OK=$?

@@ -27,10 +27,12 @@ Dialogs that add something open from the address too (`?new=1`; `lib/addressedDi
 
 ## People and roles
 
-- A **user** is one person's account. `is_superadmin` marks the platform's superadmins;
-  `is_owner` the deployment's owner, its first superadmin (from `APP_OWNER`, name, email
-  and password hash, while there is no account at all; until then the site shows only that
-  it is under construction, but for its public documents).
+- A **user** is one person's account. `is_superadmin` marks the platform's superadmins:
+  support accounts invited on an address of their own (`SupportInvitation`), in no project
+  and reaching every one (`User::reachableProjects()`); `is_owner` the deployment's owner,
+  its first superadmin (from `APP_OWNER`, name, email and password hash, while there is no
+  account at all; until then the site shows only that it is under construction, but for
+  its public documents).
 - A **membership** is a user's part in one project: as an admin, in a family, or both.
 - A **family** is who the lottery gives a unit to: it ranks the units of its type.
 
@@ -38,9 +40,9 @@ Dialogs that add something open from the address too (`?new=1`; `lib/addressedDi
 
 ## Authorization
 
-- `ResolveProject` lets into `/projects/{project}/…` only people in the project (anyone
-  else gets a 404) and makes it the default `{project}` of every address built during
-  the request, on the server and in the browser.
+- `ResolveProject` lets into `/projects/{project}/…` only people in the project and
+  superadmins (anyone else gets a 404) and makes it the default `{project}` of every
+  address built during the request, on the server and in the browser.
 - Models inside a project resolve through it (`scopeBindings()`): another project's id
   does not exist here.
 - Policies check the rest, always against the model's project. Superadmins pass every
@@ -50,7 +52,8 @@ Dialogs that add something open from the address too (`?new=1`; `lib/addressedDi
 
 ## Projects
 
-Anyone with a confirmed account starts projects, becoming their first admin. A project
+Anyone with a confirmed account starts projects, becoming their first admin; a superadmin
+takes no place in a project, and names its first admin instead, by an invitation. A project
 is **limited** (`config/limits.php`: people, families, units, invitations a day, file
 size, storage) until the platform's team makes it **unlimited**, which its admins ask
 for; projects a superadmin starts are unlimited at once. Only "Limited" is ever shown.
@@ -62,9 +65,10 @@ else deletes it for good. Superadmins restore archived projects, or delete them 
 
 Emailed links with a random token (only its hash is stored) that expire after two
 weeks. The link opens an account, or, for an existing one, joins once signed in as the
-invited address; that person is also told in the app. Admins invite into any family or
-as admins; members, into their own family. Someone already in the project with no family
-is added to the family at once, and told in the app and by email (`JoinedNotification`).
+invited address; that person, once their account is confirmed, is also told in the app.
+Admins invite into any family or as admins; members, into their own family. Someone already
+in the project with no family is added to the family at once (an admin is asked, unless
+inviting themselves), and told in the app and by email (`JoinedNotification`).
 
 ## The directory, guests and features
 
@@ -90,29 +94,34 @@ or someone of the family adds them. So a project without guests takes nobody new
 no unit types or once the lottery ran (`acceptsNewcomers`), and guests cannot be turned off
 while there are any, or invitations on their way to some.
 
-Forum, chat, gallery, files and events are on or off per project (`disabled_features`,
-`ProjectFeature`; `EnsureFeature` on their routes). Off, a feature is hidden and keeps what it
-holds. The lottery stays. Each variant of the app ([variants](../planning/variants.md)) decides which of these a
+Forum, chat, the Assistant (only with the chat), gallery, files and events are on or off per
+project (`feature_choices`, `ProjectFeature`; `EnsureFeature` on their routes). Off, a feature
+is hidden and keeps what it holds. The lottery stays. Each variant of the app ([variants](../planning/variants.md)) decides which of these a
 project is even offered (see the plan).
 
-**Archiving.** Removed events, files and forum posts are soft deleted (`Archivable`), and
+**Archiving.** Removed events, files and forum topics are soft deleted (`Archivable`), and
 admins see and restore them from a switch on each page (`ArchiveService`). What nobody came to
 rely on goes for good: a draft event, or an event, file or topic taken back within the hour
-that nothing else happened to. Families, units and unit types are deleted for good (only when
-nothing depends on them, and the activity log keeps what they were): bringing one back would
-not bring back its members or its place on the plan.
+that nothing else happened to. A family removed or left with nobody is archived too: admins see
+it there with who was ever in it, and delete it for good; it comes back with someone in it, as
+above. Units and unit types are deleted for good (only when nothing depends on them, and the
+activity log keeps what they were): bringing one back would not bring back its place on the plan.
 
 ## The Assistant
 
-Another conversation of the chat (`is_assistant`, one per person and project, pinned to begin
-with), answered apart from the request (`AnswerInChat`, `App\Services\Assistant`). It gets words
-and gives words: no tools, no internet, no database. `Prompt` writes what it knows: its rules,
-the guides for the person's role and language, and a few facts about them and their project.
+Another conversation of the chat (`is_assistant`, one per person and project, and one outside
+any project, pinned to begin with), answered apart from the request (`AnswerInChat`,
+`App\Services\Assistant`). It gets words and gives words: no tools, no internet, no database.
+`Prompt` writes what it knows: its rules, the guides for the person's role and language, and a
+few facts about them and their project.
 Nothing about anyone else goes in, so there is nothing to leak. What it answers comes in a fixed
 shape, and is checked: a link names a key of `Places`, which lists only what that person can reach
 (role, family, features), and the address is the server's. Short limits keep it cheap
 (`config/assistant.php`): per person and deployment a day, a short history, and saying no to
-either costs nothing. A limited project's people have half the messages.
+either costs nothing. A limited project's people have half the messages, as does someone in no
+project. It may offer to send the platform's team a report in the person's words, sent only if
+they tap it, a few a day (`Report`, `assistant.reports_per_day`): the owner gets it by email, and
+the console lists them all (`/admin/reports`).
 
 The model is only for what people put in their own words. `ReadyAnswers` answers greetings, thanks
 and the questions the Assistant offers, written beforehand or worked out from the project; those
@@ -149,9 +158,11 @@ is notified to the project, a reply to whoever wrote in the topic before.
 
 Conversations between people of a project (`Conversation`, `Message`, `ChatService`), one
 on one (`pair`: two people have one) or in groups with a name, for anyone with a
-membership there. Only those in a conversation read it: its abilities are personal
-(`ConversationPolicy`, `AppServiceProvider::PERSONAL_ABILITIES`), so neither the project's
-admins nor superadmins pass them. A message reaches the others on their own channels
+membership there, and superadmins. Outside any project (`/chat`, `AccountChatController`),
+someone's chat is their conversation with the Assistant alone. Only those in a conversation
+read it: its abilities are personal (`ConversationPolicy`,
+`AppServiceProvider::PERSONAL_ABILITIES`), so neither the project's admins nor superadmins
+pass them. A message reaches the others on their own channels
 (`MessageSent`, `users.<id>`: where it is, each page fetches what it shows) and on their
 devices (`PushMessage`), never through notifications (nothing in the bell). What each
 person has read is on their place in the conversation (`read_up_to`); the sidebar counts
@@ -186,7 +197,7 @@ the conversations with something new.
   change (`lib/offline.ts`). The app installs on devices (`/manifest.webmanifest`).
 - **Sizes**: everything is sized from the root's font size (`rem`, Mantine's too), which
   the person's text size sets (`data-text-size` on `<html>`, from the `text` cookie,
-  before the first paint): Medium, the default, is 120% of the browser's, Small 100%,
+  before the first paint): Small, the default, is 100% of the browser's, Medium 120%,
   Large 140%. Only the plan's drawing keeps its own units.
 - **Help**: a (?) by every page's title (`InfoTip`) says what the page is for and offers
   "Tell me more", a tour of it (`tours/index.ts`, `lib/tour.ts`). For new people, each
