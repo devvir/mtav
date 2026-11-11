@@ -1,10 +1,6 @@
-import {
-  floorsBeneath,
-  HIGHEST_FLOOR,
-  layered,
-  LOWEST_FLOOR,
-  PlanModel,
-} from '@/components/plan/model';
+import { floorsBeneath, HIGHEST_FLOOR, LOWEST_FLOOR } from '@/components/plan/floors';
+import { layered } from '@/components/plan/kinds';
+import { PlanModel } from '@/components/plan/model';
 import type { Plan } from '@/types/models';
 
 const plan = (): Plan => ({

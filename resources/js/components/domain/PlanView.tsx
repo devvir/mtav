@@ -1,5 +1,9 @@
-import { bounds, DEFAULT_COLORS, floorsBeneath, layered } from '@/components/plan/model';
-import { PlanDefs, PlanGround, PlanHint, PlanShape, type Kind } from '@/components/plan/render';
+import { floorsBeneath } from '@/components/plan/floors';
+import { bounds } from '@/components/plan/geometry';
+import { PlanHint } from '@/components/plan/hint';
+import { DEFAULT_COLORS, layered, type ShapeType } from '@/components/plan/kinds';
+import { PlanDefs } from '@/components/plan/materials';
+import { PlanGround, PlanShape } from '@/components/plan/render';
 import { usePanZoom, ZoomControls } from '@/components/plan/zoom';
 import { _ } from '@/lib/translations';
 import type { Plan, PlanItem } from '@/types/models';
@@ -88,7 +92,7 @@ export function PlanView({
   // A colour its admins chose (a kind's own default is its material, not a choice)
   const tint = (item: PlanItem) => {
     const color = item.metadata?.color as string | undefined;
-    return color && color !== DEFAULT_COLORS[item.type as Kind] ? color : undefined;
+    return color && color !== DEFAULT_COLORS[item.type as ShapeType] ? color : undefined;
   };
   // What the reader should notice: their own unit, then the units of their type
   const fill = (item: PlanItem) => {
@@ -123,7 +127,7 @@ export function PlanView({
                     key={item.id}
                     id={id}
                     seed={String(item.id)}
-                    kind={item.type as Kind}
+                    kind={item.type as ShapeType}
                     polygon={item.polygon}
                     color={tint(item)}
                   />
@@ -148,7 +152,7 @@ export function PlanView({
               <PlanShape
                 id={id}
                 seed={String(item.id)}
-                kind={item.type as Kind}
+                kind={item.type as ShapeType}
                 polygon={item.polygon}
                 color={tint(item)}
                 fill={fill(item)}

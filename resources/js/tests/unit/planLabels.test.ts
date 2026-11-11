@@ -1,4 +1,4 @@
-import { labelSpot } from '@/components/plan/render';
+import { labelSpot } from '@/components/plan/labels';
 import type { Point } from '@/types/models';
 
 const rect = (x: number, y: number, w: number, h: number): Point[] => [

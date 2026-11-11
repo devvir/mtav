@@ -1,15 +1,9 @@
 import type { Plan, PlanItem, Point } from '@/types/models';
-
-export type ShapeType =
-  | 'unit'
-  | 'building'
-  | 'street'
-  | 'green'
-  | 'common'
-  | 'parking'
-  | 'playground'
-  | 'entrance'
-  | 'other';
+import { HIGHEST_FLOOR, withinFloors } from './floors';
+import { bounds } from './geometry';
+import * as grid from './grid';
+import { PlanHistory } from './history';
+import { DEFAULT_COLORS, layered, type ShapeType } from './kinds';
 
 export interface EditableItem {
   key: string;
@@ -24,111 +18,22 @@ export interface EditableItem {
   placed: boolean;
 }
 
-export const DEFAULT_COLORS: Record<ShapeType, string> = {
-  unit: '#93c5fd',
-  building: '#d6d3d1',
-  street: '#a8a29e',
-  green: '#86efac',
-  common: '#fcd34d',
-  parking: '#57534e',
-  playground: '#fb923c',
-  entrance: '#a5b4fc',
-  other: '#e9d5ff',
-};
-
-const GRID = 5;
-
-/** The floors a plan holds, as the server takes them: five basements, a hundred floors up */
-export const LOWEST_FLOOR = -5;
-export const HIGHEST_FLOOR = 100;
-const withinFloors = (floor: number) => Math.min(HIGHEST_FLOOR, Math.max(LOWEST_FLOOR, floor));
-
-/**
- * How each kind starts, as a share of the canvas's shorter side: a street long and narrow,
- * parking and green areas wider than tall, an entrance a small triangle pointing in (up,
- * from a street below; rotate it to face its street)
- */
-const STARTS: Record<ShapeType, { width: number; height: number; triangle?: boolean }> = {
-  unit: { width: 0.12, height: 0.1 },
-  building: { width: 0.18, height: 0.12 },
-  street: { width: 0.6, height: 0.08 },
-  green: { width: 0.28, height: 0.2 },
-  common: { width: 0.2, height: 0.15 },
-  parking: { width: 0.26, height: 0.18 },
-  playground: { width: 0.18, height: 0.13 },
-  entrance: { width: 0.07, height: 0.06, triangle: true },
-  other: { width: 0.12, height: 0.1 },
-};
-
 /** A key no other shape has, even one drawn before a reload */
 const newKey = () => `new-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
-/**
- * What a state holds, whatever keys its shapes have: the canvas and each shape by its id
- * (one without an id is unsaved, so the state cannot match the server's)
- */
-const signature = (state: string) => {
-  const { canvas, items } = JSON.parse(state) as { canvas: unknown; items: EditableItem[] };
-  return JSON.stringify({
-    canvas,
-    items: items.map(({ id, type, floor, name, color, polygon, placed }) => ({
-      id,
-      type,
-      floor,
-      name,
-      color,
-      polygon,
-      placed: placed ?? true,
-    })),
-  });
-};
-
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
-/**
- * In the order they are drawn: units on a layer of their own, over every other shape (a
- * unit is what people choose by: nothing ever covers it); each layer keeps its own order
- */
-export const layered = <T extends { type: string }>(items: T[]) => [
-  ...items.filter((item) => item.type !== 'unit'),
-  ...items.filter((item) => item.type === 'unit'),
-];
-
-/** The floors beneath one, lowest first, each with its shapes in the order they are drawn */
-export const floorsBeneath = <T extends { type: string; floor: number }>(
-  items: T[],
-  floor: number,
-) =>
-  [...new Set(items.filter((item) => item.floor < floor).map((item) => item.floor))]
-    .sort((a, b) => a - b)
-    .map((below) => ({
-      floor: below,
-      items: layered(items.filter((item) => item.floor === below)),
-    }));
-
-/** The box around a polygon */
-export const bounds = (polygon: Point[]) => {
-  const xs = polygon.map(([x]) => x);
-  const ys = polygon.map(([, y]) => y);
-
-  return {
-    minX: Math.min(...xs),
-    minY: Math.min(...ys),
-    maxX: Math.max(...xs),
-    maxY: Math.max(...ys),
-  };
-};
-
-/** The middle of a polygon's box, where its label goes */
-export const centre = (polygon: Point[]): Point => {
-  const box = bounds(polygon);
-  return [(box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2];
-};
+/** A state as the history holds it */
+interface State {
+  canvas: PlanModel['canvas'];
+  items: EditableItem[];
+}
 
 /**
- * The plan editor's state: the canvas, its shapes, the selection, and an undo history,
- * kept outside any framework (the editor's component follows it with usePlanModel).
- * Geometry works on plain polygons ([[x, y], …]); every change calls the listeners.
+ * The plan editor's state: the canvas, its shapes, the selection, and an undo history
+ * (`PlanHistory`), kept outside any framework (the editor follows it with
+ * useSyncExternalStore). Geometry works on plain polygons ([[x, y], …]), on the grid while
+ * snapping; every change calls the listeners.
  */
 export class PlanModel {
   canvas: { width: number; height: number; polygon: Point[] };
@@ -140,16 +45,9 @@ export class PlanModel {
   selectedVertex: number | null = null;
   snap = true;
 
-  private past: string[] = [];
-  private future: string[] = [];
-  private current: string;
-  /** The state last saved: unsaved is anything else */
-  private saved: string;
-  /** The ids the server gave shapes drawn here, by their key (kept across undo) */
-  private ids = new Map<string, number>();
+  private history: PlanHistory;
   /** A shape copied (Ctrl+C), to paste as often as wanted */
   private clipboard: EditableItem | null = null;
-  private planId: number;
   private listeners = new Set<() => void>();
   /** Grows on every change: what React compares */
   version = 0;
@@ -170,10 +68,10 @@ export class PlanModel {
       unit: item.unit,
       placed: item.placed ?? true,
     }));
-    this.planId = plan.id;
-    this.current = this.snapshot();
-    this.saved = this.current;
-    this.recall();
+    this.history = new PlanHistory(plan.id, this.snapshot());
+    // Undo outlives a reload: the history kept in the browser, when it still fits the plan
+    const kept = this.history.recall();
+    if (kept !== null) this.restore(kept);
   }
 
   subscribe = (listener: () => void) => {
@@ -239,19 +137,18 @@ export class PlanModel {
   }
 
   get canUndo() {
-    return this.past.length > 0;
+    return this.history.canUndo;
   }
 
   get canRedo() {
-    return this.future.length > 0;
+    return this.history.canRedo;
   }
 
   get dirty() {
-    return this.current !== this.saved;
+    return this.history.dirty;
   }
 
-  round = (value: number) =>
-    this.snap ? Math.round(value / GRID) * GRID : Math.round(value * 10) / 10;
+  round = (value: number) => grid.round(value, this.snap);
 
   select(key: string | null) {
     this.selected = key;
@@ -327,7 +224,10 @@ export class PlanModel {
 
   /** The canvas taller or shorter, as it is dragged (kept in the history on commit) */
   setCanvasHeight(height: number) {
-    const next = Math.min(10000, Math.max(this.minHeight, Math.round(height / GRID) * GRID));
+    const next = Math.min(
+      10000,
+      Math.max(this.minHeight, Math.round(height / grid.GRID) * grid.GRID),
+    );
     if (next === this.canvas.height) return;
     if (this.boundaryIsCanvas)
       this.canvas.polygon = this.canvas.polygon.map(([x, y]): Point => [
@@ -350,33 +250,25 @@ export class PlanModel {
     this.changed();
   }
 
-  /** History */
+  /** History: each change kept (`commit`), undone and redone, and what was saved */
   private snapshot() {
-    return JSON.stringify({ canvas: this.canvas, items: this.items });
+    return JSON.stringify({ canvas: this.canvas, items: this.items } satisfies State);
   }
 
   commit() {
-    const next = this.snapshot();
-    if (next !== this.current) {
-      this.past.push(this.current);
-      if (this.past.length > 100) this.past.shift();
-      this.future = [];
-      this.current = next;
-      this.remember();
-    }
+    this.history.push(this.snapshot());
     this.changed();
   }
 
   private restore(state: string) {
-    const parsed = JSON.parse(state);
+    const parsed = JSON.parse(state) as State;
     this.canvas = parsed.canvas;
     // A shape saved since that state keeps the id it got (one brought back by undo, the id
     // the server gave it anew)
-    this.items = parsed.items.map((item: EditableItem) => ({
+    this.items = parsed.items.map((item) => ({
       ...item,
-      id: this.ids.get(item.key) ?? item.id ?? null,
+      id: this.history.idOf(item.key) ?? item.id ?? null,
     }));
-    this.current = state;
     if (this.selected !== 'boundary' && !this.items.some((item) => item.key === this.selected)) {
       this.selected = null;
     }
@@ -384,80 +276,31 @@ export class PlanModel {
   }
 
   undo() {
-    const previous = this.past.pop();
-    if (previous === undefined) return;
-    this.future.push(this.current);
-    this.restore(previous);
-    this.remember();
+    const previous = this.history.undo();
+    if (previous !== null) this.restore(previous);
   }
 
   redo() {
-    const next = this.future.pop();
-    if (next === undefined) return;
-    this.past.push(this.current);
-    this.restore(next);
-    this.remember();
+    const next = this.history.redo();
+    if (next !== null) this.restore(next);
   }
 
   /**
    * What was saved is now the plan: the ids its new shapes got (by key), kept for undo.
    * `state` is what was sent (changes since then stay unsaved).
    */
-  markSaved(state: string = this.current, ids: Record<string, number> = {}) {
+  markSaved(state: string = this.history.current, ids: Record<string, number> = {}) {
     Object.entries(ids).forEach(([key, id]) => {
-      this.ids.set(key, id);
       const item = this.items.find((one) => one.key === key);
       if (item) item.id = id;
     });
-    this.saved = state === this.current ? this.snapshot() : state;
-    this.current = this.snapshot();
-    this.remember();
+    this.history.markSaved(state, this.snapshot(), ids);
     this.changed();
   }
 
   /** The state as it is now, to send and to mark saved once sent */
   get state() {
-    return this.current;
-  }
-
-  /**
-   * The history kept in the browser, so undo survives a reload: taken back only when what
-   * it last saved is still the plan as the server has it (else someone changed it since)
-   */
-  private get storageKey() {
-    return `mtav.plan-history.${this.planId}`;
-  }
-
-  private remember() {
-    try {
-      localStorage.setItem(
-        this.storageKey,
-        JSON.stringify({
-          saved: signature(this.saved),
-          current: this.current,
-          past: this.past.slice(-40),
-          future: this.future.slice(-40),
-          ids: [...this.ids],
-        }),
-      );
-    } catch {
-      // No room, or no storage: undo lasts until the page closes
-    }
-  }
-
-  private recall() {
-    try {
-      const kept = JSON.parse(localStorage.getItem(this.storageKey) ?? 'null');
-      if (!kept || kept.saved !== signature(this.current) || signature(kept.current) !== kept.saved)
-        return;
-      this.ids = new Map(kept.ids);
-      this.past = kept.past;
-      this.future = kept.future;
-      this.restore(kept.current);
-      this.saved = this.current;
-    } catch {
-      // Unreadable: start afresh
-    }
+    return this.history.current;
   }
 
   /** Bring the selected shape to the front of its layer, or send it to the back */
@@ -509,7 +352,7 @@ export class PlanModel {
       key: newKey(),
       id: null,
       floor: this.floor,
-      polygon: this.translate(this.clipboard.polygon, GRID * 4, GRID * 4),
+      polygon: this.translate(this.clipboard.polygon, grid.GRID * 4, grid.GRID * 4),
     };
     this.clipboard = copy;
     this.items.push(copy);
@@ -517,68 +360,30 @@ export class PlanModel {
     this.commit();
   }
 
-  /** Geometry */
+  /** Geometry, on the grid while snapping (grid.ts) */
   translate(polygon: Point[], dx: number, dy: number): Point[] {
-    const box = bounds(polygon);
-    const sx = this.round(box.minX + dx) - box.minX;
-    const sy = this.round(box.minY + dy) - box.minY;
-    return polygon.map(([x, y]) => [x + sx, y + sy]);
+    return grid.translate(polygon, dx, dy, this.snap);
   }
 
-  /**
-   * An edge moved straight out or in, its two corners together, so a street widens or
-   * narrows and a rectangle stays one
-   */
+  /** An edge moved straight out or in, its two corners together */
   moveEdge(polygon: Point[], index: number, start: Point, at: Point): Point[] {
-    const a = polygon[index]!;
-    const b = polygon[(index + 1) % polygon.length]!;
-    const length = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-    const normal: Point = [-(b[1] - a[1]) / length, (b[0] - a[0]) / length];
-    const distance = (at[0] - start[0]) * normal[0] + (at[1] - start[1]) * normal[1];
-    const step = this.snap ? Math.round(distance / GRID) * GRID : Math.round(distance);
-    const shift = ([x, y]: Point): Point => [x + normal[0] * step, y + normal[1] * step];
-    const next = [...polygon];
-    next[index] = shift(a);
-    next[(index + 1) % polygon.length] = shift(b);
-    return next;
+    return grid.moveEdge(polygon, index, start, at, this.snap);
   }
 
-  /** Turned around its middle by an angle in degrees (a tenth of a unit is precise enough) */
+  /** Turned around its middle by an angle in degrees */
   rotate(polygon: Point[], degrees: number): Point[] {
-    const [cx, cy] = centre(polygon);
-    const angle = (degrees * Math.PI) / 180;
-    const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
-    const tenth = (value: number) => Math.round(value * 10) / 10;
-    return polygon.map(([x, y]) => [
-      tenth(cx + (x - cx) * cos - (y - cy) * sin),
-      tenth(cy + (x - cx) * sin + (y - cy) * cos),
-    ]);
+    return grid.rotate(polygon, degrees);
   }
 
   /** Scaled so that the corner at `from` goes `to` (taken as it is when `exact`: lined up) */
   resize(polygon: Point[], anchor: Point, from: Point, to: Point, exact = false): Point[] {
     const target: Point = exact ? to : [this.round(to[0]), this.round(to[1])];
-    const sx =
-      Math.abs(from[0] - anchor[0]) < 1e-6 ? 1 : (target[0] - anchor[0]) / (from[0] - anchor[0]);
-    const sy =
-      Math.abs(from[1] - anchor[1]) < 1e-6 ? 1 : (target[1] - anchor[1]) / (from[1] - anchor[1]);
-    if (Math.abs(sx) < 0.05 || Math.abs(sy) < 0.05) return polygon;
-    return polygon.map(([x, y]) => [
-      anchor[0] + (x - anchor[0]) * sx,
-      anchor[1] + (y - anchor[1]) * sy,
-    ]);
+    return grid.scale(polygon, anchor, from, target);
   }
 
   /** Insert a corner on an edge, at the point closest to `at` */
   insertVertex(polygon: Point[], edge: number, at: Point): Point[] {
-    const [a, b] = [polygon[edge]!, polygon[(edge + 1) % polygon.length]!];
-    const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
-    const t = Math.max(
-      0,
-      Math.min(1, ((at[0] - a[0]) * dx + (at[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)),
-    );
-    const point: Point = [this.round(a[0] + t * dx), this.round(a[1] + t * dy)];
-    return [...polygon.slice(0, edge + 1), point, ...polygon.slice(edge + 1)];
+    return grid.insertVertex(polygon, edge, at, this.snap);
   }
 
   /** Shapes: a new one named as its kind is (`name`), a name that may be cleared */
@@ -616,39 +421,19 @@ export class PlanModel {
       placed: true,
     };
     const withIt = (state: string) => {
-      const parsed = JSON.parse(state);
+      const parsed = JSON.parse(state) as State;
       parsed.items.push(item);
       return JSON.stringify(parsed);
     };
-    this.past = this.past.map(withIt);
-    this.future = this.future.map(withIt);
-    this.saved = withIt(this.saved);
     this.items.push(item);
-    this.current = this.snapshot();
+    this.history.includeEverywhere(withIt, this.snapshot());
     this.selected = item.key;
-    this.remember();
     this.changed();
   }
 
   /** Where a new shape of a kind starts: in the middle of the canvas, in its kind's shape */
   startOf(type: ShapeType): Point[] {
-    const unit = Math.min(this.canvas.width, this.canvas.height);
-    const start = STARTS[type];
-    const size = (share: number) => Math.max(20, Math.round((unit * share) / GRID) * GRID);
-    const [w, h] = [size(start.width), size(start.height)];
-    const [cx, cy] = [this.round(this.canvas.width / 2), this.round(this.canvas.height / 2)];
-    return start.triangle
-      ? [
-          [cx, cy - h / 2],
-          [cx + w / 2, cy + h / 2],
-          [cx - w / 2, cy + h / 2],
-        ]
-      : [
-          [cx - w / 2, cy - h / 2],
-          [cx + w / 2, cy - h / 2],
-          [cx + w / 2, cy + h / 2],
-          [cx - w / 2, cy + h / 2],
-        ];
+    return grid.startShape(type, this.canvas, this.snap);
   }
 
   duplicate() {
@@ -658,7 +443,7 @@ export class PlanModel {
       ...clone(item),
       key: newKey(),
       id: null,
-      polygon: this.translate(item.polygon, GRID * 2, GRID * 2),
+      polygon: this.translate(item.polygon, grid.GRID * 2, grid.GRID * 2),
     };
     this.items.push(copy);
     this.selected = copy.key;
