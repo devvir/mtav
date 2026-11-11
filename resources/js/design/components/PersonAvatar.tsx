@@ -5,12 +5,22 @@ import { useState } from 'react';
 export const hueOf = (name: string) =>
   [...name].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) % 360, 7);
 
-const initials = (name: string) =>
+const graphemes =
+  typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
+
+/** A word's first character as seen, whole: an emoji, a letter with its accent */
+const firstOf = (word: string) =>
+  (graphemes ? graphemes.segment(word)[Symbol.iterator]().next().value?.segment : [...word][0]) ??
+  '';
+
+export const initials = (name: string) =>
   name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
+    .map((word) => firstOf(word).toUpperCase())
     .join('');
 
 /**

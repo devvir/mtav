@@ -67,3 +67,18 @@ export const toLocalInput = (iso: string | null | undefined) => {
   const date = new Date(iso);
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
+
+/**
+ * The server's errors that no field of a form shows (`shown`: whether the form has a field
+ * for it), each said once: nothing it refuses goes unsaid
+ */
+export const unshownErrors = (
+  errors: Record<string, string | undefined>,
+  shown: (field: string) => boolean,
+) => [
+  ...new Set(
+    Object.entries(errors)
+      .filter(([name, message]) => message && !shown(name))
+      .map(([, message]) => message!),
+  ),
+];

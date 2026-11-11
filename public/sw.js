@@ -3,18 +3,32 @@
  * MTAV's service worker: the app keeps working without the server. Pages (and their data)
  * come from the network when it answers, and are kept as they were last loaded; when the
  * server cannot be reached, the kept copy answers instead, and the page is told so. The
- * app's own files (built, hashed) and pictures are kept once fetched. Nothing that changes
- * anything (a form, an upload) ever goes through here: those need the server.
+ * app's own files (built, hashed) are kept once fetched, until a build no longer has them;
+ * the project's pictures are asked of the server each time, kept for when it cannot be
+ * reached. Nothing that changes anything (a form, an upload) ever goes through here: those
+ * need the server.
  */
 const PAGES = 'mtav-pages-v1';
 const FILES = 'mtav-files-v1';
+/** The person's, like their pages: forgotten with them */
+const PICTURES = 'mtav-pictures-v1';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('activate', (event) =>
+  event.waitUntil(Promise.all([self.clients.claim(), dropPicturesKeptAsFiles()])),
+);
+
+/** Pictures an earlier worker kept among the app's files, never asked of the server again: dropped */
+async function dropPicturesKeptAsFiles() {
+  const cache = await caches.open(FILES);
+  const pictures = (await cache.keys()).filter((key) => picture.test(new URL(key.url).pathname));
+  await Promise.all(pictures.map((key) => cache.delete(key)));
+}
 
 /** Someone else signed in, or signed out: what was kept was theirs */
 self.addEventListener('message', (event) => {
-  if (event.data === 'forget') event.waitUntil(caches.delete(PAGES));
+  if (event.data === 'forget')
+    event.waitUntil(Promise.all([caches.delete(PAGES), caches.delete(PICTURES)]));
 });
 
 const tell = async (online) =>
@@ -31,7 +45,9 @@ const keyOf = (request) => {
   return new Request(url.toString());
 };
 
-const keptFile = /^\/(build|images|fonts)\/|\/thumbnail$/;
+const keptFile = /^\/(build|images|fonts)\//;
+/** Only the project's people may see them: the server is asked each time (lost access, a photo removed) */
+const picture = /\/thumbnail$/;
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
@@ -40,20 +56,72 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return;
 
   if (keptFile.test(url.pathname)) {
-    event.respondWith(fileFirst(request));
+    event.respondWith(fileFirst(request, event));
+  } else if (picture.test(url.pathname)) {
+    event.respondWith(askedPicture(request));
   } else if (request.mode === 'navigate' || request.headers.get('X-Inertia')) {
     event.respondWith(networkFirst(request));
   }
 });
 
-/** Hashed builds and pictures never change under the same address: kept once fetched */
-async function fileFirst(request) {
+/** Hashed builds never change under the same address: kept once fetched */
+async function fileFirst(request, event) {
   const cache = await caches.open(FILES);
   const kept = await cache.match(request);
   if (kept) return kept;
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) {
+    cache.put(request, response.clone());
+    // A file never kept: maybe a new build, whose files replace the last one's
+    if (new URL(request.url).pathname.startsWith('/build/')) event.waitUntil(pruneSoon());
+  }
   return response;
+}
+
+let pruning = null;
+const pruneSoon = () => {
+  pruning ??= pruneBuilds()
+    .catch(() => undefined)
+    .finally(() => {
+      pruning = null;
+    });
+  return pruning;
+};
+
+/** The files of builds gone by, which nothing asks for again: dropped */
+async function pruneBuilds() {
+  const response = await fetch('/build/manifest.json', { cache: 'no-store' });
+  if (!response.ok) return;
+  const current = new Set();
+  Object.values(await response.json()).forEach((entry) =>
+    [entry.file, ...(entry.css ?? []), ...(entry.assets ?? [])].forEach((file) =>
+      current.add(`/build/${file}`),
+    ),
+  );
+  if (!current.size) return;
+  const cache = await caches.open(FILES);
+  const gone = (await cache.keys()).filter((key) => {
+    const path = new URL(key.url).pathname;
+    return path.startsWith('/build/') && !current.has(path);
+  });
+  await Promise.all(gone.map((key) => cache.delete(key)));
+}
+
+/**
+ * A picture as the server gives it now, or refuses it (and it is forgotten); the kept one
+ * only when the server cannot be reached
+ */
+async function askedPicture(request) {
+  const cache = await caches.open(PICTURES);
+  try {
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    else if (response.status !== 304) await cache.delete(request);
+    return response;
+  } catch (error) {
+    if (request.signal?.aborted || error?.name === 'AbortError') return Response.error();
+    return (await cache.match(request)) ?? Response.error();
+  }
 }
 
 /**

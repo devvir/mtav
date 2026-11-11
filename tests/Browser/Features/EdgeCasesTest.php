@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\PlanItem;
+use App\Models\PlatformSetting;
+use App\Services\OpenLotteryService;
 
 /**
  * What is rare but must hold: many floors, the longest names the forms take, hundreds of
@@ -47,6 +49,49 @@ it('holds the longest unit and family names the forms take', function () {
     }
     fitsTheWindow(visit(route('families.index', ['project' => $this->project, 'family' => $family->id]))->assertPresent('[role="dialog"]'));
     expect(PlanItem::where('unit_id', $unit->id)->exists())->toBeTrue();
+});
+
+it('holds a unit name with no spaces to break it at, on the plan and in a ranking', function () {
+    $long = mb_substr(str_repeat('Vivienda', 10), 0, 80);
+    aUnit($this->type, ['identifier' => $long]);
+    $this->as($this->admin);
+
+    $page = fitsTheWindow(visit(route('units.index', $this->project))->assertNoSmoke());
+    fitsTheWindow($page->click('Edit the plan')->click("[data-shape=\"{$long}\"] .plan-top")->assertSee("Unit {$long}"));
+
+    $this->as(aMemberOf(aFamily($this->project, $this->type)));
+    foreach (['units.index', 'lottery.show'] as $place) {
+        fitsTheWindow(visit(route($place, $this->project))->assertNoSmoke());
+        fitsTheWindow(visit(route($place, $this->project))->on()->mobile());
+    }
+});
+
+it('holds the longest names an open lottery takes, with no spaces to break them at', function () {
+    config(['variant.name' => 'open_lottery']);
+    PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
+    $lotteries = app(OpenLotteryService::class);
+    // As long as each field takes, in one word
+    $word = fn (int $length, string $start) => mb_substr(str_repeat($start, $length), 0, $length);
+    [$lottery, $organizing] = $lotteries->create([
+        'name'       => $word(80, 'Vacaciones'),
+        'items_name' => $word(40, 'Habitaciones'),
+        'items'      => [$word(60, 'Dormitorio'), 'Altillo'],
+    ]);
+    [, $own] = $lotteries->join($lottery, $word(60, 'Bartolomé'));
+    $lotteries->join($lottery, 'Ana');
+
+    // Taking part and organizing it, on a computer and on a phone
+    $organizer = route('open.organize', [$lottery, $organizing]);
+    $me = route('open.me', [$lottery, $own]);
+    fitsTheWindow(visit($organizer)->assertSee('Organizing')->assertNoSmoke());
+    fitsTheWindow(visit($organizer)->on()->mobile()->assertSee('Organizing'));
+    fitsTheWindow(visit($me)->assertSee('Your preferences')->assertNoSmoke());
+    fitsTheWindow(visit($me)->on()->mobile()->assertSee('Your preferences'));
+
+    // Its result
+    $lotteries->run($lottery, true);
+    fitsTheWindow(visit(route('open.show', $lottery))->assertSee('The result'));
+    fitsTheWindow(visit(route('open.show', $lottery))->on()->mobile()->assertSee('The result'));
 });
 
 it('holds hundreds of families and people', function () {

@@ -6,11 +6,16 @@ import { fireEvent, render, screen } from '@testing-library/react';
 const units = (): Unit[] =>
   ['A-101', 'A-102', 'A-103'].map((identifier, id) => ({ id, identifier, can: {} }) as Unit);
 
-const draw = (props: Partial<Parameters<typeof RankingList>[0]> = {}) => {
+const draw = (props: Partial<Parameters<typeof RankingList<Unit>>[0]> = {}) => {
   const onChange = vi.fn();
   render(
     <MantineProvider>
-      <RankingList units={units()} onChange={onChange} {...props} />
+      <RankingList
+        items={units()}
+        label={(unit) => unit.identifier}
+        onChange={onChange}
+        {...props}
+      />
     </MantineProvider>,
   );
   return onChange;

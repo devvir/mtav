@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PlanItem;
+use App\Models\Unit;
 use App\Services\Plan\EditingLock;
 
 /**
@@ -262,6 +263,28 @@ it('adds a unit from the palette: its details first, then it stands where it was
         ->and(PlanItem::whereNotNull('unit_id')->count())->toBe(2);
 });
 
+it('says what the server refuses of a unit drawn on the plan, even with no field for it', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Unit'));
+    // Its floor, spoilt on its way: a floor no plan holds
+    $page->script(<<<'JS'
+        () => {
+            const send = window.fetch;
+            window.fetch = (url, options) => {
+                if (options?.method !== 'POST' || !/\/manage\/units$/.test(String(url))) return send(url, options);
+                return send(url, { ...options, body: JSON.stringify({ ...JSON.parse(options.body), floor: 500 }) });
+            };
+        }
+        JS);
+
+    $page->fill(inDialogField('identifier'), 'A-201')
+        ->click(inDialog('Add the unit'))
+        ->assertSeeIn('[role="dialog"] [data-form-errors]', 'The floor must be between -5 and 100.');
+
+    expect(Unit::where('identifier', 'A-201')->exists())->toBeFalse();
+});
+
 it('adds no unit when its details are left', function () {
     $this->as($this->admin);
 
@@ -429,11 +452,99 @@ it('stays closed, saying why, when the hold cannot be taken', function () {
     $this->as($this->admin);
 
     $page = visit(route('units.index', $this->project))->assertSee('Edit the plan');
-    $page->script('() => { window.fetch = async () => new Response("{}", { status: 419 }); }');
+    $page->script('() => { window.fetch = async () => new Response("{}", { status: 500 }); }');
 
     $page->click('Edit the plan')
         ->assertSee("That didn't work. Try again.")
         ->assertMissing('[aria-label="Plan editor"]');
+});
+
+it('stays closed, saying to sign in again, when the session is gone', function () {
+    $this->as($this->admin);
+
+    $page = visit(route('units.index', $this->project))->assertSee('Edit the plan');
+    $page->script('() => { window.fetch = async () => new Response("{}", { status: 419 }); }');
+
+    $page->click('Edit the plan')
+        ->assertSee('You were signed out. Sign in again.')
+        ->assertMissing('[aria-label="Plan editor"]');
+});
+
+/** The plan's saves answered as the server would, `status`, and counted (window.plansSent) */
+function answerPlanSaves(object $page, int $status): void
+{
+    $page->script(<<<JS
+        () => {
+            window.plansSent = 0;
+            const send = window.fetch;
+            window.fetch = (url, options) => {
+                if (options?.method !== 'PUT' || !/\/plan$/.test(String(url))) return send(url, options);
+                window.plansSent++;
+                return Promise.resolve(new Response('{}', { status: {$status} }));
+            };
+        }
+        JS);
+}
+
+it('keeps a shape within the floors a plan holds, and saves it there', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    $page->keys('[aria-label="Plan editor"]', array_fill(0, 7, 'PageDown'))
+        ->assertPresent('[role="tab"][aria-selected="true"]:has-text("Basement 5")')
+        ->rightClick('[data-shape="A-101"] .plan-top')
+        ->assertPresent('[role="menuitem"][data-disabled]:has-text("One floor down")')
+        ->assertPresent('[role="menuitem"]:not([data-disabled]):has-text("One floor up")');
+
+    eventually($page, fn () => expect(PlanItem::whereNotNull('unit_id')->sole()->floor)->toBe(-5));
+    $page->assertSee('Saved')->assertDontSee('Not saved yet');
+});
+
+it('says to sign in again when a save finds the session gone, and stops trying', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    answerPlanSaves($page, 419);
+
+    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')
+        ->assertSee('You were signed out. Sign in again.')
+        // A retry's wait, and more: nothing is sent again by itself
+        ->wait(6);
+
+    expect($page->script('() => window.plansSent'))->toBe(1);
+});
+
+it('tries again by itself when the server could not answer', function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    answerPlanSaves($page, 503);
+
+    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')->assertSee('Not saved yet')->wait(6);
+
+    expect($page->script('() => window.plansSent'))->toBeGreaterThan(1);
+});
+
+it("says the server's words when it refuses what was drawn", function () {
+    $this->as($this->admin);
+
+    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    // What the editor sends, spoilt on its way: a floor no plan holds
+    $page->script(<<<'JS'
+        () => {
+            const send = window.fetch;
+            window.fetch = (url, options) => {
+                if (options?.method !== 'PUT' || !/\/plan$/.test(String(url))) return send(url, options);
+                const plan = JSON.parse(options.body);
+                plan.items.forEach((item) => { item.floor = 500; });
+                return send(url, { ...options, body: JSON.stringify(plan) });
+            };
+        }
+        JS);
+
+    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')
+        ->assertSeeIn('.plan-save-state', '100')
+        ->assertDontSeeIn('.plan-save-state', 'Not saved yet');
 });
 
 it('closes, saying who drew, when someone else holds the plan by then', function () {

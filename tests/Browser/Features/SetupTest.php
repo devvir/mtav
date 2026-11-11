@@ -32,6 +32,32 @@ it('manages unit types, refusing duplicates and removing only unused ones', func
     expect(UnitType::pluck('name')->all())->toBe(['2 bedrooms']);
 });
 
+it('takes a size on the plan with a decimal, typed key by key', function () {
+    visit(route('units.index', [$this->project, 'new_type' => 1]))
+        ->fill('name', 'Loft')
+        ->type('plan_width', '7.5')
+        ->type('plan_height', '4')
+        ->assertValue('[name="plan_width"]', '7.5')
+        ->click(inDialog('Add the unit type'))
+        ->assertSee('The unit type was added.');
+
+    expect(UnitType::firstWhere('name', 'Loft')->only('plan_width', 'plan_height'))
+        ->toEqual(['plan_width' => 7.5, 'plan_height' => 4]);
+});
+
+it('takes the decimal mark of the person\'s language', function () {
+    visit(route('units.index', [$this->project, 'new_type' => 1]))->withLocale('es-UY')
+        ->fill('name', 'Loft')
+        ->type('plan_width', '7,5')
+        ->type('plan_height', '4')
+        ->assertValue('[name="plan_width"]', '7,5')
+        ->click(inDialog('Agregar el tipo de vivienda'))
+        ->assertMissing('[role="dialog"]');
+
+    expect(UnitType::firstWhere('name', 'Loft')->only('plan_width', 'plan_height'))
+        ->toEqual(['plan_width' => 7.5, 'plan_height' => 4]);
+});
+
 it('does not offer to remove a unit type in use', function () {
     $type = aUnitType($this->project, ['name' => 'Studio']);
     aFamily($this->project, $type);

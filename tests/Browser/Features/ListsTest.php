@@ -217,3 +217,27 @@ it('says so among the platform\'s accounts too', function () {
 
     visit(route('admin.users.index', ['q' => 'nothing like this']))->assertSee('No account matches');
 });
+
+it('shows the last page there is when asked for one past the end', function () {
+    config(['lists.whole' => 1]);
+    $this->as($this->admin);
+
+    visit(route('people.index', [$this->project, 'page' => 999]))
+        ->assertSee('Bruno Pérez')
+        ->assertScript('new URLSearchParams(window.location.search).get("page")', '1')
+        ->assertDontSee('Nobody matches')
+        ->assertNoSmoke();
+});
+
+it('has the whole of a name or a title cut short at hand', function () {
+    $this->as($this->admin);
+    $title = 'What we agreed about the shared laundry, the garden and the roof terrace at the last assembly';
+    app(ForumService::class)->open($this->project, $this->admin, $title, 'About it');
+
+    visit(route('people.index', $this->project))
+        ->assertPresent('.ds-truncate[title="Ana García"]')
+        ->assertPresent('.ds-truncate[title="García"]');
+
+    visit(route('forum.index', $this->project))
+        ->assertPresent(".ds-truncate[title=\"{$title}\"]");
+});

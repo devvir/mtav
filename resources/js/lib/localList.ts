@@ -1,17 +1,38 @@
 import { useState } from 'react';
 
+/** Letters no accent mark makes, written as people type them without (Łódź, Søren, Straße) */
+const PLAIN: Record<string, string> = {
+  ł: 'l',
+  ø: 'o',
+  ß: 'ss',
+  đ: 'd',
+  ð: 'd',
+  þ: 'th',
+  æ: 'ae',
+  œ: 'oe',
+  ı: 'i',
+  ħ: 'h',
+};
+
 /** Text as compared when searching: no case, no accents ("Pérez" is found by "perez") */
 export const fold = (text: string) =>
   text
+    .toLowerCase()
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
+    .replace(/[łøßđðþæœıħ]/g, (letter) => PLAIN[letter]!);
 
-/** Whether any of these texts contains the query (an empty query matches everything) */
+/**
+ * Whether any of these texts contains the query (an empty query matches everything), its
+ * spaces at either end left out ("García " finds García)
+ */
 export const matches = (
   query: string | null | undefined,
   ...texts: (string | null | undefined)[]
-) => !query || texts.some((text) => text && fold(text).includes(fold(query)));
+) => {
+  const sought = fold(query?.trim() ?? '');
+  return !sought || texts.some((text) => text && fold(text).includes(sought));
+};
 
 type Filters = Record<string, string | number | boolean | null>;
 

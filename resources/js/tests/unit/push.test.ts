@@ -1,5 +1,5 @@
 import { connection } from '@/lib/offline';
-import { dropDevice, pushState, signOut, turnOff, turnOn } from '@/lib/push';
+import { WORKER_READY_MS, dropDevice, pushState, signOut, turnOff, turnOn } from '@/lib/push';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { visit, post, shown } = vi.hoisted(() => ({
@@ -156,6 +156,40 @@ describe('notifications on this device', () => {
 
       expect(mine.unsubscribe).not.toHaveBeenCalled();
       expect(post).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('turned on where the worker fails', () => {
+    /** A browser whose worker never registered, or is registered but never starts */
+    const stuck = ({ registered }: { registered: boolean }) => {
+      browser(device('https://push/mine'));
+      Object.defineProperty(navigator, 'serviceWorker', {
+        configurable: true,
+        value: {
+          getRegistration: async () => (registered ? { pushManager: {} } : undefined),
+          ready: new Promise(() => {}),
+        },
+      });
+    };
+
+    it('stay off, and say so, at once when it never registered', async () => {
+      stuck({ registered: false });
+
+      expect(await turnOn('key')).toBe('off');
+      expect(shown).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }));
+      expect(visit).not.toHaveBeenCalled();
+    });
+
+    it('stay off, and say so, when it never starts', async () => {
+      vi.useFakeTimers();
+      stuck({ registered: true });
+
+      const answer = turnOn('key');
+      await vi.advanceTimersByTimeAsync(WORKER_READY_MS);
+
+      expect(await answer).toBe('off');
+      expect(shown).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }));
+      vi.useRealTimers();
     });
   });
 

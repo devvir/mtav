@@ -1,4 +1,10 @@
-import { floorsBeneath, layered, PlanModel } from '@/components/plan/model';
+import {
+  floorsBeneath,
+  HIGHEST_FLOOR,
+  layered,
+  LOWEST_FLOOR,
+  PlanModel,
+} from '@/components/plan/model';
 import type { Plan } from '@/types/models';
 
 const plan = (): Plan => ({
@@ -203,6 +209,32 @@ describe('the plan editor', () => {
     editor.moveFloor(-1);
     editor.moveFloor(-1);
     expect([editor.selectedItem?.floor, editor.allFloors]).toEqual([-1, [-1, 0]]);
+  });
+
+  it('keeps every shape within the floors the server takes, five down and a hundred up', () => {
+    const editor = new PlanModel(plan());
+    editor.select('item-10');
+
+    for (let press = 0; press < 8; press++) editor.moveFloor(-1);
+    expect([editor.selectedItem?.floor, editor.floor]).toEqual([LOWEST_FLOOR, LOWEST_FLOOR]);
+    expect(editor.canMoveFloor(-1)).toBe(false);
+    expect(editor.canMoveFloor(1)).toBe(true);
+
+    editor.update({ floor: 250 });
+    expect(editor.selectedItem?.floor).toBe(HIGHEST_FLOOR);
+    expect(editor.canMoveFloor(1)).toBe(false);
+    editor.moveFloor(1);
+    expect(editor.payload().items.map((item) => item.floor)).toEqual([HIGHEST_FLOOR]);
+  });
+
+  it('adds floors up to the highest the server takes, and no more', () => {
+    const editor = new PlanModel(plan());
+
+    while (editor.canAddFloor) editor.addFloor();
+    editor.addFloor();
+
+    expect(Math.max(...editor.allFloors)).toBe(HIGHEST_FLOOR);
+    expect(editor.floor).toBe(HIGHEST_FLOOR);
   });
 
   it('groups the floors beneath one, lowest first', () => {

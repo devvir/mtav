@@ -51,15 +51,36 @@ export function heldOffline(): boolean {
 /** Whose pages the device keeps: another person's are forgotten */
 const KEPT_FOR = 'mtav.kept-for';
 
-function keepFor(userId: number | null) {
+/**
+ * The device now shows `userId`'s pages (null: a guest's): another person's are forgotten.
+ * Who they are kept for is noted only once the worker was told, so a page the worker does
+ * not serve (a hard reload) leaves it to the next.
+ */
+export async function keepFor(userId: number | null) {
+  const now = String(userId ?? '');
   let before: string | null = null;
   try {
     before = localStorage.getItem(KEPT_FOR);
-    localStorage.setItem(KEPT_FOR, String(userId ?? ''));
   } catch {
     // Without storage, keep nothing across people: forget every time
   }
-  if (before !== String(userId ?? '')) navigator.serviceWorker?.controller?.postMessage('forget');
+  if (before === now) return;
+
+  const workers = navigator.serviceWorker;
+  if (workers) {
+    const registration = workers.controller
+      ? undefined
+      : await workers.getRegistration().catch(() => undefined);
+    const worker = workers.controller ?? registration?.active;
+    // Registered but not yet working: nothing to tell yet, nor kept by it
+    if (!worker && registration) return;
+    worker?.postMessage('forget');
+  }
+  try {
+    localStorage.setItem(KEPT_FOR, now);
+  } catch {
+    // As above
+  }
 }
 
 /**
@@ -73,7 +94,7 @@ export function workOffline(userId: number | null) {
       if (event.data?.type === 'connection') setOnline(Boolean(event.data.online));
     });
   }
-  keepFor(userId);
+  void keepFor(userId);
 
   window.addEventListener('offline', () => setOnline(false));
   // Back from sleep, or to a tab left a while: what it last heard may be stale
@@ -89,7 +110,7 @@ export function workOffline(userId: number | null) {
   router.on('success', () => {
     if (navigator.onLine) setOnline(true);
   });
-  router.on('navigate', (event) => keepFor(event.detail.page.props.auth?.user?.id ?? null));
+  router.on('navigate', (event) => void keepFor(event.detail.page.props.auth?.user?.id ?? null));
 
   // Offline, nothing that changes something leaves the page
   router.on('before', (event) => {

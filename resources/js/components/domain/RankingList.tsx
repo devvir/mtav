@@ -1,5 +1,5 @@
+import { scrollBehavior } from '@/lib/motion';
 import { _ } from '@/lib/translations';
-import type { Unit } from '@/types/models';
 import {
   closestCenter,
   DndContext,
@@ -30,28 +30,36 @@ import {
   type TouchEventHandler,
 } from 'react';
 
-/** The units in a new order: one moved from a place to another */
-export const moved = (units: Unit[], from: number, to: number): Unit[] =>
-  arrayMove(units, from, to);
+/** What a ranking orders: anything with an id (its name is the list's `label`) */
+export interface Ranked {
+  id: number;
+}
+
+/** The items in a new order: one moved from a place to another */
+export const moved = <Item,>(items: Item[], from: number, to: number): Item[] =>
+  arrayMove(items, from, to);
 
 /**
- * A family's ranking, most wanted first. Reordered by dragging a row (a short press on touch screens),
- * with the keyboard (Space picks a row up, the arrows move it, Space drops it), or with the
- * arrow buttons; every move is announced. The unit being moved or pointed at is told
- * (`onFocus`, for the plan beside it to light it up); `flash` lights one up a moment,
- * brought into view (one picked on the plan).
+ * A ranking, most wanted first: a family's units, or what an open lottery shares out.
+ * Reordered by dragging a row (a short press on touch screens), with the keyboard (Space
+ * picks a row up, the arrows move it, Space drops it), or with the arrow buttons; every move
+ * is announced. The one being moved or pointed at is told (`onFocus`, for the plan beside it
+ * to light it up); `flash` lights one up a moment, brought into view (one picked on the plan).
  */
-export function RankingList({
-  units,
+export function RankingList<Item extends Ranked>({
+  items,
+  label,
   onChange,
   disabled,
   onFocus,
   flash,
 }: {
-  units: Unit[];
-  onChange: (units: Unit[]) => void;
+  items: Item[];
+  /** How an item is called */
+  label: (item: Item) => string;
+  onChange: (items: Item[]) => void;
   disabled?: boolean;
-  onFocus?: (unitId: number | null) => void;
+  onFocus?: (id: number | null) => void;
   flash?: { unit: number; at: number } | null;
 }) {
   const [announcement, setAnnouncement] = useState('');
@@ -63,45 +71,45 @@ export function RankingList({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const identifier = (id: string | number) =>
-    units.find((unit) => unit.id === id)?.identifier ?? '';
-  const position = (id: string | number) => units.findIndex((unit) => unit.id === id) + 1;
+  const nameOf = (id: string | number) => {
+    const item = items.find((one) => one.id === id);
+    return item ? label(item) : '';
+  };
+  const position = (id: string | number) => items.findIndex((item) => item.id === id) + 1;
 
   const announcements: Announcements = {
     onDragStart: ({ active }) =>
       _('Picked up {unit}, number {position}', {
-        unit: identifier(active.id),
+        unit: nameOf(active.id),
         position: position(active.id),
       }),
     onDragOver: ({ active, over }) =>
       over
         ? _('{unit} goes to number {position}', {
-            unit: identifier(active.id),
+            unit: nameOf(active.id),
             position: position(over.id),
           })
         : undefined,
     onDragEnd: ({ active, over }) =>
       over
         ? _('{unit} is now number {position}', {
-            unit: identifier(active.id),
+            unit: nameOf(active.id),
             position: position(over.id),
           })
         : undefined,
-    onDragCancel: ({ active }) => _('{unit} stays where it was', { unit: identifier(active.id) }),
+    onDragCancel: ({ active }) => _('{unit} stays where it was', { unit: nameOf(active.id) }),
   };
 
   const move = (from: number, to: number) => {
-    if (disabled || to < 0 || to >= units.length || from === to) return;
-    const unit = units[from]!;
-    onChange(moved(units, from, to));
-    setAnnouncement(
-      _('{unit} is now number {position}', { unit: unit.identifier, position: to + 1 }),
-    );
+    if (disabled || to < 0 || to >= items.length || from === to) return;
+    const item = items[from]!;
+    onChange(moved(items, from, to));
+    setAnnouncement(_('{unit} is now number {position}', { unit: label(item), position: to + 1 }));
   };
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
-    onChange(moved(units, position(active.id) - 1, position(over.id) - 1));
+    onChange(moved(items, position(active.id) - 1, position(over.id) - 1));
   };
 
   return (
@@ -124,21 +132,22 @@ export function RankingList({
       }}
     >
       <SortableContext
-        items={units.map((unit) => unit.id)}
+        items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
         disabled={disabled}
       >
         <ol className="ranking">
-          {units.map((unit, index) => (
+          {items.map((item, index) => (
             <RankingItem
-              key={unit.id}
-              unit={unit}
+              key={item.id}
+              id={item.id}
+              name={label(item)}
               index={index}
-              last={index === units.length - 1}
+              last={index === items.length - 1}
               disabled={disabled}
               onMove={move}
               onFocus={onFocus}
-              flash={flash?.unit === unit.id ? flash.at : null}
+              flash={flash?.unit === item.id ? flash.at : null}
             />
           ))}
         </ol>
@@ -151,7 +160,8 @@ export function RankingList({
 }
 
 function RankingItem({
-  unit,
+  id,
+  name,
   index,
   last,
   disabled,
@@ -159,7 +169,8 @@ function RankingItem({
   onFocus,
   flash,
 }: {
-  unit: Unit;
+  id: number;
+  name: string;
   index: number;
   last: boolean;
   disabled?: boolean;
@@ -176,14 +187,11 @@ function RankingItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({
-    id: unit.id,
-    disabled,
-  });
+  } = useSortable({ id, disabled });
 
   const row = useRef<HTMLLIElement | null>(null);
   useEffect(() => {
-    if (flash) row.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (flash) row.current?.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() });
   }, [flash]);
 
   // The whole row follows the pointer; the keyboard picks it up from its grip, a button of its own
@@ -195,7 +203,7 @@ function RankingItem({
       }}
       key={flash ?? undefined}
       data-flash={flash ? true : undefined}
-      onMouseEnter={() => onFocus?.(unit.id)}
+      onMouseEnter={() => onFocus?.(id)}
       onMouseLeave={() => onFocus?.(null)}
       className="ranking-item ds-surface"
       data-first={index === 0 || undefined}
@@ -213,16 +221,13 @@ function RankingItem({
           className="ranking-grip"
           {...attributes}
           onKeyDown={listeners?.onKeyDown as KeyboardEventHandler | undefined}
-          aria-label={_('Move {unit}, number {position}', {
-            unit: unit.identifier,
-            position: index + 1,
-          })}
+          aria-label={_('Move {unit}, number {position}', { unit: name, position: index + 1 })}
         >
           <IconGripVertical size={18} aria-hidden />
         </button>
       ) : null}
       <span className="ds-truncate" style={{ flex: 1, fontWeight: 650 }}>
-        {unit.identifier}
+        {name}
       </span>
       {!disabled ? (
         <span style={{ display: 'flex', gap: 4 }}>
@@ -231,7 +236,7 @@ function RankingItem({
             size="lg"
             data-disabled={index === 0 || undefined}
             aria-disabled={index === 0}
-            aria-label={_('Move {unit} up', { unit: unit.identifier })}
+            aria-label={_('Move {unit} up', { unit: name })}
             onClick={() => index > 0 && onMove(index, index - 1)}
           >
             <IconArrowUp size={18} />
@@ -240,7 +245,7 @@ function RankingItem({
             size="lg"
             data-disabled={last || undefined}
             aria-disabled={last}
-            aria-label={_('Move {unit} down', { unit: unit.identifier })}
+            aria-label={_('Move {unit} down', { unit: name })}
             onClick={() => !last && onMove(index, index + 1)}
           >
             <IconArrowDown size={18} />

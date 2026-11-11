@@ -339,12 +339,15 @@ it('is the Assistant alone outside any project: its conversation, with no list t
         ->assertNoSmoke();
 
     // Its own page, where phones have it: the same, on its own; a question asked, taken back
+    // with its answer, and what to ask offered again
     visit(route('account.chat.index'))
         ->assertSeeIn('.chat-messages', __('chat.ready.outside'))
         ->assertMissing('.chat-list')
         ->click('.chat-message[data-mine] [aria-label="Delete this message"]')
         ->click(inDialog('Delete'))
-        ->assertDontSeeIn('.chat-messages', 'What can I do here?')
+        ->assertMissing('.chat-message[data-mine]')
+        ->assertDontSeeIn('.chat-messages', __('chat.ready.outside'))
+        ->assertPresent('.chat-messages button:has-text("What can I do here?")')
         ->assertNoSmoke();
 
     // A report it drafted, sent from outside any project
@@ -419,4 +422,94 @@ it('enlarges into the chat\'s page, at the conversation open, and folds the wind
         ->assertSeeIn('.chat-messages', 'Hola Beto')
         ->assertMissing('.chat-window')
         ->assertNoSmoke();
+});
+
+it('edits and deletes one\'s own messages within the hour, by the keyboard too, and nobody else\'s', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $chat->send($conversation, $this->beto, 'Hola Ana');
+    $mine = $chat->send($conversation, $this->ana, 'Nos vemos a las 5');
+    $this->as($this->ana);
+
+    $page = visit(route('chat.show', [$this->project, $conversation]))
+        ->assertSeeIn('.chat-messages', 'Nos vemos a las 5')
+        ->assertMissing('.chat-message:not([data-mine]) [aria-label="Edit this message"]')
+        ->assertMissing('.chat-message:not([data-mine]) [aria-label="Delete this message"]')
+        ->click('.chat-message[data-mine] [aria-label="Edit this message"]')
+        ->assertValue('[aria-label="Edit your message"]', 'Nos vemos a las 5')
+        ->fill('[aria-label="Edit your message"]', 'Nos vemos a las 6')
+        ->keys('[aria-label="Edit your message"]', 'Enter')
+        ->assertMissing('[aria-label="Edit your message"]')
+        ->assertSeeIn('.chat-messages', 'Nos vemos a las 6');
+    expect($mine->fresh()->body)->toBe('Nos vemos a las 6');
+
+    // Escape leaves it as it was, and the focus back on the message
+    $page->click('.chat-message[data-mine] [aria-label="Edit this message"]')
+        ->fill('[aria-label="Edit your message"]', 'Never mind')
+        ->keys('[aria-label="Edit your message"]', 'Escape')
+        ->assertMissing('[aria-label="Edit your message"]')
+        ->assertSeeIn('.chat-messages', 'Nos vemos a las 6')
+        ->assertScript('document.activeElement?.getAttribute("aria-label")', 'Edit this message')
+        ->assertNoSmoke();
+    assertAccessible($page);
+    expect($mine->fresh()->body)->toBe('Nos vemos a las 6');
+
+    // Deleted, it leaves for good
+    $page->click('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->assertSeeIn('[role="dialog"]', 'It will disappear for everyone in the conversation.')
+        ->click(inDialog('Delete'))
+        ->assertDontSeeIn('.chat-messages', 'Nos vemos a las 6')
+        ->assertSeeIn('.chat-messages', 'Hola Ana');
+    expect($mine->fresh())->toBeNull();
+});
+
+it('stops offering to change a message as its hour closes, by itself', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $closing = $chat->send($conversation, $this->ana, 'Almost an hour ago');
+    // A little while left: room for the page to load first
+    $closing->forceFill(['created_at' => now()->subMinutes(60)->addSeconds(15)])->save();
+    $this->as($this->ana);
+
+    visit(route('chat.show', [$this->project, $conversation]))
+        ->assertPresent('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->wait(16)
+        ->assertMissing('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->assertMissing('.chat-message[data-mine] [aria-label="Edit this message"]');
+});
+
+it('deletes a question to the Assistant with its answer, and offers no editing there', function () {
+    $conversation = Conversation::where('pair', "assistant:{$this->ana->id}")->sole();
+    app(ChatService::class)->send($conversation, $this->ana, 'Where do I see the plan?');
+    $this->as($this->ana);
+
+    visit(route('projects.show', $this->project))
+        ->click('.chat-launcher')
+        ->click('.chat-list-item:has-text("Assistant")')
+        ->assertSeeIn('.chat-messages', 'The Assistant is not available here yet')
+        ->assertPresent('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->assertMissing('[aria-label="Edit this message"]')
+        ->click('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->assertSeeIn('[role="dialog"]', "It will disappear, along with the Assistant's answer to it.")
+        ->click(inDialog('Delete'))
+        ->assertDontSeeIn('.chat-messages', 'Where do I see the plan?')
+        ->assertDontSeeIn('.chat-messages', 'The Assistant is not available here yet')
+        ->assertNoSmoke();
+
+    expect($conversation->messages()->count())->toBe(0);
+});
+
+it('holds a change while offline, as it holds every change', function () {
+    $chat = app(ChatService::class);
+    $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
+    $mine = $chat->send($conversation, $this->ana, 'Still here');
+    $this->as($this->ana);
+
+    $page = visit(route('chat.show', [$this->project, $conversation]))->assertSeeIn('.chat-messages', 'Still here');
+    $page->script('() => window.dispatchEvent(new Event("offline"))');
+
+    $page->click('.chat-message[data-mine] [aria-label="Delete this message"]')
+        ->assertSee('You are offline')
+        ->assertMissing('[role="dialog"]');
+    expect($mine->fresh())->not->toBeNull();
 });

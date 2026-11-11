@@ -13,6 +13,29 @@ beforeEach(function () {
     $this->member = aMemberOf(aFamily($this->project), ['firstname' => 'Ana', 'lastname' => 'García']);
 });
 
+it('says what the server refuses of where an event is', function () {
+    $this->as($this->admin);
+
+    $page = visit(route('events.index', $this->project))->click('Create an event');
+    // Its kind, spoilt on its way: one no event has
+    $page->script(<<<'JS'
+        () => {
+            const send = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function (body) {
+                if (typeof body === 'string' && body.includes('"title"')) body = JSON.stringify({ ...JSON.parse(body), type: 'bogus' });
+                return send.call(this, body);
+            };
+        }
+        JS);
+
+    $page->fill('title', 'General assembly')
+        ->fill('description', 'Yearly assembly')
+        ->click(inDialog('Create the event'))
+        ->assertSeeIn('[role="dialog"]', 'Choose one of the options for type.');
+
+    expect(Event::where('title', 'General assembly')->exists())->toBeFalse();
+});
+
 it('keeps a draft from members until it is published', function () {
     $this->as($this->admin);
 

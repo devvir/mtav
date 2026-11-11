@@ -5,10 +5,22 @@ const { channel, leaveChannel } = vi.hoisted(() => ({
   channel: { listen: vi.fn(), stopListening: vi.fn() },
   leaveChannel: vi.fn(),
 }));
-vi.mock('@inertiajs/react', () => ({ router: {}, usePage: vi.fn() }));
+vi.mock('@inertiajs/react', () => ({
+  router: {},
+  usePage: vi.fn(),
+  http: { onRequest: vi.fn() },
+}));
 vi.mock('@laravel/echo-react', () => ({
   configureEcho: vi.fn(),
-  echo: () => ({ private: () => channel, leaveChannel }),
+  echo: () => ({
+    private: () => channel,
+    leaveChannel,
+    connector: {
+      connectionStatus: () => 'connected',
+      onConnectionChange: vi.fn(),
+      socketId: () => undefined,
+    },
+  }),
 }));
 
 describe('listening on a shared channel', () => {
@@ -33,7 +45,7 @@ describe('listening on a shared channel', () => {
   });
 
   it('leaves the channel with the last one to stop, and only then', () => {
-    const stopOne = listenOn('users.1', { '.message': vi.fn(), '.message-removed': vi.fn() });
+    const stopOne = listenOn('users.1', { '.message': vi.fn(), '.message-changed': vi.fn() });
     const stopOther = listenOn('users.1', { '.notification': vi.fn() });
 
     stopOne();

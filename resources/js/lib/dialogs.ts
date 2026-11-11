@@ -47,6 +47,21 @@ export const prompt = (options: PromptOptions) =>
     dialogQueue.set((queue) => [...queue, { id: ++lastId, kind: 'prompt', options, resolve }]),
   );
 
+/** Typed text as compared: one form of each accent, straight quotes, single spaces */
+const asTyped = (text: string) =>
+  text
+    .normalize('NFC')
+    .replace(/[‘’‚‛′`´]/g, "'")
+    .replace(/[“”„‟″]/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/**
+ * Whether what was typed is the text asked for: as a keyboard writes it (a phone's curly
+ * quotes, an accent in two parts, a space too many), letter case as asked
+ */
+export const typedAsAsked = (typed: string, asked: string) => asTyped(typed) === asTyped(asked);
+
 /** Answer the question shown, and show the next one */
 export function settle(value: boolean | string | null) {
   const [current, ...rest] = dialogQueue.get();

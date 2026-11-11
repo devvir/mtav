@@ -38,6 +38,11 @@ export const DEFAULT_COLORS: Record<ShapeType, string> = {
 
 const GRID = 5;
 
+/** The floors a plan holds, as the server takes them: five basements, a hundred floors up */
+export const LOWEST_FLOOR = -5;
+export const HIGHEST_FLOOR = 100;
+const withinFloors = (floor: number) => Math.min(HIGHEST_FLOOR, Math.max(LOWEST_FLOOR, floor));
+
 /**
  * How each kind starts, as a share of the canvas's shorter side: a street long and narrow,
  * parking and green areas wider than tall, an entrance a small triangle pointing in (up,
@@ -282,19 +287,29 @@ export class PlanModel {
     this.commit();
   }
 
-  /** Change the selected shape (its name, colour, floor: the floor shown follows it) */
+  /**
+   * Change the selected shape (its name, colour, floor: the floor shown follows it, never past
+   * the floors a plan holds)
+   */
   update(changes: Partial<Pick<EditableItem, 'name' | 'color' | 'floor'>>) {
     const item = this.selectedItem;
     if (!item) return;
-    Object.assign(item, changes);
-    if (changes.floor !== undefined) this.floor = changes.floor;
+    const floor = changes.floor === undefined ? undefined : withinFloors(changes.floor);
+    Object.assign(item, changes, floor === undefined ? {} : { floor });
+    if (floor !== undefined) this.floor = floor;
     this.commit();
+  }
+
+  /** Whether the selected shape can go a floor up (1) or down (-1): not past the ends */
+  canMoveFloor(by: 1 | -1) {
+    const item = this.selectedItem;
+    return Boolean(item) && withinFloors(item!.floor + by) === item!.floor + by;
   }
 
   /** The selected shape a floor up (1) or down (-1), followed there */
   moveFloor(by: 1 | -1) {
     const item = this.selectedItem;
-    if (item) this.update({ floor: item.floor + by });
+    if (item && this.canMoveFloor(by)) this.update({ floor: item.floor + by });
   }
 
   /** The canvas no shorter than what is drawn on it (a boundary that is its edge follows it) */
@@ -672,7 +687,13 @@ export class PlanModel {
     this.commit();
   }
 
+  /** Whether there is a floor left above the highest one shown */
+  get canAddFloor() {
+    return Math.max(...this.allFloors) < HIGHEST_FLOOR;
+  }
+
   addFloor() {
+    if (!this.canAddFloor) return;
     const next = Math.max(...this.allFloors) + 1;
     this.extraFloors.push(next);
     this.floor = next;

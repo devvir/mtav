@@ -49,10 +49,13 @@ export const AUTO_AFTER_MS = 900;
 /** A browser driven by a program (tests, the manuals' pictures) plays none unless it asks */
 export const drivenBrowser = () => navigator.webdriver && remembered(OFF) !== 'on';
 
-/** The page's own tour is being offered instead: it does not play by itself this once */
-let offered = false;
+/**
+ * The page's own tour is being offered instead: it does not play by itself this once. Only
+ * that page's: one with no tour leaves the next page's to play.
+ */
+let offeredAt: string | null = null;
 export const offerTourInstead = () => {
-  offered = true;
+  offeredAt = window.location.pathname;
 };
 
 /**
@@ -62,11 +65,11 @@ export const offerTourInstead = () => {
 export function autoTour(id: string) {
   if (drivenBrowser() || remembered(OFF) === 'off' || remembered(SEEN + id)) return () => undefined;
   const later = window.setTimeout(() => {
-    if (offered) {
-      // The Assistant is offering it: this one counts as seen, and the (?) still has it
-      offered = false;
-      remember(SEEN + id, '1');
-    } else if (!tourState.get().id) startTour(id);
+    const instead = offeredAt === window.location.pathname;
+    offeredAt = null;
+    // The Assistant is offering it: this one counts as seen, and the (?) still has it
+    if (instead) remember(SEEN + id, '1');
+    else if (!tourState.get().id) startTour(id);
   }, AUTO_AFTER_MS);
   return () => window.clearTimeout(later);
 }

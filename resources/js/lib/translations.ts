@@ -38,10 +38,10 @@ export const getLocale = () => locale;
 /** The locale as browsers name it (es_UY → es-UY), for Intl and toLocale* formatting */
 export const languageTag = () => locale.replace('_', '-');
 
+/** Each blank filled once, with the value as written ("A$$B" stays so; a "{name}" in it stays too) */
 const fill = (text: string, replacements: Replacements) =>
-  Object.entries(replacements).reduce(
-    (result, [name, value]) => result.replaceAll(`{${name}}`, String(value)),
-    text,
+  text.replace(/\{(\w+)\}/g, (blank, name: string) =>
+    Object.hasOwn(replacements, name) ? String(replacements[name]) : blank,
   );
 
 export const _ = (key: string, replacements: Replacements = {}): string =>

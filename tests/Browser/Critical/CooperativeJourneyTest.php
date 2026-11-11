@@ -28,6 +28,13 @@ it('takes a cooperative from sign-up to its lottery', function () {
         ->fill('password', 'a-Strong-pass-123')
         ->fill('password_confirmation', 'a-Strong-pass-123')
         ->click('Create the account')
+        // Sign-up answers the same whether the address has an account: a link sent, followed signed in
+        ->assertPathIs('/login');
+
+    visit(route('login'))
+        ->fill('email', 'laura@example.com')
+        ->fill('password', 'a-Strong-pass-123')
+        ->click('[type="submit"]')
         ->assertSee('Confirm your email');
 
     // The confirmation link from the email

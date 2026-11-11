@@ -8,6 +8,7 @@ import {
   useChatProject,
   useChatRoute,
 } from '@/lib/chat';
+import { changeableAt, useChangeClock, useShownMessages } from '@/lib/chatMessages';
 import { confirm } from '@/lib/dialogs';
 import { fieldErrors, sendJson } from '@/lib/json';
 import { heldOffline } from '@/lib/offline';
@@ -30,6 +31,7 @@ import {
   Text,
   Textarea,
   TextInput,
+  Transition,
   VisuallyHidden,
 } from '@mantine/core';
 import {
@@ -87,6 +89,8 @@ interface ChatMessage {
   from_assistant?: boolean;
   actions?: AssistantAction[];
   created_at: string;
+  /** Theirs: until when they may still edit or delete it */
+  changeable_until?: string | null;
 }
 
 /**
@@ -126,6 +130,17 @@ const MORE = 50;
 const seen = new Map<number, ChatData>();
 
 const refused = () => toast({ tone: 'error', message: _("That didn't work. Try again.") });
+
+/** A change to a message turned down: past its hour, the server says so; anything else, try again */
+const turnedDown = async (response: Response) => {
+  if (response.status !== 409) return refused();
+  const { message } = (await response.json()) as { message: string };
+  return toast({ tone: 'warning', message });
+};
+
+/** Its edit and delete buttons, to give the focus back to once editing ends */
+const changesOf = (message: number) =>
+  document.querySelector<HTMLElement>(`[data-message="${message}"] .chat-change`);
 
 /** The Assistant: a small friendly house, the app's subject, looking at you */
 function AssistantFace({ size = 40 }: { size?: number }) {
@@ -518,6 +533,11 @@ function Thread({
   const [bodyError, setBodyError] = useState<string>();
   const [renaming, setRenaming] = useState(false);
   const [adding, setAdding] = useState(false);
+  // The message being edited, and the one whose editing just ended (its words come back)
+  const [editing, setEditing] = useState<number | null>(null);
+  const [edited, setEdited] = useState<number | null>(null);
+  const { shown, reworded } = useShownMessages(messages.data);
+  const now = useChangeClock(messages.data);
   const last = messages.data.at(-1)?.id;
   const clock = useMemo(() => new Intl.DateTimeFormat(languageTag(), { timeStyle: 'short' }), []);
 
@@ -558,14 +578,34 @@ function Thread({
   };
 
   const remove = async (message: ChatMessage) => {
-    if (
-      await confirm({ title: _('Delete this message?'), confirmLabel: _('Delete'), danger: true })
-    ) {
-      const url = chatRoute('messages.destroy', { message: message.id });
-      if ((await sendJson('DELETE', url, {})).ok) await onChange();
-      else refused();
-    }
+    if (heldOffline()) return;
+    const sure = await confirm({
+      title: _('Delete this message?'),
+      message: conversation.is_assistant
+        ? _("It will disappear, along with the Assistant's answer to it.")
+        : _('It will disappear for everyone in the conversation.'),
+      confirmLabel: _('Delete'),
+      danger: true,
+    });
+    if (!sure || heldOffline()) return;
+    const response = await sendJson(
+      'DELETE',
+      chatRoute('messages.destroy', { message: message.id }),
+      {},
+    );
+    if (!response.ok) await turnedDown(response);
+    await onChange();
   };
+
+  const stopEditing = (message: number) => {
+    setEditing(null);
+    setEdited(message);
+  };
+
+  // Editing ended: the focus back on the message's buttons, where it was
+  useEffect(() => {
+    if (edited !== null) changesOf(edited)?.focus();
+  }, [edited]);
 
   const leave = async () => {
     if (
@@ -676,60 +716,107 @@ function Thread({
             onAsk={(words) => void send(undefined, words)}
           />
         ) : null}
-        {messages.data.map((message, index) => {
-          const before = messages.data[index - 1];
+        {shown.map(({ message, leaving }, index) => {
+          const before = shown[index - 1]?.message;
           const newDay = !before || dayOf(before.created_at) !== dayOf(message.created_at);
           const sameAuthor = !newDay && before?.author?.id === message.author?.id;
+          const changeable = message.mine && !leaving && changeableAt(message, now);
           return (
-            <div key={message.id}>
-              {newDay ? <div className="chat-day">{dayLabel(message.created_at)}</div> : null}
-              <div
-                className="chat-message"
-                data-mine={message.mine || undefined}
-                data-follows={sameAuthor || undefined}
-              >
-                {message.from_assistant && !sameAuthor ? <AssistantFace size={28} /> : null}
-                {!message.mine && conversation.is_group && !sameAuthor ? (
-                  <Text className="chat-author" aria-hidden>
-                    {message.author?.name ?? _('Someone who left')}
-                  </Text>
-                ) : null}
-                <div className="chat-bubble">
-                  <VisuallyHidden>
-                    {message.mine
-                      ? _('You')
-                      : message.from_assistant
-                        ? _('Assistant')
-                        : (message.author?.name ?? _('Someone who left'))}
-                    :
-                  </VisuallyHidden>
-                  <Text component="div" className="chat-body">
-                    {message.body}
-                  </Text>
-                  <time className="chat-time" dateTime={message.created_at}>
-                    {clock.format(new Date(message.created_at))}
-                  </time>
+            <div
+              key={message.id}
+              className="chat-entry"
+              data-leaving={leaving || undefined}
+              aria-hidden={leaving || undefined}
+            >
+              <div className="chat-entry-inner">
+                {newDay ? <div className="chat-day">{dayLabel(message.created_at)}</div> : null}
+                <div
+                  className="chat-message"
+                  data-message={message.id}
+                  data-mine={message.mine || undefined}
+                  data-follows={sameAuthor || undefined}
+                  data-editing={editing === message.id || undefined}
+                >
+                  {message.from_assistant && !sameAuthor ? <AssistantFace size={28} /> : null}
+                  {!message.mine && conversation.is_group && !sameAuthor ? (
+                    <Text className="chat-author" aria-hidden>
+                      {message.author?.name ?? _('Someone who left')}
+                    </Text>
+                  ) : null}
+                  {editing === message.id ? (
+                    <EditMessage
+                      message={message}
+                      onClose={() => stopEditing(message.id)}
+                      onChange={onChange}
+                    />
+                  ) : (
+                    <div className="chat-bubble" data-back={edited === message.id || undefined}>
+                      <VisuallyHidden>
+                        {message.mine
+                          ? _('You')
+                          : message.from_assistant
+                            ? _('Assistant')
+                            : (message.author?.name ?? _('Someone who left'))}
+                        :
+                      </VisuallyHidden>
+                      <Text
+                        // New words come in gently, wherever they were changed
+                        key={message.body}
+                        component="div"
+                        className="chat-body"
+                        data-reworded={reworded.has(message.id) || undefined}
+                      >
+                        {message.body}
+                      </Text>
+                      <time className="chat-time" dateTime={message.created_at}>
+                        {clock.format(new Date(message.created_at))}
+                      </time>
+                    </div>
+                  )}
+                  {message.actions?.length ? (
+                    <AssistantActions
+                      message={message.id}
+                      actions={message.actions}
+                      onReply={(words) => void send(undefined, words)}
+                      onChange={onChange}
+                    />
+                  ) : null}
+                  {/* Only within the hour after sending: they go by themselves as it closes */}
+                  <Transition mounted={changeable} transition="fade" duration={220}>
+                    {(style) => (
+                      <div style={style}>
+                        <Group gap={2} wrap="nowrap" className="chat-changes">
+                          {/* With the Assistant, its answer would stay as it was */}
+                          {conversation.is_assistant ? null : (
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              size="sm"
+                              className="chat-change"
+                              aria-label={_('Edit this message')}
+                              onClick={() => {
+                                setEdited(null);
+                                setEditing(message.id);
+                              }}
+                            >
+                              <IconPencil size={14} />
+                            </ActionIcon>
+                          )}
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="sm"
+                            className="chat-change"
+                            aria-label={_('Delete this message')}
+                            onClick={() => void remove(message)}
+                          >
+                            <IconTrash size={14} />
+                          </ActionIcon>
+                        </Group>
+                      </div>
+                    )}
+                  </Transition>
                 </div>
-                {message.actions?.length ? (
-                  <AssistantActions
-                    message={message.id}
-                    actions={message.actions}
-                    onReply={(words) => void send(undefined, words)}
-                    onChange={onChange}
-                  />
-                ) : null}
-                {message.mine ? (
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    className="chat-delete"
-                    aria-label={_('Delete this message')}
-                    onClick={() => void remove(message)}
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
-                ) : null}
               </div>
             </div>
           );
@@ -795,6 +882,88 @@ function Thread({
         onChange={onChange}
       />
     </section>
+  );
+}
+
+/** One's own message, reworded where it is: Enter saves, Escape leaves it as it was */
+function EditMessage({
+  message,
+  onClose,
+  onChange,
+}: {
+  message: ChatMessage;
+  onClose: () => void;
+  onChange: () => Promise<void>;
+}) {
+  const chatRoute = useChatRoute();
+  const [body, setBody] = useState(message.body);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>();
+  const field = useRef<HTMLTextAreaElement>(null);
+
+  // Into the words at once, at their end
+  useEffect(() => {
+    const element = field.current;
+    element?.focus();
+    element?.setSelectionRange(element.value.length, element.value.length);
+  }, []);
+
+  const save = async (event?: FormEvent) => {
+    event?.preventDefault();
+    if (!body.trim() || saving) return;
+    if (body.trim() === message.body) return onClose();
+    if (heldOffline()) return;
+    setSaving(true);
+    setError(undefined);
+    const response = await sendJson('PUT', chatRoute('messages.update', { message: message.id }), {
+      body,
+    });
+    setSaving(false);
+    if (response.status === 422) {
+      setError((await fieldErrors(response)).body);
+      return;
+    }
+    if (!response.ok) {
+      await turnedDown(response);
+      // Past its hour it stays as it was: nothing left to edit
+      if (response.status !== 409) return;
+    }
+    await onChange();
+    onClose();
+  };
+
+  return (
+    <form className="chat-edit" onSubmit={(event) => void save(event)}>
+      <Textarea
+        ref={field}
+        aria-label={_('Edit your message')}
+        autosize
+        minRows={1}
+        maxRows={6}
+        value={body}
+        error={error}
+        onChange={(event) => setBody(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            // The edit, not the window around it
+            event.preventDefault();
+            event.stopPropagation();
+            onClose();
+          } else if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            void save();
+          }
+        }}
+      />
+      <Group gap="xs" justify="flex-end" mt={6}>
+        <Button size="xs" variant="default" onClick={onClose}>
+          {_('Cancel')}
+        </Button>
+        <Button size="xs" type="submit" loading={saving} disabled={!body.trim()}>
+          {_('Save')}
+        </Button>
+      </Group>
+    </form>
   );
 }
 

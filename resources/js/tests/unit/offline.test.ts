@@ -1,4 +1,4 @@
-import { connection, heldOffline, probe } from '@/lib/offline';
+import { connection, heldOffline, keepFor, probe } from '@/lib/offline';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const shown = vi.hoisted(() => vi.fn());
@@ -55,5 +55,62 @@ describe('working offline', () => {
     await probe();
 
     expect(connection.get().online).toBe(false);
+  });
+});
+
+describe('the pages kept on the device', () => {
+  /** A browser whose worker is controlling the page, or registered and running past it */
+  const browser = ({ controlling }: { controlling: boolean }) => {
+    const worker = { postMessage: vi.fn() };
+    Object.defineProperty(navigator, 'serviceWorker', {
+      configurable: true,
+      value: {
+        controller: controlling ? worker : null,
+        getRegistration: async () => ({ active: worker }),
+      },
+    });
+    return worker;
+  };
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'serviceWorker');
+    localStorage.clear();
+  });
+
+  it('are forgotten when someone else signs in, and only then', async () => {
+    const worker = browser({ controlling: true });
+    await keepFor(1);
+    worker.postMessage.mockClear();
+
+    await keepFor(1);
+    expect(worker.postMessage).not.toHaveBeenCalled();
+
+    await keepFor(2);
+    expect(worker.postMessage).toHaveBeenCalledWith('forget');
+  });
+
+  it('are forgotten too on a page the worker does not serve (a hard reload)', async () => {
+    browser({ controlling: true });
+    await keepFor(1);
+    const worker = browser({ controlling: false });
+
+    await keepFor(2);
+
+    expect(worker.postMessage).toHaveBeenCalledWith('forget');
+  });
+
+  it('are forgotten later when there is no worker to tell yet', async () => {
+    browser({ controlling: true });
+    await keepFor(1);
+    Object.defineProperty(navigator, 'serviceWorker', {
+      configurable: true,
+      value: { controller: null, getRegistration: async () => ({ active: null }) },
+    });
+    await keepFor(2);
+
+    const worker = browser({ controlling: true });
+    await keepFor(2);
+
+    expect(worker.postMessage).toHaveBeenCalledWith('forget');
   });
 });

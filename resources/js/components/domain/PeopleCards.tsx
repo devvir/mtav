@@ -60,10 +60,10 @@ export function PersonCard({ person, href }: { person: Person; href: string }) {
       <Group wrap="nowrap">
         <PersonAvatar name={person.name} src={person.avatar} size={44} />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <Text fw={650} className="ds-truncate">
+          <Text fw={650} className="ds-truncate" title={person.name}>
             {person.name}
           </Text>
-          <Text className="ds-caption ds-truncate">
+          <Text className="ds-caption ds-truncate" title={person.family?.name}>
             {person.family?.name ?? _('Not joined their family yet')}
           </Text>
         </div>

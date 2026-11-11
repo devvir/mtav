@@ -1,4 +1,5 @@
 import { sendJson } from '@/lib/json';
+import { nameSocket } from '@/lib/socketHeader';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('a JSON request', () => {
@@ -23,5 +24,27 @@ describe('a JSON request', () => {
 
     expect(response.ok).toBe(false);
     expect(response.status).toBe(503);
+  });
+});
+
+describe("a JSON request's connection", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    nameSocket(() => undefined);
+  });
+
+  it("names the page's websocket connection, so what it changes is not announced back to it", async () => {
+    const sent = vi.fn(async () => new Response('{}'));
+    vi.stubGlobal('fetch', sent);
+    nameSocket(() => '1234.5678');
+
+    await sendJson('PUT', '/somewhere', {});
+
+    expect(sent).toHaveBeenCalledWith(
+      '/somewhere',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Socket-ID': '1234.5678' }),
+      }),
+    );
   });
 });

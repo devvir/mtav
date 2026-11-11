@@ -54,6 +54,18 @@ it('takes the focus to the page from the phone\'s menu too', function () {
         ->assertScript('document.activeElement.tagName', 'H1');
 });
 
+it('leaves the focus in a dialog the page opens on arrival', function () {
+    $this->as(anAdminOf($this->project));
+
+    visit(route('projects.show', $this->project))
+        ->click('[aria-label="Quick actions"]')
+        ->click('[role="menu"] >> text=Add a family')
+        ->assertPathIs(pathOf('families.index', $this->project))
+        ->assertPresent('[role="dialog"]')
+        ->wait(0.5)
+        ->assertScript('document.activeElement.closest(\'[role="dialog"]\') !== null', true);
+});
+
 it('leaves the focus alone on a search within a page', function () {
     $this->as($this->member);
 

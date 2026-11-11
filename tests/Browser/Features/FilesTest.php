@@ -113,3 +113,66 @@ it('goes from one photo to the next with the arrows, the keyboard and back', fun
         ->assertSeeIn('[role="dialog"]', 'Second photo')
         ->assertQueryStringHas('file', (string) Media::firstWhere('description', 'Second photo')->id);
 });
+
+/** Files chosen together, as a person picks several: each `bytes` long, made in the browser */
+function chooseFiles(object $page, array $files): object
+{
+    $files = json_encode($files);
+
+    $page->script(<<<JS
+        () => {
+            const input = document.querySelector('input[type="file"]');
+            // The plugin may run a script again after a slow first try: choose once
+            if (input.dataset.chosen) return;
+            input.dataset.chosen = '1';
+            const transfer = new DataTransfer();
+            {$files}.forEach(({ name, type, bytes }) =>
+                transfer.items.add(new File([new Uint8Array(bytes)], name, { type })));
+            input.files = transfer.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        JS);
+
+    return $page;
+}
+
+it('says which files were refused when others came with them', function () {
+    chooseFiles(visit(route('media.index', [$this->project, 'share' => 1])), [
+        ['name' => 'site-1.png', 'type' => 'image/png', 'bytes' => 10],
+        ['name' => 'site-2.png', 'type' => 'image/png', 'bytes' => 10],
+        ['name' => 'logo.svg', 'type' => 'image/svg+xml', 'bytes' => 10],
+    ])
+        ->assertSee('logo.svg cannot be shared')
+        ->assertSee('site-1.png')
+        ->assertSee('site-2.png')
+        ->assertNoSmoke();
+});
+
+it('takes as many files as one share may have, and says the rest were left out', function () {
+    $files = array_map(fn ($n) => ['name' => "minutes-{$n}.txt", 'type' => 'text/plain', 'bytes' => 10], range(1, 21));
+
+    $page = chooseFiles(visit(route('media.index', [$this->project, 'share' => 1])), $files)
+        ->assertSee('Up to 20 at once: the rest were left out.')
+        ->assertSee('minutes-20.txt')
+        ->assertDontSee('minutes-21.txt');
+
+    expect($page->script('() => document.querySelectorAll(".ds-file").length'))->toBe(20);
+});
+
+it('shares nothing while one of the files is too large, until it is removed', function () {
+    config()->set('limits.media_file_max_mb', 1);
+
+    $page = chooseFiles(visit(route('media.index', [$this->project, 'share' => 1])), [
+        ['name' => 'site.png', 'type' => 'image/png', 'bytes' => 10],
+        ['name' => 'plans.pdf', 'type' => 'application/pdf', 'bytes' => 1_500_000],
+    ])
+        ->assertSee('Too large')
+        ->fill(inDialogField('description'), 'Building site, week 12');
+    $shareOff = '() => document.querySelector(\'[role="dialog"] button[type="submit"]\').disabled';
+
+    expect($page->script($shareOff))->toBeTrue();
+
+    $page->click('[aria-label="Remove plans.pdf"]')->assertDontSee('Too large');
+
+    expect($page->script($shareOff))->toBeFalse();
+});

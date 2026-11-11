@@ -1,3 +1,4 @@
+import { DateTime } from '@/components/feedback/DateTime';
 import { Form } from '@/components/forms/Form';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -5,10 +6,16 @@ import { Panel, PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, _nodes } from '@/lib/translations';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Button, Card, Group, Text, TextInput } from '@mantine/core';
-import { IconShieldCheck, IconShieldPlus, IconShieldX } from '@tabler/icons-react';
+import { ActionIcon, Button, Card, Group, Stack, Text, TextInput } from '@mantine/core';
+import {
+  IconClock,
+  IconShieldCheck,
+  IconShieldPlus,
+  IconShieldX,
+  IconX,
+} from '@tabler/icons-react';
 
 interface Superadmin {
   id: number;
@@ -17,12 +24,25 @@ interface Superadmin {
   is_owner: boolean;
 }
 
+interface SupportInvitation {
+  id: number;
+  email: string;
+  inviter: string | null;
+  expires_at: string;
+}
+
 /**
  * Who manages the whole platform. A rare decision, so it lives here, apart: never a button
  * offered on every account. A support account is invited, on an address not in the app yet:
  * it is never anyone's own account, which stays as it is.
  */
-export default function Superadmins({ superadmins }: { superadmins: Superadmin[] }) {
+export default function Superadmins({
+  superadmins,
+  invitations,
+}: {
+  superadmins: Superadmin[];
+  invitations: SupportInvitation[];
+}) {
   const me = usePage().props.auth.user?.id;
   const form = useForm({ email: '' });
 
@@ -54,6 +74,19 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
         { grant: false },
         { preserveScroll: true },
       );
+  };
+
+  // Sent and not answered yet: its link stops working
+  const withdraw = async (invitation: SupportInvitation) => {
+    const ok = await confirm({
+      title: _('Withdraw the invitation to {email}?', { email: invitation.email }),
+      confirmLabel: _('Withdraw'),
+      danger: true,
+    });
+    if (ok)
+      router.delete(route('admin.superadmins.invitations.destroy', invitation.id), {
+        preserveScroll: true,
+      });
   };
 
   return (
@@ -94,27 +127,63 @@ export default function Superadmins({ superadmins }: { superadmins: Superadmin[]
             </Group>
           ))}
         </Card>
-        <Panel
-          title={_('Register a new superadmin')}
-          icon={IconShieldPlus}
-          tone="warning"
-          data-tour="superadmins.grant"
-        >
-          <Form onSubmit={grant}>
-            <TextInput
-              label={_('Email')}
-              withAsterisk
-              type="email"
-              autoComplete="off"
-              {...field(form, 'email')}
-            />
-            <Group justify="flex-end">
-              <Button type="submit" variant="default" loading={form.processing}>
-                {_('Send invite')}
-              </Button>
-            </Group>
-          </Form>
-        </Panel>
+        <Stack gap="md">
+          <Panel
+            title={_('Register a new superadmin')}
+            icon={IconShieldPlus}
+            tone="warning"
+            data-tour="superadmins.grant"
+          >
+            <Form onSubmit={grant}>
+              <TextInput
+                label={_('Email')}
+                withAsterisk
+                type="email"
+                autoComplete="off"
+                {...field(form, 'email')}
+              />
+              <Group justify="flex-end">
+                <Button type="submit" variant="default" loading={form.processing}>
+                  {_('Send invite')}
+                </Button>
+              </Group>
+            </Form>
+          </Panel>
+          {invitations.length ? (
+            <Panel
+              title={_('Waiting for an answer ({count})', { count: invitations.length })}
+              icon={IconClock}
+              tone="warning"
+              flush
+            >
+              {invitations.map((invitation) => (
+                <Group key={invitation.id} className="row" wrap="nowrap">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Text fw={600} className="ds-truncate">
+                      {invitation.email}
+                    </Text>
+                    <Text className="ds-caption ds-truncate">
+                      {_nodes('Until {date}', {
+                        date: <DateTime value={invitation.expires_at} time={false} />,
+                      })}
+                      {invitation.inviter
+                        ? ` · ${_('by {name}', { name: invitation.inviter })}`
+                        : null}
+                    </Text>
+                  </div>
+                  <ActionIcon
+                    aria-label={_('Withdraw the invitation to {email}', {
+                      email: invitation.email,
+                    })}
+                    onClick={() => withdraw(invitation)}
+                  >
+                    <IconX size={18} />
+                  </ActionIcon>
+                </Group>
+              ))}
+            </Panel>
+          ) : null}
+        </Stack>
       </div>
     </>
   );

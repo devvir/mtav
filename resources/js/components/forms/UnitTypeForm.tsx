@@ -1,21 +1,35 @@
 import { field } from '@/lib/forms';
 import { route } from '@/lib/route';
-import { _ } from '@/lib/translations';
+import { _, languageTag } from '@/lib/translations';
 import type { UnitType } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { Button, NumberInput, SimpleGrid, Text, TextInput, Textarea } from '@mantine/core';
 import { Form, FormActions } from './Form';
+
+/** The decimal mark of the person's language: 7,5 in Spanish, 7.5 in English */
+const decimalMark = () =>
+  new Intl.NumberFormat(languageTag()).formatToParts(1.5).find((part) => part.type === 'decimal')
+    ?.value ?? '.';
+
+/** A number as typed, half-way included ("7." on the way to 7.5): sent as the number it is */
+const asSent = (value: number | string) =>
+  typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
 
 /** A unit type: adding one, or changing one (in a dialog; `onDone` closes it) */
 export function UnitTypeForm({ unitType, onDone }: { unitType?: UnitType; onDone: () => void }) {
   const form = useForm({
     name: unitType?.name ?? '',
     description: unitType?.description ?? '',
-    plan_width: unitType?.plan_size?.[0] ?? ('' as number | ''),
-    plan_height: unitType?.plan_size?.[1] ?? ('' as number | ''),
+    plan_width: unitType?.plan_size?.[0] ?? ('' as number | string),
+    plan_height: unitType?.plan_size?.[1] ?? ('' as number | string),
   });
   const errors = form.errors as Record<string, string | undefined>;
   const submit = () => {
+    form.transform((data) => ({
+      ...data,
+      plan_width: asSent(data.plan_width),
+      plan_height: asSent(data.plan_height),
+    }));
     const options = { preserveScroll: true, onSuccess: onDone };
     if (unitType) form.put(route('manage.unit_types.update', unitType.id), options);
     else form.post(route('manage.unit_types.store'), options);
@@ -41,8 +55,10 @@ export function UnitTypeForm({ unitType, onDone }: { unitType?: UnitType; onDone
               min={2}
               max={2000}
               decimalScale={1}
+              decimalSeparator={decimalMark()}
+              // Kept as typed: "7." is on its way to 7.5 (a number now would drop the mark)
               value={form.data[key]}
-              onChange={(value) => form.setData(key, value === '' ? '' : Number(value))}
+              onChange={(value) => form.setData(key, value)}
               error={errors[key]}
             />
           ))}

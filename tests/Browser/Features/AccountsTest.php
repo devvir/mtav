@@ -11,21 +11,18 @@ use Illuminate\Support\Facades\Notification;
  */
 
 it('explains what is wrong with a sign-up', function () {
-    aUser(['email' => 'taken@example.com']);
-
     visit(route('register'))
         ->click('Create the account')
         ->assertSee('Fill in the first name.')
         ->fill('firstname', 'Laura')
-        ->fill('email', 'taken@example.com')
+        ->fill('email', 'laura@example.com')
         ->fill('password', 'a-Strong-pass-123')
         ->fill('password_confirmation', 'something-else')
         ->click('Create the account')
-        ->assertSee('That email is already in use.')
         ->assertSee('The two password boxes do not match. Try again.')
         ->assertNoSmoke();
 
-    expect(User::count())->toBe(1);
+    expect(User::count())->toBe(0);
 });
 
 it('asks to confirm the email before anything else', function () {

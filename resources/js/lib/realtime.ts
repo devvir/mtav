@@ -1,10 +1,12 @@
 import type { Notification } from '@/types/models';
 import type { RealtimeServer } from '@/types/page';
-import { router, usePage } from '@inertiajs/react';
+import { http, router, usePage } from '@inertiajs/react';
 import { configureEcho, echo } from '@laravel/echo-react';
 import { useEffect, useEffectEvent } from 'react';
 import { chatState, openChat, refreshChat, useChatProject } from './chat';
 import { route, routeIs } from './route';
+import { nameSocket, socketHeader } from './socketHeader';
+import { createStore } from './store';
 import { toast } from './toasts';
 import { _ } from './translations';
 import { unreadCount } from './unreadCount';
@@ -33,6 +35,40 @@ export function connectRealtime(given: RealtimeServer | null) {
 /** Live updates are on when a websocket server is configured */
 export const realtimeEnabled = (): boolean => server !== null;
 
+/** Whether the page hears what is said now: connected to the websocket server */
+export const liveConnection = createStore<{ connected: boolean }>({ connected: false });
+
+let following = false;
+
+/**
+ * Opens the connection, once, following it: back after a gap, what was said meanwhile never
+ * came, so the page and its counts are asked for again, once. Each request then names this
+ * page's connection (X-Socket-ID), so what it changes is announced to all but itself.
+ */
+export function openConnection() {
+  if (following) return;
+  following = true;
+  const connector = echo().connector;
+
+  let heard = false;
+  const follow = (status: string) => {
+    const connected = status === 'connected';
+    if (connected === liveConnection.get().connected) return;
+    liveConnection.set({ connected });
+    if (!connected) return;
+    if (heard) {
+      router.reload();
+      refreshChat();
+    }
+    heard = true;
+  };
+  follow(connector.connectionStatus());
+  connector.onConnectionChange(follow);
+
+  nameSocket(() => connector.socketId());
+  http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...socketHeader() } }));
+}
+
 /** How many listen on each private channel: the last to stop leaves it */
 const listening = new Map<string, number>();
 
@@ -42,6 +78,7 @@ const listening = new Map<string, number>();
  * no more.
  */
 export function listenOn(name: string, handlers: Record<string, (data: never) => void>) {
+  openConnection();
   const channel = echo().private(name);
   Object.entries(handlers).forEach(([event, handler]) => channel.listen(event, handler));
   listening.set(name, (listening.get(name) ?? 0) + 1);
@@ -65,40 +102,59 @@ export interface ProjectChange {
 }
 
 /**
- * Keep the page in sync with its project: when one of the given resources changes (by
- * someone else), reload the page props listed for it.
+ * Keep the page in sync with its project: when one of the given resources changes (on
+ * another page: someone else's, or this person's other tab or device), reload the page
+ * props listed for it. The page that made the change is never told (the server leaves out
+ * its connection).
  *
  *   useProjectChanges({ families: ['families'], people: ['families'] })
  */
 export function useProjectChanges(reloads: Record<string, string[]>) {
   const { props } = usePage();
   const projectId = props.project?.id;
-  const userId = props.auth.user?.id;
   const onChange = useEffectEvent((change: ProjectChange) => {
     const only = reloads[change.resource];
-    if (only?.length && change.by !== userId) router.reload({ only });
+    if (only?.length) router.reload({ only });
   });
 
   useEffect(() => {
     if (!projectId || !realtimeEnabled()) return undefined;
 
     return listenOn(`projects.${projectId}`, { '.changed': onChange });
-  }, [projectId, userId]);
+  }, [projectId]);
 }
 
+/** How often an open lottery's page asks, while it cannot be told */
+export const OPEN_LOTTERY_EVERY_MS = 15000;
+
 /**
- * Keep an open lottery's page current: at once when told, and by asking now and then, for a page
- * that lost its connection (or a server with none).
+ * Keep an open lottery's page current: at once when told, and by asking now and then only
+ * while it cannot be (its connection lost, or a server with none).
  */
 export function useOpenLotteryChanges(slug: string) {
   useEffect(() => {
     const reload = () => router.reload();
-    const every = window.setInterval(reload, 15000);
+    let every: number | undefined;
+    const askWhileDeaf = () => {
+      const deaf = !realtimeEnabled() || !liveConnection.get().connected;
+      if (deaf && every === undefined) every = window.setInterval(reload, OPEN_LOTTERY_EVERY_MS);
+      if (!deaf && every !== undefined) {
+        window.clearInterval(every);
+        every = undefined;
+      }
+    };
 
-    if (realtimeEnabled()) echo().channel(`open-lottery.${slug}`).listen('.changed', reload);
+    let stopFollowing: () => void = () => undefined;
+    if (realtimeEnabled()) {
+      openConnection();
+      echo().channel(`open-lottery.${slug}`).listen('.changed', reload);
+      stopFollowing = liveConnection.subscribe(askWhileDeaf);
+    }
+    askWhileDeaf();
 
     return () => {
       window.clearInterval(every);
+      stopFollowing();
       if (realtimeEnabled()) echo().leaveChannel(`open-lottery.${slug}`);
     };
   }, [slug]);
@@ -152,9 +208,11 @@ interface MessageArrived {
   from_assistant: boolean;
 }
 
-interface MessageRemoved {
+interface MessageChanged {
   conversation_id: number;
   by: number | null;
+  /** Deleted, rather than edited */
+  removed: boolean;
 }
 
 /** The chat's list of conversations, asked for a moment apart by each of those it moves for */
@@ -164,6 +222,15 @@ const refreshListSoon = () => {
   listAsked ??= window.setTimeout(() => {
     listAsked = undefined;
     refreshChat();
+  }, Math.random() * LIST_SPREAD_MS);
+};
+
+/** The count of the unread, asked for a moment apart likewise */
+let countAsked: number | undefined;
+const refreshCountSoon = (prop: string) => {
+  countAsked ??= window.setTimeout(() => {
+    countAsked = undefined;
+    router.reload({ only: [prop] });
   }, Math.random() * LIST_SPREAD_MS);
 };
 
@@ -218,11 +285,16 @@ export function useLiveMessages() {
     });
   });
 
-  // A message taken back: what shows it asks again, and the count may have moved
-  const onRemoved = useEffectEvent((removed: MessageRemoved) => {
-    if (removed.by === user?.id) return;
-    refreshChat();
-    router.reload({ only: [prop] });
+  // A message edited or deleted (on any page, the writer's others too): what shows it asks
+  // again, the conversation in sight at once; deleted, it may have been what was unread
+  const onChanged = useEffectEvent((changed: MessageChanged) => {
+    const { open, conversation } = chatState();
+    const inChat = open || routeIs('chat.*', 'account.chat.*');
+
+    if (inChat && conversation === changed.conversation_id) return refreshChat();
+    if (inChat) return refreshListSoon();
+    if (changed.removed && (known ?? 0) > 0) refreshCountSoon(prop);
+    return undefined;
   });
 
   const known = project ? project.unread_messages : account?.unread;
@@ -231,6 +303,6 @@ export function useLiveMessages() {
 
   useEffect(() => {
     if (!user || !chatting || !realtimeEnabled()) return undefined;
-    return listenOn(`users.${user.id}`, { '.message': onMessage, '.message-removed': onRemoved });
+    return listenOn(`users.${user.id}`, { '.message': onMessage, '.message-changed': onChanged });
   }, [user?.id, chatKey, chatting]); // eslint-disable-line react-hooks/exhaustive-deps
 }

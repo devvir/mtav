@@ -131,6 +131,11 @@ export function usePanZoom(svg: RefObject<SVGSVGElement | null>, fitBox: string)
     const onMove = (event: PointerEvent) => {
       const last = pointers.get(event.pointerId);
       if (!last) return;
+      // A press let go off the plan says so nowhere here: moving with no button down is no drag
+      if (event.pointerType !== 'touch' && !(event.buttons & 1)) {
+        pointers.delete(event.pointerId);
+        return;
+      }
       const { view: shown, fit: whole } = current.current;
       const perPixel = 1 / (element.getScreenCTM()?.a || 1);
 

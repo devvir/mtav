@@ -42,7 +42,7 @@ it('keeps a family\'s ranking after leaving the page', function () {
         ->assertSeeIn('ol li:first-child', $second->identifier);
 });
 
-it('saves a move made just before going to another page', function () {
+it('saves a move made just before going to another page, and stays there', function () {
     $second = app(PreferencesService::class)->ranking($this->family)[1];
     $this->as($this->member);
 
@@ -52,6 +52,17 @@ it('saves a move made just before going to another page', function () {
         ->assertPathIs(route('units.index', $this->project, absolute: false));
 
     eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->identifier)->toBe($second->identifier));
+    // The save's answer came after the visit: it never brings the lottery back
+    $page->wait(1.5)->assertPathIs(route('units.index', $this->project, absolute: false))->assertDontSee('Your preferences');
+});
+
+it('says so when there is nothing of the family\'s type to rank yet', function () {
+    $empty = aUnitType($this->project, ['name' => 'Loft']);
+    $this->as(aMemberOf(aFamily($this->project, $empty, ['name' => 'Ruiz'])));
+
+    visit(route('lottery.show', $this->project))
+        ->assertSeeIn('[data-tour="ranking.list"]', 'No Loft units yet')
+        ->assertNoSmoke();
 });
 
 it('says, in a status screen readers announce, that a ranking is being saved and is saved', function () {

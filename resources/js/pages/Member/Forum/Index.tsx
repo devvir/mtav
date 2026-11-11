@@ -113,7 +113,7 @@ export default function ForumIndex({ topics, filters, archive }: Props) {
                   <Group gap="xs" wrap="nowrap">
                     {topic.is_pinned ? <IconPin size={16} aria-label={_('Pinned')} /> : null}
                     {topic.is_closed ? <IconLock size={16} aria-label={_('Closed')} /> : null}
-                    <Text fw={700} className="ds-truncate">
+                    <Text fw={700} className="ds-truncate" title={topic.title}>
                       {topic.title}
                     </Text>
                   </Group>

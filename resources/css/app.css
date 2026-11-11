@@ -1213,6 +1213,15 @@ html[data-plan-full] {
     transform: translateY(2px);
   }
 }
+/* Saving that failed, and why: it comes in, never jumps in */
+.plan-save-state {
+  animation: plan-save-in 220ms ease-out;
+}
+@keyframes plan-save-in {
+  from {
+    opacity: 0;
+  }
+}
 .plan-shape {
   cursor: move;
 }
@@ -1995,17 +2004,76 @@ html[data-carrying] * {
   color: var(--mtav-muted);
   font-variant-numeric: tabular-nums;
 }
-.chat-delete {
+/* One's own message's edit and delete: in sight on pointing at it or reaching it by keyboard */
+.chat-changes {
   opacity: 0;
-  transition: opacity 160ms ease;
+  transition:
+    opacity 200ms ease,
+    visibility 0s linear 200ms;
 }
-.chat-message:hover .chat-delete,
-.chat-delete:focus-visible {
+.chat-message:hover .chat-changes,
+.chat-changes:focus-within {
   opacity: 1;
+  transition: opacity 200ms ease;
 }
 @media (hover: none) {
-  .chat-delete {
+  .chat-changes {
     opacity: 0.6;
+  }
+}
+/* While it is being edited, the form has them */
+.chat-message[data-editing] .chat-changes {
+  visibility: hidden;
+  opacity: 0;
+}
+.chat-edit {
+  width: min(36rem, 85%);
+  animation: chat-in 220ms ease-out;
+}
+.chat-bubble[data-back] {
+  animation: chat-in 220ms ease-out;
+}
+.chat-body[data-reworded] {
+  animation: chat-reworded 260ms ease-out;
+}
+.chat-day {
+  animation: chat-in 220ms ease-out;
+}
+/* A deleted message leaves: it fades as its room closes */
+.chat-entry {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 260ms ease,
+    opacity 220ms ease;
+}
+.chat-entry-inner {
+  min-height: 0;
+}
+.chat-entry[data-leaving] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.chat-entry[data-leaving] .chat-entry-inner {
+  overflow: hidden;
+}
+@keyframes chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes chat-reworded {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
   }
 }
 .chat-composer {

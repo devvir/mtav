@@ -48,7 +48,7 @@ export function EventForm({ event, onDone }: { event?: ProjectEvent; onDone: () 
 
   return (
     <Form onSubmit={submit}>
-      <Input.Wrapper label={_('Where')}>
+      <Input.Wrapper label={_('Where')} error={form.errors.type}>
         <SimpleGrid cols={2} mt={4}>
           {kinds.map((kind) => (
             <UnstyledButton

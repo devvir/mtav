@@ -40,7 +40,6 @@ import {
 } from '@tabler/icons-react';
 import {
   forwardRef,
-  useCallback,
   useEffect,
   useId,
   useImperativeHandle,
@@ -51,6 +50,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { align, type Guide } from './align';
+import { useAutosave, type SaveStatus } from './autosave';
 import { floorLabel } from './floors';
 import { bounds, centre, DEFAULT_COLORS, floorsBeneath, PlanModel, type ShapeType } from './model';
 import { kindLabel, PlanDefs, PlanGround, PlanHint, PlanShape } from './render';
@@ -63,10 +63,7 @@ export interface PlanEditorHandle {
   dirty: () => boolean;
 }
 
-export type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'failed';
-
-/** How long after the last change the plan saves itself (changes made meanwhile go along) */
-const AUTOSAVE_MS = 1200;
+export type { SaveStatus } from './autosave';
 
 /** Closer than this, two corners are level (or plumb) */
 const SAME_LINE = 0.01;
@@ -107,14 +104,34 @@ const CORNERS: [number, number][] = [
   [0, 1],
 ];
 
-/** Where saving is: quiet when all is saved, a retry when it could not be */
-export function SaveState({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
+/**
+ * Where saving is: quiet when all is saved, a retry when it could not be, and why the server
+ * refused it (`reason`)
+ */
+export function SaveState({
+  status,
+  reason,
+  onRetry,
+}: {
+  status: SaveStatus;
+  reason?: string | null;
+  onRetry: () => void;
+}) {
   if (status === 'failed')
     return (
-      <Group gap={6} c="var(--mtav-warning)" fz="sm" fw={600} role="status">
-        <IconCloudOff size={16} />
-        {_('Not saved yet')}
-        <Button variant="subtle" size="compact-xs" onClick={onRetry}>
+      <Group
+        key={reason ?? ''}
+        gap={6}
+        c="var(--mtav-warning)"
+        fz="sm"
+        fw={600}
+        role="status"
+        className="plan-save-state"
+        wrap="nowrap"
+      >
+        <IconCloudOff size={16} style={{ flex: 'none' }} />
+        <span>{reason || _('Not saved yet')}</span>
+        <Button variant="subtle" size="compact-xs" onClick={onRetry} style={{ flex: 'none' }}>
           {_('Try again')}
         </Button>
       </Group>
@@ -187,8 +204,8 @@ export const PlanEditor = forwardRef<
     plan: Plan;
     /** Sends the plan; the ids the server gave new shapes, by their key */
     save: (payload: PlanPayload) => Promise<Record<string, number>>;
-    /** Where saving is, for the panel to show */
-    onStatus?: (status: SaveStatus) => void;
+    /** Where saving is, and why the server refused it, for the panel to show */
+    onStatus?: (status: SaveStatus, reason: string | null) => void;
     /** The project's unit types: given, units are added here, drawn where they go */
     unitTypes?: UnitType[];
     /** A unit was added on the plan (the units listed elsewhere follow) */
@@ -199,41 +216,11 @@ export const PlanEditor = forwardRef<
   const model = useMemo(() => new PlanModel(plan), [plan]);
   const version = useSyncExternalStore(model.subscribe, model.getVersion);
 
-  // The plan saves itself a moment after each change; failures retry
-  const [sending, setSending] = useState<'saving' | 'failed' | null>(null);
-  const status: SaveStatus = sending ?? (model.dirty ? 'unsaved' : 'saved');
-  const saving = useRef<Promise<boolean> | null>(null);
-  const flush = useCallback(async (): Promise<boolean> => {
-    if (saving.current) await saving.current;
-    if (!model.dirty) return true;
-    const sent = model.state;
-    setSending('saving');
-    saving.current = save(model.payload())
-      .then((ids) => {
-        model.markSaved(sent, ids);
-        setSending(null);
-        return !model.dirty;
-      })
-      .catch(() => {
-        setSending('failed');
-        return false;
-      })
-      .finally(() => {
-        saving.current = null;
-      });
-    return saving.current;
-  }, [model, save]);
-
-  // A moment after the last change (longer after a failure), the plan saves itself
-  const failed = sending === 'failed';
-  useEffect(() => {
-    if (!model.dirty) return undefined;
-    const timer = window.setTimeout(() => void flush(), failed ? 5000 : AUTOSAVE_MS);
-    return () => window.clearTimeout(timer);
-  }, [version, flush, failed, model]);
+  // The plan saves itself a moment after each change
+  const { status, reason, flush } = useAutosave(model, version, save);
 
   useImperativeHandle(ref, () => ({ flush, dirty: () => model.dirty }), [model, flush]);
-  useEffect(() => onStatus?.(status), [onStatus, status]);
+  useEffect(() => onStatus?.(status, reason), [onStatus, status, reason]);
 
   // The shape a menu was opened on (right-click), where; the one being named
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -644,6 +631,7 @@ export const PlanEditor = forwardRef<
                 variant="subtle"
                 size="compact-sm"
                 leftSection={<IconStack2 size={16} />}
+                disabled={!model.canAddFloor}
                 onClick={() => model.addFloor()}
               >
                 {_('Add a floor')}
@@ -1123,6 +1111,7 @@ export const PlanEditor = forwardRef<
               <Menu.Item
                 leftSection={<IconArrowUp size={16} />}
                 rightSection={<Kbd size="xs">PgUp</Kbd>}
+                disabled={!model.canMoveFloor(1)}
                 onClick={() => model.moveFloor(1)}
               >
                 {_('One floor up')}
@@ -1130,6 +1119,7 @@ export const PlanEditor = forwardRef<
               <Menu.Item
                 leftSection={<IconArrowDown size={16} />}
                 rightSection={<Kbd size="xs">PgDn</Kbd>}
+                disabled={!model.canMoveFloor(-1)}
                 onClick={() => model.moveFloor(-1)}
               >
                 {_('One floor down')}

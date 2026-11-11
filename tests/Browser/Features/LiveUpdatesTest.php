@@ -56,7 +56,7 @@ it('shows an event someone else adds, without reloading', function () {
     $page->assertSee('Night walk around the site');
 });
 
-it('shows a message in the conversation open, and takes it away when it is taken back', function () {
+it('shows a message in the conversation open, its new words when edited, and takes it away when deleted', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->admin, [$this->member->id]);
     $page = visit(route('chat.show', [$this->project, $conversation]));
@@ -65,8 +65,12 @@ it('shows a message in the conversation open, and takes it away when it is taken
     $message = $chat->send($conversation, $this->admin, 'Are you coming on Saturday?');
     $page->assertSeeIn('.chat-messages', 'Are you coming on Saturday?');
 
+    $chat->edit($message, 'Are you coming on Sunday?');
+    $page->assertSeeIn('.chat-messages', 'Are you coming on Sunday?')
+        ->assertDontSeeIn('.chat-messages', 'Saturday');
+
     $chat->remove($message);
-    $page->assertDontSeeIn('.chat-messages', 'Are you coming on Saturday?');
+    $page->assertDontSeeIn('.chat-messages', 'Are you coming on Sunday?');
 });
 
 it('counts a conversation with something new once, and says who wrote, away from the chat', function () {
@@ -150,4 +154,16 @@ it('stays live on a channel after a page that listened there goes', function () 
     ));
 
     $page->assertPresent('[aria-label="Notifications, 1 unread"]');
+});
+
+it('shows a person their own change made elsewhere, on their phone or in another tab', function () {
+    $page = visit(route('events.index', $this->project))
+        ->assertDontSee('Assembly on the roof');
+
+    listening($page, "projects.{$this->project->id}");
+
+    // The member themselves, from another device
+    anEvent($this->project, ['title' => 'Assembly on the roof', 'creator_id' => $this->member->id]);
+
+    $page->assertSee('Assembly on the roof');
 });

@@ -1,12 +1,14 @@
 import { LotteryProgress } from '@/components/domain/LotteryProgress';
 import { RankingList } from '@/components/domain/RankingList';
 import { DateTime } from '@/components/feedback/DateTime';
+import { Form, OtherErrors } from '@/components/forms/Form';
 import { Panel } from '@/design';
+import { confirm, type ConfirmOptions } from '@/lib/dialogs';
+import { useRankingSave } from '@/lib/rankingSave';
 import { useOpenLotteryChanges } from '@/lib/realtime';
 import { route } from '@/lib/route';
-import { _, _nodes } from '@/lib/translations';
-import type { Unit } from '@/types/models';
-import { Head, router, useForm } from '@inertiajs/react';
+import { _, _n, _nodes } from '@/lib/translations';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
   ActionIcon,
   Alert,
@@ -23,7 +25,7 @@ import {
   Title,
 } from '@mantine/core';
 import { IconCheck, IconCopy, IconX } from '@tabler/icons-react';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 
 interface Item {
   id: number;
@@ -57,6 +59,33 @@ interface Props {
   } | null;
 }
 
+/** Names as people type them, a long one with no spaces included: they wrap, never overflow */
+const WRAPS: CSSProperties = { minWidth: 0, overflowWrap: 'anywhere' };
+
+/**
+ * Taking something away, asked first: once asked, the same is never sent twice, and one
+ * already gone (taken away elsewhere meanwhile) is no error, the page simply reads again
+ */
+function useRemoval() {
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const remove = async (key: string, url: string, question: ConfirmOptions) => {
+    if (removing || !(await confirm({ danger: true, ...question }))) return;
+    setRemoving(key);
+    router.delete(url, {
+      preserveScroll: true,
+      onHttpException: (response) => {
+        if (response.status !== 404) return undefined;
+        router.reload();
+        return false;
+      },
+      onFinish: () => setRemoving(null),
+    });
+  };
+
+  return { removing, remove };
+}
+
 /** A link to copy, in one tap */
 function LinkField({ label, hint, link }: { label: string; hint?: string; link: string }) {
   return (
@@ -83,6 +112,10 @@ export default function Lottery(props: Props) {
   const { lottery, state, pace, failure, items, people, left_over, me, removed, organizer } = props;
   const open = state === 'open';
   const [confirming, setConfirming] = useState(false);
+  const [running, setRunning] = useState(false);
+  const { removing, remove } = useRemoval();
+  // What the server refused with no field to say it by (it ran meanwhile, it cannot run)
+  const errors = usePage().props.errors as Record<string, string | undefined>;
 
   useOpenLotteryChanges(lottery.slug);
 
@@ -105,7 +138,11 @@ export default function Lottery(props: Props) {
       { confirmed: true },
       {
         preserveScroll: true,
-        onFinish: () => setConfirming(false),
+        onStart: () => setRunning(true),
+        onFinish: () => {
+          setRunning(false);
+          setConfirming(false);
+        },
       },
     );
 
@@ -113,9 +150,15 @@ export default function Lottery(props: Props) {
     <Stack gap="lg">
       <Head title={lottery.name} />
       <Stack gap={4}>
-        <Title order={1}>{lottery.name}</Title>
-        <Text c="dimmed">{lottery.items_name}</Text>
+        <Title order={1} style={WRAPS}>
+          {lottery.name}
+        </Title>
+        <Text c="dimmed" style={WRAPS}>
+          {lottery.items_name}
+        </Text>
       </Stack>
+
+      <OtherErrors errors={errors} shown={(field) => field === 'name'} />
 
       {failure && open ? <Alert color="red">{failure}</Alert> : null}
       {removed && open ? (
@@ -147,7 +190,7 @@ export default function Lottery(props: Props) {
             {people.length ? null : <Text c="dimmed">{_('Nobody yet. Send the link.')}</Text>}
             {people.map((person) => (
               <Group key={person.id} justify="space-between" wrap="nowrap">
-                <Text>
+                <Text style={WRAPS}>
                   {person.name}
                   {person.id === me?.id ? ` (${_('you')})` : ''}
                 </Text>
@@ -160,13 +203,19 @@ export default function Lottery(props: Props) {
                       variant="subtle"
                       color="gray"
                       aria-label={_('Take {name} out', { name: person.name })}
+                      loading={removing === `person-${person.id}`}
+                      disabled={Boolean(removing)}
                       onClick={() =>
-                        router.delete(
+                        void remove(
+                          `person-${person.id}`,
                           route('open.people.remove', {
                             openLottery: lottery.slug,
                             participant: person.id,
                           }),
-                          { preserveScroll: true },
+                          {
+                            title: _('Take {name} out?', { name: person.name }),
+                            confirmLabel: _('Take out'),
+                          },
                         )
                       }
                     >
@@ -186,6 +235,18 @@ export default function Lottery(props: Props) {
           items={items}
           title={lottery.items_name}
           link={organizer.link}
+          removing={removing}
+          onRemove={(item) =>
+            void remove(
+              `item-${item.id}`,
+              route('open.items.remove', { openLottery: lottery.slug, item: item.id }),
+              {
+                title: _('Remove {name}?', { name: item.name }),
+                message: _("It goes from everyone's ranking."),
+                confirmLabel: _('Remove'),
+              },
+            )
+          }
         >
           {ready?.working === false ? (
             <Alert color="yellow">
@@ -194,6 +255,7 @@ export default function Lottery(props: Props) {
           ) : null}
           <Button
             disabled={!ready?.runnable}
+            loading={running && !confirming}
             onClick={() => (unusual ? setConfirming(true) : run())}
             style={{ alignSelf: 'flex-start' }}
           >
@@ -219,9 +281,12 @@ export default function Lottery(props: Props) {
             size="sm"
             c="dimmed"
             style={{ alignSelf: 'flex-start' }}
+            disabled={Boolean(removing)}
             onClick={() =>
-              router.delete(route('open.leave', { openLottery: lottery.slug }), {
-                preserveScroll: true,
+              void remove('me', route('open.leave', { openLottery: lottery.slug }), {
+                title: _('Leave this lottery?'),
+                message: _('Your ranking goes with you.'),
+                confirmLabel: _('Leave'),
               })
             }
           >
@@ -239,10 +304,10 @@ export default function Lottery(props: Props) {
 
       <Modal
         opened={confirming}
-        onClose={() => setConfirming(false)}
+        onClose={() => !running && setConfirming(false)}
         title={_('Run it like this?')}
       >
-        <Stack>
+        <Stack style={WRAPS}>
           <List spacing="xs">
             {ready?.unranked.length ? (
               <List.Item>
@@ -253,23 +318,29 @@ export default function Lottery(props: Props) {
             ) : null}
             {ready?.left_out ? (
               <List.Item>
-                {_('{count} people will get nothing: there are too few to go round.', {
-                  count: ready.left_out,
-                })}
+                {_n(
+                  '{count} person will get nothing: there are too few to go round.',
+                  '{count} people will get nothing: there are too few to go round.',
+                  ready.left_out,
+                )}
               </List.Item>
             ) : null}
             {ready?.left_over ? (
-              <List.Item>{_('{count} will be left over.', { count: ready.left_over })}</List.Item>
+              <List.Item>
+                {_n('One will be left over.', '{count} will be left over.', ready.left_over)}
+              </List.Item>
             ) : null}
           </List>
           <Text size="sm" c="dimmed">
             {_('A lottery runs only once.')}
           </Text>
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => setConfirming(false)}>
+            <Button variant="default" disabled={running} onClick={() => setConfirming(false)}>
               {_('Not yet')}
             </Button>
-            <Button onClick={run}>{_('Run the lottery')}</Button>
+            <Button loading={running} onClick={run}>
+              {_('Run the lottery')}
+            </Button>
           </Group>
         </Stack>
       </Modal>
@@ -280,19 +351,16 @@ export default function Lottery(props: Props) {
 function Join({ slug }: { slug: string }) {
   const form = useForm({ name: '' });
 
-  const join = (event: FormEvent) => {
-    event.preventDefault();
-    form.post(route('open.join', { openLottery: slug }), { preserveScroll: true });
-  };
+  const join = () => form.post(route('open.join', { openLottery: slug }), { preserveScroll: true });
 
   return (
     <Panel title={_('Join in')}>
-      <form onSubmit={join}>
+      <Form onSubmit={join}>
         <Group align="flex-start">
           <TextInput
             aria-label={_('Your name')}
             placeholder={_('Your name')}
-            required
+            name="name"
             maxLength={60}
             style={{ flex: 1 }}
             value={form.data.name}
@@ -303,12 +371,15 @@ function Join({ slug }: { slug: string }) {
             {_('Join')}
           </Button>
         </Group>
-      </form>
+      </Form>
     </Panel>
   );
 }
 
-/** Their order, saved with every move; what they have not ordered follows below */
+/**
+ * Their order, saved a moment after each move (the page shows the newest move meanwhile,
+ * whatever it reads again); what they have not ordered follows below
+ */
 function Ranking({
   slug,
   items,
@@ -326,24 +397,21 @@ function Ranking({
       .filter((item): item is Item => !!item),
     ...items.filter((item) => !me.ranking.includes(item.id)),
   ];
-  const units = ordered.map((item) => ({ id: item.id, identifier: item.name }) as unknown as Unit);
-  const save = (next: Unit[]) =>
-    router.put(
-      route('open.rank', { openLottery: slug }),
-      { ranking: next.map((unit) => unit.id) },
-      { preserveScroll: true, preserveState: true },
-    );
+  const { ranking, rank } = useRankingSave(ordered, route('open.rank', { openLottery: slug }), {
+    field: 'ranking',
+    only: ['me', 'people', 'organizer'],
+  });
 
   return (
     <Panel title={_('Your preferences: {what}', { what: title })}>
       <Stack gap="sm">
         {items.length ? (
-          <RankingList units={units} onChange={save} />
+          <RankingList items={ranking} label={(item) => item.name} onChange={rank} />
         ) : (
           <Text c="dimmed">{_('Nothing to rank yet.')}</Text>
         )}
         {items.length && !me.ranking.length ? (
-          <Button variant="light" onClick={() => save(units)} style={{ alignSelf: 'flex-start' }}>
+          <Button variant="light" onClick={() => rank(ranking)} style={{ alignSelf: 'flex-start' }}>
             {_('This order is fine')}
           </Button>
         ) : null}
@@ -365,52 +433,55 @@ function Organize({
   items,
   title,
   link,
+  removing,
+  onRemove,
   children,
 }: {
   slug: string;
   items: Item[];
   title: string;
   link: string;
+  /** What is being taken away, if anything (nothing else is meanwhile) */
+  removing: string | null;
+  onRemove: (item: Item) => void;
   children: ReactNode;
 }) {
   const form = useForm({ name: '' });
-  const add = (event: FormEvent) => {
-    event.preventDefault();
+  const add = () =>
     form.post(route('open.items.store', { openLottery: slug }), {
       preserveScroll: true,
       onSuccess: () => form.reset(),
     });
-  };
 
   return (
     <Panel title={_('Organizing')}>
       <Stack>
         <Stack gap="xs">
-          <Text fw={600}>{title}</Text>
+          <Text fw={600} style={WRAPS}>
+            {title}
+          </Text>
           {items.map((item) => (
             <Group key={item.id} justify="space-between" wrap="nowrap">
-              <Text>{item.name}</Text>
+              <Text style={WRAPS}>{item.name}</Text>
               <ActionIcon
                 variant="subtle"
                 color="gray"
                 aria-label={_('Remove {name}', { name: item.name })}
-                onClick={() =>
-                  router.delete(route('open.items.remove', { openLottery: slug, item: item.id }), {
-                    preserveScroll: true,
-                  })
-                }
+                loading={removing === `item-${item.id}`}
+                disabled={Boolean(removing)}
+                onClick={() => onRemove(item)}
               >
                 <IconX size={16} />
               </ActionIcon>
             </Group>
           ))}
-          <form onSubmit={add}>
+          <Form onSubmit={add}>
             <Group align="flex-start">
               <TextInput
                 aria-label={_('Add one')}
                 placeholder={_('Add one')}
+                name="name"
                 maxLength={60}
-                required
                 style={{ flex: 1 }}
                 value={form.data.name}
                 error={form.errors.name}
@@ -420,7 +491,7 @@ function Organize({
                 {_('Add')}
               </Button>
             </Group>
-          </form>
+          </Form>
         </Stack>
         {children}
         <LinkField
@@ -449,12 +520,14 @@ function Results({
       <Stack gap="xs">
         {people.map((person) => (
           <Group key={person.id} justify="space-between" wrap="nowrap">
-            <Text>{person.name}</Text>
-            <Text fw={600}>{person.item ?? _('Nothing this time')}</Text>
+            <Text style={WRAPS}>{person.name}</Text>
+            <Text fw={600} ta="right" style={WRAPS}>
+              {person.item ?? _('Nothing this time')}
+            </Text>
           </Group>
         ))}
         {leftOver.length ? (
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" style={WRAPS}>
             {_('Left over: {names}', { names: leftOver.join(', ') })}
           </Text>
         ) : null}

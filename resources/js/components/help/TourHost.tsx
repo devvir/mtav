@@ -1,3 +1,4 @@
+import { scrollBehavior } from '@/lib/motion';
 import { route } from '@/lib/route';
 import { useStore } from '@/lib/store';
 import { toast } from '@/lib/toasts';
@@ -74,7 +75,7 @@ export function TourHost() {
     if (!step) return undefined;
     const target = findTarget(step.target);
     // On phones the step's card takes the bottom: the element goes to the top, under the bar
-    target?.scrollIntoView({ block: narrow ? 'start' : 'center', behavior: 'smooth' });
+    target?.scrollIntoView({ block: narrow ? 'start' : 'center', behavior: scrollBehavior() });
     card.current?.focus({ preventScroll: true });
     // Along with the page as it scrolls the element into view
     const until = performance.now() + FOLLOW_MS;

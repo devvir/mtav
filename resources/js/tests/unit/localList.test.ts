@@ -7,6 +7,19 @@ describe('searching a list in the browser', () => {
     expect(matches('GARCÍA', 'Ana García')).toBe(true);
   });
 
+  it('leaves out the spaces at either end of what is typed', () => {
+    expect(matches('García ', 'Ana García')).toBe(true);
+    expect(matches('  ana', 'Ana García')).toBe(true);
+    expect(matches('   ', 'anything')).toBe(true);
+  });
+
+  it('finds letters no accent mark makes as people type them without', () => {
+    expect(matches('lodz', 'Łódź')).toBe(true);
+    expect(matches('soren', 'Søren Kierkegaard')).toBe(true);
+    expect(matches('strasse', 'Hauptstraße')).toBe(true);
+    expect(matches('STRASSE', 'Hauptstraße')).toBe(true);
+  });
+
   it('looks in every text it is given, and skips the missing ones', () => {
     expect(matches('studio', 'García', null, 'Studio')).toBe(true);
     expect(matches('loft', 'García', undefined)).toBe(false);

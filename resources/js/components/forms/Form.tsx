@@ -1,7 +1,8 @@
+import { unshownErrors } from '@/lib/forms';
 import { _ } from '@/lib/translations';
 import { Link } from '@inertiajs/react';
-import { Button, Group, Stack, Text } from '@mantine/core';
-import type { FormEvent, ReactNode } from 'react';
+import { Button, Collapse, Group, Stack, Text } from '@mantine/core';
+import { useState, type FormEvent, type ReactNode } from 'react';
 
 /**
  * A form: validated by the server only (every error reads the same, in the app's
@@ -27,6 +28,34 @@ export function Form({
     >
       <Stack gap={gap}>{children}</Stack>
     </form>
+  );
+}
+
+/**
+ * What the server refused that no field of the form shows (`shown`: whether the form has a
+ * field for it), said under the form; the last words stay as they fold away
+ */
+export function OtherErrors({
+  errors,
+  shown,
+}: {
+  errors: Record<string, string | undefined>;
+  shown: (field: string) => boolean;
+}) {
+  const messages = unshownErrors(errors, shown);
+  const [said, setSaid] = useState(messages);
+  if (messages.length && messages.join('\n') !== said.join('\n')) setSaid(messages);
+
+  return (
+    <Collapse expanded={messages.length > 0} transitionDuration={220}>
+      <Stack gap={4} role="alert" data-form-errors>
+        {said.map((message) => (
+          <Text key={message} size="sm" c="var(--mantine-color-error)">
+            {message}
+          </Text>
+        ))}
+      </Stack>
+    </Collapse>
   );
 }
 

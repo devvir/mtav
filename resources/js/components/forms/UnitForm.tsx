@@ -6,7 +6,10 @@ import type { PlanItem, Point, Unit, UnitType } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { Button, Card, Fieldset, NativeSelect, Stack, TextInput } from '@mantine/core';
 import { useState } from 'react';
-import { Form, FormActions } from './Form';
+import { Form, FormActions, OtherErrors } from './Form';
+
+/** The fields this form shows the server's errors by (the plan's shape and floor have none) */
+const FIELDS = ['identifier', 'unit_type_id', 'new_unit_type.name', 'new_unit_type.description'];
 
 /** A rectangle of a size, centred where a polygon is */
 const sized = (polygon: Point[], [width, height]: [number, number]): Point[] => {
@@ -176,6 +179,7 @@ export function UnitForm({
           </Card>
         )}
       </Fieldset>
+      <OtherErrors errors={errors} shown={(name) => FIELDS.includes(name)} />
       <FormActions
         submit={unit ? _('Save') : _('Add the unit')}
         processing={form.processing || placing}

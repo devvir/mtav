@@ -65,6 +65,8 @@ interface Props {
   runs?: Run[] | null;
   /** Environments that may start over with the demo data */
   fresh: string[];
+  /** Environments released from main by hand: production, and sorteo */
+  released: string[];
 }
 
 /** A run, as its state reads */
@@ -80,13 +82,21 @@ const runState = (run: Run): [Tone, string] =>
         : ['negative', _('Failed')];
 
 /**
- * What each environment runs against main, and deploying: dev from any branch, production
- * from main (approved on GitHub), any environment back to its release before, dev or staging
+ * What each environment runs against main, and deploying: dev from any branch, production or
+ * sorteo from main (approved on GitHub), any environment back to its release before, dev or staging
  * over from the demo data. GitHub runs every deploy; the page follows it.
  */
-export default function Deployments({ main, environments, branches, runs, fresh }: Props) {
+export default function Deployments({
+  main,
+  environments,
+  branches,
+  runs,
+  fresh,
+  released,
+}: Props) {
   const { errors } = usePage().props as { errors: Record<string, string> };
   const [branch, setBranch] = useState<string | null>('main');
+  const [release, setRelease] = useState(released[0] ?? 'production');
   const [commit, setCommit] = useState('');
   const [sending, setSending] = useState<string | null>(null);
 
@@ -283,7 +293,7 @@ export default function Deployments({ main, environments, branches, runs, fresh 
           </Panel>
 
           <Panel
-            title={_('Deploy production')}
+            title={_('Deploy from main')}
             icon={IconRocket}
             tone="accent"
             data-tour="deploy.production"
@@ -292,6 +302,14 @@ export default function Deployments({ main, environments, branches, runs, fresh 
               <Text size="sm">
                 {_('From main: the release staging runs, unless a commit of main is named.')}
               </Text>
+              <Select
+                label={_('Environment')}
+                name="environment"
+                data={released}
+                value={release}
+                onChange={(value) => value && setRelease(value)}
+                allowDeselect={false}
+              />
               <TextInput
                 label={_('Commit')}
                 placeholder={_('The one staging runs')}
@@ -306,11 +324,12 @@ export default function Deployments({ main, environments, branches, runs, fresh 
                   loading={sending === 'production'}
                   onClick={() =>
                     send('production', route('admin.deployments.production'), {
+                      environment: release,
                       commit: commit || null,
                     })
                   }
                 >
-                  {_('Deploy production')}
+                  {_('Deploy {environment}', { environment: release })}
                 </Button>
               </Group>
             </Stack>

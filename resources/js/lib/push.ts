@@ -70,18 +70,43 @@ const tell = (
     });
   });
 
+/** How long the worker, registered but still starting, is waited for */
+export const WORKER_READY_MS = 10000;
+
+/** The worker that shows them, once working; none if it never registered, or never starts */
+async function worker(): Promise<ServiceWorkerRegistration | undefined> {
+  const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined);
+  if (!registration || registration.active) return registration;
+  let late: number | undefined;
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<undefined>((done) => (late = window.setTimeout(done, WORKER_READY_MS))),
+  ]).finally(() => window.clearTimeout(late));
+}
+
 /** Asks the person (the browser's own question), then subscribes this device */
 export async function turnOn(key: string): Promise<PushState> {
   if (heldOffline()) return 'off';
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return permission === 'denied' ? 'blocked' : 'off';
-  const registration = await navigator.serviceWorker.ready;
-  const subscribed =
-    (await registration.pushManager.getSubscription()) ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: keyBytes(key),
-    }));
+  const subscribed = await worker()
+    .then(
+      async (registration) =>
+        registration &&
+        ((await registration.pushManager.getSubscription()) ??
+          (await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: keyBytes(key),
+          }))),
+    )
+    .catch(() => undefined);
+  if (!subscribed) {
+    toast({
+      tone: 'error',
+      message: _('Notifications could not start. Reload the page and try again.'),
+    });
+    return 'off';
+  }
   const { endpoint, keys } = subscribed.toJSON();
   if (await tell('post', { endpoint, keys })) return 'on';
   await subscribed.unsubscribe();

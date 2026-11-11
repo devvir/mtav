@@ -1,4 +1,15 @@
-import { currentStep, defineTour, nextStep, previousStep, startTour, tourState } from '@/lib/tour';
+import {
+  AUTO_AFTER_MS,
+  autoTour,
+  currentStep,
+  defineTour,
+  nextStep,
+  offerTourInstead,
+  previousStep,
+  startTour,
+  stopTour,
+  tourState,
+} from '@/lib/tour';
 
 describe('guided tours', () => {
   beforeEach(() => {
@@ -36,5 +47,41 @@ describe('guided tours', () => {
     startTour('sample');
 
     expect(currentStep()).toBeNull();
+  });
+});
+
+describe('tours played by themselves', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    stopTour();
+    localStorage.clear();
+    document.body.innerHTML = '<div data-tour="one"></div>';
+    defineTour('first', () => [{ target: 'one', title: 'One', body: '' }]);
+    window.history.replaceState({}, '', '/welcome');
+  });
+
+  afterEach(() => {
+    stopTour();
+    localStorage.clear();
+    vi.useRealTimers();
+  });
+
+  it("wait while the Assistant offers the page's own instead", () => {
+    autoTour('first');
+    offerTourInstead();
+
+    vi.advanceTimersByTime(AUTO_AFTER_MS);
+
+    expect(currentStep()).toBeNull();
+  });
+
+  it('play on the next page when the one it was offered on had none', () => {
+    offerTourInstead();
+
+    window.history.pushState({}, '', '/families');
+    autoTour('first');
+    vi.advanceTimersByTime(AUTO_AFTER_MS);
+
+    expect(currentStep()?.title).toBe('One');
   });
 });

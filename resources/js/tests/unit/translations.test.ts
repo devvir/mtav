@@ -64,3 +64,16 @@ describe('the words', () => {
     expect(_('Saved')).toBe('Guardado');
   });
 });
+
+describe('the blanks', () => {
+  it('take their values as written, $ signs and all', () => {
+    expect(_('Leave the {family} family?', { family: 'A$$B' })).toBe('Leave the A$$B family?');
+    expect(_('Leave the {family} family?', { family: 'A$&B' })).toBe('Leave the A$&B family?');
+  });
+
+  it('are filled once: a value that looks like a blank stays as it is', () => {
+    expect(_('{name} invited {other}', { name: '{other}', other: 'Ana' })).toBe(
+      '{other} invited Ana',
+    );
+  });
+});

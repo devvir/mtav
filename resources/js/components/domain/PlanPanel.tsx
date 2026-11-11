@@ -1,6 +1,7 @@
 import { FloorPlan } from '@/components/domain/FloorPlan';
 import { usePlanFullScreen } from '@/components/domain/PlanFullScreen';
 import { InfoTip } from '@/components/help/InfoTip';
+import { notSaved } from '@/components/plan/autosave';
 import { useIdle } from '@/components/plan/idle';
 import {
   PlanEditor,
@@ -12,10 +13,11 @@ import {
 import { Panel } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { sendJson } from '@/lib/json';
+import { scrollBehavior } from '@/lib/motion';
 import { connection, heldOffline } from '@/lib/offline';
 import { leavesPage, route, routeIs } from '@/lib/route';
 import { toast } from '@/lib/toasts';
-import { _ } from '@/lib/translations';
+import { _, _n } from '@/lib/translations';
 import type { Plan, UnitType } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Button, Group, Modal, Text } from '@mantine/core';
@@ -70,7 +72,14 @@ export function PlanPanel({
   // The plan as it was when editing began: a reload meanwhile never resets the editor
   const [editing, setEditing] = useState<Plan | null>(null);
   const editor = useRef<PlanEditorHandle>(null);
-  const [status, setStatus] = useState<SaveStatus>('saved');
+  const [saving, setSaving] = useState<{ status: SaveStatus; reason: string | null }>({
+    status: 'saved',
+    reason: null,
+  });
+  const onStatus = useCallback(
+    (status: SaveStatus, reason: string | null) => setSaving({ status, reason }),
+    [],
+  );
   const fullScreen = usePlanFullScreen();
   const canDraw = useMediaQuery('(min-width: 62em) and (pointer: fine)', true, {
     getInitialValueInEffect: false,
@@ -87,14 +96,15 @@ export function PlanPanel({
     await taken(response);
   }, []);
 
-  // Saved as JSON, the page staying as it is: the server answers the ids of new shapes
+  // Saved as JSON, the page staying as it is: the server answers the ids of new shapes. What
+  // it refuses is said, and waits for a change; what never reached it is tried again
   const save = useCallback(
     async (payload: PlanPayload) => {
       // Offline it waits, quietly (the editor says it is not saved yet), for the connection
       if (!connection.get().online) throw new Error('Offline: the plan waits for the connection');
       const response = await sendJson('PUT', route('manage.plan.update'), payload);
       if (response.status === 423) await lose(response);
-      if (!response.ok) throw new Error(`The plan was not saved (${response.status})`);
+      if (!response.ok) throw await notSaved(response);
       return ((await response.json()) as { ids: Record<string, number> }).ids;
     },
     [lose],
@@ -104,6 +114,8 @@ export function PlanPanel({
     if (heldOffline()) return;
     const response = await sendJson('POST', route('manage.plan.lock'), {});
     if (response.status === 423) return taken(response);
+    if (response.status === 401 || response.status === 419)
+      return toast({ tone: 'error', message: _('You were signed out. Sign in again.') });
     if (!response.ok) return toast({ tone: 'error', message: _("That didn't work. Try again.") });
     lost.current = false;
     setEditing(plan);
@@ -125,7 +137,9 @@ export function PlanPanel({
     if (!editAtOnce || !canEdit || !canDraw || opened.current) return;
     opened.current = true;
     void start().then(() =>
-      document.querySelector('.plan-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      document
+        .querySelector('.plan-panel')
+        ?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }),
     );
   });
 
@@ -213,7 +227,11 @@ export function PlanPanel({
                 )}
               </InfoTip>
               <Group gap="md" wrap="nowrap" data-tour="plan.save">
-                <SaveState status={status} onRetry={() => void editor.current?.flush()} />
+                <SaveState
+                  status={saving.status}
+                  reason={saving.reason}
+                  onRetry={() => void editor.current?.flush()}
+                />
                 <Button
                   variant="light"
                   size="sm"
@@ -243,7 +261,7 @@ export function PlanPanel({
           ref={editor}
           plan={editing}
           save={save}
-          onStatus={setStatus}
+          onStatus={onStatus}
           unitTypes={unitTypes}
           onUnitAdded={() => router.reload({ only: ['unitTypes'] })}
         />
@@ -258,9 +276,10 @@ export function PlanPanel({
         centered
       >
         <Text>
-          {_(
-            'The plan closes in {seconds} seconds and saves what you drew, so others can draw too.',
-            { seconds: closesIn ?? 0 },
+          {_n(
+            'The plan closes in {count} second and saves what you drew, so others can draw too.',
+            'The plan closes in {count} seconds and saves what you drew, so others can draw too.',
+            closesIn ?? 0,
           )}
         </Text>
         <Group justify="flex-end" mt="lg">

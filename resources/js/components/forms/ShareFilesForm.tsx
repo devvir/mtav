@@ -6,6 +6,7 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import { useForm } from '@inertiajs/react';
 import { Button, Input, Progress, Text, TextInput } from '@mantine/core';
+import { useEffect } from 'react';
 
 /** What may be shared, and how much */
 export interface UploadLimits {
@@ -30,6 +31,10 @@ export function ShareFilesForm({
   // All together, the files must fit in one request: said before sending, not after
   const total = form.data.files.reduce((sum, file) => sum + file.size, 0);
   const tooMuch = total > limits.maxBatchKb * 1024;
+  const tooLarge = form.data.files.some((file) => file.size > limits.maxFileKb * 1024);
+  // Closed while sending (Cancel, the ×, Escape): the files are not sent after all
+  const { cancel } = form;
+  useEffect(() => cancel, [cancel]);
   const fileErrors = [
     ...Object.entries(form.errors as Record<string, string>)
       .filter(([key]) => key.startsWith('files'))
@@ -74,6 +79,9 @@ export function ShareFilesForm({
                   '{name} cannot be shared: photos, videos, audio, PDF and office documents only.',
                   { name },
                 ),
+              tooMany: _('Up to {count} at once: the rest were left out.', {
+                count: limits.maxFiles,
+              }),
               remove: (name) => _('Remove {name}', { name }),
             }}
           />
@@ -101,7 +109,7 @@ export function ShareFilesForm({
           aria-label={_('Uploading')}
         />
       ) : null}
-      <FormActions submit={_('Share')} processing={form.processing} disabled={tooMuch}>
+      <FormActions submit={_('Share')} processing={form.processing} disabled={tooMuch || tooLarge}>
         <Button variant="default" onClick={onDone}>
           {_('Cancel')}
         </Button>

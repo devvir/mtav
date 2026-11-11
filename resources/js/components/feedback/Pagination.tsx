@@ -1,11 +1,20 @@
 import { _ } from '@/lib/translations';
 import type { Paginated } from '@/types/models';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ActionIcon, Group, Text } from '@mantine/core';
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 /** Where a long list is: which ones are shown (of how many, if counted), the pages around it */
 export function Pagination({ page }: { page: Paginated<unknown> }) {
+  // Past the end (a page typed, or its last ones removed meanwhile): the last one there is instead
+  const pastEnd = !page.data.length && page.meta.current_page > 1;
+  const last = page.links.last ?? page.links.first;
+  useEffect(() => {
+    if (pastEnd && last)
+      router.get(last, {}, { replace: true, preserveState: true, preserveScroll: true });
+  }, [pastEnd, last]);
+
   if (!page.links.prev && !page.links.next) return null;
 
   return (

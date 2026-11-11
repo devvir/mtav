@@ -1,3 +1,4 @@
+import { DialogHost } from '@/components/overlays/DialogHost';
 import { Logo } from '@/design';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
@@ -35,6 +36,8 @@ export function OpenLayout({ children }: { children: ReactNode }) {
         </Group>
         {children}
       </Stack>
+      {/* What the page asks before taking something away */}
+      <DialogHost />
     </Container>
   );
 }

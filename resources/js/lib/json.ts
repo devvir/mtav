@@ -1,3 +1,5 @@
+import { socketHeader } from './socketHeader';
+
 /** The session's anti-forgery token, as Laravel puts it in a cookie */
 const xsrfToken = () =>
   decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1] ?? '');
@@ -25,6 +27,7 @@ export const sendJson = (
       Accept: 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       'X-XSRF-TOKEN': xsrfToken(),
+      ...socketHeader(),
     },
     body: JSON.stringify(body),
   }).catch(() => new Response(null, { status: 503 }));

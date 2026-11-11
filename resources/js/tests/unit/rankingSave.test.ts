@@ -10,7 +10,36 @@ interface Options {
 }
 
 const put = vi.hoisted(() => vi.fn());
-vi.mock('@inertiajs/react', () => ({ router: { put, on: () => () => undefined } }));
+/** Who listens to visits starting ('before') */
+const listeners = vi.hoisted(() => new Set<(event: { detail: { visit: unknown } }) => void>());
+vi.mock('@inertiajs/react', () => ({
+  router: {
+    put,
+    on: (type: string, listener: (event: { detail: { visit: unknown } }) => void) => {
+      if (type !== 'before') return () => undefined;
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  },
+}));
+
+/** A visit starting, as Inertia announces it: to another page, or a part of this one again */
+const visitStarts = (path: string, only: string[] = []) =>
+  act(() =>
+    listeners.forEach((listener) =>
+      listener({
+        detail: {
+          visit: {
+            url: new window.URL(path, window.location.href),
+            method: 'get',
+            prefetch: false,
+            only,
+            except: [],
+          },
+        },
+      }),
+    ),
+  );
 vi.mock('@/lib/toasts', () => ({ toast: vi.fn() }));
 
 const unit = (id: number) => ({ id });
@@ -70,15 +99,64 @@ describe("saving a family's ranking", () => {
     expect(options(0).async).toBe(true);
   });
 
-  it('sends a move still waiting when the page is left', () => {
+  it('sends a move still waiting as a visit to another page starts, from this page', () => {
+    const { result } = draw();
+
+    act(() => result.current.rank([b, a]));
+    visitStarts('/projects/1/units');
+
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(sent(0)).toEqual([2, 1]);
+    expect(options(0).async).toBe(true);
+  });
+
+  it('keeps waiting while only a part of this page loads again', () => {
+    const { result } = draw();
+
+    act(() => result.current.rank([b, a]));
+    visitStarts(window.location.pathname, ['ranking']);
+
+    expect(put).not.toHaveBeenCalled();
+  });
+
+  it('sends a move still waiting when the page is gone, with no page to bring back', () => {
     const { result, unmount } = draw();
 
     act(() => result.current.rank([b, a]));
     unmount();
 
-    expect(put).toHaveBeenCalledTimes(1);
-    expect(sent(0)).toEqual([2, 1]);
-    expect(options(0).async).toBe(true);
+    expect(put).not.toHaveBeenCalled();
+    expect(fetched).toHaveBeenCalledWith(
+      URL,
+      expect.objectContaining({ method: 'PUT', body: '{"preferences":[2,1]}' }),
+    );
+  });
+
+  it('says it is saved, as the page closes, only when the server took it', async () => {
+    const closes = async (answer: Partial<Response>) => {
+      fetched.mockResolvedValueOnce(answer as Response);
+      const { result, unmount } = draw();
+      act(() => result.current.rank([b, a]));
+      await act(async () => void window.dispatchEvent(new Event('pagehide')));
+      const state = result.current.state;
+      unmount();
+      return state;
+    };
+
+    expect(await closes({ ok: false, status: 419, type: 'basic' })).toBeNull();
+    expect(await closes({ ok: false, status: 0, type: 'opaqueredirect' })).toBe('saved');
+  });
+
+  it('sends as asked, for another kind of ranking', () => {
+    const { result } = renderHook(() =>
+      useRankingSave([a, b], '/l/abc/ranking', { field: 'ranking', only: ['me'] }),
+    );
+
+    act(() => result.current.rank([b, a]));
+    act(() => vi.advanceTimersByTime(600));
+
+    expect(put.mock.calls[0]![1]).toEqual({ ranking: [2, 1] });
+    expect(options(0)).toMatchObject({ only: ['me'] });
   });
 
   it('sends a move still waiting when the page closes, once', () => {
@@ -159,8 +237,11 @@ describe("saving a family's ranking", () => {
     expect(put).toHaveBeenCalledTimes(1);
 
     answer(0);
-    expect(put).toHaveBeenCalledTimes(2);
-    expect(sent(1)).toEqual([1, 2]);
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(fetched).toHaveBeenCalledWith(
+      URL,
+      expect.objectContaining({ method: 'PUT', body: '{"preferences":[1,2]}' }),
+    );
   });
 
   it('says it is saved for a moment', () => {

@@ -1,4 +1,4 @@
-import { dialogQueue, settle, type DialogRequest } from '@/lib/dialogs';
+import { dialogQueue, settle, typedAsAsked, type DialogRequest } from '@/lib/dialogs';
 import { useStore } from '@/lib/store';
 import { _ } from '@/lib/translations';
 import {
@@ -30,7 +30,7 @@ function Question({ request }: { request: DialogRequest }) {
   const { options } = request;
   const canConfirm =
     request.kind === 'confirm'
-      ? !request.options.typeToConfirm || answer.trim() === request.options.typeToConfirm
+      ? !request.options.typeToConfirm || typedAsAsked(answer, request.options.typeToConfirm)
       : answer.trim().length >= (request.options.minLength ?? 1);
 
   const answerWith = (confirmed: boolean) =>

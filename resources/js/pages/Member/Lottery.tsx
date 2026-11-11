@@ -7,7 +7,7 @@ import { ChecklistCorner, isSetUp, type Setup } from '@/components/domain/SetupC
 import { DateTime } from '@/components/feedback/DateTime';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Glyph, Panel, Status } from '@/design';
+import { EmptyState, Glyph, Panel, Status } from '@/design';
 import { heldOffline } from '@/lib/offline';
 import { useRankingSave, type RankingSave } from '@/lib/rankingSave';
 import { useProjectChanges } from '@/lib/realtime';
@@ -254,28 +254,40 @@ export default function Lottery({
       ) : null}
 
       <div className="two-columns" style={{ marginTop: 24 }}>
-        {family && ranking.length ? (
+        {family ? (
           <Panel
             data-tour="ranking.list"
             title={_('Your preferences')}
             icon={IconListNumbers}
             actions={<SaveNote state={saveState} />}
           >
-            <Text data-tour="ranking.saving" className="ds-caption" mb="sm">
-              {canRank
-                ? _(
-                    '{type} units, most wanted first. Changes are saved as you make them, for the whole family.',
-                    { type: family.unit_type },
-                  )
-                : _('{type} units, as your family ranked them.', { type: family.unit_type })}
-            </Text>
-            <RankingList
-              units={ranking}
-              disabled={!canRank}
-              onFocus={setFocused}
-              flash={flash}
-              onChange={rank}
-            />
+            {ranking.length ? (
+              <>
+                <Text data-tour="ranking.saving" className="ds-caption" mb="sm">
+                  {canRank
+                    ? _(
+                        '{type} units, most wanted first. Changes are saved as you make them, for the whole family.',
+                        { type: family.unit_type },
+                      )
+                    : _('{type} units, as your family ranked them.', { type: family.unit_type })}
+                </Text>
+                <RankingList
+                  items={ranking}
+                  label={(unit) => unit.identifier}
+                  disabled={!canRank}
+                  onFocus={setFocused}
+                  flash={flash}
+                  onChange={rank}
+                />
+              </>
+            ) : (
+              // Nothing of the family's type to rank yet: said, rather than no ranking at all
+              <EmptyState
+                inset
+                icon={IconHome}
+                title={_('No {type} units yet', { type: family.unit_type })}
+              />
+            )}
           </Panel>
         ) : null}
 
