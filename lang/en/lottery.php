@@ -7,8 +7,8 @@ return [
     'locked'      => 'The lottery already ran, or is running. This can no longer change.',
     'family_gone' => 'Deleted family #:id',
 
-    'running'               => 'The lottery is running. Units and families can change once it ends.',
-    'execution_failed'      => 'Something went wrong while running the lottery. Try again. If it keeps failing, contact the platform team.',
+    'running'          => 'The lottery is running. Units and families can change once it ends.',
+    'execution_failed' => 'Something went wrong while running the lottery. Try again. If it keeps failing, contact the platform team.',
 
     'cannot_run_already_run'      => 'The lottery already ran.',
     'cannot_run_no_worker'        => 'The lottery can\'t run right now. We\'re looking into it. Try again later.',

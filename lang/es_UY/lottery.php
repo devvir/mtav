@@ -7,8 +7,8 @@ return [
     'locked'      => 'El sorteo ya se hizo, o se está haciendo. Esto ya no puede cambiar.',
     'family_gone' => 'Familia eliminada n.º :id',
 
-    'running'               => 'El sorteo está en curso. Las viviendas y las familias pueden cambiar cuando termine.',
-    'execution_failed'      => 'Algo salió mal al hacer el sorteo. Prueba de nuevo. Si sigue fallando, avísale al equipo de la plataforma.',
+    'running'          => 'El sorteo está en curso. Las viviendas y las familias pueden cambiar cuando termine.',
+    'execution_failed' => 'Algo salió mal al hacer el sorteo. Prueba de nuevo. Si sigue fallando, avísale al equipo de la plataforma.',
 
     'cannot_run_already_run'      => 'El sorteo ya se hizo.',
     'cannot_run_no_worker'        => 'Ahora no se puede hacer el sorteo. Ya lo estamos revisando. Prueba más tarde.',

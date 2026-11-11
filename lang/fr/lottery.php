@@ -7,8 +7,8 @@ return [
     'locked'      => 'Le tirage a déjà eu lieu ou est en cours. Cela ne peut plus changer.',
     'family_gone' => 'Famille supprimée n° :id',
 
-    'running'               => 'Le tirage est en cours. Les logements et les familles pourront changer quand il sera terminé.',
-    'execution_failed'      => 'Un problème est survenu pendant le tirage. Réessayez. Si cela continue, contactez l’équipe de la plateforme.',
+    'running'          => 'Le tirage est en cours. Les logements et les familles pourront changer quand il sera terminé.',
+    'execution_failed' => 'Un problème est survenu pendant le tirage. Réessayez. Si cela continue, contactez l’équipe de la plateforme.',
 
     'cannot_run_already_run'      => 'Le tirage a déjà eu lieu.',
     'cannot_run_no_worker'        => 'Le tirage ne peut pas être lancé pour l’instant. Nous nous en occupons. Réessayez plus tard.',

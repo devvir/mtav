@@ -62,6 +62,7 @@ it('marks every notification read from the bell', function () {
 it('shows only the unread ones on demand, and marks them all read from the list', function () {
     visit(route('notifications.index'))
         ->click('Only unread')
+        ->assertSee('Show all')
         ->assertSee('New event: General assembly')
         ->click('Mark all as read')
         ->assertSee('Nothing unread')

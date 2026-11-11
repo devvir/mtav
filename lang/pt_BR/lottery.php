@@ -7,8 +7,8 @@ return [
     'locked'      => 'O sorteio já foi feito, ou está sendo feito. Isto não pode mais mudar.',
     'family_gone' => 'Família excluída nº :id',
 
-    'running'               => 'O sorteio está em andamento. As moradias e as famílias podem mudar quando ele terminar.',
-    'execution_failed'      => 'Algo deu errado ao fazer o sorteio. Tente de novo. Se continuar falhando, fale com a equipe da plataforma.',
+    'running'          => 'O sorteio está em andamento. As moradias e as famílias podem mudar quando ele terminar.',
+    'execution_failed' => 'Algo deu errado ao fazer o sorteio. Tente de novo. Se continuar falhando, fale com a equipe da plataforma.',
 
     'cannot_run_already_run'      => 'O sorteio já foi feito.',
     'cannot_run_no_worker'        => 'Não é possível fazer o sorteio agora. Já estamos verificando. Tente mais tarde.',

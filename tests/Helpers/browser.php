@@ -241,7 +241,10 @@ function waitUntil(object $page, string $condition): object
     $until = microtime(true) + Playwright::timeout() / 1000;
 
     while (! $page->script("() => Boolean({$condition})")) {
-        expect(microtime(true))->toBeLessThan($until, "Expected [{$condition}] to hold, but it did not.");
+        if (microtime(true) >= $until) {
+            $at = $page->script('() => location.pathname + location.search');
+            expect(false)->toBeTrue("Expected [{$condition}] to hold, but it did not (at {$at}).");
+        }
         $page->wait(0.05);
     }
 
