@@ -199,16 +199,18 @@ function bounds(array $polygon): array
 it('saves by itself a moment after a change', function () {
     $this->as($this->admin);
 
-    editPlan($this)->click('.plan-palette >> ' . button('Green area'))->wait(1.5)->assertSee('Saved');
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'));
 
-    expect(PlanItem::where('type', 'green')->exists())->toBeTrue();
+    eventually($page, fn () => expect(PlanItem::where('type', 'green')->exists())->toBeTrue());
+    $page->assertSee('Saved');
 });
 
 it('still undoes after a reload', function () {
     $this->as($this->admin);
 
-    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'))->wait(1.5)->assertSee('Saved');
-    expect(PlanItem::where('type', 'green')->exists())->toBeTrue();
+    $page = editPlan($this)->click('.plan-palette >> ' . button('Green area'));
+    eventually($page, fn () => expect(PlanItem::where('type', 'green')->exists())->toBeTrue());
+    $page->assertSee('Saved');
 
     // The page loaded anew before reaching for it
     $page->refresh()
@@ -440,11 +442,11 @@ it('asks before leaving with something unsaved, and only then', function () {
         ->keys('[aria-label="Plan editor"]', 'ArrowRight');
 
     // A link the pointer rests on is loaded for later: nobody is leaving
-    $page->hover('.shell-sidebar >> a:has-text("Home")')->wait(0.5);
+    answered(watchRequests($page)->hover('.shell-sidebar >> a:has-text("Home")'), route('projects.show', $this->project, absolute: false));
     expect($page->script('() => window.asked'))->toBe(0);
 
-    $page->click('.shell-sidebar >> a:has-text("Home")')->wait(0.3);
-    expect($page->script('() => window.asked'))->toBe(1);
+    $page->click('.shell-sidebar >> a:has-text("Home")')->assertScript('window.asked', 1);
+    expect(settled($page)->script('() => window.asked'))->toBe(1);
     $page->assertPresent('[aria-label="Plan editor"]');
 });
 
@@ -503,26 +505,26 @@ it('keeps a shape within the floors a plan holds, and saves it there', function 
 it('says to sign in again when a save finds the session gone, and stops trying', function () {
     $this->as($this->admin);
 
-    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    $page = fakeClock(editPlan($this))->click('[data-shape="A-101"] .plan-top');
     answerPlanSaves($page, 419);
 
     $page->keys('[aria-label="Plan editor"]', 'ArrowRight')
-        ->assertSee('You were signed out. Sign in again.')
-        // A retry's wait, and more: nothing is sent again by itself
-        ->wait(6);
+        ->assertSee('You were signed out. Sign in again.');
 
-    expect($page->script('() => window.plansSent'))->toBe(1);
+    // A retry's wait, and more, run ahead on the page's clock: nothing is sent again by itself
+    expect(runClock($page, 6000)->script('() => window.plansSent'))->toBe(1);
 });
 
 it('tries again by itself when the server could not answer', function () {
     $this->as($this->admin);
 
-    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    $page = fakeClock(editPlan($this))->click('[data-shape="A-101"] .plan-top');
     answerPlanSaves($page, 503);
 
-    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')->assertSee('Not saved yet')->wait(6);
+    $page->keys('[aria-label="Plan editor"]', 'ArrowRight')->assertSee('Not saved yet')->assertScript('window.plansSent === 1', true);
 
-    expect($page->script('() => window.plansSent'))->toBeGreaterThan(1);
+    // A retry's wait, run ahead on the page's clock
+    runClock(settled($page), 6000)->assertScript('window.plansSent > 1', true);
 });
 
 it("says the server's words when it refuses what was drawn", function () {
@@ -553,7 +555,7 @@ it('closes, saying who drew, when someone else holds the plan by then', function
     $other->update(['firstname' => 'Ana', 'lastname' => 'Pérez']);
     $lock = app(EditingLock::class);
 
-    $page = editPlan($this)->click('[data-shape="A-101"] .plan-top');
+    $page = fakeClock(editPlan($this))->click('[data-shape="A-101"] .plan-top');
 
     $lock->release($this->project->plan, $this->admin);
     $lock->take($this->project->plan, $other);
@@ -561,11 +563,11 @@ it('closes, saying who drew, when someone else holds the plan by then', function
     $page->keys('[aria-label="Plan editor"]', 'ArrowRight')
         ->assertSee('Ana Pérez is drawing the plan right now.')
         ->assertMissing('[aria-label="Plan editor"]')
-        ->assertSee('Edit the plan')
-        // Nothing keeps trying: the one message, and no more, a retry's wait later
-        ->wait(5.5);
+        ->assertSee('Edit the plan');
 
-    expect($page->script('() => document.querySelectorAll(".mantine-Notification-root").length'))->toBeLessThan(2);
+    // Nothing keeps trying: the one message, and no more, a retry's wait later (run ahead on
+    // the page's clock)
+    expect(runClock($page, 5500)->script('() => document.querySelectorAll(".mantine-Notification-root").length'))->toBeLessThan(2);
 });
 
 /** Whether a key pressed on an element was taken from the browser, by the editor */

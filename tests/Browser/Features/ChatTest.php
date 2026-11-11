@@ -18,8 +18,8 @@ beforeEach(function () {
 it('says who wrote each message and when, to whoever cannot see the bubbles, and announces new ones', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->ana, 'Hola Beto');
-    $chat->send($conversation, $this->beto, 'Hola Ana');
+    $chat->post($conversation, $this->ana, 'Hola Beto');
+    $chat->post($conversation, $this->beto, 'Hola Ana');
     $this->as($this->beto);
 
     visit(route('chat.show', [$this->project, $conversation]))
@@ -224,7 +224,7 @@ it('sends a report it drafted as shown, once, and opens a conversation with an a
 it('gets over a message that could not leave: the button stops waiting, it says so, and the next one goes', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->beto, 'Hola Ana');
+    $chat->post($conversation, $this->beto, 'Hola Ana');
     $this->as($this->ana);
 
     $page = visit(route('chat.show', [$this->project, $conversation]))->assertSee('Hola Ana');
@@ -254,19 +254,17 @@ it('takes the focus into the window as it opens, and back to the bubble as it fo
     $page = visit(route('projects.show', $this->project))->click('.chat-launcher')->assertPresent('.chat-window');
     expect($page->script($inWindow))->toBeTrue();
 
-    $page->click('.chat-window [aria-label="Minimize"]')->wait(0.3)->assertMissing('.chat-window');
-    expect($page->script($onBubble))->toBeTrue();
+    $page->click('.chat-window [aria-label="Minimize"]')->assertMissing('.chat-window')->assertScript($onBubble, true);
 
     // By the keyboard too
     $page->script('() => document.querySelector(".chat-launcher").click()');
-    $page->assertPresent('.chat-window')->keys('.chat-window', 'Escape')->wait(0.3)->assertMissing('.chat-window');
-    expect($page->script($onBubble))->toBeTrue();
+    $page->assertPresent('.chat-window')->keys('.chat-window', 'Escape')->assertMissing('.chat-window')->assertScript($onBubble, true);
 });
 
 it('says which conversations are unread to whoever cannot see the mark', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $chat->post($conversation, $this->ana, 'Hola Beto');
     $this->as($this->beto);
 
     visit(route('chat.index', $this->project))
@@ -277,7 +275,7 @@ it('says which conversations are unread to whoever cannot see the mark', functio
 it('writes each message\'s time in the app\'s language, whatever the browser\'s', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $chat->post($conversation, $this->ana, 'Hola Beto');
     $this->beto->update(['locale' => 'es_UY']);
     $this->as($this->beto);
 
@@ -391,7 +389,7 @@ it('greets someone on their first arrival outside any project', function () {
 it('drops a count that came with the page once what it counted was read elsewhere', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $chat->post($conversation, $this->ana, 'Hola Beto');
     $this->as($this->beto);
 
     $page = visit(route('projects.show', $this->project))
@@ -410,7 +408,7 @@ it('drops a count that came with the page once what it counted was read elsewher
 it('enlarges into the chat\'s page, at the conversation open, and folds the window away', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->ana, 'Hola Beto');
+    $chat->post($conversation, $this->ana, 'Hola Beto');
     $this->as($this->beto);
 
     visit(route('projects.show', $this->project))
@@ -427,8 +425,8 @@ it('enlarges into the chat\'s page, at the conversation open, and folds the wind
 it('edits and deletes one\'s own messages within the hour, by the keyboard too, and nobody else\'s', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $chat->send($conversation, $this->beto, 'Hola Ana');
-    $mine = $chat->send($conversation, $this->ana, 'Nos vemos a las 5');
+    $chat->post($conversation, $this->beto, 'Hola Ana');
+    $mine = $chat->post($conversation, $this->ana, 'Nos vemos a las 5');
     $this->as($this->ana);
 
     $page = visit(route('chat.show', [$this->project, $conversation]))
@@ -466,21 +464,22 @@ it('edits and deletes one\'s own messages within the hour, by the keyboard too, 
 it('stops offering to change a message as its hour closes, by itself', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $closing = $chat->send($conversation, $this->ana, 'Almost an hour ago');
+    $closing = $chat->post($conversation, $this->ana, 'Almost an hour ago');
     // A little while left: room for the page to load first
     $closing->forceFill(['created_at' => now()->subMinutes(60)->addSeconds(15)])->save();
     $this->as($this->ana);
 
-    visit(route('chat.show', [$this->project, $conversation]))
-        ->assertPresent('.chat-message[data-mine] [aria-label="Delete this message"]')
-        ->wait(16)
+    // Its last seconds run ahead on the page's clock
+    $page = fakeClock(visit(route('chat.show', [$this->project, $conversation])))->refresh()
+        ->assertPresent('.chat-message[data-mine] [aria-label="Delete this message"]');
+    runClock($page, 16000)
         ->assertMissing('.chat-message[data-mine] [aria-label="Delete this message"]')
         ->assertMissing('.chat-message[data-mine] [aria-label="Edit this message"]');
 });
 
 it('deletes a question to the Assistant with its answer, and offers no editing there', function () {
     $conversation = Conversation::where('pair', "assistant:{$this->ana->id}")->sole();
-    app(ChatService::class)->send($conversation, $this->ana, 'Where do I see the plan?');
+    app(ChatService::class)->post($conversation, $this->ana, 'Where do I see the plan?');
     $this->as($this->ana);
 
     visit(route('projects.show', $this->project))
@@ -502,7 +501,7 @@ it('deletes a question to the Assistant with its answer, and offers no editing t
 it('holds a change while offline, as it holds every change', function () {
     $chat = app(ChatService::class);
     $conversation = $chat->start($this->project, $this->ana, [$this->beto->id]);
-    $mine = $chat->send($conversation, $this->ana, 'Still here');
+    $mine = $chat->post($conversation, $this->ana, 'Still here');
     $this->as($this->ana);
 
     $page = visit(route('chat.show', [$this->project, $conversation]))->assertSeeIn('.chat-messages', 'Still here');

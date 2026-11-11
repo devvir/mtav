@@ -65,8 +65,8 @@ it('shows every photo it names, families building among them', function () {
 
     // Brought into view, so that the lazy ones load too
     $page->script("() => document.querySelectorAll('.welcome-photo img').forEach((img) => { img.loading = 'eager'; })");
-    $page->wait(1);
 
+    $page->assertScript("[...document.querySelectorAll('.welcome-photo img')].every((img) => img.complete)", true);
     expect($page->script("() => [...document.querySelectorAll('.welcome-photo img')].filter((img) => !img.naturalWidth).map((img) => img.src)"))->toBe([]);
 });
 
@@ -80,7 +80,8 @@ it('never reads out a picture changing by itself, only one someone picked', func
 it('stops its first pictures for good with a button, and starts them again', function () {
     $caption = fn ($page) => $page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent");
 
-    $page = visit(route('home'))
+    // A picture's time (6 s) run ahead on the page's clock, not waited for
+    $page = waitUntil(fakeClock(visit(route('home')))->refresh(), "document.querySelector('.welcome-hero-dots')")
         ->click('[aria-label="Pause the pictures"]')
         ->assertPresent('[aria-label="Play the pictures"]')
         ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'polite')
@@ -88,23 +89,22 @@ it('stops its first pictures for good with a button, and starts them again', fun
         ->hover('.welcome-heading >> nth=0');
     $stopped = $caption($page);
 
-    $page->wait(7);
+    runClock($page, 7000);
     expect($caption($page))->toBe($stopped);
 
     $page->click('[aria-label="Play the pictures"]')
         ->hover('.welcome-heading >> nth=0')
-        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'off')
-        ->wait(7);
-    expect($caption($page))->not->toBe($stopped);
+        ->assertAttribute('.welcome-hero-slides figcaption', 'aria-live', 'off');
+    runClock($page, 7000)->assertDontSeeIn('.welcome-hero-slides figcaption', $stopped);
 });
 
 it('keeps a picture someone picked, whatever the pointer does next', function () {
-    $page = visit(route('home'))
+    $page = waitUntil(fakeClock(visit(route('home')))->refresh(), "document.querySelector('.welcome-hero-dots')")
         ->click('.welcome-hero-dots button >> nth=1')
         ->hover('.welcome-heading >> nth=0');
     $picked = $page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent");
 
-    $page->wait(7);
+    runClock($page, 7000);
 
     expect($page->script("() => document.querySelector('.welcome-hero-slides figcaption').textContent"))->toBe($picked);
 });

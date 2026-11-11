@@ -12,9 +12,9 @@ it('shows a guest the lottery with no ranking, no dragging and no way to invite'
     $project->memberships()->create(['user_id' => $guest->id]);
     $this->as($guest->fresh());
 
+    // The page drawn whole, its heading with it
     visit(route('lottery.show', $project))
-        ->assertSee('Lottery')
-        ->wait(1)
+        ->assertSeeIn('.ds-page-title', 'Lottery')
         ->assertNotPresent('[aria-label="Project plan"]')
         ->assertNotPresent('[data-tour="lottery.plan"]')
         ->assertDontSee('Invite a family member')

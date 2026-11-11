@@ -62,7 +62,7 @@ it('shows a message in the conversation open, its new words when edited, and tak
     $page = visit(route('chat.show', [$this->project, $conversation]));
     listening($page, "users.{$this->member->id}");
 
-    $message = $chat->send($conversation, $this->admin, 'Are you coming on Saturday?');
+    $message = $chat->post($conversation, $this->admin, 'Are you coming on Saturday?');
     $page->assertSeeIn('.chat-messages', 'Are you coming on Saturday?');
 
     $chat->edit($message, 'Are you coming on Sunday?');
@@ -79,10 +79,10 @@ it('counts a conversation with something new once, and says who wrote, away from
     $page = visit(route('projects.show', $this->project));
     listening($page, "users.{$this->member->id}");
 
-    $chat->send($conversation, $this->admin, 'One');
+    $chat->post($conversation, $this->admin, 'One');
     $page->assertSee("New message from {$this->admin->firstname}");
 
-    $chat->send($conversation, $this->admin, 'Two');
+    $chat->post($conversation, $this->admin, 'Two');
     $page->assertPresent('.chat-launcher');
 
     expect($conversation->participants()->whereKey($this->member->id)->first()->pivot->read_up_to)->toBeNull();

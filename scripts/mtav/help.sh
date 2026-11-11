@@ -1,0 +1,50 @@
+# shellcheck shell=bash
+# mtav help
+
+# One line of the help: the command, then what it does
+usage_line() {
+    printf "  %b%-50s%b %s\n" "$YELLOW" "$1" "$NC" "$2"
+}
+
+print_help() {
+    info "MTAV Development Environment"
+    echo ""
+    ok "Environments (dev by default; testing and e2e beside it, each its own compose project):"
+    usage_line "mtav up [env]" "Start an environment (alias for dev: mtav dev; builds everything on a first run)"
+    usage_line "mtav stop [env]" "Stop its containers (kept, for a quick start)"
+    usage_line "mtav down [env]" "Stop and remove its containers"
+    usage_line "mtav restart" "Dev down, then up"
+    usage_line "mtav status [env]" "Its containers and addresses"
+    usage_line "mtav logs [env] [service]" "Follow its logs"
+    usage_line "mtav fresh" "Dev rebuilt, its database started over with demo data"
+    usage_line "mtav update" "Dev's images and dependencies brought up to date"
+    usage_line "mtav rebuild [service]" "Dev's images rebuilt (all, or one)"
+    echo ""
+    ok "Tests:"
+    usage_line "mtav pest [args]" "PHP tests (Pest's arguments)"
+    usage_line "mtav vitest [args]" "Frontend tests (Vitest's arguments)"
+    usage_line "mtav e2e [args]" "The browser suite (Pest's arguments)"
+    usage_line "mtav test [--pest args] [--vitest args] [--e2e args]" "All three, each with the arguments after its flag"
+    usage_line "mtav precommit [--pest args] [--vitest args]" "Pest and Vitest without the 'slow' group"
+    echo ""
+    ok "Inside dev:"
+    usage_line "mtav artisan <cmd>" "Laravel Artisan"
+    usage_line "mtav composer <cmd>" "Composer"
+    usage_line "mtav pnpm <cmd>" "pnpm"
+    usage_line "mtav tinker" "Laravel Tinker"
+    usage_line "mtav shell [service] [-c cmd]" "A shell in a container (default: php)"
+    echo ""
+    ok "Tools:"
+    usage_line "mtav warden" "A page watching everything from above"
+    usage_line "mtav release [args]" "The release image, built as the pipeline builds it"
+    usage_line "mtav stats" "Every GLPK benchmark file analyzed"
+    usage_line "mtav compose <env> <args>" "Raw docker compose against an environment"
+    echo ""
+    echo -e "Settings layer: .env → docker/<env>/.env → docker/<env>/.env.local (not versioned)"
+    echo ""
+    ok "First run:"
+    echo -e "  1. ${YELLOW}git clone https://github.com/devvir/mtav && cd mtav${NC}"
+    echo -e "  2. ${YELLOW}./mtav up${NC}      everything built and seeded"
+    echo -e "  3. Open ${BLUE}http://localhost:8000${NC}"
+    echo ""
+}

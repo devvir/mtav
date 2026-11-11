@@ -46,14 +46,14 @@ it('saves a move made just before going to another page, and stays there', funct
     $second = app(PreferencesService::class)->ranking($this->family)[1];
     $this->as($this->member);
 
-    $page = visit(route('lottery.show', $this->project))
+    $page = watchRequests(visit(route('lottery.show', $this->project)))
         ->click("[aria-label=\"Move {$second->identifier} up\"]")
         ->click('.shell-sidebar >> a:has-text("Units")')
         ->assertPathIs(route('units.index', $this->project, absolute: false));
 
     eventually($page, fn () => expect(app(PreferencesService::class)->ranking($this->family->fresh())[0]->identifier)->toBe($second->identifier));
     // The save's answer came after the visit: it never brings the lottery back
-    $page->wait(1.5)->assertPathIs(route('units.index', $this->project, absolute: false))->assertDontSee('Your preferences');
+    answered($page)->assertPathIs(route('units.index', $this->project, absolute: false))->assertDontSee('Your preferences');
 });
 
 it('says so when there is nothing of the family\'s type to rank yet', function () {
@@ -95,10 +95,10 @@ it('reorders the ranking with the keyboard', function () {
     $grip = "[aria-label=\"Move {$first->identifier}, number 1\"]";
     $page = visit(route('lottery.show', $this->project))
         ->keys($grip, 'Space')
-        ->assertAttribute($grip, 'aria-pressed', 'true')
         // The arrows are listened to a moment after the pick-up; with two units, a second
         // press cannot move it past the end
-        ->wait(0.5)
+        ->assertAttribute($grip, 'aria-pressed', 'true');
+    settled($page)
         ->keys($grip, ['ArrowDown', 'ArrowDown'])
         // Dropped once the move registered (announced to screen readers)
         ->assertScript(
@@ -183,7 +183,7 @@ it('does not ask again, on going back, what the server asked before running', fu
 
     $page->script('() => history.back()');
 
-    $page->assertPathIs("/projects/{$this->project->id}/lottery")->wait(0.5)->assertMissing('[role="dialog"]');
+    settled($page->assertPathIs("/projects/{$this->project->id}/lottery")->assertSeeIn('.ds-page-title', 'Lottery'))->assertMissing('[role="dialog"]');
 });
 
 it('keeps the focus on the arrow that took a unit to the top', function () {

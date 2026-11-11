@@ -134,14 +134,14 @@ function createsLottery(string $lines): object
 it('keeps two quick moves of a ranking, the second after the first', function () {
     $share = linkOn(createsLottery("Blue room\nGreen room\nAttic")->assertSee('Your organizer link'), 'share');
 
-    $ana = joins($share, 'Ana');
+    $ana = watchRequests(joins($share, 'Ana'));
     $ana->keys('[aria-label="Move Attic up"]', ['Enter', 'Enter'])
         ->assertSeeIn('ol.ranking li:first-child', 'Attic');
 
     $ranking = fn () => OpenLotteryParticipant::firstWhere('name', 'Ana')->ranking()->pluck('name')->all();
     eventually($ana, fn () => expect($ranking())->toBe(['Attic', 'Blue room', 'Green room']));
     // What the page reads again after the save says the same
-    $ana->wait(1)->assertSeeIn('ol.ranking li:first-child', 'Attic');
+    answered($ana)->assertSeeIn('ol.ranking li:first-child', 'Attic');
 });
 
 it('says which line of what is shared out it refuses, counting the empty ones', function () {

@@ -114,8 +114,8 @@ it('plays a page\'s tour by itself the first time, and offers once to show no mo
         ->click('No more tours')
         ->assertDontSee('Show no more tours?');
 
-    // Seen, and no more asked for: it does not come back
-    $page->refresh()->wait(2)->assertDontSee('Step 1 of');
+    // Seen, and no more asked for: it does not come back, its moment (900 ms) run ahead
+    runClock(fakeClock($page)->refresh()->assertSeeIn('.ds-page-title', 'Lottery'), 2000)->assertDontSee('Step 1 of');
 });
 
 it('stops every tour from any tour, until Preferences turns them back on', function () {
@@ -133,13 +133,15 @@ it('stops every tour from any tour, until Preferences turns them back on', funct
         ->assertDontSee('Show no more tours?')
         ->assertSee('You can turn them back on in Preferences');
 
-    // Another page's tour, never seen, does not play either
-    $page->navigate(route('events.index', $project))->wait(2)->assertDontSee('Step 1 of');
+    // Another page's tour, never seen, does not play either, its moment (900 ms) run ahead
+    runClock(sameTabTo(fakeClock($page), route('events.index', $project))->assertSeeIn('.ds-page-title', 'Events'), 2000)
+        ->assertDontSee('Step 1 of');
 
-    $page->navigate(route('profile.edit', ['section' => 'preferences']))
+    sameTabTo($page, route('profile.edit', ['section' => 'preferences']))
+        ->assertSee('Guided tours')
         ->click('label:has-text("Guided tours")')
-        ->navigate(route('lottery.show', $project))
-        ->assertSee('Step 1 of');
+        ->assertScript("localStorage.getItem('mtav.tours')", 'on');
+    sameTabTo($page, route('lottery.show', $project))->assertSee('Step 1 of');
 });
 
 it('offers each page\'s tour from the (?) by its title', function (string $as, string $name, string $topic, string $first) {
@@ -263,7 +265,7 @@ it('leaves out on a phone what a phone does not show, and keeps each step clear 
 
     $titles = [];
     while (count($titles) < 20) {
-        $page->wait(0.8);
+        standsStill($page->assertSee('Step ' . (count($titles) + 1) . ' of'), '.tour-card, .tour-spotlight');
         $titles[] = $page->script("() => document.querySelector('.tour-title')?.textContent");
         expect($clear())->toBeTrue();
         if ($page->script("() => [...document.querySelectorAll('.tour-card button')].some((button) => button.textContent === 'Done')")) {
@@ -287,10 +289,12 @@ it('plays each page\'s tour on a phone, every step clear of what it points at', 
     $this->as($people[$as]());
 
     // Once the page has settled at its phone size
-    $page = openHelp(visit(route($name, $project))->on()->mobile()->wait(1.5), $topic)->click('Tell me more');
+    // A page asked for at a phone's size opens with its first call: everything after goes to that one
+    $tip = "[aria-label=\"About: {$topic}\"]";
+    $page = openHelp(standsStill(visit(route($name, $project))->on()->mobile()->assertPresent($tip), $tip), $topic)->click('Tell me more');
     $steps = 0;
     while ($steps++ < 20) {
-        $page->wait(0.8);
+        standsStill($page->assertSee("Step {$steps} of"), '.tour-card, .tour-spotlight');
         expect($page->script(<<<'JS'
             () => {
                 const card = document.querySelector('.tour-card').getBoundingClientRect();
@@ -329,7 +333,7 @@ it('keeps every step on the screen beside what it points at, the sidebar as tall
         ->click('Tell me more');
     $steps = 0;
     while ($steps++ < 20) {
-        $page->assertSee("Step {$steps} of")->wait(0.8);
+        standsStill($page->assertSee("Step {$steps} of"), '.tour-card, .tour-spotlight');
         expect($page->script(<<<'JS'
             () => {
                 const card = document.querySelector('.tour-card').getBoundingClientRect();

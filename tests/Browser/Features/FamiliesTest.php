@@ -94,7 +94,7 @@ it('says why a family that received a unit cannot be removed, to the pointer and
     $page->keys('[role="dialog"] button:has-text("Remove")', 'Shift')->assertSee('It already received a unit');
     $page->script('() => [...document.querySelectorAll("[role=\"dialog\"] button")].find((button) => button.textContent.trim() === "Remove").click()');
 
-    $page->wait(0.3)->assertDontSee('Remove the Pereira family?');
+    settled($page)->assertDontSee('Remove the Pereira family?');
     expect($this->family->fresh())->not->toBeNull();
 });
 
@@ -107,7 +107,7 @@ it('says why a family with people cannot be removed', function () {
     $page->keys('[role="dialog"] button:has-text("Remove")', 'Shift')->assertSee('It still has people: move or remove them first');
     $page->script('() => [...document.querySelectorAll("[role=\"dialog\"] button")].find((button) => button.textContent.trim() === "Remove").click()');
 
-    $page->wait(0.3)->assertDontSee('Remove the Pereira family?');
+    settled($page)->assertDontSee('Remove the Pereira family?');
     expect($this->family->fresh()->trashed())->toBeFalse();
 });
 

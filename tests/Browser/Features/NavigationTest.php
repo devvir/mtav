@@ -37,7 +37,6 @@ it('takes the focus to the heading of each page it arrives at', function () {
     visit(route('projects.show', $this->project))
         ->click('.shell-sidebar >> a:has-text("Lottery")')
         ->assertPathIs(pathOf('lottery.show', $this->project))
-        ->wait(0.2)
         ->assertScript('document.activeElement.tagName', 'H1')
         ->assertScript('document.activeElement.textContent.includes("Lottery")', true);
 });
@@ -50,30 +49,30 @@ it('takes the focus to the page from the phone\'s menu too', function () {
         ->click('[aria-label="Menu"]')
         ->click('[role="dialog"] >> a:has-text("Lottery")')
         ->assertPathIs(pathOf('lottery.show', $this->project))
-        ->wait(0.5)
         ->assertScript('document.activeElement.tagName', 'H1');
 });
 
 it('leaves the focus in a dialog the page opens on arrival', function () {
     $this->as(anAdminOf($this->project));
 
-    visit(route('projects.show', $this->project))
+    // The page takes the focus a moment after arriving (50 ms): that moment run ahead
+    $page = fakeClock(visit(route('projects.show', $this->project)))
         ->click('[aria-label="Quick actions"]')
         ->click('[role="menu"] >> text=Add a family')
         ->assertPathIs(pathOf('families.index', $this->project))
-        ->assertPresent('[role="dialog"]')
-        ->wait(0.5)
-        ->assertScript('document.activeElement.closest(\'[role="dialog"]\') !== null', true);
+        ->assertPresent('[role="dialog"]');
+
+    runClock($page, 500)->assertScript('document.activeElement.closest(\'[role="dialog"]\') !== null', true);
 });
 
 it('leaves the focus alone on a search within a page', function () {
     $this->as($this->member);
 
-    visit(route('events.index', $this->project))
+    $page = fakeClock(visit(route('events.index', $this->project)))
         ->fill('[type="search"], input[placeholder]', 'assembly')
-        ->wait(1)
-        ->assertScript('window.location.search.includes("q=assembly")', true)
-        ->assertScript('document.activeElement.tagName', 'INPUT');
+        ->assertScript('window.location.search.includes("q=assembly")', true);
+
+    runClock($page, 500)->assertScript('document.activeElement.tagName', 'INPUT');
 });
 
 it('offers the keyboard a way past the navigation, first thing', function () {
@@ -223,8 +222,11 @@ it('says a project that does not exist is not found, within the app one is signe
 it('keeps the page clear while its project\'s places load in the background', function () {
     $this->as($this->member);
 
-    // The places are kept for offline a few seconds after arriving: no trip, no dimming
-    visit(route('projects.show', $this->project))->wait(6)->assertNotPresent('.shell-page[data-loading]');
+    // The places are kept for offline a few seconds after arriving: no trip, no dimming, once
+    // they are in
+    $page = watchRequests(visit(route('projects.show', $this->project)));
+
+    answered($page, pathOf('lottery.show', $this->project))->assertNotPresent('.shell-page[data-loading]');
 });
 
 it('gives each part of a project\'s settings its own title and heading', function () {
@@ -268,18 +270,18 @@ it('says a message once: going back to where it showed does not bring it again',
     $this->as($this->member);
     $toasts = '() => document.querySelectorAll(".mantine-Notification-root").length';
 
-    $page = visit(route('profile.edit'))
+    $page = fakeClock(visit(route('profile.edit')))
         ->click(button('Save'))
-        ->assertSee('Your profile was saved.')
-        // A toast leaves by itself after five seconds
-        ->wait(5.5);
-    expect($page->script($toasts))->toBe(0);
+        ->assertSee('Your profile was saved.');
+
+    // A toast leaves by itself after five seconds (run ahead on the page's clock)
+    runClock($page, 5500)->assertScript("({$toasts})() === 0", true);
 
     $page->click('[aria-label="Your account"]')
         ->click('[role="menu"] >> text=Guide')
         ->assertPathIs(pathOf('documentation.guide'))
         ->script('() => history.back()');
 
-    $page->assertPathIs(pathOf('profile.edit'))->wait(0.5);
+    settled($page->assertPathIs(pathOf('profile.edit'))->assertSeeIn('.ds-page-title', 'Profile'));
     expect($page->script($toasts))->toBe(0);
 });

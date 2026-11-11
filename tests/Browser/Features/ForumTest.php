@@ -48,13 +48,18 @@ it('lets others reply, edit and remove their reply, and shows the topic\'s repli
         ->assertSee('1 reply')
         ->assertNoSmoke();
 
-    // Removed after all: the list counts none
-    $page->click('a:has-text("Assembly date")')
+    // Removed after all: the list counts none, though it was loaded ahead of the removal, on
+    // pointing at its link (the page reloaded first, so that nothing has it yet)
+    $list = route('forum.index', $this->project, absolute: false);
+    $page->click('a:has-text("Assembly date")')->assertSee('The 21st works better for us');
+    answered(watchRequests($page->refresh()->assertSee('The 21st works better for us'))->hover('.shell-nav a:has-text("Forum")'), $list)
         ->click('[aria-label="Post options"]')
         ->click('[role="menuitem"]:has-text("Remove")')
         ->click(inDialog('Remove'))
         ->assertDontSee('The 21st works better for us')
-        ->click('.shell-nav a:has-text("Forum")')
+        ->click('.shell-nav a:has-text("Forum")');
+    waitUntil($page, 'location.pathname === ' . json_encode($list))
+        ->assertSee('Assembly date')
         ->assertDontSee('1 reply');
 });
 

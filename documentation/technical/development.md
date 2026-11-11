@@ -1,7 +1,8 @@
 # Development
 
-Everything runs in Docker, driven by one script at the root, `./mtav`. Nothing but
-Docker (with Compose) and Bash is needed on the machine.
+Everything runs in Docker, driven by one script at the root, `./mtav` (its parts in
+`scripts/mtav/`: Compose and `.env`, the environments' lifecycle, the tests, the release,
+the warden, the help). Nothing but Docker (with Compose) and Bash is needed on the machine.
 
 ## First run
 
@@ -53,14 +54,20 @@ assets). The e2e run builds the assets first and removes `public/build` when it 
 | `./mtav fresh` | everything rebuilt, database started over with demo data |
 | `./mtav update` / `rebuild [service]` | dependencies and images brought up to date |
 | `./mtav artisan …` / `composer …` / `pnpm …` / `tinker` / `shell` | inside the dev containers |
-| `./mtav pest [args]` | PHP tests (starts and stops `testing`) |
-| `./mtav vitest [args]` | frontend unit tests |
+| `./mtav pest [args]` | PHP tests (starts `testing` when it is down, and stops it again after) |
+| `./mtav vitest [args]` | frontend unit tests (the same with `testing`) |
 | `./mtav e2e [args]` | the browser suite (starts and stops `e2e`) |
-| `./mtav test` | all three |
-| `./mtav precommit` | Pest and Vitest without the slow group |
+| `./mtav test [--pest …] [--vitest …] [--e2e …]` | all three |
+| `./mtav precommit [--pest …] [--vitest …]` | Pest and Vitest without the slow group |
 | `./mtav warden` | a page watching everything from above: [dev/warden](../../dev/warden/README.md) |
 | `./mtav release` | the release image, built as the pipeline builds it |
 | `./mtav compose <env> …` | raw Docker Compose against an environment |
+
+`pest`, `vitest` and `e2e` take their runner's own arguments. `test` and `precommit` run
+several runners, so each runner's arguments follow its flag, and an argument before any flag
+is refused: `./mtav test --pest --filter=lottery --vitest resources/js/tests/plan` runs the
+lottery's Pest tests, the plan's Vitest files and the whole browser suite. A Pest flag never
+reaches Vitest.
 
 Never run two invocations of the same kind of tests at once: Pest and Vitest share
 `mtav-testing`, the browser suite `mtav-e2e`. Tests refuse to run anywhere but

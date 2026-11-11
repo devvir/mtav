@@ -283,7 +283,7 @@ it('leaves the next person nothing of the last one in the tab', function () {
     $beto = aMemberOf(aFamily($project), ['firstname' => 'Beto', 'lastname' => 'Silva']);
     $carla = aMemberOf(aFamily($project), ['firstname' => 'Carla', 'lastname' => 'Díaz']);
     $chat = app(ChatService::class);
-    $chat->send($chat->start($project, $ana, [$carla->id]), $ana, 'Solo para Carla');
+    $chat->post($chat->start($project, $ana, [$carla->id]), $ana, 'Solo para Carla');
     $this->as($ana);
 
     $page = visit(route('projects.show', $project))
@@ -291,20 +291,17 @@ it('leaves the next person nothing of the last one in the tab', function () {
         ->assertSee('Solo para Carla');
     $page->script('() => { window.lastPerson = "Ana"; }');
 
-    $page->click('[aria-label="Your account"]')->click('Sign out')->assertSee('Sign in')->wait(0.5);
-
     // Started over: nothing in memory, no live channel left
-    expect($page->script('() => window.lastPerson ?? null'))->toBeNull()
-        ->and($page->script('() => Object.keys(window.Echo?.connector?.channels ?? {})'))->toBe([]);
+    $page->click('[aria-label="Your account"]')->click('Sign out')->assertSee('Sign in')
+        ->assertScript('window.lastPerson === undefined', true);
+    expect($page->script('() => Object.keys(window.Echo?.connector?.channels ?? {})'))->toBe([]);
 
     $page->click('Sign in')
         ->fill('email', $beto->email)
         ->fill('password', 'password')
         ->keys('[name="password"]', 'Enter')
-        ->assertSee($project->name)
-        ->click('.chat-launcher')
-        ->assertPresent('.chat-window')
-        ->wait(0.5)
+        ->assertSee($project->name);
+    answered(watchRequests($page)->click('.chat-launcher')->assertPresent('.chat-window'))
         ->assertDontSee('Solo para Carla');
 });
 
@@ -316,14 +313,16 @@ it('shows nothing of the last person on going back after signing out', function 
     $page = visit(route('projects.show', $project))
         ->click('[aria-label="Your account"]')
         ->click('[role="menu"] >> text=Profile')
-        ->assertPathIs(route('profile.edit', absolute: false))
-        ->click('[aria-label="Your account"]')
-        ->click('Sign out')
-        ->assertSee('Sign in')
-        ->wait(0.5);
+        ->assertPathIs(route('profile.edit', absolute: false));
+    $page->script('() => { window.lastPerson = "Ana"; }');
 
-    $page->script('() => history.back()');
-    $page->wait(1.5);
+    // Back, as the browser's button does, once the tab has started over (a new page, without
+    // the mark): the profile kept in the tab's history can no longer be read, so it is asked
+    // of the server, which asks for a sign-in
+    $page->click('[aria-label="Your account"]')->click('Sign out')->assertSee('Sign in')
+        ->assertScript('window.lastPerson === undefined', true);
+    $login = json_encode(route('login', absolute: false));
+    settled(waitUntil($page->back(), "location.pathname === {$login}"));
 
     expect($page->content())->not->toContain($ana->email);
 });

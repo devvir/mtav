@@ -17,12 +17,15 @@ would have caught what it fixes. The tests run in their own Docker environments
 ./mtav e2e --filter='LotteryTest|PlanTest'
 ./mtav e2e --shard=1/3                   # a third of its files, as each of the pipeline's three parts
 ./mtav precommit                         # Pest without the slow group, and Vitest
+./mtav test --pest --filter=lottery --vitest plan   # all three, each with its own arguments
 ```
 
-To iterate without starting and stopping the environment each time:
+`./mtav pest` and `./mtav vitest` start the testing environment when it is down and stop it
+again after; one found running stays running. To iterate without the start each time:
 
 ```sh
 ./mtav compose testing up -d --wait
+./mtav pest --filter X                   # or, without the dependency check:
 docker exec mtav-testing-php-1 php artisan test --testsuite Arch,Unit,UseCases --filter X
 ./mtav compose testing down
 ```
@@ -65,7 +68,12 @@ Fields are found by `name`, buttons by their text, icon buttons by `aria-label`.
 Assertions retry until 20 seconds pass; clicks and keys run once. A test waits for what
 stays (the record in its list, the status on the page, the row in the database), not for a
 toast, which is gone in seconds, and its selectors match one element however far the page
-has loaded (a unit's name is in its list and on the plan). Helpers in
+has loaded (a unit's name is in its list and on the plan).
+
+A test never sleeps a fixed time. What shows, it asserts (the assertion waits); what a timer
+does (a picture changing, a retry, a toast leaving, a tour starting), it runs ahead on the
+page's clock; and before saying something did not happen, it waits for the sign that it would
+have by then: the page drawn, the server's answer back, the timer run. Helpers in
 `tests/Helpers/browser.php`:
 
 | Helper | For |
@@ -73,10 +81,19 @@ has loaded (a unit's name is in its list and on the plan). Helpers in
 | `inDialog()`, `button()` | a button inside the open dialog; a button by its text, never a heading |
 | `attachFile()` | files to upload (the browser refuses local paths) |
 | `openHelp($page, $topic)` | a (?) opened, waiting until its popover stands still |
+| `standsStill($page, $selector)` | until what moves in (a tour's card, its spotlight) keeps its place |
+| `settled($page)` | what the page had queued done and drawn: after a click, before checking nothing came of it |
+| `waitUntil($page, $condition)` | until a condition on the page holds, for what Pest checks only once (`assertScript`, `assertPathIs`) |
+| `watchRequests($page)`, `answered($page, $path)` | the page's requests followed; then until they are answered (one to that path, when given) and drawn |
+| `fakeClock($page)`, `runClock($page, $ms)` | the page's clock taken over by Playwright's, time still flowing; then run ahead, its timers fired (refresh after `fakeClock()` for the timers a page sets as it loads) |
 | `pickDay($page, $field, $day)` | a day picked on a date field's calendar, as a person does |
 | `eventually($page, $check)` | a check on the database, repeated while the app answers the browser, for a save nothing on the page confirms |
 | `sameTabTo($page, $url)` | the same tab to another address, however long it loads |
 | `assertAccessible($page)` | axe's serious and critical findings, none allowed |
+
+A page asked for at another size (`visit($url)->on()->mobile()`) opens with its first call,
+and each call made on what `on()` returns opens another: a helper is given what that first call
+returned (`->assertPresent(…)`), never the pending page.
 
 Tours never start by themselves under test (the browser is automated); a test that wants
 them sets `localStorage['mtav.tours'] = 'on'`.

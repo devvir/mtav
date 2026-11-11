@@ -269,28 +269,25 @@ it('asks before a deploy starts dev over, and rolls back, starts over and releas
     $page->click(button('Deploy dev'))
         ->click(inDialog('Deploy dev'))
         ->assertNoSmoke();
-    $page->wait(0.5);
+    eventually($page, fn () => expect($dispatched())->toBe(1));
     $page->assertPathIs(route('admin.deployments.index', absolute: false));
-    expect($dispatched())->toBe(1);
 
     // Putting an environment back, starting one over, releasing: each asked first, each sent to GitHub
     // (one environment's: each has its own)
     $dev = fn (string $label) => '.ds-panel:has(.ds-panel-title:text-is("dev")) ' . button($label);
     $page->click($dev('Roll back'))
         ->assertSee('back to its release before?')
-        ->click(inDialog('Roll back'))
-        ->wait(0.5);
-    expect($dispatched())->toBe(2);
+        ->click(inDialog('Roll back'));
+    eventually($page, fn () => expect($dispatched())->toBe(2));
 
     $page->click($dev('Start over'))
         ->assertSee('is replaced by the demo data')
-        ->click(inDialog('Start over'))
-        ->wait(0.5);
-    expect($dispatched())->toBe(3);
+        ->click(inDialog('Start over'));
+    eventually($page, fn () => expect($dispatched())->toBe(3));
 
-    $page->click(button('Deploy production'))->wait(0.5)->assertNoSmoke();
-    expect($dispatched())->toBe(4)
-        ->and(Http::recorded(fn ($request) => str_contains($request->url(), 'production.yml/dispatches'))->count())->toBe(1);
+    $page->click(button('Deploy production'))->assertNoSmoke();
+    eventually($page, fn () => expect($dispatched())->toBe(4));
+    expect(Http::recorded(fn ($request) => str_contains($request->url(), 'production.yml/dispatches'))->count())->toBe(1);
 });
 
 it('offers the link to choose a password where it asks for one, for an account opened with Google', function () {

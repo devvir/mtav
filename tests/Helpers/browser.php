@@ -5,6 +5,7 @@ use App\Notifications\InvitationNotification;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
+use Pest\Browser\Playwright\Client;
 use Pest\Browser\Playwright\Playwright;
 use PHPUnit\Framework\ExpectationFailedException;
 
@@ -196,23 +197,138 @@ function assertAccessible(object $page, int $seconds = 15): object
 function openHelp(object $page, string $topic): object
 {
     $page->click("[aria-label=\"About: {$topic}\"]");
-    $page->script(<<<'JS'
+
+    return standsStill($page, '.mantine-Popover-dropdown');
+}
+
+/**
+ * Waits until every element a selector finds is there and stays in the same place for five
+ * frames in a row: what moves in (a popover, a tour's card and its spotlight) can be measured
+ * or clicked only then
+ */
+function standsStill(object $page, string $selector): object
+{
+    $selector = json_encode($selector);
+    $moving = $page->script(<<<JS
         () => new Promise((settled) => {
             let last = '';
             let still = 0;
+            let frames = 0;
             const look = () => {
-                const dropdown = document.querySelector('.mantine-Popover-dropdown');
-                const place = dropdown ? JSON.stringify(dropdown.getBoundingClientRect()) : '';
+                const found = [...document.querySelectorAll({$selector})];
+                const place = found.length ? JSON.stringify(found.map((element) => element.getBoundingClientRect())) : '';
                 still = place && place === last ? still + 1 : 0;
-                last = place;
-                if (still >= 5) settled(true);
+                // Ten seconds' worth of frames: what still moves by then is told, not waited for
+                if (still >= 5 || ++frames > 600) settled(still >= 5 ? null : (place ? [last, place] : 'nothing found'));
                 else requestAnimationFrame(look);
+                last = place;
             };
             look();
         })
         JS);
 
+    expect($moving)->toBeNull("Expected [{$selector}] to stand still, but it kept moving: " . json_encode($moving));
+
     return $page;
+}
+
+/**
+ * Waits until a condition on the page holds, as long as assertions wait (for what Pest checks
+ * only once); then it fails, saying which
+ */
+function waitUntil(object $page, string $condition): object
+{
+    $until = microtime(true) + Playwright::timeout() / 1000;
+
+    while (! $page->script("() => Boolean({$condition})")) {
+        expect(microtime(true))->toBeLessThan($until, "Expected [{$condition}] to hold, but it did not.");
+        $page->wait(0.05);
+    }
+
+    return $page;
+}
+
+/**
+ * Waits until the page has done what it had queued and drawn it twice: after something that
+ * happened (a click handled, a clock run ahead, an answer received), the sign that what did
+ * not show by then is not coming from it
+ */
+function settled(object $page): object
+{
+    $page->script('() => new Promise((done) => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => done(true)))))');
+
+    return $page;
+}
+
+/**
+ * From now on, the page's requests are followed, for answered() to wait for their answers
+ * (again after a full load: a new page forgets)
+ */
+function watchRequests(object $page): object
+{
+    $page->script(<<<'JS'
+        () => {
+            if (window.requestsWatched) return;
+            const watched = (window.requestsWatched = { open: 0 });
+            performance.clearResourceTimings();
+            performance.setResourceTimingBufferSize(100000);
+            const send = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function (...args) {
+                watched.open++;
+                this.addEventListener('loadend', () => watched.open--, { once: true });
+                return send.apply(this, args);
+            };
+            const fetch = window.fetch;
+            window.fetch = (...args) => {
+                watched.open++;
+                return fetch(...args).finally(() => watched.open--);
+            };
+        }
+        JS);
+
+    return $page;
+}
+
+/**
+ * Waits until the page has had an answer since watchRequests() (to that path, when given),
+ * nothing it asked for is still on its way, and what came back is drawn: the sign that what
+ * an answer would have changed has not changed
+ */
+function answered(object $page, ?string $path = null): object
+{
+    $path = json_encode($path);
+    waitUntil($page, "window.requestsWatched.open === 0 && performance.getEntriesByType('resource').some((entry) => {$path} === null || new URL(entry.name).pathname === {$path})");
+
+    return settled($page);
+}
+
+/**
+ * The page's clock taken over by Playwright's, its time still flowing as it does: a timer set
+ * from now on is run ahead with runClock() instead of waited for. A timer set before stays
+ * real: refresh the page after this for those it sets as it loads.
+ */
+function fakeClock(object $page): object
+{
+    toBrowserContext($page, 'clockInstall');
+
+    return $page;
+}
+
+/** The page's (fake) clock run ahead, every timer due by then fired, and the outcome drawn */
+function runClock(object $page, int $milliseconds): object
+{
+    toBrowserContext($page, 'clockRunFor', ['ticksNumber' => $milliseconds]);
+
+    return settled($page);
+}
+
+/** A call to the page's browser context in Playwright, for what Pest does not offer */
+function toBrowserContext(object $page, string $method, array $params = []): void
+{
+    $context = $page->page()->context();
+    $guid = (fn () => $this->guid)->call($context);
+
+    iterator_to_array(Client::instance()->execute($guid, $method, $params));
 }
 
 /**
