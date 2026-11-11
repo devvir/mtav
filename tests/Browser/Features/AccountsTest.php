@@ -317,12 +317,12 @@ it('shows nothing of the last person on going back after signing out', function 
     $page->script('() => { window.lastPerson = "Ana"; }');
 
     // Back, as the browser's button does, once the tab has started over (a new page, without
-    // the mark): the profile kept in the tab's history can no longer be read, so it is asked
-    // of the server, which asks for a sign-in
+    // the mark): the profile kept in the tab's history can no longer be read, so wherever it
+    // lands (the sign-in, or the page it was on), it is a signed-out page, never the profile
     $page->click('[aria-label="Your account"]')->click('Sign out')->assertSee('Sign in')
         ->assertScript('window.lastPerson === undefined', true);
-    $login = json_encode(route('login', absolute: false));
-    settled(waitUntil($page->back(), "location.pathname === {$login}"));
+    $profile = json_encode(route('profile.edit', absolute: false));
+    settled(waitUntil($page->back(), "location.pathname !== {$profile} && document.body.innerText.includes('Sign in')"));
 
     expect($page->content())->not->toContain($ana->email);
 });
