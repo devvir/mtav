@@ -66,7 +66,7 @@ export default function Reports({
             <Card key={person.id} p="md">
               <Group justify="space-between" wrap="nowrap" mb="xs">
                 <div style={{ minWidth: 0 }}>
-                  <Text component="h2" fw={700} m={0} className="ds-truncate">
+                  <Text component="h2" fw={700} m={0} className="ds-truncate" title={person.name}>
                     {person.name}
                   </Text>
                   <Anchor href={`mailto:${person.email}`} size="sm">

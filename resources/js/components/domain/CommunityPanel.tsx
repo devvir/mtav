@@ -28,10 +28,14 @@ function PersonRow({ person, caption }: { person: Person; caption?: string | nul
       <Group gap="sm" wrap="nowrap">
         <PersonAvatar name={person.name} src={person.avatar} size={32} />
         <div style={{ minWidth: 0 }}>
-          <Text fw={650} size="sm" className="ds-truncate">
+          <Text fw={650} size="sm" className="ds-truncate" title={person.name}>
             {person.name}
           </Text>
-          {caption ? <Text className="ds-caption ds-truncate">{caption}</Text> : null}
+          {caption ? (
+            <Text className="ds-caption ds-truncate" title={caption}>
+              {caption}
+            </Text>
+          ) : null}
         </div>
       </Group>
     </Card>
@@ -71,7 +75,7 @@ export function CommunityPanel({ community }: { community: Community }) {
                 <Group gap="sm" wrap="nowrap">
                   <FamilyMark name={family.name} size={32} />
                   <div style={{ minWidth: 0 }}>
-                    <Text fw={650} size="sm" className="ds-truncate">
+                    <Text fw={650} size="sm" className="ds-truncate" title={family.name}>
                       {family.name}
                     </Text>
                     <Text className="ds-caption">

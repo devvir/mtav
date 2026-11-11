@@ -35,7 +35,7 @@ function ErrorCard({ error }: { error: ErrorEntry }) {
     <Card p="md" data-tour="errors.list">
       <Group justify="space-between" wrap="nowrap" align="flex-start">
         <div style={{ minWidth: 0 }}>
-          <Text component="h2" fw={700} m={0} className="ds-truncate">
+          <Text component="h2" fw={700} m={0} className="ds-truncate" title={name}>
             {name}
           </Text>
           <Text size="sm" style={{ overflowWrap: 'anywhere' }}>

@@ -53,3 +53,24 @@ describe("a family's ranking", () => {
     expect(screen.queryByLabelText('Move A-103 up')).toBeNull();
   });
 });
+
+describe("a ranking's hint for screen readers", () => {
+  // What a screen reader says of a row's grip, the handle the keyboard moves it by
+  const hint = () => {
+    const grip = screen.getByLabelText('Move A-101, number 1');
+    return document.getElementById(grip.getAttribute('aria-describedby')!)?.textContent;
+  };
+
+  it('says how to move a unit, on a family’s ranking', () => {
+    draw();
+
+    expect(hint()).toContain('To move a unit, press Space');
+  });
+
+  it('names what an open lottery ranks, by the lottery’s own word', () => {
+    draw({ itemsName: 'Parking spaces' });
+
+    expect(hint()).toContain('Parking spaces: to move one, press Space');
+    expect(hint()).not.toContain('unit');
+  });
+});

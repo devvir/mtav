@@ -116,6 +116,12 @@ export function workOffline(userId: number | null) {
   router.on('before', (event) => {
     if (event.detail.visit.method !== 'get' && heldOffline()) event.preventDefault();
   });
+  // Pages loaded ahead of time (the kept places, a link hovered) came before a change: once
+  // one is sent, however it went, the next visit asks again. Inertia drops only the page the
+  // change lands on.
+  router.on('finish', ({ detail: { visit } }) => {
+    if (visit.method !== 'get') router.flushAll();
+  });
 }
 
 /**

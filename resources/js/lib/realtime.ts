@@ -163,15 +163,16 @@ export function useOpenLotteryChanges(slug: string) {
 /** Show notifications as they arrive (the shell, once), and keep the unread counter current */
 export function useLiveNotifications() {
   const { props } = usePage();
-  const user = props.auth.user;
+  const userId = props.auth.user?.id;
+  const superadmin = Boolean(props.auth.user?.is_superadmin);
   const projectId = props.project?.id;
 
   useEffect(() => {
-    if (!user || !realtimeEnabled()) return undefined;
+    if (!userId || !realtimeEnabled()) return undefined;
 
-    const channels = [`users.${user.id}`];
+    const channels = [`users.${userId}`];
     if (projectId) channels.push(`projects.${projectId}`);
-    if (user.is_superadmin) channels.push('superadmins');
+    if (superadmin) channels.push('superadmins');
 
     // Only which one arrives: it is fetched in this person's language, then shown
     const onNotification = ({ id }: { id: number }) =>
@@ -197,7 +198,7 @@ export function useLiveNotifications() {
     const stops = channels.map((name) => listenOn(name, { '.notification': onNotification }));
 
     return () => stops.forEach((stop) => stop());
-  }, [user?.id, user?.is_superadmin, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, superadmin, projectId]);
 }
 
 interface MessageArrived {
@@ -244,13 +245,13 @@ const unread = unreadCount();
  * only if it can move.
  */
 export function useLiveMessages() {
-  const user = usePage().props.auth.user;
+  const userId = usePage().props.auth.user?.id;
   // Whichever chat the page holds: the project's, one framing the person's own pages, or theirs
   const { project, account, prop } = useChatProject();
   const chatting = Boolean(project?.can.chat || account);
   const chatKey = project?.id ?? 0;
   const onMessage = useEffectEvent((message: MessageArrived) => {
-    if (message.by === user?.id) return;
+    if (message.by === userId) return;
 
     const { open, conversation } = chatState();
     const inChat = open || routeIs('chat.*', 'account.chat.*');
@@ -301,8 +302,9 @@ export function useLiveMessages() {
   useEffect(() => unread.reset, [chatKey]);
   useEffect(() => unread.known(known), [known]);
 
+  // Listened to again for each chat the page holds
   useEffect(() => {
-    if (!user || !chatting || !realtimeEnabled()) return undefined;
-    return listenOn(`users.${user.id}`, { '.message': onMessage, '.message-changed': onChanged });
-  }, [user?.id, chatKey, chatting]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!userId || !chatting || !realtimeEnabled()) return undefined;
+    return listenOn(`users.${userId}`, { '.message': onMessage, '.message-changed': onChanged });
+  }, [userId, chatKey, chatting]);
 }

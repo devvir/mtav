@@ -15,6 +15,7 @@ const listeners = vi.hoisted(() => new Set<(event: { detail: { visit: unknown } 
 vi.mock('@inertiajs/react', () => ({
   router: {
     put,
+    flushAll: () => undefined,
     on: (type: string, listener: (event: { detail: { visit: unknown } }) => void) => {
       if (type !== 'before') return () => undefined;
       listeners.add(listener);

@@ -18,7 +18,7 @@ import {
   IconUserPlus,
   IconUsersGroup,
 } from '@tabler/icons-react';
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useMemo, type ReactNode } from 'react';
 
 /**
  * A project's places, the lottery first after home: the shell's main group, here and on
@@ -163,50 +163,66 @@ export const keptPlaces = (id: number, features?: Partial<ProjectFeatures>) =>
     .filter((item) => !item.action)
     .map((item) => item.href);
 
+/** The project as the page frames it, if any */
+type FramedProject = ReturnType<typeof useCurrentPage>['props']['project'];
+
+/** All a project's sidebar and tabs show, as plain values */
+interface NavShown {
+  project: Parameters<typeof projectNav>[0] & Parameters<typeof projectPlaces>[0];
+  admin: boolean;
+  /** What lights up is asked of the route as they are built */
+  route: string | null;
+}
+
+/**
+ * The sidebar and the phone's tabs of a project, built once per place visited: visits within
+ * a page (details, filters) bring a new project object each time, but the same values, so
+ * they are built from those values as one (the language is set once, as the app starts).
+ */
+function useProjectNav(project: FramedProject, route: string | null): [NavGroup[], NavEntry[]] {
+  const shown = JSON.stringify(
+    project && !project.needs_family
+      ? ({
+          project: {
+            id: project.id,
+            name: project.name,
+            family: Boolean(project.family),
+            is_guest: project.is_guest,
+            unread_messages: project.unread_messages,
+            can: { chat: project.can.chat },
+            features: project.features,
+          },
+          admin: project.can.manage,
+          route,
+        } satisfies NavShown)
+      : null,
+  );
+
+  return useMemo(() => {
+    const what = JSON.parse(shown) as NavShown | null;
+    if (!what) return [[], []];
+    const tabs = projectPlaces(what.project).filter((item) => !item.action);
+    return [projectNav(what.project, what.admin), tabs.slice(0, 4)];
+  }, [shown]);
+}
+
 /** A project's pages, the same for everyone; admins find their tools on them */
 export function ProjectLayout({ children }: { children: ReactNode }) {
   const { props } = useCurrentPage();
   const project = props.project;
   const id = project?.id;
-  const manages = Boolean(project?.can.manage);
-  const hasFamily = Boolean(project?.family);
-  const features = JSON.stringify(project?.features);
-  // Built once per place visited: visits within a page (details, filters) reuse them
-  const [nav, tabs] = useMemo(
-    () =>
-      project
-        ? project.needs_family
-          ? [[], []]
-          : [
-              projectNav(project, manages),
-              projectPlaces(project)
-                .filter((item) => !item.action)
-                .slice(0, 4),
-            ]
-        : [[], []],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      id,
-      project?.name,
-      manages,
-      hasFamily,
-      project?.needs_family,
-      project?.can.chat,
-      features,
-      project?.unread_messages,
-      props.ziggy.name,
-      props.locale,
-    ],
-  );
+  const [nav, tabs] = useProjectNav(project, props.ziggy.name);
+
   // Its main places, kept on the device in the background: there offline, even unvisited
+  // (again should what it has on change)
+  const features = JSON.stringify(project?.features);
+  const keepThem = useEffectEvent(() => {
+    if (id) keepPlaces(keptPlaces(id, project?.features));
+  });
   useEffect(() => {
     if (!id) return undefined;
-    const later = window.setTimeout(
-      () => keepPlaces(keptPlaces(id, project?.features)),
-      KEEP_PLACES_AFTER_MS,
-    );
+    const later = window.setTimeout(() => keepThem(), KEEP_PLACES_AFTER_MS);
     return () => window.clearTimeout(later);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, features]);
 
   // Leaving a project that is gone (deleted, or left): the next page brings its own frame

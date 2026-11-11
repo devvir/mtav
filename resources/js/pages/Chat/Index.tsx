@@ -1,4 +1,5 @@
-import { Chat, type ChatData } from '@/components/domain/Chat';
+import { Chat } from '@/components/chat/Chat';
+import type { ChatData } from '@/components/chat/types';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { showConversation } from '@/lib/chat';
 import { _ } from '@/lib/translations';

@@ -1,7 +1,7 @@
 import { useAppearance, type TextSize } from '@/design';
-import { route } from '@/lib/route';
+import { changeLanguage } from '@/lib/language';
 import { _, getLocale } from '@/lib/translations';
-import { router, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import {
   ActionIcon,
   Menu,
@@ -78,14 +78,6 @@ export function HeaderPreferences() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const { textSize, setTextSize } = useAppearance();
 
-  const pickLanguage = (locale: string) =>
-    router.put(
-      route('language'),
-      { locale },
-      // The words of the new language come with a fresh start of the app
-      { onSuccess: () => window.location.reload() },
-    );
-
   return (
     <div className="shell-preferences">
       <Preference
@@ -103,7 +95,7 @@ export function HeaderPreferences() {
         label={_('Language')}
         icon={IconLanguage}
         value={getLocale()}
-        onChange={pickLanguage}
+        onChange={(locale) => changeLanguage(locale)}
         options={Object.entries(languages).map(([locale, name]) => ({
           value: locale,
           label: name,

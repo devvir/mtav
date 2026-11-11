@@ -1,4 +1,4 @@
-import { Chat } from '@/components/domain/Chat';
+import { Chat } from '@/components/chat/Chat';
 import { minimizeChat, openChat, useChat, useChatProject, useChatRoute } from '@/lib/chat';
 import { sendJson } from '@/lib/json';
 import { routeIs } from '@/lib/route';

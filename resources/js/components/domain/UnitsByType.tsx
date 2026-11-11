@@ -52,7 +52,7 @@ export function UnitsByType({
           <section key={type.id} className="units-by-type-row">
             <Group justify="space-between" wrap="nowrap" gap="xs">
               <Group gap={8} wrap="nowrap" style={{ minWidth: 0 }}>
-                <Text fw={700} size="sm" className="ds-truncate">
+                <Text fw={700} size="sm" className="ds-truncate" title={type.name}>
                   {type.name}
                 </Text>
                 <Text className="ds-caption ds-truncate">

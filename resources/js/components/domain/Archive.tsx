@@ -56,7 +56,7 @@ export function ArchivedList({
       {archive.items.map((item) => (
         <Group key={item.id} className="row">
           <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-            <Text fw={600} className="ds-truncate">
+            <Text fw={600} className="ds-truncate" title={item.title}>
               {item.title}
             </Text>
             <Text className="ds-caption">

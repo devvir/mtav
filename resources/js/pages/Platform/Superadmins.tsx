@@ -108,7 +108,9 @@ export default function Superadmins({
               <PersonAvatar name={user.name} size={40} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Text fw={700}>{user.name}</Text>
-                <Text className="ds-caption ds-truncate">{user.email}</Text>
+                <Text className="ds-caption ds-truncate" title={user.email}>
+                  {user.email}
+                </Text>
               </div>
               {user.id !== me && !user.is_owner ? (
                 <Button
@@ -159,7 +161,7 @@ export default function Superadmins({
               {invitations.map((invitation) => (
                 <Group key={invitation.id} className="row" wrap="nowrap">
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <Text fw={600} className="ds-truncate">
+                    <Text fw={600} className="ds-truncate" title={invitation.email}>
                       {invitation.email}
                     </Text>
                     <Text className="ds-caption ds-truncate">

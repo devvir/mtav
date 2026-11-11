@@ -1,18 +1,18 @@
 import { DemoSignIn, SignInForm, type DemoAccount } from '@/components/auth/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
+import { LanguagePicker } from '@/components/layout/LanguagePicker';
 import { useCurrentPage } from '@/components/layout/page';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Glyph, Logo } from '@/design';
 import { route } from '@/lib/route';
-import { _, getLocale } from '@/lib/translations';
-import { Head, Link, router } from '@inertiajs/react';
+import { _ } from '@/lib/translations';
+import { Head, Link } from '@inertiajs/react';
 import {
   ActionIcon,
   Anchor,
   Button,
   Divider,
   Group,
-  Menu,
   Modal,
   SegmentedControl,
   Text,
@@ -22,9 +22,7 @@ import { useReducedMotion } from '@mantine/hooks';
 import {
   IconBrandGoogleFilled,
   IconCalendarEvent,
-  IconCheck,
   IconDice5,
-  IconLanguage,
   IconMap,
   IconPlayerPause,
   IconPlayerPlay,
@@ -423,46 +421,5 @@ function Credit({ photo, last }: { photo: (typeof PHOTOS)[keyof typeof PHOTOS]; 
       </a>
       ){last ? '.' : '; '}
     </>
-  );
-}
-
-/** The language of the page, each named in itself; the account they sign in to keeps it */
-export function LanguagePicker({ locales }: { locales: Record<string, string> }) {
-  const current = getLocale();
-  const pick = (locale: string) =>
-    locale !== current &&
-    router.put(
-      route('language'),
-      { locale },
-      // The words of the new language come with a fresh start of the app
-      { onSuccess: () => window.location.reload() },
-    );
-
-  return (
-    <Menu position="bottom-end" withinPortal>
-      <Menu.Target>
-        <Button variant="subtle" color="gray" leftSection={<IconLanguage size={18} />}>
-          {locales[current] ?? current}
-        </Button>
-      </Menu.Target>
-      <Menu.Dropdown aria-label={_('Language')}>
-        {Object.entries(locales).map(([locale, name]) => (
-          <Menu.Item
-            key={locale}
-            lang={locale.replace('_', '-')}
-            onClick={() => pick(locale)}
-            // Room kept for the mark, so names stay in line
-            rightSection={
-              <IconCheck
-                size={16}
-                style={{ visibility: locale === current ? 'visible' : 'hidden' }}
-              />
-            }
-          >
-            {name}
-          </Menu.Item>
-        ))}
-      </Menu.Dropdown>
-    </Menu>
   );
 }

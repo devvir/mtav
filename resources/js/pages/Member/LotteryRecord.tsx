@@ -115,7 +115,7 @@ export default function LotteryRecord({ run, families, worst, average, fingerpri
               wrap="nowrap"
               data-own={family.id === own?.id || undefined}
             >
-              <Text fw={600} className="ds-truncate">
+              <Text fw={600} className="ds-truncate" title={family.name}>
                 {family.name}
               </Text>
               <Group gap="sm" wrap="nowrap">

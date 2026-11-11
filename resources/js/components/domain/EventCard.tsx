@@ -1,13 +1,13 @@
 import { DateTime } from '@/components/feedback/DateTime';
 import { detailsQuery } from '@/lib/listFilters';
-import { heldOffline } from '@/lib/offline';
 import { route, routeIs } from '@/lib/route';
+import { useRsvp } from '@/lib/rsvp';
 import { _, languageTag } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
-import { Link, router } from '@inertiajs/react';
-import { Anchor, Badge, Button, Card, Group, Stack } from '@mantine/core';
-import { IconCalendarQuestion, IconCheck, IconMapPin, IconVideo, IconX } from '@tabler/icons-react';
-import { useState } from 'react';
+import { Link } from '@inertiajs/react';
+import { Anchor, Badge, Card, Group } from '@mantine/core';
+import { IconCalendarQuestion, IconMapPin, IconVideo } from '@tabler/icons-react';
+import { RsvpButtons } from './RsvpButtons';
 
 /**
  * An event in a list: when, where, and one-tap attendance when it asks for it (shown at
@@ -15,31 +15,7 @@ import { useState } from 'react';
  */
 export function EventCard({ event, href }: { event: ProjectEvent; href?: string }) {
   const detailsHere = routeIs('events.index');
-  const [attending, setAttending] = useState(event.attending);
-  const [given, setGiven] = useState(event.attending);
-  if (given !== event.attending) {
-    setGiven(event.attending);
-    setAttending(event.attending);
-  }
-  const rsvp = (going: boolean) => {
-    if (heldOffline()) return;
-    const before = attending;
-    let done = false;
-    setAttending(going);
-    router.put(
-      route('events.rsvp', event.id),
-      { attending: going },
-      {
-        preserveScroll: true,
-        only: ['events', 'event'],
-        // Refused, cut off or cancelled: back as it was
-        onSuccess: () => {
-          done = true;
-        },
-        onFinish: () => !done && setAttending(before),
-      },
-    );
-  };
+  const { attending, answer } = useRsvp(event);
   const date = event.start_date ? new Date(event.start_date) : null;
 
   return (
@@ -91,7 +67,10 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
             {event.location ? (
               <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
                 {event.type === 'online' ? <IconVideo size={16} /> : <IconMapPin size={16} />}
-                <span className="ds-truncate">
+                <span
+                  className="ds-truncate"
+                  title={event.type === 'online' ? undefined : event.location}
+                >
                   {event.type === 'online' ? _('Online') : event.location}
                 </span>
               </Group>
@@ -99,27 +78,7 @@ export function EventCard({ event, href }: { event: ProjectEvent; href?: string 
           </Group>
         </div>
         {event.can.rsvp && event.status !== 'completed' ? (
-          <Stack gap={6}>
-            <Button
-              size="xs"
-              variant={attending === true ? 'filled' : 'default'}
-              aria-pressed={attending === true}
-              leftSection={<IconCheck size={14} />}
-              onClick={() => rsvp(true)}
-            >
-              {_("I'll go")}
-            </Button>
-            <Button
-              size="xs"
-              variant={attending === false ? 'light' : 'default'}
-              color={attending === false ? 'gray' : undefined}
-              aria-pressed={attending === false}
-              leftSection={<IconX size={14} />}
-              onClick={() => rsvp(false)}
-            >
-              {_("I can't")}
-            </Button>
-          </Stack>
+          <RsvpButtons compact attending={attending} onAnswer={answer} />
         ) : null}
       </Group>
     </Card>

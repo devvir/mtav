@@ -120,7 +120,9 @@ export function LotteryPlan({
               onMouseLeave={() => onFocus(null)}
             >
               <span className="rank-slot-position">{index + 1}</span>
-              <span className="ds-truncate">{unit.identifier}</span>
+              <span className="ds-truncate" title={unit.identifier}>
+                {unit.identifier}
+              </span>
             </div>
           ))}
         </div>

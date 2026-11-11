@@ -488,6 +488,7 @@
   "{family} family": "Famille {family}",
   "{from}–{to} of {total}": "{from}–{to} sur {total}",
   "{inviter} invites you {what}.": "{inviter} vous invite {what}.",
+  "{items}: to move one, press Space, move it with the arrow keys, and press Space again to drop it. Escape cancels.": "{items} : pour déplacer un élément, appuyez sur Espace, déplacez-le avec les flèches, et appuyez de nouveau sur Espace pour le déposer. Échap annule.",
   "{name} cannot be shared: photos, videos, audio, PDF and office documents only.": "{name} ne peut pas être partagé : seulement des photos, des vidéos, de l’audio, des PDF et des documents bureautiques.",
   "{type} units are highlighted, with their place in your ranking.": "Les logements {type} sont mis en évidence, avec leur place dans votre classement.",
   "{type} units, as your family ranked them.": "Logements {type}, comme votre famille les a classés.",

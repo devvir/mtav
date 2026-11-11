@@ -89,7 +89,11 @@ export default function FamilyInvitations({
             {invitations.map((invitation) => (
               <Group key={invitation.id} className="row" wrap="nowrap">
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Text fw={600} className="ds-truncate">
+                  <Text
+                    fw={600}
+                    className="ds-truncate"
+                    title={invitation.name ?? invitation.email}
+                  >
                     {invitation.name ?? invitation.email}
                   </Text>
                   <Text className="ds-caption">

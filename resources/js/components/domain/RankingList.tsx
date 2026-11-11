@@ -53,10 +53,13 @@ export function RankingList<Item extends Ranked>({
   disabled,
   onFocus,
   flash,
+  itemsName,
 }: {
   items: Item[];
   /** How an item is called */
   label: (item: Item) => string;
+  /** What the items are called, all together, where they are not units (an open lottery's own word) */
+  itemsName?: string;
   onChange: (items: Item[]) => void;
   disabled?: boolean;
   onFocus?: (id: number | null) => void;
@@ -125,9 +128,14 @@ export function RankingList<Item extends Ranked>({
       accessibility={{
         announcements,
         screenReaderInstructions: {
-          draggable: _(
-            'To move a unit, press Space, move it with the arrow keys, and press Space again to drop it. Escape cancels.',
-          ),
+          draggable: itemsName
+            ? _(
+                '{items}: to move one, press Space, move it with the arrow keys, and press Space again to drop it. Escape cancels.',
+                { items: itemsName },
+              )
+            : _(
+                'To move a unit, press Space, move it with the arrow keys, and press Space again to drop it. Escape cancels.',
+              ),
         },
       }}
     >
@@ -226,7 +234,7 @@ function RankingItem({
           <IconGripVertical size={18} aria-hidden />
         </button>
       ) : null}
-      <span className="ds-truncate" style={{ flex: 1, fontWeight: 650 }}>
+      <span className="ds-truncate" style={{ flex: 1, fontWeight: 650 }} title={name}>
         {name}
       </span>
       {!disabled ? (

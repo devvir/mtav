@@ -3,20 +3,14 @@ import { EventForm } from '@/components/forms/EventForm';
 import { PersonAvatar } from '@/design';
 import { confirm } from '@/lib/dialogs';
 import { route } from '@/lib/route';
+import { useRsvp } from '@/lib/rsvp';
 import { _ } from '@/lib/translations';
 import type { ProjectEvent } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Anchor, Badge, Button, Card, Divider, Group, Stack, Text, Title } from '@mantine/core';
-import {
-  IconCheck,
-  IconClock,
-  IconMapPin,
-  IconPencil,
-  IconTrash,
-  IconVideo,
-  IconX,
-} from '@tabler/icons-react';
+import { IconClock, IconMapPin, IconPencil, IconTrash, IconVideo } from '@tabler/icons-react';
 import { useState } from 'react';
+import { RsvpButtons } from './RsvpButtons';
 
 /**
  * An event: when and where, what it is about, and who goes (answering, where it asks);
@@ -34,8 +28,7 @@ export function EventDetails({ event }: { event: ProjectEvent }) {
     });
     if (ok) router.delete(route('manage.events.destroy', event.id));
   };
-  const rsvp = (attending: boolean) =>
-    router.put(route('events.rsvp', event.id), { attending }, { preserveScroll: true });
+  const { attending, answer } = useRsvp(event);
 
   // Editing replaces the details in the same dialog (one dialog at a time)
   if (editing) return <EventForm event={event} onDone={() => setEditing(false)} />;
@@ -90,25 +83,7 @@ export function EventDetails({ event }: { event: ProjectEvent }) {
                 <Title order={2} fz="md">
                   {_('Will you go?')}
                 </Title>
-                <Group grow mt="sm" mb="lg">
-                  <Button
-                    variant={event.attending === true ? 'filled' : 'default'}
-                    aria-pressed={event.attending === true}
-                    leftSection={<IconCheck size={18} />}
-                    onClick={() => rsvp(true)}
-                  >
-                    {_('Yes')}
-                  </Button>
-                  <Button
-                    variant={event.attending === false ? 'light' : 'default'}
-                    color={event.attending === false ? 'gray' : undefined}
-                    aria-pressed={event.attending === false}
-                    leftSection={<IconX size={18} />}
-                    onClick={() => rsvp(false)}
-                  >
-                    {_('No')}
-                  </Button>
-                </Group>
+                <RsvpButtons attending={attending} onAnswer={answer} />
               </>
             ) : null}
             <Title order={2} fz="md">

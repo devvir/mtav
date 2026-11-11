@@ -28,7 +28,11 @@ export const NavItem = forwardRef<
       {...rest}
     >
       <Shape size={20} stroke={1.8} style={{ flex: 'none' }} />
-      <span className="ds-truncate" style={{ flex: 1 }}>
+      <span
+        className="ds-truncate"
+        style={{ flex: 1 }}
+        title={typeof label === 'string' ? label : undefined}
+      >
         {label}
       </span>
       {count ? <span className="ds-count">{count}</span> : null}

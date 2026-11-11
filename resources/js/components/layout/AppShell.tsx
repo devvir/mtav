@@ -135,7 +135,9 @@ const Navigation = memo(function Navigation({ nav }: { nav: NavGroup[] }) {
           </div>
         ) : (
           <div key={group.label} className="shell-group">
-            <Text className="ds-label shell-heading ds-truncate">{group.label}</Text>
+            <Text className="ds-label shell-heading ds-truncate" title={group.label}>
+              {group.label}
+            </Text>
             {places.map(entry)}
             {actions.length ? <div className="shell-actions">{actions.map(entry)}</div> : null}
           </div>
@@ -245,7 +247,9 @@ export function AppShell({
             <Menu position="bottom-start" width={280}>
               <Menu.Target>
                 <UnstyledButton className="shell-switcher">
-                  <span className="ds-truncate">{project.name}</span>
+                  <span className="ds-truncate" title={project.name}>
+                    {project.name}
+                  </span>
                   <IconChevronDown size={16} />
                 </UnstyledButton>
               </Menu.Target>
@@ -297,7 +301,7 @@ export function AppShell({
               </Menu.Dropdown>
             </Menu>
           ) : (
-            <Text fw={650} className="ds-truncate">
+            <Text fw={650} className="ds-truncate" title={project?.name ?? heading}>
               {project?.name ?? heading}
             </Text>
           )}
@@ -316,10 +320,10 @@ export function AppShell({
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Label style={{ textTransform: 'none', letterSpacing: 0 }}>
-                  <Text fw={650} c="var(--mtav-text)" className="ds-truncate">
+                  <Text fw={650} c="var(--mtav-text)" className="ds-truncate" title={user.name}>
                     {user.name}
                   </Text>
-                  <Text size="xs" className="ds-truncate">
+                  <Text size="xs" className="ds-truncate" title={user.email}>
                     {user.email}
                   </Text>
                 </Menu.Label>

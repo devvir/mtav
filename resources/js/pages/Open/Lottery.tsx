@@ -406,7 +406,12 @@ function Ranking({
     <Panel title={_('Your preferences: {what}', { what: title })}>
       <Stack gap="sm">
         {items.length ? (
-          <RankingList items={ranking} label={(item) => item.name} onChange={rank} />
+          <RankingList
+            items={ranking}
+            label={(item) => item.name}
+            itemsName={title}
+            onChange={rank}
+          />
         ) : (
           <Text c="dimmed">{_('Nothing to rank yet.')}</Text>
         )}

@@ -1,6 +1,5 @@
-import { route } from '@/lib/route';
+import { changeLanguage } from '@/lib/language';
 import { _, getLocale } from '@/lib/translations';
-import { router } from '@inertiajs/react';
 import { SimpleGrid, Text, UnstyledButton } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -14,16 +13,7 @@ export function LanguageSettings({ languages }: { languages: Record<string, stri
   const [saving, setSaving] = useState<string | null>(null);
   const pick = (locale: string) =>
     locale !== current &&
-    router.put(
-      route('language'),
-      { locale },
-      {
-        onStart: () => setSaving(locale),
-        // The words of the new language come with a fresh start of the app
-        onSuccess: () => window.location.reload(),
-        onError: () => setSaving(null),
-      },
-    );
+    changeLanguage(locale, { onStart: () => setSaving(locale), onError: () => setSaving(null) });
 
   return (
     <div>

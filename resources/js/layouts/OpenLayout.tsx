@@ -1,8 +1,8 @@
+import { LanguagePicker } from '@/components/layout/LanguagePicker';
 import { DialogHost } from '@/components/overlays/DialogHost';
 import { Logo } from '@/design';
 import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
-import { LanguagePicker } from '@/pages/Welcome';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Anchor, Container, Group, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';

@@ -122,7 +122,7 @@ export default function ManageInvitations({
           {requests.map((request) => (
             <Group key={request.id} className="row" wrap="wrap">
               <div style={{ flex: 1, minWidth: 200 }}>
-                <Text fw={600} className="ds-truncate">
+                <Text fw={600} className="ds-truncate" title={request.name}>
                   {request.name}
                 </Text>
                 <Text className="ds-caption ds-truncate">
@@ -212,7 +212,11 @@ export default function ManageInvitations({
               <Group key={invitation.id} className="row" wrap="nowrap">
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Group gap="xs">
-                    <Text fw={600} className="ds-truncate">
+                    <Text
+                      fw={600}
+                      className="ds-truncate"
+                      title={invitation.name ?? invitation.email}
+                    >
                       {invitation.name ?? invitation.email}
                     </Text>
                     {invitation.is_admin ? <Badge color="blue">{_('Admin')}</Badge> : null}
