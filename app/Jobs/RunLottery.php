@@ -8,6 +8,7 @@ use App\Services\Lottery\AuditService;
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\LotteryOrchestrator;
+use App\Services\Lottery\LotteryRuns;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
@@ -38,7 +39,7 @@ class RunLottery implements ShouldQueue
         $this->afterCommit();
     }
 
-    public function handle(): void
+    public function handle(LotteryRuns $runs, AuditService $audits): void
     {
         $run = $this->run->fresh();
 
@@ -46,15 +47,13 @@ class RunLottery implements ShouldQueue
             return;
         }
 
-        $lottery = $run->host();
-
         try {
-            $manifest = app(AuditService::class)->manifestOf($run)
+            $manifest = $audits->manifestOf($run)
                 ?? throw new RuntimeException("Lottery run [{$run->id}] recorded nothing to decide from.");
 
             $result = app(LotteryOrchestrator::class, ['solver' => $this->solver($run)])->execute($manifest);
 
-            $lottery->solved($run, $result);
+            $runs->solved($run, $result);
         } catch (Throwable $e) {
             report($e);
 
@@ -62,7 +61,7 @@ class RunLottery implements ShouldQueue
                 ? [$e->getUserMessageKey(), $e->getUserMessageParams()]
                 : ['lottery.execution_failed', []];
 
-            $lottery->fail($run, ...$reason, debug: ['exception' => $e::class, 'error' => $e->getMessage()]);
+            $runs->fail($run, ...$reason, debug: ['exception' => $e::class, 'error' => $e->getMessage()]);
         }
     }
 
@@ -72,7 +71,7 @@ class RunLottery implements ShouldQueue
      */
     public function failed(?Throwable $e): void
     {
-        $this->run->host()->fail($this->run, 'lottery.execution_failed', debug: [
+        app(LotteryRuns::class)->fail($this->run, 'lottery.execution_failed', debug: [
             'exception' => $e ? $e::class : null,
             'error'     => $e?->getMessage(),
         ]);

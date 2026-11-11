@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PushSubscriptionRequest;
 use App\Models\PushSubscription;
-use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -13,19 +13,9 @@ use Illuminate\Http\Request;
  */
 class PushSubscriptionController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(PushSubscriptionRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'endpoint' => ['required', 'url:https', 'max:700', function (string $attribute, mixed $endpoint, Closure $fail) {
-                PushSubscription::isServiceAddress((string) $endpoint) || $fail(__('validation.push_device'));
-            },
-            ],
-            'keys.p256dh' => ['required', 'string', 'max:255'],
-            'keys.auth'   => ['required', 'string', 'max:255', function (string $attribute, mixed $auth, Closure $fail) use ($request) {
-                PushSubscription::areKeys((string) $request->input('keys.p256dh'), (string) $auth) || $fail(__('validation.push_device'));
-            },
-            ],
-        ]);
+        $data = $request->validated();
 
         PushSubscription::firstOrNew(['endpoint' => $data['endpoint']])->forceFill([
             'user_id'    => $request->user()->id,

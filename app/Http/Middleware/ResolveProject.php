@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  * in (others see a 404, as if it did not exist). The project becomes the default
  * {project} parameter for every URL generated during the request, frontend included,
  * and the one the person's own pages (profile, notifications) keep in their frame. In a
- * project without guests, someone with no family creates theirs before anything else.
+ * project without guests, someone who has not joined their family creates it before anything else.
  */
 class ResolveProject
 {

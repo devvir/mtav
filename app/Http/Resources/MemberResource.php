@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * A person as seen within a project. Contact details are shown to the project's
@@ -30,7 +29,7 @@ class MemberResource extends JsonResource
             'name'      => $this->name,
             'firstname' => $this->firstname,
             'lastname'  => $this->lastname,
-            'avatar'    => $this->avatar ? Storage::disk('public')->url($this->avatar) : null,
+            'avatar'    => $this->resource->avatar_url,
             'about'     => $this->about,
             'is_admin'  => (bool) $membership?->is_admin,
             'is_guest'  => $project && $this->isGuestIn($project),

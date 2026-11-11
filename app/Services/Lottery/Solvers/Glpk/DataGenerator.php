@@ -1,13 +1,12 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
 
 /**
- * Generates GLPK data files (.dat) from lottery specifications.
+ * The GLPK data (.dat) of each task, in GMPL: the participants, the items, and the rank each
+ * participant gives each item.
  */
 class DataGenerator
 {
@@ -53,13 +52,7 @@ GMPL;
      */
     public function generateDataWithS(LotterySpec $spec, int $minSatisfaction): string
     {
-        $baseData = $this->generateData($spec);
-
-        // Remove the trailing "end;" and add S parameter
-        $baseData = rtrim($baseData);
-        $baseData = preg_replace('/end;\s*$/', '', $baseData);
-
-        return $baseData . "\nparam S := {$minSatisfaction};\n\nend;\n";
+        return $this->withParam($this->generateData($spec), 'S', $minSatisfaction);
     }
 
     /**
@@ -72,13 +65,15 @@ GMPL;
      */
     public function generateDataWithItemCount(LotterySpec $spec, int $itemCount): string
     {
-        $baseData = $this->generateData($spec);
+        return $this->withParam($this->generateData($spec), 'M', $itemCount);
+    }
 
-        // Remove the trailing "end;" and add M parameter
-        $baseData = rtrim($baseData);
-        $baseData = preg_replace('/end;\s*$/', '', $baseData);
+    /** The data with one more parameter, before its closing "end;" */
+    protected function withParam(string $data, string $name, int $value): string
+    {
+        $data = preg_replace('/end;\s*$/', '', rtrim($data));
 
-        return $baseData . "\nparam M := {$itemCount};\n\nend;\n";
+        return $data . "\nparam {$name} := {$value};\n\nend;\n";
     }
 
     /**
@@ -95,14 +90,11 @@ GMPL;
     }
 
     /**
-     * Build preference matrix in GMPL format.
+     * The rank each participant gives each item (param r), 1 for the most wanted; an item a
+     * participant did not rank counts as 999.
      *
-     * Adds tie-breaker randomization to prevent degenerate preferences:
-     * Instead of [1, 2, 3], each participant gets [1.XXX, 2.YYY, 3.ZZZ] where
-     * XXX, YYY, ZZZ are unique random decimals per participant (0-999).
-     *
-     * This ensures no two participants have identical preference values,
-     * breaking degeneracy and allowing GLPK to solve quickly without hangs.
+     * Each participant's ranks all get one same random amount (at most 0.0001), meant as a
+     * tie-breaker; ranks are written with three decimals.
      *
      * @param  array  $participants  Participant ID => preferences array
      * @param  array  $items  Array of item IDs
@@ -117,19 +109,15 @@ GMPL;
         foreach ($participants as $participantId => $preferences) {
             $matrix .= "p{$participantId}";
 
-            // Create map of item_id => preference_rank with random tie-breaker
-            // Random tie-breaker: 0.0001 scale to prevent degeneracy without altering semantic rank
-            $tieBreaker = mt_rand(0, 10000) / 100000000.0; // 0.0000 - 0.0001
+            // One amount for all of this participant's ranks: 1 becomes 1.00004751, 2 becomes 2.00004751…
+            $tieBreaker = mt_rand(0, 10000) / 100000000.0;
             $preferenceMap = [];
             foreach ($preferences as $rank => $itemId) {
-                // Base rank (1-indexed) + tiny tie-breaker for this participant
-                // E.g., rank 0 becomes 1.00004751, rank 1 becomes 2.00004751, etc.
                 $preferenceMap[$itemId] = ($rank + 1) + $tieBreaker;
             }
 
-            // Output preference for each item in order
             foreach ($items as $itemId) {
-                $rank = $preferenceMap[$itemId] ?? 999; // Default to very low preference if missing
+                $rank = $preferenceMap[$itemId] ?? 999;
                 $matrix .= ' ' . str_pad(sprintf('%.3f', $rank), 7);
             }
 

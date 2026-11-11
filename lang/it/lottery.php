@@ -9,7 +9,6 @@ return [
 
     'running'               => 'Il sorteggio è in corso. Alloggi e famiglie potranno cambiare quando finisce.',
     'execution_failed'      => 'Qualcosa è andato storto durante il sorteggio. Riprova. Se continua a non riuscire, contatta il team della piattaforma.',
-    'requires_confirmation' => 'Conferma prima di fare il sorteggio.',
 
     'cannot_run_already_run'      => 'Il sorteggio è già stato fatto.',
     'cannot_run_no_worker'        => 'Ora il sorteggio non si può fare. Stiamo controllando. Riprova più tardi.',

@@ -2,14 +2,13 @@
 
 namespace App\Services\Assistant;
 
-use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\ChatService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Localizable;
 use Throwable;
@@ -35,7 +34,7 @@ class Assistant
     /** Questions taken back that the day's messages still count: one person's (…<day>.<id>) and everyone's (…<day>) */
     private const TAKEN_BACK = 'assistant.taken_back.';
 
-    public function __construct(private Brain $brain, private Prompt $prompt, private Places $places, private ReadyAnswers $ready)
+    public function __construct(private Brain $brain, private Prompt $prompt, private Places $places, private ReadyAnswers $ready, private ChatService $chat)
     {
     }
 
@@ -61,26 +60,7 @@ class Assistant
      */
     public function say(Conversation $conversation, string $text, array $actions = [], ?Message $answering = null): ?Message
     {
-        $message = DB::transaction(function () use ($conversation, $text, $actions, $answering) {
-            // Held while answering: a delete waits for the answer, to take it along
-            if ($answering && ! Message::whereKey($answering->id)->lockForUpdate()->exists()) {
-                return null;
-            }
-
-            $message = new Message(['body' => $text]);
-            $message->forceFill([
-                'conversation_id' => $conversation->id,
-                'from_assistant'  => true,
-                'extras'          => $actions ? ['actions' => $actions] : null,
-            ])->save();
-            $conversation->forceFill(['last_message_id' => $message->id, 'last_message_at' => $message->created_at])->save();
-
-            return $message;
-        });
-
-        $message && rescue(fn () => MessageSent::dispatch($message, $conversation->audience()->pluck('users.id')->all()));
-
-        return $message;
+        return $this->chat->post($conversation, null, $text, $actions ? ['actions' => $actions] : null, $answering);
     }
 
     /**

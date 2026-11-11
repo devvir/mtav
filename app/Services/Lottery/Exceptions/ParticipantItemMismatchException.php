@@ -5,49 +5,32 @@ namespace App\Services\Lottery\Exceptions;
 use Illuminate\Support\Collection;
 
 /**
- * Exception thrown when items and participants don't match per group.
- *
- * Extends LotteryRequiresConfirmationException to signal that the mismatch
- * can be bypassed with explicit admin confirmation (via 'mismatch-allowed' option).
- * Generates detailed user-facing message about which groups have mismatches.
+ * Some unit types have more units than families, or fewer: some units stay free, or some
+ * families receive none. The admin confirms it, naming each type and its counts.
  */
 class ParticipantItemMismatchException extends LotteryRequiresConfirmationException
 {
+    /** What the admin sends back to run it all the same */
+    public const OPTION = 'mismatch-allowed';
+
     /**
-     * @param  Collection<array{group_id: int, group_name: string, items_count: int, participants_count: int}>  $mismatches
+     * @param Collection<int, array{group_id: int, group_name: string, items_count: int, participants_count: int}> $mismatches
      */
     public function __construct(Collection $mismatches)
     {
-        parent::__construct(
-            option: 'mismatch-allowed',
-            message: $this->buildUserMessage($mismatches)
-        );
+        parent::__construct(self::OPTION, $this->describe($mismatches));
     }
 
-    /**
-     * Build the detailed user-facing message about mismatches.
-     */
-    protected function buildUserMessage(Collection $mismatches): string
+    private function describe(Collection $mismatches): string
     {
-        $details = $mismatches->map(function ($mismatch) {
-            $groupName = $mismatch['group_name'];
-            $itemsCount = $mismatch['items_count'];
-            $participantsCount = $mismatch['participants_count'];
-
-            if ($itemsCount > $participantsCount) {
-                return __('lottery.mismatch_excess_units', [
-                    'unit_type' => "\"{$groupName}\"",
-                    'units'     => $itemsCount,
-                    'families'  => $participantsCount,
-                ]);
-            }
-
-            return __('lottery.mismatch_insufficient_units', [
-                'unit_type' => "\"{$groupName}\"",
-                'units'     => $itemsCount,
-                'families'  => $participantsCount,
-            ]);
-        })->join(', ');
+        $details = $mismatches->map(fn (array $mismatch) => __(
+            $mismatch['items_count'] > $mismatch['participants_count'] ? 'lottery.mismatch_excess_units' : 'lottery.mismatch_insufficient_units',
+            [
+                'unit_type' => "\"{$mismatch['group_name']}\"",
+                'units'     => $mismatch['items_count'],
+                'families'  => $mismatch['participants_count'],
+            ],
+        ))->join(', ');
 
         return __('lottery.unit_family_mismatch_intro') . ' ' . $details;
     }

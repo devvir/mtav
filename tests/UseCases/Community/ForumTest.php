@@ -287,3 +287,49 @@ it('takes a topic\'s title of its longest, in characters of four bytes, and refu
 
     expect(Topic::sole()->title)->toBe(str_repeat('😀', 160));
 });
+
+describe('A topic\'s writer', function () {
+    beforeEach(function () {
+        openTopic($this, $this->ana);
+        $this->topic = Topic::sole();
+        $this->change = fn ($user, array $change) => $this->as($user, $this->project)->put(route('forum.update', [$this->project, $this->topic]), $change);
+    });
+
+    it('renames it, as admins do, and nobody else does', function () {
+        ($this->change)($this->ana, ['title' => 'Assembly, which Saturday'])->assertSessionHasNoErrors();
+        expect(($this->change)($this->beto, ['title' => 'Mine now']))->toBeDenied();
+        ($this->change)($this->admin, ['title' => 'Assembly: the 14th'])->assertSessionHasNoErrors();
+
+        expect($this->topic->fresh()->title)->toBe('Assembly: the 14th');
+    });
+
+    it('changes nothing else of it, not even along with its title', function () {
+        expect(($this->change)($this->ana, ['title' => 'Pinned by me', 'is_pinned' => true]))->toBeDenied();
+
+        expect($this->topic->fresh())->title->toBe('Assembly date')->is_pinned->toBeFalse();
+    });
+
+    it('is offered to remove its opening post only while nobody replied; admins always are', function () {
+        $canRemoveOpening = fn ($user) => $this->as($user, $this->project)->get(route('forum.show', [$this->project, $this->topic]))
+            ->inertiaProps('posts.data.0.can.delete');
+
+        expect($canRemoveOpening($this->ana))->toBeTrue();
+
+        replyTo($this, $this->beto, $this->topic);
+
+        expect($canRemoveOpening($this->ana))->toBeFalse()
+            ->and($canRemoveOpening($this->admin))->toBeTrue()
+            ->and($canRemoveOpening($this->beto))->toBeFalse();
+    });
+});
+
+it('leads a reply to the page it is on, the last', function () {
+    config(['lists.per_page.posts' => 2]);
+    openTopic($this, $this->ana);
+    $topic = Topic::sole();
+    replyTo($this, $this->beto, $topic);
+
+    $reply = replyTo($this, $this->ana, $topic, 'Then the 14th it is');
+
+    $reply->assertRedirect(route('forum.show', [$this->project, $topic, 'page' => 2, 'post' => Post::latest('id')->first()->id]));
+});

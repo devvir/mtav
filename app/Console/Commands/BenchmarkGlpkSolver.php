@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Console\Commands;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
@@ -23,7 +21,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  *   - realistic: Mix of popular and unpopular units (simulates real cooperative behavior)
  *
  * Output CSV format:
- *   size,scenario,iteration,time_ms,status,error,spec_hash,result
+ *   size,scenario,iteration,time_ms,status,error,spec,result  (spec and result as JSON)
  *
  * Status values:
  *   - SUCCESS: Solver completed successfully

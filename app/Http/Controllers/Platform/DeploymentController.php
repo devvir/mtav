@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductionDeployRequest;
 use App\Services\Delivery\GitHub;
 use Illuminate\Http\Client\HttpClientException;
 use Illuminate\Http\Client\RequestException;
@@ -51,15 +52,11 @@ class DeploymentController extends Controller
     }
 
     /** Production, or another environment released from main (sorteo): production unless one is named */
-    public function production(Request $request): RedirectResponse
+    public function production(ProductionDeployRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'environment' => ['nullable', 'string', Rule::in(config('delivery.released'))],
-            'commit'      => ['nullable', 'string', 'regex:/^[0-9a-f]{7,40}$/'],
-        ]);
-        $environment = $data['environment'] ?? 'production';
+        $environment = $request->environment();
 
-        return $this->dispatch('production', 'main', ['environment' => $environment, 'commit' => $data['commit'] ?? ''], __('flash.deploy_production', ['environment' => $environment]));
+        return $this->dispatch('production', 'main', ['environment' => $environment, 'commit' => $request->commit()], __('flash.deploy_production', ['environment' => $environment]));
     }
 
     public function rollback(Request $request): RedirectResponse

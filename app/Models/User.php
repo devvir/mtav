@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAvatar;
 use App\Models\Concerns\RecordsActivity;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
@@ -24,6 +25,7 @@ use Illuminate\Notifications\Notification;
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     use RecordsActivity;
+    use HasAvatar;
     use HasFactory;
     use Notifiable;
 
@@ -69,13 +71,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->belongsToMany(Conversation::class)->withPivot('read_up_to', 'pinned_at')->withTimestamps();
     }
 
-    /** The browsers and devices where they allowed notifications */
     /** What they told the platform's team through the Assistant */
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }
 
+    /** The browsers and devices where they allowed notifications */
     public function pushSubscriptions(): HasMany
     {
         return $this->hasMany(PushSubscription::class);
@@ -179,13 +181,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
      */
     public function isGuestIn(Project $project): bool
     {
-        return $this->isFamilylessIn($project) && $project->allows_guests;
+        return $this->isGuestOrNewcomerIn($project) && $project->allows_guests;
     }
 
     /** Let into a project without guests: they have to create their family, or be added to one */
     public function needsFamilyIn(Project $project): bool
     {
-        return $this->isFamilylessIn($project) && ! $project->allows_guests;
+        return $this->isGuestOrNewcomerIn($project) && ! $project->allows_guests;
     }
 
     public function isBlocked(): bool
@@ -196,6 +198,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function scopeAlphabetically(Builder $query): void
     {
         $query->orderBy('firstname')->orderBy('lastname');
+    }
+
+    /** With their place in the project (and its family) loaded, as a list of people shows them */
+    public function scopeWithMembershipIn(Builder $query, Project $project): void
+    {
+        $query->with(['memberships' => fn ($memberships) => $memberships->where('project_id', $project->id)->with('family:id,name')]);
     }
 
     /**
@@ -232,7 +240,8 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return Attribute::set(fn (string $value) => strtolower(trim($value)));
     }
 
-    private function isFamilylessIn(Project $project): bool
+    /** In the project, no admin, and not joined their family: a guest, or else a newcomer */
+    private function isGuestOrNewcomerIn(Project $project): bool
     {
         $membership = $this->membershipIn($project);
 

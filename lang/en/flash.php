@@ -45,7 +45,6 @@ return [
     'join_declined'      => 'You declined the request of :name.',
     'member_updated'     => 'Saved.',
     'member_removed'     => 'The person was removed from the project.',
-    'superadmin_granted' => ':name is now a superadmin.',
     'superadmin_revoked' => ':name is no longer a superadmin.',
 
     /** Structure */

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PersonRules;
 use App\Models\SupportInvitation;
 use App\Models\User;
+use App\Services\AccountService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
@@ -43,31 +42,24 @@ class SupportInvitationController extends Controller
         ]);
     }
 
-    public function accept(Request $request, string $token): RedirectResponse
+    public function accept(Request $request, string $token, AccountService $accounts): RedirectResponse
     {
         $invitation = SupportInvitation::findByToken($token);
         abort_unless($invitation?->isPending() && ! $request->user(), 404);
 
-        $data = $request->validate([
-            'firstname' => ['required', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
-            'password'  => ['required', 'confirmed', Password::defaults()],
-        ]);
+        // Checked once the link is known good: a stale link answers the same whatever is sent
+        $person = $request->validate(PersonRules::account());
 
         try {
-            $user = DB::transaction(function () use ($invitation, $data) {
-                $user = (new User())->forceFill([...$data, 'email' => $invitation->email, 'is_superadmin' => true, 'email_verified_at' => now()]);
-                $user->save();
-                $invitation->update(['accepted_at' => now()]);
-
-                return $user;
-            });
+            $accounts->open(
+                $person,
+                $invitation->email,
+                granted: ['is_superadmin' => true, 'email_verified_at' => now()],
+                with: fn () => $invitation->update(['accepted_at' => now()]),
+            );
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['password' => __('validation.support_email_taken')]);
         }
-
-        Auth::login($user);
-        $request->session()->regenerate();
 
         return to_route('admin.projects.index')->with('success', __('flash.support_account_ready'));
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PersonRules;
 use App\Models\Invitation;
 use App\Models\SupportInvitation;
 use App\Models\User;
@@ -28,7 +29,7 @@ class UserController extends Controller
             ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: true))
             ->when($request->boolean('superadmins'), fn ($q) => $q->where('is_superadmin', true))
             ->alphabetically()
-            ->paginate(40)
+            ->paginate(config('lists.per_page.users'))
             ->withQueryString();
 
         return inertia('Platform/Users', [
@@ -93,7 +94,7 @@ class UserController extends Controller
     public function grant(Request $request): RedirectResponse
     {
         // Emails are kept in lower case
-        $email = strtolower($request->validate(['email' => ['required', 'email', 'max:255']])['email']);
+        $email = strtolower($request->validate(['email' => PersonRules::email()])['email']);
 
         if (User::where('email', $email)->exists()) {
             throw ValidationException::withMessages(['email' => __('validation.support_email_taken')]);

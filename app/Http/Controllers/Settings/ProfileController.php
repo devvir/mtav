@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileRequest;
 use App\Notifications\EmailChangeNotice;
 use App\Notifications\VerifyEmailNotification;
 use App\Services\AccountService;
@@ -40,31 +41,15 @@ class ProfileController extends Controller
      * form tells nobody who has an account. Going back to the current one drops what was
      * pending.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(ProfileRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $email = $request->input('email');
-        $newEmail = is_string($email) ? strtolower($email) : null;
-        $changing = $newEmail !== $user->email && $newEmail !== $user->new_email;
-
-        $data = $request->validate([
-            'firstname' => ['required', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
-            'email'     => ['required', 'email', 'max:255'],
-            'phone'     => ['nullable', 'string', 'between:4,30'],
-            // Whether the people of their projects see them (admins always do)
-            'email_public'     => ['boolean'],
-            'phone_public'     => ['boolean'],
-            'legal_id'         => ['nullable', 'string', 'between:2,30'],
-            'about'            => ['nullable', 'string', 'max:1000'],
-            'current_password' => $changing ? ['required', 'current_password'] : [],
-        ]);
-
-        unset($data['email'], $data['current_password']);
+        $newEmail = $request->newEmail();
+        $changing = $request->changesEmail();
 
         $changing && $this->ensureMayChangeEmail($user->id);
 
-        $user->update($data);
+        $user->update($request->profile());
 
         if ($changing) {
             $user->update(['new_email' => $newEmail]);

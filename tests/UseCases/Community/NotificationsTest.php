@@ -227,3 +227,44 @@ describe('What a project gains', function () {
         expect($seen($this)->pluck('title'))->toContain(__('notifications.families_added_title'));
     });
 });
+
+describe('Whom it is for', function () {
+    it('is not for someone who joined the project after it, to read or to see', function () {
+        $notice = notify($this, null);
+        $this->travel(1)->minutes();
+        $newcomer = aMemberOf(aFamily($this->project));
+
+        expect($notice->isFor($newcomer))->toBeFalse()
+            ->and($this->as($newcomer, $this->project)->post(route('notifications.read', $notice)))->toBeDenied()
+            ->and($notice->isFor($this->member))->toBeTrue();
+    });
+
+    it('is not for a superadmin when it is a project\'s, though they reach the project', function () {
+        $notice = notify($this, null);
+        $superadmin = aSuperadmin();
+
+        expect($notice->isFor($superadmin))->toBeFalse()
+            ->and(Notification::for($superadmin)->pluck('id'))->not->toContain($notice->id);
+    });
+
+    it('is no longer for anyone once its project is archived', function () {
+        $notice = notify($this, null);
+        $this->project->delete();
+
+        expect($notice->isFor($this->member->fresh()))->toBeFalse();
+    });
+
+    it('is for whoever it names even about what they did themselves, as the bell shows it', function () {
+        $notice = app(NotificationService::class)->send(
+            NotificationTarget::PRIVATE,
+            NotificationType::LOTTERY_FAILED,
+            'notifications.lottery_failed_title',
+            'notifications.lottery_failed_message',
+            trigger: $this->member,
+            targetId: $this->member->id,
+        );
+
+        expect($notice->isFor($this->member))->toBeTrue()
+            ->and(Notification::for($this->member)->pluck('id'))->toContain($notice->id);
+    });
+});

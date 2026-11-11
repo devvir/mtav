@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LotteryRunStatus;
+use App\Http\OpenLottery\OpenLotteryPage;
+use App\Http\OpenLottery\OpenLotteryVisitor;
 use App\Models\OpenLottery;
 use App\Models\OpenLotteryItem;
 use App\Models\OpenLotteryParticipant;
@@ -11,18 +13,15 @@ use App\Services\OpenLotteryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as Status;
 
 /**
- * An open lottery's one page, and what people do on it. Nobody has an account: each browser holds
- * a secret for this lottery, in a cookie only its pages receive.
+ * An open lottery's one page, and what people do on it. Nobody has an account: who a browser is
+ * comes from the secrets it holds for this lottery (`OpenLotteryVisitor`).
  */
 class OpenLotteryController extends Controller
 {
-    private const A_YEAR = 525600;
-
     public function __construct(private OpenLotteryService $lotteries)
     {
     }
@@ -41,55 +40,14 @@ class OpenLotteryController extends Controller
 
         [$lottery, $key] = $this->lotteries->create($data);
 
-        $this->remember($lottery, 'organizer', $key);
+        $this->visitor($request, $lottery)->rememberOrganizer($key);
 
         return to_route('open.show', $lottery);
     }
 
-    public function show(Request $request, OpenLottery $openLottery): Response
+    public function show(Request $request, OpenLottery $openLottery, OpenLotteryPage $page): Response
     {
-        $lottery = $openLottery;
-        $run = $lottery->runs()->latest('id')->first();
-        $me = $this->me($request, $lottery);
-        $organizer = $this->organizes($request, $lottery);
-        $decided = $run?->status === LotteryRunStatus::COMPLETED;
-        $people = $lottery->participants()->with('item:id,name')->get();
-
-        return inertia('Open/Lottery', [
-            'lottery' => [
-                'slug'       => $lottery->slug,
-                'name'       => $lottery->name,
-                'items_name' => $lottery->items_name,
-                'link'       => route('open.show', $lottery),
-                'kept_until' => $lottery->updated_at->addDays(config('limits.open_lottery.kept_days')),
-            ],
-            'state' => match (true) {
-                ! $run                                     => 'open',
-                $run->status === LotteryRunStatus::RUNNING => 'running',
-                $decided                                   => 'decided',
-                default                                    => 'open',
-            },
-            'pace'    => $run?->status === LotteryRunStatus::RUNNING ? ['started_at' => $run->started_at, 'reveal_at' => $run->reveal_at] : null,
-            'failure' => $run?->status === LotteryRunStatus::FAILED ? $run->failureMessage() : null,
-            'items'   => $lottery->items()->get(['id', 'name']),
-            'people'  => $people->map(fn (OpenLotteryParticipant $person) => [
-                'id'     => $person->id,
-                'name'   => $person->name,
-                'ranked' => $person->ranked_at !== null,
-                'item'   => $decided ? $person->item?->name : null,
-            ]),
-            'left_over' => $decided ? $lottery->items()->whereNotIn('id', $people->pluck('item_id')->filter())->pluck('name') : [],
-            'me'        => $me && ! $me->removed_at ? [
-                'id'      => $me->id,
-                'ranking' => $me->ranking()->pluck('open_lottery_items.id'),
-                'link'    => route('open.me', [$lottery, $this->cookie($request, $lottery, 'me')]),
-            ] : null,
-            'removed'   => (bool) $me?->removed_at,
-            'organizer' => $organizer ? [
-                'link'      => route('open.organize', [$lottery, $this->cookie($request, $lottery, 'organizer')]),
-                'readiness' => $this->lotteries->readiness($lottery),
-            ] : null,
-        ]);
+        return inertia('Open/Lottery', $page->props($openLottery, $this->visitor($request, $openLottery)));
     }
 
     public function join(Request $request, OpenLottery $openLottery): RedirectResponse
@@ -98,28 +56,25 @@ class OpenLotteryController extends Controller
 
         [, $key] = $this->lotteries->join($openLottery, $data['name']);
 
-        $this->remember($openLottery, 'me', $key);
+        $this->visitor($request, $openLottery)->rememberParticipant($key);
 
         return back();
     }
 
     public function leave(Request $request, OpenLottery $openLottery): RedirectResponse
     {
-        $me = $this->me($request, $openLottery);
-
-        abort_unless($me && ! $me->removed_at, Status::HTTP_FORBIDDEN);
+        $visitor = $this->visitor($request, $openLottery);
+        $me = $visitor->takingPart() ?? abort(Status::HTTP_FORBIDDEN);
 
         $this->lotteries->remove($openLottery, $me);
-        Cookie::queue(Cookie::forget($this->cookieName($openLottery, 'me'), $this->path($openLottery)));
+        $visitor->forgetParticipant();
 
         return back();
     }
 
     public function rank(Request $request, OpenLottery $openLottery): RedirectResponse
     {
-        $me = $this->me($request, $openLottery);
-
-        abort_unless($me && ! $me->removed_at, Status::HTTP_FORBIDDEN);
+        $me = $this->visitor($request, $openLottery)->takingPart() ?? abort(Status::HTTP_FORBIDDEN);
 
         // How many first, on its own, as for the items
         $request->validate(['ranking' => ['present', 'array', 'max:' . config('limits.open_lottery.items')]]);
@@ -131,24 +86,21 @@ class OpenLotteryController extends Controller
     }
 
     /** One's personal link: this browser becomes theirs */
-    public function returning(OpenLottery $openLottery, string $key): RedirectResponse
+    public function returning(Request $request, OpenLottery $openLottery, string $key): RedirectResponse
     {
-        abort_unless(
-            OpenLotteryParticipant::where('open_lottery_id', $openLottery->id)->where('key', OpenLottery::hashKey($key))->exists(),
-            Status::HTTP_NOT_FOUND,
-        );
+        abort_unless(OpenLotteryParticipant::whereBelongsTo($openLottery, 'lottery')->byKey($key)->exists(), Status::HTTP_NOT_FOUND);
 
-        $this->remember($openLottery, 'me', $key);
+        $this->visitor($request, $openLottery)->rememberParticipant($key);
 
         return to_route('open.show', $openLottery);
     }
 
     /** The organizer's link: this browser organizes too */
-    public function organize(OpenLottery $openLottery, string $key): RedirectResponse
+    public function organize(Request $request, OpenLottery $openLottery, string $key): RedirectResponse
     {
         abort_unless($openLottery->isOrganizer($key), Status::HTTP_NOT_FOUND);
 
-        $this->remember($openLottery, 'organizer', $key);
+        $this->visitor($request, $openLottery)->rememberOrganizer($key);
 
         return to_route('open.show', $openLottery);
     }
@@ -210,40 +162,13 @@ class OpenLotteryController extends Controller
         ], options: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
-    private function me(Request $request, OpenLottery $lottery): ?OpenLotteryParticipant
+    private function visitor(Request $request, OpenLottery $lottery): OpenLotteryVisitor
     {
-        $key = $this->cookie($request, $lottery, 'me');
-
-        return $key ? OpenLotteryParticipant::where('open_lottery_id', $lottery->id)->where('key', OpenLottery::hashKey($key))->first() : null;
-    }
-
-    private function organizes(Request $request, OpenLottery $lottery): bool
-    {
-        return $lottery->isOrganizer($this->cookie($request, $lottery, 'organizer'));
+        return new OpenLotteryVisitor($request, $lottery);
     }
 
     private function ensureOrganizer(Request $request, OpenLottery $lottery): void
     {
-        abort_unless($this->organizes($request, $lottery), Status::HTTP_FORBIDDEN);
-    }
-
-    private function remember(OpenLottery $lottery, string $who, string $key): void
-    {
-        Cookie::queue($this->cookieName($lottery, $who), $key, self::A_YEAR, $this->path($lottery));
-    }
-
-    private function cookie(Request $request, OpenLottery $lottery, string $who): ?string
-    {
-        return $request->cookie($this->cookieName($lottery, $who));
-    }
-
-    private function cookieName(OpenLottery $lottery, string $who): string
-    {
-        return "open_{$who}_{$lottery->slug}";
-    }
-
-    private function path(OpenLottery $lottery): string
-    {
-        return "/l/{$lottery->slug}";
+        abort_unless($this->visitor($request, $lottery)->organizes(), Status::HTTP_FORBIDDEN);
     }
 }

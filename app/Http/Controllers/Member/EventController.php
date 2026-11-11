@@ -28,7 +28,7 @@ class EventController extends Controller
             ->when($past, fn ($q) => $q->past(), fn ($q) => $q->upcoming())
             ->with('rsvps')
             ->sorted($past ? 'desc' : 'asc')
-            ->paginate(30)
+            ->paginate(config('lists.per_page.events'))
             ->withQueryString();
 
         return inertia('Member/Events/Index', [

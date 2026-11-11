@@ -106,7 +106,7 @@ class DirectoryService
         );
     }
 
-    /** In the project, with no family; whatever they had asked is settled by it */
+    /** In the project, not in a family yet; whatever they had asked is settled by it */
     private function enter(Project $project, User $user): Membership
     {
         $membership = DB::transaction(function () use ($project, $user) {

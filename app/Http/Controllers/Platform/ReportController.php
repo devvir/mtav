@@ -19,7 +19,7 @@ class ReportController extends Controller
             ->withMax('reports', 'created_at')
             ->orderByDesc('reports_max_created_at')
             ->with(['reports' => fn ($query) => $query->latest()->with('project:id,name')])
-            ->paginate(20, ['id', 'firstname', 'lastname', 'email']);
+            ->paginate(config('lists.per_page.reports'), ['id', 'firstname', 'lastname', 'email']);
 
         return inertia('Platform/Reports', [
             'people' => $people->through(fn (User $person) => [

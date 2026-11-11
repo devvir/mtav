@@ -2,10 +2,12 @@
 
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
+use App\Models\Notification;
 use App\Models\PushSubscription;
 use App\Services\ChatService;
 use App\Services\NotificationService;
 use App\Services\Push\PushSender;
+use App\Services\Push\PushService;
 use App\Services\Push\WebPushSender;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Password;
@@ -16,18 +18,28 @@ use Illuminate\Support\Facades\Password;
  * it), in their own language; a device the browser dropped is forgotten.
  */
 
-/** Delivers nothing: keeps what it was handed, and says which subscriptions are gone */
+/** Delivers nothing: keeps what it was handed on each flush, and says which subscriptions are gone */
 class FakePushSender implements PushSender
 {
     public array $sent = [];
 
     public array $gone = [];
 
-    public function send(PushSubscription $to, array $payload): bool
-    {
-        $this->sent[] = ['endpoint' => $to->endpoint, 'user' => $to->user_id, ...$payload];
+    private array $held = [];
 
-        return ! in_array($to->endpoint, $this->gone, true);
+    public function queue(PushSubscription $to, array $payload): void
+    {
+        $this->held[] = [$to, $payload];
+    }
+
+    public function flush(): array
+    {
+        [$held, $this->held] = [$this->held, []];
+        foreach ($held as [$to, $payload]) {
+            $this->sent[] = ['endpoint' => $to->endpoint, 'user' => $to->user_id, ...$payload];
+        }
+
+        return collect($held)->map(fn (array $one) => $one[0])->filter(fn (PushSubscription $to) => in_array($to->endpoint, $this->gone, true))->values()->all();
     }
 }
 
@@ -40,6 +52,61 @@ beforeEach(function () {
     $this->admin = anAdminOf($this->project);
     $this->member = aMemberOf(aFamily($this->project), ['locale' => 'es_UY']);
 });
+
+/** The deployment's own VAPID keys, real ones: the library signs with them */
+function realPushKeys(): void
+{
+    $keys = Minishlink\WebPush\VAPID::createVapidKeys();
+    config(['services.push.subject' => 'mailto:test@example.com', 'services.push.public_key' => $keys['publicKey'], 'services.push.private_key' => $keys['privateKey']]);
+}
+
+/** A device's keys as a browser makes them: a P-256 public key and a 16-byte secret */
+function realDeviceKeys(): array
+{
+    $encode = fn (string $bytes) => rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
+    $ec = openssl_pkey_get_details(openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]))['ec'];
+
+    return ['public_key' => $encode("\x04" . str_pad($ec['x'], 32, "\0", STR_PAD_LEFT) . str_pad($ec['y'], 32, "\0", STR_PAD_LEFT)), 'auth_token' => $encode(random_bytes(16))];
+}
+
+function devicePointNotOnTheCurve(): array
+{
+    $keys = browserKeys();
+
+    return ['public_key' => $keys['p256dh'], 'auth_token' => $keys['auth']];
+}
+
+/**
+ * The browsers' push services, answering each address with a status (201, by default), one by
+ * one or all at once, and keeping where they were called
+ */
+function pushServiceAnswering(array $statuses): object
+{
+    return new class ($statuses) implements Psr\Http\Client\ClientInterface, Http\Client\HttpAsyncClient {
+        public array $endpoints = [];
+
+        public function __construct(private array $statuses)
+        {
+        }
+
+        public function sendRequest(Psr\Http\Message\RequestInterface $request): Psr\Http\Message\ResponseInterface
+        {
+            $this->endpoints[] = $endpoint = (string) $request->getUri();
+
+            return new GuzzleHttp\Psr7\Response($this->statuses[$endpoint] ?? 201);
+        }
+
+        public function sendAsyncRequest(Psr\Http\Message\RequestInterface $request): Http\Promise\Promise
+        {
+            return new Http\Promise\FulfilledPromise($this->sendRequest($request));
+        }
+    };
+}
+
+function webPushThrough(object $pushServices): WebPushSender
+{
+    return new WebPushSender($pushServices, $pushServices);
+}
 
 /** As a browser gives them: a P-256 point and a 16-byte secret, in base64url without padding */
 function browserKeys(): array
@@ -128,7 +195,7 @@ describe('A chat message\'s title on a device', function () {
 
     $writes = function (array $people, ?string $title = null) {
         $chat = app(ChatService::class);
-        $chat->send($chat->start($this->project, $this->writer, $people, $title), $this->writer, 'Hello');
+        $chat->post($chat->start($this->project, $this->writer, $people, $title), $this->writer, 'Hello');
 
         return collect($this->sender->sent)->firstWhere('endpoint', 'https://fcm.googleapis.com/reader')['title'];
     };
@@ -145,7 +212,7 @@ describe('A chat message\'s title on a device', function () {
         $chat = app(ChatService::class);
         $group = $chat->start($this->project, $this->writer, [$this->reader->id, $this->third->id]);
         $chat->leave($group, $this->third);
-        $chat->send($group, $this->writer, 'Hello');
+        $chat->post($group, $this->writer, 'Hello');
 
         expect(collect($this->sender->sent)->firstWhere('endpoint', 'https://fcm.googleapis.com/reader')['title'])->toBe($this->writer->name);
     });
@@ -164,13 +231,13 @@ describe('A device in trouble', function () {
             {
             }
 
-            public function send(PushSubscription $to, array $payload): bool
+            public function queue(PushSubscription $to, array $payload): void
             {
                 if ($to->endpoint === $this->bad) {
                     throw new ErrorException('Invalid client public key length.');
                 }
 
-                return parent::send($to, $payload);
+                parent::queue($to, $payload);
             }
         };
         app()->instance(PushSender::class, $sender);
@@ -207,7 +274,7 @@ describe('A device in trouble', function () {
         allowDevice($this, $other, 'https://fcm.googleapis.com/other');
         $sender = senderThrowingFor($bad->endpoint);
 
-        app(ChatService::class)->send(
+        app(ChatService::class)->post(
             app(ChatService::class)->start($this->project, $this->admin, [$this->member->id, $other->id]),
             $this->admin,
             'Hello',
@@ -219,7 +286,47 @@ describe('A device in trouble', function () {
     it('is forgotten when the sender cannot encrypt for it, with no call to anywhere', function () {
         $device = $this->member->pushSubscriptions()->create(['endpoint' => 'https://fcm.googleapis.com/bad', 'public_key' => 'x', 'auth_token' => 'y']);
 
-        expect((new WebPushSender())->send($device, ['title' => 't', 'message' => 'm', 'url' => '/', 'tag' => 't']))->toBeFalse();
+        $calls = pushServiceAnswering([]);
+        $sender = webPushThrough($calls);
+        $sender->queue($device, ['title' => 't', 'message' => 'm', 'url' => '/', 'tag' => 't']);
+
+        expect(collect($sender->flush())->pluck('id')->all())->toBe([$device->id])
+            ->and($sender->flush())->toBe([])
+            ->and($calls->endpoints)->toBe([]);
+    });
+
+    it('sends everyone else\'s at once when one device\'s keys cannot be encrypted with, and tells the error log', function () {
+        Exceptions::fake();
+        realPushKeys();
+        $calls = pushServiceAnswering(['https://fcm.googleapis.com/gone' => 410]);
+        // Of a browser's shape, but no point on the curve: only encrypting finds out
+        $bad = $this->member->pushSubscriptions()->create(['endpoint' => 'https://fcm.googleapis.com/bad', ...devicePointNotOnTheCurve()]);
+        $good = $this->member->pushSubscriptions()->create(['endpoint' => 'https://fcm.googleapis.com/good', ...realDeviceKeys()]);
+        $gone = $this->admin->pushSubscriptions()->create(['endpoint' => 'https://fcm.googleapis.com/gone', ...realDeviceKeys()]);
+
+        $sender = webPushThrough($calls);
+        foreach ([$bad, $good, $gone] as $device) {
+            $sender->queue($device, ['title' => 't', 'message' => 'm', 'url' => '/', 'tag' => 't']);
+        }
+        $dropped = $sender->flush();
+
+        expect($calls->endpoints)->toEqualCanonicalizing(['https://fcm.googleapis.com/good', 'https://fcm.googleapis.com/gone'])
+            ->and(collect($dropped)->pluck('id')->all())->toBe([$gone->id]);
+        Exceptions::assertReported(RuntimeException::class);
+        Exceptions::assertReportedCount(1);
+    });
+
+    it('sends what it holds in one go, each to its own push service', function () {
+        realPushKeys();
+        $calls = pushServiceAnswering([]);
+        $sender = webPushThrough($calls);
+        foreach (['https://fcm.googleapis.com/one', 'https://updates.push.services.mozilla.com/two'] as $endpoint) {
+            $sender->queue($this->member->pushSubscriptions()->create(['endpoint' => $endpoint, ...realDeviceKeys()]), ['title' => 't', 'message' => 'm', 'url' => '/', 'tag' => 't']);
+        }
+
+        expect($calls->endpoints)->toBe([])
+            ->and($sender->flush())->toBe([])
+            ->and($calls->endpoints)->toEqualCanonicalizing(['https://fcm.googleapis.com/one', 'https://updates.push.services.mozilla.com/two']);
     });
 });
 
@@ -345,4 +452,40 @@ it('tells the profile which devices send to this person, and only those', functi
     $this->as($this->member)->get(route('profile.edit'))->assertInertia(
         fn ($page) => $page->where('pushDevices', ['https://fcm.googleapis.com/device-1']),
     );
+});
+
+describe('Whom a notification reaches on a device', function () {
+    beforeEach(function () {
+        allowDevice($this, $this->member, 'https://fcm.googleapis.com/member');
+        $this->notice = fn () => Notification::create([
+            'type' => NotificationType::FORUM_TOPIC, 'target' => NotificationTarget::PROJECT, 'target_id' => $this->project->id,
+            'data' => ['title' => 'A title', 'message' => 'A message'],
+        ]);
+    });
+
+    it('pushes nothing to someone about what they did themselves, though the bell has it', function () {
+        app(NotificationService::class)->send(NotificationTarget::PRIVATE, NotificationType::LOTTERY_FAILED, 'notifications.lottery_failed_title', 'notifications.lottery_failed_message', trigger: $this->member, targetId: $this->member->id);
+
+        expect($this->sender->sent)->toBe([]);
+    });
+
+    it('pushes a project\'s notification only to those it is for: not to who joined after it', function () {
+        $notice = ($this->notice)();
+        $this->travel(1)->minutes();
+        $newcomer = aMemberOf(aFamily($this->project));
+        allowDevice($this, $newcomer, 'https://fcm.googleapis.com/newcomer');
+
+        app(PushService::class)->deliver($notice);
+
+        expect(collect($this->sender->sent)->pluck('endpoint')->all())->toBe(['https://fcm.googleapis.com/member']);
+    });
+
+    it('pushes nothing of a project archived meanwhile', function () {
+        $notice = ($this->notice)();
+        $this->project->delete();
+
+        app(PushService::class)->deliver($notice);
+
+        expect($this->sender->sent)->toBe([]);
+    });
 });

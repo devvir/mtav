@@ -6,7 +6,6 @@ use App\Http\Resources\FamilyResource;
 use App\Http\Resources\MemberResource;
 use App\Http\Resources\PlanResource;
 use App\Http\Resources\UnitResource;
-use App\Models\Family;
 use App\Models\FamilyJoinRequest;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -44,15 +43,15 @@ trait ShowsDetails
     /** @return array{person: MemberResource, families: mixed}|null */
     protected function personShown(Request $request, Project $project): ?array
     {
-        $member = $request->integer('person') ? $project->members()
-            ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family')])
-            ->find($request->integer('person')) : null;
+        $member = $request->integer('person')
+            ? $project->members()->withMembershipIn($project)->find($request->integer('person'))
+            : null;
 
         return $member ? [
             'person' => MemberResource::make($member),
             // For admins, who change people's role and family here
             'families' => $request->user()->can('update', $project)
-                ? Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray())
+                ? $project->familyChoices()
                 : null,
         ] : null;
     }

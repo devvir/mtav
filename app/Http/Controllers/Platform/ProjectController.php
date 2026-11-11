@@ -36,7 +36,7 @@ class ProjectController extends Controller
             ->when($filter === 'approved', fn ($q) => $q->whereNotNull('approved_at'))
             ->orderByRaw('approved_at IS NULL AND approval_requested_at IS NOT NULL DESC')
             ->latest()
-            ->paginate(30)
+            ->paginate(config('lists.per_page.projects'))
             ->withQueryString();
 
         return inertia('Platform/Projects', [
@@ -81,10 +81,11 @@ class ProjectController extends Controller
     {
         $request->validate(['confirmation' => ['required', Rule::in([$project->name])]]);
 
-        // The run would end with no project to tell
-        $project->ensureLotteryNotRunning();
-
-        $projects->purge($project);
+        $project->holdingLottery(function () use ($project, $projects) {
+            // The run would end with no project to tell
+            $project->ensureLotteryNotRunning();
+            $projects->purge($project);
+        });
 
         return to_route('admin.projects.index', $project->trashed() ? ['show' => 'archived'] : [])
             ->with('success', __('flash.project_purged', ['project' => $project->name]));

@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\HomeController;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Notifications\AccountExistsNotice;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Response;
 
 /**
@@ -28,14 +27,9 @@ class RegisteredUserController extends Controller
         return HomeController::welcome('register');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'firstname' => ['required', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
-            'email'     => ['required', 'string', 'email', 'max:255'],
-            'password'  => ['required', 'confirmed', Password::defaults()],
-        ]);
+        $data = $request->validated();
         $email = strtolower(trim($data['email']));
 
         $taken = User::firstWhere('email', $email) ?? $this->open($data);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PersonRules;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Invitation;
@@ -61,7 +62,7 @@ class ProjectController extends Controller
 
         // Anyone else is its first admin; a superadmin takes no place in it, and invites who is
         $first = $user->isSuperadmin() ? $request->validate([
-            'first_admin_email' => ['required', 'email', 'max:255'],
+            'first_admin_email' => PersonRules::email(),
         ]) : null;
 
         // One whole: an invitation refused leaves no project behind, holding its name

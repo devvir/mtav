@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OwnFamilyInvitationRequest;
 use App\Http\Resources\InvitationResource;
 use App\Models\Invitation;
 use App\Models\Project;
@@ -30,22 +31,9 @@ class InvitationController extends Controller
         ]);
     }
 
-    public function store(Request $request, Project $project, InvitationService $invitations): RedirectResponse
+    public function store(OwnFamilyInvitationRequest $request, Project $project, InvitationService $invitations): RedirectResponse
     {
-        $family = $request->user()->familyIn($project);
-
-        // From the member app, always into one's own family (an admin with none invites from
-        // the admin area, choosing the family)
-        abort_unless($family, 403);
-        $this->authorize('invite', [$project, $family]);
-
-        $person = $request->validate([
-            'email'     => ['required', 'email', 'max:255'],
-            'firstname' => ['nullable', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
-        ]);
-
-        $result = $invitations->invite($project, $request->user(), $person, $family, asAdmin: false);
+        $result = $invitations->invite($project, $request->user(), $request->validated(), $request->family(), asAdmin: false);
 
         return back()->with('success', $invitations->outcome($result));
     }

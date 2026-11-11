@@ -12,11 +12,8 @@ class ItemDistribution extends TaskRunner
     protected Task $task = Task::ITEM_DISTRIBUTION;
 
     /**
-     * Execute item distribution task (Phase 2).
-     *
-     * Maximizes overall satisfaction given minimum satisfaction constraint from Phase 1.
-     *
-     * @param  array  $context  Must contain 'min_satisfaction' key
+     * Phase 2: everyone as satisfied as possible together, nobody placed worse than S, which
+     * it takes from its context (`min_satisfaction`). No assignment meets S: GlpkInfeasibleException.
      */
     public function execute(LotterySpec $spec, float $timeout): TaskResult
     {

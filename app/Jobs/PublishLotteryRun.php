@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\LotteryRunStatus;
 use App\Models\LotteryRun;
 use App\Services\Lottery\DataObjects\ExecutionResult;
+use App\Services\Lottery\LotteryRuns;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -24,7 +25,7 @@ class PublishLotteryRun implements ShouldQueue
         $this->afterCommit();
     }
 
-    public function handle(): void
+    public function handle(LotteryRuns $runs): void
     {
         $run = $this->run->fresh();
 
@@ -32,13 +33,13 @@ class PublishLotteryRun implements ShouldQueue
             return;
         }
 
-        $run->host()->complete($run, new ExecutionResult($run->result['picks'], $run->result['orphans']));
+        $runs->complete($run, new ExecutionResult($run->result['picks'], $run->result['orphans']));
     }
 
     /** Never left running: a run whose result cannot be written fails, and can run again */
     public function failed(?Throwable $e): void
     {
-        $this->run->host()->fail($this->run, 'lottery.execution_failed', debug: [
+        app(LotteryRuns::class)->fail($this->run, 'lottery.execution_failed', debug: [
             'exception' => $e ? $e::class : null,
             'error'     => $e?->getMessage(),
         ]);

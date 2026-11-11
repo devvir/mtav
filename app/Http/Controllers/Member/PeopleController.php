@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MemberResource;
-use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\PeopleSearch;
@@ -26,13 +25,13 @@ class PeopleController extends Controller
 
         [$people, $whole] = $this->wholeOrPaged(
             $project->members()
-                ->with(['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')])
+                ->withMembershipIn($project)
                 ->alphabetically(),
             fn ($query) => $query
                 ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $manages, nameOnly: $request->user()->isGuestIn($project)))
                 ->when($request->integer('family'), fn ($q, $familyId) => $q->where('memberships.family_id', $familyId))
                 ->when($request->boolean('admins'), fn ($q) => $q->where('memberships.is_admin', true)),
-            40,
+            config('lists.per_page.people'),
         );
 
         return inertia('Member/People/Index', [
@@ -43,7 +42,7 @@ class PeopleController extends Controller
                 'family' => $request->integer('family') ?: null,
                 'admins' => $request->boolean('admins'),
             ],
-            'families' => Family::tellingApart($project->families()->alphabetically()->get(['id', 'name'])->toArray()),
+            'families' => $project->familyChoices(),
             'found'    => fn () => $request->filled('q') ? app(PeopleSearch::class)->find($project, $request->user(), (string) $request->q) : null,
             // Someone's details, shown over the list (?person=19)
             'person' => fn () => $this->personShown($request, $project),
@@ -66,9 +65,10 @@ class PeopleController extends Controller
 
         abort_unless($membership, 404);
 
-        $project->ensureLotteryNotRunning();
-
-        $project->keepingAnAdmin($user, 'membership', fn () => $membership->delete());
+        $project->holdingLottery(function () use ($project, $user, $membership) {
+            $project->ensureLotteryNotRunning();
+            $project->keepingAnAdmin($user, 'membership', fn () => $membership->delete());
+        });
 
         return to_route('home')->with('success', __('flash.project_left', ['project' => $project->name]));
     }

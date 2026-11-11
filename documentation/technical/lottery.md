@@ -14,7 +14,8 @@ never written down. Rankings are locked while a run is running or completed; a r
 
 ## Running it
 
-Once the lottery's date has come, an admin runs it (`LotteryService::run`):
+Once the lottery's date has come, an admin runs it (`LotteryService::run`; a run's life, the
+same for an open lottery, is `LotteryRuns`):
 
 1. In one transaction, with the project locked, it checks the lottery may run: it is
    dated and due, no run is active, a queue worker is alive, there are at least two

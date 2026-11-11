@@ -18,9 +18,7 @@ class InvitationRequest extends FormRequest
         $project = $this->route('project');
 
         return [
-            'email'     => ['required', 'email', 'max:255'],
-            'firstname' => ['nullable', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
+            ...PersonRules::invitee(),
             'is_admin'  => ['boolean'],
             'family_id' => [
                 // Guests come with neither a family nor a role

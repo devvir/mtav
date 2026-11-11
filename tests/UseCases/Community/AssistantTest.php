@@ -66,12 +66,12 @@ function failingBrain(): object
 
 function assistantOf($user, $project): Conversation
 {
-    return Conversation::where('project_id', $project->id)->where('pair', "assistant:{$user->id}")->sole();
+    return Conversation::where('project_id', $project->id)->assistantOf($user)->sole();
 }
 
 function askAssistant($user, $project, string $words = 'Where do I see the plan of the site?'): Message
 {
-    $question = app(ChatService::class)->send(assistantOf($user, $project), $user, $words);
+    $question = app(ChatService::class)->post(assistantOf($user, $project), $user, $words);
 
     return assistantOf($user, $project)->messages()->latest('id')->first() ?? $question;
 }
@@ -140,10 +140,10 @@ describe('Asking', function () {
         Queue::fake([AnswerInChat::class]);
         $chat = app(ChatService::class);
 
-        $chat->send($chat->start($this->project, $this->member, [$this->admin->id]), $this->member, 'To a person');
+        $chat->post($chat->start($this->project, $this->member, [$this->admin->id]), $this->member, 'To a person');
         Queue::assertNotPushed(AnswerInChat::class);
 
-        $chat->send(assistantOf($this->member, $this->project), $this->member, 'To the Assistant');
+        $chat->post(assistantOf($this->member, $this->project), $this->member, 'To the Assistant');
         Queue::assertPushed(AnswerInChat::class);
     });
 
@@ -167,7 +167,7 @@ describe('Asking', function () {
     it('shows as answering until it does', function () {
         Queue::fake([AnswerInChat::class]);
         $conversation = assistantOf($this->member, $this->project);
-        app(ChatService::class)->send($conversation, $this->member, 'Anyone there?');
+        app(ChatService::class)->post($conversation, $this->member, 'Anyone there?');
 
         $listed = fn () => collect($this->as($this->member, $this->project)->getJson(route('chat.panel'))->json('conversations'))->firstWhere('is_assistant', true);
         expect($listed()['answering'])->toBeTrue();
@@ -654,8 +654,8 @@ describe('What needs no model', function () {
         $chat = app(ChatService::class);
         $conversation = assistantOf($this->member, $this->project);
         Queue::fake();
-        $first = $chat->send($conversation, $this->member, 'one thing');
-        $second = $chat->send($conversation, $this->member, 'and another');
+        $first = $chat->post($conversation, $this->member, 'one thing');
+        $second = $chat->post($conversation, $this->member, 'and another');
 
         app(Assistant::class)->answer($first);
         app(Assistant::class)->answer($second);
@@ -669,8 +669,8 @@ describe('What needs no model', function () {
         Queue::fake([AnswerInChat::class]);
         $brain = brainAnswering(['text' => 'Sure', 'actions' => []]);
         $conversation = assistantOf($this->member, $this->project);
-        $first = app(ChatService::class)->send($conversation, $this->member, 'Where is the plan?');
-        $second = app(ChatService::class)->send($conversation, $this->member, 'And the units?');
+        $first = app(ChatService::class)->post($conversation, $this->member, 'Where is the plan?');
+        $second = app(ChatService::class)->post($conversation, $this->member, 'And the units?');
 
         app(Assistant::class)->answer($first);
         expect($brain->asked)->toBe([]);
@@ -759,7 +759,7 @@ describe('Outside any project', function () {
 
     $own = fn ($user) => app(ChatService::class)->assistantFor($user);
     $ask = function ($user, string $words = 'How do I join a cooperative?') use ($own): Message {
-        app(ChatService::class)->send($own($user), $user, $words);
+        app(ChatService::class)->post($own($user), $user, $words);
 
         return $own($user)->messages()->latest('id')->first();
     };

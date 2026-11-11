@@ -23,7 +23,6 @@ class GlpkSolver implements SolverInterface
         protected Glpk $glpk,
         protected SpecBalancer $balancer,
     ) {
-        // ...
     }
 
     /**

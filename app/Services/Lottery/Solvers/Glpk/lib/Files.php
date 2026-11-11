@@ -16,10 +16,8 @@ class Files
     /** @var array<string, string> Maps filenames to their contents for audit trail */
     protected array $artifacts = [];
 
-    public function __construct(
-        protected string $tempDir,
-    ) {
-        // ...
+    public function __construct(protected string $tempDir)
+    {
     }
 
     /**
@@ -159,14 +157,6 @@ class Files
     public function getArtifacts(): array
     {
         return $this->artifacts;
-    }
-
-    /**
-     * Clear stored artifacts (useful for cleanup between executions).
-     */
-    public function clearArtifacts(): void
-    {
-        $this->artifacts = [];
     }
 
     /**

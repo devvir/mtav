@@ -61,11 +61,6 @@ class Project extends Model
         return $this->belongsTo(User::class, 'archived_by');
     }
 
-    /**
-     * Whether it has a history worth keeping for audits: other people took part (or were
-     * invited), it held events (besides its lottery's own), shared files or ran its
-     * lottery. A project its creator only set up has none, and is deleted for good.
-     */
     /** @throws ValidationException when a Limited project holds all the families it may */
     public function ensureRoomForFamily(string $field): void
     {
@@ -111,6 +106,11 @@ class Project extends Model
         });
     }
 
+    /**
+     * Whether it has a history worth keeping for audits: other people took part (or were
+     * invited), it held events (besides its lottery's own), shared files or ran its
+     * lottery. A project its creator only set up has none, and is deleted for good.
+     */
     public function hasHistory(): bool
     {
         return $this->memberships()->when($this->created_by, fn ($people, $creator) => $people->where('user_id', '!=', $creator))->exists()
@@ -126,7 +126,8 @@ class Project extends Model
     }
 
     /**
-     * Everyone taking part in the project (admins and family members).
+     * Everyone taking part in the project, whatever their role: admins, members of its
+     * families, guests and newcomers (the glossary's people, not only its members).
      */
     public function members(): BelongsToMany
     {
@@ -159,6 +160,16 @@ class Project extends Model
     public function families(): HasMany
     {
         return $this->hasMany(Family::class);
+    }
+
+    /**
+     * Its families to choose from, by name, a repeated name telling who is in each
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    public function familyChoices(): array
+    {
+        return Family::tellingApart($this->families()->alphabetically()->get(['id', 'name'])->toArray());
     }
 
     public function unitTypes(): HasMany
@@ -238,7 +249,7 @@ class Project extends Model
      * A list of projects asks it of each: withExists('unitTypes', 'activeLotteryRun') spares
      * the queries.
      */
-    public function acceptsNewcomers(): bool
+    public function takesNewPeople(): bool
     {
         return $this->allows_guests || (($this->unit_types_exists ?? $this->unitTypes()->exists())
             && ! ($this->active_lottery_run_exists ?? $this->lotteryLocked()));

@@ -525,7 +525,7 @@ describe('A family emptied while the lottery held it', function () {
         $empty = aFamily($this->project, $this->type, ['name' => 'Emptied']);
         $run = $this->project->lotteryRuns()->create(['uuid' => (string) Str::uuid(), 'status' => App\Enums\LotteryRunStatus::RUNNING, 'solver' => 'glpk', 'started_at' => now()]);
 
-        app(App\Services\LotteryService::class)->fail($run, 'It broke');
+        app(App\Services\Lottery\LotteryRuns::class)->fail($run, 'It broke');
 
         expect($empty->fresh()->trashed())->toBeTrue();
     });

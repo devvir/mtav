@@ -1,19 +1,17 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk;
 
 /**
- * Generates GLPK model files (.mod) for lottery optimization.
+ * The GLPK models (.mod) of each task, in GMPL. Ranks are 1 for the most wanted: "satisfaction"
+ * is better the lower the rank.
  */
 class ModelGenerator
 {
     /**
      * Generate Phase 1 model: Maximize minimum satisfaction (max-min fairness).
      *
-     * Objective: Find the optimal worst-case satisfaction level.
-     * The model minimizes z, which represents the worst satisfaction any participant receives.
+     * It minimizes z, the worst rank any participant receives: its optimum is S.
      */
     public function generatePhase1Model(): string
     {
@@ -92,13 +90,14 @@ GMPL;
     /**
      * Generate item selection model for surplus items scenario.
      *
-     * This model selects exactly M items from a larger set while minimizing worst-case
-     * satisfaction. Used as pre-phase when heuristic pruning leaves more items than needed.
+     * This model selects exactly M items from a larger set while minimizing the worst rank any
+     * participant receives. Used before phase 1 when the pruning by top choices
+     * (SpecBalancer) still leaves more items than participants.
      *
      * Variables:
      * - x[p,i]: Assignment of participant p to item i (binary)
      * - u[i]: Whether item i is used (binary)
-     * - z: Worst-case satisfaction level (integer)
+     * - z: The worst rank any participant receives (integer)
      *
      * The model finds which M items to keep such that the assignment has the best
      * worst-case outcome (max-min fairness).

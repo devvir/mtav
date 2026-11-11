@@ -2,21 +2,16 @@
 
 namespace App\Services;
 
-use App\Enums\LotteryRunStatus;
 use App\Events\OpenLotteryChanged;
-use App\Jobs\PublishLotteryRun;
 use App\Jobs\PurgeStaleOpenLotteries;
-use App\Jobs\RunLottery;
 use App\Models\LotteryRun;
 use App\Models\OpenLottery;
 use App\Models\OpenLotteryItem;
 use App\Models\OpenLotteryParticipant;
-use App\Models\PlatformSetting;
-use App\Services\Lottery\AuditService;
 use App\Services\Lottery\Contracts\LotteryHost;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
-use App\Services\Lottery\Enums\LotteryAuditType;
+use App\Services\Lottery\LotteryRuns;
 use App\Services\Queue\Workers;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +25,7 @@ use Illuminate\Validation\ValidationException;
  */
 class OpenLotteryService implements LotteryHost
 {
-    public function __construct(private AuditService $audits)
+    public function __construct(private LotteryRuns $runs)
     {
     }
 
@@ -143,10 +138,10 @@ class OpenLotteryService implements LotteryHost
         ];
     }
 
-    /** @throws ValidationException when something unusual was not confirmed */
+    /** @throws ValidationException when it may not run, or something unusual was not confirmed */
     public function run(OpenLottery $lottery, bool $confirmed): LotteryRun
     {
-        $run = DB::transaction(function () use ($lottery, $confirmed) {
+        $run = $this->runs->start($lottery->runs(), function () use ($lottery, $confirmed) {
             OpenLottery::whereKey($lottery->id)->lockForUpdate()->first();
 
             if (! $lottery->isOpen()) {
@@ -162,24 +157,14 @@ class OpenLotteryService implements LotteryHost
             if (! $confirmed && ($ready['unranked'] || $ready['left_out'] || $ready['left_over'])) {
                 throw ValidationException::withMessages(['run' => __('open_lottery.confirm')]);
             }
-
-            return $lottery->runs()->create([
-                'uuid'       => (string) Str::uuid(),
-                'status'     => LotteryRunStatus::RUNNING,
-                'solver'     => config('lottery.default'),
-                'started_at' => now(),
-                'reveal_at'  => now()->addSeconds((int) PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS)),
-            ]);
         });
 
-        $this->audits->record($this->manifest($run), LotteryAuditType::INIT, ['manifest' => $this->manifest($run)->jsonSerialize()]);
-
-        RunLottery::dispatch($run);
         $this->changed($lottery);
 
         return $run;
     }
 
+    /** What a run decides from: everyone's whole ranking, in one group */
     public function manifest(LotteryRun $run): LotteryManifest
     {
         $lottery = $run->openLottery;
@@ -193,44 +178,23 @@ class OpenLotteryService implements LotteryHost
         ]);
     }
 
-    public function solved(LotteryRun $run, ExecutionResult $result): void
+    /** Each person gets their item */
+    public function assign(LotteryRun $run, ExecutionResult $result): void
     {
-        if (! $run->reveal_at || $run->reveal_at->isPast()) {
-            $this->complete($run, $result);
-
-            return;
+        foreach ($result->picks as $participantId => $itemId) {
+            OpenLotteryParticipant::whereKey($participantId)->update(['item_id' => $itemId]);
         }
-
-        $run->update(['result' => ['picks' => $result->picks, 'orphans' => $result->orphans]]);
-        PublishLotteryRun::dispatch($run)->delay($run->reveal_at);
     }
 
-    public function complete(LotteryRun $run, ExecutionResult $result): void
+    /** Pages open on it show who got what */
+    public function completed(LotteryRun $run): void
     {
-        DB::transaction(function () use ($run, $result) {
-            foreach ($result->picks as $participantId => $itemId) {
-                OpenLotteryParticipant::whereKey($participantId)->update(['item_id' => $itemId]);
-            }
-
-            $run->update(['status' => LotteryRunStatus::COMPLETED, 'finished_at' => now(), 'result' => null]);
-        });
-
         $this->changed($run->openLottery);
     }
 
-    /**
-     * It decided nothing: the organizer may try again. A run that already finished stays as it
-     * is (what failed came after it): a failure never reopens a lottery that decided.
-     */
-    public function fail(LotteryRun $run, string $messageKey, array $messageParams = [], array $debug = []): void
+    /** It decided nothing: the organizer may try again */
+    public function failed(LotteryRun $run): void
     {
-        if ($run->fresh()?->status !== LotteryRunStatus::RUNNING) {
-            return;
-        }
-
-        $this->audits->record($run->id, LotteryAuditType::FAILURE, ['message' => __($messageKey, $messageParams), ...$debug]);
-        $run->update(['status' => LotteryRunStatus::FAILED, 'finished_at' => now(), 'failure' => LotteryRun::failureOf($messageKey, $messageParams)]);
-
         $this->changed($run->openLottery);
     }
 

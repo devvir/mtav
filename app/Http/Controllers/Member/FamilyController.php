@@ -17,7 +17,6 @@ use App\Services\NotificationService;
 use App\Services\PeopleSearch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Response;
 
 class FamilyController extends Controller
@@ -37,7 +36,7 @@ class FamilyController extends Controller
                 ->alphabetically(),
             fn ($query) => $query
                 ->when($request->q, fn ($q, $search) => $q->search($search, byEmail: $request->user()->can('update', $project), nameOnly: $request->user()->isGuestIn($project))),
-            30,
+            config('lists.per_page.families'),
         );
 
         return inertia('Member/Families/Index', [
@@ -59,8 +58,8 @@ class FamilyController extends Controller
     }
 
     /**
-     * Finding one's family, or starting it: with none (let in without guests it comes first:
-     * ResolveProject brings them here), or in the wrong one. Names only: nobody's contact
+     * Finding one's family, or starting it: not joined yet (let in without guests it comes
+     * first: ResolveProject brings them here), or joined in the wrong one. Names only: nobody's contact
      * details, to someone who may not belong here.
      */
     public function create(Request $request, Project $project): Response
@@ -100,31 +99,13 @@ class FamilyController extends Controller
         return to_route('projects.show', $project)->with('success', __('flash.family_left'));
     }
 
-    /**
-     * Someone taking part with no family starts theirs, and is in it. Under the name of an
-     * archived family they were in, that family takes them back, ranking and all (not one that
-     * declined them); anyone else gets a new family of that name.
-     */
-    public function store(FamilyRequest $request, Project $project): RedirectResponse
+    /** Someone taking part who has not joined their family here starts it, and is in it */
+    public function store(FamilyRequest $request, Project $project, FamilyService $families): RedirectResponse
     {
         $this->authorize('createOwnFamily', $project);
 
         $user = $request->user();
-
-        DB::transaction(function () use ($request, $project, $user) {
-            $data = $request->validated();
-            $family = Family::onlyTrashed()->where('project_id', $project->id)->where('name', $data['name'])
-                ->whereHas('everyone', fn ($query) => $query->whereKey($user->id))
-                ->whereDoesntHave('joinRequests', fn ($query) => $query->declined()->where('user_id', $user->id))
-                ->latest('deleted_at')
-                ->first();
-
-            $family?->restore();
-            $family?->update($data);
-            $family ??= $project->families()->create($data);
-            $user->membershipIn($project)->update(['family_id' => $family->id]);
-            $user->unsetRelation('memberships');
-        });
+        $families->start($user, $project, $request->validated());
 
         $this->notifications->bundle($project, NotificationType::FAMILIES_ADDED, 'families_added', $user, route('families.index', $project));
 

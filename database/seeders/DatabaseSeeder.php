@@ -358,7 +358,7 @@ class DatabaseSeeder extends Seeder
     private function askedTheAssistant(User $member, Project $project): void
     {
         $member->forceFill(['welcomed_at' => now()])->save();
-        $conversation = Conversation::where('project_id', $project->id)->where('pair', "assistant:{$member->id}")->sole();
+        $conversation = Conversation::where('project_id', $project->id)->assistantOf($member)->sole();
         $say = function (array $attributes, string $body) use ($conversation) {
             $message = new Message(['body' => $body]);
             $message->forceFill(['conversation_id' => $conversation->id, ...$attributes])->save();
@@ -452,17 +452,6 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Forum topics, opened days ago, their replies over the hours after
-     *
-     * @param array<array{0: string, 1: User, 2: string, 3: int, 4: array<array{0: User, 1: string}>, 5: bool, 6: bool}> $topics
-     */
-    /**
-     * Conversations, their messages over the hours after they began (days ago); the last
-     * of each unread by whoever did not write it
-     *
-     * @param array<array{0: list<User>, 1: ?string, 2: int, 3: array<array{0: User, 1: string}>}> $chats
-     */
-    /**
      * What people said in the project's Community group, over the day it began and those after
      *
      * @param array<array{0: User, 1: string}> $messages
@@ -472,21 +461,32 @@ class DatabaseSeeder extends Seeder
         $conversation = Conversation::where('project_id', $project->id)->where('is_community', true)->sole();
         $when = now()->subDays($daysAgo)->setTime(9, 15);
         foreach ($messages as $index => [$author, $body]) {
-            $this->at($when->copy()->addHours($index * 7), fn () => $this->chat->send($conversation, $author, $body));
+            $this->at($when->copy()->addHours($index * 7), fn () => $this->chat->post($conversation, $author, $body));
         }
     }
 
+    /**
+     * Conversations, their messages over the hours after they began (days ago); the last
+     * of each unread by whoever did not write it
+     *
+     * @param array<array{0: list<User>, 1: ?string, 2: int, 3: array<array{0: User, 1: string}>}> $chats
+     */
     private function chats(Project $project, array $chats): void
     {
         foreach ($chats as [$people, $title, $daysAgo, $messages]) {
             $when = now()->subDays($daysAgo)->setTime(18, 40);
             $conversation = $this->at($when, fn () => $this->chat->start($project, $people[0], array_map(fn ($person) => $person->id, array_slice($people, 1)), $title));
             foreach ($messages as $index => [$author, $body]) {
-                $this->at($when->copy()->addMinutes(4 + $index * 9), fn () => $this->chat->send($conversation, $author, $body));
+                $this->at($when->copy()->addMinutes(4 + $index * 9), fn () => $this->chat->post($conversation, $author, $body));
             }
         }
     }
 
+    /**
+     * Forum topics, opened days ago, their replies over the hours after
+     *
+     * @param array<array{0: string, 1: User, 2: string, 3: int, 4: array<array{0: User, 1: string}>, 5: bool, 6: bool}> $topics
+     */
     private function topics(Project $project, array $topics): void
     {
         foreach ($topics as [$title, $author, $body, $daysAgo, $replies, $pinned, $closed]) {

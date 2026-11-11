@@ -155,7 +155,8 @@ class ProjectService
             DB::table('families')->where('project_id', $project->id)->delete();
             $project->forceDelete();
         });
-        Storage::disk(Media::DISK)->deleteDirectory("projects/{$project->id}");
+        // Once it is gone for good: a deletion taken back keeps its files
+        DB::afterCommit(fn () => Storage::disk(Media::DISK)->deleteDirectory("projects/{$project->id}"));
     }
 
     /**

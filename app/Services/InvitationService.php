@@ -22,8 +22,8 @@ use Illuminate\Validation\ValidationException;
  * People join a project by invitation: an emailed link, valid for a few days, that
  * creates their account (or adds the project to an existing one). Someone who already has
  * an account also finds it in the app, under its bell, leading to where they join.
- * Someone already taking part with no family, other than an admin, needs no invitation to
- * enter one: they are added at once, and told.
+ * Someone already taking part who has not joined their family, other than an admin, needs no
+ * invitation to enter it: they are added at once, and told.
  */
 class InvitationService
 {
@@ -48,19 +48,20 @@ class InvitationService
 
         $this->ensureNotAlreadyIn($project, $email, $family, $asAdmin);
 
-        $familyless = $family && ! $asAdmin
+        // Someone in the project who has not joined their family: they join it at once
+        $joinsAtOnce = $family && ! $asAdmin
             ? $project->memberships()->whereNull('family_id')->whereRelation('user', 'email', $email)
-                // An admin with no family chose so: they are asked, unless they do it themselves
+                // An admin who has not joined a family chose so: they are asked, unless they do it themselves
                 ->where(fn ($query) => $query->where('is_admin', false)->orWhere('user_id', $inviter->id))
                 ->first()
             : null;
 
         // Limits first: a refused invitation brings no archived family back, empty
-        $familyless || $this->ensureWithinLimits($project, $email);
+        $joinsAtOnce || $this->ensureWithinLimits($project, $email);
         $family && $this->ensureFamilyTakes($family, $email, $inviter);
 
-        if ($familyless) {
-            return $this->addToFamily($familyless, $family, $inviter);
+        if ($joinsAtOnce) {
+            return $this->addToFamily($joinsAtOnce, $family, $inviter);
         }
 
         $token = Str::random(48);
@@ -219,9 +220,12 @@ class InvitationService
         }
 
         if ($family->trashed()) {
-            $family->project->ensureLotteryNotRunning();
-            $family->project->ensureRoomForFamily('email');
-            $family->restore();
+            // With the project held still: a run starting meanwhile has this family, or it is refused
+            $family->project->holdingLottery(function () use ($family) {
+                $family->project->ensureLotteryNotRunning();
+                $family->project->ensureRoomForFamily('email');
+                $family->restore();
+            });
         }
     }
 

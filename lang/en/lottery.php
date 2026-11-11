@@ -9,7 +9,6 @@ return [
 
     'running'               => 'The lottery is running. Units and families can change once it ends.',
     'execution_failed'      => 'Something went wrong while running the lottery. Try again. If it keeps failing, contact the platform team.',
-    'requires_confirmation' => 'Confirm before running the lottery.',
 
     'cannot_run_already_run'      => 'The lottery already ran.',
     'cannot_run_no_worker'        => 'The lottery can\'t run right now. We\'re looking into it. Try again later.',

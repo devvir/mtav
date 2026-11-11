@@ -40,7 +40,7 @@ class MediaController extends Controller
             ->with('owner:id,firstname,lastname')
             ->when($request->q, fn ($q, $search) => $q->search($search))
             ->latest()->latest('id')
-            ->paginate(24)
+            ->paginate(config('lists.per_page.media'))
             ->withQueryString();
 
         return inertia('Member/Media/Index', [

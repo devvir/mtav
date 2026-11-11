@@ -31,7 +31,7 @@ class DemoSignIn
 
     /**
      * Every demo account, with what it is: support (a superadmin), admin of a project, member of
-     * one (in a family, admin of it or not), guest (in one, with no family and not its admin);
+     * one (in a family, admin of it or not), guest (in one, not joined their family, and not its admin);
      * several at once when so. By role, then by name.
      *
      * @return Collection<int, array{id: int, name: string, email: string, roles: list<string>}>

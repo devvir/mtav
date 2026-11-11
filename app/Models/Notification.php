@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\NotificationTarget;
 use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
@@ -29,24 +28,15 @@ class Notification extends Model
         'target_id' => 'integer',
     ];
 
-    public function trigger(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'triggered_by');
-    }
-
     public function readers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'notification_reads')->withPivot('read_at');
     }
 
-    /** Whom it tells: never, in a project or the platform, the one who did what it tells */
+    /** Whether it is among those this person receives (scopeFor, the one rule of who gets what) */
     public function isFor(User $user): bool
     {
-        return match ($this->target) {
-            NotificationTarget::PRIVATE => $this->target_id === $user->id,
-            NotificationTarget::PROJECT => $user->canAccess($this->target_id) && $this->triggered_by !== $user->id,
-            NotificationTarget::GLOBAL  => $user->isSuperadmin() && $this->triggered_by !== $user->id,
-        };
+        return static::for($user)->whereKey($this->id)->exists();
     }
 
     public function markAsReadBy(User $user): void

@@ -31,7 +31,7 @@ class PeopleSearch
             ->get();
 
         $people = fn () => $project->members()
-            ->with(['memberships' => fn ($query) => $query->where('project_id', $project->id)->with('family:id,name')])
+            ->withMembershipIn($project)
             ->search($q, byEmail: $byEmail, nameOnly: $nameOnly)
             ->alphabetically()
             ->limit(self::LIMIT);

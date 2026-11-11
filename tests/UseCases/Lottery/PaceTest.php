@@ -48,7 +48,7 @@ it('shows the lottery running for the time set, the result held until then', fun
         ->and($page->inertiaProps('pace.reveal_at'))->not->toBeNull();
     Queue::assertPushed(PublishLotteryRun::class, fn ($job) => $job->delay->equalTo($run->reveal_at));
 
-    (new PublishLotteryRun($run))->handle(app(App\Services\LotteryService::class));
+    (new PublishLotteryRun($run))->handle(app(App\Services\Lottery\LotteryRuns::class));
 
     expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED)
         ->and($this->family->fresh()->unit)->not->toBeNull();

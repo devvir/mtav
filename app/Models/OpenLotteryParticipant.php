@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,6 +17,12 @@ class OpenLotteryParticipant extends Model
     protected $hidden = ['key'];
 
     protected $casts = ['ranked_at' => 'datetime', 'removed_at' => 'datetime'];
+
+    /** Whoever holds this secret (only its hash is stored) */
+    public function scopeByKey(Builder $query, string $key): void
+    {
+        $query->where('key', OpenLottery::hashKey($key));
+    }
 
     public function lottery(): BelongsTo
     {

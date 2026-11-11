@@ -25,11 +25,14 @@ beforeEach(function () {
     $this->pushed = new class () implements PushSender {
         public array $to = [];
 
-        public function send(App\Models\PushSubscription $to, array $payload): bool
+        public function queue(App\Models\PushSubscription $to, array $payload): void
         {
             $this->to[] = $to->user_id;
+        }
 
-            return true;
+        public function flush(): array
+        {
+            return [];
         }
     };
     app()->instance(PushSender::class, $this->pushed);
@@ -43,7 +46,7 @@ function reachedBy($test, string $body): array
 {
     Event::fake([MessageSent::class]);
     // Its devices too: the queue delivers at once here
-    $test->chat->send($test->group, $test->ana, $body);
+    $test->chat->post($test->group, $test->ana, $body);
 
     $channels = [];
     Event::assertDispatched(MessageSent::class, function (MessageSent $event) use (&$channels) {
@@ -83,7 +86,7 @@ it('reaches no blocked account, whose devices are forgotten', function () {
 });
 
 it('tells nobody who left of a message edited or deleted', function () {
-    $message = $this->chat->send($this->group, $this->ana, 'Hello');
+    $message = $this->chat->post($this->group, $this->ana, 'Hello');
     $this->carla->memberships()->where('project_id', $this->project->id)->first()->delete();
     Event::fake([MessageChanged::class]);
 
@@ -96,7 +99,7 @@ it('tells nobody who left of a message edited or deleted', function () {
 
 it('lets whoever left read nothing new', function () {
     $this->carla->memberships()->where('project_id', $this->project->id)->first()->delete();
-    $this->chat->send($this->group, $this->ana, 'After Carla left');
+    $this->chat->post($this->group, $this->ana, 'After Carla left');
 
     expect($this->as($this->carla->fresh(), $this->project)->getJson(route('chat.panel', ['conversation' => $this->group->id])))->toBeDenied();
 });

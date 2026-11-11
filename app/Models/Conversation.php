@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProjectFeature;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -30,6 +31,12 @@ class Conversation extends Model
     public static function pairOf(int $one, int $other): string
     {
         return min($one, $other) . ':' . max($one, $other);
+    }
+
+    /** The key of someone's conversation with the Assistant: one per person and project */
+    public static function assistantPairOf(User|int $user): string
+    {
+        return 'assistant:' . ($user instanceof User ? $user->id : $user);
     }
 
     public function project(): BelongsTo
@@ -81,17 +88,38 @@ class Conversation extends Model
             ->when(! $project, fn (Builder $query) => $query->where('is_assistant', true));
     }
 
-    /**
-     * Those with something new for them: a last message after what they read, not theirs
-     */
+    /** Someone's conversation with the Assistant (in a project, or outside any: say where) */
+    public function scopeAssistantOf(Builder $query, User|int $user): void
+    {
+        $query->where('pair', self::assistantPairOf($user));
+    }
+
+    /** Those with something new for them: a last message after what they read, not theirs */
     public function scopeUnreadBy(Builder $query, User $user): void
     {
-        $query->whereNotNull('last_message_id')
-            ->whereExists(fn ($sub) => $sub->from('conversation_user')
-                ->whereColumn('conversation_user.conversation_id', 'conversations.id')
-                ->where('conversation_user.user_id', $user->id)
-                ->where(fn ($read) => $read->whereNull('read_up_to')->orWhereColumn('read_up_to', '<', 'conversations.last_message_id')))
-            ->whereExists(fn ($sub) => $sub->from('messages')
+        $query->whereHas('participants', self::newFor($user));
+    }
+
+    /**
+     * Each with what it is for this person (whose list it is), from their own place in it:
+     * `unread` (as scopeUnreadBy) and `pinned`
+     */
+    public function scopeWithPlaceOf(Builder $query, User $user): void
+    {
+        $query->withExists([
+            'participants as unread' => self::newFor($user),
+            'participants as pinned' => fn (Builder $place) => $place->whereKey($user->id)->whereNotNull('conversation_user.pinned_at'),
+        ]);
+    }
+
+    /** Their place in a conversation, where its last message came after what they read and is not theirs */
+    private static function newFor(User $user): Closure
+    {
+        return fn (Builder $place) => $place->whereKey($user->id)
+            ->whereNotNull('conversations.last_message_id')
+            ->where(fn (Builder $read) => $read->whereNull('conversation_user.read_up_to')
+                ->orWhereColumn('conversation_user.read_up_to', '<', 'conversations.last_message_id'))
+            ->whereExists(fn ($last) => $last->from('messages')
                 ->whereColumn('messages.id', 'conversations.last_message_id')
                 ->where(fn ($by) => $by->whereNull('messages.user_id')->orWhere('messages.user_id', '!=', $user->id)));
     }

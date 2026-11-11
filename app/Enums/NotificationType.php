@@ -4,10 +4,8 @@ namespace App\Enums;
 
 enum NotificationType: string
 {
-    /** Something was added, changed or removed in a project */
+    /** Something was added to a project */
     case RESOURCE_CREATED = 'resource_created';
-    case RESOURCE_UPDATED = 'resource_updated';
-    case RESOURCE_DELETED = 'resource_deleted';
 
     /** People */
     case MEMBER_JOINED = 'member_joined';

@@ -43,13 +43,13 @@ class Media extends Model
         'height'    => 'integer',
     ];
 
-    /** Taken back right after sharing it, it simply goes */
     /** A kind turned off keeps its files, and shows none of them */
     public function isOn(): bool
     {
         return $this->project->hasFeature($this->category->feature());
     }
 
+    /** Taken back right after sharing it, it simply goes */
     public function worthKeeping(): bool
     {
         return ! $this->isFresh();

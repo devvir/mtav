@@ -34,7 +34,7 @@ class DirectoryController extends Controller
             ->withCount('members', 'units')
             ->withExists(['unitTypes', 'activeLotteryRun'])
             ->orderBy('name')
-            ->paginate(24)
+            ->paginate(config('lists.per_page.directory'))
             ->withQueryString();
 
         return inertia('Projects/Directory', [

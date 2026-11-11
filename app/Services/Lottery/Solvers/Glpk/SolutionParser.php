@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk;
 
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;

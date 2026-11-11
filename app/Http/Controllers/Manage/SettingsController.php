@@ -34,11 +34,13 @@ class SettingsController extends Controller
         $this->authorize('delete', $project);
 
         $request->validate(['confirmation' => ['required', Rule::in([$project->name])]]);
-        // The run would end with no project to tell
-        $project->ensureLotteryNotRunning();
 
         // Archived or deleted for good, it is gone for them either way
-        $projects->remove($project, $request->user());
+        $project->holdingLottery(function () use ($project, $projects, $request) {
+            // The run would end with no project to tell
+            $project->ensureLotteryNotRunning();
+            $projects->remove($project, $request->user());
+        });
 
         return to_route('projects.index')->with('success', __('flash.project_deleted'));
     }

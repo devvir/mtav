@@ -112,7 +112,7 @@ class ForumService
         DB::transaction(function () use ($topic, $by) {
             $topic = $this->hold($topic);
 
-            abort_unless($by->can('delete', $topic) || ($topic->author_id === $by->id && ! $topic->replies_count), 403);
+            abort_unless($by->can('remove', $topic), 403);
 
             $topic->retire();
         });

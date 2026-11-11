@@ -46,6 +46,9 @@ return [
     /** Minutes after sending in which a chat message can still be edited or deleted by whoever wrote it */
     'chat_changes_minutes' => (int) env('CHAT_CHANGES_MINUTES', 60),
 
+    /** The longest message between people (with the Assistant: assistant.message_chars) */
+    'chat_message_chars' => 5000,
+
     /** Days before someone declined may ask to join the same project again */
     'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),
 

@@ -10,7 +10,6 @@ use App\Models\Project;
 use App\Models\User;
 use App\Notifications\FamilyRequestNotification;
 use App\Notifications\JoinedNotification;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -22,6 +21,34 @@ class FamilyService
 {
     public function __construct(private NotificationService $notifications)
     {
+    }
+
+    /**
+     * Someone taking part starts their family, and is in it. Under the name of an archived
+     * family they were in, that family takes them back, ranking and all (not one that declined
+     * them); anyone else gets a new family of that name.
+     *
+     * @param  array{name: string, unit_type_id: int|string}  $data
+     */
+    public function start(User $user, Project $project, array $data): Family
+    {
+        return $project->holdingLottery(function () use ($user, $project, $data) {
+            $project->ensureLotteryNotRunning();
+
+            $family = Family::onlyTrashed()->where('project_id', $project->id)->where('name', $data['name'])
+                ->whereHas('everyone', fn ($query) => $query->whereKey($user->id))
+                ->whereDoesntHave('joinRequests', fn ($query) => $query->declined()->where('user_id', $user->id))
+                ->latest('deleted_at')
+                ->first();
+
+            $family?->restore();
+            $family?->update($data);
+            $family ??= $project->families()->create($data);
+            $user->membershipIn($project)->update(['family_id' => $family->id]);
+            $user->unsetRelation('memberships');
+
+            return $family;
+        });
     }
 
     public function ask(Family $family, User $user): FamilyJoinRequest
@@ -54,10 +81,10 @@ class FamilyService
     {
         $family = $joinRequest->family;
         $user = $joinRequest->user;
-        $family->project->ensureLotteryNotRunning();
         $membership = $user->membershipIn($family->project);
 
-        DB::transaction(function () use ($joinRequest, $membership, $family, $user) {
+        $family->project->holdingLottery(function () use ($joinRequest, $membership, $family, $user) {
+            $family->project->ensureLotteryNotRunning();
             $joinRequest->delete();
             $membership->update(['family_id' => $family->id]);
             $user->unsetRelation('memberships');
@@ -85,10 +112,12 @@ class FamilyService
 
         $this->refuseIf(! $membership?->family_id, 'family_none');
         $this->refuseIf(! $project->allows_guests && ! $membership->is_admin, 'family_cannot_leave');
-        $project->ensureLotteryNotRunning();
 
-        $membership->update(['family_id' => null]);
-        $user->unsetRelation('memberships');
+        $project->holdingLottery(function () use ($project, $membership, $user) {
+            $project->ensureLotteryNotRunning();
+            $membership->update(['family_id' => null]);
+            $user->unsetRelation('memberships');
+        });
     }
 
     /**
@@ -98,23 +127,30 @@ class FamilyService
      */
     public function discardIfEmpty(?Family $family): void
     {
-        if (! $family || $family->trashed() || $family->project->lotteryLocked()) {
+        if (! $family || $family->trashed()) {
             return;
         }
 
-        $inUse = $family->memberships()->exists()
-            || $family->invitations()->pending()->exists()
-            || $family->unit()->exists();
+        $asking = $family->project->holdingLottery(function () use ($family) {
+            $inUse = $family->project->lotteryLocked()
+                || $family->memberships()->exists()
+                || $family->invitations()->pending()->exists()
+                || $family->unit()->exists();
 
-        if ($inUse) {
-            return;
-        }
+            if ($inUse) {
+                return null;
+            }
 
-        $asking = $family->joinRequests()->pending()->with('user')->get();
-        DB::transaction(function () use ($family, $asking) {
+            $asking = $family->joinRequests()->pending()->with('user')->get();
             $asking->each->delete();
             $family->delete();
+
+            return $asking;
         });
+
+        if (! $asking) {
+            return;
+        }
 
         $asking->each(fn (FamilyJoinRequest $joinRequest) => $this->tell(
             $joinRequest->user,

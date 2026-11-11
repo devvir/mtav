@@ -51,19 +51,11 @@ class ProjectPolicy
     }
 
     /**
-     * Admins remove people from the project; anyone may leave it.
-     */
-    public function removeMember(User $user, Project $project, User $member): bool
-    {
-        return $user->manages($project) || $user->is($member);
-    }
-
-    /**
      * From the directory, into a project open to anyone not in it yet.
      */
     public function join(User $user, Project $project): bool
     {
-        return $project->isInDirectory() && $project->open_to_join && $project->acceptsNewcomers() && ! $user->canAccess($project);
+        return $project->isInDirectory() && $project->open_to_join && $project->takesNewPeople() && ! $user->canAccess($project);
     }
 
     /**
@@ -72,7 +64,7 @@ class ProjectPolicy
      */
     public function askToJoin(User $user, Project $project): bool
     {
-        if (! $project->isInDirectory() || $project->open_to_join || ! $project->acceptsNewcomers() || $user->canAccess($project)) {
+        if (! $project->isInDirectory() || $project->open_to_join || ! $project->takesNewPeople() || $user->canAccess($project)) {
             return false;
         }
 
@@ -82,8 +74,8 @@ class ProjectPolicy
     }
 
     /**
-     * Someone taking part starts their family, in one or in the wrong one (an admin with none
-     * has no need of one), until the lottery decided who gets what.
+     * Someone taking part starts their family, not joined yet or joined in the wrong one (an
+     * admin outside any family needs none), until the lottery decided who gets what.
      */
     public function createOwnFamily(User $user, Project $project): bool
     {
@@ -98,11 +90,6 @@ class ProjectPolicy
     }
 
     public function runLottery(User $user, Project $project): bool
-    {
-        return $user->manages($project);
-    }
-
-    public function invalidateLottery(User $user, Project $project): bool
     {
         return $user->manages($project);
     }

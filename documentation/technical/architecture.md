@@ -14,6 +14,10 @@ quickly. The lottery, notifications, data and delivery have guides of their own.
 | Its settings | `/projects/{project}/manage/…` | its admins | `Controllers/Manage`, `pages/Manage` |
 | The console | `/admin/…` | the platform's superadmins | `Controllers/Platform`, `pages/Platform` |
 
+`Member` in these names (`Controllers/Member`, `pages/Member`, `Project::members()`,
+`MemberResource`) means anyone in the project, whatever their role: wider than the
+[glossary](../../VOCABULARY.md)'s member, someone in a family.
+
 A project has one set of pages, the same for everyone; admins find their tools on them
 (adding units, families, events; drawing the plan; running the lottery), sent to routes
 under `manage/`, which are gated as a whole. What only admins have a page for (setting the
@@ -90,17 +94,20 @@ the same.
 Inside a project, a family exists while it holds someone (`FamilyService`): members, an open
 invitation, or the unit it received. People ask to join one (`FamilyJoinRequest`), any member
 answering; a decline stays until a member lifts it. Whatever leaves a family with nobody archives
-it and tells the admins (`Membership` and `Invitation` events, and a job sent ahead to each
+it and tells the admins (`MembershipObserver`, `Invitation` events, and a job sent ahead to each
 invitation's expiry). An admin's invitation brings it back, ranking included, as does someone who
 was in it (`family_people` keeps who ever was) starting a family under its name; anyone else
-choosing that name gets a new family, since names repeat.
+choosing that name gets a new family, since names repeat. Whatever changes what a run decides
+from (families, their unit types and people, units, rankings) holds the project as starting a
+run does (`Project::holdingLottery`): a run starting at the same moment has the change, or the
+change is refused while it is solved.
 
 Someone with neither a family nor a role is a **guest**, where the project `allows_guests`:
 they take part in everything but ranking and inviting, and never see people's email or phone
 (`MemberResource`, and searches by name only). Without guests, whoever is let in creates their
 family before anything else (`ResolveProject` brings them to it, and it is all they can reach)
 or someone of the family adds them. So a project without guests takes nobody new while it has
-no unit types or once the lottery ran (`acceptsNewcomers`), and guests cannot be turned off
+no unit types or once the lottery ran (`takesNewPeople`), and guests cannot be turned off
 while there are any, or invitations on their way to some.
 
 Forum, chat, the Assistant (only with the chat), gallery, files and events are on or off per
@@ -163,8 +170,9 @@ families rank from it.
 ## The forum
 
 Topics with posts (`Topic`, `Post`, `ForumService`): anyone in the project opens topics
-and replies; writers edit their posts; admins pin, close and remove topics; writers remove theirs while nobody has replied. A new topic
-is notified to the project, a reply to whoever wrote in the topic before.
+and replies; writers edit their posts; admins pin, close, rename and remove topics; writers
+rename theirs, and remove them while nobody has replied (`TopicPolicy`). A new topic is notified
+to the project, a reply to whoever wrote in the topic before.
 
 ## The chat
 

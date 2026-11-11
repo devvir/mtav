@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
@@ -9,18 +7,25 @@ use App\Services\Lottery\Solvers\Glpk\DataGenerator;
 use App\Services\Lottery\Solvers\Glpk\DataObjects\TaskResult;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 use App\Services\Lottery\Solvers\Glpk\lib\Files;
-use App\Services\Lottery\Solvers\Glpk\lib\Process;
+use App\Services\Lottery\Solvers\Glpk\lib\Glpsol;
 use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
 use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 use Closure;
 
+/**
+ * One GLPK task: writes its model and data, runs glpsol on them and reads the solution. Every
+ * file it writes is kept as an artifact, for the run's audit.
+ */
 abstract class TaskRunner
 {
     abstract protected Task $task { get; }
 
-    protected string $glpsolPath;
     protected Files $files;
-    protected $context = [];
+
+    protected Glpsol $glpsol;
+
+    /** @var array<string, mixed> what a task needs from whoever runs it (e.g. `min_satisfaction`) */
+    protected array $context = [];
 
     public function __construct(
         protected ModelGenerator $modelGenerator,
@@ -29,15 +34,11 @@ abstract class TaskRunner
     ) {
         $config = config('lottery.solvers.glpk.config');
 
-        $this->glpsolPath = $config['glpsol_path'] ?? '/usr/bin/glpsol';
+        $this->glpsol = new Glpsol($config['glpsol_path'] ?? '/usr/bin/glpsol');
         $this->files = new Files($config['temp_dir'] ?? sys_get_temp_dir());
     }
 
-    /**
-     * Set additional context for the task runner.
-     *
-     * @param array<string, mixed>  $context
-     */
+    /** @param array<string, mixed> $context */
     public function withContext(array $context): self
     {
         $this->context = $context;
@@ -45,50 +46,31 @@ abstract class TaskRunner
         return $this;
     }
 
-    /**
-     * Execute the GLPK task.
-     *
-     * @param  array  $context  Additional context data required by specific task runners
-     */
+    /** @param float $timeout  seconds the task may take */
     abstract public function execute(LotterySpec $spec, float $timeout): TaskResult;
 
     /**
-     * Run GLPK solver on model and data files.
+     * Run glpsol on a model and its data, and read what it solved; the files go afterwards,
+     * whatever happened.
      *
-     * Handles execution and cleanup automatically. Files are cleaned up in finally block.
-     *
-     * @param  int  $timeout  Timeout in seconds for GLPK execution
-     * @param  Closure|null  $callback  Optional callback to process solution file (receives filepath as string)
-     *
-     * @return mixed Solution file contents if no callback, otherwise callback result
+     * @param int $timeout  seconds glpsol may take
+     * @param Closure(string): mixed $read  reads the solution file
      */
-    protected function runGlpk(int $timeout, string $modFile, string $datFile, ?Closure $callback = null): mixed
+    protected function runGlpk(int $timeout, string $modFile, string $datFile, Closure $read): mixed
     {
-        $process = new Process($timeout);
         $solFile = $this->files->reserveSolutionPath();
 
-        $command = sprintf(
-            '%s --scale --model %s --data %s --tmlim %d --output %s 2>&1',
-            escapeshellarg($this->glpsolPath),
-            escapeshellarg($modFile),
-            escapeshellarg($datFile),
-            $process->getGlpkTimeout(),
-            escapeshellarg($solFile)
-        );
-
         try {
-            $process->execute($command);
+            $this->glpsol->solve($modFile, $datFile, $solFile, $timeout);
             $this->files->ensureReadable($solFile);
 
-            return $callback ? $callback($solFile) : file_get_contents($solFile);
+            return $read($solFile);
         } finally {
             $this->files->cleanup([$modFile, $datFile, $solFile]);
         }
     }
 
-    /**
-     * Helper to build TaskResult with automatic timing and artifacts collection.
-     */
+    /** What the task found, with how long it took and every file it wrote */
     protected function taskResult(float $startTime, array $data, array $customMetadata = []): TaskResult
     {
         $timeMs = (microtime(true) - $startTime) * 1000;

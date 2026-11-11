@@ -62,7 +62,7 @@ it('does not reach another project\'s files, topics or conversations through the
     $topic = app(ForumService::class)->open($this->other, $owner, 'Theirs', 'Theirs alone');
     $post = $topic->posts()->sole();
     $conversation = app(ChatService::class)->start($this->other, $owner, [anAdminOf($this->other)->id]);
-    $message = app(ChatService::class)->send($conversation, $owner, 'Between us');
+    $message = app(ChatService::class)->post($conversation, $owner, 'Between us');
     $as = fn () => $this->as($user, $this->project);
 
     foreach ([

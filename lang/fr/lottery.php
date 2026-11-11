@@ -9,7 +9,6 @@ return [
 
     'running'               => 'Le tirage est en cours. Les logements et les familles pourront changer quand il sera terminé.',
     'execution_failed'      => 'Un problème est survenu pendant le tirage. Réessayez. Si cela continue, contactez l’équipe de la plateforme.',
-    'requires_confirmation' => 'Confirmez avant de lancer le tirage.',
 
     'cannot_run_already_run'      => 'Le tirage a déjà eu lieu.',
     'cannot_run_no_worker'        => 'Le tirage ne peut pas être lancé pour l’instant. Nous nous en occupons. Réessayez plus tard.',

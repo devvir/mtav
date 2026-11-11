@@ -14,7 +14,7 @@ class ErrorController extends Controller
     public function index(): Response
     {
         return inertia('Platform/Errors', [
-            'errors' => JsonResource::collection(ErrorEntry::latest('last_seen_at')->paginate(30)),
+            'errors' => JsonResource::collection(ErrorEntry::latest('last_seen_at')->paginate(config('lists.per_page.errors'))),
         ]);
     }
 

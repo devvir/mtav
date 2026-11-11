@@ -2,24 +2,11 @@
 
 namespace App\Services\Lottery\Solvers\Glpk\TaskRunners;
 
-use App\Services\Lottery\Solvers\Glpk\DataGenerator;
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
-use App\Services\Lottery\Solvers\Glpk\ModelGenerator;
-use App\Services\Lottery\Solvers\Glpk\SolutionParser;
 
+/** A fresh runner for each task, from the container */
 class TaskRunnerFactory
 {
-    public function __construct(
-        protected ModelGenerator $modelGenerator,
-        protected DataGenerator $dataGenerator,
-        protected SolutionParser $solutionParser,
-    ) {
-        // ...
-    }
-
-    /**
-     * Create a task runner for the specified task.
-     */
     public function make(Task $task): TaskRunner
     {
         return match ($task) {

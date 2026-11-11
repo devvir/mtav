@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Props\ProjectSwitcherProps;
 use App\Models\Project;
 use App\Models\User;
 
@@ -442,4 +443,18 @@ it('keeps a project its lottery is running for, saying why', function () {
         ->assertSessionHasErrors(['lottery' => __('lottery.running')]);
 
     expect(Project::find($project->id))->not->toBeNull();
+});
+
+it('gives a superadmin\'s switcher a few of the platform\'s projects, the one browsed and the one last browsed among them', function () {
+    $projects = collect(range(1, ProjectSwitcherProps::SUPERADMIN_SHOWN + 3))->map(fn (int $n) => aProject(['name' => sprintf('Cooperativa %02d', $n)]));
+    $superadmin = aSuperadmin();
+    $switcher = fn (string $page) => collect($this->as($superadmin)->get($page)->inertiaProps('projects'));
+    $first = $projects->take(ProjectSwitcherProps::SUPERADMIN_SHOWN)->pluck('id')->all();
+
+    $browsed = $switcher(route('projects.show', $projects->last()));
+    $framing = $switcher(route('profile.edit'));
+
+    expect($browsed->pluck('id')->all())->toBe([...$first, $projects->last()->id])
+        ->and($framing->pluck('id')->all())->toBe([...$first, $projects->last()->id])
+        ->and($switcher(route('profile.edit'))->first())->toHaveKeys(['id', 'name', 'organization', 'features', 'is_admin']);
 });

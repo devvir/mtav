@@ -25,25 +25,7 @@ parameters:
 			path: app/Http/Resources/NotificationResource.php
 
 		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: app/Providers/AppServiceProvider.php
-
-		-
 			message: '#^Unsafe usage of new static\(\)\.$#'
 			identifier: new.static
 			count: 1
 			path: app/Services/Lottery/Exceptions/LotteryExecutionException.php
-
-		-
-			message: '#^Variable \$feedback on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.variable
-			count: 1
-			path: app/Services/Lottery/Solvers/Glpk/TaskRunners/HybridDistribution.php
-
-		-
-			message: '#^Variable \$feedback on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.variable
-			count: 1
-			path: app/Services/Lottery/Solvers/Glpk/TaskRunners/MinSatisfaction.php

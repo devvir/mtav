@@ -17,7 +17,7 @@ class NotificationController extends Controller
 
         $notifications = Notification::for($user)
             ->when($request->boolean('unread'), fn ($q) => $q->unreadBy($user))
-            ->paginate(30)
+            ->paginate(config('lists.per_page.notifications'))
             ->withQueryString();
 
         return inertia('Notifications/Index', [

@@ -320,7 +320,7 @@ describe('The Community group', function () {
         $sender->shouldNotReceive('send');
         app()->instance(App\Services\Push\PushSender::class, $sender);
 
-        $message = app(App\Services\ChatService::class)->send($community($project), $author, 'Hello everyone');
+        $message = app(App\Services\ChatService::class)->post($community($project), $author, 'Hello everyone');
         app(App\Services\Push\PushService::class)->deliverMessage($message);
     });
 });
@@ -334,7 +334,7 @@ describe('The window', function () {
     });
 
     it('gets the list, and a conversation it opens, marking it read', function () {
-        app(App\Services\ChatService::class)->send($this->pair, $this->one, 'Hola');
+        app(App\Services\ChatService::class)->post($this->pair, $this->one, 'Hola');
 
         $list = $this->as($this->two, $this->windowed)->getJson(route('chat.panel'))->assertOk();
         expect($list->json('conversation'))->toBeNull()

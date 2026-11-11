@@ -4,13 +4,21 @@ namespace App\Services\Push;
 
 use App\Models\PushSubscription;
 
-/** Hands a notification to a browser's push service */
+/** Hands notifications to browsers' push services: held one by one, then sent together */
 interface PushSender
 {
     /**
-     * @param array{title: string, message: string, url: string, tag: string} $payload
+     * A notification for one device, sent on the next flush()
      *
-     * @return bool Whether the subscription still stands (false: the browser dropped it)
+     * @param array{title: string, message: string, url: string, tag: string} $payload
      */
-    public function send(PushSubscription $to, array $payload): bool;
+    public function queue(PushSubscription $to, array $payload): void;
+
+    /**
+     * Everything held, sent. One device's trouble goes to the error log and stops nobody
+     * else's.
+     *
+     * @return list<PushSubscription> the devices their browsers dropped
+     */
+    public function flush(): array;
 }

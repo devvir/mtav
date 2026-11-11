@@ -256,7 +256,7 @@ describe('An admin', function () {
     it('says why it failed in the language of whoever reads it, whatever the worker spoke', function () {
         $run = aLotteryInProgress($this->project);
 
-        app(App\Services\LotteryService::class)->fail($run, 'lottery.glpk_timeout');
+        app(App\Services\Lottery\LotteryRuns::class)->fail($run, 'lottery.glpk_timeout');
 
         $inEach = collect(['en', 'es_UY', 'fr'])->mapWithKeys(fn ($locale) => [$locale => (function () use ($locale, $run) {
             app()->setLocale($locale);

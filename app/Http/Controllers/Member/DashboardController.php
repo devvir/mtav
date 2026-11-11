@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Member;
 
+use App\Enums\EventType;
 use App\Enums\MediaCategory;
 use App\Enums\ProjectFeature;
 use App\Http\Controllers\Controller;
@@ -47,7 +48,7 @@ class DashboardController extends Controller
                 'unit'       => $family?->unit?->only('id', 'identifier'),
             ],
             'events' => ! $project->hasFeature(ProjectFeature::EVENTS) ? null : Inertia::defer(fn () => EventResource::collection(
-                $project->events()->published()->where('type', '!=', 'lottery')->upcoming()
+                $project->events()->published()->where('type', '!=', EventType::LOTTERY)->upcoming()
                     ->with('rsvps')->orderBy('start_date')->limit(3)->get()
             ), 'events'),
             // Who the project is: a few families, its admins, who joined last
@@ -70,15 +71,13 @@ class DashboardController extends Controller
 
     private function community(Project $project): array
     {
-        $withMembership = ['memberships' => fn ($q) => $q->where('project_id', $project->id)->with('family:id,name')];
-
         return [
             'families' => FamilyResource::collection(
                 $project->families()->withCount('members')->alphabetically()->limit(6)->get()
             ),
-            'admins' => MemberResource::collection($project->admins()->with($withMembership)->alphabetically()->get()),
+            'admins' => MemberResource::collection($project->admins()->withMembershipIn($project)->alphabetically()->get()),
             'latest' => MemberResource::collection(
-                $project->members()->with($withMembership)->orderByPivot('created_at', 'desc')->limit(6)->get()
+                $project->members()->withMembershipIn($project)->orderByPivot('created_at', 'desc')->limit(6)->get()
             ),
         ];
     }

@@ -61,6 +61,12 @@ return [
     /** Which deployment this is, where the host says so: dev, staging or production */
     'deployment' => env('MTAV_ENV'),
 
+    /**
+     * Built assets always, even while a dev server's public/hot sits in the checkout they
+     * share with dev (testing and e2e set it)
+     */
+    'built_assets' => (bool) env('VITE_FORCE_BUILD', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

@@ -82,13 +82,9 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureVite(): void
     {
-        /**
-         * Environments that must always serve built assets (testing, staging,
-         * prod) set VITE_FORCE_BUILD, which points the hot-file check at a
-         * path that never exists. All environments share the repo bind mount,
-         * so without this a dev server's public/hot would switch them to HMR.
-         */
-        if (env('VITE_FORCE_BUILD')) {
+        // Testing and e2e share the checkout with dev: its public/hot would switch them to the
+        // dev server. Pointed at a hot file that never exists, they serve the built assets.
+        if (config('app.built_assets')) {
             Vite::useHotFile(storage_path('framework/never-hot'));
         }
     }

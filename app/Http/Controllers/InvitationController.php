@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PersonRules;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Services\AccountService;
 use App\Services\InvitationService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Response;
 
 /**
@@ -19,7 +19,7 @@ use Inertia\Response;
  */
 class InvitationController extends Controller
 {
-    public function __construct(private InvitationService $invitations)
+    public function __construct(private InvitationService $invitations, private AccountService $accounts)
     {
     }
 
@@ -124,21 +124,13 @@ class InvitationController extends Controller
             throw new HttpResponseException($this->toSignIn($invitation, $token));
         }
 
-        $data = $request->validate([
-            'firstname' => ['required', 'string', 'between:2,80'],
-            'lastname'  => ['nullable', 'string', 'between:2,80'],
-            'password'  => ['required', 'confirmed', Password::defaults()],
-        ]);
+        // Asked only of someone opening an account here: the signed in accept with a tap
+        $person = $request->validate(PersonRules::account());
 
         try {
-            $user = User::create([...$data, 'email' => $invitation->email]);
+            return $this->accounts->open($person, $invitation->email);
         } catch (UniqueConstraintViolationException) {
             throw new HttpResponseException($this->toSignIn($invitation, $token));
         }
-
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return $user;
     }
 }

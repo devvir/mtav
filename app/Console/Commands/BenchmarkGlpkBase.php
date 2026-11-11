@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Console\Commands;
 
 use App\Models\LotteryAudit;
@@ -15,6 +13,10 @@ use App\Services\Lottery\Solvers\GlpkSolver;
 use Exception;
 use Illuminate\Console\Command;
 
+/**
+ * What the GLPK benchmarks share: the solver on its own (nothing audited), one CSV row per
+ * solve, and a line for each in the terminal.
+ */
 abstract class BenchmarkGlpkBase extends Command
 {
     protected $csv;
@@ -24,7 +26,6 @@ abstract class BenchmarkGlpkBase extends Command
 
     protected function configureSolver(int $timeout): void
     {
-        config()->set('lottery.solvers.default', 'glpk');
         config()->set('lottery.solvers.glpk.config.timeout', $timeout);
     }
 
@@ -79,7 +80,7 @@ abstract class BenchmarkGlpkBase extends Command
             $status = 'INFEASIBLE';
         } catch (GlpkTimeoutException $e) {
             $error = $e->getMessage();
-            $status = str_contains(strtolower($error), 'timeout') ? 'TIMEOUT' : 'FAILED';
+            $status = 'TIMEOUT';
         } catch (Exception $e) {
             $error = $e->getMessage();
             $status = 'FAILED';

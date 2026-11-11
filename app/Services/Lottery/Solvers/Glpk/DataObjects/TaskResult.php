@@ -1,11 +1,13 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Services\Lottery\Solvers\Glpk\DataObjects;
 
 use App\Services\Lottery\Solvers\Glpk\Enums\Task;
 
+/**
+ * What a GLPK task found (`data`), and how it went (`metadata`: its time, the files it wrote,
+ * and what each task adds), for the run's audit.
+ */
 class TaskResult
 {
     public function __construct(
@@ -13,22 +15,11 @@ class TaskResult
         public readonly array $data,
         public readonly array $metadata,
     ) {
-        // ...
     }
 
-    /**
-     * Get a specific value from the result data.
-     */
+    /** One value of what it found */
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->data[$key] ?? $default;
-    }
-
-    /**
-     * Get all result data.
-     */
-    public function all(): array
-    {
-        return $this->data;
     }
 }

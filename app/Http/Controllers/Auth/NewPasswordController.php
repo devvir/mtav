@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\NewPasswordRequest;
 use App\Services\AccountService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
@@ -33,14 +33,8 @@ class NewPasswordController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request, AccountService $accounts): RedirectResponse
+    public function store(NewPasswordRequest $request, AccountService $accounts): RedirectResponse
     {
-        $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
         $status = $this->resetPassword($request, $accounts);
 
         if ($status === Password::PasswordReset) {

@@ -30,7 +30,7 @@ class ActivityController extends Controller
             ->when(self::KINDS[$kind] ?? null, fn ($q, $actions) => $q->whereIn('action', $actions))
             ->latest('id')
             // No total: counting a table this long on every look is what would take the time
-            ->simplePaginate(50)
+            ->simplePaginate(config('lists.per_page.activity'))
             ->withQueryString();
 
         return inertia('Platform/Activity', [

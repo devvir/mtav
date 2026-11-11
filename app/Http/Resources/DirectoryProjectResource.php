@@ -37,7 +37,7 @@ class DirectoryProjectResource extends JsonResource
         return match (true) {
             $request->user()->canAccess($this->resource)         => 'in',
             (bool) $asked?->isPending() && ! $this->open_to_join => 'asked',
-            ! $this->acceptsNewcomers()                          => 'closed',
+            ! $this->takesNewPeople()                            => 'closed',
             $this->open_to_join && $this->isInDirectory()        => 'can_join',
             (bool) $asked?->isSettled()                          => 'declined',
             default                                              => 'can_ask',

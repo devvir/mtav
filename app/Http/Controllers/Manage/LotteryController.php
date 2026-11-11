@@ -53,7 +53,7 @@ class LotteryController extends Controller
         try {
             $this->lottery->run($project, $request->user(), $options);
         } catch (LotteryRequiresConfirmationException $e) {
-            return back()->with('confirm', ['option' => $e->getOption(), 'message' => $e->getUserMessage()]);
+            return back()->with('confirm', ['option' => $e->option, 'message' => $e->getUserMessage()]);
         } catch (LotteryExecutionException $e) {
             return back()->with('error', $e->getUserMessage());
         }

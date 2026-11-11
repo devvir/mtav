@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProjectFeature;
 use App\Events\MessageChanged;
 use App\Events\MessageSent;
 use App\Jobs\AnswerInChat;
@@ -68,12 +69,13 @@ class ChatService
     }
 
     /**
-     * Their conversation with the Assistant where joining gave them none: outside any project,
-     * or in one a support account looks after. One, started when first wanted.
+     * Someone's conversation with the Assistant, in a project or outside any: one per person
+     * and project, started when first wanted (joining a project starts its own), pinned to
+     * begin with
      */
     public function assistantFor(User $user, ?Project $project = null): Conversation
     {
-        $mine = fn () => Conversation::where('project_id', $project?->id)->where('pair', "assistant:{$user->id}")->first();
+        $mine = fn () => Conversation::where('project_id', $project?->id)->assistantOf($user)->first();
 
         // A null project repeats under the unique key: two first visits at once take turns
         return $mine() ?? DB::transaction(function () use ($user, $project, $mine) {
@@ -82,7 +84,7 @@ class ChatService
                 return $found;
             }
 
-            $conversation = (new Conversation())->forceFill(['project_id' => $project?->id, 'is_assistant' => true, 'pair' => "assistant:{$user->id}"]);
+            $conversation = (new Conversation())->forceFill(['project_id' => $project?->id, 'is_assistant' => true, 'pair' => Conversation::assistantPairOf($user)]);
             $conversation->save();
             $conversation->participants()->attach($user->id, ['pinned_at' => now()]);
 
@@ -90,19 +92,65 @@ class ChatService
         });
     }
 
-    public function send(Conversation $conversation, User $author, string $body): Message
+    /**
+     * Their conversation with the Assistant, for whoever joining gave none: anyone outside a
+     * project, a support account in one (where the project has the Assistant)
+     */
+    public function assistantWithoutMembership(User $user, ?Project $project): ?Conversation
     {
-        $message = DB::transaction(function () use ($conversation, $author, $body) {
+        if ($project && ($user->membershipIn($project) || ! $project->hasFeature(ProjectFeature::ASSISTANT))) {
+            return null;
+        }
+
+        return $this->assistantFor($user, $project);
+    }
+
+    /** Someone's first arrival, which the Assistant opens its conversation to greet (where it answers at all) */
+    public static function welcomes(User $user): bool
+    {
+        return ! $user->welcomed_at && config('assistant.driver') !== 'off';
+    }
+
+    /**
+     * A message in a conversation: someone's, or with no author the Assistant's (answering a
+     * question, which it holds meanwhile: one deleted first gets no answer). It reaches the
+     * others at once; someone's asks the Assistant in its conversation, and elsewhere goes to
+     * the others' devices.
+     *
+     * @param array<string, mixed>|null $extras what goes with it (the Assistant's buttons)
+     *
+     * @return Message|null null when what it answered was taken back
+     */
+    public function post(Conversation $conversation, ?User $author, string $body, ?array $extras = null, ?Message $answering = null): ?Message
+    {
+        $message = DB::transaction(function () use ($conversation, $author, $body, $extras, $answering) {
+            // Held while answering: a delete waits for the answer, to take it along
+            if ($answering && ! Message::whereKey($answering->id)->lockForUpdate()->exists()) {
+                return null;
+            }
+
             $message = new Message(['body' => $body]);
-            $message->forceFill(['conversation_id' => $conversation->id, 'user_id' => $author->id])->save();
+            $message->forceFill([
+                'conversation_id' => $conversation->id,
+                'user_id'         => $author?->id,
+                'from_assistant'  => ! $author,
+                'extras'          => $extras,
+            ])->save();
             $conversation->forceFill(['last_message_id' => $message->id, 'last_message_at' => $message->created_at])->save();
             // What one writes, one has read
-            $conversation->participants()->updateExistingPivot($author->id, ['read_up_to' => $message->id]);
+            $author && $conversation->participants()->updateExistingPivot($author->id, ['read_up_to' => $message->id]);
 
             return $message;
         });
+        if (! $message) {
+            return null;
+        }
 
-        MessageSent::dispatch($message, $conversation->audience()->pluck('users.id')->all());
+        // What was written stays written, whatever happens to its way to the open pages
+        rescue(fn () => MessageSent::dispatch($message, $conversation->audience()->pluck('users.id')->all()));
+        if (! $author) {
+            return $message;
+        }
         if ($conversation->is_assistant) {
             AnswerInChat::dispatch($message->id);
         } elseif (PushService::enabled()) {

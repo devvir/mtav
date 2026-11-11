@@ -22,6 +22,11 @@ A **membership** is the link between a person and a project, whatever their role
 here. Never say someone "has no family", "does not have a family", or "is familyless". Say they
 "have not joined their family (yet)". Also avoid "user" where "person" or a role says more.
 
+**In code, `Member` is wider:** the project's pages for everyone in it (`Controllers/Member`,
+`pages/Member`), everyone in it (`Project::members()`), and a person as seen there
+(`MemberResource`) take in admins, guests and newcomers too. "Newcomer" in code is only the role
+above; someone new to a project is "new people" (`Project::takesNewPeople()`).
+
 ## Projects
 
 | Word | What it means | In code | Spanish |

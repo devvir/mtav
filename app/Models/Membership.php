@@ -4,15 +4,15 @@ namespace App\Models;
 
 use App\Models\Concerns\BroadcastsProjectChanges;
 use App\Models\Concerns\RecordsActivity;
-use App\Services\FamilyService;
-use Illuminate\Database\Eloquent\Builder;
+use App\Observers\MembershipObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB;
-use LogicException;
 
 /**
- * A user's part in a project: as an admin, as a member of a family, or both.
+ * A user's part in a project: as an admin, as a member of a family, or both. What it brings
+ * along (the chat's Community group and Assistant, its family's place) is MembershipObserver's.
  */
+#[ObservedBy(MembershipObserver::class)]
 class Membership extends Model
 {
     use RecordsActivity;
@@ -45,78 +45,5 @@ class Membership extends Model
     public function family(): BelongsTo
     {
         return $this->belongsTo(Family::class);
-    }
-
-    /** Everyone taking part is in the project's Community group, pinned to begin with, and only they */
-    protected static function booted(): void
-    {
-        // A support account reaches every project by its role, and takes no place in any
-        static::creating(function (Membership $membership) {
-            if (User::whereKey($membership->user_id)->where('is_superadmin', true)->exists()) {
-                throw new LogicException('A superadmin takes no place in a project');
-            }
-        });
-        // A family is shown while someone is in it, however they got there
-        static::saving(function (Membership $membership) {
-            if ($membership->family_id && $membership->isDirty('family_id')) {
-                Family::onlyTrashed()->find($membership->family_id)?->restore();
-            }
-        });
-        // Who was ever in a family: it may take them back, and nobody else
-        static::saved(function (Membership $membership) {
-            if ($membership->family_id && ($membership->wasRecentlyCreated || $membership->wasChanged('family_id'))) {
-                DB::table('family_people')->insertOrIgnore([
-                    'family_id'  => $membership->family_id,
-                    'user_id'    => $membership->user_id,
-                    'created_at' => now(),
-                ]);
-            }
-        });
-        static::created(function (Membership $membership) {
-            // However they got in, what they asked the project is settled by it
-            JoinRequest::where('user_id', $membership->user_id)->where('project_id', $membership->project_id)->delete();
-            $membership->communityGroup()?->participants()->syncWithoutDetaching([$membership->user_id => ['pinned_at' => now()]]);
-            $membership->startWithAssistant();
-        });
-        static::updated(function (Membership $membership) {
-            if ($membership->wasChanged('family_id')) {
-                $membership->family_id && $membership->closeRequests();
-                app(FamilyService::class)->discardIfEmpty(Family::find($membership->getOriginal('family_id')));
-            }
-        });
-        static::deleted(function (Membership $membership) {
-            $membership->communityGroup()?->participants()->detach($membership->user_id);
-            $membership->assistantConversation()->delete();
-            $membership->closeRequests();
-            app(FamilyService::class)->discardIfEmpty(Family::find($membership->family_id));
-        });
-    }
-
-    /** What they were asking no longer stands (a family's decline does) */
-    private function closeRequests(): void
-    {
-        FamilyJoinRequest::pending()->where('user_id', $this->user_id)->where('project_id', $this->project_id)->delete();
-    }
-
-    private function communityGroup(): ?Conversation
-    {
-        return Conversation::where('project_id', $this->project_id)->where('is_community', true)->first();
-    }
-
-    /** Their conversation with the Assistant: theirs alone, pinned to begin with */
-    private function startWithAssistant(): void
-    {
-        $conversation = (new Conversation())->forceFill([
-            'project_id'   => $this->project_id,
-            'is_assistant' => true,
-            'pair'         => "assistant:{$this->user_id}",
-        ]);
-        $conversation->save();
-        $conversation->participants()->attach($this->user_id, ['pinned_at' => now()]);
-    }
-
-    private function assistantConversation(): Builder
-    {
-        return Conversation::where('project_id', $this->project_id)->where('pair', "assistant:{$this->user_id}");
     }
 }

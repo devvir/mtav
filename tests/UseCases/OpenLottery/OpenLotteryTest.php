@@ -280,7 +280,7 @@ describe('Running it', function () {
     it('may try again when a run decided nothing', function () {
         [$lottery, $organizer] = ready();
         $run = $lottery->runs()->create(['uuid' => 'x', 'status' => LotteryRunStatus::RUNNING, 'solver' => 'glpk', 'started_at' => now()]);
-        app(OpenLotteryService::class)->fail($run, 'It broke');
+        app(App\Services\Lottery\LotteryRuns::class)->fail($run, 'It broke');
 
         asOrganizer($this, $lottery, $organizer)->post(route('open.run', $lottery), ['confirmed' => true])->assertSessionHasNoErrors();
 
@@ -440,7 +440,7 @@ describe('A run that failed after it decided', function () {
         asOrganizer($this, $lottery, $organizer)->post(route('open.run', $lottery), ['confirmed' => true])->assertSessionHasNoErrors();
         $run = $lottery->runs()->sole();
 
-        app(OpenLotteryService::class)->fail($run, 'lottery.execution_failed');
+        app(App\Services\Lottery\LotteryRuns::class)->fail($run, 'lottery.execution_failed');
         (new App\Jobs\RunLottery($run))->failed(new RuntimeException('Timed out'));
 
         expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED)

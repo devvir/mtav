@@ -16,7 +16,6 @@ class SpecBalancer
 {
     public function __construct(protected Glpk $glpk)
     {
-        // ...
     }
 
     /**

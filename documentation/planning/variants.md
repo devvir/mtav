@@ -53,7 +53,8 @@ The lottery distributes **items** among **participants**, in **groups** solved o
 works on plain ids and knows nothing of who they are. In MTAV participants are families, items are
 units and groups are unit types. A **host** gives it what to decide and takes the result:
 `LotteryRun::host()` is `LotteryService` for a project, `OpenLotteryService` for an open lottery.
-Runs, the audit, its record and the reveal are the same for both.
+Runs, the audit, its record and the reveal are the same for both: one class, `LotteryRuns`, starts
+each run, holds its result until the reveal, completes it or fails it.
 
 ## Open Lottery
 
@@ -107,7 +108,6 @@ record: each person's ranking, what they got, the whole trail and its fingerprin
 
 ### Out of it, for now
 
-Moving the page data and the cookie identity out of its controller, and comparing it with MTAV's
-lottery for code to share. Deadlines, identical items in quantity, several items per person, choosing groups inside a
+Deadlines, identical items in quantity, several items per person, choosing groups inside a
 lottery, a repeatable tie-break for recomputing a result, a lighter JavaScript bundle (the variant
 ships the whole app's pages today).

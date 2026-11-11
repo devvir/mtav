@@ -1,7 +1,5 @@
 <?php
 
-// Copilot - Pending review
-
 namespace App\Console\Commands;
 
 use App\Services\Lottery\DataObjects\LotterySpec;
@@ -25,7 +23,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  *   php artisan benchmark:glpk:retry --size=20 --scenario=random --iterations=50 --timeout=60
  *
  * Input CSV format (auto-detected from benchmark:glpk):
- *   size,scenario,iteration,time_ms,status,error,spec_hash,result
+ *   size,scenario,iteration,time_ms,status,error,spec,result  (spec and result as JSON)
  *
  * Output:
  *   Creates new CSV with "_retry" suffix containing re-execution results.
@@ -35,7 +33,7 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  *   1. Run benchmark:glpk to collect initial data (may include TIMEOUT/INFEASIBLE/FAILED)
  *   2. Run this command on the output CSV to retry problematic cases
  *   3. Compare original vs retry results to determine if failures are deterministic
- *   4. If failures persist, investigate GLPK model/data files (logged on error)
+ *   4. If failures persist, investigate their specs (the CSV's spec column)
  *
  * @see BenchmarkGlpkSolver For generating initial benchmark data
  * @see scripts/benchmark_analysis/README.md Analysing what it writes
@@ -150,10 +148,10 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
                 continue;
             }
 
-            [$size, $scenario, $iteration, $timeMs, $status, $error, $specHash] = $row;
+            [$size, $scenario, $iteration, , $status, , $specJson] = $row;
 
             // Only retry failures, timeouts, and infeasible cases
-            if (in_array($status, ['FAILED', 'TIMEOUT', 'INFEASIBLE']) && ! empty($specHash)) {
+            if (in_array($status, ['FAILED', 'TIMEOUT', 'INFEASIBLE']) && ! empty($specJson)) {
                 $iterationNum = (int) $iteration;
 
                 // Filter by iteration numbers if --only was specified
@@ -165,7 +163,7 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
                     'size'      => (int) $size,
                     'scenario'  => $scenario,
                     'iteration' => $iterationNum,
-                    'spec'      => $specHash,
+                    'spec'      => $specJson,
                 ];
             }
         }
@@ -179,7 +177,7 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
     {
         $this->displayTableHeader();
 
-        foreach ($failures as $index => $failure) {
+        foreach ($failures as $failure) {
             for ($i = 1; $i <= $iterations; $i++) {
                 $this->retryFailure($failure, $i);
             }
@@ -208,13 +206,13 @@ class BenchmarkGlpkSolverRetry extends BenchmarkGlpkBase
         );
     }
 
-    private function decodeSpec(string $specHash): ?LotterySpec
+    private function decodeSpec(string $specJson): ?LotterySpec
     {
-        $data = json_decode($specHash, true);
+        $data = json_decode($specJson, true);
 
         if ($data === null) {
             $this->warn('JSON decode failed: ' . json_last_error_msg());
-            $this->warn('Spec hash (first 200 chars): ' . substr($specHash, 0, 200));
+            $this->warn('Spec (first 200 chars): ' . substr($specJson, 0, 200));
             return null;
         }
 
