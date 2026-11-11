@@ -48,7 +48,8 @@ class SpecBalancer
     /**
      * Add mock items to balance spec (more participants than items).
      *
-     * Each participant will rank these fake items as 999 (worst possible).
+     * Each participant ranks these fake items after every real one: with n real items, the
+     * k mock items take ranks n+1 … n+k, in the same order for everyone.
      * This lets GLPK decide which participants should lose fairly.
      *
      * @return LotterySpec Balanced spec with same number of items as participants
@@ -110,7 +111,7 @@ class SpecBalancer
     }
 
     /**
-     * Add mock items to every participant's preferences (will be given rank 999, i.e. very bad).
+     * Add mock items to every participant's preferences, after all the real ones (ranks n+1 … n+k).
      *
      * @param array<int, array<int, int>> $participants Original participant preferences
      * @param array<string> $mockItems Array of mock item IDs

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Conversation;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
+use App\Models\SupportInvitation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -68,8 +69,13 @@ class AccountService
             $user->forceFill(['blocked_at' => now(), 'remember_token' => Str::random(60)])->save();
             $user->memberships()->get()->each->delete();
             $user->unsetRelation('memberships');
-            Invitation::pending()->where('email', $user->email)->delete();
+            // One by one: a family waiting only for one of them may have nobody left
+            Invitation::pending()->where('email', $user->email)->get()->each->delete();
             JoinRequest::where('user_id', $user->id)->delete();
+            // Support accounts they invited are theirs no more to give
+            $this->voidSupportInvitations($user);
+            // Nothing reaches their devices any more: unblocked, a device is allowed again
+            $user->pushSubscriptions()->delete();
             $this->endSessions($user);
         });
     }
@@ -81,6 +87,12 @@ class AccountService
             ->where('user_id', $user->id)
             ->when($except, fn ($sessions) => $sessions->where('id', '!=', $except))
             ->delete();
+    }
+
+    /** What someone who no longer runs the platform invited, unanswered yet, is never answered */
+    public function voidSupportInvitations(User $inviter): void
+    {
+        SupportInvitation::where('invited_by', $inviter->id)->whereNull('accepted_at')->delete();
     }
 
     public function unblock(User $user): void

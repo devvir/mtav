@@ -30,6 +30,9 @@ class ChatController extends Controller
     /** Messages a conversation opens with; earlier ones come on asking */
     private const PAGE = 50;
 
+    /** The longest message between people */
+    private const MESSAGE_CHARS = 5000;
+
     public function __construct(private ChatService $chat)
     {
     }
@@ -98,9 +101,9 @@ class ChatController extends Controller
     {
         $this->authorize('writeChat', $conversation);
         abort_unless($conversation->project_id === $project?->id, 404);
-        $data = $request->validate(['body' => ['required', 'string', 'max:' . ($conversation->is_assistant ? config('assistant.message_chars') : 5000)]]);
+        $body = $this->body($request, $conversation);
 
-        $this->chat->send($conversation, $request->user(), trim($data['body']));
+        $this->chat->send($conversation, $request->user(), $body);
 
         return $request->wantsJson() ? response()->json([]) : ($project ? to_route('chat.show', [$project, $conversation]) : to_route('account.chat.index'));
     }
@@ -137,10 +140,22 @@ class ChatController extends Controller
         return $request->wantsJson() ? response()->json([]) : to_route('chat.index', $project)->with('success', __('flash.conversation_left'));
     }
 
+    /** Their own message, reworded within the hour; never in the Assistant's conversation */
+    public function updateMessage(Request $request, ?Project $project, Message $message): RedirectResponse|JsonResponse
+    {
+        abort_unless($message->conversation->project_id === $project?->id, 404);
+        $this->authorize('editMessage', [Conversation::class, $message]);
+
+        $this->chat->edit($message, $this->body($request, $message->conversation));
+
+        return $request->wantsJson() ? response()->json([]) : back();
+    }
+
+    /** Their own message, deleted within the hour (with the Assistant, its answer too) */
     public function destroyMessage(Request $request, ?Project $project, Message $message): RedirectResponse|JsonResponse
     {
-        $this->authorize('unsendMessage', [Conversation::class, $message]);
         abort_unless($message->conversation->project_id === $project?->id, 404);
+        $this->authorize('unsendMessage', [Conversation::class, $message]);
         $this->chat->remove($message);
 
         return $request->wantsJson() ? response()->json([]) : back();
@@ -197,6 +212,14 @@ class ChatController extends Controller
 
             return response()->json(['sent' => true]);
         });
+    }
+
+    /** What a message says, new or edited: some words, short with the Assistant */
+    private function body(Request $request, Conversation $conversation): string
+    {
+        $max = $conversation->is_assistant ? config('assistant.message_chars') : self::MESSAGE_CHARS;
+
+        return trim($request->validate(['body' => ['required', 'string', "max:{$max}"]])['body']);
     }
 
     /**
@@ -275,6 +298,8 @@ class ChatController extends Controller
                 'from_assistant' => $message->from_assistant,
                 'actions'        => $message->extras['actions'] ?? [],
                 'created_at'     => $message->created_at,
+                // Theirs, it may still be edited or deleted until then
+                'changeable_until' => $message->user_id === $request->user()->id && $message->stillChangeable() ? $message->changeableUntil() : null,
             ])->values(),
             'earlier' => $page->count() > $count,
         ];

@@ -75,6 +75,14 @@ class UserController extends Controller
         return inertia('Platform/Superadmins', [
             'superadmins' => User::where('is_superadmin', true)->alphabetically()->get()
                 ->map(fn (User $user) => $user->only('id', 'name', 'email', 'is_owner')),
+            // Sent and not answered yet: taken back from here
+            'invitations' => SupportInvitation::pending()->with('inviter')->latest()->get()
+                ->map(fn (SupportInvitation $invitation) => [
+                    'id'         => $invitation->id,
+                    'email'      => $invitation->email,
+                    'inviter'    => $invitation->inviter?->name,
+                    'expires_at' => $invitation->expires_at,
+                ]),
         ]);
     }
 
@@ -85,7 +93,7 @@ class UserController extends Controller
     public function grant(Request $request): RedirectResponse
     {
         // Emails are kept in lower case
-        $email = strtolower($request->validate(['email' => ['required', 'email']])['email']);
+        $email = strtolower($request->validate(['email' => ['required', 'email', 'max:255']])['email']);
 
         if (User::where('email', $email)->exists()) {
             throw ValidationException::withMessages(['email' => __('validation.support_email_taken')]);
@@ -110,7 +118,7 @@ class UserController extends Controller
     }
 
     /** The role is taken away here; it is only ever given by an invitation (grant) */
-    public function superadmin(Request $request, User $user): RedirectResponse
+    public function superadmin(Request $request, User $user, AccountService $accounts): RedirectResponse
     {
         $grant = $request->validate(['grant' => ['required', 'boolean']])['grant'];
 
@@ -127,9 +135,22 @@ class UserController extends Controller
             throw ValidationException::withMessages(['grant' => __('validation.owner_keeps_role')]);
         }
 
-        $user->forceFill(['is_superadmin' => false])->save();
+        DB::transaction(function () use ($user, $accounts) {
+            $user->forceFill(['is_superadmin' => false])->save();
+            $accounts->voidSupportInvitations($user);
+        });
 
         return back()->with('success', __('flash.superadmin_revoked', ['name' => $user->name]));
+    }
+
+    /** A support invitation taken back before anyone answered it: its link stops working */
+    public function revokeInvitation(SupportInvitation $invitation): RedirectResponse
+    {
+        abort_if((bool) $invitation->accepted_at, 404);
+
+        $invitation->delete();
+
+        return back()->with('success', __('flash.invitation_revoked'));
     }
 
     /** Not oneself, nor anyone who runs the platform: their role goes first */

@@ -3,6 +3,7 @@
 namespace App\Services\Lottery;
 
 use App\Models\LotteryAudit;
+use App\Models\LotteryRun;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\Enums\LotteryAuditType;
 
@@ -21,6 +22,14 @@ class AuditService
             'audit'          => $audit,
             'created_at'     => now(),
         ]);
+    }
+
+    /** What a run decides from, as it recorded it when it started (null: nothing recorded) */
+    public function manifestOf(LotteryRun $run): ?LotteryManifest
+    {
+        $record = $run->audits()->where('type', LotteryAuditType::INIT)->latest('id')->first()?->audit['manifest'] ?? null;
+
+        return $record ? LotteryManifest::recorded($record, $run->id) : null;
     }
 
     /**

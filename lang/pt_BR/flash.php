@@ -11,6 +11,7 @@ return [
     'email_verified'          => 'Seu e-mail está confirmado. Boas-vindas.',
     'email_verification_sent' => 'Enviamos um link de confirmação para :email. Seu e-mail muda quando você confirmar.',
     'email_changed'           => 'Seu e-mail foi mudado.',
+    'signed_up'               => 'Enviamos um e-mail para :email. Abra o link que está nele para continuar.',
     'profile_updated'         => 'Seu perfil foi salvo.',
     'password_updated'        => 'Sua senha foi mudada.',
     'password_confirmed'      => 'Confirmado. Agora faça de novo.',
@@ -78,7 +79,7 @@ return [
     'notifications_read' => 'Todas as notificações foram marcadas como lidas.',
 
     'deploy_dev'              => 'O dev está sendo implantado a partir de :branch. Acompanhe abaixo.',
-    'deploy_production'       => 'A produção está sendo implantada: aguarda a aprovação no GitHub.',
+    'deploy_production'       => ':environment está sendo implantado: aguarda a aprovação no GitHub.',
     'deploy_rollback'         => ':environment volta para a versão anterior.',
     'deploy_fresh'            => ':environment recomeça do zero, com os dados de demonstração. Acompanhe abaixo.',
     'deploy_refused'          => 'O GitHub não iniciou (:status). Verifique o token de implantação.',

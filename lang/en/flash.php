@@ -11,6 +11,7 @@ return [
     'email_verified'          => 'Your email address is confirmed. Welcome.',
     'email_verification_sent' => 'We sent a confirmation link to :email. Your address changes once you confirm it.',
     'email_changed'           => 'Your email address was changed.',
+    'signed_up'               => 'We sent an email to :email. Open the link in it to go on.',
     'profile_updated'         => 'Your profile was saved.',
     'password_updated'        => 'Your password was changed.',
     'password_confirmed'      => 'Confirmed. Now do it again.',
@@ -78,7 +79,7 @@ return [
     'notifications_read' => 'All notifications are marked as read.',
 
     'deploy_dev'              => 'Dev is being deployed from :branch. Follow it below.',
-    'deploy_production'       => 'Production is being deployed: it waits for approval on GitHub.',
+    'deploy_production'       => ':environment is being deployed: it waits for approval on GitHub.',
     'deploy_rollback'         => ':environment is going back to the release before.',
     'deploy_fresh'            => 'Starting :environment over, with the demo data. Follow it below.',
     'deploy_refused'          => 'GitHub did not start it (:status). Check the deploy token.',

@@ -52,6 +52,19 @@ class Conversation extends Model
         return $this->belongsTo(Message::class, 'last_message_id');
     }
 
+    /**
+     * Those in it who may read it now, the only ones told of its messages: still of its project
+     * (or a support account), never a blocked account. Whoever left stays in it, should they
+     * come back, but hears nothing of it meanwhile.
+     */
+    public function audience(): BelongsToMany
+    {
+        return $this->participants()->whereNull('users.blocked_at')
+            ->when($this->project_id, fn (Builder $people) => $people->where(fn (Builder $still) => $still
+                ->where('users.is_superadmin', true)
+                ->orWhereHas('memberships', fn (Builder $membership) => $membership->where('project_id', $this->project_id))));
+    }
+
     public function includes(User $user): bool
     {
         return $this->participants()->whereKey($user->id)->exists();

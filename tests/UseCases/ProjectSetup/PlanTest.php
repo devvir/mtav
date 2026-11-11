@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Requests\PlanRequest;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -185,5 +186,48 @@ describe('Saving a plan with many shapes', function () {
         expect($this->project->plan->items()->find($mine['id']))->type->toBe('street')->floor->toBe(2)
             ->and($this->project->plan->items()->pluck('type')->sort()->values()->all())->toBe(['parking', 'street'])
             ->and($foreign->fresh()->type)->toBe('green');
+    });
+});
+
+describe('What a plan is drawn with', function () {
+    it('takes points as [x, y] only, never as objects, so units still find their place', function () {
+        $square = [['x' => 0, 'y' => 0], ['x' => 800, 'y' => 0], ['x' => 800, 'y' => 600], ['x' => 0, 'y' => 600]];
+        $boundary = $this->project->plan->polygon;
+
+        savePlan($this, [])->assertOk(); // as it is, a plain plan saves
+        $this->as($this->admin, $this->project)->putJson(route('manage.plan.update'), [
+            'width' => 800, 'height' => 600, 'polygon' => $square, 'items' => [],
+        ])->assertJsonValidationErrors('polygon.0');
+        savePlan($this, [['type' => 'green', 'floor' => 0, 'polygon' => $square]])->assertJsonValidationErrors('items.0.polygon.0');
+
+        expect($this->project->plan->fresh()->polygon)->toBe($boundary);
+        $this->post(route('manage.units.store'), ['identifier' => 'A-1', 'unit_type_id' => aUnitType($this->project)->id])
+            ->assertSessionHasNoErrors();
+        $this->post(route('manage.units.store'), [
+            'identifier' => 'A-2', 'unit_type_id' => aUnitType($this->project)->id, 'polygon' => $square,
+        ])->assertSessionHasErrors('polygon.0');
+    });
+
+    it('refuses too many points or shapes at once, before reading each of them', function () {
+        // No point at all: read one by one, each would be refused on its own
+        $points = array_fill(0, 50_000, 'nowhere');
+        $refused = fn ($response) => array_keys($response->assertUnprocessable()->json('errors'));
+
+        expect($refused($this->as($this->admin, $this->project)->putJson(route('manage.plan.update'), [
+            'width' => 800, 'height' => 600, 'polygon' => $points, 'items' => [],
+        ])))->toBe(['polygon'])
+            ->and($refused(savePlan($this, array_fill(0, PlanRequest::MAX_ITEMS + 1, ['type' => 'nothing']))))->toBe(['items'])
+            ->and($refused(savePlan($this, [['type' => 'green', 'floor' => 0, 'polygon' => $points]])))->toBe(['items.0.polygon']);
+    });
+
+    it('draws on floors from 5 below ground to 100 up, and on none past them', function () {
+        $square = [[10, 10], [60, 10], [60, 60], [10, 60]];
+        $on = fn (int $floor) => ['type' => 'building', 'floor' => $floor, 'polygon' => $square];
+
+        savePlan($this, [$on(-5), $on(100)])->assertOk();
+        savePlan($this, [$on(-6)])->assertJsonValidationErrors('items.0.floor');
+        savePlan($this, [$on(101)])->assertJsonValidationErrors('items.0.floor');
+
+        expect($this->project->plan->items()->orderBy('floor')->pluck('floor')->all())->toBe([-5, 100]);
     });
 });

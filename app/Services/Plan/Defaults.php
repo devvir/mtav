@@ -34,16 +34,18 @@ class Defaults
 
         // Calculate plan boundaries from polygon (Point[] format: [[x,y], [x,y], ...])
         $polygon = $plan->polygon;
-        $xs = array_column($polygon, 0);
-        $ys = array_column($polygon, 1);
+        $xs = array_column($polygon, 0) ?: [0];
+        $ys = array_column($polygon, 1) ?: [0];
         $minX = min($xs);
         $minY = min($ys);
         $maxX = max($xs);
 
         $boundaryWidth = $maxX - $minX;
 
-        // Item size (IS) = 2 * (HI - HG)
-        $halfItemSpace = floor(($boundaryWidth - 2 * self::HALF_GAP) / 5 / self::UNITS_PER_ROW) * 2.5;
+        // Item size (IS) = 2 * (HI - HG). A boundary too narrow for a row of them still gets
+        // units of the smallest size there is (one step of 2.5 past the gap), beyond its edge
+        // for the admin to move: never of no size, or turned inside out
+        $halfItemSpace = max(self::HALF_GAP + 2.5, floor(($boundaryWidth - 2 * self::HALF_GAP) / 5 / self::UNITS_PER_ROW) * 2.5);
 
         // Calculate row and column (0-based)
         $row = floor($existingUnits / self::UNITS_PER_ROW);

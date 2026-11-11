@@ -84,6 +84,16 @@ describe('An admin', function () {
         expect($unit?->type)->name->toBe('Penthouse')->project_id->toBe($this->project->id);
     });
 
+    it('refuses a shape of too many corners before looking at any of them', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.units.store'), [
+            'identifier'   => 'Ap. 501',
+            'unit_type_id' => $this->type->id,
+            'polygon'      => array_fill(0, 50_000, ['x', 'y']),
+        ])->assertSessionHasErrors('polygon')->assertSessionDoesntHaveErrors('polygon.0');
+
+        expect($this->project->units()->where('identifier', 'Ap. 501')->exists())->toBeFalse();
+    });
+
     it('changes a unit\'s identifier and type', function () {
         $unit = aUnit($this->type);
         $otherType = aUnitType($this->project);
@@ -184,4 +194,99 @@ describe('A member', function () {
         expect($this->project->units()->where('identifier', 'New')->exists())->toBeFalse()
             ->and($unit->fresh())->identifier->toBe('Original');
     });
+});
+
+describe('Changing a unit', function () {
+    it('moves it to a type that exists, never to one made on the way, and keeps it as it was when asked to', function () {
+        $unit = aUnit($this->type, ['identifier' => 'Ap. 101']);
+
+        $this->as($this->admin, $this->project)->put(route('manage.units.update', $unit), [
+            'identifier'    => 'Ap. 102',
+            'unit_type_id'  => null,
+            'new_unit_type' => ['name' => 'Penthouse'],
+        ])->assertSessionHasErrors(['unit_type_id', 'new_unit_type']);
+
+        expect($unit->fresh())->identifier->toBe('Ap. 101')->unit_type_id->toBe($this->type->id)
+            ->and($this->project->unitTypes()->where('name', 'Penthouse')->exists())->toBeFalse();
+    });
+
+    it('takes a change as the form sends it, with no new type in it', function () {
+        $unit = aUnit($this->type, ['identifier' => 'Ap. 101']);
+
+        $this->as($this->admin, $this->project)->put(route('manage.units.update', $unit), [
+            'identifier'    => 'Ap. 102',
+            'unit_type_id'  => $this->type->id,
+            'new_unit_type' => null,
+        ])->assertSessionHasNoErrors();
+
+        expect($unit->fresh())->identifier->toBe('Ap. 102');
+    });
+});
+
+describe('A unit\'s identifier', function () {
+    it('is refused, with a message, when another unit has it in other capitals or accents', function (string $taken, string $given) {
+        aUnit($this->type, ['identifier' => $taken]);
+        $other = aUnit($this->type, ['identifier' => 'B-1']);
+        $this->as($this->admin, $this->project);
+
+        $this->post(route('manage.units.store'), ['identifier' => $given, 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors(['identifier' => __('validation.unique', ['attribute' => __('validation.attributes.identifier')])]);
+        $this->put(route('manage.units.update', $other), ['identifier' => $given, 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors('identifier');
+
+        expect($this->project->units()->count())->toBe(2)->and($other->fresh()->identifier)->toBe('B-1');
+    })->with([['A-101', 'a-101'], ['Café 1', 'cafe 1']]);
+
+    it('may be a unit\'s own, in other capitals', function () {
+        $unit = aUnit($this->type, ['identifier' => 'a-101']);
+
+        $this->as($this->admin, $this->project)->put(route('manage.units.update', $unit), ['identifier' => 'A-101', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasNoErrors();
+
+        expect($unit->fresh()->identifier)->toBe('A-101');
+    });
+});
+
+describe('An unapproved project\'s units', function () {
+    beforeEach(function () {
+        $this->project = anUnapprovedProject();
+        $this->admin = $this->project->admins()->first();
+        $this->type = aUnitType($this->project);
+        $this->max = config('limits.unapproved.units');
+    });
+
+    it('take as many as its limit, and refuse one more, saying so', function () {
+        foreach (range(1, $this->max - 1) as $n) {
+            $this->project->units()->create(['unit_type_id' => $this->type->id, 'identifier' => "U-{$n}"]);
+        }
+        $this->as($this->admin, $this->project);
+
+        $this->post(route('manage.units.store'), ['identifier' => 'Last', 'unit_type_id' => $this->type->id])->assertSessionHasNoErrors();
+        $this->post(route('manage.units.store'), ['identifier' => 'One more', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors(['identifier' => __('validation.limit_units', ['max' => $this->max])]);
+
+        expect($this->project->units()->count())->toBe($this->max)
+            ->and($this->project->units()->where('identifier', 'One more')->exists())->toBeFalse();
+    });
+
+    it('can still be changed at the limit', function () {
+        foreach (range(1, $this->max) as $n) {
+            $this->project->units()->create(['unit_type_id' => $this->type->id, 'identifier' => "U-{$n}"]);
+        }
+        $unit = $this->project->units()->firstWhere('identifier', 'U-1');
+
+        $this->as($this->admin, $this->project)->put(route('manage.units.update', $unit), ['identifier' => 'U-0', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasNoErrors();
+
+        expect($unit->fresh()->identifier)->toBe('U-0');
+    });
+});
+
+it('takes an identifier of its longest, in characters of four bytes, and refuses one more', function () {
+    $this->as($this->admin, $this->project);
+
+    $this->post(route('manage.units.store'), ['identifier' => str_repeat('😀', 81), 'unit_type_id' => $this->type->id])->assertSessionHasErrors('identifier');
+    $this->post(route('manage.units.store'), ['identifier' => str_repeat('😀', 80), 'unit_type_id' => $this->type->id])->assertSessionHasNoErrors();
+
+    expect($this->project->units()->where('identifier', str_repeat('😀', 80))->exists())->toBeTrue();
 });

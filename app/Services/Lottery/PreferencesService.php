@@ -76,18 +76,21 @@ class PreferencesService
      */
     public function rank(Family $family, array $unitIds): void
     {
-        if ($family->project->lotteryLocked()) {
-            throw new LotteryLockedException();
-        }
-
         $unitIds = array_values(array_unique(array_map('intval', $unitIds)));
-        $valid = Unit::where('unit_type_id', $family->unit_type_id)->whereIn('id', $unitIds)->pluck('id');
 
-        if ($valid->count() !== count($unitIds)) {
-            throw ValidationException::withMessages(['preferences' => __('validation.preferences_foreign_units')]);
-        }
+        // Checked and written with the project held still: a run starting meanwhile has this
+        // ranking in its manifest, or this ranking is refused
+        $family->project->holdingLottery(function () use ($family, $unitIds) {
+            if ($family->project->lotteryLocked()) {
+                throw new LotteryLockedException();
+            }
 
-        DB::transaction(function () use ($family, $unitIds) {
+            $valid = Unit::where('unit_type_id', $family->unit_type_id)->whereIn('id', $unitIds)->pluck('id');
+
+            if ($valid->count() !== count($unitIds)) {
+                throw ValidationException::withMessages(['preferences' => __('validation.preferences_foreign_units')]);
+            }
+
             $family->preferences()->sync(
                 collect($unitIds)->mapWithKeys(fn (int $unitId, int $index) => [$unitId => ['rank' => $index + 1]])
             );

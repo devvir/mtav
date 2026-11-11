@@ -36,11 +36,11 @@ editing the app while it runs makes its results meaningless.
 | Suite | Where | What |
 |---|---|---|
 | UseCases | `tests/UseCases/<area>/` | the business rules, through HTTP, from the actor's side ("an admin runs the lottery…") |
-| Unit | `tests/Unit/` | the lottery's solvers and GLPK, on plain data |
+| Unit | `tests/Unit/` | the lottery's solvers and GLPK, on plain data; where the plan puts a unit added without a place |
 | Arch | `tests/Arch/` | rules about the code: every language says what English says; no debugging left; models free of HTTP, solvers free of models; the release built from pinned parts; every route belongs to a part of the app |
 | Stress | `tests/Stress/` | GLPK on hard instances (timeouts, binary search against the direct method) |
 | Browser | `tests/Browser/` | the real app in Chromium |
-| Vitest | `resources/js/tests/` | frontend logic: the plan editor, zoom, idle, offline |
+| Vitest | `resources/js/tests/` | frontend logic: the plan editor and its saving, zoom, idle, offline, rankings |
 
 **Use cases** build exactly the data they need with the scenario builders
 (`tests/Helpers/scenario.php`: `aProject()`, `anAdminOf()`, `aFamily()`, `aMemberOf()`,

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\MediaCategory;
+use App\Events\ProjectChanged;
+use App\Jobs\PreviewMedia;
 use App\Models\Media;
 use App\Models\Project;
 use App\Models\User;
@@ -109,7 +111,33 @@ class MediaService
             throw $failure;
         }
 
+        // In whole: what opening each file tells, later
+        foreach ($stored as $media) {
+            $media->isVisual() && PreviewMedia::dispatch($media->id);
+        }
+
         return $stored;
+    }
+
+    /**
+     * What opening a photo or video tells: its preview, and its size. Saved only if the file
+     * is still there by then (removed for good meanwhile, its preview goes with it).
+     */
+    public function preview(Media $media): void
+    {
+        $file = Storage::disk(Media::DISK)->path($media->path);
+        $read = [...$this->dimensions($file, $media->mime_type), 'thumbnail' => $this->thumbnails->generate($media)];
+
+        if (! Media::withTrashed()->whereKey($media->id)->exists()) {
+            $read['thumbnail'] && Storage::disk(Media::DISK)->delete($read['thumbnail']);
+
+            return;
+        }
+
+        // Not a change anyone made (nothing for the activity log), but one every page open on the
+        // files shows, the sharer's too
+        $media->forceFill($read)->saveQuietly();
+        rescue(fn () => ProjectChanged::dispatch($media->project_id, 'media', 'updated', $media->id));
     }
 
     /** What a project's files take up, the archived among them: they stay stored, to be restored whole */
@@ -163,10 +191,7 @@ class MediaService
             'description' => $description,
             'mime_type'   => $mimeType,
             'file_size'   => $file->getSize(),
-            ...$this->dimensions($file, $mimeType),
         ]);
-
-        $media->thumbnail = $this->thumbnails->generate($media);
         $media->save();
 
         return $media;
@@ -193,15 +218,15 @@ class MediaService
     /**
      * @return array{width?: int, height?: int}
      */
-    private function dimensions(UploadedFile $file, string $mimeType): array
+    private function dimensions(string $path, string $mimeType): array
     {
         try {
-            if (str_starts_with($mimeType, 'image/') && ($size = @getimagesize($file->getPathname()))) {
+            if (str_starts_with($mimeType, 'image/') && ($size = @getimagesize($path))) {
                 return ['width' => $size[0], 'height' => $size[1]];
             }
 
             if (str_starts_with($mimeType, 'video/')) {
-                $stream = FFProbe::create()->streams($file->getPathname())->videos()->first();
+                $stream = FFProbe::create()->streams($path)->videos()->first();
 
                 return $stream ? ['width' => $stream->get('width'), 'height' => $stream->get('height')] : [];
             }

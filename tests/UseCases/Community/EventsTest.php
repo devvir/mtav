@@ -273,3 +273,85 @@ describe('The lottery\'s own words', function () {
         expect($seen)->title->toBe('Asamblea')->description->toBe('En el salón');
     });
 });
+
+describe('An event\'s dates', function () {
+    it('need a start for an end: an event with only an end is refused, not to come for ever', function () {
+        $this->as($this->admin, $this->project)->post(route('manage.events.store'), eventData([
+            'start_date' => null,
+            'end_date'   => now()->addWeek()->format('Y-m-d H:i'),
+        ]))->assertSessionHasErrors('start_date');
+
+        $event = anEvent($this->project, ['title' => 'Kept']);
+        $this->put(route('manage.events.update', $event), eventData(['start_date' => null, 'end_date' => now()->addDay()->format('Y-m-d H:i')]))
+            ->assertSessionHasErrors('start_date');
+
+        expect($this->project->events()->where('title', 'General assembly')->exists())->toBeFalse()
+            ->and($event->fresh()->end_date)->toBeNull();
+    });
+
+    it('may be none at all, or only a start', function () {
+        $this->as($this->admin, $this->project);
+
+        $this->post(route('manage.events.store'), eventData(['title' => 'Undated', 'start_date' => null, 'end_date' => null]))->assertSessionHasNoErrors();
+        $this->post(route('manage.events.store'), eventData(['title' => 'Started', 'end_date' => null]))->assertSessionHasNoErrors();
+
+        expect($this->project->events()->whereIn('title', ['Undated', 'Started'])->count())->toBe(2);
+    });
+});
+
+describe('Answering whether one attends', function () {
+    $answer = fn ($test, $event, $user = null) => $test->as($user ?? $test->member, $test->project)->put(route('events.rsvp', $event), ['attending' => true]);
+
+    it('is not for a draft', function () use ($answer) {
+        $draft = anEvent($this->project, ['allows_rsvp' => true, 'is_published' => false]);
+
+        expect($answer($this, $draft, $this->admin))->toBeDenied();
+        expect($draft->rsvps()->count())->toBe(0);
+    });
+
+    it('is not for the lottery, which asks nobody', function () use ($answer) {
+        $lottery = $this->project->lottery;
+        $lottery->update(['allows_rsvp' => true, 'is_published' => true]);
+
+        expect($answer($this, $lottery))->toBeDenied();
+        expect($lottery->rsvps()->count())->toBe(0);
+    });
+
+    it('ends with the event, as its page shows', function () use ($answer) {
+        $over = anEvent($this->project, ['allows_rsvp' => true, 'start_date' => now()->subDay(), 'end_date' => now()->subDay()->addHours(2)]);
+        $underWay = anEvent($this->project, ['allows_rsvp' => true, 'start_date' => now()->subMinutes(10), 'end_date' => now()->addHour()]);
+
+        expect($answer($this, $over))->toBeDenied();
+        $answer($this, $underWay)->assertSessionHasNoErrors();
+
+        expect($over->rsvps()->count())->toBe(0)->and($underWay->rsvps()->count())->toBe(1);
+    });
+
+    it('stops when the event stops asking, keeping the answers given, back as they were if it asks again', function () use ($answer) {
+        $event = anEvent($this->project, ['allows_rsvp' => true]);
+        $answer($this, $event)->assertSessionHasNoErrors();
+        $attendees = fn () => collect($this->as($this->member, $this->project)->get(route('events.index'))->inertiaProps('events.data'))
+            ->firstWhere('id', $event->id);
+
+        $this->as($this->admin, $this->project)->put(route('manage.events.update', $event), eventData(['allows_rsvp' => false]))->assertSessionHasNoErrors();
+
+        expect($answer($this, $event))->toBeDenied();
+        expect($attendees())->allows_rsvp->toBeFalse()->and($attendees()['can']['rsvp'])->toBeFalse()
+            ->and($event->rsvps()->count())->toBe(1);
+
+        $this->as($this->admin, $this->project)->put(route('manage.events.update', $event), eventData(['allows_rsvp' => true]));
+
+        expect($attendees())->attending->toBeTrue()->and(collect($attendees()['attendees'])->pluck('id')->all())->toBe([$this->member->id]);
+    });
+});
+
+it('takes an event\'s words of their longest, in characters of four bytes, and refuses one more', function () {
+    $long = fn (int $characters) => str_repeat('😀', $characters);
+    $this->as($this->admin, $this->project);
+
+    $this->post(route('manage.events.store'), eventData(['title' => $long(161)]))->assertSessionHasErrors('title');
+    $this->post(route('manage.events.store'), eventData(['description' => $long(5001)]))->assertSessionHasErrors('description');
+    $this->post(route('manage.events.store'), eventData(['title' => $long(160), 'description' => $long(5000)]))->assertSessionHasNoErrors();
+
+    expect($this->project->events()->firstWhere('title', $long(160))?->description)->toBe($long(5000));
+});

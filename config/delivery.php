@@ -23,8 +23,13 @@ return [
         'production' => 'https://www.mtav.uy',
         'staging'    => 'https://stg.mtav.uy',
         'dev'        => 'https://dev.mtav.uy',
+        'sorteo'     => 'https://sorteo.mtav.uy',
     ],
 
     // Those that may start over with the demo data (where their host allows it too)
     'fresh' => ['staging', 'dev'],
+
+    // Those deployed by hand from main, the release staging runs (production.yml's choices):
+    // production, and sorteo, the Open Lottery variant's
+    'released' => ['production', 'sorteo'],
 ];

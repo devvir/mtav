@@ -142,6 +142,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         Route::post('welcomed', 'welcomed')->name('welcomed');
         Route::put('{conversation}/pin', 'pin')->name('pin');
         Route::post('{conversation}/messages', 'send')->middleware('throttle:120,1')->name('send');
+        Route::put('messages/{message}', 'updateMessage')->middleware('throttle:120,1')->name('messages.update');
         Route::delete('messages/{message}', 'destroyMessage')->name('messages.destroy');
         Route::post('messages/{message}/report', 'report')->middleware('throttle:10,1')->name('report');
     });
@@ -173,7 +174,8 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         /** One's projects; starting one */
         Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
-        Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+        // Each new project tells the platform's team: a few a minute are plenty
+        Route::post('projects', [ProjectController::class, 'store'])->middleware('throttle:5,1')->name('projects.store');
         Route::post('my-invitations/{invitation}', [InvitationController::class, 'respond'])->name('invitations.respond');
 
         /**
@@ -232,6 +234,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                     Route::put('chat/{conversation}/pin', [Member\ChatController::class, 'pin'])->name('chat.pin');
                     Route::delete('chat/{conversation}', [Member\ChatController::class, 'leave'])->name('chat.leave');
                     Route::post('chat/{conversation}/messages', [Member\ChatController::class, 'send'])->middleware('throttle:120,1')->name('chat.send');
+                    Route::put('chat/messages/{message}', [Member\ChatController::class, 'updateMessage'])->middleware('throttle:120,1')->name('chat.messages.update');
                     Route::delete('chat/messages/{message}', [Member\ChatController::class, 'destroyMessage'])->name('chat.messages.destroy');
                     Route::post('chat/messages/{message}/report', [Member\ChatController::class, 'report'])->middleware('throttle:10,1')->name('chat.report');
                     Route::post('chat/admin', [Member\ChatController::class, 'writeToAdmin'])->middleware('throttle:30,1')->name('chat.admin');
@@ -250,7 +253,9 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                 });
 
                 Route::middleware(EnsureFeature::class . ':gallery,files')->group(function () {
-                    Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media']);
+                    // Each share reads its files as they come (their types, their pixels): a few a minute are plenty
+                    Route::resource('media', Member\MediaController::class)->except('create', 'edit')->parameters(['media' => 'media'])
+                        ->middlewareFor('store', 'throttle:10,1');
                     Route::get('media/{media}/file', [Member\MediaFileController::class, 'file'])->name('media.file');
                     Route::get('media/{media}/thumbnail', [Member\MediaFileController::class, 'thumbnail'])->name('media.thumbnail');
                 });
@@ -333,6 +338,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
         Route::put('users/{user}/superadmin', [Platform\UserController::class, 'superadmin'])->middleware('password.confirm')->name('users.superadmin');
         Route::get('superadmins', [Platform\UserController::class, 'superadmins'])->name('superadmins.index');
         Route::post('superadmins', [Platform\UserController::class, 'grant'])->middleware('password.confirm')->name('superadmins.store');
+        Route::delete('superadmins/invitations/{invitation}', [Platform\UserController::class, 'revokeInvitation'])->name('superadmins.invitations.destroy');
         Route::inertia('lab', 'Platform/Lab')->name('lab');
         Route::get('activity', [Platform\ActivityController::class, 'index'])->name('activity.index');
         Route::get('errors', [Platform\ErrorController::class, 'index'])->name('errors.index');

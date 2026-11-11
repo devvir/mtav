@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** An invitation to a support account: a superadmin, on an address not in the app yet */
@@ -24,8 +25,15 @@ class SupportInvitation extends Model
         return $this->belongsTo(User::class, 'invited_by');
     }
 
+    /** Unanswered and in time, from someone who still runs the platform */
     public function isPending(): bool
     {
-        return ! $this->accepted_at && $this->expires_at->isFuture();
+        return ! $this->accepted_at && $this->expires_at->isFuture()
+            && $this->inviter?->isSuperadmin() && ! $this->inviter->isBlocked();
+    }
+
+    public function scopePending(Builder $query): void
+    {
+        $query->whereNull('accepted_at')->where('expires_at', '>', now());
     }
 }

@@ -14,8 +14,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * What each environment runs, and deploying: dev from any branch, production from main
- * (after its approval on GitHub), any of them back to the release before, dev or staging
+ * What each environment runs, and deploying: dev from any branch, production or sorteo from
+ * main (after its approval on GitHub), any of them back to the release before, dev or staging
  * over from the demo data. GitHub runs each deploy; this only asks it to.
  */
 class DeploymentController extends Controller
@@ -33,6 +33,7 @@ class DeploymentController extends Controller
             'branches'     => Inertia::defer(fn () => $this->read(fn () => $this->github->branches())),
             'runs'         => Inertia::defer(fn () => $this->read(fn () => $this->github->runs()->take(12)->values()->all())),
             'fresh'        => config('delivery.fresh'),
+            'released'     => config('delivery.released'),
         ]);
     }
 
@@ -49,11 +50,16 @@ class DeploymentController extends Controller
         return $this->dispatch('dev', $data['branch'], [], __('flash.deploy_dev', ['branch' => $data['branch']]));
     }
 
+    /** Production, or another environment released from main (sorteo): production unless one is named */
     public function production(Request $request): RedirectResponse
     {
-        $data = $request->validate(['commit' => ['nullable', 'string', 'regex:/^[0-9a-f]{7,40}$/']]);
+        $data = $request->validate([
+            'environment' => ['nullable', 'string', Rule::in(config('delivery.released'))],
+            'commit'      => ['nullable', 'string', 'regex:/^[0-9a-f]{7,40}$/'],
+        ]);
+        $environment = $data['environment'] ?? 'production';
 
-        return $this->dispatch('production', 'main', ['commit' => $data['commit'] ?? ''], __('flash.deploy_production'));
+        return $this->dispatch('production', 'main', ['environment' => $environment, 'commit' => $data['commit'] ?? ''], __('flash.deploy_production', ['environment' => $environment]));
     }
 
     public function rollback(Request $request): RedirectResponse

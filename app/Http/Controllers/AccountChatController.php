@@ -45,6 +45,11 @@ class AccountChatController extends Controller
         return $this->chat->pin($request, null, $conversation);
     }
 
+    public function updateMessage(Request $request, Message $message): RedirectResponse|JsonResponse
+    {
+        return $this->chat->updateMessage($request, null, $message);
+    }
+
     public function destroyMessage(Request $request, Message $message): RedirectResponse|JsonResponse
     {
         return $this->chat->destroyMessage($request, null, $message);

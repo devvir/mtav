@@ -29,6 +29,16 @@ it('announces what changed in a project, and who changed it', function () {
         && $event->by === $this->admin->id);
 });
 
+it('announces a change to every page but the one that made it, the person\'s other tabs included', function () {
+    Event::fake([ProjectChanged::class]);
+
+    $this->as($this->admin, $this->project)
+        ->withHeader('X-Socket-ID', '1234.5678')
+        ->post(route('manage.unit_types.store'), ['name' => 'Studio']);
+
+    Event::assertDispatched(ProjectChanged::class, fn (ProjectChanged $event) => $event->socket === '1234.5678');
+});
+
 it('announces people joining under their page name', function () {
     Event::fake([ProjectChanged::class]);
 

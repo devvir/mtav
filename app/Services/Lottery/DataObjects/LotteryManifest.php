@@ -30,6 +30,12 @@ class LotteryManifest implements JsonSerializable
     ) {
     }
 
+    /** A manifest as its run recorded it (its `init`), to decide from exactly what was written */
+    public static function recorded(array $record, int $runId): self
+    {
+        return new self($record['uuid'], $record['project_id'] ?? null, $runId, $record['data'] ?? [], $record['options'] ?? []);
+    }
+
     public function jsonSerialize(): array
     {
         return [

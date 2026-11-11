@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 /**
  * A project's chat is its people's: anyone with a place in the project (in a family, an
@@ -56,9 +57,24 @@ class ConversationPolicy
         return $conversation->is_group && ! $conversation->is_community && $conversation->includes($user);
     }
 
-    /** A message is taken back by whoever wrote it */
-    public function unsendMessage(User $user, Message $message): bool
+    /**
+     * A message is deleted by whoever wrote it, while they are still in its conversation, and only
+     * for a while after sending it: past that, it stays as it is, said so (409)
+     */
+    public function unsendMessage(User $user, Message $message): Response|bool
     {
-        return $message->user_id === $user->id && $this->readChat($user, $message->conversation);
+        if ($message->from_assistant || $message->user_id !== $user->id || ! $this->readChat($user, $message->conversation)) {
+            return false;
+        }
+
+        return $message->stillChangeable() ? true : Response::denyWithStatus(409, __('chat.change_too_late', ['minutes' => config('limits.chat_changes_minutes')]));
+    }
+
+    /**
+     * Edited on the same terms; never with the Assistant, whose answer would stay as it was
+     */
+    public function editMessage(User $user, Message $message): Response|bool
+    {
+        return $message->conversation->is_assistant ? false : $this->unsendMessage($user, $message);
     }
 }

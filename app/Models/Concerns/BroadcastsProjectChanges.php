@@ -37,7 +37,11 @@ trait BroadcastsProjectChanges
         $id = $this->getKey();
         $by = Auth::id();
 
-        /** Live updates are a bonus: a websocket server that is down never fails the action */
-        DB::afterCommit(fn () => rescue(fn () => ProjectChanged::dispatch($projectId, $resource, $action, $id, $by)));
+        // To every page open on it but the one that made the change (its X-Socket-ID): the
+        // person's other tabs and devices follow too. Live updates are a bonus: a websocket
+        // server that is down never fails the action
+        DB::afterCommit(fn () => rescue(fn () => event(
+            (new ProjectChanged($projectId, $resource, $action, $id, $by))->dontBroadcastToCurrentUser(),
+        )));
     }
 }

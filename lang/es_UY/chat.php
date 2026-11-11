@@ -8,6 +8,7 @@ return [
     'assistant_off'     => 'Por ahora el Asistente no está disponible acá. Mientras tanto, la guía y el (?) junto a cada título pueden ayudarte.',
     'assistant_limit'   => 'Gracias por preguntar. Por hoy ya te respondí todo lo que podía. Escríbeme mañana y con gusto te ayudo. Hasta entonces, en la guía vas a encontrar muchas respuestas.',
     'report_limit'      => 'Ya enviaste todos los reportes que puedes hoy. Mañana puedes enviar otro.',
+    'change_too_late'   => 'Ya no puedes cambiar este mensaje: los mensajes se pueden editar o borrar solo durante :minutes minutos después de enviarlos.',
     'assistant_busy'    => 'Hoy recibí muchas preguntas y ya no puedo responder más. Prueba de nuevo mañana y con gusto te ayudo. Hasta entonces, en la guía vas a encontrar muchas respuestas.',
     'assistant_trouble' => 'Perdón, ahora no pude responder. Prueba de nuevo en un momento.',
     'assistant_resting' => 'Ahora no puedo responder. Prueba de nuevo dentro de un rato y con gusto te ayudo. Hasta entonces, en la guía vas a encontrar muchas respuestas.',

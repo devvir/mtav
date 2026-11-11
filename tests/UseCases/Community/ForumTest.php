@@ -214,3 +214,76 @@ it('keeps the forum from people outside the project', function () {
 
     $this->as($outsider)->get(route('forum.show', [$this->project, Topic::sole()]))->assertNotFound();
 });
+
+describe('Replies at the same moment', function () {
+    beforeEach(function () {
+        $this->topic = app(ForumService::class)->open($this->project, $this->ana, 'The roof', 'Opinions?');
+    });
+
+    it('all count, each request having read the topic before the others wrote', function () {
+        // As two requests do: each loaded the topic before either reply went in
+        [$first, $second] = [Topic::find($this->topic->id), Topic::find($this->topic->id)];
+
+        app(ForumService::class)->reply($first, $this->beto, 'Green');
+        app(ForumService::class)->reply($second, $this->admin, 'Red');
+
+        expect($this->topic->fresh()->replies_count)->toBe(2);
+    });
+
+    it('keep the topic from its writer, who had read it with no replies yet', function () {
+        $seenByWriter = Topic::find($this->topic->id);
+        app(ForumService::class)->reply(Topic::find($this->topic->id), $this->beto, 'Green');
+
+        expect(fn () => app(ForumService::class)->removeTopic($seenByWriter, $this->ana))
+            ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        expect(Topic::find($this->topic->id))->not->toBeNull()
+            ->and(Post::where('topic_id', $this->topic->id)->count())->toBe(2);
+    });
+
+    it('count right after one is removed by someone who read the topic before another came', function () {
+        app(ForumService::class)->reply($this->topic, $this->beto, 'Green');
+        $reply = Post::where('author_id', $this->beto->id)->sole();
+        $stale = Topic::find($this->topic->id);
+        app(ForumService::class)->reply(Topic::find($this->topic->id), $this->admin, 'Red');
+
+        app(ForumService::class)->remove($reply->setRelation('topic', $stale));
+
+        expect($this->topic->fresh()->replies_count)->toBe(1);
+    });
+});
+
+describe('A post\'s length', function () {
+    $long = fn (int $characters) => str_repeat('😀', $characters); // four bytes each
+
+    it('takes the longest a post may be, in characters of four bytes', function () use ($long) {
+        openTopic($this, $this->ana, 'Long', $long(Post::MAX_LENGTH))->assertSessionHasNoErrors();
+        $topic = Topic::sole();
+        replyTo($this, $this->beto, $topic, $long(Post::MAX_LENGTH))->assertSessionHasNoErrors();
+        $reply = $topic->posts()->where('author_id', $this->beto->id)->sole();
+        $this->as($this->beto, $this->project)->put(route('forum.posts.update', [$this->project, $reply]), ['body' => $long(Post::MAX_LENGTH)])
+            ->assertSessionHasNoErrors();
+
+        expect(mb_strlen($topic->opening->body))->toBe(Post::MAX_LENGTH)
+            ->and($reply->fresh()->body)->toBe($long(Post::MAX_LENGTH));
+    });
+
+    it('refuses one character more, as a message on the form', function () use ($long) {
+        openTopic($this, $this->ana, 'Long', $long(Post::MAX_LENGTH + 1))->assertSessionHasErrors('body');
+        openTopic($this, $this->ana);
+        $topic = Topic::sole();
+
+        replyTo($this, $this->beto, $topic, $long(Post::MAX_LENGTH + 1))->assertSessionHasErrors('body');
+        $this->as($this->ana, $this->project)->put(route('forum.posts.update', [$this->project, $topic->opening]), ['body' => $long(Post::MAX_LENGTH + 1)])
+            ->assertSessionHasErrors('body');
+
+        expect(Post::count())->toBe(1)->and($topic->opening->fresh()->body)->toBe('Which Saturday suits everyone?');
+    });
+});
+
+it('takes a topic\'s title of its longest, in characters of four bytes, and refuses one more', function () {
+    openTopic($this, $this->ana, str_repeat('😀', 161))->assertSessionHasErrors('title');
+    openTopic($this, $this->ana, str_repeat('😀', 160))->assertSessionHasNoErrors();
+
+    expect(Topic::sole()->title)->toBe(str_repeat('😀', 160));
+});

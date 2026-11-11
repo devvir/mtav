@@ -83,10 +83,8 @@ return [
 
             'js',
             'jsx',
-            'svelte',
             'ts',
             'tsx',
-            'vue',
 
         ],
 

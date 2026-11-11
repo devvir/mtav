@@ -272,3 +272,21 @@ describe('What a deploy leaves', function () {
             ->and($script)->not->toContain('stop worker');
     });
 });
+
+it('releases from main to production, or to sorteo when it is chosen, and to nothing else', function () {
+    githubWith();
+    $this->as($this->deployer);
+
+    $this->post(route('admin.deployments.production'), ['commit' => null])
+        ->assertSessionHas('success', __('flash.deploy_production', ['environment' => 'production']));
+    $this->post(route('admin.deployments.production'), ['environment' => 'sorteo', 'commit' => 'abc1234'])
+        ->assertSessionHas('success', __('flash.deploy_production', ['environment' => 'sorteo']));
+    $this->post(route('admin.deployments.production'), ['environment' => 'staging'])->assertSessionHasErrors('environment');
+
+    $released = fn (string $environment) => Http::recorded(fn ($request) => str_ends_with($request->url(), 'workflows/production.yml/dispatches')
+        && $request['ref'] === 'main' && ($request['inputs']['environment'] ?? null) === $environment)->count();
+    expect($released('production'))->toBe(1)
+        ->and($released('sorteo'))->toBe(1)
+        ->and(Http::recorded(fn ($request) => str_ends_with($request->url(), 'workflows/production.yml/dispatches'))->count())->toBe(2);
+    $this->get(route('admin.deployments.index'))->assertInertia(fn ($page) => $page->where('released', ['production', 'sorteo']));
+});

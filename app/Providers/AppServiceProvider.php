@@ -17,6 +17,7 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Mail\Markdown;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -36,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private const PERSONAL_ABILITIES = ['join', 'askToJoin', 'createOwnFamily', 'answerRequests',
         'rankUnits', 'rsvp', 'deploy',
-        'startChat', 'readChat', 'writeChat', 'manageGroup', 'leaveGroup', 'unsendMessage',
+        'startChat', 'readChat', 'writeChat', 'manageGroup', 'leaveGroup', 'unsendMessage', 'editMessage',
     ];
 
     public function register(): void
@@ -54,6 +55,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureModels();
 
         JsonResource::withoutWrapping();
+
+        // What people wrote (names of projects, families, people) reaches mail as text, never as
+        // Markdown: a name like "[Reset your password](https://…)" shows as typed, not as a link
+        Markdown::withSecuredEncoding();
 
         // Production's data is never started over: wiping commands refuse to run there
         DB::prohibitDestructiveCommands(config('app.deployment') === 'production');

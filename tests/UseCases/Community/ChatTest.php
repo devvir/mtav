@@ -1,6 +1,6 @@
 <?php
 
-use App\Events\MessageRemoved;
+use App\Events\MessageChanged;
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -206,14 +206,14 @@ it('tells everyone in the conversation that a message was taken back, on their o
     startChat($this, $this->ana, [$this->beto]);
     $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     say($this, $this->ana, $conversation);
-    Event::fake([MessageRemoved::class]);
+    Event::fake([MessageChanged::class]);
 
     $this->as($this->ana, $this->project)->deleteJson(route('chat.messages.destroy', $conversation->messages()->sole()))->assertOk();
 
-    Event::assertDispatched(MessageRemoved::class, function (MessageRemoved $event) use ($conversation) {
+    Event::assertDispatched(MessageChanged::class, function (MessageChanged $event) use ($conversation) {
         expect(collect($event->broadcastOn())->map->name->sort()->values()->all())
             ->toBe(collect(["private-users.{$this->ana->id}", "private-users.{$this->beto->id}"])->sort()->values()->all())
-            ->and($event->broadcastWith())->toBe(['conversation_id' => $conversation->id, 'by' => $this->ana->id])
+            ->and($event->broadcastWith())->toBe(['conversation_id' => $conversation->id, 'by' => $this->ana->id, 'removed' => true])
             ->and($event->broadcastQueue())->toBe('realtime');
 
         return true;
@@ -224,11 +224,11 @@ it('tells nobody when a message stays, refused to someone else', function () {
     startChat($this, $this->ana, [$this->beto]);
     $conversation = Conversation::where('is_community', false)->where('is_assistant', false)->sole();
     say($this, $this->ana, $conversation);
-    Event::fake([MessageRemoved::class]);
+    Event::fake([MessageChanged::class]);
 
     $this->as($this->beto, $this->project)->deleteJson(route('chat.messages.destroy', $conversation->messages()->sole()));
 
-    Event::assertNotDispatched(MessageRemoved::class);
+    Event::assertNotDispatched(MessageChanged::class);
 });
 
 it('takes the double of a conversation being started as the same one, whoever came first', function () {

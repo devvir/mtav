@@ -8,6 +8,7 @@ return [
     'assistant_off'     => 'The Assistant is not available here yet. The guide and the (?) next to each title can help in the meantime.',
     'assistant_limit'   => 'Thank you for asking. I have answered all I can for you today. Write again tomorrow and I will gladly help. Until then, the guide has plenty of answers.',
     'report_limit'      => 'You have sent all the reports you can today. You can send another tomorrow.',
+    'change_too_late'   => 'It is too late to change this message: messages can be edited or deleted for :minutes minutes after sending.',
     'assistant_busy'    => 'I have had a lot of questions today and cannot answer any more. Try again tomorrow and I will gladly help. Until then, the guide has plenty of answers.',
     'assistant_trouble' => 'Sorry, I could not answer just now. Try again in a moment.',
     'assistant_resting' => 'I cannot answer right now. Try again in a little while and I will gladly help. Until then, the guide has plenty of answers.',

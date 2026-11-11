@@ -12,6 +12,7 @@ use App\Models\Notification;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectService
@@ -87,8 +88,13 @@ class ProjectService
         );
     }
 
+    /** Once: approving it again changes nothing, and tells nobody again */
     public function approve(Project $project, User $superadmin): void
     {
+        if ($project->isApproved()) {
+            return;
+        }
+
         $project->update(['approved_at' => now(), 'approved_by' => $superadmin->id]);
 
         $this->notifications->send(
@@ -109,6 +115,11 @@ class ProjectService
      */
     public function remove(Project $project, User $by): bool
     {
+        // Unapproved, it still counts for a while towards the projects its creator may start
+        if (! $project->isApproved() && $project->created_by) {
+            RateLimiter::hit(self::removedBy($project->created_by), config('limits.removed_projects_count_hours') * 3600);
+        }
+
         if (! $project->hasHistory()) {
             $this->purge($project);
 
@@ -119,6 +130,12 @@ class ProjectService
         $project->delete();
 
         return true;
+    }
+
+    /** What counts the projects someone started and deleted lately (see ProjectPolicy::create) */
+    public static function removedBy(User|int $creator): string
+    {
+        return 'projects-removed:' . ($creator instanceof User ? $creator->id : $creator);
     }
 
     /** An archived project, back as it was */

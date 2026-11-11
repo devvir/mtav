@@ -39,13 +39,15 @@ class EventPolicy extends ProjectResourcePolicy
     }
 
     /**
-     * Anyone in the project answers whether they attend a published event that asks.
+     * Anyone in the project answers whether they attend a published event that asks, until
+     * it is over.
      */
     public function rsvp(User $user, Event $event): bool
     {
         return $event->allows_rsvp
             && $event->is_published
             && ! $event->isLottery()
+            && $event->status !== 'completed'
             && (bool) $user->membershipIn($event->project_id);
     }
 }

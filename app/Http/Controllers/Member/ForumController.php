@@ -75,7 +75,7 @@ class ForumController extends Controller
         $this->authorize('create', [Topic::class, $project]);
         $data = $request->validate([
             'title' => ['required', 'string', 'max:160'],
-            'body'  => ['required', 'string', 'max:20000'],
+            'body'  => ['required', 'string', 'max:' . Post::MAX_LENGTH],
         ]);
 
         $topic = $this->forum->open($project, $request->user(), $data['title'], $data['body']);
@@ -86,7 +86,7 @@ class ForumController extends Controller
     public function reply(Request $request, Project $project, Topic $topic): RedirectResponse
     {
         $this->authorize('reply', $topic);
-        $data = $request->validate(['body' => ['required', 'string', 'max:20000']]);
+        $data = $request->validate(['body' => ['required', 'string', 'max:' . Post::MAX_LENGTH]]);
 
         $post = $this->forum->reply($topic, $request->user(), $data['body']);
 
@@ -113,11 +113,7 @@ class ForumController extends Controller
     /** Admins remove a topic; its writer too, while nobody has replied */
     public function destroy(Request $request, Project $project, Topic $topic): RedirectResponse
     {
-        abort_unless(
-            $request->user()->can('delete', $topic) || ($topic->author_id === $request->user()->id && ! $topic->replies_count),
-            403,
-        );
-        $topic->retire();
+        $this->forum->removeTopic($topic, $request->user());
 
         return to_route('forum.index', $project)->with('success', __('flash.topic_removed'));
     }
@@ -125,7 +121,7 @@ class ForumController extends Controller
     public function updatePost(Request $request, Project $project, Post $post): RedirectResponse
     {
         $this->authorize('update', $post);
-        $post->forceFill([...$request->validate(['body' => ['required', 'string', 'max:20000']]), 'edited_at' => now()])->save();
+        $post->forceFill([...$request->validate(['body' => ['required', 'string', 'max:' . Post::MAX_LENGTH]]), 'edited_at' => now()])->save();
 
         return back();
     }

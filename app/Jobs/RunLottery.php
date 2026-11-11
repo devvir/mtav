@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\LotteryRunStatus;
 use App\Models\LotteryRun;
+use App\Services\Lottery\AuditService;
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\LotteryOrchestrator;
@@ -15,6 +16,8 @@ use Throwable;
 /**
  * Solves a lottery run in the background, then writes its assignment (or records
  * why it failed). Solving may take seconds; nothing else happens in the request.
+ * It solves what the run recorded when it started (its manifest), never what the
+ * project holds by the time it runs: the record and its fingerprint say what was solved.
  */
 class RunLottery implements ShouldQueue
 {
@@ -46,8 +49,10 @@ class RunLottery implements ShouldQueue
         $lottery = $run->host();
 
         try {
-            $result = app(LotteryOrchestrator::class, ['solver' => $this->solver($run)])
-                ->execute($lottery->manifest($run));
+            $manifest = app(AuditService::class)->manifestOf($run)
+                ?? throw new RuntimeException("Lottery run [{$run->id}] recorded nothing to decide from.");
+
+            $result = app(LotteryOrchestrator::class, ['solver' => $this->solver($run)])->execute($manifest);
 
             $lottery->solved($run, $result);
         } catch (Throwable $e) {

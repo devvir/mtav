@@ -150,3 +150,30 @@ describe('A member', function () {
             ->and($type->fresh())->name->toBe('Original');
     });
 });
+
+describe('A unit type\'s name', function () {
+    it('is refused, with a message, when another type has it in other capitals or accents', function (string $taken, string $given) {
+        aUnitType($this->project, ['name' => $taken]);
+        $other = aUnitType($this->project, ['name' => 'Loft']);
+        $this->as($this->admin, $this->project);
+
+        $this->post(route('manage.unit_types.store'), ['name' => $given])->assertSessionHasErrors('name');
+        $this->put(route('manage.unit_types.update', $other), ['name' => $given])->assertSessionHasErrors('name');
+        // Nor as a new type made while adding a unit
+        $this->post(route('manage.units.store'), ['identifier' => 'A-1', 'new_unit_type' => ['name' => $given]])
+            ->assertSessionHasErrors('new_unit_type.name');
+
+        expect($this->project->unitTypes()->count())->toBe(2)->and($other->fresh()->name)->toBe('Loft');
+    })->with([['Studio', 'STUDIO'], ['Dúplex', 'duplex']]);
+});
+
+it('takes a type\'s words of their longest, in characters of four bytes, and refuses one more', function () {
+    $long = fn (int $characters) => str_repeat('😀', $characters);
+    $this->as($this->admin, $this->project);
+
+    $this->post(route('manage.unit_types.store'), ['name' => $long(81)])->assertSessionHasErrors('name');
+    $this->post(route('manage.unit_types.store'), ['name' => $long(80), 'description' => $long(501)])->assertSessionHasErrors('description');
+    $this->post(route('manage.unit_types.store'), ['name' => $long(80), 'description' => $long(500)])->assertSessionHasNoErrors();
+
+    expect($this->project->unitTypes()->firstWhere('name', $long(80))?->description)->toBe($long(500));
+});

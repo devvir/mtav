@@ -361,3 +361,87 @@ describe('An invitation accepted twice', function () {
         $this->assertGuest();
     });
 });
+
+describe('The room of an unapproved project', function () {
+    beforeEach(function () {
+        config()->set('limits.unapproved.members', 4);
+        $this->project = anUnapprovedProject();
+        $this->admin = $this->project->admins()->first();
+        $this->family = aFamily($this->project);
+        // Its admin and someone in a family: two of the four places
+        $this->member = aMemberOf($this->family, ['email' => 'member@example.com']);
+    });
+
+    it('takes people up to its limit, counting those invited, and no more', function () {
+        invite($this, $this->admin, ['email' => 'third@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+        invite($this, $this->admin, ['email' => 'fourth@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+
+        invite($this, $this->admin, ['email' => 'fifth@example.com', 'family_id' => $this->family->id])
+            ->assertSessionHasErrors(['email' => __('validation.limit_members', ['max' => 4])]);
+        expect($this->project->invitations()->pending()->count())->toBe(2);
+    });
+
+    it('sends again to someone invited, when full: it adds nobody', function () {
+        invite($this, $this->admin, ['email' => 'third@example.com', 'family_id' => $this->family->id]);
+        invite($this, $this->admin, ['email' => 'fourth@example.com', 'family_id' => $this->family->id]);
+
+        invite($this, $this->admin, ['email' => 'fourth@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+
+        expect($this->project->invitations()->pending()->where('email', 'fourth@example.com')->count())->toBe(1);
+    });
+
+    it('invites someone already in it to help manage it, when full: they are counted once', function () {
+        invite($this, $this->admin, ['email' => 'third@example.com', 'family_id' => $this->family->id]);
+        invite($this, $this->admin, ['email' => 'fourth@example.com', 'family_id' => $this->family->id]);
+
+        invite($this, $this->admin, ['email' => 'member@example.com', 'is_admin' => true])->assertSessionHasNoErrors();
+
+        expect(Invitation::where('email', 'member@example.com')->where('is_admin', true)->exists())->toBeTrue();
+    });
+
+    it('has no limit once approved', function () {
+        $this->project->update(['approved_at' => now()]);
+
+        foreach (['third', 'fourth', 'fifth', 'sixth'] as $name) {
+            invite($this, $this->admin, ['email' => "{$name}@example.com", 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+        }
+
+        expect($this->project->invitations()->pending()->count())->toBe(4);
+    });
+});
+
+describe('Invitations mailed', function () {
+    it('count as sent towards the day\'s limit, whether sent again or withdrawn since', function () {
+        config()->set('limits.unapproved.invitations_per_day', 3);
+        $this->project = anUnapprovedProject();
+        $admin = $this->project->admins()->first();
+        $family = aFamily($this->project);
+
+        invite($this, $admin, ['email' => 'a@example.com', 'family_id' => $family->id])->assertSessionHasNoErrors();
+        invite($this, $admin, ['email' => 'a@example.com', 'family_id' => $family->id])->assertSessionHasNoErrors();
+        invite($this, $admin, ['email' => 'b@example.com', 'family_id' => $family->id])->assertSessionHasNoErrors();
+        $this->as($admin, $this->project)->delete(route('manage.invitations.destroy', Invitation::firstWhere('email', 'b@example.com')));
+
+        invite($this, $admin, ['email' => 'c@example.com', 'family_id' => $family->id])
+            ->assertSessionHasErrors(['email' => __('validation.limit_invitations', ['max' => 3])]);
+
+        $this->travel(25)->hours();
+        invite($this, $admin, ['email' => 'c@example.com', 'family_id' => $family->id])->assertSessionHasNoErrors();
+    });
+
+    it('reach one address only a few times an hour, from any project however trusted', function () {
+        $times = config('limits.invitations_per_address_per_hour');
+
+        for ($i = 0; $i < $times; $i++) {
+            invite($this, $this->admin, ['family_id' => $this->family->id])->assertSessionHasNoErrors();
+        }
+
+        invite($this, $this->admin, ['family_id' => $this->family->id])
+            ->assertSessionHasErrors(['email' => __('validation.limit_invitations_address')]);
+        Notification::assertSentOnDemandTimes(InvitationNotification::class, $times);
+        // Anyone else is still invited, and the address again within the hour after
+        invite($this, $this->admin, ['email' => 'other@example.com', 'family_id' => $this->family->id])->assertSessionHasNoErrors();
+        $this->travel(61)->minutes();
+        invite($this, $this->admin, ['family_id' => $this->family->id])->assertSessionHasNoErrors();
+    });
+});

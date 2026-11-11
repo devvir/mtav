@@ -157,6 +157,15 @@ describe('A superadmin', function () {
         expect(Storage::disk(Media::DISK)->allFiles("projects/{$this->project->id}"))->toBeEmpty();
         expect(Notification::where('target', NotificationTarget::PROJECT)->where('target_id', $this->project->id)->exists())->toBeFalse();
     });
+
+    it('keeps one its lottery is running for, saying why', function () {
+        aLotteryInProgress($this->project);
+
+        $this->as(aSuperadmin())->delete(route('admin.projects.destroy', $this->project->id), ['confirmation' => 'Cooperativa Vieja'])
+            ->assertSessionHasErrors(['lottery' => __('lottery.running')]);
+
+        expect(Project::withTrashed()->find($this->project->id))->not->toBeNull();
+    });
 });
 
 describe('Deleted for good', function () {

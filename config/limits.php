@@ -31,8 +31,20 @@ return [
     /** Days an invitation link stays valid */
     'invitation_days' => (int) env('INVITATION_DAYS', 14),
 
+    /** Invitations one project may email one address an hour (sent again or not), every project alike */
+    'invitations_per_address_per_hour' => (int) env('LIMIT_INVITATIONS_PER_ADDRESS_PER_HOUR', 3),
+
+    /**
+     * Hours in which a project its creator deleted still counts towards the projects they may
+     * start unapproved: starting and deleting over and over tells the platform's team each time
+     */
+    'removed_projects_count_hours' => (int) env('REMOVED_PROJECTS_COUNT_HOURS', 24),
+
     /** How many groups of a project's chat one person may be in (Community aside) */
     'chat_groups_per_person' => (int) env('LIMIT_CHAT_GROUPS_PER_PERSON', 50),
+
+    /** Minutes after sending in which a chat message can still be edited or deleted by whoever wrote it */
+    'chat_changes_minutes' => (int) env('CHAT_CHANGES_MINUTES', 60),
 
     /** Days before someone declined may ask to join the same project again */
     'join_request_retry_days' => (int) env('JOIN_REQUEST_RETRY_DAYS', 30),

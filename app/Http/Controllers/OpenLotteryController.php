@@ -29,10 +29,13 @@ class OpenLotteryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // How many first, on its own: a rule on each item (distinct compares each with every
+        // other) would read them all, however many anyone sent
+        $request->validate(['items' => ['nullable', 'array', 'max:' . config('limits.open_lottery.items')]]);
         $data = $request->validate([
             'name'       => ['required', 'string', 'min:2', 'max:80'],
             'items_name' => ['required', 'string', 'min:2', 'max:40'],
-            'items'      => ['nullable', 'array', 'max:' . config('limits.open_lottery.items')],
+            'items'      => ['nullable', 'array'],
             'items.*'    => ['required', 'string', 'max:60', 'distinct:ignore_case'],
         ]);
 
@@ -118,7 +121,9 @@ class OpenLotteryController extends Controller
 
         abort_unless($me && ! $me->removed_at, Status::HTTP_FORBIDDEN);
 
-        $data = $request->validate(['ranking' => ['present', 'array', 'max:' . config('limits.open_lottery.items')], 'ranking.*' => ['integer', 'distinct']]);
+        // How many first, on its own, as for the items
+        $request->validate(['ranking' => ['present', 'array', 'max:' . config('limits.open_lottery.items')]]);
+        $data = $request->validate(['ranking' => ['present', 'array'], 'ranking.*' => ['integer', 'distinct']]);
 
         $this->lotteries->rank($openLottery, $me, $data['ranking']);
 

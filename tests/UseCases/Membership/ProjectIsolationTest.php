@@ -79,9 +79,10 @@ it('does not reach another project\'s files, topics or conversations through the
         ->and($as()->post(route('forum.reply', [$this->project, $topic]), ['body' => 'Mine']))->toBeNotFound()
         ->and($as()->delete(route('forum.posts.destroy', [$this->project, $post])))->toBeNotFound()
         ->and($as()->post(route('chat.send', [$this->project, $conversation]), ['body' => 'Mine']))->toBeNotFound()
+        ->and($as()->put(route('chat.messages.update', [$this->project, $message]), ['body' => 'Mine']))->toBeNotFound()
         ->and($as()->delete(route('chat.messages.destroy', [$this->project, $message])))->toBeNotFound()
         ->and($file->fresh())->not->toBeNull()
-        ->and($message->fresh())->not->toBeNull()
+        ->and($message->fresh())->not->toBeNull()->body->toBe('Between us')
         ->and($topic->posts()->count())->toBe(1);
 })->with('outsiders');
 

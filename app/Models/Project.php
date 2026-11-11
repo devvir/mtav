@@ -77,6 +77,20 @@ class Project extends Model
     }
 
     /**
+     * A change to what a lottery run decides from (rankings, units), with the project held
+     * still as starting a run holds it: a run starting at the same moment comes wholly before
+     * the change or wholly after it, so the change is in its manifest or refused.
+     */
+    public function holdingLottery(callable $change): mixed
+    {
+        return DB::transaction(function () use ($change) {
+            self::whereKey($this->id)->lockForUpdate()->first();
+
+            return $change();
+        });
+    }
+
+    /**
      * Something that may take an admin away, with the project held still: two admins removing
      * each other at the same moment cannot both pass.
      *

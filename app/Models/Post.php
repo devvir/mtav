@@ -14,6 +14,9 @@ class Post extends Model
     use RecordsActivity;
     use BroadcastsProjectChanges;
 
+    /** Characters a post may have: four bytes each fit its column (a MEDIUMTEXT) many times over */
+    public const MAX_LENGTH = 20000;
+
     protected $fillable = ['body'];
 
     protected $casts = ['edited_at' => 'datetime'];

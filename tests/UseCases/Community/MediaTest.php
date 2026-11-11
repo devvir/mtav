@@ -4,7 +4,11 @@ use App\Enums\MediaCategory;
 use App\Models\Media;
 use App\Services\ArchiveService;
 use App\Services\MediaService;
-use App\Services\MediaThumbnailService;
+use App\Events\ProjectChanged;
+use App\Http\Requests\MediaRequest;
+use App\Jobs\PreviewMedia;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -176,6 +180,41 @@ it('keeps a project\'s files away from other projects and from guests', function
     $this->get(route('media.file', [$this->project, $media]))->assertRedirect(route('login'));
 });
 
+it('has a thumbnail asked for each time, so a cache never shows it to someone it is no longer for', function () {
+    $media = Media::factory()->create(['project_id' => $this->project->id, 'thumbnail' => 'projects/0/a.thumb.jpg']);
+    Storage::disk(Media::DISK)->put('projects/0/a.thumb.jpg', 'jpeg');
+    $member = $this->as($this->member, $this->project);
+
+    $shown = $member->get(route('media.thumbnail', $media))->assertOk();
+    expect($shown->headers->get('Cache-Control'))->toContain('no-cache')
+        ->and($shown->headers->get('ETag'))->not->toBeEmpty();
+
+    // Unchanged since: said in a word, without the picture again
+    $member->get(route('media.thumbnail', $media), ['If-None-Match' => $shown->headers->get('ETag')])
+        ->assertStatus(304);
+
+    $media->delete();
+    $member->get(route('media.thumbnail', $media), ['If-None-Match' => $shown->headers->get('ETag')])
+        ->assertNotFound();
+});
+
+it('has a file asked for each time too, so a cache never hands it to someone it is no longer for', function () {
+    $media = Media::factory()->create(['project_id' => $this->project->id, 'path' => 'projects/0/a.pdf', 'mime_type' => 'application/pdf']);
+    Storage::disk(Media::DISK)->put('projects/0/a.pdf', '%PDF-1.4');
+    $member = $this->as($this->member, $this->project);
+
+    $shown = $member->get(route('media.file', $media))->assertOk();
+    expect($shown->headers->get('Cache-Control'))->toContain('no-cache')->not->toContain('max-age')
+        ->and($shown->headers->get('ETag'))->not->toBeEmpty();
+
+    $member->get(route('media.file', $media), ['If-None-Match' => $shown->headers->get('ETag')])
+        ->assertStatus(304);
+
+    $media->delete();
+    $member->get(route('media.file', $media), ['If-None-Match' => $shown->headers->get('ETag')])
+        ->assertNotFound();
+});
+
 it('limits the storage of an unapproved project', function () {
     config()->set('limits.unapproved.media_storage_mb', 1);
     $project = anUnapprovedProject();
@@ -243,10 +282,13 @@ describe('The storage of an unapproved project', function () {
 });
 
 it('stores a share whole or not at all', function () {
-    $thumbnails = Mockery::mock(MediaThumbnailService::class);
-    $thumbnails->shouldReceive('generate')->once()->andReturnNull();
-    $thumbnails->shouldReceive('generate')->once()->andThrow(new RuntimeException('Out of disk'));
-    app()->instance(MediaThumbnailService::class, $thumbnails);
+    // The second file's row fails to go in, its bytes already stored
+    $rows = 0;
+    Media::creating(function () use (&$rows) {
+        if (++$rows === 2) {
+            throw new RuntimeException('Out of disk');
+        }
+    });
     $this->withoutExceptionHandling();
 
     expect(fn () => upload($this, $this->member, UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')))
@@ -319,4 +361,82 @@ it('gives each stored file its own address, never one a cache could answer with 
     // Either address still serves the file
     Storage::disk(Media::DISK)->put('projects/0/another.jpg', 'jpeg');
     $this->as($this->member, $this->project)->get($after['url'])->assertOk();
+});
+
+describe('A share', function () {
+    $documents = fn (int $count) => array_map(fn ($n) => UploadedFile::fake()->create("minutes-{$n}.pdf", 1, 'application/pdf'), range(1, $count));
+
+    it('carries as many files as a share may, and refuses one more', function () use ($documents) {
+        upload($this, $this->member, ...$documents(MediaRequest::MAX_FILES))->assertSessionHasNoErrors();
+        upload($this, $this->member, ...$documents(MediaRequest::MAX_FILES + 1))->assertSessionHasErrors('files');
+
+        expect($this->project->media()->count())->toBe(MediaRequest::MAX_FILES);
+    });
+
+    it('goes up a few times a minute, then waits', function () use ($documents) {
+        foreach (range(1, 10) as $_) {
+            upload($this, $this->member, ...$documents(1))->assertSessionHasNoErrors();
+        }
+
+        upload($this, $this->member, ...$documents(1))->assertSessionHas('error', __('flash.too_many_attempts'));
+        expect($this->project->media()->count())->toBe(10);
+    });
+});
+
+describe('A photo\'s or video\'s preview', function () {
+    it('is made after the share, keeping nobody waiting: until then the file has none', function () {
+        Queue::fake();
+
+        upload($this, $this->member, UploadedFile::fake()->image('site.jpg', 800, 600), UploadedFile::fake()->create('minutes.pdf', 1, 'application/pdf'))
+            ->assertSessionHasNoErrors();
+
+        $photo = $this->project->media()->where('category', MediaCategory::IMAGE)->sole();
+        expect($photo->thumbnail)->toBeNull()->and($photo->width)->toBeNull();
+        Queue::assertPushed(PreviewMedia::class, 1);
+        Queue::assertPushed(PreviewMedia::class, fn ($job) => $job->mediaId === $photo->id && $job->queue === null);
+    });
+
+    it('comes to every page open on the files once made, the sharer\'s too', function () {
+        Queue::fake();
+        upload($this, $this->member, UploadedFile::fake()->image('site.jpg', 800, 600));
+        $photo = $this->project->media()->sole();
+        Event::fake([ProjectChanged::class]);
+
+        app()->call([new PreviewMedia($photo->id), 'handle']);
+
+        expect($photo->fresh())->thumbnail->not->toBeNull()->width->toBe(800)->height->toBe(600)
+            ->and(Storage::disk(Media::DISK)->exists($photo->fresh()->thumbnail))->toBeTrue();
+        Event::assertDispatched(ProjectChanged::class, fn ($change) => $change->resource === 'media'
+            && $change->id === $photo->id && $change->action === 'updated' && $change->by === null);
+    });
+
+    it('is not kept for a file removed for good before it was made', function () {
+        Queue::fake();
+        upload($this, $this->member, UploadedFile::fake()->image('site.jpg', 800, 600));
+        $photo = $this->project->media()->sole();
+        $this->as($this->member, $this->project)->delete(route('media.destroy', $photo));
+
+        app()->call([new PreviewMedia($photo->id), 'handle']);
+
+        expect(Media::withTrashed()->find($photo->id))->toBeNull()
+            ->and(Storage::disk(Media::DISK)->allFiles())->toBe([]);
+    });
+
+    it('is made as the share goes up where the queue runs at once, as in development', function () {
+        upload($this, $this->member, UploadedFile::fake()->image('site.jpg', 800, 600))->assertSessionHasNoErrors();
+
+        expect($this->project->media()->sole()->thumbnail)->not->toBeNull();
+    });
+});
+
+it('takes a description of its longest, in characters of four bytes, and refuses one more', function () {
+    $share = fn (int $characters) => $this->as($this->member, $this->project)->post(route('media.store'), [
+        'description' => str_repeat('😀', $characters),
+        'files'       => [UploadedFile::fake()->create('minutes.pdf', 1, 'application/pdf')],
+    ]);
+
+    $share(256)->assertSessionHasErrors('description');
+    $share(255)->assertSessionHasNoErrors();
+
+    expect($this->project->media()->sole()->description)->toBe(str_repeat('😀', 255));
 });

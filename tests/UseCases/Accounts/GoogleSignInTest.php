@@ -74,3 +74,14 @@ it('is not offered where Google is not set up', function () {
     $this->get(route('google.redirect'))->assertNotFound();
     $this->get(route('home'))->assertInertia(fn ($page) => $page->where('google', false));
 });
+
+it('never signs in a blocked account, linked or found by its email', function (bool $linked) {
+    $ana = aUser(['email' => 'ana@example.com']);
+    $ana->forceFill(['blocked_at' => now(), 'google_id' => $linked ? 'g-4' : null])->save();
+    googleSays(['sub' => 'g-4', 'email' => 'ana@example.com', 'email_verified' => true]);
+
+    $this->get(route('google.callback'))->assertRedirect(route('login'))->assertSessionHas('error', __('auth.blocked'));
+
+    $this->assertGuest();
+    expect($ana->fresh()->google_id)->toBe($linked ? 'g-4' : null);
+})->with(['linked' => [true], 'found by its email' => [false]]);

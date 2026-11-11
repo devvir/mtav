@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\UnitType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 class FamilyRequest extends FormRequest
@@ -26,10 +27,11 @@ class FamilyRequest extends FormRequest
         return [function (Validator $validator) {
             /** @var Project $project */
             $project = $this->route('project');
-            $max = $project->limit('families');
 
-            if (! $this->route('family') && $max !== null && $project->families()->count() >= $max) {
-                $validator->errors()->add('name', __('validation.limit_families', ['max' => $max]));
+            try {
+                $this->route('family') || $project->ensureRoomForFamily('name');
+            } catch (ValidationException $full) {
+                $validator->errors()->merge($full->errors());
             }
         },
         ];

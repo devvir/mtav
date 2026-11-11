@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Member;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Project;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -14,7 +16,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class MediaFileController extends Controller
 {
-    public function file(Project $project, Media $media): StreamedResponse
+    /**
+     * Files and thumbnails are asked for each time (a browser keeps them only to ask whether
+     * they changed): someone who left the project, or the next person on the device, never
+     * sees one from a cache. A file never changes once shared, so its path names its version.
+     */
+    public function file(Request $request, Project $project, Media $media): Response|StreamedResponse
     {
         abort_unless($media->isOn(), 404);
 
@@ -22,22 +29,45 @@ class MediaFileController extends Controller
             ? 'inline'
             : 'attachment';
 
+        $headers = $this->askedEachTime($media->path);
+
+        if ($this->unchanged($request, $headers)) {
+            return response()->noContent(304, $headers);
+        }
+
         return Storage::disk(Media::DISK)->response($media->path, $this->downloadName($media), [
-            'Content-Type'           => $media->mime_type,
-            'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control'          => 'private, max-age=86400',
+            'Content-Type' => $media->mime_type,
+            ...$headers,
         ], $disposition);
     }
 
-    public function thumbnail(Project $project, Media $media): StreamedResponse
+    public function thumbnail(Request $request, Project $project, Media $media): Response|StreamedResponse
     {
         abort_unless($media->thumbnail && $media->isOn(), 404);
 
-        return Storage::disk(Media::DISK)->response($media->thumbnail, null, [
-            'Content-Type'           => 'image/jpeg',
+        $headers = $this->askedEachTime($media->thumbnail);
+
+        if ($this->unchanged($request, $headers)) {
+            return response()->noContent(304, $headers);
+        }
+
+        return Storage::disk(Media::DISK)->response($media->thumbnail, null, ['Content-Type' => 'image/jpeg', ...$headers]);
+    }
+
+    /** @return array<string, string> */
+    private function askedEachTime(string $path): array
+    {
+        return [
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control'          => 'private, max-age=604800',
-        ]);
+            'Cache-Control'          => 'private, no-cache',
+            'ETag'                   => '"' . md5($path) . '"',
+        ];
+    }
+
+    /** @param array<string, string> $headers */
+    private function unchanged(Request $request, array $headers): bool
+    {
+        return in_array($headers['ETag'], $request->getETags(), true);
     }
 
     private function downloadName(Media $media): string

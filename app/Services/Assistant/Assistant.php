@@ -32,6 +32,8 @@ class Assistant
     private const STUMBLES = 'assistant.stumbles';
     private const STUMBLES_FOR = 600;
     private const STUMBLES_TO_REST = 3;
+    /** Questions taken back that the day's messages still count: one person's (…<day>.<id>) and everyone's (…<day>) */
+    private const TAKEN_BACK = 'assistant.taken_back.';
 
     public function __construct(private Brain $brain, private Prompt $prompt, private Places $places, private ReadyAnswers $ready)
     {
@@ -53,10 +55,18 @@ class Assistant
         $this->withLocale($user->preferredLocale() ?? config('app.locale'), fn () => $this->answerTo($question, $conversation, $user));
     }
 
-    /** In the conversation, like any message; to whoever has it open, at once */
-    public function say(Conversation $conversation, string $text, array $actions = []): Message
+    /**
+     * In the conversation, like any message; to whoever has it open, at once. An answer goes
+     * only while what it answers is still there: taken back meanwhile, nothing is said.
+     */
+    public function say(Conversation $conversation, string $text, array $actions = [], ?Message $answering = null): ?Message
     {
-        $message = DB::transaction(function () use ($conversation, $text, $actions) {
+        $message = DB::transaction(function () use ($conversation, $text, $actions, $answering) {
+            // Held while answering: a delete waits for the answer, to take it along
+            if ($answering && ! Message::whereKey($answering->id)->lockForUpdate()->exists()) {
+                return null;
+            }
+
             $message = new Message(['body' => $text]);
             $message->forceFill([
                 'conversation_id' => $conversation->id,
@@ -68,9 +78,27 @@ class Assistant
             return $message;
         });
 
-        rescue(fn () => MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all()));
+        $message && rescue(fn () => MessageSent::dispatch($message, $conversation->audience()->pluck('users.id')->all()));
 
         return $message;
+    }
+
+    /**
+     * A question taken back that may have reached the model (or may yet: its answer pending)
+     * still counts for its day: deleting never gives back a message of the day. Kept as a
+     * number for that day, nothing of what it said.
+     */
+    public function keepCounted(Message $question): void
+    {
+        if ($question->from_assistant || $question->extras !== null || ! $question->user_id) {
+            return;
+        }
+
+        $day = $question->created_at->toDateString();
+        foreach ([self::TAKEN_BACK . $day, self::TAKEN_BACK . "{$day}.{$question->user_id}"] as $key) {
+            Cache::add($key, 0, now()->addDays(2));
+            Cache::increment($key);
+        }
     }
 
     private function answerTo(Message $question, Conversation $conversation, User $user): void
@@ -84,21 +112,21 @@ class Assistant
 
         if ($ready = $this->ready->to($question->body, $user, $conversation->project)) {
             $this->free($question);
-            $this->say($conversation, $ready['text'], $this->actions($ready['actions'], $user, $conversation));
+            $this->reply($question, $ready['text'], $this->actions($ready['actions'], $user, $conversation));
 
             return;
         }
 
         if ($refusal = $this->overLimit($user, $conversation->project)) {
             $this->free($question);
-            $this->say($conversation, __($refusal), $this->toTheGuide($user, $conversation));
+            $this->reply($question, __($refusal), $this->toTheGuide($user, $conversation));
 
             return;
         }
 
         if (Cache::has(self::RESTING)) {
             $this->free($question);
-            $this->say($conversation, __('chat.assistant_resting'), $this->toTheGuide($user, $conversation));
+            $this->reply($question, __('chat.assistant_resting'), $this->toTheGuide($user, $conversation));
 
             return;
         }
@@ -113,7 +141,7 @@ class Assistant
             report($error);
             $this->free($question);
             $this->stumbled();
-            $this->say($conversation, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
+            $this->reply($question, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
 
             return;
         }
@@ -122,14 +150,20 @@ class Assistant
 
         // It was reached and made nothing of this question: that is this person's, not everyone's
         if ($text === '') {
-            $this->say($conversation, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
+            $this->reply($question, __('chat.assistant_trouble'), $this->toTheGuide($user, $conversation));
 
             return;
         }
 
         Cache::forget(self::STUMBLES);
 
-        $this->say($conversation, $text, $this->actions($answer['actions'] ?? null, $user, $conversation));
+        $this->reply($question, $text, $this->actions($answer['actions'] ?? null, $user, $conversation));
+    }
+
+    /** The answer to this question, unless it was taken back meanwhile */
+    private function reply(Message $question, string $text, array $actions = []): void
+    {
+        $this->say($question->conversation, $text, $actions, $question);
     }
 
     /**
@@ -175,10 +209,13 @@ class Assistant
         $theirs = (int) config('assistant.per_person_per_day');
         $theirs = $project?->isApproved() ? $theirs : intdiv($theirs, 2);
 
+        // Taken back, they still count
+        $kept = fn (string $whose = '') => (int) Cache::get(self::TAKEN_BACK . now()->toDateString() . $whose, 0);
+
         return match (true) {
-            (clone $today)->where('user_id', $user->id)->count() > $theirs => 'chat.assistant_limit',
-            (clone $today)->count() > config('assistant.per_day')          => 'chat.assistant_busy',
-            default                                                        => null,
+            (clone $today)->where('user_id', $user->id)->count() + $kept(".{$user->id}") > $theirs => 'chat.assistant_limit',
+            (clone $today)->count() + $kept() > config('assistant.per_day')                        => 'chat.assistant_busy',
+            default                                                                                => null,
         };
     }
 

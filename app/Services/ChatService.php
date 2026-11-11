@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Events\MessageRemoved;
+use App\Events\MessageChanged;
 use App\Events\MessageSent;
 use App\Jobs\AnswerInChat;
 use App\Jobs\PushMessage;
@@ -10,6 +10,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Assistant\Assistant;
 use App\Services\Push\PushService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -101,7 +102,7 @@ class ChatService
             return $message;
         });
 
-        MessageSent::dispatch($message, $conversation->participants()->pluck('users.id')->all());
+        MessageSent::dispatch($message, $conversation->audience()->pluck('users.id')->all());
         if ($conversation->is_assistant) {
             AnswerInChat::dispatch($message->id);
         } elseif (PushService::enabled()) {
@@ -159,15 +160,88 @@ class ChatService
         }
     }
 
-    /** A message taken back: the conversation then ends on the one before */
+    /**
+     * A message reworded by whoever wrote it: the same message for everyone, nothing kept of
+     * what it said before, no mark that it changed (its time stays), nobody notified. What
+     * each person read stays read.
+     */
+    public function edit(Message $message, string $body): void
+    {
+        $edited = DB::transaction(function () use ($message, $body) {
+            // Held, as a delete holds it: one that went meanwhile is not written again
+            $current = Message::whereKey($message->id)->lockForUpdate()->first();
+            if (! $current || $current->body === $body) {
+                return false;
+            }
+
+            $current->timestamps = false;
+            $current->forceFill(['body' => $body])->save();
+
+            return true;
+        });
+        if (! $edited) {
+            return;
+        }
+
+        MessageChanged::dispatch($message->conversation_id, $message->user_id, $message->conversation->audience()->pluck('users.id')->all(), false);
+    }
+
+    /**
+     * A message deleted, leaving no trace: gone for everyone, the conversation ending on the one
+     * before. In the Assistant's conversation its answer goes with it, and what it took from the
+     * day's messages stays taken.
+     */
     public function remove(Message $message): void
     {
-        $conversation = $message->conversation;
-        $message->delete();
-        $last = $conversation->messages()->latest('id')->first();
-        $conversation->forceFill(['last_message_id' => $last?->id, 'last_message_at' => $last?->created_at])->save();
+        $removed = DB::transaction(function () use ($message) {
+            // Held: an answer being written to it waits, and then finds it gone
+            $message = Message::whereKey($message->id)->lockForUpdate()->first();
+            if (! $message) {
+                return null;
+            }
+            $assistant = $message->conversation->is_assistant;
+            $gone = [$message->id, ...($assistant ? $this->answerTo($message) : [])];
+            // Its last message as it is now: someone writing meanwhile is not undone
+            $conversation = Conversation::whereKey($message->conversation_id)->lockForUpdate()->first();
 
-        MessageRemoved::dispatch($conversation->id, $message->user_id, $conversation->participants()->pluck('users.id')->all());
+            if ($assistant) {
+                app(Assistant::class)->keepCounted($message);
+            }
+            Message::whereKey($gone)->delete();
+
+            if (in_array($conversation->last_message_id, $gone, true)) {
+                $last = $conversation->messages()->latest('id')->first();
+                $conversation->forceFill(['last_message_id' => $last?->id, 'last_message_at' => $last?->created_at])->save();
+            }
+
+            return $conversation;
+        });
+
+        $removed && MessageChanged::dispatch($removed->id, $message->user_id, $removed->audience()->pluck('users.id')->all(), true);
+    }
+
+    /**
+     * The Assistant's answer to someone's message: what it said next. Messages written in a row
+     * are answered once, so the answer is to each of them: it could repeat any of them.
+     *
+     * @return list<int>
+     */
+    private function answerTo(Message $question): array
+    {
+        if ($question->from_assistant) {
+            return [];
+        }
+
+        $after = Message::where('conversation_id', $question->conversation_id)->where('id', '>', $question->id)->orderBy('id');
+        $first = (clone $after)->where('from_assistant', true)->lockForUpdate()->value('id');
+        if (! $first) {
+            return [];
+        }
+        $next = (clone $after)->where('id', '>', $first)->where('from_assistant', false)->value('id');
+
+        return (clone $after)->where('from_assistant', true)->where('id', '>=', $first)
+            ->when($next, fn ($answer) => $answer->where('id', '<', $next))
+            ->lockForUpdate()->pluck('id')->all();
     }
 
     /**

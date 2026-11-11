@@ -25,6 +25,7 @@ use App\Services\Lottery\PreferencesService;
 use App\Services\Queue\Workers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * A project's lottery, from scheduling to the final assignment (and, exceptionally,
@@ -193,11 +194,17 @@ class LotteryService implements LotteryHost
     }
 
     /**
-     * Undo a completed run, leaving a reason that everyone in the project can read.
+     * Undo a completed run, leaving a reason that everyone in the project can read. Checked
+     * with the run held still: of two admins sending it at once, the second finds it undone
+     * (409), and nobody is told twice.
      */
     public function invalidate(LotteryRun $run, User $admin, string $reason): void
     {
         DB::transaction(function () use ($run, $admin, $reason) {
+            $held = LotteryRun::whereKey($run->id)->lockForUpdate()->first();
+
+            abort_unless($held?->status === LotteryRunStatus::COMPLETED, Response::HTTP_CONFLICT);
+
             $run->project->units()->update(['family_id' => null]);
 
             $run->update([
@@ -227,15 +234,15 @@ class LotteryService implements LotteryHost
         );
     }
 
-    /**
-     * @throws CannotExecuteLotteryException|ParticipantItemMismatchException
-     */
     /** Families left with nobody while the lottery held them still, now that it lets go */
     private function discardEmptied(LotteryRun $run): void
     {
         $run->project->families()->get()->each(app(FamilyService::class)->discardIfEmpty(...));
     }
 
+    /**
+     * @throws CannotExecuteLotteryException|ParticipantItemMismatchException
+     */
     private function ensureCanRun(Project $project, array $options): void
     {
         $lottery = $project->lottery;

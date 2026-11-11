@@ -134,11 +134,26 @@ describe('Joining and ranking', function () {
     it('takes no item of another lottery in a ranking', function () {
         [$lottery] = aLottery();
         [$other] = aLottery(['Elsewhere']);
-        [, $key] = joined($lottery, 'Ana');
+        [$ana, $key] = joined($lottery, 'Ana');
 
         asPerson($this, $lottery, $key)
             ->put(route('open.rank', $lottery), ['ranking' => [$other->items()->first()->id]])
-            ->assertStatus(422);
+            ->assertRedirect();
+
+        expect($ana->ranking()->exists())->toBeFalse();
+    });
+
+    it('saves a ranking sent with an item removed meanwhile, without it and in its order', function () {
+        [$lottery] = aLottery();
+        [$ana, $key] = joined($lottery, 'Ana');
+        [$first, $second, $third] = $lottery->items()->get()->all();
+        app(OpenLotteryService::class)->removeItem($lottery, $second);
+
+        asPerson($this, $lottery, $key)
+            ->put(route('open.rank', $lottery), ['ranking' => [$third->id, $second->id, $first->id]])
+            ->assertRedirect();
+
+        expect($ana->ranking()->orderByPivot('rank')->pluck('open_lottery_items.id')->all())->toBe([$third->id, $first->id]);
     });
 
     it('lets someone in on another device with their own link', function () {
@@ -362,5 +377,97 @@ describe('Its limits', function () {
 
         $this->get(route('open.me', [$lottery, 'one-more']))->assertTooManyRequests();
         $this->get(route('open.organize', [$lottery, $key]))->assertRedirect(route('open.show', $lottery));
+    });
+});
+
+describe('What anyone may send', function () {
+    $refused = fn ($response) => array_keys($response->assertSessionHasErrors()->baseResponse->getSession()->get('errors')->getMessages());
+
+    it('is refused at once when it lists more items than a lottery takes, before reading each', function () use ($refused) {
+        // All the same: read one by one (distinct compares each with every other), each would be refused
+        $response = $this->post(route('open.store'), ['name' => 'Huge', 'items_name' => 'Rooms', 'items' => array_fill(0, 50_000, 'Same')]);
+
+        expect($refused($response))->toBe(['items'])
+            ->and(OpenLottery::count())->toBe(0);
+    });
+
+    it('is refused at once when a ranking lists more items than a lottery takes', function () use ($refused) {
+        [$lottery] = aLottery();
+        [, $key] = joined($lottery, 'Ana');
+
+        // All the same: read one by one, each would be refused as a repeat
+        $response = asPerson($this, $lottery, $key)->put(route('open.rank', $lottery), ['ranking' => array_fill(0, 50_000, 1)]);
+
+        expect($refused($response))->toBe(['ranking']);
+    });
+
+    it('creates a lottery of as many items as it takes, and not one more', function () {
+        $max = config('limits.open_lottery.items');
+        $items = fn (int $count) => array_map(fn ($n) => "Room {$n}", range(1, $count));
+
+        $this->post(route('open.store'), ['name' => 'Over', 'items_name' => 'Rooms', 'items' => $items($max + 1)])->assertSessionHasErrors('items');
+        $this->post(route('open.store'), ['name' => 'Full', 'items_name' => 'Rooms', 'items' => $items($max)])->assertSessionHasNoErrors();
+
+        expect(OpenLottery::sole())->name->toBe('Full')->and(OpenLottery::sole()->items()->count())->toBe($max);
+    });
+
+    it('adds items up to as many as it takes, and not one more', function () {
+        $max = config('limits.open_lottery.items');
+        [$lottery, $organizer] = aLottery(array_map(fn ($n) => "Room {$n}", range(1, $max - 1)));
+
+        asOrganizer($this, $lottery, $organizer)->post(route('open.items.store', $lottery), ['name' => 'Last'])->assertSessionHasNoErrors();
+        asOrganizer($this, $lottery, $organizer)->post(route('open.items.store', $lottery), ['name' => 'Over'])
+            ->assertSessionHasErrors(['name' => __('open_lottery.too_many_items')]);
+
+        expect($lottery->items()->count())->toBe($max);
+    });
+
+    it('says so when an item added differs from another only in its case or accents', function (string $given) {
+        [$lottery, $organizer] = aLottery(['Café']);
+
+        asOrganizer($this, $lottery, $organizer)->post(route('open.items.store', $lottery), ['name' => $given])
+            ->assertSessionHasErrors(['name' => __('open_lottery.name_taken')]);
+
+        expect($lottery->items()->pluck('name')->all())->toBe(['Café']);
+    })->with(['Cafe', 'CAFÉ', 'cafe']);
+});
+
+describe('A run that failed after it decided', function () {
+    it('stays decided: the lottery does not open again', function () {
+        [$lottery, $organizer] = aLottery(['Blue room', 'Green room']);
+        joined($lottery, 'Ana');
+        joined($lottery, 'Beto');
+        asOrganizer($this, $lottery, $organizer)->post(route('open.run', $lottery), ['confirmed' => true])->assertSessionHasNoErrors();
+        $run = $lottery->runs()->sole();
+
+        app(OpenLotteryService::class)->fail($run, 'lottery.execution_failed');
+        (new App\Jobs\RunLottery($run))->failed(new RuntimeException('Timed out'));
+
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED)
+            ->and($run->audits()->where('type', 'failure')->exists())->toBeFalse()
+            ->and($lottery->fresh()->isOpen())->toBeFalse();
+        $this->post(route('open.join', $lottery), ['name' => 'Late'])->assertSessionHasErrors('lottery');
+    });
+});
+
+describe('Names, at their longest', function () {
+    $long = fn (int $characters) => str_repeat('😀', $characters); // four bytes each
+
+    it('are taken in characters of four bytes, and refused one character longer', function () use ($long) {
+        $create = fn (array $data) => $this->post(route('open.store'), ['name' => $long(80), 'items_name' => $long(40), 'items' => [$long(60)], ...$data]);
+
+        $create(['name' => $long(81)])->assertSessionHasErrors('name');
+        $create(['items_name' => $long(41)])->assertSessionHasErrors('items_name');
+        $create(['items' => [$long(61)]])->assertSessionHasErrors('items.0');
+        $create([])->assertSessionHasNoErrors();
+        $lottery = OpenLottery::sole();
+        $this->defaultCookies = [];
+
+        $this->post(route('open.join', $lottery), ['name' => $long(61)])->assertSessionHasErrors('name');
+        $this->post(route('open.join', $lottery), ['name' => $long(60)])->assertSessionHasNoErrors();
+
+        expect($lottery->fresh())->name->toBe($long(80))->items_name->toBe($long(40))
+            ->and($lottery->items()->sole()->name)->toBe($long(60))
+            ->and($lottery->participants()->sole()->name)->toBe($long(60));
     });
 });

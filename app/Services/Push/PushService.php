@@ -56,7 +56,8 @@ class PushService
         }
 
         $author = $message->author?->name ?? '';
-        $others = $conversation->participants()->whereKeyNot($message->user_id)
+        // Only those who may read it now: not whoever left the project, nor a blocked account
+        $others = $conversation->audience()->whereKeyNot($message->user_id)
             ->whereHas('pushSubscriptions')->with('pushSubscriptions')->get();
 
         // A group with no name goes by its people, as it does in the chat

@@ -5,6 +5,8 @@ namespace App\Policies;
 use App\Models\Family;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\ProjectService;
+use Illuminate\Support\Facades\RateLimiter;
 
 class ProjectPolicy
 {
@@ -15,12 +17,14 @@ class ProjectPolicy
 
     /**
      * Anyone with a verified account may start a project (within the limits for
-     * unapproved projects).
+     * unapproved projects). One they deleted lately still counts: starting and deleting
+     * over and over would tell the platform's team each time.
      */
     public function create(User $user): bool
     {
         return $user->hasVerifiedEmail()
             && Project::where('created_by', $user->id)->whereNull('approved_at')->count()
+                + RateLimiter::attempts(ProjectService::removedBy($user))
                 < config('limits.unapproved_projects_per_user');
     }
 

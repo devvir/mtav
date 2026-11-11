@@ -47,4 +47,9 @@ return [
     'support_invitation_subject' => 'Una cuenta de soporte en :app',
     'support_invitation_intro'   => ':inviter te invita a dar soporte en :app, con una cuenta propia para eso: ve todos los proyectos, para ayudar a su gente.',
     'support_invitation_action'  => 'Crear la cuenta',
+    'account_exists_subject'     => 'Ya tienes una cuenta en :app',
+    'account_exists_intro'       => 'Alguien, quizás tú, quiso crear una cuenta en :app con este correo. Ya tienes una: entra con ella.',
+    'account_exists_action'      => 'Entrar',
+    'account_exists_forgot'      => 'Si no te acuerdas de la contraseña, desde la página para entrar puedes elegir una nueva.',
+    'account_exists_ignore'      => 'Si no fuiste tú, ignora este correo: no cambió nada.',
 ];

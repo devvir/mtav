@@ -10,10 +10,17 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
- * A unit, of an existing type or of a new one created on the way.
+ * A unit, of an existing type or of a new one created on the way (when adding it: a unit
+ * changed moves to a type that exists).
  */
 class UnitRequest extends FormRequest
 {
+    /** How many corners first, on its own: each corner's rules run only on a shape of a size */
+    protected function prepareForValidation(): void
+    {
+        validator($this->all(), ['polygon' => ['nullable', 'list', 'min:3', 'max:64']])->validate();
+    }
+
     public function rules(): array
     {
         /** @var Project $project */
@@ -27,18 +34,19 @@ class UnitRequest extends FormRequest
                 Rule::unique('units', 'identifier')->where('project_id', $project->id)->ignore($unit),
             ],
             'unit_type_id' => [
-                'required_without:new_unit_type', 'nullable',
+                $unit ? 'required' : 'required_without:new_unit_type', 'nullable',
                 Rule::exists(UnitType::class, 'id')->where('project_id', $project->id),
             ],
-            'new_unit_type'      => ['nullable', 'array'],
+            // On an update the form still sends it, empty: only a type given is refused
+            'new_unit_type'      => $unit ? ['prohibited'] : ['nullable', 'array'],
             'new_unit_type.name' => [
                 'required_with:new_unit_type', 'string', 'between:2,80',
                 Rule::unique('unit_types', 'name')->where('project_id', $project->id),
             ],
             'new_unit_type.description' => ['nullable', 'string', 'max:500'],
             // Where it was drawn, when added on the plan
-            'polygon'     => ['nullable', 'array', 'min:3', 'max:64'],
-            'polygon.*'   => ['array', 'size:2'],
+            'polygon'     => ['nullable', 'list', 'min:3', 'max:64'],
+            'polygon.*'   => ['list', 'size:2'],
             'polygon.*.*' => ['numeric'],
             'floor'       => ['nullable', 'integer', 'between:-5,100'],
         ];

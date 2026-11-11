@@ -369,3 +369,77 @@ describe('Projects of the same name', function () {
             ->and($this->other->fresh())->not->toBeNull();
     });
 });
+
+describe('Starting projects unapproved', function () {
+    beforeEach(function () {
+        config()->set('limits.unapproved_projects_per_user', 2);
+        $this->person = aUser();
+    });
+
+    it('counts a project deleted lately, so that starting and deleting cannot go on and on', function () {
+        foreach (['First', 'Second'] as $name) {
+            $this->as($this->person)->post(route('projects.store'), projectData(['name' => $name]))->assertSessionHasNoErrors();
+            $project = Project::firstWhere('name', $name);
+            $this->as($this->person, $project)->delete(route('manage.settings.destroy'), ['confirmation' => $name])->assertSessionHasNoErrors();
+        }
+
+        expect($this->as($this->person)->post(route('projects.store'), projectData()))->toBeDenied()
+            ->and(theNewProject())->toBeNull();
+
+        $this->travel(config('limits.removed_projects_count_hours') + 1)->hours();
+        $this->as($this->person)->post(route('projects.store'), projectData())->assertSessionHasNoErrors();
+    });
+
+    it('counts again at the moment of starting: two at once cannot both pass', function () {
+        anUnapprovedProject($this->person);
+        // The other tap, starting its project between this one's first check and its start
+        $started = false;
+        Illuminate\Support\Facades\Gate::after(function () use (&$started) {
+            if (! $started) {
+                $started = true;
+                anUnapprovedProject($this->person);
+            }
+        });
+
+        expect($this->as($this->person)->post(route('projects.store'), projectData()))->toBeDenied()
+            ->and(theNewProject())->toBeNull()
+            ->and(Project::where('created_by', $this->person->id)->count())->toBe(2);
+    });
+
+    it('takes a few a minute at most', function () {
+        config()->set('limits.unapproved_projects_per_user', 100);
+
+        foreach (range(1, 5) as $i) {
+            $this->as($this->person)->post(route('projects.store'), projectData(['name' => "Project {$i}"]))->assertSessionHasNoErrors();
+        }
+
+        // A form sent too often is answered on the page it came from
+        $this->as($this->person)->post(route('projects.store'), projectData())->assertSessionHas('error', __('flash.too_many_attempts'));
+        expect(theNewProject())->toBeNull();
+    });
+});
+
+it('approves a project once: approving it again changes nothing and tells nobody again', function () {
+    $project = anUnapprovedProject();
+    $first = aSuperadmin();
+    $second = User::factory()->superadmin()->create();
+
+    $this->as($first)->put(route('admin.projects.approve', $project))->assertSessionHasNoErrors();
+    $approvedAt = $project->fresh()->approved_at;
+    $this->travel(1)->hour();
+    $this->as($second)->put(route('admin.projects.approve', $project))->assertSessionHasNoErrors();
+
+    expect($project->fresh())->approved_at->toEqual($approvedAt)->approved_by->toBe($first->id)
+        ->and(App\Models\Notification::where('type', App\Enums\NotificationType::PROJECT_APPROVED)->count())->toBe(1);
+});
+
+it('keeps a project its lottery is running for, saying why', function () {
+    $project = aProject();
+    $admin = anAdminOf($project);
+    aLotteryInProgress($project);
+
+    $this->as($admin, $project)->delete(route('manage.settings.destroy'), ['confirmation' => $project->name])
+        ->assertSessionHasErrors(['lottery' => __('lottery.running')]);
+
+    expect(Project::find($project->id))->not->toBeNull();
+});

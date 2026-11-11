@@ -11,6 +11,7 @@ return [
     'email_verified'          => 'Tu correo quedó confirmado. Te damos la bienvenida.',
     'email_verification_sent' => 'Te mandamos un enlace de confirmación a :email. Tu correo cambia cuando lo confirmes.',
     'email_changed'           => 'Tu correo cambió.',
+    'signed_up'               => 'Te mandamos un correo a :email. Abre el enlace que trae para seguir.',
     'profile_updated'         => 'Tu perfil quedó guardado.',
     'password_updated'        => 'Tu contraseña cambió.',
     'password_confirmed'      => 'Listo. Ahora vuelve a hacerlo.',
@@ -78,7 +79,7 @@ return [
     'notifications_read' => 'Todas las notificaciones quedaron como leídas.',
 
     'deploy_dev'              => 'Se está desplegando dev desde :branch. Síguelo abajo.',
-    'deploy_production'       => 'Se está desplegando producción: espera la aprobación en GitHub.',
+    'deploy_production'       => 'Se está desplegando :environment: espera la aprobación en GitHub.',
     'deploy_rollback'         => ':environment vuelve a la versión anterior.',
     'deploy_fresh'            => ':environment empieza de cero, con los datos de prueba. Síguelo abajo.',
     'deploy_refused'          => 'GitHub no lo inició (:status). Revisa el token de despliegue.',

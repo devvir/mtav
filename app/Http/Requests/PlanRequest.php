@@ -16,18 +16,33 @@ class PlanRequest extends FormRequest
 {
     public const ITEM_TYPES = ['unit', 'building', 'street', 'green', 'common', 'parking', 'playground', 'entrance', 'other'];
 
+    public const MAX_ITEMS = 2000;
+
+    public const MAX_CORNERS = 200;
+
+    /**
+     * How many first: a rule on each shape or point would read every one sent, however many.
+     * Points are plain [x, y] lists (an {x, y} object is no point the plan can be read by).
+     */
+    protected function prepareForValidation(): void
+    {
+        validator($this->all(), [
+            'polygon' => ['required', 'list', 'min:3', 'max:' . self::MAX_CORNERS],
+            'items'   => ['present', 'list', 'max:' . self::MAX_ITEMS],
+        ])->validate();
+
+        validator($this->all(), ['items.*.polygon' => ['required', 'list', 'min:3', 'max:' . self::MAX_CORNERS]])->validate();
+    }
+
     public function rules(): array
     {
-        /** @var Project $project */
-        $project = $this->route('project');
-
         return [
             'width'       => ['required', 'numeric', 'between:100,10000'],
             'height'      => ['required', 'numeric', 'between:100,10000'],
-            'polygon'     => ['required', 'array', 'min:3', 'max:200'],
-            'polygon.*'   => ['required', 'array', 'size:2'],
+            'polygon'     => ['required', 'list', 'min:3', 'max:' . self::MAX_CORNERS],
+            'polygon.*'   => ['required', 'list', 'size:2'],
             'polygon.*.*' => ['required', 'numeric'],
-            'items'       => ['present', 'array', 'max:2000'],
+            'items'       => ['present', 'list', 'max:' . self::MAX_ITEMS],
             // An id the plan no longer has (a shape removed, then brought back by undo) makes a
             // new shape: the editor's history must never make the plan unsavable
             'items.*.id'          => ['nullable', 'integer'],
@@ -37,8 +52,8 @@ class PlanRequest extends FormRequest
             'items.*.placed'      => ['boolean'],
             'items.*.name'        => ['nullable', 'string', 'max:80'],
             'items.*.color'       => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
-            'items.*.polygon'     => ['required', 'array', 'min:3', 'max:200'],
-            'items.*.polygon.*'   => ['required', 'array', 'size:2'],
+            'items.*.polygon'     => ['required', 'list', 'min:3', 'max:' . self::MAX_CORNERS],
+            'items.*.polygon.*'   => ['required', 'list', 'size:2'],
             'items.*.polygon.*.*' => ['required', 'numeric'],
         ];
     }

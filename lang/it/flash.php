@@ -11,6 +11,7 @@ return [
     'email_verified'          => 'Il tuo indirizzo email è confermato. Ti diamo il benvenuto.',
     'email_verification_sent' => 'Abbiamo inviato un link di conferma a :email. Il tuo indirizzo cambia quando lo confermi.',
     'email_changed'           => 'Il tuo indirizzo email è stato cambiato.',
+    'signed_up'               => 'Abbiamo inviato un’email a :email. Apri il link che contiene per andare avanti.',
     'profile_updated'         => 'Il tuo profilo è stato salvato.',
     'password_updated'        => 'La tua password è stata cambiata.',
     'password_confirmed'      => 'Confermato. Ora rifallo.',
@@ -78,7 +79,7 @@ return [
     'notifications_read' => 'Tutte le notifiche sono segnate come lette.',
 
     'deploy_dev'              => 'Dev è in fase di rilascio da :branch. Seguilo qui sotto.',
-    'deploy_production'       => 'La produzione è in fase di rilascio: attende l’approvazione su GitHub.',
+    'deploy_production'       => ':environment è in fase di rilascio: attende l’approvazione su GitHub.',
     'deploy_rollback'         => ':environment torna alla versione precedente.',
     'deploy_fresh'            => ':environment riparte da zero, con i dati demo. Seguilo qui sotto.',
     'deploy_refused'          => 'GitHub non l’ha avviato (:status). Controlla il token di rilascio.',

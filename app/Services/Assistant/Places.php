@@ -29,7 +29,12 @@ class Places
         ];
 
         if (! $project) {
-            return [...$theirs, 'start_project' => ['about' => 'starting a new project, of which they become the first admin', 'route' => 'projects.create', 'tour' => 'account.start_project']];
+            // A superadmin takes no place in a project: they name its first admin, who is invited
+            $starting = $user->isSuperadmin()
+                ? 'starting a new project and naming its first admin, who is invited'
+                : 'starting a new project, of which they become the first admin';
+
+            return [...$theirs, 'start_project' => ['about' => $starting, 'route' => 'projects.create', 'tour' => 'account.start_project']];
         }
 
         $manages = $user->manages($project);

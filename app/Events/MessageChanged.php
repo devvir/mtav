@@ -8,16 +8,16 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
- * A message taken back, to everyone in its conversation: pages showing it ask again. It is
- * gone by now, so only where it was travels.
+ * A message edited or deleted, to everyone in its conversation: pages showing it ask again.
+ * Only where it was travels, never what it said (or says now).
  */
-class MessageRemoved implements ShouldBroadcast
+class MessageChanged implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;
 
     /** @param list<int> $participants */
-    public function __construct(public int $conversationId, public ?int $by, public array $participants)
+    public function __construct(public int $conversationId, public ?int $by, public array $participants, public bool $removed)
     {
     }
 
@@ -34,11 +34,11 @@ class MessageRemoved implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'message-removed';
+        return 'message-changed';
     }
 
     public function broadcastWith(): array
     {
-        return ['conversation_id' => $this->conversationId, 'by' => $this->by];
+        return ['conversation_id' => $this->conversationId, 'by' => $this->by, 'removed' => $this->removed];
     }
 }

@@ -81,6 +81,9 @@ class ProjectController extends Controller
     {
         $request->validate(['confirmation' => ['required', Rule::in([$project->name])]]);
 
+        // The run would end with no project to tell
+        $project->ensureLotteryNotRunning();
+
         $projects->purge($project);
 
         return to_route('admin.projects.index', $project->trashed() ? ['show' => 'archived'] : [])

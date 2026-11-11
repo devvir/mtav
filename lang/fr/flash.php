@@ -11,6 +11,7 @@ return [
     'email_verified'          => 'Votre adresse e-mail est confirmée. Bienvenue.',
     'email_verification_sent' => 'Nous avons envoyé un lien de confirmation à :email. Votre adresse change dès que vous la confirmez.',
     'email_changed'           => 'Votre adresse e-mail a été changée.',
+    'signed_up'               => 'Nous avons envoyé un e-mail à :email. Ouvrez le lien qu’il contient pour continuer.',
     'profile_updated'         => 'Votre profil a été enregistré.',
     'password_updated'        => 'Votre mot de passe a été changé.',
     'password_confirmed'      => 'C’est confirmé. Recommencez maintenant.',
@@ -78,7 +79,7 @@ return [
     'notifications_read' => 'Toutes les notifications sont marquées comme lues.',
 
     'deploy_dev'              => 'Dev est en cours de déploiement depuis :branch. Suivez-le ci-dessous.',
-    'deploy_production'       => 'La production est en cours de déploiement : elle attend l’approbation sur GitHub.',
+    'deploy_production'       => ':environment est en cours de déploiement : il attend l’approbation sur GitHub.',
     'deploy_rollback'         => ':environment revient à la version précédente.',
     'deploy_fresh'            => ':environment repart de zéro, avec les données de démo. Suivez-le ci-dessous.',
     'deploy_refused'          => 'GitHub ne l’a pas lancé (:status). Vérifiez le jeton de déploiement.',

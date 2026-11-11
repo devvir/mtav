@@ -548,3 +548,111 @@ it('offers no chat to someone who has yet to find their family, where guests are
         ->and($shared['welcome'])->toBeNull()
         ->and($shared['can']['chat'])->toBeFalse();
 });
+
+describe('An admin changing a role alone', function () {
+    it('changes it while a lottery runs, the family sent as text, as the form sends it', function () {
+        aLotteryInProgress($this->project);
+
+        $this->as($this->admin, $this->project)
+            ->putJson(route('manage.people.update', $this->member), ['family_id' => (string) $this->family->id, 'is_admin' => true])
+            ->assertValid();
+
+        expect($this->member->fresh()->manages($this->project))->toBeTrue();
+    });
+
+    it('moves nobody: they are not told of joining, keep what they were invited to, and an old decline stands in the way of nothing', function () {
+        $other = aFamily($this->project, $this->type, ['name' => 'Other']);
+        $invitation = Invitation::create(['project_id' => $this->project->id, 'family_id' => $other->id, 'email' => $this->member->email, 'token_hash' => Str::random(64), 'invited_by' => $this->admin->id, 'expires_at' => now()->addDay()]);
+        FamilyJoinRequest::create(['project_id' => $this->project->id, 'family_id' => $this->family->id, 'user_id' => $this->member->id, 'declined_at' => now()]);
+
+        $this->as($this->admin, $this->project)
+            ->putJson(route('manage.people.update', $this->member), ['family_id' => (string) $this->family->id, 'is_admin' => true])
+            ->assertValid();
+
+        expect($this->member->fresh()->manages($this->project))->toBeTrue()
+            ->and(toldOf($this->member, NotificationType::ADDED_TO_FAMILY))->toBeFalse()
+            ->and(Invitation::whereKey($invitation->id)->exists())->toBeTrue();
+        Notifications::assertNotSentTo($this->member, App\Notifications\JoinedNotification::class);
+    });
+});
+
+describe('The only admin', function () {
+    beforeEach(function () {
+        $this->alone = aProject(['allows_guests' => true]);
+        $this->only = anAdminOf($this->alone);
+    });
+
+    it('cannot give the role up', function () {
+        $this->as($this->only, $this->alone)
+            ->put(route('manage.people.update', $this->only), ['family_id' => null, 'is_admin' => false])
+            ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
+
+        expect($this->only->fresh()->manages($this->alone))->toBeTrue();
+    });
+
+    it('cannot leave the project', function () {
+        $this->as($this->only, $this->alone)->delete(route('membership.leave'))
+            ->assertSessionHasErrors(['membership' => __('validation.last_admin')]);
+
+        expect($this->only->fresh()->canAccess($this->alone))->toBeTrue();
+    });
+});
+
+describe('A family waiting only for an invitation taken back', function () {
+    beforeEach(function () {
+        $this->waiting = aFamily($this->project, $this->type, ['name' => 'Waiting']);
+        $this->inviteToWaiting = fn (string $email) => app(InvitationService::class)->invite($this->project, $this->admin, ['email' => $email], $this->waiting, asAdmin: false);
+        // Sent before the guest came in otherwise (someone in the project is added at once)
+        $this->guestInvited = fn () => Invitation::create(['project_id' => $this->project->id, 'family_id' => $this->waiting->id, 'email' => $this->guest->email, 'token_hash' => Str::random(64), 'invited_by' => $this->admin->id, 'expires_at' => now()->addWeek()]);
+    });
+
+    it('goes at once when the person is removed from the project', function () {
+        ($this->guestInvited)();
+        expect($this->waiting->fresh()->trashed())->toBeFalse();
+
+        $this->as($this->admin, $this->project)->delete(route('manage.people.destroy', $this->guest))->assertSessionHasNoErrors();
+
+        expect($this->waiting->fresh()->trashed())->toBeTrue();
+    });
+
+    it('goes at once when an admin puts the person in another family', function () {
+        ($this->guestInvited)();
+        expect($this->waiting->fresh()->trashed())->toBeFalse();
+
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->guest), ['family_id' => $this->family->id, 'is_admin' => false])
+            ->assertSessionHasNoErrors();
+
+        expect($this->waiting->fresh()->trashed())->toBeTrue();
+    });
+
+    it('goes at once when the person is added to another family by an invitation', function () {
+        ($this->guestInvited)();
+        expect($this->waiting->fresh()->trashed())->toBeFalse();
+
+        app(InvitationService::class)->invite($this->project, $this->admin, ['email' => $this->guest->email], $this->family, asAdmin: false);
+
+        expect($this->guest->fresh()->familyIn($this->project)?->id)->toBe($this->family->id)
+            ->and($this->waiting->fresh()->trashed())->toBeTrue();
+    });
+
+    it('goes at once when the person is invited into another family instead, and stays when invited into it again', function () {
+        ($this->inviteToWaiting)('new@example.com');
+        ($this->inviteToWaiting)('new@example.com');
+
+        expect($this->waiting->fresh()->trashed())->toBeFalse();
+
+        app(InvitationService::class)->invite($this->project, $this->admin, ['email' => 'new@example.com'], $this->family, asAdmin: false);
+
+        expect($this->waiting->fresh()->trashed())->toBeTrue();
+    });
+
+    it('goes at once when the person\'s account is blocked', function () {
+        ($this->guestInvited)();
+        expect($this->waiting->fresh()->trashed())->toBeFalse();
+
+        app(App\Services\AccountService::class)->block($this->guest);
+
+        expect($this->waiting->fresh()->trashed())->toBeTrue();
+    });
+});

@@ -99,7 +99,12 @@ class OpenLotteryService implements LotteryHost
 
             $this->ensureNameFree($lottery->items(), $name, 'name');
 
-            $lottery->items()->create(['name' => $name]);
+            try {
+                $lottery->items()->create(['name' => $name]);
+            } catch (UniqueConstraintViolationException) {
+                // Names the database takes for one, whatever the check above made of them
+                throw ValidationException::withMessages(['name' => __('open_lottery.name_taken')]);
+            }
         });
     }
 
@@ -112,9 +117,9 @@ class OpenLotteryService implements LotteryHost
     public function rank(OpenLottery $lottery, OpenLotteryParticipant $participant, array $itemIds): void
     {
         $this->whileOpen($lottery, function () use ($lottery, $participant, $itemIds) {
+            // An item removed while they were ranking leaves the ranking; the rest keep their order
             $known = $lottery->items()->whereIn('id', $itemIds)->pluck('id')->all();
-
-            abort_if(count($known) !== count(array_unique($itemIds)), 422);
+            $itemIds = array_values(array_filter($itemIds, fn (int $id) => in_array($id, $known, true)));
 
             $participant->ranking()->sync(
                 collect($itemIds)->values()->mapWithKeys(fn (int $id, int $i) => [$id => ['rank' => $i + 1]])->all()
@@ -213,9 +218,16 @@ class OpenLotteryService implements LotteryHost
         $this->changed($run->openLottery);
     }
 
-    /** It decided nothing: the organizer may try again */
+    /**
+     * It decided nothing: the organizer may try again. A run that already finished stays as it
+     * is (what failed came after it): a failure never reopens a lottery that decided.
+     */
     public function fail(LotteryRun $run, string $messageKey, array $messageParams = [], array $debug = []): void
     {
+        if ($run->fresh()?->status !== LotteryRunStatus::RUNNING) {
+            return;
+        }
+
         $this->audits->record($run->id, LotteryAuditType::FAILURE, ['message' => __($messageKey, $messageParams), ...$debug]);
         $run->update(['status' => LotteryRunStatus::FAILED, 'finished_at' => now(), 'failure' => LotteryRun::failureOf($messageKey, $messageParams)]);
 

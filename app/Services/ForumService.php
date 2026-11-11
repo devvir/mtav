@@ -48,8 +48,9 @@ class ForumService
     public function reply(Topic $topic, User $author, string $body): Post
     {
         $post = DB::transaction(function () use ($topic, $author, $body) {
-            $post = $this->post($topic, $author, $body);
-            $topic->forceFill(['replies_count' => $topic->replies_count + 1, 'last_post_at' => now()])->save();
+            $held = $this->hold($topic);
+            $post = $this->post($held, $author, $body);
+            $held->forceFill(['replies_count' => $this->replies($held), 'last_post_at' => now()])->save();
 
             return $post;
         });
@@ -93,13 +94,40 @@ class ForumService
     public function remove(Post $post): void
     {
         DB::transaction(function () use ($post) {
-            $topic = $post->topic;
+            $topic = $this->hold($post->topic);
             $post->retire();
             $topic->forceFill([
-                'replies_count' => max(0, $topic->replies_count - 1),
+                'replies_count' => $this->replies($topic),
                 'last_post_at'  => $topic->posts()->max('created_at') ?? $topic->created_at,
             ])->save();
         });
+    }
+
+    /**
+     * Admins remove a topic; its writer too, while nobody has replied. Decided with the topic
+     * held still: a reply arriving at the same moment keeps it.
+     */
+    public function removeTopic(Topic $topic, User $by): void
+    {
+        DB::transaction(function () use ($topic, $by) {
+            $topic = $this->hold($topic);
+
+            abort_unless($by->can('delete', $topic) || ($topic->author_id === $by->id && ! $topic->replies_count), 403);
+
+            $topic->retire();
+        });
+    }
+
+    /** The topic as it is now, held until the transaction ends: replies and removals take turns */
+    private function hold(Topic $topic): Topic
+    {
+        return Topic::whereKey($topic->id)->lockForUpdate()->firstOrFail();
+    }
+
+    /** Counted from the posts, never from a number read earlier: replies at the same moment all count */
+    private function replies(Topic $topic): int
+    {
+        return max(0, $topic->posts()->count() - 1);
     }
 
     private function post(Topic $topic, User $author, string $body): Post

@@ -156,3 +156,66 @@ describe('A member', function () {
         expect($other->fresh()->name)->toBe('Original');
     });
 });
+
+describe('An unapproved project\'s families', function () {
+    beforeEach(function () {
+        $this->project = anUnapprovedProject();
+        $this->admin = $this->project->admins()->first();
+        $this->type = aUnitType($this->project);
+        $this->max = config('limits.unapproved.families');
+        $this->fill = function (int $count) {
+            foreach (range(1, $count) as $n) {
+                $this->project->families()->create(['name' => "Family {$n}", 'unit_type_id' => $this->type->id]);
+            }
+        };
+        $this->full = __('validation.limit_families', ['max' => $this->max]);
+    });
+
+    it('take as many as its limit from an admin, and refuse one more, saying so', function () {
+        ($this->fill)($this->max - 1);
+        $register = fn (string $name) => $this->as($this->admin, $this->project)->post(route('manage.families.store'), [
+            'name' => $name, 'unit_type_id' => $this->type->id, 'email' => strtolower($name) . '@example.com',
+        ]);
+
+        $register('Last')->assertSessionHasNoErrors();
+        $register('Over')->assertSessionHasErrors(['name' => $this->full]);
+
+        expect($this->project->families()->count())->toBe($this->max)
+            ->and($this->project->families()->where('name', 'Over')->exists())->toBeFalse();
+    });
+
+    it('refuse one more started by someone taking part, saying so', function () {
+        $this->project->update(['allows_guests' => true]);
+        $guest = aUser();
+        $this->project->memberships()->create(['user_id' => $guest->id]);
+        ($this->fill)($this->max);
+
+        $this->as($guest, $this->project)->post(route('families.store'), ['name' => 'Ours', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasErrors(['name' => $this->full]);
+
+        expect($guest->fresh()->familyIn($this->project))->toBeNull()
+            ->and($this->project->families()->count())->toBe($this->max);
+    });
+
+    it('take one started by someone taking part, up to the limit', function () {
+        $this->project->update(['allows_guests' => true]);
+        $guest = aUser();
+        $this->project->memberships()->create(['user_id' => $guest->id]);
+        ($this->fill)($this->max - 1);
+
+        $this->as($guest, $this->project)->post(route('families.store'), ['name' => 'Ours', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasNoErrors();
+
+        expect($guest->fresh()->familyIn($this->project)?->name)->toBe('Ours');
+    });
+
+    it('can still be changed at the limit', function () {
+        ($this->fill)($this->max);
+        $family = $this->project->families()->firstWhere('name', 'Family 1');
+
+        $this->as($this->admin, $this->project)->put(route('manage.families.update', $family), ['name' => 'Renamed', 'unit_type_id' => $this->type->id])
+            ->assertSessionHasNoErrors();
+
+        expect($family->fresh()->name)->toBe('Renamed');
+    });
+});

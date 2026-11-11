@@ -6,6 +6,7 @@ use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Invitation;
 use App\Models\Project;
+use App\Models\User;
 use App\Services\InvitationService;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
@@ -65,6 +66,10 @@ class ProjectController extends Controller
 
         // One whole: an invitation refused leaves no project behind, holding its name
         $project = DB::transaction(function () use ($projects, $invitations, $request, $user, $first) {
+            // Asked again with the person held still: two at once (a double tap) cannot both pass
+            User::whereKey($user->id)->lockForUpdate()->first();
+            $this->authorize('create', Project::class);
+
             $project = $projects->create($user, $request->validated());
 
             if ($first) {

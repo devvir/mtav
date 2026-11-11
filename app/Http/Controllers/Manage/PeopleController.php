@@ -30,8 +30,10 @@ class PeopleController extends Controller
         ]);
 
         $membership = $member->membershipIn($project);
-        $familyId = $data['family_id'] ?? null;
-        $moved = $familyId !== $membership->family_id;
+        // The form sends ids as text: compared as numbers, a role changed alone moves nobody
+        $familyId = isset($data['family_id']) ? (int) $data['family_id'] : null;
+        $data['family_id'] = $familyId;
+        $moved = $familyId !== ($membership->family_id ? (int) $membership->family_id : null);
         $demoted = $membership->is_admin && ! $data['is_admin'];
 
         if (! $data['is_admin'] && ! $familyId && ! $project->allows_guests) {
@@ -63,7 +65,8 @@ class PeopleController extends Controller
                     ->when($demoted, fn ($query) => $query->orWhere('is_admin', true))
                     ->when($moved, fn ($query) => $query->orWhereNotNull('family_id'))
                     ->orWhereRaw('1 = 0'))
-                ->delete();
+                // One by one: a family waiting only for one of them may have nobody left
+                ->get()->each->delete();
         };
 
         $demoted ? $project->keepingAnAdmin($member, 'member', $apply) : DB::transaction($apply);
@@ -81,8 +84,9 @@ class PeopleController extends Controller
 
         $project->keepingAnAdmin($member, 'member', function () use ($project, $member) {
             $member->membershipIn($project)->delete();
-            // An old invitation would bring them back, role and all
-            $project->invitations()->pending()->where('email', $member->email)->delete();
+            // An old invitation would bring them back, role and all (one by one: a family waiting
+            // only for it may have nobody left)
+            $project->invitations()->pending()->where('email', $member->email)->get()->each->delete();
         });
 
         return to_route('people.index')->with('success', __('flash.member_removed'));

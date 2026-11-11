@@ -47,9 +47,12 @@ describe('Blocking', function () {
         $this->person->forceFill(['blocked_at' => now()])->save();
         auth()->logout();
 
+        // Answered as any sign-up is, and nothing is opened, nor anyone told
         $this->post(route('register'), [
             'firstname' => 'Again', 'email' => 'person@example.com', 'password' => 'a-Strong-pass-123', 'password_confirmation' => 'a-Strong-pass-123',
-        ])->assertSessionHasErrors('email');
+        ])->assertRedirect(route('login'))->assertSessionHas('info');
+        expect(User::where('email', 'person@example.com')->count())->toBe(1);
+        Notification::assertNothingSentTo($this->person);
 
         $this->as($this->superadmin, $this->project)->post(route('manage.invitations.store'), ['email' => 'person@example.com', 'family_id' => $this->family->id])
             ->assertSessionHasErrors('email');

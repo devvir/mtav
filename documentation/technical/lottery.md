@@ -10,7 +10,7 @@ Each family ranks the units of its type, most wanted first (`PreferencesService`
 member of the family changes the one ranking it has; every change is saved at once.
 A family may rank only some units, or none: the rest follow in an order fixed per family
 (a hash of the app's key, the family and the unit), random-looking but always the same,
-never written down. Rankings are locked while a run is running or completed.
+never written down. Rankings are locked while a run is running or completed; a ranking sent as a run starts waits for it (the project is locked), so it is in the manifest or refused.
 
 ## Running it
 
@@ -22,7 +22,7 @@ Once the lottery's date has come, an admin runs it (`LotteryService::run`):
    than families, or fewer, the admin confirmed it. Then a `lottery_runs` row is written
    (`running`), and the **manifest** is recorded: every family's whole ranking, per unit
    type, as it is now.
-2. `RunLottery` (queued) solves it. Workers of the main queue say they are alive as they
+2. `RunLottery` (queued) solves the manifest as recorded, never what the project holds by then. Workers of the main queue say they are alive as they
    loop (`Services/Queue/Workers`); without one, the page says the lottery is held.
 3. The solver's assignment is **held** until the run's `reveal_at`: everyone watches the
    lottery work for at least the time the platform's settings say (superadmins set it;
@@ -73,6 +73,6 @@ as JSON, to keep or hand to an auditor.
 
 ## Undoing a run
 
-Only exceptionally: an admin invalidates a completed run, giving a reason. Every unit is
+Only exceptionally: an admin invalidates a completed run, giving a reason (10 to 1000 characters); sent twice at once, it happens once. Every unit is
 freed, the run becomes `invalidated` (who, when, why: shown to everyone in the project,
 and notified), and the lottery can run again, as a new run with its own record.

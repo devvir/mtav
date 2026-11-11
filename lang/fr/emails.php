@@ -47,4 +47,9 @@ return [
     'support_invitation_subject' => 'Un compte de support dans :app',
     'support_invitation_intro'   => ':inviter vous invite à apporter du support dans :app, avec un compte à part : il voit tous les projets, pour aider leurs membres.',
     'support_invitation_action'  => 'Créer le compte',
+    'account_exists_subject'     => 'Vous avez déjà un compte sur :app',
+    'account_exists_intro'       => 'Quelqu’un, peut-être vous, a voulu créer un compte sur :app avec cette adresse. Elle en a déjà un : connectez-vous avec.',
+    'account_exists_action'      => 'Se connecter',
+    'account_exists_forgot'      => 'Si vous avez oublié votre mot de passe, la page de connexion vous permet d’en choisir un nouveau.',
+    'account_exists_ignore'      => 'Si ce n’était pas vous, ignorez cet e-mail : rien n’a changé.',
 ];

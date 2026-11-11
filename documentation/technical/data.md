@@ -12,7 +12,7 @@ says the same to the people concerned; when one changes, the other does.
 - **Projects**: families and who was ever in each, memberships (who is in which family, who is an admin), unit
   types, units, the plan, invitations (only a hash of each link's token), requests to join, events and who
   goes, shared files, forum topics and posts, chat conversations and messages, lottery runs and their records.
-- **On the device**: the session and form cookies, appearance cookies, the pages kept for
+- **On the device**: the session and form cookies, appearance cookies, the pages and pictures kept for
   working offline (forgotten when someone else signs in there), which tours were seen.
 
 ## What leaves the server

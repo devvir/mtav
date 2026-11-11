@@ -154,3 +154,120 @@ describe('The owner', function () {
         expect($this->other->fresh()->isSuperadmin())->toBeFalse();
     });
 });
+
+describe('A support invitation', function () {
+    beforeEach(function () {
+        Notification::fake();
+        $this->inviter = User::factory()->superadmin()->create();
+        $this->as($this->inviter)->post(route('admin.superadmins.store'), ['email' => 'new.support@example.com'])->assertSessionHasNoErrors();
+        Notification::assertSentOnDemand(SupportInvitationNotification::class, function ($notice) {
+            $this->token = $notice->token;
+
+            return true;
+        });
+        $this->invitation = SupportInvitation::sole();
+    });
+
+    /** Whether its link still opens an account */
+    function supportLinkWorks($test): bool
+    {
+        auth()->logout();
+        $works = $test->get(route('support-invitation.show', $test->token))->viewData('page')['component'] === 'Auth/Invitation';
+        $accepted = $test->post(route('support-invitation.accept', $test->token), ['firstname' => 'Sol', 'password' => 'the-Support-pass-1', 'password_confirmation' => 'the-Support-pass-1']);
+
+        expect($works)->toBe($accepted->isRedirect());
+
+        return $works && User::where('email', 'new.support@example.com')->where('is_superadmin', true)->exists();
+    }
+
+    it('is listed while unanswered, with who sent it, and withdrawn from there', function () {
+        $listed = $this->as(aSuperadmin())->get(route('admin.superadmins.index'))->inertiaProps('invitations');
+        expect($listed)->toHaveCount(1)
+            ->and($listed[0])->email->toBe('new.support@example.com')->inviter->toBe($this->inviter->name);
+
+        $this->as(aSuperadmin())->delete(route('admin.superadmins.invitations.destroy', $this->invitation))->assertSessionHasNoErrors();
+
+        expect(SupportInvitation::count())->toBe(0)
+            ->and(supportLinkWorks($this))->toBeFalse();
+    });
+
+    it('works while whoever sent it runs the platform', function () {
+        expect(supportLinkWorks($this))->toBeTrue();
+    });
+
+    it('stops working when whoever sent it loses the role', function () {
+        $this->as(User::factory()->superadmin()->create())->put(route('admin.users.superadmin', $this->inviter), ['grant' => false])->assertSessionHasNoErrors();
+
+        expect(SupportInvitation::count())->toBe(0)
+            ->and(supportLinkWorks($this))->toBeFalse();
+    });
+
+    it('stops working when whoever sent it is blocked, or no longer a superadmin however that came', function (string $how) {
+        $how === 'blocked'
+            ? $this->inviter->forceFill(['is_superadmin' => false, 'blocked_at' => now()])->save()
+            : $this->inviter->forceFill(['is_superadmin' => false])->save();
+
+        expect(supportLinkWorks($this))->toBeFalse();
+    })->with(['blocked', 'no longer a superadmin']);
+
+    it('stops working when whoever sent it is gone', function () {
+        $this->inviter->delete();
+
+        expect(supportLinkWorks($this))->toBeFalse();
+    });
+
+    it('is voided when whoever sent it is blocked', function () {
+        $this->inviter->forceFill(['is_superadmin' => false])->save();
+
+        app(App\Services\AccountService::class)->block($this->inviter);
+
+        expect(SupportInvitation::count())->toBe(0);
+    });
+
+    it('cannot be withdrawn by anyone else', function () {
+        expect($this->as(aUser())->delete(route('admin.superadmins.invitations.destroy', $this->invitation)))->toBeDenied();
+
+        expect(SupportInvitation::count())->toBe(1);
+    });
+});
+
+it('refuses an address too long to keep, saying so', function () {
+    $this->as(aSuperadmin())->post(route('admin.superadmins.store'), ['email' => str_repeat('a', 250) . '@example.com'])
+        ->assertSessionHasErrors('email');
+
+    expect(SupportInvitation::count())->toBe(0);
+});
+
+describe('The command line', function () {
+    it('makes an account in no project a superadmin', function () {
+        $ana = aUser(['email' => 'ana@example.com']);
+
+        $this->artisan('mtav:superadmin', ['email' => 'Ana@Example.com'])->assertSuccessful();
+
+        expect($ana->fresh()->isSuperadmin())->toBeTrue();
+    });
+
+    it('refuses an account in a project, or asking to join one, saying what to do', function (string $where) {
+        $project = aProject(['listed' => true]);
+        $ana = aUser(['email' => 'ana@example.com']);
+        $where === 'in a project'
+            ? $project->memberships()->create(['user_id' => $ana->id, 'family_id' => aFamily($project)->id])
+            : $project->joinRequests()->create(['user_id' => $ana->id]);
+
+        $this->artisan('mtav:superadmin', ['email' => 'ana@example.com'])
+            ->expectsOutputToContain('a superadmin takes no place in any')
+            ->assertFailed();
+
+        expect($ana->fresh()->isSuperadmin())->toBeFalse();
+    })->with(['in a project', 'asking to join one']);
+
+    it('takes the role away, and the support invitations they sent with it', function () {
+        $ana = User::factory()->superadmin()->create(['email' => 'ana@example.com']);
+        SupportInvitation::create(['email' => 'x@example.com', 'token_hash' => 'h', 'invited_by' => $ana->id, 'expires_at' => now()->addWeek()]);
+
+        $this->artisan('mtav:superadmin', ['email' => 'ana@example.com', '--revoke' => true])->assertSuccessful();
+
+        expect($ana->fresh()->isSuperadmin())->toBeFalse()
+            ->and(SupportInvitation::count())->toBe(0);
+    });
+});

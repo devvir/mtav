@@ -25,10 +25,16 @@ list, with the item in the address (`?person=19`, `?family=`, `?unit=`, `?event=
 `?file=`; `lib/detailsInAddress.ts`): links open them, the back button closes them.
 Dialogs that add something open from the address too (`?new=1`; `lib/addressedDialog.ts`).
 
+Sign-up answers the same whether or not the address has an account, and signs nobody in: an
+email either way (the link that confirms a new account, or, to an existing one, where to sign
+in). Mail shows what people wrote (names of projects, families, people) as text, never as
+Markdown (`Markdown::withSecuredEncoding()`).
+
 ## People and roles
 
 - A **user** is one person's account. `is_superadmin` marks the platform's superadmins:
-  support accounts invited on an address of their own (`SupportInvitation`), in no project
+  support accounts invited on an address of their own (`SupportInvitation`, valid while
+  whoever sent it is still a superadmin; the console lists the unanswered ones), in no project
   and reaching every one (`User::reachableProjects()`); `is_owner` the deployment's owner,
   its first superadmin (from `APP_OWNER`, name, email and password hash, while there is no
   account at all; until then the site shows only that it is under construction, but for
@@ -52,7 +58,8 @@ Dialogs that add something open from the address too (`?new=1`; `lib/addressedDi
 
 ## Projects
 
-Anyone with a confirmed account starts projects, becoming their first admin; a superadmin
+Anyone with a confirmed account starts projects (a few unapproved at once, those they deleted
+in the last day counting), becoming their first admin; a superadmin
 takes no place in a project, and names its first admin instead, by an invitation. A project
 is **limited** (`config/limits.php`: people, families, units, invitations a day, file
 size, storage) until the platform's team makes it **unlimited**, which its admins ask
@@ -64,7 +71,9 @@ else deletes it for good. Superadmins restore archived projects, or delete them 
 ## Invitations
 
 Emailed links with a random token (only its hash is stored) that expire after two
-weeks. The link opens an account, or, for an existing one, joins once signed in as the
+weeks. Each one sent counts, whether sent again or withdrawn: per project a day while
+limited, and per address a few an hour in any project
+(`limits.invitations_per_address_per_hour`). The link opens an account, or, for an existing one, joins once signed in as the
 invited address; that person, once their account is confirmed, is also told in the app.
 Admins invite into any family or as admins; members, into their own family. Someone already
 in the project with no family is added to the family at once (an admin is asked, unless
@@ -145,13 +154,16 @@ runs a set of real questions through the real prompt, its answers shown to be ju
 A project's site drawn as shapes on floors (`components/plan`): units, buildings,
 streets, green areas, the commons, a playground. One admin draws at a time
 (`EditingLock`, renewed while the editor is open, let go after a while idle); anyone
-else is told who is drawing. Editing needs a large screen and a pointer; everyone sees
-the plan, and families rank from it.
+else is told who is drawing. It saves itself a moment after each change: a save that cannot
+reach the server is tried again every few seconds; one the server refuses says why and waits
+for a change (or Try again). Shapes stay on the floors the server takes, five basements to a
+hundred floors up. Editing needs a large screen and a pointer; everyone sees the plan, and
+families rank from it.
 
 ## The forum
 
 Topics with posts (`Topic`, `Post`, `ForumService`): anyone in the project opens topics
-and replies; writers edit their posts; admins pin, close and remove topics. A new topic
+and replies; writers edit their posts; admins pin, close and remove topics; writers remove theirs while nobody has replied. A new topic
 is notified to the project, a reply to whoever wrote in the topic before.
 
 ## The chat
@@ -168,6 +180,15 @@ devices (`PushMessage`), never through notifications (nothing in the bell). What
 person has read is on their place in the conversation (`read_up_to`); the sidebar counts
 the conversations with something new.
 
+Whoever wrote a message edits or deletes it for an hour after sending
+(`limits.chat_changes_minutes`; later the server refuses with 409), the same for everyone at
+once (`MessageChanged` on the `users.<id>` channels: pages fetch again), and nothing is kept:
+no earlier words, no edited mark, nothing in the activity log, nobody notified, nothing
+pushed. A deleted message leaves no placeholder. With the Assistant a message is deleted,
+never edited, and its answer goes with it; a deleted question still counts for its day. Only
+those who may still read a conversation hear of it (`Conversation::audience()`): not who left
+its project, nor a blocked account, though both stay in it should they come back.
+
 ## Frontend
 
 - **Design system** (`resources/js/design`): the theme for each palette, the tokens
@@ -182,7 +203,9 @@ the conversations with something new.
 - **Forms** (`components/forms`) are Mantine inputs wired to Inertia's `useForm` by
   `lib/forms.ts`; dates are picked on a calendar in the person's language
   (`DateTimeField`). The server validates; every error reads the same, in the app's
-  language.
+  language, and one no field shows is said under the form (`OtherErrors`).
+- **Rankings** (`useRankingSave`) show each move at once and save it a moment after the
+  last, one request at a time; leaving the page sends what waits as the visit starts.
 - **Dialogs**: Mantine modals in pages; `confirm()` and `prompt()` (`lib/dialogs.ts`) for
   questions asked from code, typed confirmations included.
 - **Addresses**: `route()` and `routeIs()` (`lib/route.ts`) work from the route list sent
@@ -190,11 +213,17 @@ the conversations with something new.
 - **Moving between pages**: a link loads its page once the pointer rests on it; on the
   click, the sidebar lights the place at once and the page dims only if the trip is long.
   On arrival the focus goes to the page's heading (`lib/pageFocus.ts`).
-- **Live updates**: `useProjectChanges({ resource: [props] })` reloads what someone else
-  changed (models announce changes with `BroadcastsProjectChanges`).
+- **Live updates**: `useProjectChanges({ resource: [props] })` reloads what changed
+  elsewhere (models announce changes with `BroadcastsProjectChanges`). Each request names
+  the page's websocket connection (`X-Socket-ID`), and a change is announced to every page
+  but that one: the person's other tabs and devices follow too. A page back from a lost
+  connection reloads once, for what it missed.
 - **Offline**: the service worker (`public/sw.js`) keeps each page as last loaded and
   answers with it when the server cannot be reached; the page says so and holds every
-  change (`lib/offline.ts`). The app installs on devices (`/manifest.webmanifest`).
+  change (`lib/offline.ts`). The app's own files are kept until a newer build no longer
+  has them; the project's pictures are asked of the server each time, the kept copy
+  answering only when it cannot be reached, and forgotten with the pages. The app installs
+  on devices (`/manifest.webmanifest`).
 - **Sizes**: everything is sized from the root's font size (`rem`, Mantine's too), which
   the person's text size sets (`data-text-size` on `<html>`, from the `text` cookie,
   before the first paint): Small, the default, is 100% of the browser's, Medium 120%,

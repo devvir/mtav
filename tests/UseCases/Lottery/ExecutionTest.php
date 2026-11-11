@@ -8,6 +8,7 @@ use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -459,5 +460,163 @@ describe('Its record', function () {
         $run = aLotteryInProgress($this->project);
 
         $this->as($this->admin, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertNotFound();
+    });
+});
+
+describe('What a run decides from', function () {
+    it('is what it recorded when it started, whatever the project holds by the time it is solved', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        Illuminate\Support\Facades\Queue::fake([RunLottery::class]);
+        runLottery()->assertSessionHasNoErrors();
+        $run = $this->project->lotteryRuns()->sole();
+
+        // Rankings swapped after the run started, as a change slipping in would
+        DB::table('unit_preferences')->where('family_id', $families[0]->id)->delete();
+        DB::table('unit_preferences')->where('family_id', $families[1]->id)->delete();
+        DB::table('unit_preferences')->insert([
+            ['family_id' => $families[0]->id, 'unit_id' => $units[1]->id, 'rank' => 1],
+            ['family_id' => $families[1]->id, 'unit_id' => $units[0]->id, 'rank' => 1],
+        ]);
+
+        app()->call([new RunLottery($run), 'handle']);
+
+        $places = collect((new App\Services\Lottery\RunRecord($run->fresh()))->summary()['families'])->pluck('place', 'id');
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED)
+            ->and(assignment($families))->toBe([$units[0]->id, $units[1]->id])
+            ->and($places->all())->toEqual([$families[0]->id => 1, $families[1]->id => 1]);
+    });
+
+    it('fails a run that recorded nothing to decide from, deciding nothing', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        $run = aLotteryInProgress($this->project);
+
+        app()->call([new RunLottery($run), 'handle']);
+
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::FAILED)
+            ->and($this->project->units()->whereNotNull('family_id')->exists())->toBeFalse();
+    });
+
+    it('holds rankings still once it started: a ranking sent then is refused', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        aLotteryInProgress($this->project);
+
+        $this->as($families[0]->members()->first(), $this->project)->put(route('lottery.preferences'), ['preferences' => [$units[1]->id]])
+            ->assertSessionHas('error', __('lottery.locked'));
+
+        expect(DB::table('unit_preferences')->where('family_id', $families[0]->id)->orderBy('rank')->pluck('unit_id')->all())
+            ->toBe([$units[0]->id, $units[1]->id]);
+    });
+});
+
+describe('Running it needs', function () {
+    it('at least two families', function () {
+        familiesRanking([[0]]);
+        lotteryIsDue();
+
+        runLottery()->assertSessionHas('error', __('lottery.cannot_run_too_few_families'));
+
+        expect($this->project->lotteryRuns()->count())->toBe(0);
+    });
+
+    it('a date', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        $this->project->lottery->update(['start_date' => null]);
+
+        runLottery()->assertSessionHas('error', __('lottery.cannot_run_not_scheduled'));
+
+        expect($this->project->lotteryRuns()->count())->toBe(0);
+    });
+
+    it('counts a family waiting for someone invited, which receives a unit like any other', function () {
+        $units = collect([aUnit($this->type), aUnit($this->type)]);
+        $ranking = aFamily($this->project, $this->type);
+        aMemberOf($ranking);
+        $this->as($this->admin, $this->project)->post(route('manage.families.store'), [
+            'name' => 'Invited', 'unit_type_id' => $this->type->id, 'email' => 'invited@example.com',
+        ])->assertSessionHasNoErrors();
+        $invited = $this->project->families()->firstWhere('name', 'Invited');
+        lotteryIsDue();
+
+        expect($invited->memberships()->exists())->toBeFalse()
+            ->and($invited->invitations()->exists())->toBeTrue();
+        runLottery()->assertSessionHasNoErrors();
+
+        expect(assignment([$ranking, $invited]))->toEqualCanonicalizing($units->pluck('id')->all());
+    });
+});
+
+describe('Its date', function () {
+    it('cannot change once a run is running or decided', function (string $status) {
+        $run = aLotteryInProgress($this->project);
+        $run->update(['status' => $status]);
+        $date = $this->project->lottery->start_date;
+
+        $this->as($this->admin, $this->project)->put(route('manage.lottery.schedule'), [
+            'description' => 'Moved', 'start_date' => now()->addMonth()->format('Y-m-d H:i'),
+        ])->assertSessionHas('error', __('lottery.locked'));
+
+        expect($this->project->lottery->fresh())->start_date->toEqual($date)->description->not->toBe('Moved');
+    })->with(['running', 'completed']);
+
+    it('changes again once the run failed or was invalidated', function (string $status) {
+        aLotteryInProgress($this->project)->update(['status' => $status]);
+
+        $this->as($this->admin, $this->project)->put(route('manage.lottery.schedule'), [
+            'description' => 'Moved', 'start_date' => now()->addMonth()->format('Y-m-d H:i'),
+        ])->assertSessionHasNoErrors();
+
+        expect($this->project->lottery->fresh()->description)->toBe('Moved');
+    })->with(['failed', 'invalidated']);
+});
+
+describe('Invalidating a run', function () {
+    $invalidate = fn ($test, $run, string $reason = 'A family was missing from the draw') => $test->as($test->admin, $test->project)
+        ->post(route('manage.lottery.invalidate', $run), ['reason' => $reason]);
+
+    it('is only for a completed run', function (string $status) use ($invalidate) {
+        $run = aLotteryInProgress($this->project);
+        $run->update(['status' => $status]);
+
+        $invalidate($this, $run)->assertSessionHas('error', __('flash.changed_meanwhile'));
+        $this->postJson(route('manage.lottery.invalidate', $run), ['reason' => 'A family was missing from the draw'])->assertConflict();
+
+        expect($run->fresh()->status->value)->toBe($status)
+            ->and($run->audits()->where('type', 'invalidate')->exists())->toBeFalse();
+    })->with(['running', 'failed', 'invalidated']);
+
+    it('happens once when sent twice at the same moment: one record, one notice', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        // Both requests read it completed before either undid it
+        [$first, $second] = [$this->project->lotteryRuns()->sole(), $this->project->lotteryRuns()->sole()];
+        $lottery = app(App\Services\LotteryService::class);
+
+        $lottery->invalidate($first, $this->admin, 'A family was missing from the draw');
+
+        expect(fn () => $lottery->invalidate($second, $this->admin, 'A family was missing, again'))
+            ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        expect($first->audits()->where('type', 'invalidate')->count())->toBe(1)
+            ->and(Notification::where('type', 'lottery_invalidated')->count())->toBe(1)
+            ->and($first->fresh()->invalidation_reason)->toBe('A family was missing from the draw');
+    });
+
+    it('takes a reason of 10 to 1000 characters', function () use ($invalidate) {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+
+        $invalidate($this, $run, str_repeat('é', 9))->assertSessionHasErrors('reason');
+        $invalidate($this, $run, str_repeat('é', 1001))->assertSessionHasErrors('reason');
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::COMPLETED);
+
+        $invalidate($this, $run, str_repeat('é', 10))->assertSessionHasNoErrors();
+        expect($run->fresh()->status)->toBe(LotteryRunStatus::INVALIDATED);
+
+        runLottery();
+        $invalidate($this, $this->project->lotteryRuns()->latest('id')->first(), str_repeat('😀', 1000))->assertSessionHasNoErrors();
+        expect($this->project->lotteryRuns()->latest('id')->first()->invalidation_reason)->toBe(str_repeat('😀', 1000));
     });
 });

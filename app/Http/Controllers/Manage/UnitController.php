@@ -12,7 +12,6 @@ use App\Services\NotificationService;
 use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,9 +26,10 @@ class UnitController extends Controller
      */
     public function store(UnitRequest $request, Project $project, PlanService $plans, NotificationService $notifications): RedirectResponse|JsonResponse
     {
-        $project->ensureLotteryNotRunning();
+        // With the project held still: a run starting meanwhile has this unit, or it is refused
+        $item = $project->holdingLottery(function () use ($request, $project, $plans) {
+            $project->ensureLotteryNotRunning();
 
-        $item = DB::transaction(function () use ($request, $project, $plans) {
             $typeId = $request->validated('new_unit_type')
                 ? $project->unitTypes()->create($request->validated('new_unit_type'))->id
                 : $request->validated('unit_type_id');
@@ -53,26 +53,30 @@ class UnitController extends Controller
 
     public function update(UnitRequest $request, Project $project, Unit $unit): RedirectResponse
     {
-        $typeChanged = $unit->unit_type_id !== (int) $request->validated('unit_type_id');
+        $project->holdingLottery(function () use ($request, $project, $unit) {
+            $typeChanged = $unit->unit_type_id !== (int) $request->validated('unit_type_id');
 
-        if ($typeChanged && $project->lotteryLocked()) {
-            throw ValidationException::withMessages(['unit_type_id' => __('lottery.locked')]);
-        }
+            if ($typeChanged && $project->lotteryLocked()) {
+                throw ValidationException::withMessages(['unit_type_id' => __('lottery.locked')]);
+            }
 
-        $unit->update($request->safe()->only('identifier', 'unit_type_id'));
+            $unit->update($request->safe()->only('identifier', 'unit_type_id'));
+        });
 
         return to_route('units.index', ['unit' => $unit->id])->with('success', __('flash.unit_updated'));
     }
 
     public function destroy(Project $project, Unit $unit): RedirectResponse
     {
-        $project->ensureLotteryNotRunning();
+        $project->holdingLottery(function () use ($project, $unit) {
+            $project->ensureLotteryNotRunning();
 
-        if ($unit->family_id) {
-            throw ValidationException::withMessages(['unit' => __('validation.unit_assigned')]);
-        }
+            if ($unit->fresh()?->family_id) {
+                throw ValidationException::withMessages(['unit' => __('validation.unit_assigned')]);
+            }
 
-        $unit->delete();
+            $unit->delete();
+        });
 
         return to_route('units.index')->with('success', __('flash.unit_deleted'));
     }

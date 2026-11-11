@@ -14,6 +14,7 @@ use App\Notifications\InvitationNotification;
 use App\Notifications\JoinedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -55,7 +56,7 @@ class InvitationService
             : null;
 
         // Limits first: a refused invitation brings no archived family back, empty
-        $familyless || $this->ensureWithinLimits($project);
+        $familyless || $this->ensureWithinLimits($project, $email);
         $family && $this->ensureFamilyTakes($family, $email, $inviter);
 
         if ($familyless) {
@@ -65,10 +66,7 @@ class InvitationService
         $token = Str::random(48);
 
         $invitation = DB::transaction(function () use ($project, $inviter, $person, $email, $family, $asAdmin, $token) {
-            /** A newer invitation replaces any pending one for the same person */
-            $project->invitations()->pending()->where('email', $email)->delete();
-
-            return $project->invitations()->create([
+            $invitation = $project->invitations()->create([
                 'family_id'  => $family?->id,
                 'is_admin'   => $asAdmin,
                 'email'      => $email,
@@ -78,7 +76,20 @@ class InvitationService
                 'invited_by' => $inviter->id,
                 'expires_at' => now()->addDays(config('limits.invitation_days')),
             ]);
+
+            /**
+             * A newer invitation replaces any pending one for the same person: one by one, once
+             * the new one stands, so that a family waiting only for the old one goes at once, and
+             * one waiting for both stays
+             */
+            $project->invitations()->pending()->where('email', $email)->whereKeyNot($invitation->id)->get()->each->delete();
+
+            return $invitation;
         });
+
+        // What is sent counts, whatever becomes of it: replaced or revoked, it was mailed all the same
+        RateLimiter::hit(self::sentToday($project), 24 * 3600);
+        RateLimiter::hit(self::sentToAddress($project, $email), 3600);
 
         // Nothing else happens the moment it expires
         $family && DiscardFamilyIfEmpty::dispatch($family->id)->delay(now()->addDays(config('limits.invitation_days'))->addMinute());
@@ -220,7 +231,8 @@ class InvitationService
 
         DB::transaction(function () use ($membership, $family, $user) {
             $membership->update(['family_id' => $family->id]);
-            $membership->project->invitations()->pending()->where('email', $user->email)->delete();
+            // One by one: a family waiting only for one of them may have nobody left
+            $membership->project->invitations()->pending()->where('email', $user->email)->get()->each->delete();
             $user->unsetRelation('memberships');
         });
 
@@ -242,17 +254,44 @@ class InvitationService
         }
     }
 
-    private function ensureWithinLimits(Project $project): void
+    /**
+     * Room for one more person, and mail within bounds. Someone already in the project, or on
+     * their way (asked again, or to more), adds nobody: only the others count against room.
+     * Invitations count as sent, so that resending or revoking never lets more mail go out.
+     */
+    private function ensureWithinLimits(Project $project, string $email): void
     {
         $maxMembers = $project->limit('members');
         $perDay = $project->limit('invitations_per_day');
+        $perAddress = config('limits.invitations_per_address_per_hour');
 
-        if ($maxMembers !== null && $project->memberships()->count() + $project->invitations()->pending()->count() >= $maxMembers) {
-            throw ValidationException::withMessages(['email' => __('validation.limit_members', ['max' => $maxMembers])]);
+        if ($maxMembers !== null) {
+            $people = $project->memberships()->whereDoesntHaveRelation('user', 'email', $email)->count()
+                + $project->invitations()->pending()->where('email', '!=', $email)->count();
+            $alreadyCounted = $project->memberships()->whereRelation('user', 'email', $email)->exists()
+                || $project->invitations()->pending()->where('email', $email)->exists();
+
+            if (! $alreadyCounted && $people >= $maxMembers) {
+                throw ValidationException::withMessages(['email' => __('validation.limit_members', ['max' => $maxMembers])]);
+            }
         }
 
-        if ($perDay !== null && $project->invitations()->where('created_at', '>', now()->subDay())->count() >= $perDay) {
+        if ($perDay !== null && RateLimiter::attempts(self::sentToday($project)) >= $perDay) {
             throw ValidationException::withMessages(['email' => __('validation.limit_invitations', ['max' => $perDay])]);
         }
+
+        if ($perAddress !== null && RateLimiter::attempts(self::sentToAddress($project, $email)) >= $perAddress) {
+            throw ValidationException::withMessages(['email' => __('validation.limit_invitations_address')]);
+        }
+    }
+
+    private static function sentToday(Project $project): string
+    {
+        return "invitations-sent:{$project->id}";
+    }
+
+    private static function sentToAddress(Project $project, string $email): string
+    {
+        return "invitations-sent:{$project->id}:" . sha1($email);
     }
 }
