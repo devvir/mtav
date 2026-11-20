@@ -1,8 +1,9 @@
 <?php
 
 /**
- * The member manual is for anyone, to share or read before joining: in the browser's
- * language. The admins' and superadmins' stay inside the app.
+ * Every guide and every list of questions is for anyone, as a document of its own at an
+ * address to share, in the browser's language; the member's, to read before joining. Inside
+ * the app, the pages that show them need a sign-in.
  */
 
 it('shows anyone the member manual, in their browser\'s language', function () {
@@ -14,8 +15,33 @@ it('shows anyone the member manual, in their browser\'s language', function () {
         ->toContain('Guía para cooperativistas');
 });
 
-it('keeps the admin guide for those signed in', function () {
+it('shows anyone the admins\' and the superadmins\' guides too, each titled as it names itself', function () {
+    $admins = $this->get(route('manual', 'admins'), ['Accept-Language' => 'es-UY'])->assertOk();
+    $admins->assertInertia(fn ($page) => $page->component('PublicDocument')->where('title', 'Guía para administradores'));
+    expect($admins->inertiaProps('content'))->toContain('Crear un proyecto');
+
+    $superadmins = $this->get(route('manual', 'superadmins'), ['Accept-Language' => 'es-UY'])->assertOk();
+    expect($superadmins->inertiaProps('content'))->toContain('Guía para superadministradores');
+
+    $this->get('/manual/members')->assertNotFound();
+});
+
+it('shows anyone the questions, each list ending where its guide is', function () {
+    $members = $this->get(route('manual.faq'), ['Accept-Language' => 'es-UY'])->assertOk();
+    $members->assertInertia(fn ($page) => $page->component('PublicDocument')->where('title', 'Preguntas frecuentes'));
+    expect($members->inertiaProps('content'))
+        ->toContain('<h2>')
+        ->toContain('href="' . route('manual') . '"');
+
+    $admins = $this->get(route('manual.admins.faq'), ['Accept-Language' => 'es-UY'])->assertOk();
+    expect($admins->inertiaProps('content'))
+        ->toContain('¿Por qué mi proyecto tiene límites?')
+        ->toContain('href="' . route('manual', 'admins') . '"');
+});
+
+it('keeps the pages inside the app for those signed in', function () {
     $this->get(route('documentation.guide'))->assertRedirect(route('login'));
+    $this->get(route('documentation.faq'))->assertRedirect(route('login'));
 });
 
 it('says anyone what is kept about them and whom to write, in their language', function () {

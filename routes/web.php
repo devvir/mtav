@@ -70,8 +70,12 @@ Route::middleware(['module:accounts', 'guest'])->group(function () {
 
 /** The landing page for guests; everyone else goes on to their projects */
 Route::get('/', HomeController::class)->name('home');
-/** For anyone: the member manual (to share, and to read before joining), and privacy */
-Route::get('manual', [DocumentationController::class, 'manual'])->middleware('module:manual')->name('manual');
+/** For anyone, as documents of their own: the guides (the member's, to share and to read before joining; the admins' and the superadmins'), the questions, and privacy */
+Route::middleware('module:manual')->controller(DocumentationController::class)->group(function () {
+    Route::get('manual/faq', 'questions')->name('manual.faq');
+    Route::get('manual/admins/faq', 'questions')->defaults('role', 'admins')->name('manual.admins.faq');
+    Route::get('manual/{role?}', 'manual')->where('role', 'admins|superadmins')->name('manual');
+});
 Route::get('privacy', [DocumentationController::class, 'privacy'])->name('privacy');
 
 /** The language picked, before signing in too (it then becomes the account's) */
