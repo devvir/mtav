@@ -9,6 +9,13 @@
 #                                  # rclone configurado; ver REMOTE/FOLDER abajo).
 #                                  # La primera subida crea el Google Doc; las
 #                                  # siguientes ACTUALIZAN el mismo doc (misma URL).
+#   ./export-tesis.sh --final      # versión de entrega: sin marcas de revisión
+#                                  # ni el registro de cambios (combinable con --upload).
+#
+# Marcas de revisión para el tutor (assets/revision.lua): [texto]{.nuevo},
+# [texto]{.cambio}, [texto]{.quitado}, bloques ::: nuevo, y notas
+# [#15: motivo]{.rev}. Salen coloreadas en el borrador, junto con el registro
+# de cambios (cambios.md) al principio; --final las quita.
 #
 set -euo pipefail
 
@@ -32,19 +39,31 @@ FILES=(
 )
 
 UPLOAD=0
-if [ "${1:-}" = "--upload" ]; then
-  UPLOAD=1
-  shift
-fi
+FINAL=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --upload) UPLOAD=1; shift ;;
+    --final)  FINAL=1; shift ;;
+    *) break ;;
+  esac
+done
 
 OUT="${1:-../export/mtav-borrador.docx}"
 
 mkdir -p "$(dirname "$OUT")"
 
+# El borrador abre con el registro de cambios; la versión final no lo lleva.
+if [ "$FINAL" = "0" ]; then
+  FILES=(cambios.md "${FILES[@]}")
+fi
+
 # 1) Cuerpo: Markdown -> docx (con índice). assets/reference.docx define los
 #    estilos del cuerpo y el salto de página antes del índice (TOCHeading).
+#    revision.lua aplica (o, con --final, quita) las marcas de revisión.
 BODY="$(mktemp --suffix=.docx)"
-pandoc "${FILES[@]}" --toc --toc-depth=2 --reference-doc=assets/reference.docx -o "$BODY"
+pandoc "${FILES[@]}" --toc --toc-depth=2 --reference-doc=assets/reference.docx \
+  --lua-filter=assets/revision.lua -M final="$([ "$FINAL" = "1" ] && echo true || echo false)" \
+  -o "$BODY"
 
 # 2) Carátula: se antepone assets/caratula.docx (portada mantenida a mano; se
 #    edita directamente en LibreOffice/Word cuando haga falta). El índice de
@@ -93,8 +112,47 @@ for side in ('top', 'right', 'bottom', 'left'):
 for p in master.paragraphs:
     style = p.style.name if p.style is not None else ""
     t = p.text.strip()
-    if style.startswith("Heading") and (t == "Resumen" or t.startswith("Apéndice")):
+    if style.startswith("Heading") and (t in ("Resumen", "Cambios en esta versión") or t.startswith("Apéndice")):
         p.paragraph_format.page_break_before = True
+
+# 4) Marcas de revisión (revision.lua): el color va como formato directo sobre
+#    cada fragmento, porque Google Docs conserva el formato directo al importar
+#    pero no siempre el de los estilos de carácter.
+from docx.oxml import OxmlElement
+from docx.shared import Pt, RGBColor
+from docx.text.run import Run
+
+MARKS = {
+    #  estilo        fondo     color del texto  tachado  cursiva  tamaño
+    "RevNuevo":   ("E2F3E0", None,             False,   False,   None),
+    "RevCambio":  ("FFF3C4", None,             False,   False,   None),
+    "RevQuitado": ("F9DEDE", "8A3030",         True,    False,   None),
+    "RevNota":    ("E6EEF9", "1F4E8C",         False,   True,    9),
+}
+SHD_SUCCESSORS = ("w:fitText", "w:vertAlign", "w:rtl", "w:cs", "w:em", "w:lang",
+                  "w:eastAsianLayout", "w:specVanish", "w:oMath")
+style_ids = {s.style_id: s.name for s in master.styles}
+for r in body_el.iter(qn("w:r")):
+    rStyle = r.find(qn("w:rPr") + "/" + qn("w:rStyle"))
+    mark = MARKS.get(style_ids.get(rStyle.get(qn("w:val")), "")) if rStyle is not None else None
+    if mark is None:
+        continue
+    fill, color, strike, italic, size = mark
+    font = Run(r, None).font
+    if color:
+        font.color.rgb = RGBColor.from_string(color)
+    if strike:
+        font.strike = True
+    if italic:
+        font.italic = True
+    if size:
+        font.size = Pt(size)
+    rPr = r.get_or_add_rPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), fill)
+    rPr.insert_element_before(shd, *SHD_SUCCESSORS)
 
 master.save(out_path)
 PY

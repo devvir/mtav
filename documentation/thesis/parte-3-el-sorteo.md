@@ -12,7 +12,7 @@
 
 El sorteo resuelve un **problema de asignación**: distribuir un conjunto de viviendas entre un conjunto de familias, respetando las preferencias que cada familia expresa sobre las viviendas.
 
-**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en la Sección 16). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
+**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en [el Capítulo 16]{.cambio}). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
 
 **Descomposición por tipo de vivienda.** Como se explicó en la Parte II, cada familia opta únicamente por unidades de su tipo. Por lo tanto, el sorteo de un proyecto **no es un único problema**, sino una colección de subproblemas independientes, uno por cada tipo de vivienda: las familias de un tipo compiten entre sí por las unidades de ese tipo. La solución global se compone de las soluciones de cada subproblema, más una fase de redistribución de remanentes para los casos en que un subproblema queda desbalanceado (§16).
 
@@ -76,7 +76,7 @@ Una instancia es degenerada cuando existen muchas asignaciones distintas que alc
 - **Preferencias idénticas:** todas las familias ordenan las unidades de la misma manera. Cualquier permutación de la asignación produce exactamente el mismo multiconjunto de rangos, de modo que hay un número factorial de soluciones óptimas equivalentes. Aunque el valor óptimo es evidente, el solver debe recorrer una enorme cantidad de ramas simétricas para *demostrar* que no existe una mejor.
 - **Preferencias opuestas:** familias con ordenamientos espejados generan una simetría análoga.
 
-El efecto es real y medible. En los *benchmarks* de la solución original (escenario aleatorio) aparecen los primeros *timeouts* ya en tamaños de **25 a 30 familias**: con un límite de 30 segundos, en tamaño 30, 48 de cada 10 000 ejecuciones no terminaron dentro del límite, y una instancia de tamaño 25, ejecutada sin límite de tiempo, llegó a tardar alrededor de **120 segundos**. Los casos degenerados (idénticas y opuestas) mostraron resultados mucho peores —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, que recurría a imponer un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3).
+El efecto es real y medible. En los *benchmarks* de la solución original [(escenario aleatorio)]{.quitado}[—en el escenario aleatorio, en el que cada familia ordena las unidades al azar, de forma independiente de las demás—]{.nuevo} aparecen los primeros *timeouts* ya en tamaños de **25 a 30 familias**: con un límite de 30 segundos, en tamaño 30, 48 de cada 10 000 ejecuciones no terminaron dentro del límite, y una instancia de tamaño 25, ejecutada sin límite de tiempo, llegó a tardar alrededor de **120 segundos**. Los casos degenerados (idénticas y opuestas) mostraron resultados mucho peores —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, que recurría a imponer un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3). [Todas las mediciones se hicieron en un mismo equipo (procesador Intel Core i7-1195G7, 32 GB de RAM), dentro de contenedores Docker; la plataforma y la generación de cada escenario se describen en el Capítulo 15.]{.nuevo} [#22: definición del escenario aleatorio y plataforma de las mediciones]{.rev}
 
 El diagnóstico es preciso: **el cuello de botella no es el problema de asignación en sí, sino la forma de resolver la Fase 1** —pedirle a GLPK que *minimice* $z$—. La Fase 2, que solo verifica una cota, no sufre esa degeneración. La mejora que se presenta a continuación explota exactamente esa asimetría.
 
@@ -123,7 +123,20 @@ Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la F
 
 ## 15. Resultados empíricos
 
-Para cuantificar la mejora se ejecutaron *benchmarks* sobre cuatro escenarios de preferencias —**aleatorias**, **realistas** (mezcla de unidades populares e impopulares, que simula el comportamiento real), **idénticas** y **opuestas** (los dos casos degenerados)— en tamaños de 5 a 500 familias, con cientos a miles de repeticiones por configuración.
+[Para cuantificar la mejora se ejecutaron *benchmarks* sobre cuatro escenarios de preferencias —**aleatorias**, **realistas** (mezcla de unidades populares e impopulares, que simula el comportamiento real), **idénticas** y **opuestas** (los dos casos degenerados)— en tamaños de 5 a 500 familias, con cientos a miles de repeticiones por configuración.]{.quitado}
+
+::: cambio
+Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3]{.rev}
+
+- **Aleatorias:** cada familia ordena las unidades al azar —una permutación uniforme—, de forma independiente de las demás.
+- **Realistas:** cada familia favorece algunas unidades y desfavorece otras: un 20 % de las unidades tiende a quedar al principio de su ordenamiento, otro 20 % al final, y el resto en el medio. Qué unidades favorece o desfavorece se sortea por separado para cada familia, de modo que no hay unidades preferidas por el conjunto.
+- **Idénticas:** todas las familias ordenan las unidades exactamente igual; es el peor caso para el desempate.
+- **Opuestas:** se fija un único orden de las unidades; la mitad de las familias lo adopta tal cual y la otra mitad, exactamente invertido.
+
+Idénticas y opuestas son los dos casos degenerados descritos en el Capítulo 13. La generación exacta de cada escenario se detalla en el Apéndice C.3.
+
+**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.4 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el solver hasta que devuelve la asignación.
+:::
 
 **Solución original (GLPK en ambas fases).** Como se detalló en §13, los *timeouts* aparecen ya en tamaños de 25 a 30 familias en el escenario aleatorio, y los escenarios degenerados resultan intratables.
 
@@ -162,7 +175,7 @@ Hasta aquí, la formulación asumió el caso balanceado (igual número de famili
 
 **Redistribución de remanentes.** Las familias que quedaron sin unidad y las unidades que quedaron sin familia se acumulan como *remanentes* de las rondas por tipo. Una segunda pasada ejecuta un sorteo sobre esos remanentes, dándoles una nueva oportunidad de asignación en lugar de descartarlos.
 
-**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en la Sección 19 (Parte IV).
+**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en [el Capítulo 19]{.cambio} (Parte IV).
 
 ---
 

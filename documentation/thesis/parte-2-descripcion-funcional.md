@@ -4,7 +4,7 @@
 
 # Parte II — Descripción Funcional
 
-*Esta parte describe el alcance de lo construido, organizado como el ciclo de vida de un proyecto cooperativo. Junto con la Parte I, es suficiente para comprender qué es y qué hace MTAV, sin requerir formación matemática ni de programación: se centra en qué hace el sistema y por qué, no en cómo está construido por dentro —eso corresponde a las Partes III y IV—. No es un manual de usuario: los manuales están en los apéndices.*
+*Esta parte describe el alcance de lo construido, organizado como el ciclo de vida de un proyecto [en la plataforma]{.cambio}. Junto con la Parte I, es suficiente para comprender qué es y qué hace MTAV, sin requerir formación matemática ni de programación: se centra en qué hace el sistema y por qué, no en cómo está construido por dentro —eso corresponde a las Partes III y IV—. No es un manual de usuario: los manuales están en los apéndices.*
 
 ---
 
@@ -15,6 +15,10 @@ Este capítulo presenta las tecnologías sobre las que está construida la plata
 ### 5.1 Panorama general
 
 MTAV en línea es una aplicación **full-stack** construida como un único proyecto: un backend en PHP/Laravel y un frontend en Vue, unidos por Inertia.js. Todo el entorno corre sobre Docker, y las actualizaciones en tiempo real se entregan por WebSockets mediante un servidor propio.
+
+::: nuevo
+La elección de cada pieza respondió a tres criterios generales. Primero, que fuera **software libre**: sin costos de licencia, de modo que MTAV pueda desplegarse y difundirse sin ataduras. Segundo, que fuera una tecnología **madura y con una comunidad amplia**: documentación abundante, soporte sostenido en el tiempo y un ecosistema de paquetes que resuelve los problemas habituales, lo que además facilita que otra persona pueda retomar el proyecto. Tercero, que fuera una herramienta que el autor ya **conocía en profundidad**, para concentrar el esfuerzo en el dominio —el sorteo, las preferencias, los roles— y no en el aprendizaje de la tecnología. A continuación se presenta cada pieza con su justificación concreta. [#18: criterios generales de elección del stack]{.rev}
+:::
 
 **Laravel (PHP 8.4).**[^laravel] Laravel es un framework maduro y de alta productividad que reduce al mínimo el trabajo repetitivo de infraestructura: trae resueltos, listos para usar, casi todos los problemas transversales que MTAV necesita —ruteo, un ORM (Eloquent) para hablar con la base de datos, autenticación, autorización basada en políticas, migraciones de esquema, validación, colas de trabajos en segundo plano y difusión de eventos en tiempo real—. Esto permite concentrar el esfuerzo en la lógica propia del dominio (el sorteo, las preferencias, los roles) en lugar de reimplementar cimientos que ya son estándar de la industria. Su principio de "convención sobre configuración" y su amplio ecosistema hacen, además, que el código resulte predecible para cualquier desarrollador que lo retome.
 
@@ -31,12 +35,12 @@ MTAV en línea es una aplicación **full-stack** construida como un único proye
 **Bibliotecas y herramientas de apoyo.** Alrededor de ese núcleo, el proyecto se apoya en un conjunto de piezas auxiliares, cada una con un rol puntual. Entre ellas:
 
 - **Laravel Sanctum**[^sanctum] — autenticación de sesión vía cookies.
-- **Tailwind CSS 4 + Reka UI**[^tailwind-reka] — estilos utilitarios y componentes de interfaz accesibles y sin estilo predefinido; base sobre la que se construye la accesibilidad (véase la Sección 8).
+- **Tailwind CSS 4 + Reka UI**[^tailwind-reka] — estilos utilitarios y componentes de interfaz accesibles y sin estilo predefinido; base sobre la que se construye la accesibilidad (véase [el Capítulo 8]{.cambio}).
 - **Vite**[^vite] — empaquetado y servidor de desarrollo del frontend.
 - **Laravel Echo + Pusher JS**[^echo] — cliente que recibe, en el navegador, los eventos en tiempo real emitidos por Reverb.
 - **Ziggy**[^ziggy] — expone las rutas de Laravel al frontend, evitando duplicar las URLs (integrado con Inertia.js).
 - **`php-ffmpeg`**[^phpffmpeg] — procesamiento de medios (miniaturas, audio y video).
-- **`devvir/laravel-instant-api` y `devvir/laravel-resource-tools`** — dos paquetes desarrollados en el marco de este trabajo, que sostienen la generación de formularios y la serialización de recursos (véase la Sección 21).
+- **`devvir/laravel-instant-api` y `devvir/laravel-resource-tools`** — dos paquetes desarrollados en el marco de este trabajo, que sostienen la generación de formularios y la serialización de recursos (véase [el Capítulo 21]{.cambio}).
 - **Pruebas:** Pest/PHPUnit (backend), Vitest + Vue Test Utils (frontend) y Playwright (extremo a extremo).[^testing]
 - **Calidad de código:** PHP Insights y Pint (PHP), ESLint y Prettier (frontend), ejecutados mediante hooks de Git.[^calidad]
 
@@ -59,9 +63,15 @@ Las herramientas de pruebas y calidad se detallan en el Apéndice E.
 
 ---
 
-## 6. El ciclo de vida de un proyecto cooperativo
+## 6. El ciclo de vida de un proyecto [en la plataforma]{.cambio}
 
-Las funcionalidades se presentan en el orden en que aparecen naturalmente en un proyecto: primero la configuración, luego la incorporación de las familias, la carga de preferencias y la comunicación, y finalmente el sorteo, que por su centralidad se trata aparte en la Sección 7.
+[#19: título cambiado. "De un proyecto cooperativo" sonaba a todo el proyecto de la cooperativa; el capítulo recorre un proyecto dentro de la plataforma]{.rev}
+
+[Las funcionalidades se presentan en el orden en que aparecen naturalmente en un proyecto: primero la configuración, luego la incorporación de las familias, la carga de preferencias y la comunicación, y finalmente el sorteo, que por su centralidad se trata aparte en la Sección 7.]{.quitado}
+
+::: cambio
+En este capítulo se describen las funcionalidades de la plataforma en el orden en que se usan dentro de un proyecto, que es el que imponen sus propias dependencias: antes de que una familia pueda expresar sus preferencias o compartir fotos, una persona administradora tiene que crear el proyecto y sus viviendas (§6.1) y dar de alta a las familias e invitar a sus integrantes (§6.2); y solo cuando las familias están incorporadas y sus preferencias cargadas puede ejecutarse el sorteo. Sobre esa base se presentan el plano del proyecto (§6.3), la gestión de eventos (§6.4) y de medios (§6.5), y las notificaciones en tiempo real (§6.6). La carga de preferencias y el sorteo, por su centralidad, se tratan aparte en el Capítulo 7. [#20 y #31: el orden es el de uso de la plataforma, no el de un proceso cooperativo real; se nombran las secciones del capítulo. La primera frase retoma la sugerida por el tutor]{.rev}
+:::
 
 ### 6.1 Configuración inicial: el proyecto y sus tipos de vivienda
 
@@ -87,25 +97,25 @@ Funcionalmente, el administrador edita el plano —ubica cada unidad mediante ar
 
 El administrador publica **eventos** de cualquier índole —reuniones, asambleas, actividades sociales, celebraciones—, presenciales o en línea. Cada evento tiene título, descripción, ubicación y fechas de inicio y fin (con una duración implícita de una hora si no se indica el fin), y un estado que el sistema deriva solo: próximo, en curso o finalizado. Un evento puede estar en borrador o publicado —solo los publicados son visibles para los cooperativistas—, y cuando admite confirmación de asistencia, cada cooperativista puede aceptar o rechazar la invitación y la lista de asistentes queda visible para todo el proyecto.
 
-Un detalle de diseño relevante es que **el sorteo mismo se modela como un evento**, de tipo *lottery*, lo que unifica bajo un mismo modelo su programación, publicación y visibilidad con las del resto de los eventos. A diferencia de los demás, el evento de sorteo **se crea automáticamente junto con el proyecto**: el administrador no lo crea ni lo elimina; solo puede **agendarlo o reagendarlo** (fijar o cambiar su fecha) y editar su descripción —el título es fijo—, y solo mientras el sorteo no haya comenzado a ejecutarse. Su ejecución se trata en la Sección 7.
+Un detalle de diseño relevante es que **el sorteo mismo se modela como un evento**, de tipo *lottery*, lo que unifica bajo un mismo modelo su programación, publicación y visibilidad con las del resto de los eventos. A diferencia de los demás, el evento de sorteo **se crea automáticamente junto con el proyecto**: el administrador no lo crea ni lo elimina; solo puede **agendarlo o reagendarlo** (fijar o cambiar su fecha) y editar su descripción —el título es fijo—, y solo mientras el sorteo no haya comenzado a ejecutarse. Su ejecución se trata en [el Capítulo 7]{.cambio}.
 
 ### 6.5 Gestión de medios
 
 Cualquier integrante del proyecto puede compartir **medios**, clasificados en cuatro categorías: imágenes, video, audio y documentos. Las imágenes y los videos alimentan una galería del proyecto; los documentos quedan disponibles para su descarga. Cada archivo queda asociado a quien lo subió y a la fecha en que se publicó. Una vez publicado, el archivo en sí no puede modificarse: solo puede editarse su descripción o eliminarse.
 
-El procesamiento de medios —por ejemplo, la generación de miniaturas— se apoya en FFmpeg (Sección 5).
+El procesamiento de medios —por ejemplo, la generación de miniaturas— se apoya en FFmpeg ([Capítulo 5]{.cambio}).
 
 ### 6.6 Notificaciones y actualizaciones en tiempo real
 
 El sistema mantiene informados a los usuarios mediante **notificaciones** dentro de la aplicación. Una notificación puede dirigirse a una persona concreta (privada), a todos los integrantes de un proyecto, o al conjunto del sistema (global). Cada usuario ve únicamente las notificaciones que le corresponden, y se distinguen dos estados por notificación y por usuario: leída o no leída.
 
-Estas notificaciones y otras actualizaciones se entregan **en tiempo real**: cuando ocurre algo relevante —se publica un evento, finaliza el sorteo, se incorpora un integrante—, los usuarios conectados lo ven sin recargar la página, mediante WebSockets (Reverb, Sección 5). La arquitectura de eventos y *listeners* que desacopla la emisión de estas actualizaciones se describe en la Sección 18 (Parte IV).
+Estas notificaciones y otras actualizaciones se entregan **en tiempo real**: cuando ocurre algo relevante —se publica un evento, finaliza el sorteo, se incorpora un integrante—, los usuarios conectados lo ven sin recargar la página, mediante WebSockets (Reverb, [Capítulo 5]{.cambio}). La arquitectura de eventos y *listeners* que desacopla la emisión de estas actualizaciones se describe en [el Capítulo 18]{.cambio} (Parte IV).
 
 ---
 
 ## 7. El sorteo
 
-El sorteo es el punto culminante de la etapa de construcción de una cooperativa y la razón por la que MTAV fue concebido originalmente: una vez cargadas las preferencias, asigna cada unidad a una familia de forma justa, óptima y verificable. Marca, además, el paso de la construcción a la convivencia. Esta sección describe el sorteo funcionalmente —cómo se usa y qué garantiza—; su fundamento matemático, los algoritmos y la mejora de rendimiento que aporta este trabajo se desarrollan en la Parte III.
+El sorteo es el punto culminante de la etapa de construcción de una cooperativa y la razón por la que MTAV fue concebido originalmente: una vez cargadas las preferencias, asigna cada unidad a una familia de forma justa, óptima y verificable. Marca, además, el paso de la construcción a la convivencia. [Este capítulo]{.cambio} describe el sorteo funcionalmente —cómo se usa y qué garantiza—[: el modelo de preferencias con que cada familia expresa lo que quiere (§7.1), lo que el algoritmo garantiza (§7.2) y cómo se ejecuta, queda fijo y puede auditarse (§7.3)]{.nuevo}[; su]{.quitado}[. Su]{.nuevo} fundamento matemático[ (Capítulos 10 a 12)]{.nuevo}, los algoritmos y la mejora de rendimiento que aporta este trabajo[ (Capítulos 13 a 15) y la mecánica de ejecución (Capítulos 16 y 17)]{.nuevo} se desarrollan en la Parte III. [#21: vinculación con las secciones del capítulo y con la Parte III]{.rev}
 
 ### 7.1 El modelo de preferencias
 
@@ -145,7 +155,7 @@ Las medidas concretas adoptadas son:
 - **Respeto por la reducción de movimiento.** Si el usuario configuró en su sistema operativo la preferencia de "reducir movimiento", la aplicación desactiva transiciones y animaciones, evitando efectos que pueden causar molestias.
 - **HTML semántico y áreas táctiles amplias**, pensadas para el uso con el dedo en pantallas pequeñas.
 
-Estas decisiones toman como referencia las pautas **WCAG AA**, adoptadas como piso mínimo dado el perfil de usuario. La verificación formal de conformidad y el soporte completo de lectores de pantalla quedan como trabajo futuro (Sección 22).
+Estas decisiones toman como referencia las pautas **WCAG AA**, adoptadas como piso mínimo dado el perfil de usuario. La verificación formal de conformidad y el soporte completo de lectores de pantalla quedan como trabajo futuro ([Capítulo 22]{.cambio}).
 
 ### 8.3 Internacionalización
 

@@ -30,7 +30,8 @@ Structure:
 | `documentation/thesis/apendices.md` | Apéndices A–H (A holds the data-model derivation; rest are placeholders). |
 | `documentation/thesis/referencias/antecedentes-y-bibliografia.md` | Distilled Fierro facts + citation list → feeds §2 and Appendix L. |
 | `app/Services/Lottery/`, `app/Models/`, migrations, `docker/` | Code = source of truth for any factual claim about the app. |
-| `scripts/benchmark_analysis/`, `storage/benchmarks/` | Real benchmark data for §16. |
+| `documentation/thesis/cambios.md` | The current review round, as the tutor sees it: his comments verbatim (numbered after round 1's #1–14) and what was done. Draft only. |
+| `scripts/benchmark_analysis/`, `storage/benchmarks/` | Real benchmark data for §15 and Appendix C. |
 
 Memory (`~/.claude/.../memory/`) holds the verified facts and working rules: `project_thesis`
 (structure, verified data model / feature surface / lottery algorithm, known gaps),
@@ -49,6 +50,14 @@ the `{=openxml}` page-break blocks between parts. Math uses LaTeX (`$...$`, `$$.
   (`resources/js/pages/Documentation/*`) are ~80–90% hallucinated — not a source.
 - **`[NOTA: ...]` convention** for draft notes (Spanish, greppable); zero must survive to the final
   (`grep -rn "\[NOTA:" documentation/thesis/*.md`). Working-doc header blocks are also stripped for export.
+- **Revision marks for the tutor.** Every change made in answer to a review is marked, so the tutor
+  reads only what changed: `[texto]{.nuevo}`, `[texto]{.cambio}`, `[texto]{.quitado}` (or
+  `::: nuevo` … `:::` blocks for whole paragraphs and sections), plus a note giving the reason,
+  `[#22: motivo]{.rev}`, numbered after the comment that prompted it. `cambios.md` opens the draft
+  with every comment of the round quoted verbatim (republishing may drop Google Docs comments) and
+  what was done. `assets/revision.lua` colors them; `export-tesis.sh --final` drops the marks and
+  `cambios.md`. Before the next round's changes, the previous round's marks are accepted (unwrapped)
+  once the tutor has seen them.
 - Language Diego can defend to the tribunal; describe what *is* (no "I was wrong" residue); no
   meta-commentary about a section; skip trivially-expected implementation minutiae.
 

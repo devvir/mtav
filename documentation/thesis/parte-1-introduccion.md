@@ -4,6 +4,12 @@
 
 # Parte I — Introducción y Contexto
 
+::: nuevo
+*Esta parte presenta el problema y la propuesta del trabajo: el cooperativismo de vivienda en Uruguay y por qué asignar las viviendas al terminar una obra es un problema difícil (Capítulo 1); el método de asignación desarrollado en la Facultad de Ingeniería —MTAV—, su validación y la limitación operativa que lo restringe (Capítulo 2); la motivación para llevarlo a una plataforma de autogestión (Capítulo 3); y una visión general de esa plataforma, MTAV en línea (Capítulo 4). Está dirigida a cualquier lector y no requiere formación matemática ni de programación.* [#28: párrafo inicial de la Parte, como en las demás]{.rev}
+:::
+
+---
+
 ## 1. Las cooperativas de vivienda en Uruguay
 
 Este capítulo presenta el contexto del problema: la historia y relevancia del cooperativismo de vivienda en Uruguay (§1.1), cómo se asignan hoy las viviendas al finalizar una obra (§1.2) y por qué esa asignación es un problema difícil (§1.3).
@@ -28,7 +34,7 @@ En el modelo uruguayo, **cada colectivo decide de forma autónoma cómo distribu
 
 El sorteo aleatorio tiene una virtud evidente: es simple y difícilmente cuestionable en su procedimiento. Pero tiene una desventaja igual de evidente: **ignora por completo las preferencias de las familias**. El resultado es justo en un sentido estadístico —todos tuvieron la misma probabilidad—, pero no en el sentido de la satisfacción: nada impide que muchas familias terminen en la unidad que menos querían.
 
-En los últimos años, la Facultad de Ingeniería de la Universidad de la República desarrolló un método alternativo basado en optimización matemática, que fue aplicado con éxito en varios proyectos reales. Al igual que el sorteo aleatorio, **es una opción entre otras**: las cooperativas que lo utilizaron lo hicieron por elección propia. Ese método —su fundamento, su validación y su limitación operativa— es el antecedente directo de este trabajo y se describe en la Sección 2.
+En los últimos años, la Facultad de Ingeniería de la Universidad de la República desarrolló un método alternativo basado en optimización matemática[ (Prino, Sánchez y Cancela, 2016)]{.nuevo}, que fue aplicado con éxito en varios proyectos reales[ (Fierro, 2024)]{.nuevo}. [#17: citas agregadas]{.rev} Al igual que el sorteo aleatorio, **es una opción entre otras**: las cooperativas que lo utilizaron lo hicieron por elección propia. Ese método —su fundamento, su validación y su limitación operativa— es el antecedente directo de este trabajo y se describe en [el Capítulo 2]{.cambio}.
 
 ### 1.3 El problema de la asignación: dificultad y consecuencias
 
@@ -41,7 +47,7 @@ El desafío es diseñar un proceso de asignación que sea, simultáneamente:
 
 Estos criterios están en tensión. El **sorteo aleatorio** cumple con transparencia y no-negociabilidad, pero falla en justicia y eficiencia, porque descarta las preferencias. Una **asignación negociada** en asamblea puede ser eficiente, pero rara vez es transparente o resistente a cuestionamientos, y puede tensionar la cohesión de un grupo que muchas veces lleva años construyendo no solo viviendas sino también una comunidad.
 
-Lo que se necesita es un método que **optimice la satisfacción colectiva respetando la equidad, y que además sea verificable**. Ese es exactamente el problema que resuelve **MTAV**, el sistema de asignación desarrollado en la Facultad de Ingeniería que se describe en la Sección 2; este trabajo toma ese sistema ya probado y lo lleva a una plataforma de autogestión al alcance de cualquier cooperativa.
+Lo que se necesita es un método que **optimice la satisfacción colectiva respetando la equidad, y que además sea verificable**. Ese es exactamente el problema que resuelve **MTAV**, el sistema de asignación desarrollado en la Facultad de Ingeniería que se describe en [el Capítulo 2]{.cambio}; este trabajo toma ese sistema ya probado y lo lleva a una plataforma de autogestión al alcance de cualquier cooperativa.
 
 ---
 
@@ -108,7 +114,7 @@ El rol del equipo técnico deja de ser el de un operador necesario en cada sorte
 
 ### 3.2 Implicancias más amplias
 
-Eliminar la dependencia del intermediario técnico tiene consecuencias que van más allá de la comodidad.
+Eliminar la dependencia del intermediario técnico tiene [las siguientes]{.nuevo} consecuencias que van más allá de la comodidad[.]{.quitado}[:]{.nuevo} [#30: sugerencia de edición del tutor, incorporada]{.rev}
 
 **Auditabilidad.** Cuando los cooperativistas ingresan sus propias preferencias, existe un registro digital de cada preferencia y de la ejecución del sorteo, con marca de tiempo. Cualquier socio puede ver cómo se llegó al resultado, algo cualitativamente distinto de un proceso manual cuya trazabilidad depende de la prolijidad del operador.
 
@@ -122,15 +128,15 @@ Eliminar la dependencia del intermediario técnico tiene consecuencias que van m
 
 **Comunidad y naturaleza compartida.** Una cooperativa no construye solo viviendas: a lo largo de años construye también una comunidad. El MTAV original vive en una sola máquina, operada por una persona, con la información concentrada en un único lugar. Una aplicación en línea es, por naturaleza, compartida: la información y la actividad del proyecto se distribuyen a todos sus usuarios casi en tiempo real —quién se sumó, quién publicó algo, un administrador que agrega unidades, una familia recién incorporada.
 
-Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto y la gestión de eventos con confirmación de asistencia —todo ello ya implementado— y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (véase la Sección 22). Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
+Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto y la gestión de eventos con confirmación de asistencia —todo ello ya implementado— y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (véase [el Capítulo 22]{.cambio}). Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
 
-**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas varias extensiones al propio algoritmo —un criterio adicional de equidad basado en la desviación estándar y la elección sobre un frente de Pareto, la incorporación de preferencias de *vecindad* entre familias, y las preferencias "en bloque"— que exceden el alcance de esta tesis pero constituyen un camino natural de trabajo futuro (Fierro, 2024; véase la Sección 22).
+**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas varias extensiones al propio algoritmo —un criterio adicional de equidad basado en la desviación estándar y la elección sobre un frente de Pareto, la incorporación de preferencias de *vecindad* entre familias, y las preferencias "en bloque"— que exceden el alcance de esta tesis pero constituyen un camino natural de trabajo futuro (Fierro, 2024; véase [el Capítulo 22]{.cambio}).
 
 ---
 
 ## 4. MTAV: visión general del sistema
 
-Esta sección cierra la Parte I con una mirada de conjunto: qué es MTAV en línea, quiénes lo usan y cómo se recorre un proyecto de principio a fin. No entra en cómo está construido —eso corresponde a las Partes II y III—, sino en lo que hace y la experiencia de usuario que intenta construir.
+[Este capítulo]{.cambio} cierra la Parte I con una mirada de conjunto: qué es MTAV en línea, quiénes lo usan y cómo se recorre un proyecto de principio a fin. No entra en cómo está construido —eso corresponde a las Partes II y III—, sino en lo que hace y la experiencia de usuario que intenta construir.
 
 ### 4.1 Qué es MTAV en línea y qué reemplaza
 
@@ -162,7 +168,7 @@ La forma más clara de entender MTAV en línea es seguir el ciclo de vida de un 
 
 **El sorteo.** Cuando el proceso está completo, el administrador ejecuta el sorteo. El sistema bloquea las preferencias, corre el algoritmo de optimización y asigna todas las unidades a la vez. El resultado es definitivo: no se edita ni se negocia. Solo en situaciones excepcionales —por ejemplo, si más tarde se detecta un error en los datos, como una familia que había quedado sin registrar— un superadministrador puede invalidar la ejecución completa, dejando constancia en el registro de auditoría, para volver a ejecutar el sorteo cuando corresponda.
 
-**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia; el registro de la ejecución queda de forma permanente. Cada cooperativista sigue viendo solo las preferencias de su propia familia, también después del sorteo (véase la Sección 22, Trabajo futuro).
+**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia; el registro de la ejecución queda de forma permanente. Cada cooperativista sigue viendo solo las preferencias de su propia familia, también después del sorteo (véase [el Capítulo 22]{.cambio}, Trabajo futuro).
 
 ### 4.4 Organización del documento
 
