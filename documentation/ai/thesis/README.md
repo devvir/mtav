@@ -90,7 +90,9 @@ The thesis was updated to the rewritten app (React/Mantine, open sign-up, per-pr
 forum, chat, Assistant, AWS delivery): chapters 1–5 and appendices A–I follow the code as of
 2026-11-20; the three Mermaid diagrams were regenerated (`mmdc` from a local npm install, using
 the system Chrome). What was not touched: chapter 3's formulation and benchmarks, appendix C.3.
-Open `[NOTA]`s for Diego: the solver fairness findings (§3.2, §5.2.6), the two retired packages
-(§4.4), how to present the autonomous rewrite (F.7), the conclusions' self-critique, §1.2.3's
-"la sección anterior". Each new or rewritten section carries a `[Sección nueva/reescrita …]{.rev}`
+The solver's real tie-break and unbalanced-type limits are stated as facts (§3.2, §3.7) with the
+fix in §5.2.6. Open `[NOTA]`s for Diego: how to present the autonomous rewrite (F.7), the
+conclusions' self-critique, the DX appendix's framing, the list of real projects (§1.2.2);
+plus §1.2.3's "la sección anterior". Rule: the body describes the current app only — no
+history, no transient state, AI only in Appendix F (memory `thesis-describes-current-state`). Each new or rewritten section carries a `[Sección nueva/reescrita …]{.rev}`
 note at its top, linked from `cambios.md`; whole sections are not coloured sentence by sentence.
