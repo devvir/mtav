@@ -2,15 +2,15 @@
 <w:p><w:r><w:br w:type="page"/></w:r></w:p>
 ```
 
-# Apéndices
+# Apéndices {.unnumbered}
 
-Los apéndices son material de referencia. No están pensados para leerse de principio a fin: cada uno amplía un tema que las Partes I a IV presentan de forma suficiente para comprender el trabajo. Un lector con interés particular en un tema —el modelo de datos, la formulación matemática, la planificación— encontrará aquí el detalle; quien no, puede omitirlos sin perder el hilo.
+Los apéndices son material de referencia. No están pensados para leerse de principio a fin: cada uno amplía un tema que los Capítulos @cap-intro a @cap-conclusiones presentan de forma suficiente para comprender el trabajo. Un lector con interés particular en un tema —el modelo de datos, la formulación matemática, la planificación— encontrará aquí el detalle; quien no, puede omitirlos sin perder el hilo.
 
 **Guía rápida:**
 
 - **A — Modelo de datos y recursos JSON.** Por qué el esquema tiene la forma que tiene (derivación), diagrama entidad-relación completo y definiciones tabla por tabla, y el glosario de los recursos JSON que exponen esos modelos al frontend.
 - **B — Autenticación, roles y permisos.** Mecanismo de autenticación y flujo de invitación y registro; matriz de qué puede hacer cada rol, por recurso y acción.
-- **C — El sorteo: modelos, auditoría y rendimiento.** Modelos GMPL completos de la formulación de la Parte III, formato del registro de auditoría de cada ejecución, y los datos completos de los *benchmarks* de rendimiento.
+- **C — El sorteo: modelos, auditoría y rendimiento.** Modelos GMPL completos de la formulación del Capítulo @cap-sorteo, formato del registro de auditoría de cada ejecución, y los datos completos de los *benchmarks* de rendimiento.
 - **D — Formato de datos del plano espacial** y arquitectura de sus componentes.
 - **E — Testing y aseguramiento de calidad.**
 - **F — Uso de IA en el proyecto.**
@@ -28,15 +28,15 @@ La premisa de MTAV en línea es engañosamente simple: *"hagamos una aplicación
 
 **Punto de partida: preferencias.** El sorteo asigna viviendas a partir de las preferencias. Lo mínimo indispensable es, entonces, tres cosas: una **familia**, un conjunto de **unidades** (las viviendas concretas) y una forma de registrar cómo esa familia *ordena* esas unidades. Ese ordenamiento es una relación muchos-a-muchos entre familias y unidades con un dato extra —la posición en el ranking—, que en el esquema es la tabla `unit_preferences` con su columna `order`. Nótese ya una decisión de fondo: **la unidad que recibe una vivienda es la familia, no la persona**. Una familia obtiene exactamente una unidad.
 
-**Una familia es varias personas: los miembros.** Una familia no es un único usuario: varias personas —integrantes de un mismo núcleo— pueden interactuar con la aplicación en su nombre. Necesitamos entonces **miembros** (`Member`; son los *cooperativistas* de las Partes I y II — aquí se usa el nombre que llevan en el modelo), cada uno perteneciente a una familia (`family_id`). Una familia tiene muchos miembros; un miembro pertenece a una familia. Las preferencias, sin embargo, siguen siendo de la *familia*, no de cada miembro: cualquier integrante las edita, pero el sujeto del sorteo es el núcleo familiar.
+**Una familia es varias personas: los miembros.** Una familia no es un único usuario: varias personas —integrantes de un mismo núcleo— pueden interactuar con la aplicación en su nombre. Necesitamos entonces **miembros** (`Member`; son los *cooperativistas* de los Capítulos @cap-intro y @cap-funcional — aquí se usa el nombre que llevan en el modelo), cada uno perteneciente a una familia (`family_id`). Una familia tiene muchos miembros; un miembro pertenece a una familia. Las preferencias, sin embargo, siguen siendo de la *familia*, no de cada miembro: cualquier integrante las edita, pero el sujeto del sorteo es el núcleo familiar.
 
 **Todos se autentican: la tabla `users`.** Los miembros inician sesión. Pero también lo hacen quienes configuran el proyecto (los administradores) y quienes operan la plataforma (los superadministradores). Todos comparten exactamente el mismo mecanismo de autenticación: correo y contraseña, invitaciones (salvo superadministradores), restablecimiento de clave. En lugar de tres tablas de autenticación paralelas, se unifican en una sola tabla **`users`**, y el tipo se distingue con un flag `is_admin`; los miembros, además, llevan su `family_id`. El superadministrador es un usuario administrador (a nivel de la base de datos) cuyo correo figura en una lista de configuración del entorno. (El detalle de esta "pseudo-herencia de tabla única" y sus alternativas se trata más abajo, en A.3.)
 
-**Todo pertenece a una cooperativa: los proyectos.** MTAV en línea sirve a muchas cooperativas a la vez. Cada familia, cada unidad, cada evento pertenece a un **proyecto** concreto (el emprendimiento de una cooperativa). Aparece así la entidad `Project`, y las familias y unidades pasan a pertenecer a un proyecto. Esta pertenencia no es solo organizativa: es la que permite que la aplicación aísle por completo los datos de una cooperativa de los de otra (el mecanismo de *scoping* por proyecto se detalla en [el Capítulo 20]{.cambio}).
+**Todo pertenece a una cooperativa: los proyectos.** MTAV en línea sirve a muchas cooperativas a la vez. Cada familia, cada unidad, cada evento pertenece a un **proyecto** concreto (el emprendimiento de una cooperativa). Aparece así la entidad `Project`, y las familias y unidades pasan a pertenecer a un proyecto. Esta pertenencia no es solo organizativa: es la que permite que la aplicación aísle por completo los datos de una cooperativa de los de otra (el mecanismo de *scoping* por proyecto se detalla en la Sección @sec-autorizacion).
 
 **Alguien crea y gestiona todo esto: los administradores.** Las familias, las unidades y los eventos no se crean solos. Hace falta un **administrador** (`Admin`) que configure el proyecto. Los administradores se relacionan con los proyectos, y como un administrador puede gestionar varios proyectos y un proyecto puede tener varios administradores, esa relación es muchos-a-muchos, a través de la tabla `project_user` (con un campo `active`). Los miembros se vinculan a su proyecto por esa misma tabla —normalmente a un único proyecto activo—, lo que mantiene una sola vía de pertenencia usuario–proyecto.
 
-**Las unidades no son intercambiables: los tipos de unidad.** Un apartamento de dos dormitorios y uno de tres no son comparables, y una familia a la que le corresponde uno de tres dormitorios solo debe seleccionar sus preferencias por unidades de tres dormitorios. Por eso cada unidad tiene un **tipo** (`UnitType`) y cada familia tiene asignado un tipo. Esto revela algo importante sobre el sorteo: el sorteo "global" de un proyecto es en realidad un conjunto de **sub-sorteos independientes, uno por tipo de unidad**, en los que las familias de ese tipo compiten por las unidades de ese tipo. El tipo de unidad no es un adorno descriptivo: es lo que particiona el problema. (La mecánica del sorteo por tipos y la redistribución de remanentes se tratan en [el Capítulo 16]{.cambio}.)
+**Las unidades no son intercambiables: los tipos de unidad.** Un apartamento de dos dormitorios y uno de tres no son comparables, y una familia a la que le corresponde uno de tres dormitorios solo debe seleccionar sus preferencias por unidades de tres dormitorios. Por eso cada unidad tiene un **tipo** (`UnitType`) y cada familia tiene asignado un tipo. Esto revela algo importante sobre el sorteo: el sorteo "global" de un proyecto es en realidad un conjunto de **sub-sorteos independientes, uno por tipo de unidad**, en los que las familias de ese tipo compiten por las unidades de ese tipo. El tipo de unidad no es un adorno descriptivo: es lo que particiona el problema. (La mecánica del sorteo por tipos y la redistribución de remanentes se tratan en la Sección @sec-ejecucion.)
 
 **El resultado: la asignación.** Terminado el sorteo, cada familia recibe exactamente una unidad. Eso se registra en la propia unidad, mediante su `family_id`: una unidad pertenece (tras el sorteo) a una familia, y una familia tiene una unidad. Antes del sorteo ese vínculo es nulo. La asignación no es una tabla aparte: es este vínculo el que constituye la fuente de verdad del resultado.
 
@@ -44,8 +44,8 @@ La premisa de MTAV en línea es engañosamente simple: *"hagamos una aplicación
 
 Dos observaciones cierran la derivación:
 
-- **Las preferencias son dinámicas.** El modelo permite que las unidades se agreguen o quiten y que las familias cambien de tipo. Por eso la tabla `unit_preferences` **no** es la fuente de verdad de las preferencias: la lista válida de preferencias de cada familia se resuelve en tiempo de ejecución, contemplando esos cambios (se detalla en [el Capítulo 16]{.cambio}). Esta flexibilidad es, ella misma, una consecuencia de haber modelado el problema con entidades separadas en lugar de una planilla rígida.
-- **Las reglas de acceso surgen del propio modelo.** Que exista un administrador que crea, un miembro que solo ordena las preferencias de *su* familia y un superadministrador que supervisa no es una capa añadida a posteriori: es una lectura directa de las relaciones anteriores. Cómo se aplican esas reglas en cada capa se detalla en [el Capítulo 20]{.cambio}.
+- **Las preferencias son dinámicas.** El modelo permite que las unidades se agreguen o quiten y que las familias cambien de tipo. Por eso la tabla `unit_preferences` **no** es la fuente de verdad de las preferencias: la lista válida de preferencias de cada familia se resuelve en tiempo de ejecución, contemplando esos cambios (se detalla en la Sección @sec-ejecucion). Esta flexibilidad es, ella misma, una consecuencia de haber modelado el problema con entidades separadas en lugar de una planilla rígida.
+- **Las reglas de acceso surgen del propio modelo.** Que exista un administrador que crea, un miembro que solo ordena las preferencias de *su* familia y un superadministrador que supervisa no es una capa añadida a posteriori: es una lectura directa de las relaciones anteriores. Cómo se aplican esas reglas en cada capa se detalla en la Sección @sec-autorizacion.
 
 En síntesis: la complejidad del modelo no es accidental ni ornamental. Cada tabla es la respuesta mínima a un requisito real que la premisa inicial —"que las familias ingresen sus preferencias"— trae implícito.
 
@@ -84,7 +84,7 @@ Esta sección documenta el esquema tal como lo definen las migraciones (`databas
 
 | Tabla | Propósito | Columnas y restricciones relevantes |
 |---|---|---|
-| `events` | Reuniones, asambleas y el propio sorteo | `type` (enum: `lottery`/`online`/`onsite`), `project_id` (FK cascade), `creator_id` (FK **restrict**, opc.), `title`, `description`, `location` (dirección física o URL), `start_date`/`end_date` (opc.), `is_published` (además de publicación, es el candado del sorteo: véase §17), `rsvp` (si pide confirmación) |
+| `events` | Reuniones, asambleas y el propio sorteo | `type` (enum: `lottery`/`online`/`onsite`), `project_id` (FK cascade), `creator_id` (FK **restrict**, opc.), `title`, `description`, `location` (dirección física o URL), `start_date`/`end_date` (opc.), `is_published` (además de publicación, es el candado del sorteo: véase §@sec-auditoria), `rsvp` (si pide confirmación) |
 | `event_rsvp` | Confirmación de asistencia | `event_id` + `user_id` (FKs cascade, par único), `status` (sí/no/nulo = sin responder) |
 | `media` | Imágenes, documentos, audio y video | `owner_id` (FK cascade), `project_id` (FK cascade), `path`, `thumbnail`, `description`, `alt_text` (accesibilidad), `width`/`height`, `category`, `mime_type`, `file_size` |
 | `plans` | Plano del proyecto (uno por proyecto) | `project_id` (FK cascade, **único** → relación uno-a-uno), `polygon` (JSON: contorno), `width`/`height` (decimales), `unit_system` (enum: `meters`/`feet`) |
@@ -118,19 +118,19 @@ Como adelanta A.1, administradores y miembros comparten una única tabla `users`
 **Borrado suave.** Casi todas las entidades de dominio (usuarios, proyectos, tipos, familias, unidades, eventos, medios, auditorías, bitácora) no se eliminan físicamente: se marcan con `deleted_at` y desaparecen de las consultas normales. Esto responde a dos necesidades distintas:
 
 - **Operativa: equivocarse no debe ser catastrófico.** Un administrador que borra una familia por error puede restaurarla (existen acciones de restauración para familias, miembros, administradores y medios) sin pérdida de datos ni re-invitaciones.
-- **De trazabilidad: el pasado debe poder consultarse.** El caso más importante es el sorteo: la **invalidación** de una ejecución (acción excepcional de superadministrador, §17) usa borrado suave sobre los registros involucrados, de modo que la ejecución invalidada sigue existiendo —consultable con su historial completo— aunque ya no sea el resultado vigente. La auditoría (`lottery_audits`) complementa esto con claves `restrict`: mientras exista un registro de auditoría, ni el proyecto ni el evento del sorteo pueden eliminarse de la base.
+- **De trazabilidad: el pasado debe poder consultarse.** El caso más importante es el sorteo: la **invalidación** de una ejecución (acción excepcional de superadministrador, §@sec-auditoria) usa borrado suave sobre los registros involucrados, de modo que la ejecución invalidada sigue existiendo —consultable con su historial completo— aunque ya no sea el resultado vigente. La auditoría (`lottery_audits`) complementa esto con claves `restrict`: mientras exista un registro de auditoría, ni el proyecto ni el evento del sorteo pueden eliminarse de la base.
 
 **Migraciones.** El esquema completo está definido como una secuencia ordenada de migraciones de Laravel: cada cambio estructural es un archivo fechado con su transformación y su reversa. Esto convierte la estructura de la base en **código versionado** con las mismas garantías que el resto del proyecto —historial, revisión, reproducibilidad—: cualquier entorno (desarrollo, pruebas, producción) construye exactamente el mismo esquema ejecutando la misma secuencia, y el estado de la base en cualquier punto de la historia del proyecto es reconstruible.
 
 ### A.5 Glosario de recursos JSON / superficie de la API
 
-Los modelos anteriores no viajan al frontend tal cual: se exponen como recursos JSON ([Capítulo 21]{.cambio}). Cada modelo de dominio tiene su recurso homónimo en `app/Http/Resources/`: `UserResource` (base, del que heredan `AdminResource` y `MemberResource` agregando sus campos propios), `ProjectResource`, `FamilyResource`, `UnitResource`, `UnitTypeResource`, `EventResource`, `MediaResource`, `PlanResource`, `PlanItemResource`, `NotificationResource`, `LotteryAuditResource` y `LogResource`.
+Los modelos anteriores no viajan al frontend tal cual: se exponen como recursos JSON (Sección @sec-recursos). Cada modelo de dominio tiene su recurso homónimo en `app/Http/Resources/`: `UserResource` (base, del que heredan `AdminResource` y `MemberResource` agregando sus campos propios), `ProjectResource`, `FamilyResource`, `UnitResource`, `UnitTypeResource`, `EventResource`, `MediaResource`, `PlanResource`, `PlanItemResource`, `NotificationResource`, `LotteryAuditResource` y `LogResource`.
 
-Más útil que enumerar campo por campo —el código es autodescriptivo y cambiaría con él— es documentar los **patrones comunes** que todos los recursos siguen, sostenidos por los dos paquetes desarrollados en el marco de este trabajo ([Capítulo 21]{.cambio}):
+Más útil que enumerar campo por campo —el código es autodescriptivo y cambiaría con él— es documentar los **patrones comunes** que todos los recursos siguen, sostenidos por los dos paquetes desarrollados en el marco de este trabajo (Sección @sec-recursos):
 
 - **Transformación automática.** Nunca se serializa a mano: los controladores devuelven modelos o colecciones y la conversión al recurso ocurre sola. Imposible "olvidarse" de usar el recurso y filtrar datos de más.
 - **Subconjuntos por contexto** (`ResourceSubsets`, de `laravel-resource-tools`): un mismo recurso puede exponer distintos niveles de detalle según el contexto (un listado no necesita lo que necesita una vista de detalle).
-- **Permisos embebidos** (`WithResourceAbilities`): cada recurso incluye una clave `abilities` con lo que el usuario actual puede hacer sobre ese objeto (`view`, `update`, `delete`, …), evaluada contra las políticas del Apéndice B. Es la clave `can` descrita en §20: la interfaz decide qué mostrar sin consultas adicionales y la decisión de permisos vive en un único lugar, el backend.
+- **Permisos embebidos** (`WithResourceAbilities`): cada recurso incluye una clave `abilities` con lo que el usuario actual puede hacer sobre ese objeto (`view`, `update`, `delete`, …), evaluada contra las políticas del Apéndice B. Es la clave `can` descrita en §@sec-autorizacion: la interfaz decide qué mostrar sin consultas adicionales y la decisión de permisos vive en un único lugar, el backend.
 - **Relaciones sin consultas accidentales.** Las relaciones se incluyen solo si ya fueron cargadas (`whenLoaded`, con el id como respaldo), y los conteos prefieren agregados precalculados; un recurso jamás dispara consultas N+1 por serializar.
 - **Fechas amigables** (`created_ago` junto a `created_at`) y **datos sensibles condicionados** al rol del solicitante.
 
@@ -140,7 +140,7 @@ Más útil que enumerar campo por campo —el código es autodescriptivo y cambi
 
 ### B.1 Autenticación
 
-**Mecanismo.** La autenticación usa **Laravel Sanctum** en su modo de *SPA stateful*: sesión clásica de cookies con protección CSRF, sin tokens que almacenar en el cliente. Es la opción natural para una aplicación monolítica servida desde el mismo dominio ([Capítulo 5]{.cambio}), y la más segura por defecto: la cookie es `HttpOnly` (inaccesible para JavaScript) y el navegador la gestiona solo.
+**Mecanismo.** La autenticación usa **Laravel Sanctum** en su modo de *SPA stateful*: sesión clásica de cookies con protección CSRF, sin tokens que almacenar en el cliente. Es la opción natural para una aplicación monolítica servida desde el mismo dominio (Sección @sec-stack), y la más segura por defecto: la cookie es `HttpOnly` (inaccesible para JavaScript) y el navegador la gestiona solo.
 
 **Registro únicamente por invitación.** No existe ruta pública de registro: las únicas pantallas para visitantes son el inicio de sesión y el restablecimiento de contraseña. Una cuenta nace cuando alguien con permiso la crea e invita: los administradores crean familias e invitan a sus integrantes, y cada integrante puede a su vez invitar a otros miembros de su propia familia (nunca de otras). El invitado recibe un correo con un enlace para completar su registro —establecer su contraseña y datos personales—, momento en el que se marca `invitation_accepted_at`. Este diseño cierra la puerta al registro masivo de cuentas y refleja la realidad del dominio: en una cooperativa se sabe quiénes son los socios.
 
@@ -148,7 +148,7 @@ Más útil que enumerar campo por campo —el código es autodescriptivo y cambi
 
 ### B.2 Matriz de roles y permisos
 
-La autorización se decide en las **políticas** (`app/Policies/`, una por modelo; §20). Dos reglas estructurales simplifican todo lo demás:
+La autorización se decide en las **políticas** (`app/Policies/`, una por modelo; §@sec-autorizacion). Dos reglas estructurales simplifican todo lo demás:
 
 - **El superadministrador pasa todo.** Un `Gate::before` global le concede cualquier acción, por lo que las políticas solo razonan sobre administradores y cooperativistas. (Excepción puntual: donde "superadmin **o** uno mismo" es la regla —editar administradores—, la política lo chequea explícitamente.)
 - **El contexto de proyecto se valida aparte.** Como usuario↔proyecto es muchos-a-muchos, la restricción "deben compartir proyecto" se aplica en los *form requests* (trait `OverlappingProjectsConstraint`), evitando consultas N+1; y `ProjectScopedRequest` garantiza la coherencia entre el proyecto actual y el recurso pedido.
@@ -170,7 +170,7 @@ La matriz resultante, por recurso y acción (el superadministrador puede todo; s
 | Bitácora (logs) | cualquiera | — (la crea el sistema) | — | — | — |
 
 ¹ La creación real queda acotada por el flujo de invitación (B.1): solo se invita a miembros de la propia familia, o siendo admin.
-² El evento del sorteo es especial: lo crea el sistema con el proyecto, no puede eliminarse, y una vez ejecutado (despublicado) queda bloqueado; el admin solo edita su fecha y descripción mientras está publicado (§17).
+² El evento del sorteo es especial: lo crea el sistema con el proyecto, no puede eliminarse, y una vez ejecutado (despublicado) queda bloqueado; el admin solo edita su fecha y descripción mientras está publicado (§@sec-auditoria).
 ³ Los archivos son inmutables una vez subidos: "editar" un medio permite cambiar solo su descripción.
 ⁴ El plano se crea automáticamente con el proyecto (uno por proyecto) y no se elimina; los admins editan su contenido.
 ⁵ Privadas: solo el destinatario. De proyecto: quienes acceden a ese proyecto. Globales: reservadas a admins de múltiples proyectos.
@@ -183,9 +183,9 @@ Los permisos que esta matriz define son exactamente los que viajan al frontend e
 
 ### C.1 Modelos GMPL completos
 
-Los modelos que siguen son los que la aplicación genera y entrega a GLPK, transcritos textualmente de su generador (`ModelGenerator`). Están escritos en **GMPL** (GNU MathProg), el lenguaje de modelado de GLPK. La correspondencia con la notación de la Parte III es directa:
+Los modelos que siguen son los que la aplicación genera y entrega a GLPK, transcritos textualmente de su generador (`ModelGenerator`). Están escritos en **GMPL** (GNU MathProg), el lenguaje de modelado de GLPK. La correspondencia con la notación del Capítulo @cap-sorteo es directa:
 
-| Parte III | GMPL | Significado |
+| Capítulo @cap-sorteo | GMPL | Significado |
 |---|---|---|
 | $C$ | `set C` | Familias (cooperativistas) |
 | $V$ | `set V` | Unidades (viviendas) |
@@ -225,7 +225,7 @@ s.t. unicaAsignacionCasa{v in V}:
 end;
 ```
 
-(Como se explica en §13–14, en la práctica esta minimización de $z$ vía GLPK es la etapa que la búsqueda binaria reemplaza; el modelo se conserva ejecutable con fines de referencia y verificación de equivalencia.)
+(Como se explica en §@sec-cuello-fase1–@sec-busqueda-binaria, en la práctica esta minimización de $z$ vía GLPK es la etapa que la búsqueda binaria reemplaza; el modelo se conserva ejecutable con fines de referencia y verificación de equivalencia.)
 
 **Fase 2 — satisfacción global bajo la cota de equidad.** Recibe $S$ (de la Fase 1 o de la búsqueda binaria) y minimiza la suma de prioridades asignadas —equivalente a maximizar la satisfacción total— sin que ninguna familia supere $S$:
 
@@ -259,7 +259,7 @@ s.t. unicaAsignacionCasa{v in V}:
 end;
 ```
 
-**Selección de unidades (desbalance con unidades excedentes).** Cuando hay más unidades que familias (§16), antes de sortear hay que decidir *qué* unidades participan. Este modelo elige exactamente $M$ unidades (= cantidad de familias) mediante las variables de uso $u_v$, de modo que la asignación resultante tenga el mejor peor-caso posible:
+**Selección de unidades (desbalance con unidades excedentes).** Cuando hay más unidades que familias (§@sec-ejecucion), antes de sortear hay que decidir *qué* unidades participan. Este modelo elige exactamente $M$ unidades (= cantidad de familias) mediante las variables de uso $u_v$, de modo que la asignación resultante tenga el mejor peor-caso posible:
 
 ```
 # MTAV Lottery - Unit Selection: Identify Worst Units
@@ -309,11 +309,11 @@ Cada ejecución del sorteo deja una secuencia de registros en la tabla `lottery_
 | Tipo | Cuándo se crea | Contenido de `audit` |
 |---|---|---|
 | `init` | Al comenzar la ejecución | Quién la lanzó (`admin`: id y correo) y el **manifiesto completo** de entrada: familias, unidades y preferencias congeladas con las que se sorteó |
-| `group_execution` | Al completarse cada sub-sorteo (uno por tipo de unidad; §16) | `admin`, `picks` (las asignaciones familia→unidad del grupo) y `orphans` (familias o unidades que quedaron sin par, pasan al sorteo de remanentes) |
+| `group_execution` | Al completarse cada sub-sorteo (uno por tipo de unidad; §@sec-ejecucion) | `admin`, `picks` (las asignaciones familia→unidad del grupo) y `orphans` (familias o unidades que quedaron sin par, pasan al sorteo de remanentes) |
 | `project_execution` | Al completarse el sorteo del proyecto | Ídem anterior, consolidado a nivel proyecto |
 | `custom` | Pasos auxiliares que ameritan constancia | `admin` + datos arbitrarios del paso |
 | `failure` | Si la ejecución falla | Tipo de error, clase de la excepción, mensaje técnico, datos de depuración y el mensaje mostrado al usuario |
-| `invalidate` | Si un superadministrador invalida la ejecución (§17) | Quién invalidó; se agrega **al mismo UUID** de la ejecución invalidada, cerrando su historia |
+| `invalidate` | Si un superadministrador invalida la ejecución (§@sec-auditoria) | Quién invalidó; se agrega **al mismo UUID** de la ejecución invalidada, cerrando su historia |
 
 Dos propiedades de diseño completan el mecanismo:
 
@@ -409,7 +409,7 @@ Con el manifiesto del `init`, los modelos de C.1 y estos registros, la cadena en
 
 ### C.3 Resultados de rendimiento: datos completos
 
-Esta sección amplía los resultados [del Capítulo 15]{.cambio} con la metodología y las estadísticas completas de los *benchmarks*.
+Esta sección amplía los resultados de la Sección @sec-resultados con la metodología y las estadísticas completas de los *benchmarks*.
 
 [**Metodología.** Cada configuración (escenario × tamaño) se ejecutó de forma repetida e independiente —10 000 corridas por tamaño para la solución original; 1 000 corridas por tamaño hasta $N=150$ y 100 corridas para $N \ge 200$ con la búsqueda binaria—, midiendo el tiempo de resolución completa (ambas fases). Los cuatro escenarios de preferencias: **aleatorias** (cada familia ordena al azar), **realistas** (mezcla de unidades populares e impopulares que simula el comportamiento observado), **idénticas** (todas las familias con el mismo ranking: el peor caso para el desempate) y **opuestas** (rankings en espejo). Los datos crudos viven en `storage/benchmarks/` y las estadísticas se computan con `scripts/benchmark_analysis/`.]{.quitado}
 
@@ -419,7 +419,7 @@ Esta sección amplía los resultados [del Capítulo 15]{.cambio} con la metodolo
 Los escenarios se generan así:
 
 - **Aleatorias:** cada familia recibe una permutación uniforme de las unidades, sorteada de forma independiente de las demás.
-- **Realistas:** para cada familia, por separado, las unidades se mezclan al azar y se dividen en un 20 % que la familia favorece, un 20 % que desfavorece (ambos redondeados hacia arriba) y el resto, neutro. Su ordenamiento se arma en tres tramos. El primer tercio se sortea, de forma uniforme, de un conjunto en el que cada unidad favorecida aparece tres veces y cada neutra una; el tercio central, de uno en el que las favorecidas y las desfavorecidas aparecen una vez y las neutras dos; y el último tramo, de uno en el que cada neutra aparece una vez y cada desfavorecida tres. Si una unidad sale más de una vez, cuenta solo su primera aparición, y las unidades que no salieron se agregan al final. Como la división se sortea para cada familia, no hay unidades populares para el conjunto: el escenario da estructura a cada ordenamiento individual, sin correlación entre familias. [#24: generación del escenario realista, reproducible]{.rev}
+- **Realistas:** para cada familia, por separado, las unidades se mezclan al azar y se dividen en un 20 % que la familia favorece, un 20 % que desfavorece (ambos redondeados hacia arriba) y el resto, neutro. Su ordenamiento se arma en tres tramos. El primer tercio se sortea, de forma uniforme, de un conjunto en el que cada unidad favorecida aparece tres veces y cada neutra una; el tercio central, de uno en el que las favorecidas y las desfavorecidas aparecen una vez y las neutras dos; y el último tramo, de uno en el que cada neutra aparece una vez y cada desfavorecida tres. Si una unidad sale más de una vez, cuenta solo su primera aparición, y las unidades que no salieron se agregan al final. Como la división se sortea para cada familia, no hay unidades populares para el conjunto: el escenario da estructura a cada ordenamiento individual, sin correlación entre familias. [#24: generación del escenario realista, reproducible]{.rev #rev-24}
 - **Idénticas:** todas las familias tienen el mismo ordenamiento, un orden fijo de las unidades.
 - **Opuestas:** se fija un único orden de las unidades, que no se sortea. La primera mitad de las familias (la mitad más una si $N$ es impar) lo adopta tal cual, y el resto lo adopta exactamente invertido. [#25: qué significa "en espejo"]{.rev}
 
@@ -463,7 +463,7 @@ Tres observaciones:
 
 ## Apéndice D — Formato de datos del plano espacial
 
-Este apéndice detalla cómo se representa y se dibuja el plano del proyecto que la Sección 6.3 presenta funcionalmente.
+Este apéndice detalla cómo se representa y se dibuja el plano del proyecto que la Subsección @sec-plano presenta funcionalmente.
 
 ### D.1 Modelo de datos
 
@@ -474,7 +474,7 @@ El plano son dos entidades (esquema completo en A.2):
 
 **Formato de los polígonos.** Toda forma es un arreglo JSON de pares `[x, y]` en el sistema de coordenadas del plano (origen arriba-izquierda, misma unidad que `width`/`height`). Se eligió el polígono como única primitiva —un rectángulo es un polígono de cuatro puntos— por uniformidad: una sola representación, una sola lógica de dibujo y de edición para cualquier forma.
 
-**Elecciones y límites.** `floor` existe a nivel de datos, pero la visualización multinivel no está implementada (trabajo futuro, §22.3), al igual que el redimensionado de formas en el editor: hoy los ítems se crean con su forma y se reubican arrastrándolos.
+**Elecciones y límites.** `floor` existe a nivel de datos, pero la visualización multinivel no está implementada (trabajo futuro, §@sec-tf-plano), al igual que el redimensionado de formas en el editor: hoy los ítems se crean con su forma y se reubican arrastrándolos.
 
 ### D.2 Arquitectura de componentes
 
@@ -500,7 +500,7 @@ La suite de pruebas está organizada en capas, cada una con una pregunta distint
 - **Arquitectura** (`tests/Arch`, Pest): reglas estructurales del código como pruebas ejecutables —qué capas pueden depender de cuáles, convenciones que deben cumplirse en todo el proyecto—. Fallan en cuanto alguien introduce una dependencia prohibida.
 - **Unitarias** (`tests/Unit`, Pest): lógica aislada —modelos, servicios, y en particular la maquinaria del sorteo (generación de modelos, orquestación, balanceo)—.
 - **De características** (`tests/Feature`, Pest): la aplicación completa por dentro —HTTP, autenticación y flujo de invitación, autorización, sorteo de punta a punta, notificaciones, plano—, contra una base de datos real.
-- **De estrés** (`tests/Stress`, Pest): las propiedades del sorteo a escala; incluye la verificación empírica de **equivalencia entre la búsqueda binaria y la Fase 1 original de GLPK** (§14), ejecutando ambas y comparando resultados.
+- **De estrés** (`tests/Stress`, Pest): las propiedades del sorteo a escala; incluye la verificación empírica de **equivalencia entre la búsqueda binaria y la Fase 1 original de GLPK** (§@sec-busqueda-binaria), ejecutando ambas y comparando resultados.
 - **De navegador / extremo a extremo** (`tests/Browser`, Playwright): un puñado de *journeys* largos que recorren los casos de uso principales de punta a punta en un navegador real —aprovisionamiento de un proyecto y su primer administrador, alta de la estructura e incorporación de familias, gestión de la cuenta por el cooperativista, y el sorteo completo (preferencias, ejecución e invalidación)—, pensados como última red de seguridad antes de un despliegue. Corren en su propio entorno containerizado (Apéndice I).
 - **Frontend** (`resources/js/tests`, Vitest + Vue Test Utils): componentes Vue en aislamiento —render, props, interacción—.
 
@@ -589,7 +589,7 @@ Gracias, Diego, por el asiento en primera fila. Y al tribunal: todo error que ha
 
 ### G.1 Actores
 
-El sistema tiene tres actores, en correspondencia directa con los roles descritos en la Sección 4.2:
+El sistema tiene tres actores, en correspondencia directa con los roles descritos en la Subsección @sec-roles:
 
 - **Superadministrador** — responsable de la plataforma. Es el único que crea proyectos y designa administradores (medida anti-abuso deliberada), y el único que puede invalidar una ejecución del sorteo. Por diseño, puede además realizar cualquier acción de los otros roles.
 - **Administrador** — responsable operativo de uno o más proyectos: configura tipos y unidades, registra familias, invita usuarios, publica eventos y ejecuta el sorteo.
@@ -613,7 +613,7 @@ Se describen en detalle los cuatro casos que definen el sistema; el resto sigue 
 |---|---|
 | **Actor** | Administrador |
 | **Precondiciones** | Proyecto con tipos, unidades y familias cargados; sorteo publicado (no ejecutado); preferencias registradas |
-| **Flujo principal** | 1. El administrador solicita la ejecución. 2. El sistema reserva el sorteo de forma atómica: lo despublica, con lo que las preferencias quedan bloqueadas (§17). 3. Congela el manifiesto de entrada (familias, unidades, preferencias) y lo audita (`init`). 4. Ejecuta un sub-sorteo por cada tipo de vivienda (§16), auditando cada grupo (`group_execution`). 5. Ejecuta el sorteo de remanentes con las familias/unidades huérfanas de los grupos. 6. Registra la asignación (cada unidad recibe su familia), audita el consolidado (`project_execution`) y notifica a todos los participantes. |
+| **Flujo principal** | 1. El administrador solicita la ejecución. 2. El sistema reserva el sorteo de forma atómica: lo despublica, con lo que las preferencias quedan bloqueadas (§@sec-auditoria). 3. Congela el manifiesto de entrada (familias, unidades, preferencias) y lo audita (`init`). 4. Ejecuta un sub-sorteo por cada tipo de vivienda (§@sec-ejecucion), auditando cada grupo (`group_execution`). 5. Ejecuta el sorteo de remanentes con las familias/unidades huérfanas de los grupos. 6. Registra la asignación (cada unidad recibe su familia), audita el consolidado (`project_execution`) y notifica a todos los participantes. |
 | **Flujos alternativos** | 4a/5a. Si la optimización falla, se audita el error (`failure`), se revierte la reserva (el sorteo vuelve a publicarse, las preferencias se desbloquean) y el administrador puede reintentar. |
 | **Postcondiciones** | Toda familia tiene exactamente una unidad; el resultado es definitivo y visible; la auditoría completa queda registrada bajo el UUID de la ejecución |
 
@@ -624,7 +624,7 @@ Se describen en detalle los cuatro casos que definen el sistema; el resto sigue 
 | **Actor** | Cooperativista |
 | **Precondiciones** | Familia con tipo de vivienda asignado; sorteo aún publicado (no ejecutado) |
 | **Flujo principal** | 1. El cooperativista abre la pantalla de preferencias. 2. El sistema presenta las unidades del tipo de su familia, en el orden actual. 3. Reordena arrastrando (o con los controles accesibles equivalentes). 4. El sistema persiste el nuevo orden para la familia y lo confirma. |
-| **Flujos alternativos** | 3a. Si el proyecto cambió (unidades agregadas/quitadas, cambio de tipo), el sistema ajusta la lista automáticamente antes de mostrar (§16). 4a. Si el sorteo ya se ejecutó, el sistema rechaza la edición (preferencias bloqueadas). |
+| **Flujos alternativos** | 3a. Si el proyecto cambió (unidades agregadas/quitadas, cambio de tipo), el sistema ajusta la lista automáticamente antes de mostrar (§@sec-ejecucion). 4a. Si el sorteo ya se ejecutó, el sistema rechaza la edición (preferencias bloqueadas). |
 | **Postcondiciones** | El ranking de la familia refleja el nuevo orden; cualquier integrante de la familia ve el mismo ranking (y ninguna otra familia lo ve, ni antes ni después del sorteo) |
 
 **CU-3: Invitar a un usuario y completar su registro**
@@ -648,7 +648,7 @@ Se describen en detalle los cuatro casos que definen el sistema; el resto sigue 
 
 ### G.4 Requisitos
 
-Los requisitos se enumeran en su forma consolidada —la que el sistema construido satisface—, organizados por área funcional. Cada uno es verificable contra el comportamiento descrito en las Partes II y III y los Apéndices A–D.
+Los requisitos se enumeran en su forma consolidada —la que el sistema construido satisface—, organizados por área funcional. Cada uno es verificable contra el comportamiento descrito en los Capítulos @cap-funcional y @cap-sorteo y los Apéndices A–D.
 
 **Requisitos funcionales.**
 
@@ -658,7 +658,7 @@ Los requisitos se enumeran en su forma consolidada —la que el sistema construi
 | RF-2 | Definir tipos de vivienda por proyecto y registrar las unidades concretas de cada tipo, con identificador único dentro del proyecto |
 | RF-3 | Registrar familias, cada una con su tipo de vivienda asignado, y sus integrantes con cuenta propia; el acceso es únicamente por invitación (administradores invitan dentro del proyecto; cooperativistas, solo a su propia familia) |
 | RF-4 | Permitir a cada familia ordenar en privado sus preferencias sobre las unidades de su tipo, modificables hasta la ejecución del sorteo; ante cambios del proyecto (unidades, tipos), las listas se ajustan automáticamente |
-| RF-5 | Ejecutar el sorteo por tipo de vivienda con redistribución de remanentes, garantizando equidad max-min y satisfacción global óptima (Parte III); bloquear las preferencias al ejecutar; el resultado es definitivo y visible para todo el proyecto |
+| RF-5 | Ejecutar el sorteo por tipo de vivienda con redistribución de remanentes, garantizando equidad max-min y satisfacción global óptima (Capítulo @cap-sorteo); bloquear las preferencias al ejecutar; el resultado es definitivo y visible para todo el proyecto |
 | RF-6 | Advertir y requerir confirmación del administrador ante desbalance entre familias y unidades; ante un fallo, revertir al estado previo y permitir el reintento |
 | RF-7 | Permitir la invalidación excepcional de una ejecución (solo superadministración), conservando la ejecución invalidada consultable |
 | RF-8 | Registrar una auditoría completa e inmutable de cada ejecución: entrada congelada, resolución del solver con sus artefactos, resultados parciales y consolidado (Apéndice C) |
@@ -683,7 +683,7 @@ Los requisitos se enumeran en su forma consolidada —la que el sistema construi
 
 ### G.5 Diagrama de secuencia: la ejecución del sorteo
 
-El flujo clave del sistema, de punta a punta — de la acción del administrador al resultado visible, con la rama de fallo incluida (los nombres de los participantes corresponden a los componentes reales de la Parte IV):
+El flujo clave del sistema, de punta a punta — de la acción del administrador al resultado visible, con la rama de fallo incluida (los nombres de los participantes corresponden a los componentes reales del Capítulo @cap-ingenieria):
 
 ![Diagrama de secuencia de la ejecución del sorteo](assets/secuencia-sorteo.png)
 
@@ -824,7 +824,7 @@ El rol de superadministrador **no se asigna desde la aplicación**: se configura
 
 ## Apéndice I — Herramientas de desarrollo y entornos (DX)
 
-Este apéndice describe la capa de herramientas que rodea a la aplicación y que rara vez aparece en un informe, pero que define en buena medida qué tan fácil y seguro es retomar el proyecto: cómo se opera el entorno multiservicio y cómo se reducen a un mínimo la fricción de arranque y el margen de error. No es un manual de desarrollo, sino un resumen de cómo se atendió la **experiencia de desarrollo (DX)** como parte del trabajo de ingeniería ([Capítulo 18]{.cambio}).
+Este apéndice describe la capa de herramientas que rodea a la aplicación y que rara vez aparece en un informe, pero que define en buena medida qué tan fácil y seguro es retomar el proyecto: cómo se opera el entorno multiservicio y cómo se reducen a un mínimo la fricción de arranque y el margen de error. No es un manual de desarrollo, sino un resumen de cómo se atendió la **experiencia de desarrollo (DX)** como parte del trabajo de ingeniería (Sección @sec-arquitectura).
 
 ### I.1 El problema: un entorno multiservicio
 
@@ -855,7 +855,7 @@ Cada servicio se define una sola vez, de forma **genérica** (sin puertos ni nom
 - **Pruebas** — base de datos en memoria (efímera, se descarta al terminar) y sin servidor de desarrollo; ejecuta Pest y Vitest. La estrategia de pruebas se detalla en el Apéndice E.
 - **Extremo a extremo** — un contenedor que reúne todo lo necesario (PHP, navegador y sus dependencias) para correr los *journeys* de navegador descritos en el Apéndice E.
 - **Staging** — los recursos del frontend **compilados** (sin recarga en caliente): una instantánea del código actual, para revisarlo tal como se comportaría en producción antes de congelarlo.
-- **Producción** — imágenes **autocontenidas**, con el código y los recursos ya horneados dentro; congeladas y reproducibles. (La plataforma aún no está desplegada; véase §22.1.)
+- **Producción** — imágenes **autocontenidas**, con el código y los recursos ya horneados dentro; congeladas y reproducibles. (La plataforma aún no está desplegada; véase §@sec-conclusiones.)
 
 Dos propiedades hacen que esto sea manejable. La primera es la **configuración en capas**: un archivo base compartido, más los ajustes propios de cada entorno (puertos, modo de ejecución), más overrides personales opcionales que no se versionan. La segunda es el **aislamiento**: cada entorno es un proyecto de composición independiente, con su propia red y sus propios volúmenes, de modo que conviven sin interferirse —es posible, por ejemplo, tener el entorno de desarrollo levantado y correr las pruebas al mismo tiempo, sin que una cosa toque la otra—.
 
@@ -863,4 +863,4 @@ Dos propiedades hacen que esto sea manejable. La primera es la **configuración 
 
 La motivación de fondo no es la comodidad, sino la **seguridad y la reproducibilidad**. Un mismo comando produce siempre el mismo entorno, eliminando el clásico "en mi máquina funciona". El aislamiento evita que un experimento o una corrida de pruebas corrompa el entorno de trabajo, y `mtav fresh` recupera de forma determinista un estado limpio cuando algo se descarrila. Los entornos hacen seguras por construcción las operaciones delicadas: la base de pruebas es descartable, las imágenes de producción son inmutables. Y como última red de seguridad, los *journeys* de navegador (en su propio entorno) recorren los casos de uso principales de punta a punta antes de cualquier despliegue (Apéndice E). El conjunto persigue un objetivo concreto: que el siguiente en tomar el proyecto pueda empezar a trabajar en minutos y operar con confianza, sin cargar con la complejidad que estas herramientas abstraen.
 
-[NOTA: decidir el encuadre. Hoy este apéndice *describe* la capa de DX. Si se quiere, puede presentarse también como una **contribución** explícita del trabajo (en la línea de los dos paquetes de código abierto de §21), o recortarse si se considera demasiado detalle operativo para el informe. También se puede sumar una figura del árbol `docker/` o una referencia cruzada al README del repositorio si se busca más concreción.]
+[NOTA: decidir el encuadre. Hoy este apéndice *describe* la capa de DX. Si se quiere, puede presentarse también como una **contribución** explícita del trabajo (en la línea de los dos paquetes de código abierto de §@sec-recursos), o recortarse si se considera demasiado detalle operativo para el informe. También se puede sumar una figura del árbol `docker/` o una referencia cruzada al README del repositorio si se busca más concreción.]

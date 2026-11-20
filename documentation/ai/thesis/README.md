@@ -20,18 +20,19 @@ Structure:
 
 | File | Content |
 |---|---|
-| `documentation/thesis/parte-0-resumen.md` | YAML metadata (title/author) + Resumen (abstract). First file in the merge. |
-| Export | `pandoc parte-0-resumen.md parte-1-introduccion.md parte-2-descripcion-funcional.md parte-3-el-sorteo.md parte-4-ingenieria.md bibliografia.md apendices.md --toc --toc-depth=2 -o ../export/mtav-borrador.docx` → upload to Google Docs. (Bibliografía is its own top-level section, before the appendices; each part file begins with an openxml page break.) |
-| `documentation/thesis/parte-1-introduccion.md` | Parte I — Introducción y Contexto (§1–4). |
-| `documentation/thesis/parte-2-descripcion-funcional.md` | Parte II — La Aplicación (§5–10). |
-| `documentation/thesis/parte-3-el-sorteo.md` | Parte III — El Sorteo (§11–18). |
-| `documentation/thesis/parte-4-ingenieria.md` | Parte IV — Ingeniería del sistema (§19–22). |
+| `documentation/thesis/resumen.md` | YAML metadata (title/author) + Resumen (abstract). First file in the merge. |
+| Export | `documentation/thesis/export-tesis.sh` (draft with marks and `cambios.md`; `--final` without; `--upload` updates the Google Doc in place). Each chapter file begins with an openxml page break. |
+| `documentation/thesis/capitulo-1-introduccion.md` | Capítulo 1 — Introducción y contexto. |
+| `documentation/thesis/capitulo-2-descripcion-funcional.md` | Capítulo 2 — Descripción funcional. |
+| `documentation/thesis/capitulo-3-el-sorteo.md` | Capítulo 3 — El sorteo. |
+| `documentation/thesis/capitulo-4-ingenieria.md` | Capítulo 4 — Ingeniería del sistema. |
+| `documentation/thesis/capitulo-5-conclusiones.md` | Capítulo 5 — Conclusiones y trabajo futuro. |
 | `documentation/thesis/bibliografia.md` | Bibliografía (top-level section, real entries; a few `[NOTA]`s for access dates / citation style). |
 | `documentation/thesis/apendices.md` | Apéndices A–H (A holds the data-model derivation; rest are placeholders). |
 | `documentation/thesis/referencias/antecedentes-y-bibliografia.md` | Distilled Fierro facts + citation list → feeds §2 and Appendix L. |
 | `app/Services/Lottery/`, `app/Models/`, migrations, `docker/` | Code = source of truth for any factual claim about the app. |
-| `documentation/thesis/cambios.md` | The current review round, as the tutor sees it: his comments verbatim (numbered after round 1's #1–14) and what was done. Draft only. |
-| `scripts/benchmark_analysis/`, `storage/benchmarks/` | Real benchmark data for §15 and Appendix C. |
+| `documentation/thesis/cambios.md` | The current review round, as the tutor sees it: one line per comment (numbered after round 1's #1–14), linked to the change. Draft only. |
+| `scripts/benchmark_analysis/`, `storage/benchmarks/` | Real benchmark data for §3.6 and Appendix C.3. |
 
 Memory (`~/.claude/.../memory/`) holds the verified facts and working rules: `project_thesis`
 (structure, verified data model / feature surface / lottery algorithm, known gaps),
@@ -40,7 +41,14 @@ Memory (`~/.claude/.../memory/`) holds the verified facts and working rules: `pr
 ## Format & export
 
 Write in Markdown. Export to `.docx` via **pandoc** (installed) for the tutor / Google Docs. Keep
-the `{=openxml}` page-break blocks between parts. Math uses LaTeX (`$...$`, `$$...$$`) → Word equations.
+the `{=openxml}` page-break blocks before each chapter. Math uses LaTeX (`$...$`, `$$...$$`) → Word equations.
+
+**Hierarchy and numbering.** Capítulo (`#`), sección (`##`), subsección (`###`). Headings carry no
+number: `assets/numeracion.lua` numbers them ("Capítulo 3 — …", "3.5", "3.5.2"). Every heading
+that is referenced has an id (`{#cap-sorteo}`, `{#sec-busqueda-binaria}`), and the text refers to it
+by id: `la Sección @sec-resultados`, `(§@sec-bb-monotonia)`; the filter writes the number and fails
+on an unknown id. Resumen, Bibliografía, Apéndices and `cambios.md` are `{.unnumbered}`; appendix
+letters (A, A.1) are written by hand.
 
 ## Rules (full detail in memory `feedback_thesis_rules`)
 
@@ -53,9 +61,10 @@ the `{=openxml}` page-break blocks between parts. Math uses LaTeX (`$...$`, `$$.
 - **Revision marks for the tutor.** Every change made in answer to a review is marked, so the tutor
   reads only what changed: `[texto]{.nuevo}`, `[texto]{.cambio}`, `[texto]{.quitado}` (or
   `::: nuevo` … `:::` blocks for whole paragraphs and sections), plus a note giving the reason,
-  `[#22: motivo]{.rev}`, numbered after the comment that prompted it. `cambios.md` opens the draft
-  with every comment of the round quoted verbatim (republishing may drop Google Docs comments) and
-  what was done. `assets/revision.lua` colors them; `export-tesis.sh --final` drops the marks and
+  `[#22: motivo]{.rev #rev-22}`, numbered after the comment that prompted it. `cambios.md` opens the
+  draft with one short line per comment, its number linking to that note (`[#22](#rev-22)`); no
+  verbatim quotes, no entries for comments that needed no change. Structural changes (renumbering)
+  are stated there in a sentence, not marked in the text. `assets/revision.lua` colors them; `export-tesis.sh --final` drops the marks and
   `cambios.md`. Before the next round's changes, the previous round's marks are accepted (unwrapped)
   once the tutor has seen them.
 - Language Diego can defend to the tribunal; describe what *is* (no "I was wrong" residue); no

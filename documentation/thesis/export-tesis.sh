@@ -29,11 +29,12 @@ cd "$(dirname "$0")"
 
 # Orden de los archivos en el documento final.
 FILES=(
-  parte-0-resumen.md
-  parte-1-introduccion.md
-  parte-2-descripcion-funcional.md
-  parte-3-el-sorteo.md
-  parte-4-ingenieria.md
+  resumen.md
+  capitulo-1-introduccion.md
+  capitulo-2-descripcion-funcional.md
+  capitulo-3-el-sorteo.md
+  capitulo-4-ingenieria.md
+  capitulo-5-conclusiones.md
   bibliografia.md
   apendices.md
 )
@@ -59,10 +60,12 @@ fi
 
 # 1) Cuerpo: Markdown -> docx (con índice). assets/reference.docx define los
 #    estilos del cuerpo y el salto de página antes del índice (TOCHeading).
-#    revision.lua aplica (o, con --final, quita) las marcas de revisión.
+#    numeracion.lua numera capítulos, secciones y subsecciones y resuelve las
+#    referencias (@sec-...); revision.lua aplica (o, con --final, quita) las
+#    marcas de revisión.
 BODY="$(mktemp --suffix=.docx)"
 pandoc "${FILES[@]}" --toc --toc-depth=2 --reference-doc=assets/reference.docx \
-  --lua-filter=assets/revision.lua -M final="$([ "$FINAL" = "1" ] && echo true || echo false)" \
+  --lua-filter=assets/numeracion.lua --lua-filter=assets/revision.lua -M final="$([ "$FINAL" = "1" ] && echo true || echo false)" \
   -o "$BODY"
 
 # 2) Carátula: se antepone assets/caratula.docx (portada mantenida a mano; se

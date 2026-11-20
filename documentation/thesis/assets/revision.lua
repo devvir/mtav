@@ -6,6 +6,9 @@ Marcas de revisión para el tutor (temporales: --final las quita).
   [texto]{.quitado}    eliminado       fondo rojo, tachado
   [#15: motivo]{.rev}  nota del cambio "[Rev. #15: motivo]", chica y en color
 
+Una nota con identificador, [#15: motivo]{.rev #rev-15}, es el destino del
+enlace que le pone el registro de cambios (cambios.md): [#15](#rev-15).
+
 Para párrafos o secciones enteras, un bloque:
 
   ::: nuevo
@@ -27,8 +30,8 @@ local function kind_of(el)
   end
 end
 
-local function styled(style, inlines)
-  return pandoc.Span(inlines, { ['custom-style'] = style })
+local function styled(style, inlines, id)
+  return pandoc.Span(inlines, pandoc.Attr(id or '', {}, { ['custom-style'] = style }))
 end
 
 local function note(span)
@@ -36,7 +39,7 @@ local function note(span)
   local inlines = pandoc.Inlines({ pandoc.Str('[Rev. ') })
   inlines:extend(span.content)
   inlines:insert(pandoc.Str(']'))
-  return styled('RevNota', inlines)
+  return styled('RevNota', inlines, span.identifier)
 end
 
 -- Inside a block, every run takes the kind's style, except the notes, which keep theirs.

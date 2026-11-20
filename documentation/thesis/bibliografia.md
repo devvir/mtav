@@ -2,7 +2,7 @@
 <w:p><w:r><w:br w:type="page"/></w:r></w:p>
 ```
 
-# Bibliografía
+# Bibliografía {.unnumbered}
 
 ### Sobre MTAV y su algoritmo de asignación
 

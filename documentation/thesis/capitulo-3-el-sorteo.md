@@ -2,25 +2,23 @@
 <w:p><w:r><w:br w:type="page"/></w:r></w:p>
 ```
 
-# Parte III — El Sorteo
+# El sorteo {#cap-sorteo}
 
-*Esta parte trata en profundidad el sorteo: el problema de asignación que resuelve, sus garantías, la formulación matemática, la mejora de rendimiento que constituye el aporte original de este trabajo, los resultados empíricos y la mecánica de ejecución. Es la parte más técnica del documento; un lector con formación en investigación de operaciones encontrará aquí el núcleo matemático, mientras que los detalles de implementación de más bajo nivel se remiten a los apéndices.*
+*Este capítulo trata en profundidad el sorteo: el problema de asignación que resuelve, sus garantías, la formulación matemática, la mejora de rendimiento que constituye el aporte original de este trabajo, los resultados empíricos y la mecánica de ejecución. Es el capítulo más técnico del documento; un lector con formación en investigación de operaciones encontrará aquí el núcleo matemático, mientras que los detalles de implementación de más bajo nivel se remiten a los apéndices.*
 
----
 
-## 10. El problema de asignación y el modelo de preferencias
+## El problema de asignación y el modelo de preferencias {#sec-problema-asignacion}
 
 El sorteo resuelve un **problema de asignación**: distribuir un conjunto de viviendas entre un conjunto de familias, respetando las preferencias que cada familia expresa sobre las viviendas.
 
-**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en [el Capítulo 16]{.cambio}). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
+**Preferencias.** Cada familia ordena las unidades de su tipo de la más deseada a la menos deseada. Ese orden se representa como un **rango**: para una familia $c$ y una unidad $v$, el valor $p_{c,v}$ es la posición que $v$ ocupa en la lista de $c$, donde $p_{c,v}=1$ indica la primera opción. Un rango menor es mejor. La lista de cada familia es **completa y total** sobre las unidades de su tipo: aunque un cooperativista solo ordene explícitamente algunas unidades, el sistema completa el resto para que toda unidad del tipo tenga un rango asignado (la resolución dinámica de esta lista se describe en la Sección @sec-ejecucion). De este modo, el dato de entrada del algoritmo es, para cada familia, una permutación de las unidades de su tipo.
 
-**Descomposición por tipo de vivienda.** Como se explicó en la Parte II, cada familia opta únicamente por unidades de su tipo. Por lo tanto, el sorteo de un proyecto **no es un único problema**, sino una colección de subproblemas independientes, uno por cada tipo de vivienda: las familias de un tipo compiten entre sí por las unidades de ese tipo. La solución global se compone de las soluciones de cada subproblema, más una fase de redistribución de remanentes para los casos en que un subproblema queda desbalanceado (§16).
+**Descomposición por tipo de vivienda.** Como se explicó en el Capítulo @cap-funcional, cada familia opta únicamente por unidades de su tipo. Por lo tanto, el sorteo de un proyecto **no es un único problema**, sino una colección de subproblemas independientes, uno por cada tipo de vivienda: las familias de un tipo compiten entre sí por las unidades de ese tipo. La solución global se compone de las soluciones de cada subproblema, más una fase de redistribución de remanentes para los casos en que un subproblema queda desbalanceado (§@sec-ejecucion).
 
-**Caso balanceado y desbalanceado.** El núcleo del algoritmo se formula sobre el **caso balanceado**, en el que el número de familias es igual al número de unidades del tipo ($|C| = |V|$): cada familia recibe exactamente una unidad y cada unidad se asigna a exactamente una familia. Los casos desbalanceados —más familias que unidades, o más unidades que familias— se reducen al caso balanceado mediante selección de unidades y redistribución de remanentes, que se tratan en §16. La formulación que sigue asume el caso balanceado.
+**Caso balanceado y desbalanceado.** El núcleo del algoritmo se formula sobre el **caso balanceado**, en el que el número de familias es igual al número de unidades del tipo ($|C| = |V|$): cada familia recibe exactamente una unidad y cada unidad se asigna a exactamente una familia. Los casos desbalanceados —más familias que unidades, o más unidades que familias— se reducen al caso balanceado mediante selección de unidades y redistribución de remanentes, que se tratan en §@sec-ejecucion. La formulación que sigue asume el caso balanceado.
 
----
 
-## 11. Qué garantiza el algoritmo: equidad max-min y satisfacción global
+## Qué garantiza el algoritmo: equidad max-min y satisfacción global {#sec-garantias}
 
 El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero la equidad, y solo después la satisfacción global.
 
@@ -28,11 +26,10 @@ El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero
 
 **Satisfacción global.** Fijada esa cota de equidad, puede haber muchas asignaciones distintas que la respeten. Entre todas ellas, el segundo objetivo elige la que **maximiza la satisfacción del conjunto**: minimiza la suma de los rangos asignados (equivalentemente, otorga la mayor cantidad de primeras opciones posibles, luego segundas, y así sucesivamente). La satisfacción global nunca se persigue a costa de la equidad ya garantizada.
 
-**Propiedades.** El resultado de este esquema tiene propiedades deseables, analizadas formalmente desde la teoría del diseño de mercados: es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y trata **por igual a quienes son iguales** —dos familias con idénticas preferencias tienen la misma probabilidad ante un empate, que se resuelve al azar— (véase la Parte I, §2.1). La formalización de estos dos objetivos es el contenido de la sección siguiente.
+**Propiedades.** El resultado de este esquema tiene propiedades deseables, analizadas formalmente desde la teoría del diseño de mercados: es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y trata **por igual a quienes son iguales** —dos familias con idénticas preferencias tienen la misma probabilidad ante un empate, que se resuelve al azar— (véase §@sec-mtav-original). La formalización de estos dos objetivos es el contenido de la sección siguiente.
 
----
 
-## 12. Formulación matemática
+## Formulación matemática {#sec-formulacion}
 
 El problema se modela como un problema de **programación lineal entera** (con variables binarias de asignación), resuelto en dos fases encadenadas. Se presentan a continuación ambos modelos; los archivos de modelo completos en lenguaje GMPL (GNU MathProg) están en el Apéndice C.
 
@@ -63,30 +60,28 @@ $$\min\ \sum_{c \in C} \sum_{v \in V} p_{c,v}\, x_{c,v} \qquad\text{sujeto a}\qq
 
 junto con las restricciones de asignación. El resultado es la asignación de máxima satisfacción agregada entre todas las que respetan la equidad de la Fase 1.
 
-En conjunto, las dos fases implementan una **optimización lexicográfica**: se optimiza primero el criterio de equidad y, dentro del conjunto de soluciones que lo alcanzan, el de satisfacción global. Esta formulación es la desarrollada en el trabajo previo sobre MTAV (Parte I, §2) y es la que MTAV en línea implementa fielmente. La mejora que introduce este trabajo no cambia el modelo, sino la forma de resolver la Fase 1, como se explica a continuación.
+En conjunto, las dos fases implementan una **optimización lexicográfica**: se optimiza primero el criterio de equidad y, dentro del conjunto de soluciones que lo alcanzan, el de satisfacción global. Esta formulación es la desarrollada en el trabajo previo sobre MTAV (§@sec-antecedentes) y es la que MTAV en línea implementa fielmente. La mejora que introduce este trabajo no cambia el modelo, sino la forma de resolver la Fase 1, como se explica a continuación.
 
----
 
-## 13. El cuello de botella de la Fase 1: casos degenerados
+## El cuello de botella de la Fase 1: casos degenerados {#sec-cuello-fase1}
 
-La solución original —la misma que utiliza la herramienta de escritorio (Parte I, §2)— resuelve ambas fases con GLPK. La Fase 2, dada la cota $S$, resulta rápida y estable en todos los casos observados: la restricción $\sum_v p_{c,v} x_{c,v} \le S$ acota fuertemente el espacio de búsqueda. El problema está en la **Fase 1**: minimizar $z$ mediante *branch-and-bound* puede volverse extremadamente lento —o no terminar en tiempo razonable— sobre instancias **degeneradas**.
+La solución original —la misma que utiliza la herramienta de escritorio (§@sec-antecedentes)— resuelve ambas fases con GLPK. La Fase 2, dada la cota $S$, resulta rápida y estable en todos los casos observados: la restricción $\sum_v p_{c,v} x_{c,v} \le S$ acota fuertemente el espacio de búsqueda. El problema está en la **Fase 1**: minimizar $z$ mediante *branch-and-bound* puede volverse extremadamente lento —o no terminar en tiempo razonable— sobre instancias **degeneradas**.
 
 Una instancia es degenerada cuando existen muchas asignaciones distintas que alcanzan el mismo valor óptimo de $z$. Dos casos extremos lo ilustran:
 
 - **Preferencias idénticas:** todas las familias ordenan las unidades de la misma manera. Cualquier permutación de la asignación produce exactamente el mismo multiconjunto de rangos, de modo que hay un número factorial de soluciones óptimas equivalentes. Aunque el valor óptimo es evidente, el solver debe recorrer una enorme cantidad de ramas simétricas para *demostrar* que no existe una mejor.
 - **Preferencias opuestas:** familias con ordenamientos espejados generan una simetría análoga.
 
-El efecto es real y medible. En los *benchmarks* de la solución original [(escenario aleatorio)]{.quitado}[—en el escenario aleatorio, en el que cada familia ordena las unidades al azar, de forma independiente de las demás—]{.nuevo} aparecen los primeros *timeouts* ya en tamaños de **25 a 30 familias**: con un límite de 30 segundos, en tamaño 30, 48 de cada 10 000 ejecuciones no terminaron dentro del límite, y una instancia de tamaño 25, ejecutada sin límite de tiempo, llegó a tardar alrededor de **120 segundos**. Los casos degenerados (idénticas y opuestas) mostraron resultados mucho peores —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, que recurría a imponer un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3). [Todas las mediciones se hicieron en un mismo equipo (procesador Intel Core i7-1195G7, 32 GB de RAM), dentro de contenedores Docker; la plataforma y la generación de cada escenario se describen en el Capítulo 15.]{.nuevo} [#22: definición del escenario aleatorio y plataforma de las mediciones]{.rev}
+El efecto es real y medible. En los *benchmarks* de la solución original [(escenario aleatorio)]{.quitado}[—en el escenario aleatorio, en el que cada familia ordena las unidades al azar, de forma independiente de las demás—]{.nuevo} aparecen los primeros *timeouts* ya en tamaños de **25 a 30 familias**: con un límite de 30 segundos, en tamaño 30, 48 de cada 10 000 ejecuciones no terminaron dentro del límite, y una instancia de tamaño 25, ejecutada sin límite de tiempo, llegó a tardar alrededor de **120 segundos**. Los casos degenerados (idénticas y opuestas) mostraron resultados mucho peores —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, que recurría a imponer un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3). [Todas las mediciones se hicieron en un mismo equipo (procesador Intel Core i7-1195G7, 32 GB de RAM), dentro de contenedores Docker; la plataforma y la generación de cada escenario se describen en la Sección @sec-resultados.]{.nuevo} [#22: definición del escenario aleatorio y plataforma de las mediciones]{.rev #rev-22}
 
 El diagnóstico es preciso: **el cuello de botella no es el problema de asignación en sí, sino la forma de resolver la Fase 1** —pedirle a GLPK que *minimice* $z$—. La Fase 2, que solo verifica una cota, no sufre esa degeneración. La mejora que se presenta a continuación explota exactamente esa asimetría.
 
----
 
-## 14. La búsqueda binaria: contribución original
+## La búsqueda binaria: contribución original {#sec-busqueda-binaria}
 
 La contribución algorítmica de este trabajo consiste en **no minimizar $z$ directamente**, sino en **buscar el menor valor de la cota $S$ para el cual el problema es factible**, usando la Fase 2 como prueba de factibilidad. Esto reemplaza la Fase 1 problemática por una serie corta de ejecuciones de la Fase 2, que es rápida y estable.
 
-### 14.1 La idea
+### La idea {#sec-bb-idea}
 
 Para un valor $S$, considérese el predicado
 
@@ -94,7 +89,7 @@ $$F(S) = \text{«existe una asignación en la que toda familia recibe un rango} 
 
 Verificar $F(S)$ es exactamente lo que hace la Fase 2 con cota $S$: si GLPK encuentra una asignación que respeta $\sum_v p_{c,v} x_{c,v} \le S$ para toda familia, entonces $F(S)$ es verdadero; si el modelo resulta infactible, $F(S)$ es falso. El óptimo max-min $S^\ast$ de la Fase 1 es, por definición, **el menor $S$ tal que $F(S)$ es verdadero**.
 
-### 14.2 Monotonía y corrección
+### Monotonía y corrección {#sec-bb-monotonia}
 
 La búsqueda binaria es aplicable porque $F$ es **monótono** en $S$.
 
@@ -104,41 +99,40 @@ La búsqueda binaria es aplicable porque $F$ es **monótono** en $S$.
 
 En consecuencia, el conjunto de valores factibles forma un **intervalo superior** $\{S : F(S)\} = [S^\ast, N]$, y el de los infactibles, el intervalo $[1, S^\ast - 1]$ (posiblemente vacío, si toda familia puede recibir su primera opción). Es decir, el espacio de valores de $S$ queda **partido en dos** por el umbral $S^\ast$: infactible por debajo, factible a partir de $S^\ast$. Este es precisamente el escenario en que la búsqueda binaria localiza el umbral.
 
-### 14.3 El algoritmo
+### El algoritmo {#sec-bb-algoritmo}
 
 Se realiza una búsqueda binaria clásica sobre $S \in [1, N]$: en cada paso se toma el valor medio $S$ del intervalo de búsqueda y se resuelve la Fase 2 con esa cota. Si es factible, $S^\ast \le S$ y se continúa en la mitad inferior; si es infactible, $S^\ast > S$ y se continúa en la mitad superior. El procedimiento converge al umbral $S^\ast$ en $O(\log N)$ pruebas de factibilidad.
 
 Un detalle valioso: como cada prueba de factibilidad **es** una ejecución de la Fase 2 —que, cuando es factible, devuelve una asignación concreta—, la última prueba factible (la de $S = S^\ast$) entrega a la vez la **cota óptima de equidad y una asignación que la alcanza**. Las dos fases del método original se funden así en una sola búsqueda.
 
-### 14.4 Equivalencia con el método original
+### Equivalencia con el método original {#sec-bb-equivalencia}
 
 La búsqueda binaria produce **el mismo resultado** que la Fase 1 original, por dos vías complementarias:
 
 - **Argumento teórico.** Por la monotonía de $F$, el menor $S$ factible hallado por la búsqueda es exactamente $S^\ast$, el óptimo max-min que minimiza $z$ en la Fase 1. Fijado ese $S^\ast$, la Fase 2 —idéntica en ambos métodos— optimiza la satisfacción global. Ambos caminos conducen, por tanto, al mismo par (cota de equidad, asignación).
 - **Verificación empírica.** La Fase 1 original con GLPK se conserva en el código como referencia; una prueba de estrés ejecuta *ambos* métodos sobre las instancias históricamente problemáticas (las que tardaban desde 5 hasta más de 120 segundos con GLPK directo) y verifica que el $S$ hallado coincide exactamente.
 
-Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la Fase 2**, que sigue resolviéndose con GLPK. Solo cambia la manera de resolver la Fase 1. El resultado es matemáticamente equivalente al método original, ya validado por su uso en proyectos cooperativos reales (Parte I, §2.2), pero elimina su único punto de fragilidad.
+Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la Fase 2**, que sigue resolviéndose con GLPK. Solo cambia la manera de resolver la Fase 1. El resultado es matemáticamente equivalente al método original, ya validado por su uso en proyectos cooperativos reales (§@sec-validacion), pero elimina su único punto de fragilidad.
 
----
 
-## 15. Resultados empíricos
+## Resultados empíricos {#sec-resultados}
 
 [Para cuantificar la mejora se ejecutaron *benchmarks* sobre cuatro escenarios de preferencias —**aleatorias**, **realistas** (mezcla de unidades populares e impopulares, que simula el comportamiento real), **idénticas** y **opuestas** (los dos casos degenerados)— en tamaños de 5 a 500 familias, con cientos a miles de repeticiones por configuración.]{.quitado}
 
 ::: cambio
-Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3]{.rev}
+Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3]{.rev #rev-23}
 
 - **Aleatorias:** cada familia ordena las unidades al azar —una permutación uniforme—, de forma independiente de las demás.
 - **Realistas:** cada familia favorece algunas unidades y desfavorece otras: un 20 % de las unidades tiende a quedar al principio de su ordenamiento, otro 20 % al final, y el resto en el medio. Qué unidades favorece o desfavorece se sortea por separado para cada familia, de modo que no hay unidades preferidas por el conjunto.
 - **Idénticas:** todas las familias ordenan las unidades exactamente igual; es el peor caso para el desempate.
 - **Opuestas:** se fija un único orden de las unidades; la mitad de las familias lo adopta tal cual y la otra mitad, exactamente invertido.
 
-Idénticas y opuestas son los dos casos degenerados descritos en el Capítulo 13. La generación exacta de cada escenario se detalla en el Apéndice C.3.
+Idénticas y opuestas son los dos casos degenerados descritos en la Sección @sec-cuello-fase1. La generación exacta de cada escenario se detalla en el Apéndice C.3.
 
 **Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.4 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el solver hasta que devuelve la asignación.
 :::
 
-**Solución original (GLPK en ambas fases).** Como se detalló en §13, los *timeouts* aparecen ya en tamaños de 25 a 30 familias en el escenario aleatorio, y los escenarios degenerados resultan intratables.
+**Solución original (GLPK en ambas fases).** Como se detalló en §@sec-cuello-fase1, los *timeouts* aparecen ya en tamaños de 25 a 30 familias en el escenario aleatorio, y los escenarios degenerados resultan intratables.
 
 **Con búsqueda binaria.** El método propuesto resuelve **el 100 % de las instancias, sin un solo *timeout***, en los cuatro escenarios y en todos los tamaños hasta 500 familias —incluidos los casos idénticos y opuestos que la solución original no podía terminar—. Los tiempos medios de ejecución (resolución completa) son:
 
@@ -160,13 +154,12 @@ La figura siguiente resume la comparación en el escenario aleatorio —el únic
 
 El detalle por escenario —incluidos los casos degenerados que la solución original no podía resolver— y las estadísticas completas (percentiles, tasas de éxito, metodología) se presentan en el Apéndice C.3.
 
----
 
-## 16. Ejecución, orquestación por tipos y redistribución de remanentes
+## Ejecución, orquestación por tipos y redistribución de remanentes {#sec-ejecucion}
 
 Hasta aquí, la formulación asumió el caso balanceado (igual número de familias y unidades) y un único tipo de vivienda. La ejecución real de un sorteo de proyecto compone esos subproblemas y resuelve los desbalances.
 
-**Orquestación por tipos.** Siguiendo la descomposición establecida en §10, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
+**Orquestación por tipos.** Siguiendo la descomposición establecida en §@sec-problema-asignacion, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
 
 **Balanceo de subproblemas desbalanceados.** Cuando un subproblema no tiene igual número de familias que de unidades, se lo reduce al caso balanceado antes de resolverlo:
 
@@ -175,15 +168,14 @@ Hasta aquí, la formulación asumió el caso balanceado (igual número de famili
 
 **Redistribución de remanentes.** Las familias que quedaron sin unidad y las unidades que quedaron sin familia se acumulan como *remanentes* de las rondas por tipo. Una segunda pasada ejecuta un sorteo sobre esos remanentes, dándoles una nueva oportunidad de asignación en lugar de descartarlos.
 
-**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en [el Capítulo 19]{.cambio} (Parte IV).
+**Estrategias de solver.** El solver es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en la Sección @sec-capa-sorteo.
 
----
 
-## 17. Inmutabilidad y auditoría
+## Inmutabilidad y auditoría {#sec-auditoria}
 
 El sorteo es una instancia **única y sensible**: define dónde vivirá cada familia y no se repite. Por eso su ejecución está rodeada de garantías de integridad.
 
-**Ejecución y bloqueo.** Cuando el administrador ejecuta el sorteo, el sistema primero **reserva** el evento de sorteo —lo que bloquea de inmediato la edición de preferencias (Parte II, §7)— y luego lo resuelve. Las asignaciones se escriben todas juntas, de modo que el resultado se aplica de forma atómica: o se asigna todo el proyecto, o no se asigna nada. Al completarse, se emiten eventos que disparan las notificaciones y la difusión en tiempo real (Parte II, §6.6). Si la ejecución falla, se revierte la reserva y el sorteo puede reintentarse.
+**Ejecución y bloqueo.** Cuando el administrador ejecuta el sorteo, el sistema primero **reserva** el evento de sorteo —lo que bloquea de inmediato la edición de preferencias (§@sec-sorteo-funcional)— y luego lo resuelve. Las asignaciones se escriben todas juntas, de modo que el resultado se aplica de forma atómica: o se asigna todo el proyecto, o no se asigna nada. Al completarse, se emiten eventos que disparan las notificaciones y la difusión en tiempo real (§@sec-notificaciones). Si la ejecución falla, se revierte la reserva y el sorteo puede reintentarse.
 
 **Inmutabilidad.** Una vez ejecutado, el resultado es **definitivo**: no se edita ni se renegocia. Esta inmutabilidad es una exigencia del dominio —legal y social—, no una limitación técnica. La única excepción es la **invalidación** por parte de un superadministrador, reservada para situaciones excepcionales (por ejemplo, un error de datos detectado después); invalidar revierte la ejecución completa para poder repetirla, y queda registrada como tal.
 
