@@ -84,10 +84,13 @@ contribution); web/distributed systems (Inertia full-stack, real-time WebSockets
 security (policy authz, project isolation, invitation-only); HCI (accessibility-first, WCAG-AA as
 reference, mobile-first); DevOps (containerization, quality gates).
 
-## Current status (2026-07-03)
+## Current status (2026-11-20)
 
-Reviewed: Parte I §1–4, Parte II §5–9. Awaiting review: Parte II §8–10, **Parte III (whole)**,
-Parte IV, appendices. Structure + numbering finalized; `sources/` deleted (useful bits →
-`referencias/`); AI docs consolidated into this README. Next: Diego reviews Part III; then export
-Parts I–IV + appendices for the tutor. Remaining `[NOTA]`s: appendix placeholders + a few content
-flags (plan resizing/multi-level, real-time reliability, §16 visualization).
+The thesis was updated to the rewritten app (React/Mantine, open sign-up, per-project roles,
+forum, chat, Assistant, AWS delivery): chapters 1–5 and appendices A–I follow the code as of
+2026-11-20; the three Mermaid diagrams were regenerated (`mmdc` from a local npm install, using
+the system Chrome). What was not touched: chapter 3's formulation and benchmarks, appendix C.3.
+Open `[NOTA]`s for Diego: the solver fairness findings (§3.2, §5.2.6), the two retired packages
+(§4.4), how to present the autonomous rewrite (F.7), the conclusions' self-critique, §1.2.3's
+"la sección anterior". Each new or rewritten section carries a `[Sección nueva/reescrita …]{.rev}`
+note at its top, linked from `cambios.md`; whole sections are not coloured sentence by sentence.

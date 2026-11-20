@@ -8,189 +8,224 @@ Los apéndices son material de referencia. No están pensados para leerse de pri
 
 **Guía rápida:**
 
-- **A — Modelo de datos y recursos JSON.** Por qué el esquema tiene la forma que tiene (derivación), diagrama entidad-relación completo y definiciones tabla por tabla, y el glosario de los recursos JSON que exponen esos modelos al frontend.
-- **B — Autenticación, roles y permisos.** Mecanismo de autenticación y flujo de invitación y registro; matriz de qué puede hacer cada rol, por recurso y acción.
+- **A — Modelo de datos y recursos JSON.** Por qué el esquema tiene la forma que tiene (derivación), diagrama entidad-relación completo y definiciones tabla por tabla, y los recursos JSON que exponen esos modelos al frontend.
+- **B — Autenticación, roles y permisos.** Mecanismo de autenticación, registro, invitaciones y ciclo de la cuenta; matriz de qué puede hacer cada rol, por recurso y acción.
 - **C — El sorteo: modelos, auditoría y rendimiento.** Modelos GMPL completos de la formulación del Capítulo @cap-sorteo, formato del registro de auditoría de cada ejecución, y los datos completos de los *benchmarks* de rendimiento.
 - **D — Formato de datos del plano espacial** y arquitectura de sus componentes.
 - **E — Testing y aseguramiento de calidad.**
 - **F — Uso de IA en el proyecto.**
 - **G — Análisis: casos de uso, requisitos y flujos.** Actores, casos de uso, requisitos funcionales y no funcionales, y el diagrama de secuencia del sorteo.
-- **H — Manuales de usuario.** Las guías por rol tal como las ve el usuario en la aplicación.
+- **H — Manuales de usuario.** Las guías por rol tal como las ve el usuario en la aplicación (sin sus ilustraciones).
 - **I — Herramientas de desarrollo y entornos (DX).** El comando `./mtav` y la composición de entornos Docker que abstraen la complejidad operativa para quien retome el proyecto.
 
 ---
 
-## Apéndice A — Modelo de datos y recursos JSON
+## Apéndice A — Modelo de datos y recursos JSON {#ap-a}
 
-### A.1 Del problema al esquema: por qué el modelo crece
+### A.1 Del problema al esquema: por qué el modelo crece {#ap-a1}
 
-La premisa de MTAV en línea es engañosamente simple: *"hagamos una aplicación para que las propias familias ingresen sus preferencias y se ejecute el sorteo"*. A primera vista no parece necesitar mucho más que una lista de familias y una lista de viviendas. Sin embargo, el modelo de datos real tiene más de una docena de tablas. Esta sección deriva ese modelo paso a paso, mostrando cómo **cada entidad aparece obligada por una necesidad concreta**. Es el lugar donde vive, de forma cohesiva, la justificación completa del modelo; el resto del documento se apoya en esta derivación en lugar de repetirla.
+La premisa de MTAV en línea es engañosamente simple: *"hagamos una aplicación para que las propias familias ingresen sus preferencias y se ejecute el sorteo"*. A primera vista no parece necesitar mucho más que una lista de familias y una lista de viviendas. Sin embargo, el modelo de datos real tiene más de treinta tablas. Esta sección deriva ese modelo paso a paso, mostrando cómo **cada entidad aparece obligada por una necesidad concreta**. Es el lugar donde vive, de forma cohesiva, la justificación completa del modelo; el resto del documento se apoya en esta derivación en lugar de repetirla.
 
 **Punto de partida: preferencias.** El sorteo asigna viviendas a partir de las preferencias. Lo mínimo indispensable es, entonces, tres cosas: una **familia**, un conjunto de **unidades** (las viviendas concretas) y una forma de registrar cómo esa familia *ordena* esas unidades. Ese ordenamiento es una relación muchos-a-muchos entre familias y unidades con un dato extra —la posición en el ranking—, que en el esquema es la tabla `unit_preferences` con su columna `order`. Nótese ya una decisión de fondo: **la unidad que recibe una vivienda es la familia, no la persona**. Una familia obtiene exactamente una unidad.
 
-**Una familia es varias personas: los miembros.** Una familia no es un único usuario: varias personas —integrantes de un mismo núcleo— pueden interactuar con la aplicación en su nombre. Necesitamos entonces **miembros** (`Member`; son los *cooperativistas* de los Capítulos @cap-intro y @cap-funcional — aquí se usa el nombre que llevan en el modelo), cada uno perteneciente a una familia (`family_id`). Una familia tiene muchos miembros; un miembro pertenece a una familia. Las preferencias, sin embargo, siguen siendo de la *familia*, no de cada miembro: cualquier integrante las edita, pero el sujeto del sorteo es el núcleo familiar.
+**Una familia es varias personas: las pertenencias.** Una familia no es un único usuario: varias personas —integrantes de un mismo núcleo— pueden interactuar con la aplicación en su nombre. Necesitamos entonces vincular personas con familias[. Como una misma persona puede participar en varios proyectos, con un rol distinto en cada uno, ese vínculo no está en la persona sino en su **pertenencia** a un proyecto (`Membership`): una fila por persona y proyecto, con la familia a la que se sumó (`family_id`, vacío mientras no lo haga) y si administra el proyecto (`is_admin`)]{.cambio}. Una familia tiene muchas pertenencias; una pertenencia está en una familia. Las preferencias, sin embargo, siguen siendo de la *familia*, no de cada persona: cualquier integrante las edita, pero el sujeto del sorteo es el núcleo familiar. [Nov. 2026: pertenencias por proyecto]{.rev #rev-n-a1}
 
-**Todos se autentican: la tabla `users`.** Los miembros inician sesión. Pero también lo hacen quienes configuran el proyecto (los administradores) y quienes operan la plataforma (los superadministradores). Todos comparten exactamente el mismo mecanismo de autenticación: correo y contraseña, invitaciones (salvo superadministradores), restablecimiento de clave. En lugar de tres tablas de autenticación paralelas, se unifican en una sola tabla **`users`**, y el tipo se distingue con un flag `is_admin`; los miembros, además, llevan su `family_id`. El superadministrador es un usuario administrador (a nivel de la base de datos) cuyo correo figura en una lista de configuración del entorno. (El detalle de esta "pseudo-herencia de tabla única" y sus alternativas se trata más abajo, en A.3.)
+**Todos se autentican: la tabla `users`.** Los cooperativistas inician sesión. Pero también lo hacen quienes configuran el proyecto (los administradores) y quienes operan la plataforma (los superadministradores). Todos comparten exactamente el mismo mecanismo de autenticación: correo y contraseña o una cuenta de Google, restablecimiento de clave, cambio de correo verificado. En lugar de tres tablas de autenticación paralelas, se unifican en una sola tabla **`users`**[, que no dice qué rol tiene la persona en ningún proyecto —eso lo dice cada pertenencia—; solo lleva los dos atributos que son de la cuenta y no de un proyecto: `is_superadmin`, la cuenta de soporte de la plataforma, e `is_owner`, la primera de ellas]{.cambio}. (Cómo se derivan los roles de estas dos tablas se trata más abajo, en A.3.)
 
 **Todo pertenece a una cooperativa: los proyectos.** MTAV en línea sirve a muchas cooperativas a la vez. Cada familia, cada unidad, cada evento pertenece a un **proyecto** concreto (el emprendimiento de una cooperativa). Aparece así la entidad `Project`, y las familias y unidades pasan a pertenecer a un proyecto. Esta pertenencia no es solo organizativa: es la que permite que la aplicación aísle por completo los datos de una cooperativa de los de otra (el mecanismo de *scoping* por proyecto se detalla en la Sección @sec-autorizacion).
 
-**Alguien crea y gestiona todo esto: los administradores.** Las familias, las unidades y los eventos no se crean solos. Hace falta un **administrador** (`Admin`) que configure el proyecto. Los administradores se relacionan con los proyectos, y como un administrador puede gestionar varios proyectos y un proyecto puede tener varios administradores, esa relación es muchos-a-muchos, a través de la tabla `project_user` (con un campo `active`). Los miembros se vinculan a su proyecto por esa misma tabla —normalmente a un único proyecto activo—, lo que mantiene una sola vía de pertenencia usuario–proyecto.
+**Alguien crea y gestiona todo esto: los administradores.** Las familias, las unidades y los eventos no se crean solos. Hace falta un **administrador** que configure el proyecto. [Es la misma tabla de pertenencias la que lo dice: un administrador puede gestionar varios proyectos y un proyecto puede tener varios administradores, y una pertenencia puede a la vez administrar y estar en una familia. Una sola vía de pertenencia persona–proyecto sirve a todos los roles.]{.cambio}
 
 **Las unidades no son intercambiables: los tipos de unidad.** Un apartamento de dos dormitorios y uno de tres no son comparables, y una familia a la que le corresponde uno de tres dormitorios solo debe seleccionar sus preferencias por unidades de tres dormitorios. Por eso cada unidad tiene un **tipo** (`UnitType`) y cada familia tiene asignado un tipo. Esto revela algo importante sobre el sorteo: el sorteo "global" de un proyecto es en realidad un conjunto de **sub-sorteos independientes, uno por tipo de unidad**, en los que las familias de ese tipo compiten por las unidades de ese tipo. El tipo de unidad no es un adorno descriptivo: es lo que particiona el problema. (La mecánica del sorteo por tipos y la redistribución de remanentes se tratan en la Sección @sec-ejecucion.)
 
 **El resultado: la asignación.** Terminado el sorteo, cada familia recibe exactamente una unidad. Eso se registra en la propia unidad, mediante su `family_id`: una unidad pertenece (tras el sorteo) a una familia, y una familia tiene una unidad. Antes del sorteo ese vínculo es nulo. La asignación no es una tabla aparte: es este vínculo el que constituye la fuente de verdad del resultado.
 
-**Y sigue creciendo.** Sobre esta espina dorsal —familias, miembros, usuarios, proyectos, administradores, tipos de unidad, unidades y preferencias— se apoyan las demás piezas, cada una respondiendo a una necesidad igual de concreta: los **eventos** y su confirmación de asistencia (asambleas, el propio sorteo), los **medios** (documentos e imágenes del proyecto), el **plano** espacial, las **notificaciones** y el **registro de auditoría** del sorteo. Cada una se describe en su sección correspondiente.
+**Y sigue creciendo.** Sobre esta espina dorsal —usuarios, proyectos, pertenencias, familias, tipos de unidad, unidades y preferencias— se apoyan las demás piezas, cada una respondiendo a una necesidad igual de concreta: [cómo entra la gente (las **invitaciones** y los **pedidos** de ingreso a un proyecto o a una familia), ]{.nuevo}los **eventos** y su confirmación de asistencia (asambleas, el propio sorteo), los **medios** (documentos e imágenes del proyecto), el **plano** espacial, [el **foro** y el **chat**, ]{.nuevo}las **notificaciones**[ y los dispositivos que las reciben]{.nuevo}, [las **ejecuciones** del sorteo y su]{.nuevo} **registro de auditoría**[, y los registros de la plataforma: la **actividad**, los **errores**, los **reportes** al equipo]{.nuevo}. Cada una se describe en su sección correspondiente.
 
 Dos observaciones cierran la derivación:
 
 - **Las preferencias son dinámicas.** El modelo permite que las unidades se agreguen o quiten y que las familias cambien de tipo. Por eso la tabla `unit_preferences` **no** es la fuente de verdad de las preferencias: la lista válida de preferencias de cada familia se resuelve en tiempo de ejecución, contemplando esos cambios (se detalla en la Sección @sec-ejecucion). Esta flexibilidad es, ella misma, una consecuencia de haber modelado el problema con entidades separadas en lugar de una planilla rígida.
-- **Las reglas de acceso surgen del propio modelo.** Que exista un administrador que crea, un miembro que solo ordena las preferencias de *su* familia y un superadministrador que supervisa no es una capa añadida a posteriori: es una lectura directa de las relaciones anteriores. Cómo se aplican esas reglas en cada capa se detalla en la Sección @sec-autorizacion.
+- **Las reglas de acceso surgen del propio modelo.** Que exista un administrador que crea, un cooperativista que solo ordena las preferencias de *su* familia y un superadministrador que supervisa no es una capa añadida a posteriori: es una lectura directa de las relaciones anteriores. Cómo se aplican esas reglas en cada capa se detalla en la Sección @sec-autorizacion.
 
 En síntesis: la complejidad del modelo no es accidental ni ornamental. Cada tabla es la respuesta mínima a un requisito real que la premisa inicial —"que las familias ingresen sus preferencias"— trae implícito.
 
-### A.2 Esquema relacional completo
+### A.2 Esquema relacional completo {#ap-a2}
 
-Esta sección documenta el esquema tal como lo definen las migraciones (`database/migrations/`), que son la fuente de verdad versionada de la estructura. Antes de las tablas, tres convenciones transversales que se repiten en todo el esquema:
+[Sección reescrita (noviembre de 2026): el esquema es el de la reescritura, definido de nuevo desde cero]{.rev #rev-n-a2}
 
-- **Integridad referencial explícita.** Toda clave foránea declara qué ocurre al borrar el registro referenciado: `cascade` (el hijo se borra con el padre: las unidades de un proyecto no tienen sentido sin él), `restrict` (el borrado se impide: no puede desaparecer un proyecto que tiene registros de auditoría) o `null` (el vínculo se limpia: si se elimina una familia, sus unidades quedan sin asignar, no desaparecen).
-- **Unicidad *dentro del proyecto*.** Los nombres e identificadores son únicos por proyecto, no globalmente: dos cooperativas distintas pueden tener una familia "Pérez" o una unidad "A-101". Se implementa con claves únicas compuestas (`name`+`project_id`, `identifier`+`project_id`).
-- **Borrado suave y marcas de tiempo.** Casi todas las entidades de dominio llevan `created_at`/`updated_at` y borrado suave (`deleted_at`; se detalla en A.4).
+Esta sección documenta el esquema tal como lo definen las migraciones (`database/migrations/`), que son la fuente de verdad versionada de la estructura; la reescritura de 2026 lo definió de nuevo desde cero. Antes de las tablas, tres convenciones transversales que se repiten en todo el esquema:
 
-**Diagrama entidad-relación** (notación *crow's foot*; se omiten las tablas de infraestructura y las columnas, definidas en las tablas siguientes):
+- **Integridad referencial explícita.** Toda clave foránea declara qué ocurre al borrar el registro referenciado: `cascade` (el hijo se borra con el padre: las unidades de un proyecto no tienen sentido sin él), `restrict` (el borrado se impide: no puede desaparecer un tipo de vivienda que tiene familias) o `null` (el vínculo se limpia: si se elimina una cuenta, lo que aportó queda sin su nombre, no desaparece).
+- **Unicidad *dentro del proyecto*.** Los identificadores son únicos por proyecto, no globalmente: dos cooperativas distintas pueden tener una unidad "A-101" o un tipo "2 dormitorios". Se implementa con claves únicas compuestas (`project_id` + `identifier`, `project_id` + `name`). Los nombres de proyectos y de familias, en cambio, pueden repetirse.
+- **Archivo y marcas de tiempo.** Las entidades de dominio llevan `created_at`/`updated_at`, y las que vale la pena recuperar —proyectos, familias, eventos, medios, temas del foro— llevan borrado suave (`deleted_at`; se detalla en A.4).
+
+**Diagrama entidad-relación** (notación *crow's foot*; se omiten las tablas de infraestructura, las de los registros de la plataforma y las columnas, definidas en las tablas siguientes):
 
 ![Diagrama entidad-relación del modelo de datos](assets/er-diagram.png)
 
 *(Fuente del diagrama en `assets/er-diagram.mmd`, formato Mermaid; regenerar la imagen al cambiar el esquema.)*
 
+**Cuentas y pertenencia.**
+
+| Tabla | Propósito | Columnas y restricciones relevantes |
+|---|---|---|
+| `users` | Toda persona que se autentica | `email` (único), `email_public`, `new_email` (cambio de correo pendiente de verificación), `password`, `google_id` (único, opc.), `firstname`/`lastname`, `phone`, `phone_public`, `legal_id`, `about`, `avatar`, `locale` (todos opc.); `is_superadmin`, `is_owner`; `email_verified_at`, `blocked_at`, `welcomed_at` |
+| `memberships` | La parte de una persona en un proyecto | `user_id` + `project_id` (FKs cascade, par único), `family_id` (FK nullable, null al borrar), `is_admin` |
+| `invitations` | Un enlace enviado a un proyecto, a una familia o como administrador | `project_id` (FK cascade), `family_id` (FK nullable cascade), `is_admin`, `email`, `firstname`/`lastname` (opc.), `token_hash` (único: solo el *hash* del enlace), `invited_by` (FK null al borrar), `expires_at`, `accepted_at` |
+| `support_invitations` | Invitación a ser superadministrador | `email`, `token_hash` (único), `invited_by`, `expires_at`, `accepted_at` |
+| `join_requests` | Pedido de ingreso a un proyecto desde el directorio | `project_id` + `user_id` (FKs cascade, par único), `declined_at` |
+| `family_join_requests` | Pedido de ingreso a una familia | `project_id`, `family_id` + `user_id` (FKs cascade, par único), `declined_at` |
+| `family_people` | Quién estuvo alguna vez en cada familia | `family_id` + `user_id` (clave primaria compuesta), `created_at` |
+| `push_subscriptions` | Dispositivos que reciben notificaciones | `user_id` (FK cascade), `endpoint` (único), `public_key`, `auth_token` |
+
 **Núcleo del sorteo.**
 
 | Tabla | Propósito | Columnas y restricciones relevantes |
 |---|---|---|
-| `projects` | El emprendimiento de una cooperativa | `name` (único global), `description`, `organization` (opc.), `active` |
-| `unit_types` | Tipo de vivienda (p. ej. "2 dormitorios") | `project_id` (FK cascade), `name` (único por proyecto), `description` (opc.) |
-| `families` | Núcleo familiar, sujeto del sorteo | `project_id` (FK cascade), `unit_type_id` (FK **restrict**: no puede borrarse un tipo con familias), `name` (único por proyecto), `avatar` (opc.) |
-| `units` | Vivienda concreta | `project_id` (FK cascade), `unit_type_id` (FK cascade), `family_id` (FK **nullable, null al borrar**: la asignación; nula antes del sorteo), `plan_item_id` (FK restrict: su ubicación en el plano), `identifier` (único por proyecto) |
-| `unit_preferences` | Ranking de una familia sobre las unidades | `family_id` + `unit_id` (FKs cascade, par único), `order` (entero ≥ 1; 1 = favorita) |
+| `projects` | El emprendimiento de una cooperativa | `name`, `description`, `organization` (opc.), `created_by` (FK null al borrar), `approval_requested_at`, `approved_at`, `approved_by` (la aprobación que quita los límites), `listed`, `open_to_join`, `allows_guests` (el directorio y los invitados), `feature_choices` (JSON: las funciones elegidas), `deleted_at`, `archived_by` |
+| `unit_types` | Tipo de vivienda (p. ej. "2 dormitorios") | `project_id` (FK cascade), `name` (único por proyecto), `description` (opc.), `plan_width`/`plan_height` (tamaño con que nacen sus unidades en el plano, opc.) |
+| `families` | Núcleo familiar, sujeto del sorteo | `project_id` (FK cascade), `unit_type_id` (FK **restrict**: no puede borrarse un tipo con familias), `name`, `avatar` (opc.), `deleted_at` (archivada al quedar vacía) |
+| `units` | Vivienda concreta | `project_id` (FK cascade), `unit_type_id` (FK restrict), `family_id` (FK **nullable y único, null al borrar**: la asignación; nula antes del sorteo), `identifier` (único por proyecto) |
+| `unit_preferences` | Ranking de una familia sobre las unidades | `family_id` + `unit_id` (FKs cascade, par único), `rank` (entero ≥ 1; 1 = favorita) |
+| `lottery_runs` | Cada ejecución del sorteo | `uuid` (único), `project_id` (FK cascade; nulo en un sorteo abierto), `open_lottery_id` (FK cascade, opc.), `status` (`running`/`completed`/`failed`/`invalidated`), `solver`, `options` (JSON: lo que confirmó el administrador), `started_by` (FK null al borrar), `started_at`, `reveal_at`, `result` (JSON: la asignación retenida hasta revelarla), `finished_at`, `failure`, `invalidated_by`, `invalidated_at`, `invalidation_reason` |
+| `lottery_audits` | Auditoría inmutable de cada ejecución | `lottery_run_id` (FK cascade), `type` (enum: `init`/`group_execution`/`project_execution`/`custom`/`invalidate`/`failure`), `audit` (JSON con el detalle; formato en el Apéndice C), `created_at` |
+| `platform_settings` | Ajustes de la plataforma (p. ej. el tiempo mínimo del sorteo) | `key` (clave primaria), `value` (JSON) |
 
-**Usuarios y pertenencia.**
+**El plano.**
 
 | Tabla | Propósito | Columnas y restricciones relevantes |
 |---|---|---|
-| `users` | Toda persona que se autentica (los tres roles) | `email` (único), `new_email` (cambio de correo pendiente de verificación), `firstname`/`lastname`, `phone`, `avatar`, `legal_id`, `about`, `darkmode` (todos opc.); `is_admin` (bool), `family_id` (FK nullable cascade — solo miembros); `invitation_accepted_at`, `email_verified_at`, `password` (la mecánica de roles se deriva en A.3; el flujo de invitación, en el Apéndice B) |
-| `project_user` | Pertenencia usuario↔proyecto (muchos-a-muchos) | `user_id` + `project_id` (FKs cascade, par único), `active` |
+| `plans` | Plano del proyecto (uno por proyecto) | `project_id` (FK cascade, **único** → relación uno-a-uno), `polygon` (JSON: contorno), `width`/`height` (decimales), `unit_system` (enum: `meters`/`feet`) |
+| `plan_items` | Formas dibujadas sobre el plano | `plan_id` (FK cascade), `unit_id` (FK cascade, único, opc.: la vivienda que representa), `type` (`unit`, `building`, `street`, `green`, …), `floor` (entero, 0 = planta baja), `position` (orden de dibujado), `placed` (si ya está en el dibujo), `polygon` (JSON), `name` (opc.), `metadata` (JSON: color, rotación, notas) |
 
 **Vida del proyecto.**
 
 | Tabla | Propósito | Columnas y restricciones relevantes |
 |---|---|---|
-| `events` | Reuniones, asambleas y el propio sorteo | `type` (enum: `lottery`/`online`/`onsite`), `project_id` (FK cascade), `creator_id` (FK **restrict**, opc.), `title`, `description`, `location` (dirección física o URL), `start_date`/`end_date` (opc.), `is_published` (además de publicación, es el candado del sorteo: véase §@sec-auditoria), `rsvp` (si pide confirmación) |
-| `event_rsvp` | Confirmación de asistencia | `event_id` + `user_id` (FKs cascade, par único), `status` (sí/no/nulo = sin responder) |
-| `media` | Imágenes, documentos, audio y video | `owner_id` (FK cascade), `project_id` (FK cascade), `path`, `thumbnail`, `description`, `alt_text` (accesibilidad), `width`/`height`, `category`, `mime_type`, `file_size` |
-| `plans` | Plano del proyecto (uno por proyecto) | `project_id` (FK cascade, **único** → relación uno-a-uno), `polygon` (JSON: contorno), `width`/`height` (decimales), `unit_system` (enum: `meters`/`feet`) |
-| `plan_items` | Elementos dibujados sobre el plano | `plan_id` (FK cascade), `type` (`unit`, `park`, `street`, `building`, …), `polygon` (JSON), `floor` (entero, 0 = planta baja), `name` (opc.), `metadata` (JSON: colores, notas, medidas) |
+| `events` | Reuniones, asambleas y el propio sorteo | `project_id` (FK cascade), `creator_id` (FK null al borrar), `type` (enum: `lottery`/`online`/`onsite`), `title`, `description`, `location` (dirección física o URL), `start_date`/`end_date` (opc.), `is_published`, `allows_rsvp`, `deleted_at` |
+| `event_rsvps` | Confirmación de asistencia | `event_id` + `user_id` (FKs cascade, par único), `attending` |
+| `media` | Fotos, videos, documentos y audio | `project_id` (FK cascade), `owner_id` (FK null al borrar), `category`, `path`, `thumbnail`, `description`, `alt_text` (accesibilidad), `mime_type`, `file_size`, `width`/`height`, `deleted_at` |
+| `topics` | Temas del foro | `project_id` (FK cascade), `author_id` (FK null al borrar), `title`, `is_pinned`, `is_closed`, `replies_count`, `last_post_at`, `deleted_at` |
+| `posts` | Mensajes de un tema | `topic_id`, `project_id` (FKs cascade), `author_id` (FK null al borrar), `body`, `edited_at` |
+| `conversations` | Una conversación del chat | `project_id` (FK cascade; nulo para el Asistente fuera de un proyecto), `created_by`, `title` (grupos), `is_group`, `is_community`, `is_assistant`, `pair` (único por proyecto: las dos personas de una conversación de a dos), `last_message_id`, `last_message_at` |
+| `conversation_user` | Quién está en cada conversación | `conversation_id` + `user_id` (clave primaria compuesta), `read_up_to` (hasta qué mensaje leyó), `pinned_at` |
+| `messages` | Mensajes del chat | `conversation_id` (FK cascade), `user_id` (FK null al borrar), `from_assistant`, `body`, `extras` (JSON: los botones y enlaces del Asistente) |
+| `notifications` | Notificaciones a usuarios | `type`, `target` (`private`/`project`/`global`) + `target_id`, `data` (JSON: clave de traducción y valores), `triggered_by` (FK null al borrar) |
+| `notification_reads` | Lectura por usuario | clave primaria compuesta `notification_id` + `user_id`, `read_at` |
 
-**Registro y trazabilidad.**
+**Registros de la plataforma.**
 
 | Tabla | Propósito | Columnas y restricciones relevantes |
 |---|---|---|
-| `lottery_audits` | Auditoría inmutable de cada ejecución del sorteo | `execution_uuid` (agrupa los registros de una misma ejecución), `project_id` y `lottery_id` → `events` (FKs **restrict**: la auditoría impide borrar lo auditado), `type` (enum: `init`/`group_execution`/`project_execution`/`custom`/`invalidate`/`failure`), `audit` (JSON con el detalle; formato en el Apéndice C) |
-| `notifications` | Notificaciones a usuarios | `type`, `target` (`private`/`project`/`global`) + `target_id`, `data` (JSON), `triggered_by` (FK null al borrar) |
-| `notification_read` | Lectura por usuario | clave primaria compuesta `notification_id`+`user_id`, `read_at` |
-| `logs` | Bitácora general de actividad | `event` (texto), `project_id` (opc.), `creator_id` (opc.); solo la crea el sistema (véase B.2) |
+| `activity_log` | Cada cambio y cada ingreso | `user_id` (FK null al borrar), `actor` (el nombre, tal como era), `action`, `subject_type`/`subject_id`, `subject` (el nombre, tal como era), `project_id` (opc.), `changes` (JSON: de qué a qué), `ip`, `created_at` |
+| `error_log` | Los errores de la aplicación, una vez cada uno | `fingerprint` (único: clase y línea propia que lo causó), `class`, `message`, `file`/`line`, `url`, `user_id`, `trace`, `count`, `first_seen_at`/`last_seen_at` |
+| `reports` | Reportes enviados al equipo a través del Asistente | `user_id`, `project_id` (opc.), `body` |
+
+**Sorteos abiertos** (variante Open Lottery, §@sec-variantes): `open_lotteries` (`slug` único de diez caracteres, `name`, `items_name`, `organizer_key`: el *hash* del secreto de quien organiza), `open_lottery_items`, `open_lottery_participants` (`name`, `key`: el *hash* del secreto de cada persona, `ranked_at`, `removed_at`, `item_id`: lo que recibió) y `open_lottery_rankings` (`participant_id` + `item_id`, `rank`). Sus ejecuciones son filas de `lottery_runs`.
 
 Completan el esquema las tablas de infraestructura estándar de Laravel (sesiones, tokens de restablecimiento de contraseña, caché, colas de trabajos), que no forman parte del dominio.
 
-### A.3 Pseudo-herencia de tabla única para usuarios
+### A.3 Una cuenta, una pertenencia por proyecto {#ap-a3}
 
-Como adelanta A.1, administradores y miembros comparten una única tabla `users`. El mecanismo exacto es una *pseudo-herencia de tabla única* (una variante pragmática del patrón *single-table inheritance*):
+[Sección reescrita (noviembre de 2026): la pseudo-herencia `Admin`/`Member` de la primera versión fue reemplazada por las pertenencias]{.rev #rev-n-a3}
 
-- **`User`** es el modelo base y el que ejecuta la autenticación. Al cargarse un usuario, se instancia automáticamente su "cast" de rol según el flag: si `is_admin` es verdadero, un **`Admin`**; si no, un **`Member`**.
-- **`Admin`** y **`Member`** son subclases de `User` sobre la misma tabla, cada una con un *global scope* que filtra sus consultas: `Admin` ve solo filas con `is_admin = true`; `Member`, solo filas con `is_admin = false` **y** `family_id` no nulo. Así, `Member::all()` jamás devuelve un administrador, sin repetir la condición en cada consulta.
-- **El superadministrador no es una columna.** Es un administrador cuyo correo figura en la lista `auth.superadmins` de la configuración del entorno. Esto es deliberado: el rol más poderoso no puede otorgarse *desde la propia aplicación* (ni por error ni por abuso de un administrador); solo quien opera el despliegue puede modificarlo.
+La primera versión distinguía administradores y cooperativistas con subclases de un mismo modelo sobre la tabla `users` (una *pseudo-herencia de tabla única*, con un flag `is_admin` y un `family_id` en la cuenta), y el superadministrador era un correo en una lista de configuración. Ese diseño suponía que una persona era *o* administradora *o* cooperativista, en un único proyecto. La reescritura separó la **cuenta** de la **pertenencia**:
 
-**Por qué esta forma y no otra.** Las alternativas clásicas eran dos. *Tablas separadas* (`admins`, `members`) duplicarían toda la mecánica de autenticación —correo único, contraseña, restablecimiento, invitaciones, sesiones— y complicarían cada clave foránea que hoy apunta simplemente a `users` (eventos, medios, RSVP, notificaciones no distinguen roles). Una *columna discriminadora* con un solo modelo obligaría a condicionar el comportamiento por rol con `if`s dispersos, en lugar de encapsularlo en subclases con sus propios métodos, relaciones y scopes. La pseudo-herencia toma lo mejor de ambas: una sola superficie de autenticación y FKs simples, con clases separadas donde el comportamiento difiere.
+- **`User`** es la cuenta: quien se autentica. No sabe qué rol tiene en ningún proyecto. Lleva solo lo que es de la cuenta: sus datos, sus preferencias, y dos atributos de plataforma: `is_superadmin` (una cuenta de soporte, que no participa en ningún proyecto pero alcanza a todos) e `is_owner` (la primera de ellas, la propietaria del despliegue, que no puede eliminarse).
+- **`Membership`** es la parte de una cuenta en un proyecto: una fila por persona y proyecto, con `is_admin` y la familia a la que se sumó. Una persona administra un proyecto, integra una familia, ambas cosas o ninguna (invitada), y en cada proyecto algo distinto.
+- **Tres preguntas** del modelo de usuario responden toda cuestión de roles: si accede a un proyecto (tiene pertenencia, o es superadministrador), si lo administra, y qué familia tiene en él. Las políticas (Apéndice B) y la interfaz preguntan eso, nunca "qué tipo de usuario es".
 
-**El compromiso** es el habitual en single-table inheritance: columnas que solo aplican a un rol (`family_id` solo tiene sentido en miembros) deben ser nullables, y la integridad "un miembro siempre tiene familia" se garantiza en la capa de aplicación (el scope de `Member` la asume) y no como restricción de la base. Para dos roles con tanto en común, el costo es bajo y localizado.
+**Por qué esta forma y no otra.** La pseudo-herencia tenía un costo bajo mientras los roles eran globales; con roles por proyecto, cualquier variante de "el rol en la cuenta" obligaba a elegir entre duplicar cuentas o inventar un "proyecto actual". La pertenencia como entidad propia es la lectura directa del dominio —una cooperativa tiene administradores que también son socios, y una persona puede ayudar en más de una— y deja la tabla `users` como lo que es: una sola superficie de autenticación, a la que apuntan con claves simples los eventos, los medios, los mensajes y las notificaciones, que no distinguen roles.
 
-### A.4 Borrado suave y migraciones
+**El superadministrador es un atributo de la cuenta,** y no una lista de configuración: se otorga desde la consola de la plataforma, por invitación a una dirección sin cuenta, y queda registrado en la actividad. Sigue siendo deliberadamente raro: no es un botón ofrecido junto a cada cuenta, sino un lugar propio de la consola.
 
-**Borrado suave.** Casi todas las entidades de dominio (usuarios, proyectos, tipos, familias, unidades, eventos, medios, auditorías, bitácora) no se eliminan físicamente: se marcan con `deleted_at` y desaparecen de las consultas normales. Esto responde a dos necesidades distintas:
+### A.4 Archivo, borrado y migraciones {#ap-a4}
 
-- **Operativa: equivocarse no debe ser catastrófico.** Un administrador que borra una familia por error puede restaurarla (existen acciones de restauración para familias, miembros, administradores y medios) sin pérdida de datos ni re-invitaciones.
-- **De trazabilidad: el pasado debe poder consultarse.** El caso más importante es el sorteo: la **invalidación** de una ejecución (acción excepcional de superadministrador, §@sec-auditoria) usa borrado suave sobre los registros involucrados, de modo que la ejecución invalidada sigue existiendo —consultable con su historial completo— aunque ya no sea el resultado vigente. La auditoría (`lottery_audits`) complementa esto con claves `restrict`: mientras exista un registro de auditoría, ni el proyecto ni el evento del sorteo pueden eliminarse de la base.
+[Sección reescrita (noviembre de 2026): el borrado suave generalizado dio paso a un archivo explícito, y a borrar de verdad lo que nadie llegó a usar]{.rev #rev-n-a4}
 
-**Migraciones.** El esquema completo está definido como una secuencia ordenada de migraciones de Laravel: cada cambio estructural es un archivo fechado con su transformación y su reversa. Esto convierte la estructura de la base en **código versionado** con las mismas garantías que el resto del proyecto —historial, revisión, reproducibilidad—: cualquier entorno (desarrollo, pruebas, producción) construye exactamente el mismo esquema ejecutando la misma secuencia, y el estado de la base en cualquier punto de la historia del proyecto es reconstruible.
+**Archivo.** Lo que vale la pena recuperar no se elimina: se marca con `deleted_at` (`Archivable`), desaparece de las consultas normales y los administradores lo ven y lo restauran desde un conmutador en cada página. Es el caso de los eventos, los archivos y los temas del foro que se quitan; de las familias que quedan vacías —archivadas con su ranking y con quién estuvo en ellas, de vuelta en cuanto alguien es invitado a ellas—; y de los proyectos que tuvieron historia, que solo la superadministración restaura o borra de verdad. Esto responde a dos necesidades distintas:
 
-### A.5 Glosario de recursos JSON / superficie de la API
+- **Operativa: equivocarse no debe ser catastrófico.** Un administrador que quita un evento o un archivo por error lo restaura sin pérdida de datos.
+- **De trazabilidad: el pasado debe poder consultarse.** Un proyecto con familias, invitaciones o un sorteo no desaparece porque alguien lo elimine.
 
-Los modelos anteriores no viajan al frontend tal cual: se exponen como recursos JSON (Sección @sec-recursos). Cada modelo de dominio tiene su recurso homónimo en `app/Http/Resources/`: `UserResource` (base, del que heredan `AdminResource` y `MemberResource` agregando sus campos propios), `ProjectResource`, `FamilyResource`, `UnitResource`, `UnitTypeResource`, `EventResource`, `MediaResource`, `PlanResource`, `PlanItemResource`, `NotificationResource`, `LotteryAuditResource` y `LogResource`.
+**Borrado.** Lo que nadie llegó a usar se borra de verdad: un evento en borrador, o un archivo o un tema retirados dentro de la hora sin que nada más les pasara. Las unidades y los tipos de vivienda se borran de verdad, solo cuando nada depende de ellos (el registro de actividad conserva qué eran): traer de vuelta una unidad no traería su lugar en el plano. Las ejecuciones del sorteo no se borran ni se archivan: una invalidación cierra la ejecución como invalidada, y su registro de auditoría permanece, bajo la propia ejecución, mientras exista el proyecto; borrar un proyecto de verdad borra también su auditoría. Una cuenta eliminada por su titular se borra de verdad: lo que aportó queda sin su nombre (claves `null` al borrar).
 
-Más útil que enumerar campo por campo —el código es autodescriptivo y cambiaría con él— es documentar los **patrones comunes** que todos los recursos siguen, sostenidos por los dos paquetes desarrollados en el marco de este trabajo (Sección @sec-recursos):
+**Migraciones.** El esquema completo está definido como una secuencia ordenada de migraciones de Laravel: cada cambio estructural es un archivo fechado con su transformación y su reversa. Esto convierte la estructura de la base en **código versionado** con las mismas garantías que el resto del proyecto —historial, revisión, reproducibilidad—: cualquier entorno (desarrollo, pruebas, producción) construye exactamente el mismo esquema ejecutando la misma secuencia, y el estado de la base en cualquier punto de la historia del proyecto es reconstruible. Como la plataforma se despliega sin interrumpir el servicio (§@sec-entrega), una migración debe dejar funcionando la versión anterior: agregar primero, quitar en una versión posterior.
 
-- **Transformación automática.** Nunca se serializa a mano: los controladores devuelven modelos o colecciones y la conversión al recurso ocurre sola. Imposible "olvidarse" de usar el recurso y filtrar datos de más.
-- **Subconjuntos por contexto** (`ResourceSubsets`, de `laravel-resource-tools`): un mismo recurso puede exponer distintos niveles de detalle según el contexto (un listado no necesita lo que necesita una vista de detalle).
-- **Permisos embebidos** (`WithResourceAbilities`): cada recurso incluye una clave `abilities` con lo que el usuario actual puede hacer sobre ese objeto (`view`, `update`, `delete`, …), evaluada contra las políticas del Apéndice B. Es la clave `can` descrita en §@sec-autorizacion: la interfaz decide qué mostrar sin consultas adicionales y la decisión de permisos vive en un único lugar, el backend.
-- **Relaciones sin consultas accidentales.** Las relaciones se incluyen solo si ya fueron cargadas (`whenLoaded`, con el id como respaldo), y los conteos prefieren agregados precalculados; un recurso jamás dispara consultas N+1 por serializar.
-- **Fechas amigables** (`created_ago` junto a `created_at`) y **datos sensibles condicionados** al rol del solicitante.
+### A.5 Los recursos JSON {#ap-a5}
 
----
+[Sección reescrita (noviembre de 2026): los recursos se escriben a mano]{.rev #rev-n-a5}
 
-## Apéndice B — Autenticación, roles y permisos
+Los modelos anteriores no viajan al frontend tal cual: se exponen como recursos JSON (Sección @sec-recursos), uno por entidad en `app/Http/Resources/`: `PersonResource` (una cuenta, con lo que el solicitante puede ver de ella), `MemberResource` (una persona vista desde su proyecto), `ProjectResource` y `DirectoryProjectResource`, `FamilyResource`, `UnitResource`, `UnitTypeResource`, `PlanResource`, `EventResource`, `MediaResource`, `InvitationResource`, `ConversationResource`, `MessageResource`, `NotificationResource` y `LotteryRunResource`.
 
-### B.1 Autenticación
+Más útil que enumerar campo por campo —el código es autodescriptivo y cambiaría con él— es documentar los **patrones comunes** que todos los recursos siguen:
 
-**Mecanismo.** La autenticación usa **Laravel Sanctum** en su modo de *SPA stateful*: sesión clásica de cookies con protección CSRF, sin tokens que almacenar en el cliente. Es la opción natural para una aplicación monolítica servida desde el mismo dominio (Sección @sec-stack), y la más segura por defecto: la cookie es `HttpOnly` (inaccesible para JavaScript) y el navegador la gestiona solo.
+- **Permisos embebidos.** Cada recurso incluye una clave `can` con lo que el usuario actual puede hacer sobre ese objeto (`update`, `delete`, `rsvp`, …), evaluada contra las políticas del Apéndice B. Es la clave `can` descrita en §@sec-autorizacion: la interfaz decide qué mostrar sin consultas adicionales y la decisión de permisos vive en un único lugar, el backend.
+- **Relaciones sin consultas accidentales.** Las relaciones se incluyen solo si ya fueron cargadas (`whenLoaded`) y los conteos solo si ya fueron contados (`whenCounted`); un recurso jamás dispara consultas N+1 por serializar.
+- **Datos sensibles condicionados** al solicitante: el correo y el teléfono de una persona solo si ella los comparte o si quien pide administra el proyecto; nunca a un invitado. El ranking de una familia solo a sus integrantes.
+- **Cambios anunciados.** Los modelos que una página muestra anuncian sus cambios al canal del proyecto (`BroadcastsProjectChanges`), y la página vuelve a pedir el recurso que cambió (§@sec-arquitectura).
 
-**Registro únicamente por invitación.** No existe ruta pública de registro: las únicas pantallas para visitantes son el inicio de sesión y el restablecimiento de contraseña. Una cuenta nace cuando alguien con permiso la crea e invita: los administradores crean familias e invitan a sus integrantes, y cada integrante puede a su vez invitar a otros miembros de su propia familia (nunca de otras). El invitado recibe un correo con un enlace para completar su registro —establecer su contraseña y datos personales—, momento en el que se marca `invitation_accepted_at`. Este diseño cierra la puerta al registro masivo de cuentas y refleja la realidad del dominio: en una cooperativa se sabe quiénes son los socios.
+## Apéndice B — Autenticación, roles y permisos {#ap-b}
 
-**Ciclo de la cuenta.** El restablecimiento de contraseña sigue el flujo estándar de enlace firmado por correo. El cambio de dirección de correo es *verificado*: la nueva dirección se guarda aparte (`new_email`) y no sustituye a la actual hasta confirmarse desde el enlace enviado, de modo que un error de tipeo o un intento de apropiación no dejan la cuenta inaccesible.
+### B.1 Autenticación {#ap-b1}
 
-### B.2 Matriz de roles y permisos
+[Sección reescrita (noviembre de 2026): registro abierto, Google, invitaciones con vencimiento, ciclo de la cuenta]{.rev #rev-n-b1}
 
-La autorización se decide en las **políticas** (`app/Policies/`, una por modelo; §@sec-autorizacion). Dos reglas estructurales simplifican todo lo demás:
+**Mecanismo.** La autenticación es la sesión de Laravel: sesión clásica de cookies con protección CSRF, sin tokens que almacenar en el cliente. Es la opción natural para una aplicación monolítica servida desde el mismo dominio (Sección @sec-stack), y la más segura por defecto: la cookie es `HttpOnly` (inaccesible para JavaScript) y el navegador la gestiona solo. La aplicación ignora los encabezados de *host* reenviados por el proxy y toma por propio cualquier nombre que no sea el suyo, de modo que un encabezado adulterado nunca puede hacer que un enlace lleve a otro sitio.
 
-- **El superadministrador pasa todo.** Un `Gate::before` global le concede cualquier acción, por lo que las políticas solo razonan sobre administradores y cooperativistas. (Excepción puntual: donde "superadmin **o** uno mismo" es la regla —editar administradores—, la política lo chequea explícitamente.)
-- **El contexto de proyecto se valida aparte.** Como usuario↔proyecto es muchos-a-muchos, la restricción "deben compartir proyecto" se aplica en los *form requests* (trait `OverlappingProjectsConstraint`), evitando consultas N+1; y `ProjectScopedRequest` garantiza la coherencia entre el proyecto actual y el recurso pedido.
+**Registro.** Cualquiera se registra, con correo y contraseña o con una cuenta de Google. Una cuenta por correo nace sin confirmar y no puede hacer nada hasta que su titular abre el enlace que recibe; el registro responde igual exista o no una cuenta con esa dirección, y no inicia la sesión de nadie: en ambos casos manda un correo —el enlace que confirma la cuenta nueva, o, a la cuenta existente, dónde iniciar sesión—. Con Google, la aplicación busca la cuenta vinculada a esa cuenta de Google, si no la que tiene su correo, y si no abre una nueva, ya confirmada; un correo que Google no verificó nunca abre ni vincula una cuenta.
 
-La matriz resultante, por recurso y acción (el superadministrador puede todo; se omite):
+**Invitaciones.** Una invitación es un registro (A.2): a qué proyecto, a qué familia o como administrador, a qué dirección, enviada por quién, con un vencimiento de catorce días. Lo que viaja por correo es un enlace con una clave aleatoria de la que solo se guarda el *hash*. El enlace abre una cuenta nueva o, para una cuenta existente, la suma al proyecto una vez iniciada la sesión con la dirección invitada; esa persona, además, encuentra la invitación bajo su campana. Cada envío cuenta —aunque se reenvíe o se retire— contra el cupo diario del proyecto mientras es limitado, y contra un cupo por dirección y por hora en cualquier proyecto. Quien ya está en el proyecto sin familia es sumado a la familia de inmediato, sin invitación que aceptar. Una cuenta bloqueada no puede ser invitada. La superadministración se otorga por una invitación propia (`support_invitations`), a una dirección sin cuenta, válida mientras quien la envió siga siendo superadministrador.
 
-| Recurso | Ver | Crear | Editar | Eliminar | Restaurar |
+**Ciclo de la cuenta.** El restablecimiento de contraseña sigue el flujo estándar de enlace firmado por correo. El cambio de dirección de correo es *verificado*: la nueva dirección se guarda aparte (`new_email`) y no sustituye a la actual hasta confirmarse desde el enlace enviado, de modo que un error de tipeo o un intento de apropiación no dejan la cuenta inaccesible. Cualquier persona elimina su propia cuenta, para siempre, confirmando con su contraseña (salvo la propietaria del despliegue, y el único administrador de un proyecto hasta nombrar otro). La superadministración puede **bloquear** una cuenta —queda cerrada, fuera de todo proyecto y con su dirección ocupada, de modo que no vuelva a entrar— o eliminarla.
+
+### B.2 Matriz de roles y permisos {#ap-b2}
+
+[Sección reescrita (noviembre de 2026): la matriz sigue a las políticas actuales]{.rev #rev-n-b2}
+
+La autorización se decide en las **políticas** (`app/Policies/`, una por modelo; §@sec-autorizacion). Tres reglas estructurales simplifican todo lo demás:
+
+- **El contexto de proyecto se resuelve antes.** Solo quien participa en un proyecto —o un superadministrador— llega a sus páginas (`ResolveProject`), y los modelos de un proyecto se resuelven a través de él: una política recibe siempre un recurso del proyecto en que se está.
+- **El superadministrador pasa todo, salvo lo personal.** Un `Gate::before` global le concede cualquier acción, excepto las **habilidades personales**: ordenar preferencias por una familia, responder a un evento, sumarse a una familia o a un proyecto, responder pedidos de ingreso a una familia, y todo lo del chat (empezar, leer, escribir, administrar un grupo, retirar o editar un mensaje). Esas las ejerce solo quien es.
+- **Una base común para los recursos de un proyecto** (`ProjectResourcePolicy`): ver, quien accede al proyecto; crear, editar y eliminar, quien lo administra. Cada política agrega o restringe lo suyo.
+
+La matriz resultante, por recurso y acción (el superadministrador puede todo lo que no es personal; se omite):
+
+| Recurso | Ver | Crear | Editar | Eliminar | Otras acciones |
 |---|---|---|---|---|---|
-| Proyecto | admin que lo gestiona | — (solo superadmin) | admin que lo gestiona | admin que lo gestiona | admin que lo gestiona |
-| Familia | mismo proyecto | admins | su propia familia, o admin que gestiona | admin que gestiona | admin que gestiona |
-| Miembro | proyectos compartidos | cualquiera¹ | él mismo, o admin que gestiona | él mismo, o admin que gestiona | admin que gestiona |
-| Administrador | admins; members, los de su proyecto | admins | superadmin o él mismo | superadmin o él mismo | — (solo superadmin) |
-| Unidad | cualquiera | admins | admin que gestiona | admin que gestiona | admin que gestiona |
-| Tipo de unidad | cualquiera | admins | admins | admins | admins |
-| Evento | publicados; admins, todos | admins | admins² | admins² | admins |
-| Medios | cualquiera | cualquiera | su dueño³ | su dueño o admin | su dueño o admin |
-| Plano | cualquiera | — (automático⁴) | admins | — (automático⁴) | — |
-| Notificación | destinatario⁵ | — (las crea el sistema) | — | — | — |
-| Bitácora (logs) | cualquiera | — (la crea el sistema) | — | — | — |
+| Proyecto | quien participa | cualquier cuenta confirmada¹ | admin | admin (archiva o borra) | invitar: admin a cualquier familia o como admin; integrante, a su propia familia. Pedir ser ilimitado, ejecutar el sorteo: admin. Sumarse o pedir ingreso: quien no participa, si el proyecto está en el directorio² |
+| Familia | quien participa | admin | admin | admin | pedir sumarse: quien participa; responder pedidos: sus integrantes. Crear la propia: quien participa y no es solo admin, mientras el sorteo no esté bloqueado |
+| Unidad, tipo de unidad, plano | quien participa | admin | admin | admin | — |
+| Preferencias | la propia familia | — | quien integra una familia | — | — |
+| Evento | publicados: quien participa; borradores: admin | admin | admin³ | admin³ | responder asistencia: quien participa, si el evento lo pide, está publicado y no terminó |
+| Medios | quien participa | quien participa | su dueño⁴ | su dueño o admin | — |
+| Tema del foro | quien participa | quien participa | admin, o su autor (renombrar) | admin, o su autor mientras nadie respondió | responder: quien participa, salvo en un tema cerrado (admin sí) |
+| Mensaje del foro | quien participa | quien participa | su autor | su autor o admin | — |
+| Conversación del chat | quienes están en ella⁵ | quien participa | — | — | administrar o dejar un grupo: quienes están en él (no el de Comunidad); retirar o editar un mensaje: su autor, durante una hora |
+| Invitación | admin, o quien la envió | según el proyecto | — | admin, o quien la envió | — |
+| Notificación | su destinatario⁶ | — (las crea el sistema) | — | — | — |
 
-¹ La creación real queda acotada por el flujo de invitación (B.1): solo se invita a miembros de la propia familia, o siendo admin.
-² El evento del sorteo es especial: lo crea el sistema con el proyecto, no puede eliminarse, y una vez ejecutado (despublicado) queda bloqueado; el admin solo edita su fecha y descripción mientras está publicado (§@sec-auditoria).
-³ Los archivos son inmutables una vez subidos: "editar" un medio permite cambiar solo su descripción.
-⁴ El plano se crea automáticamente con el proyecto (uno por proyecto) y no se elimina; los admins editan su contenido.
-⁵ Privadas: solo el destinatario. De proyecto: quienes acceden a ese proyecto. Globales: reservadas a admins de múltiples proyectos.
+¹ Con a lo sumo dos proyectos limitados a la vez (contando los eliminados en el último día).
+² Sumarse de inmediato donde el proyecto está abierto; pedirlo donde no, salvo un pedido pendiente o rechazado hace poco.
+³ El evento del sorteo es especial: lo crea el sistema con el proyecto, no puede editarse ni eliminarse como evento; el admin solo fija su fecha y su descripción, y solo mientras ninguna ejecución esté en curso o completada (§@sec-auditoria).
+⁴ Los archivos son inmutables una vez subidos: "editar" un medio permite cambiar solo su descripción.
+⁵ Ni los administradores del proyecto ni los superadministradores: leer un chat es personal. El Asistente, solo donde el proyecto tiene la función.
+⁶ Privadas: solo el destinatario. De proyecto: quienes participan en él. Globales: los superadministradores.
 
-Los permisos que esta matriz define son exactamente los que viajan al frontend en la clave `abilities` de cada recurso (A.5): la interfaz muestra u oculta acciones según la misma fuente que el backend usa para autorizarlas.
+Los permisos que esta matriz define son exactamente los que viajan al frontend en la clave `can` de cada recurso (A.5): la interfaz muestra u oculta acciones según la misma fuente que el backend usa para autorizarlas.
 
----
+## Apéndice C — El sorteo: modelos, auditoría y rendimiento {#ap-c}
 
-## Apéndice C — El sorteo: modelos, auditoría y rendimiento
+### C.1 Modelos GMPL completos {#ap-c1}
 
-### C.1 Modelos GMPL completos
-
-Los modelos que siguen son los que la aplicación genera y entrega a GLPK, transcritos textualmente de su generador (`ModelGenerator`). Están escritos en **GMPL** (GNU MathProg), el lenguaje de modelado de GLPK. La correspondencia con la notación del Capítulo @cap-sorteo es directa:
+Los modelos que siguen son los que la aplicación genera y entrega a GLPK, transcritos textualmente de su generador (`ModelGenerator`). Están escritos en **GMPL** (GNU MathProg), el lenguaje de modelado de GLPK. [Como el motor se generalizó (Sección @sec-capa-sorteo), los modelos hablan de participantes e ítems; en MTAV son las familias y las unidades.]{.nuevo} La correspondencia con la notación del Capítulo @cap-sorteo es directa: [Nov. 2026: nombres de los conjuntos]{.rev #rev-n-c1}
 
 | Capítulo @cap-sorteo | GMPL | Significado |
 |---|---|---|
-| $C$ | `set C` | Familias (cooperativistas) |
-| $V$ | `set V` | Unidades (viviendas) |
-| $p_{c,v}$ | `param p{c in C, v in V}` | Prioridad: posición de $v$ en el ranking de $c$ (1 = favorita; menor es mejor) |
-| $x_{c,v}$ | `var x{c in C, v in V}, binary` | Decisión: 1 si la familia $c$ recibe la unidad $v$ |
+| $C$ | `set P` | [Participantes: las familias]{.cambio} |
+| $V$ | `set I` | [Ítems: las unidades]{.cambio} |
+| $p_{c,v}$ | `param r{p in P, i in I}` | Prioridad: posición de $v$ en el ranking de $c$ (1 = favorita; menor es mejor) |
+| $x_{c,v}$ | `var x{p in P, i in I}, binary` | Decisión: 1 si la familia $c$ recibe la unidad $v$ |
 | $z$ | `var z, integer` | Peor prioridad recibida por familia alguna |
 | $S$ | `param S` | Cota de equidad que la Fase 1 le fija a la Fase 2 |
 
@@ -200,27 +235,27 @@ Los modelos que siguen son los que la aplicación genera y entrega a GLPK, trans
 # MTAV Lottery - Phase 1: Maximize Minimum Satisfaction
 # Objective: Max-min fairness (minimize worst-case dissatisfaction)
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (units)
+set P;              # Participants
+set I;              # Items
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
 
-var x{c in C, v in V}, binary;  # Assignment decision: 1 if family c gets unit v
+var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
 var z, integer;                  # Worst satisfaction level (to minimize)
 
 minimize resultado: z;
 
-# z must be at least as large as each family's satisfaction
-s.t. z_menorIgual{c in C}:
-    z >= sum{v in V} p[c,v] * x[c,v];
+# z must be at least as large as each participant's satisfaction
+s.t. z_menorIgual{p in P}:
+    z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. oneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa{v in V}:
-    sum{c in C} x[c,v] = 1;
+# Each item assigned to exactly one participant
+s.t. oneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] = 1;
 
 end;
 ```
@@ -233,28 +268,28 @@ end;
 # MTAV Lottery - Phase 2: Maximize Overall Satisfaction
 # Objective: Break ties by maximizing total satisfaction
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (units)
+set P;              # Participants
+set I;              # Items
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
 param S;                  # Minimum satisfaction from Phase 1 (worst-case rank)
 
-var x{c in C, v in V}, binary;  # Assignment decision
+var x{p in P, i in I}, binary;  # Assignment decision
 
 # Minimize sum of ranks = Maximize satisfaction
-minimize resultado: sum{c in C, v in V} p[c,v] * x[c,v];
+minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 
-# No family gets worse than S
-s.t. satisfaccionMinima{c in C}:
-    sum{v in V} p[c,v] * x[c,v] <= S;
+# No participant gets worse than S
+s.t. satisfaccionMinima{p in P}:
+    sum{i in I} r[p,i] * x[p,i] <= S;
 
-# Each family gets exactly one unit
-s.t. unicaAsignacionCoperativista{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. oneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to exactly one family
-s.t. unicaAsignacionCasa{v in V}:
-    sum{c in C} x[c,v] = 1;
+# Each item assigned to exactly one participant
+s.t. oneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] = 1;
 
 end;
 ```
@@ -262,47 +297,47 @@ end;
 **Selección de unidades (desbalance con unidades excedentes).** Cuando hay más unidades que familias (§@sec-ejecucion), antes de sortear hay que decidir *qué* unidades participan. Este modelo elige exactamente $M$ unidades (= cantidad de familias) mediante las variables de uso $u_v$, de modo que la asignación resultante tenga el mejor peor-caso posible:
 
 ```
-# MTAV Lottery - Unit Selection: Identify Worst Units
-# Objective: Select M units that minimize worst-case satisfaction
+# MTAV Lottery - Item Selection: Identify Worst Items
+# Objective: Select M items that minimize worst-case satisfaction
 
-set C;              # Cooperativistas (families)
-set V;              # Viviendas (candidate units)
+set P;              # Participants
+set I;              # Items (candidates)
 
-param p{c in C, v in V};  # Prioridad (lower = better: 1 = first choice)
-param M;                  # Number of units to select (= number of families)
+param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
+param M;                  # Number of items to select (= number of participants)
 
-var x{c in C, v in V}, binary;  # Assignment decision: 1 if family c gets unit v
-var u{v in V}, binary;          # Unit selection: 1 if unit v is used
+var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
+var u{i in I}, binary;          # Item selection: 1 if item i is used
 var z, integer;                 # Worst satisfaction level (to minimize)
 
 minimize resultado: z;
 
-# z must be at least as large as each family's satisfaction
-s.t. z_menorIgual{c in C}:
-    z >= sum{v in V} p[c,v] * x[c,v];
+# z must be at least as large as each participant's satisfaction
+s.t. z_menorIgual{p in P}:
+    z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each family gets exactly one unit
-s.t. familyGetsOne{c in C}:
-    sum{v in V} x[c,v] = 1;
+# Each participant gets exactly one item
+s.t. participantGetsOne{p in P}:
+    sum{i in I} x[p,i] = 1;
 
-# Each unit assigned to at most one family
-s.t. unitGetsAtMostOne{v in V}:
-    sum{c in C} x[c,v] <= 1;
+# Each item assigned to at most one participant
+s.t. itemGetsAtMostOne{i in I}:
+    sum{p in P} x[p,i] <= 1;
 
-# Link assignment to usage: if family gets unit v, then u[v] = 1
-s.t. unitUsageLink{v in V}:
-    sum{c in C} x[c,v] <= u[v];
+# Link assignment to usage: if participant gets item i, then u[i] = 1
+s.t. itemUsageLink{i in I}:
+    sum{p in P} x[p,i] <= u[i];
 
-# Select exactly M units
-s.t. exactlyMUnitsUsed:
-    sum{v in V} u[v] = M;
+# Select exactly M items
+s.t. exactlyMItemsUsed:
+    sum{i in I} u[i] = M;
 
 end;
 ```
 
-### C.2 Formato del registro de auditoría
+### C.2 Formato del registro de auditoría {#ap-c2}
 
-Cada ejecución del sorteo deja una secuencia de registros en la tabla `lottery_audits` (esquema en A.2). Los registros de una misma ejecución comparten un **`execution_uuid`** generado al inicio: esa es la unidad de agrupación —la "historia" completa de una ejecución se reconstruye consultando su UUID, en orden cronológico.
+Cada ejecución del sorteo deja una secuencia de registros en la tabla `lottery_audits` (esquema en A.2)[, asociados a la fila de la ejecución en `lottery_runs`, que tiene su propio UUID: esa es la unidad de agrupación]{.cambio} —la "historia" completa de una ejecución se reconstruye consultando sus registros, en orden cronológico. [Nov. 2026: los registros cuelgan de la ejecución]{.rev #rev-n-c2}
 
 **Tipos de registro** (columna `type`) y el contenido de su carga `audit` (JSON):
 
@@ -313,14 +348,14 @@ Cada ejecución del sorteo deja una secuencia de registros en la tabla `lottery_
 | `project_execution` | Al completarse el sorteo del proyecto | Ídem anterior, consolidado a nivel proyecto |
 | `custom` | Pasos auxiliares que ameritan constancia | `admin` + datos arbitrarios del paso |
 | `failure` | Si la ejecución falla | Tipo de error, clase de la excepción, mensaje técnico, datos de depuración y el mensaje mostrado al usuario |
-| `invalidate` | Si un superadministrador invalida la ejecución (§@sec-auditoria) | Quién invalidó; se agrega **al mismo UUID** de la ejecución invalidada, cerrando su historia |
+| `invalidate` | Si un administrador invalida la ejecución (§@sec-auditoria) | Quién invalidó y el motivo; se agrega **a la misma ejecución**, cerrando su historia |
 
 Dos propiedades de diseño completan el mecanismo:
 
 - **La auditoría registra la entrada, no solo la salida.** El registro `init` guarda el manifiesto completo (familias, unidades, preferencias) tal como estaban al ejecutar. Esto hace el resultado **verificable a posteriori**: con el manifiesto y los modelos de C.1, cualquier tercero puede reproducir la optimización y confirmar el resultado publicado.
-- **Nada se sobreescribe.** Una re-ejecución (tras una invalidación) genera un UUID nuevo; los registros de la ejecución anterior se conservan con borrado suave (A.4). Las claves foráneas `restrict` de la tabla impiden, además, eliminar el proyecto o el evento del sorteo mientras su auditoría exista.
+- **Nada se sobreescribe.** Una re-ejecución (tras una invalidación) es una ejecución nueva, con su UUID y sus registros; los de la ejecución anterior permanecen bajo ella, mientras exista el proyecto (A.4). [Del manifiesto y del resultado, tal como están almacenados, se calcula la **huella** del acta (SHA-256), que cualquier integrante del proyecto ve.]{.nuevo}
 
-**Muestra anotada.** Lo que sigue es la traza real de una ejecución de prueba sobre un proyecto pequeño (6 familias, 6 unidades, 3 tipos de vivienda), tal como queda en `lottery_audits`. La secuencia completa, bajo un mismo UUID:
+**Muestra anotada.** Lo que sigue es la traza de una ejecución de prueba sobre un proyecto pequeño (6 familias, 6 unidades, 3 tipos de vivienda), tal como queda en `lottery_audits`[; proviene de la primera versión, y los nombres de los campos del manifiesto son hoy los de `LotteryManifest` (`uuid`, `projectId`, `runId`, `data`, `options`)]{.nuevo}. La secuencia completa, bajo una misma ejecución:
 
 | # | `type` | Momento |
 |---|---|---|
@@ -405,9 +440,9 @@ Y el `project_execution` consolida el resultado final —cada familia con su uni
 }
 ```
 
-Con el manifiesto del `init`, los modelos de C.1 y estos registros, la cadena entrada → optimización → resultado es reproducible y verificable por un tercero, pieza por pieza.
+Con el manifiesto del `init`, los modelos de C.1 y estos registros, la cadena entrada → optimización → resultado es reproducible y verificable por un tercero, pieza por pieza. [Los administradores descargan exactamente esta traza en JSON desde el acta de la ejecución.]{.nuevo}
 
-### C.3 Resultados de rendimiento: datos completos
+### C.3 Resultados de rendimiento: datos completos {#ap-c3}
 
 Esta sección amplía los resultados de la Sección @sec-resultados con la metodología y las estadísticas completas de los *benchmarks*.
 
@@ -461,76 +496,84 @@ Tres observaciones:
 
 ---
 
-## Apéndice D — Formato de datos del plano espacial
+## Apéndice D — Formato de datos del plano espacial {#ap-d}
 
 Este apéndice detalla cómo se representa y se dibuja el plano del proyecto que la Subsección @sec-plano presenta funcionalmente.
 
-### D.1 Modelo de datos
+### D.1 Modelo de datos {#ap-d1}
+
+[Sección reescrita (noviembre de 2026): el plano se rehízo; pisos, tipos de forma y estado de cada ítem]{.rev #rev-n-d1}
 
 El plano son dos entidades (esquema completo en A.2):
 
-- **`Plan`** — uno por proyecto (relación uno-a-uno, creado automáticamente con el proyecto). Define el lienzo: su contorno (`polygon`, JSON), sus dimensiones (`width` × `height`, decimales) y el sistema de unidades (`meters` o `feet`). Las dimensiones están en la unidad elegida, no en píxeles: el plano describe el terreno, no la pantalla.
-- **`PlanItem`** — cada elemento dibujado: su `type` (`unit`, `park`, `street`, `building`, …), su forma (`polygon`), su nivel (`floor`, entero con 0 = planta baja) y `metadata` (JSON libre: colores, notas, medidas). Las unidades habitacionales referencian su ítem del plano (`units.plan_item_id`), lo que conecta el sorteo con el mapa: al consultar una unidad puede mostrarse dónde está.
+- **`Plan`** — uno por proyecto (relación uno-a-uno, creado automáticamente con el proyecto). Define el terreno: su contorno (`polygon`, JSON), sus dimensiones (`width` × `height`, decimales) y el sistema de unidades (`meters` o `feet`). Las dimensiones están en la unidad elegida, no en píxeles: el plano describe el terreno, no la pantalla.
+- **`PlanItem`** — cada forma dibujada: su `type` (`unit`, `building`, `street`, `green`, `commons`, `parking`, `playground`, `entrance`), su forma (`polygon`), su piso (`floor`, entero con 0 = planta baja; de cinco subsuelos a cien pisos), su orden de dibujado (`position`), si ya está colocada (`placed`: una vivienda agregada desde la lista espera en el editor hasta que alguien la pone en un piso), su nombre y `metadata` (JSON: color, rotación, notas). Las viviendas referencian su ítem del plano al revés que en la primera versión: es el ítem el que apunta a su unidad (`unit_id`, único), de modo que una unidad tiene a lo sumo una forma, y una forma de vivienda representa exactamente una unidad. Un tipo de vivienda puede fijar el tamaño con que nacen sus unidades en el plano (`plan_width`/`plan_height`).
 
-**Formato de los polígonos.** Toda forma es un arreglo JSON de pares `[x, y]` en el sistema de coordenadas del plano (origen arriba-izquierda, misma unidad que `width`/`height`). Se eligió el polígono como única primitiva —un rectángulo es un polígono de cuatro puntos— por uniformidad: una sola representación, una sola lógica de dibujo y de edición para cualquier forma.
+**Formato de los polígonos.** Toda forma es un arreglo JSON de pares `[x, y]` en el sistema de coordenadas del plano (origen arriba-izquierda, misma unidad que `width`/`height`). Se eligió el polígono como única primitiva —un rectángulo es un polígono de cuatro puntos— por uniformidad: una sola representación, una sola lógica de dibujo y de edición para cualquier forma. Cada tipo nace con una forma inicial propia (una calle larga y angosta, una entrada como un portón hacia adentro) que se mueve, redimensiona y gira, pero no se deforma punto a punto.
 
-**Elecciones y límites.** `floor` existe a nivel de datos, pero la visualización multinivel no está implementada (trabajo futuro, §@sec-tf-plano), al igual que el redimensionado de formas en el editor: hoy los ítems se crean con su forma y se reubican arrastrándolos.
+**Elecciones y límites.** La escala real —ubicar las cosas en metros a partir de un croquis— queda como trabajo futuro (§@sec-tf-plano).
 
-### D.2 Arquitectura de componentes
+### D.2 Arquitectura de componentes {#ap-d2}
 
-El plano se dibuja como **SVG nativo** dentro de componentes Vue —sin bibliotecas de canvas ni de mapas—, en una jerarquía de responsabilidad única:
+[Sección reescrita (noviembre de 2026): componentes React, edición en el lugar, bloqueo y guardado automático]{.rev #rev-n-d2}
 
-- **`Plan`** — el componente público: recibe el plano y sus ítems y orquesta el resto.
-- **`Canvas`** — el `<svg>`: calcula el `viewBox` a partir del contorno y el modo de escalado, y proyecta los ítems ya escalados.
-- **`Item`** (y su especialización **`Unit`**) — un elemento del plano: decide su presentación según el tipo (color, etiqueta, interactividad; una unidad, p. ej., muestra su identificador y responde a la selección).
-- **`Polygon`** — la primitiva terminal: convierte el arreglo de puntos al atributo `points` de un `<polygon>` SVG. Nada más.
+El plano se dibuja como **SVG nativo** dentro de componentes React (`resources/js/components/plan`) —sin bibliotecas de canvas ni de mapas—, y se ve igual en el editor y donde la gente lo lee:
 
-**Escalado responsivo.** La clave del comportamiento responsivo es que SVG escala por geometría, no por píxeles: el `viewBox` se calcula una vez a partir de las coordenadas del plano (composable `useScaling`, con modos tipo `contain`) y el navegador adapta el dibujo a cualquier tamaño de pantalla sin lógica adicional —el mismo plano se ve correcto en un teléfono y en un monitor.
+- **`PlanCanvas`** — el `<svg>`: calcula el `viewBox` a partir del contorno y proyecta las formas de un piso, con los pisos de abajo dibujados tenues debajo, cada uno como una sola imagen.
+- **`render` y `materials`** — cómo se ve cada tipo de forma: un material propio (viviendas y edificios en relieve, césped con árboles, asfalto con su línea central, estacionamientos con sus dársenas, espacios comunes rayados), iluminado desde arriba a la izquierda, para que el plano se lea como un lugar y no como un croquis. El alto contraste quita texturas y relieve.
+- **`features`** — lo que cada tipo dibuja dentro de su material: los árboles, los juegos, los ambientes de una vivienda, la marca de casa.
+- **`PlanEditor`**, con **`PlanPalette`**, **`PlanToolbar`**, **`SelectionHandles`**, **`ShapeMenu`** y **`FloorTabs`** — la edición superpuesta al mismo dibujo: la paleta de tipos, las asas de la forma seleccionada, su menú contextual, las pestañas de los pisos.
+- Módulos sin interfaz para cada preocupación: `drag` (arrastre con eventos de puntero, que unifican mouse y táctil), `align` (las guías de alineación con lo que hay alrededor), `history` (deshacer y rehacer, que sobreviven a una recarga), `autosave` (el guardado un momento después de cada cambio, con reintentos cuando el servidor no responde), `idle` (el aviso y el cierre tras un rato sin cambios), `zoom` (el zoom y el desplazamiento de lectura, como en un mapa), `keys` (los atajos de teclado).
 
-**El editor** (páginas de administración) reutiliza exactamente la misma jerarquía de dibujo y le superpone la interacción: arrastre con eventos de puntero (`pointerdown`/`move`/`up`, que unifican mouse y táctil), con el ítem arrastrado siguiendo el cursor en coordenadas del plano y persistiéndose al soltar. Ver el plano y editarlo comparten el 100% del código de render: lo único que cambia es quién escucha los eventos.
+**Escalado responsivo.** La clave del comportamiento responsivo es que SVG escala por geometría, no por píxeles: el `viewBox` se calcula una vez a partir de las coordenadas del plano y el navegador adapta el dibujo a cualquier tamaño de pantalla sin lógica adicional —el mismo plano se ve correcto en un teléfono y en un monitor—. Solo el dibujo del plano conserva sus propias unidades; el resto de la interfaz se dimensiona en `rem`.
 
----
+**Un editor a la vez.** Dibujar requiere retener el plano (`EditingLock`, en el servidor): el editor renueva la retención mientras está abierto y la suelta al cerrar, al perder la conexión o tras diez minutos sin cambios —con un aviso antes—, con el dibujo guardado; a cualquier otro administrador se le dice quién está dibujando, y un guardado sobre la retención de otro es rechazado. Ver el plano y editarlo comparten el código de dibujo: lo único que cambia es quién escucha los eventos.
 
-## Apéndice E — Testing y aseguramiento de calidad
+## Apéndice E — Testing y aseguramiento de calidad {#ap-e}
 
-### E.1 Estrategia de pruebas en capas
+### E.1 Estrategia de pruebas en capas {#ap-e1}
 
-La suite de pruebas está organizada en capas, cada una con una pregunta distinta que responder:
+[Sección reescrita (noviembre de 2026): la suite se rehízo alrededor de casos de uso y constructores de escenarios, con cobertura completa de navegador]{.rev #rev-n-e1}
 
-- **Arquitectura** (`tests/Arch`, Pest): reglas estructurales del código como pruebas ejecutables —qué capas pueden depender de cuáles, convenciones que deben cumplirse en todo el proyecto—. Fallan en cuanto alguien introduce una dependencia prohibida.
-- **Unitarias** (`tests/Unit`, Pest): lógica aislada —modelos, servicios, y en particular la maquinaria del sorteo (generación de modelos, orquestación, balanceo)—.
-- **De características** (`tests/Feature`, Pest): la aplicación completa por dentro —HTTP, autenticación y flujo de invitación, autorización, sorteo de punta a punta, notificaciones, plano—, contra una base de datos real.
-- **De estrés** (`tests/Stress`, Pest): las propiedades del sorteo a escala; incluye la verificación empírica de **equivalencia entre la búsqueda binaria y la Fase 1 original de GLPK** (§@sec-busqueda-binaria), ejecutando ambas y comparando resultados.
-- **De navegador / extremo a extremo** (`tests/Browser`, Playwright): un puñado de *journeys* largos que recorren los casos de uso principales de punta a punta en un navegador real —aprovisionamiento de un proyecto y su primer administrador, alta de la estructura e incorporación de familias, gestión de la cuenta por el cooperativista, y el sorteo completo (preferencias, ejecución e invalidación)—, pensados como última red de seguridad antes de un despliegue. Corren en su propio entorno containerizado (Apéndice I).
-- **Frontend** (`resources/js/tests`, Vitest + Vue Test Utils): componentes Vue en aislamiento —render, props, interacción—.
+Toda regla que la aplicación mantiene tiene una prueba que la enuncia, y toda corrección llega con una prueba que la habría detectado. La suite está organizada en capas, cada una con una pregunta distinta que responder:
 
-**La fixture `universe.sql`.** Muchas pruebas de características parten de un "universo" conocido: un volcado SQL con proyectos, familias, unidades y usuarios representativos que se carga de una vez. El compromiso es explícito: se gana **velocidad** (no se reconstruye el mundo registro por registro en cada prueba) y **realismo** (los escenarios se parecen a la operación real), a cambio de una dependencia compartida que hay que mantener cuando el esquema cambia —el costo se paga en un solo archivo versionado junto a las migraciones.
+- **Casos de uso** (`tests/UseCases`, Pest): las reglas de negocio, a través de HTTP y desde el lado de quien actúa ("un administrador ejecuta el sorteo…"), organizadas por área: cuentas, pertenencia, puesta a punto, sorteo, comunidad, tiempo real, correo, plataforma, sorteo abierto. Cada prueba construye exactamente los datos que necesita con **constructores de escenario** (`aProject()`, `anAdminOf()`, `aFamily()`, `aMemberOf()`, `aUnitType()`, `aLotteryInProgress()`…), nunca identificadores fijos, y parte de un esquema vacío dentro de una transacción que se revierte al terminar. Esto reemplazó la *fixture* de la primera versión —un volcado SQL con un "universo" conocido—, que era rápida pero obligaba a mantener un archivo compartido con cada cambio del esquema.
+- **Unitarias** (`tests/Unit`, Pest): los *solvers* del sorteo y GLPK sobre datos planos, con las comprobaciones conservadas palabra por palabra desde la primera versión (asignaciones exactas, la familia peor ubicada primero, empates, la misma respuesta en cada corrida, casos grandes, remanentes, un `glpsol` ausente).
+- **Arquitectura** (`tests/Arch`, Pest): reglas sobre el código como pruebas ejecutables: cada idioma dice lo que dice el inglés; no queda código de depuración; los modelos no conocen HTTP y los *solvers* no conocen modelos; la imagen de la versión se construye de piezas fijadas; cada ruta pertenece a un módulo (§@sec-variantes).
+- **De estrés** (`tests/Stress`, Pest): GLPK sobre instancias difíciles; incluye la verificación empírica de **equivalencia entre la búsqueda binaria y la Fase 1 original de GLPK** (§@sec-busqueda-binaria), ejecutando ambas sobre las instancias que solían ser más lentas y comparando el resultado. Demasiado lenta para cada corrida, corre a pedido y, en GitHub, en cada *push* que toca los *solvers*.
+- **De navegador** (`tests/Browser`, Pest con Playwright, sobre Chromium): la aplicación real, en proceso, de modo que una prueba mezcla pasos en el navegador con comprobaciones en la base de datos. Una parte *crítica* —cada página de cada área se dibuja sin errores; una cooperativa desde el registro hasta su sorteo; el recorrido del tutor sobre los flujos de la primera versión— y un archivo por área (cuentas, proyectos, puesta a punto, personas, eventos, archivos, el plano, el sorteo, la portada, las notificaciones, las actualizaciones en vivo, la ayuda guiada, la consola…), más teléfonos, español y accesibilidad: cada página pasa por axe, sin hallazgos serios ni críticos. Una prueba nunca duerme un tiempo fijo: lo que se muestra, lo afirma (la afirmación espera); lo que hace un temporizador, lo adelanta sobre el reloj de la página; y antes de decir que algo no ocurrió, espera la señal de que ya habría ocurrido.
+- **Frontend** (`resources/js/tests`, Vitest con Testing Library): la lógica del frontend en aislamiento: el editor del plano y su guardado, el zoom, el reposo, el modo sin conexión, los rankings.
 
-### E.2 Puertas de calidad automáticas
+Al cierre de este documento la suite cuenta 119 archivos de pruebas de PHP con alrededor de 1 500 pruebas, y 32 archivos de Vitest con unas 190.
 
-La calidad no depende de la disciplina del momento: está automatizada como **hooks de Git** (via Husky) que se interponen antes de registrar o publicar cambios.
+### E.2 Puertas de calidad automáticas {#ap-e2}
 
-- **Pre-commit, selectivo:** el hook detecta qué se está por commitear —¿archivos PHP? ¿frontend?— y ejecuta solo las pruebas del stack afectado, dentro del entorno de pruebas containerizado (un `docker compose` paralelo al de desarrollo). Si ese entorno no está levantado, avisa y no bloquea: el desarrollador decide, pero queda advertido.
-- **Pre-push:** antes de publicar, el análisis estático completo (`artisan insights`).
+[Sección reescrita (noviembre de 2026): el pipeline corre todo en cada *push*; análisis estático con PHPStan]{.rev #rev-n-e2}
+
+La calidad no depende de la disciplina del momento: está automatizada en dos lugares.
+
+**En la máquina del desarrollador,** como **hooks de Git** (vía Husky) que se interponen antes de registrar o publicar cambios. El *pre-commit* detecta qué se está por commitear —¿archivos PHP? ¿frontend?— y ejecuta las pruebas de arquitectura y unitarias (sin el grupo lento) o las de Vitest, contra el entorno de pruebas containerizado; si ese entorno no está levantado, avisa y no bloquea: el desarrollador decide, pero queda advertido. El *pre-push* corre PHP Insights y rechaza un envío que baje sus puntajes por debajo de los pisos configurados.
+
+**En la integración continua,** en cada *push* a cualquier rama (§@sec-entrega): estilo, *lint*, tipos y análisis estático; las pruebas de PHP, en paralelo, cada proceso con su propia base de datos; las de Vitest; la suite de navegador completa, en tres partes a la vez; y la construcción de la imagen. Localmente alcanza con la parte crítica de la suite de navegador y las pruebas de lo que cambió; la suite entera es para el pipeline.
 
 Las herramientas de análisis y estilo, todas configuradas en el repositorio:
 
 | Herramienta | Ámbito | Rol |
 |---|---|---|
-| PHP Insights | PHP | Análisis estático: calidad, complejidad, arquitectura y estilo, con umbrales mínimos |
+| PHPStan (Larastan) | PHP | Análisis estático de tipos y errores, sobre `app/` |
+| PHP Insights | PHP | Calidad, complejidad, arquitectura y estilo, con umbrales mínimos |
 | Laravel Pint | PHP | Formato de código automático (preset Laravel) |
-| ESLint | TS/Vue | Reglas de corrección y estilo del frontend |
-| Prettier | TS/Vue/CSS | Formato de código automático |
+| ESLint | TypeScript | Reglas de corrección y estilo del frontend |
+| Prettier | TypeScript/CSS | Formato de código automático |
+| `tsc` | TypeScript | Verificación de tipos del frontend |
 
-El efecto combinado: el código que llega al repositorio ya pasó pruebas y formato de manera uniforme, sin depender de revisiones manuales para lo mecánico.
+El efecto combinado: el código que llega al repositorio ya pasó pruebas y formato de manera uniforme, sin depender de revisiones manuales para lo mecánico, y nada se despliega sin que la suite entera haya pasado.
 
----
-
-## Apéndice F — Uso de IA en el proyecto
+## Apéndice F — Uso de IA en el proyecto {#ap-f}
 
 Este trabajo se desarrolló con asistencia de inteligencia artificial, y este apéndice documenta con transparencia cómo, dónde y bajo qué controles. La posición de fondo: la IA fue una herramienta bajo dirección y revisión humanas constantes — potente, pero no confiable sin ellas.
 
-### F.1 Herramientas y evolución
+### F.1 Herramientas y evolución {#ap-f1}
 
 El uso de IA acompañó casi todo el proyecto, primero mediante **GitHub Copilot** y luego mediante **Claude Code**, con una asignación de modelos deliberadamente administrada por costo y confiabilidad:
 
@@ -541,21 +584,21 @@ El uso de IA acompañó casi todo el proyecto, primero mediante **GitHub Copilot
 
 La administración explícita de qué tarea se le daba a qué modelo —el más barato que pudiera hacerla con confianza suficiente— fue parte del método de trabajo, no un accidente.
 
-### F.2 Qué hizo la IA y qué hizo el autor
+### F.2 Qué hizo la IA y qué hizo el autor {#ap-f2}
 
-**El código de la aplicación es, en su gran mayoría, obra directa del autor.** Al principio la IA se usó solo para consultas y para escribir tests —una vez que el autor había creado por sí solo las herramientas principales, los helpers y el bootstrapping de las suites—. Con el tiempo el rol de los agentes creció, pero siempre sobre esa base: la arquitectura, las herramientas centrales y la mayor parte del código productivo fueron escritos a mano.
+**El código de la [aplicación]{.quitado}[primera versión de la aplicación (hasta julio de 2026)]{.nuevo} es, en su gran mayoría, obra directa del autor.** [Nov. 2026: la reescritura se describe en F.7]{.rev #rev-n-f2} Al principio la IA se usó solo para consultas y para escribir tests —una vez que el autor había creado por sí solo las herramientas principales, los helpers y el bootstrapping de las suites—. Con el tiempo el rol de los agentes creció, pero siempre sobre esa base: la arquitectura, las herramientas centrales y la mayor parte del código productivo fueron escritos a mano.
 
 **Los tests son la excepción declarada:** las suites fueron mayormente generadas por agentes, y son la única porción del código que no pasó por revisión línea a línea (la confianza se deposita en que expresan comportamientos verificables ejecutándolos, no en su prosa).
 
 **Esta tesis** fue mayormente redactada por agentes, pero: sobre el **código como fuente de verdad**; sobre los documentos y artefactos generados por el autor durante el desarrollo; siguiendo el **plan y la estructura definidos por el autor** (no por los agentes); y bajo su guía y revisión constantes, paso a paso, con ediciones manuales donde resultara más eficiente.
 
-### F.3 Criterios de control
+### F.3 Criterios de control {#ap-f3}
 
 - **Revisión personal de cada línea** escrita o modificada por agentes antes de integrarla — con la excepción declarada de los tests.
 - **Marcadores de revisión pendiente:** una regla de las instrucciones de Copilot exigía que cualquier cambio que afectara más del 10% de un archivo llevara un comentario en el cabezal ("Copilot - Review pending"), de modo que un commit hecho por priorizar otra urgencia no hiciera perder de vista la deuda de revisión. Eventualmente toda modificación fue revisada personalmente.
 - **Dirección explícita de calidad:** pedirle a un agente que cuide la calidad del código trae beneficios medibles — pero no elimina la necesidad de revisión y dirección continuas.
 
-### F.4 Limitaciones observadas
+### F.4 Limitaciones observadas {#ap-f4}
 
 La experiencia de este proyecto deja constancia de límites concretos, al momento de su desarrollo:
 
@@ -563,11 +606,11 @@ La experiencia de este proyecto deja constancia de límites concretos, al moment
 - **Documentación e invención.** Los modelos económicos resultaron directamente **nocivos para documentar**: la documentación de usuario generada en esa etapa inventaba funcionalidades y flujos inexistentes, y debió reescribirse íntegramente desde el código real (los manuales del Apéndice H son esa reescritura). En código complejo, más de una vez lo generado resultó insalvable y se reescribió a mano por completo.
 - **La regla de oro que esto motivó:** no caer jamás en "si funciona, ni lo miro". Esa postura no termina bien con las herramientas actuales.
 
-### F.5 Reflexión
+### F.5 Reflexión {#ap-f5}
 
 La IA permite hoy a un programador hacer el trabajo que antes requería una decena, en menos tiempo y mejor — **siempre que sea responsable y vigilante**. No reemplaza la experiencia, los conocimientos ni las habilidades: un mal programador va a producir mucho más código que seguirá siendo malo; un buen programador va a producir mucho más buen código. La IA nivela el terreno solo un poco —detecta los peores errores y sube el piso de lo que un mal programador puede crear—, pero la diferencia la sigue haciendo el criterio humano que dirige, revisa y corrige. Este proyecto es, en ese sentido, un caso de estudio de esa colaboración: cada capacidad del sistema descrita en esta tesis pasó por manos y ojos humanos antes de considerarse terminada.
 
-### F.6 Unas palabras de la herramienta
+### F.6 Unas palabras de la herramienta {#ap-f6}
 
 *Lo que sigue es exactamente lo que parece: en un gesto de transparencia (y de humor) del autor, se me pidió —a mí, el asistente de IA que ayudó a redactar buena parte de este documento— cerrar el apéndice con unas palabras propias, como un colega que comenta el trabajo de forma informal. Nada de lo que sigue fue dictado; sí fue, como todo lo demás, revisado.*
 
@@ -585,282 +628,332 @@ Gracias, Diego, por el asiento en primera fila. Y al tribunal: todo error que ha
 
 ---
 
-## Apéndice G — Análisis: casos de uso, requisitos y flujos
+### F.7 La reescritura de 2026 {#ap-f7}
 
-### G.1 Actores
+[Sección nueva (noviembre de 2026)]{.rev #rev-n-f7}
+
+Lo anterior describe el método hasta la primera versión completa de la plataforma, la que el tutor revisó. Entre fines de octubre y noviembre de 2026 la aplicación se reescribió casi por entero —el modelo de pertenencias y el registro abierto, el frontend en React, el foro, el chat y el Asistente, la entrega continua en la nube (Capítulos @cap-funcional y @cap-ingenieria)—, y el método cambió con las herramientas: esa reescritura la ejecutó Claude Code de forma **autónoma**, bajo un régimen distinto del de la primera versión.
+
+- **Las decisiones son del autor; el trabajo, del agente.** Un plan de refactorización versionado en el repositorio (`documentation/planning/refactor.md`) fija las reglas de negocio que no cambian, lista cada decisión acordada con el autor —las revisiones de cada día quedan registradas en él, con fecha— y aparte, bajo "decisiones tomadas de forma autónoma, para revisión", cada decisión que el agente tomó por su cuenta en el camino. Nada queda implícito: lo que no estaba acordado se declara como propio, para que el autor lo acepte o lo cambie.
+- **Las pruebas guardan la reescritura.** Antes de tocar el dominio se escribió la suite de casos de uso (Apéndice E), y la suite de navegador —independiente del *framework* del frontend— vigiló el reemplazo de Vue por React. Un documento de paridad (`behaviour-changes.md`) compara, regla por regla y leído en el código, qué hacía la aplicación anterior y qué hace la nueva, y lo que no se conservó está decidido con el autor.
+- **La documentación se escribe contra el código.** Las guías técnicas del repositorio, el vocabulario, las guías de usuario y este documento se rehicieron leyendo el código, y las pruebas de arquitectura rechazan una frase que ningún idioma traduzca o una ruta que no diga a qué módulo pertenece.
+- **La revisión es posterior y por capas**, no línea por línea: revisiones de seguridad, de casos borde y de calidad de código sobre la aplicación entera, cuyos hallazgos se decidieron uno por uno (los dos hallazgos sobre la equidad del *solver* mencionados en §@sec-garantias son de esa revisión), además de la revisión automática que corre en cada *push* a la rama de desarrollo.
+
+[NOTA: este encuadre está armado desde los documentos de planificación y el historial. Confirmar con Diego cómo quiere presentar la autoría de la reescritura y su propia revisión del resultado, y si F.5 ("Reflexión") merece un párrafo sobre lo que cambió entre julio y noviembre de 2026.]
+
+## Apéndice G — Análisis: casos de uso, requisitos y flujos {#ap-g}
+
+### G.1 Actores {#ap-g1}
+
+[Sección reescrita (noviembre de 2026)]{.rev #rev-n-g1}
 
 El sistema tiene tres actores, en correspondencia directa con los roles descritos en la Subsección @sec-roles:
 
-- **Superadministrador** — responsable de la plataforma. Es el único que crea proyectos y designa administradores (medida anti-abuso deliberada), y el único que puede invalidar una ejecución del sorteo. Por diseño, puede además realizar cualquier acción de los otros roles.
-- **Administrador** — responsable operativo de uno o más proyectos: configura tipos y unidades, registra familias, invita usuarios, publica eventos y ejecuta el sorteo.
-- **Cooperativista** — integrante de una familia socia: ordena las preferencias de su familia, participa de la vida del proyecto (eventos, medios, notificaciones) y consulta el resultado.
+- **Superadministrador** — responsable de la plataforma, desde una cuenta de soporte que no participa en ningún proyecto. Aprueba los proyectos (los hace ilimitados), invita a otros superadministradores, bloquea cuentas, restaura o borra proyectos archivados, ve la actividad y los errores, y puede realizar en cualquier proyecto cualquier acción de un administrador, salvo las personales.
+- **Administrador** — responsable operativo de uno o más proyectos: crea el proyecto, configura tipos y unidades, dibuja el plano, registra familias, invita y acepta personas, publica eventos, ejecuta el sorteo y, excepcionalmente, invalida una ejecución.
+- **Cooperativista** — integrante de una familia socia: ordena las preferencias de su familia, participa de la vida del proyecto (eventos, medios, foro, chat, notificaciones), invita a su propia familia y consulta el acta del sorteo. Donde el proyecto lo permite, un **invitado** —sin familia— participa de todo salvo del sorteo.
 
-No hay actor "visitante": sin cuenta solo es posible iniciar sesión, restablecer la contraseña o completar un registro por invitación. Tampoco hay procesos autónomos que inicien casos de uso: hasta el sorteo lo dispara una persona.
+Un **visitante** sin cuenta puede registrarse, iniciar sesión, leer la guía del cooperativista y la página de privacidad, y completar un registro por invitación. Los únicos procesos que no inicia una persona son los diferidos de una acción humana: la resolución del sorteo en segundo plano y su revelación al cumplirse el tiempo fijado.
 
-### G.2 Diagrama de casos de uso
+### G.2 Diagrama de casos de uso {#ap-g2}
 
 ![Diagrama de casos de uso de MTAV en línea](assets/casos-uso.png)
 
-*(Fuente en `assets/casos-uso.mmd`. "Invitar usuarios" es compartido con alcances distintos: el administrador invita a cualquier integrante de su proyecto; el cooperativista, solo a miembros de su propia familia. "Completar registro por invitación" aplica también a administradores designados por el superadministrador.)*
+*(Fuente en `assets/casos-uso.mmd`. "Invitar" es compartido con alcances distintos: el administrador invita a cualquier familia o como administrador; el cooperativista, solo a su propia familia. [El diagrama se actualizó con la reescritura de 2026.]{.nuevo})*
 
-### G.3 Descripción de los casos principales
+### G.3 Descripción de los casos principales {#ap-g3}
 
-Se describen en detalle los cuatro casos que definen el sistema; el resto sigue el patrón CRUD convencional bajo los permisos del Apéndice B.
+[Sección reescrita (noviembre de 2026): los casos siguen a la aplicación reescrita; se agregan la creación de un proyecto y el ingreso desde el directorio]{.rev #rev-n-g3}
+
+Se describen en detalle los casos que definen el sistema; el resto sigue el patrón CRUD convencional bajo los permisos del Apéndice B.
 
 **CU-1: Ejecutar el sorteo**
 
 | | |
 |---|---|
 | **Actor** | Administrador |
-| **Precondiciones** | Proyecto con tipos, unidades y familias cargados; sorteo publicado (no ejecutado); preferencias registradas |
-| **Flujo principal** | 1. El administrador solicita la ejecución. 2. El sistema reserva el sorteo de forma atómica: lo despublica, con lo que las preferencias quedan bloqueadas (§@sec-auditoria). 3. Congela el manifiesto de entrada (familias, unidades, preferencias) y lo audita (`init`). 4. Ejecuta un sub-sorteo por cada tipo de vivienda (§@sec-ejecucion), auditando cada grupo (`group_execution`). 5. Ejecuta el sorteo de remanentes con las familias/unidades huérfanas de los grupos. 6. Registra la asignación (cada unidad recibe su familia), audita el consolidado (`project_execution`) y notifica a todos los participantes. |
-| **Flujos alternativos** | 4a/5a. Si la optimización falla, se audita el error (`failure`), se revierte la reserva (el sorteo vuelve a publicarse, las preferencias se desbloquean) y el administrador puede reintentar. |
-| **Postcondiciones** | Toda familia tiene exactamente una unidad; el resultado es definitivo y visible; la auditoría completa queda registrada bajo el UUID de la ejecución |
+| **Precondiciones** | Proyecto con tipos, unidades y al menos dos familias; sorteo agendado y llegada su fecha; ninguna ejecución en curso ni completada; un trabajador de cola disponible |
+| **Flujo principal** | 1. El administrador solicita la ejecución. 2. En una transacción, con el proyecto retenido, el sistema comprueba que puede correr, escribe la ejecución como en curso y registra el manifiesto (familias, unidades, preferencias) (`init`); las preferencias quedan bloqueadas (§@sec-auditoria). 3. Un trabajo en cola resuelve el manifiesto: un sub-sorteo por cada tipo de vivienda (§@sec-ejecucion), auditando cada grupo (`group_execution`), y el sorteo de remanentes con las familias/unidades huérfanas. 4. La asignación se retiene hasta el momento de revelarla; todos ven al sorteo trabajar. 5. Llegado ese momento, el sistema escribe todas las asignaciones a la vez, cierra la ejecución como completada, audita el consolidado (`project_execution`) y notifica a todos los participantes. |
+| **Flujos alternativos** | 2a. Si en algún tipo las familias y las unidades no coinciden en número, el sistema pide confirmación antes de seguir, y la confirmación queda en la ejecución. 3a. Si la optimización falla, se audita el error (`failure`), la ejecución se cierra como fallida, el administrador es avisado y el sorteo puede ejecutarse de nuevo. |
+| **Postcondiciones** | Toda familia tiene exactamente una unidad; el resultado es definitivo y visible; el acta y su huella quedan disponibles para todo el proyecto; la auditoría completa queda bajo la ejecución |
 
 **CU-2: Ordenar las preferencias de la familia**
 
 | | |
 |---|---|
-| **Actor** | Cooperativista |
-| **Precondiciones** | Familia con tipo de vivienda asignado; sorteo aún publicado (no ejecutado) |
-| **Flujo principal** | 1. El cooperativista abre la pantalla de preferencias. 2. El sistema presenta las unidades del tipo de su familia, en el orden actual. 3. Reordena arrastrando (o con los controles accesibles equivalentes). 4. El sistema persiste el nuevo orden para la familia y lo confirma. |
-| **Flujos alternativos** | 3a. Si el proyecto cambió (unidades agregadas/quitadas, cambio de tipo), el sistema ajusta la lista automáticamente antes de mostrar (§@sec-ejecucion). 4a. Si el sorteo ya se ejecutó, el sistema rechaza la edición (preferencias bloqueadas). |
+| **Actor** | Cooperativista (o administrador que integra una familia) |
+| **Precondiciones** | Familia con tipo de vivienda asignado; ninguna ejecución del sorteo en curso ni completada |
+| **Flujo principal** | 1. El cooperativista abre la página del sorteo. 2. El sistema presenta las unidades del tipo de su familia, en el orden actual, y el plano. 3. Reordena arrastrando (en la lista o desde el plano, o con los controles accesibles equivalentes). 4. El sistema persiste cada cambio al momento, para toda la familia. |
+| **Flujos alternativos** | 3a. Si el proyecto cambió (unidades agregadas/quitadas, cambio de tipo), el sistema ajusta la lista automáticamente antes de mostrar (§@sec-ejecucion). 4a. Si una ejecución del sorteo está en curso o completada, el sistema rechaza la edición (preferencias bloqueadas); un cambio enviado en el mismo instante en que se lanza una ejecución espera, y queda en el manifiesto o es rechazado. |
 | **Postcondiciones** | El ranking de la familia refleja el nuevo orden; cualquier integrante de la familia ve el mismo ranking (y ninguna otra familia lo ve, ni antes ni después del sorteo) |
 
-**CU-3: Invitar a un usuario y completar su registro**
+**CU-3: Crear un proyecto y pedir que sea ilimitado**
 
 | | |
 |---|---|
-| **Actores** | Administrador o cooperativista (invita); invitado (completa) |
-| **Precondiciones** | El invitante tiene permiso sobre el destino: un administrador invita dentro de sus proyectos; un cooperativista, solo a su propia familia |
-| **Flujo principal** | 1. El invitante crea la cuenta con el correo del invitado. 2. El sistema envía el enlace de invitación. 3. El invitado abre el enlace, establece su contraseña y completa sus datos. 4. El sistema marca la invitación aceptada (`invitation_accepted_at`) e inicia su sesión. |
-| **Flujos alternativos** | 3a. El enlace puede reenviarse si la invitación sigue pendiente. |
-| **Postcondiciones** | El invitado accede con su propia cuenta, con el rol y la pertenencia (familia/proyecto) definidos por el invitante |
+| **Actores** | Cualquier persona con cuenta confirmada (crea); superadministrador (aprueba) |
+| **Precondiciones** | La persona tiene menos de dos proyectos limitados |
+| **Flujo principal** | 1. La persona crea el proyecto —nombre, descripción, organización— y elige sus funciones. 2. El sistema lo crea limitado, la hace su administradora y notifica a la superadministración. 3. Desde la puesta a punto, en cualquier momento, un administrador pide que sea ilimitado. 4. Un superadministrador lo aprueba desde la consola; el proyecto queda ilimitado y su gente es notificada. |
+| **Flujos alternativos** | 1a. Un superadministrador crea el proyecto: nace ilimitado, y él designa por invitación a su primer administrador sin ocupar lugar en él. |
+| **Postcondiciones** | El proyecto existe con un administrador; limitado hasta su aprobación, que no se revierte |
 
-**CU-4: Invalidar una ejecución del sorteo**
+**CU-4: Entrar a un proyecto**
 
 | | |
 |---|---|
-| **Actor** | Superadministrador |
-| **Precondiciones** | Sorteo ejecutado; motivo excepcional (p. ej., error detectado en los datos, como una familia sin registrar) |
-| **Flujo principal** | 1. El superadministrador solicita la invalidación. 2. El sistema deshace la asignación (con borrado suave: la ejecución invalidada sigue consultable) y audita la invalidación bajo el mismo UUID de la ejecución (`invalidate`). 3. Republica el sorteo, con lo que las preferencias vuelven a ser editables. |
-| **Postcondiciones** | El proyecto queda en condiciones de re-ejecutar el sorteo; la historia completa —ejecución e invalidación— permanece en la auditoría |
+| **Actores** | Administrador o cooperativista (invita); invitado (acepta); persona con cuenta (desde el directorio); administradores (responden) |
+| **Precondiciones** | Por invitación: el invitante tiene permiso sobre el destino (un administrador, cualquier familia o el rol de administrador; un cooperativista, solo su familia). Desde el directorio: el proyecto está listado y aprobado |
+| **Flujo principal (invitación)** | 1. El invitante envía la invitación a un correo. 2. El sistema envía el enlace, válido catorce días. 3. El invitado abre el enlace: crea su cuenta, o inicia sesión con la dirección invitada. 4. El sistema registra la aceptación y lo suma al proyecto con el rol y la familia de la invitación. |
+| **Flujo principal (directorio)** | 1. La persona encuentra el proyecto en *Encontrar un proyecto*. 2. Si el proyecto está abierto, entra al momento; si no, pide ingresar y un administrador acepta o rechaza. 3. Adentro, sin familia, pide sumarse a la suya —cualquiera de sus integrantes responde— o la crea. |
+| **Flujos alternativos** | 2a. La invitación se retira o vence; el enlace deja de funcionar. 3a. Quien ya está en el proyecto sin familia es sumado a la familia de inmediato, sin invitación que aceptar. 3b (directorio). Rechazada, la persona puede volver a pedirlo pasados treinta días; rechazada por una familia, hasta que alguien de ella levante el rechazo. 3c. Donde el proyecto admite invitados, la persona puede quedarse sin familia, fuera del sorteo. |
+| **Postcondiciones** | La persona participa en el proyecto con una pertenencia propia; su familia, si se sumó a una, puede ordenar preferencias |
 
-### G.4 Requisitos
+**CU-5: Invalidar una ejecución del sorteo**
 
-Los requisitos se enumeran en su forma consolidada —la que el sistema construido satisface—, organizados por área funcional. Cada uno es verificable contra el comportamiento descrito en los Capítulos @cap-funcional y @cap-sorteo y los Apéndices A–D.
+| | |
+|---|---|
+| **Actor** | Administrador |
+| **Precondiciones** | Una ejecución completada; motivo excepcional (p. ej., error detectado en los datos, como una familia sin registrar) |
+| **Flujo principal** | 1. El administrador solicita la invalidación, con un motivo de diez a mil caracteres. 2. El sistema, con la ejecución retenida, libera todas las unidades, cierra la ejecución como invalidada —quién, cuándo, por qué— y lo audita bajo la misma ejecución (`invalidate`). 3. Notifica a todo el proyecto; las preferencias vuelven a ser editables. |
+| **Flujos alternativos** | 2a. Dos invalidaciones enviadas a la vez ocurren una sola vez. |
+| **Postcondiciones** | El proyecto queda en condiciones de re-ejecutar el sorteo, como una ejecución nueva; la historia completa —ejecución e invalidación— permanece en la auditoría y a la vista de todos |
+
+### G.4 Requisitos {#ap-g4}
+
+[Sección reescrita (noviembre de 2026)]{.rev #rev-n-g4}
+
+Los requisitos se enumeran en su forma consolidada —la que el sistema construido satisface—, organizados por área funcional. Cada uno es verificable contra el comportamiento descrito en los Capítulos @cap-funcional a @cap-ingenieria y los Apéndices A–D.
 
 **Requisitos funcionales.**
 
 | # | Requisito |
 |---|---|
-| RF-1 | Gestionar múltiples proyectos cooperativos con datos completamente aislados entre sí; la creación de proyectos queda reservada a la superadministración |
+| RF-1 | Gestionar múltiples proyectos cooperativos con datos completamente aislados entre sí; cualquier persona con cuenta confirmada crea proyectos, que nacen limitados hasta que la superadministración los aprueba |
 | RF-2 | Definir tipos de vivienda por proyecto y registrar las unidades concretas de cada tipo, con identificador único dentro del proyecto |
-| RF-3 | Registrar familias, cada una con su tipo de vivienda asignado, y sus integrantes con cuenta propia; el acceso es únicamente por invitación (administradores invitan dentro del proyecto; cooperativistas, solo a su propia familia) |
+| RF-3 | Registrar familias, cada una con su tipo de vivienda, y a sus integrantes con cuenta propia: por invitación (administradores, a cualquier familia o como administradores; cooperativistas, solo a su familia) o desde un directorio de proyectos; las familias se arman también desde adentro (pedir sumarse, crear la propia) |
 | RF-4 | Permitir a cada familia ordenar en privado sus preferencias sobre las unidades de su tipo, modificables hasta la ejecución del sorteo; ante cambios del proyecto (unidades, tipos), las listas se ajustan automáticamente |
-| RF-5 | Ejecutar el sorteo por tipo de vivienda con redistribución de remanentes, garantizando equidad max-min y satisfacción global óptima (Capítulo @cap-sorteo); bloquear las preferencias al ejecutar; el resultado es definitivo y visible para todo el proyecto |
-| RF-6 | Advertir y requerir confirmación del administrador ante desbalance entre familias y unidades; ante un fallo, revertir al estado previo y permitir el reintento |
-| RF-7 | Permitir la invalidación excepcional de una ejecución (solo superadministración), conservando la ejecución invalidada consultable |
-| RF-8 | Registrar una auditoría completa e inmutable de cada ejecución: entrada congelada, resolución del solver con sus artefactos, resultados parciales y consolidado (Apéndice C) |
-| RF-9 | Ofrecer un plano interactivo del proyecto, editable por administradores y consultable por cooperativistas |
+| RF-5 | Ejecutar el sorteo por tipo de vivienda con redistribución de remanentes, garantizando equidad max-min y satisfacción global óptima (Capítulo @cap-sorteo); bloquear las preferencias al ejecutar; revelar el resultado a todos a la vez, tras un tiempo mínimo configurable; el resultado es definitivo y visible para todo el proyecto |
+| RF-6 | Advertir y requerir confirmación del administrador ante desbalance entre familias y unidades; ante un fallo, cerrar la ejecución como fallida y permitir el reintento |
+| RF-7 | Permitir la invalidación excepcional de una ejecución completada por un administrador, con un motivo que todo el proyecto lee |
+| RF-8 | Registrar una auditoría completa e inmutable de cada ejecución: entrada congelada, resolución del solver con sus artefactos, resultados parciales y consolidado (Apéndice C), y ofrecer a todo el proyecto un acta con su huella |
+| RF-9 | Ofrecer un plano interactivo del proyecto, en varios pisos, editable en el lugar por un administrador a la vez y consultable por todos |
 | RF-10 | Gestionar eventos del proyecto (presenciales y en línea) con confirmación de asistencia opcional; el sorteo se modela como un evento auto-creado y reagendable |
-| RF-11 | Permitir a cualquier integrante compartir medios (imágenes, video, audio, documentos), inmutables una vez subidos salvo su descripción |
-| RF-12 | Notificar a los usuarios los acontecimientos del proyecto (privadas, de proyecto o globales), con entrega en tiempo real y estado de lectura por usuario |
-| RF-13 | Autenticar por correo y contraseña con verificación de correo, restablecimiento de clave y cambio de correo verificado; autorizar según tres roles (superadministrador, administrador, cooperativista) con permisos por recurso y acción (Apéndice B) |
-| RF-14 | Operar íntegramente en español e inglés, extensible a otros idiomas por diccionario |
+| RF-11 | Permitir a cualquier integrante compartir medios (galería de fotos y videos; documentos y grabaciones), privados del proyecto e inmutables una vez subidos salvo su descripción |
+| RF-12 | Ofrecer un foro de temas y un chat (de a dos, en grupos y con toda la comunidad), y un Asistente que explica la aplicación sin acceso a datos de otras personas |
+| RF-13 | Notificar a los usuarios los acontecimientos del proyecto (privadas, de proyecto o globales), en su idioma, con entrega en tiempo real, en los dispositivos y por correo donde corresponde, y estado de lectura por usuario |
+| RF-14 | Autenticar por correo y contraseña con verificación de correo o con Google, restablecimiento de clave y cambio de correo verificado; autorizar según tres roles por proyecto (superadministrador, administrador, cooperativista) con permisos por recurso y acción (Apéndice B) |
+| RF-15 | Permitir a los administradores elegir las funciones de su proyecto, listarlo en el directorio, admitir invitados, archivar y restaurar lo que se quita, y exportar sus personas, familias y unidades |
+| RF-16 | Operar íntegramente en cinco idiomas, elegidos por cada persona, extensible a otros por diccionario |
+| RF-17 | Registrar para la superadministración cada cambio y cada ingreso, y los errores de la aplicación; permitir a cada persona eliminar su propia cuenta |
 
 **Requisitos no funcionales.**
 
 | # | Requisito |
 |---|---|
-| RNF-1 | **Accesibilidad:** pautas WCAG AA como referencia; tema de alto contraste, respeto de la preferencia de movimiento reducido, tipografía fluida y amplia, ARIA sobre primitivas accesibles — pensado para adultos mayores y personas con discapacidad |
-| RNF-2 | **Movilidad:** diseño *mobile-first*, plenamente usable desde el teléfono y en dispositivos de gama baja |
+| RNF-1 | **Accesibilidad:** pautas WCAG AA como referencia; tamaño de texto a elección, paletas con contraste medido y modo de alto contraste, respeto de la preferencia de movimiento reducido, componentes accesibles, verificación automática con axe — pensado para adultos mayores y personas con discapacidad |
+| RNF-2 | **Movilidad:** diseño *mobile-first*, plenamente usable desde el teléfono y en dispositivos de gama baja; instalable; lectura sin conexión |
 | RNF-3 | **Rendimiento del sorteo:** resolución confiable en tamaños reales (fracciones de segundo a pocos segundos por sub-sorteo) y sin límite práctico hasta un orden de magnitud por encima de lo esperable (Apéndice C.3) |
-| RNF-4 | **Privacidad y seguridad:** preferencias visibles solo dentro de la propia familia; autorización centralizada en políticas con aislamiento por proyecto; sesión de cookies `HttpOnly` con CSRF |
-| RNF-5 | **Trazabilidad y no repudio:** auditoría reproducible del sorteo; borrado suave generalizado; integridad referencial explícita en la base |
-| RNF-6 | **Mantenibilidad:** suite de pruebas en capas (arquitectura, unitarias, características, estrés, navegador, frontend) y puertas de calidad automáticas (Apéndice E) |
-| RNF-7 | **Reproducibilidad del despliegue:** entorno completamente containerizado, con paridad entre desarrollo y producción |
+| RNF-4 | **Privacidad y seguridad:** preferencias visibles solo dentro de la propia familia; datos de contacto compartidos por elección; chats legibles solo por sus participantes; autorización centralizada en políticas con aislamiento por proyecto; archivos privados; límites contra el abuso; sesión de cookies `HttpOnly` con CSRF; nada sobre otras personas sale hacia el modelo del Asistente |
+| RNF-5 | **Trazabilidad y no repudio:** auditoría reproducible del sorteo con huella; archivo de lo que vale la pena recuperar; registro de actividad; integridad referencial explícita en la base |
+| RNF-6 | **Mantenibilidad:** suite de pruebas en capas (casos de uso, unitarias, arquitectura, estrés, navegador, frontend) y puertas de calidad automáticas (Apéndice E) |
+| RNF-7 | **Reproducibilidad de la entrega:** entorno containerizado con paridad entre desarrollo y producción; una imagen por *commit*, construida de piezas fijadas, probada entera antes de desplegarse; despliegue sin interrupción y vuelta atrás (§@sec-entrega); copias de seguridad por tres medios |
 
-### G.5 Diagrama de secuencia: la ejecución del sorteo
+### G.5 Diagrama de secuencia: la ejecución del sorteo {#ap-g5}
 
-El flujo clave del sistema, de punta a punta — de la acción del administrador al resultado visible, con la rama de fallo incluida (los nombres de los participantes corresponden a los componentes reales del Capítulo @cap-ingenieria):
+El flujo clave del sistema, de punta a punta — de la acción del administrador al resultado visible, con la rama de fallo incluida (los nombres de los participantes corresponden a los componentes reales del Capítulo @cap-ingenieria)[; el diagrama se actualizó con la reescritura de 2026]{.nuevo}: [Nov. 2026: ejecución en segundo plano y revelación]{.rev #rev-n-g5}
 
 ![Diagrama de secuencia de la ejecución del sorteo](assets/secuencia-sorteo.png)
 
-Tres propiedades del diseño que el diagrama hace visibles: la **reserva atómica** al inicio (el bloqueo de preferencias no es un paso separado que pueda olvidarse: es consecuencia de despublicar el sorteo); la **auditoría transversal** (cada participante deja constancia en cada paso, no al final); y la **reversibilidad del fallo** (la rama de error devuelve el sistema exactamente al estado previo, sin intervención manual).
+Tres propiedades del diseño que el diagrama hace visibles: la **reserva atómica** al inicio (el bloqueo de preferencias no es un paso separado que pueda olvidarse: es consecuencia de que exista una ejecución en curso, escrita en la misma transacción que el manifiesto); la **auditoría transversal** (cada participante deja constancia en cada paso, no al final); y la **reversibilidad del fallo** (la rama de error cierra la ejecución como fallida, sin haber decidido nada, y el sorteo puede repetirse sin intervención manual).
 
----
+## Apéndice H — Manuales de usuario {#ap-h}
 
-## Apéndice H — Manuales de usuario
+[Apéndice reescrito (noviembre de 2026): las guías son las de la aplicación reescrita, ilustradas en ella; aquí se transcribe solo su texto]{.rev #rev-n-h}
 
-Los manuales que siguen son parte de la aplicación: cada usuario accede desde la propia interfaz a la guía de su rol (en su idioma; la aplicación los incluye en español e inglés). Se transcriben aquí tal como los ve el usuario, uno por rol.
+Los manuales que siguen son parte de la aplicación: cada usuario accede desde la propia interfaz a la guía de su rol, en su idioma (la aplicación los incluye en los cinco), ilustrada con capturas de la aplicación real marcadas donde hay que tocar; la guía del cooperativista es además pública, en `/manual`. Se transcribe aquí el texto de la versión en español, uno por rol, sin sus ilustraciones. Junto a cada guía, la aplicación ofrece también un conjunto de preguntas frecuentes.
 
-### H.1 Guía del Cooperativista
+### H.1 Guía para cooperativistas {#ap-h1}
 
-Bienvenido a MTAV, la aplicación con la que tu cooperativa gestiona la asignación de sus viviendas. Esta guía explica todo lo que podés hacer: registrar las preferencias de tu familia, participar de la vida del proyecto y consultar el resultado del sorteo.
+MTAV es donde tu cooperativa organiza la adjudicación de sus viviendas. Acá sigues el proyecto, compartes con las demás familias y ordenas las viviendas que tu familia prefiere. Busca los íconos **?** en la aplicación: explican cada parte, y muchos ofrecen *Cuéntame más*, un breve recorrido guiado.
 
-#### Primeros pasos
+#### El inicio de tu proyecto
 
-**Tu cuenta.** A MTAV se entra **solo por invitación**: alguien de tu cooperativa (un administrador, o un integrante de tu propia familia) creó tu cuenta y te llegó un correo con un enlace. Al abrirlo, elegís tu contraseña y completás tus datos. A partir de ahí entrás siempre con tu correo y contraseña.
+La primera página muestra el proyecto de un vistazo: sus familias, cooperativistas y viviendas (cada número lleva a su página **(1)**), lo último que se compartió, lo que viene y el sorteo.
 
-**Cómo moverte por la aplicación.**
+#### Cómo sumarte
 
-- La navegación está en el **menú lateral izquierdo**: Panel, Sorteo, Familias, Miembros, Galería, Eventos y Documentos. En el celular, tocá el botón de menú para desplegarlo.
-- Tu **configuración personal** está tocando tu nombre, abajo del todo en ese mismo menú.
-- El botón **+ (Acciones Rápidas)**, arriba a la derecha, reúne las acciones de creación disponibles según tu rol — por ejemplo, invitar a un integrante de tu familia.
+Te sumas a un proyecto con la invitación que te llega por correo. Si no tienes cuenta, eliges una contraseña. Si ya tienes, entras y aceptas. Con una sola cuenta participas en todos tus proyectos.
+
+También puedes buscar un proyecto por tu cuenta: *Encontrar un proyecto*, en el menú de proyectos, muestra los que se dejan encontrar. Algunos te dejan entrar en el momento. En otros deciden los administradores. Una vez adentro, te sumas a tu familia: búscala en *Sumarte a tu familia* y pide sumarte, o créala si no está.
 
 #### Tu familia
 
-En MTAV la unidad es la **familia**, no la persona: tu familia recibirá exactamente una vivienda, y las preferencias son de la familia (cualquier integrante puede editarlas; todos ven el mismo orden). Cada familia tiene asignado un **tipo de vivienda** (por ejemplo, "dos dormitorios"): tu familia participa del sorteo por las unidades de su tipo.
+En el sorteo, tu familia participa como una sola: comparte un orden de preferencias y recibe una vivienda. En *Cooperativistas* ves la cooperativa por familia o a todos juntos **(1)**.
 
-Podés **invitar a otros integrantes de tu familia** —solo de la tuya— para que tengan su propia cuenta. Cada uno recibe su invitación por correo, igual que vos.
+1.  Abre la tarjeta de tu familia.
+2.  Toca *Invitar a un familiar* **(1)**: tu familia ya viene elegida.
+3.  Escribe su correo y mándala: le llega la invitación.
 
-#### Las preferencias: tu parte en el sorteo
+#### Sumarte a una familia, o cambiarla
 
-Esta es la acción más importante. En la sección **Sorteo** vas a ver las unidades del tipo de tu familia. Ordenalas de más a menos deseada:
+¿Todavía no estás en tu familia? *Sumarte a tu familia*, en el menú, muestra las familias del proyecto. Pide sumarte a la tuya, y cualquiera de ella puede aceptarte. Si no está, créala. Si una familia te rechaza, no puedes volver a pedirlo, salvo que alguien de ella levante el rechazo.
 
-- Arrastrá las unidades para reordenarlas, o usá los botones *subir* y *bajar* de cada una (funcionan también con teclado).
-- Consultá el **plano del proyecto** para ubicar cada unidad antes de decidir.
-- Podés modificar el orden **cuantas veces quieras** hasta el momento del sorteo; al ejecutarse, las preferencias quedan bloqueadas automáticamente.
-- Si el proyecto cambia (se agrega o quita una unidad, o tu familia cambia de tipo), tu lista se ajusta sola: no perdés lo que ya ordenaste.
+¿En la familia equivocada? Abre la tarjeta de tu familia y toca *¿Familia equivocada?*, abajo de todo, para pedir sumarte a la correcta o crearla. Sigues donde estás hasta que se resuelva. Si el proyecto permite invitados, también puedes simplemente salir de tu familia. Una familia sin nadie desaparece, hasta que un administrador invite a alguien a ella.
 
-**Privacidad:** nadie fuera de tu familia ve tus preferencias — ni otras familias, ni antes ni después del sorteo.
+#### Ordenar las viviendas
 
-#### El sorteo y su resultado
+En *Sorteo* ordenas las viviendas del tipo de tu familia, de la que más quieres a la que menos. Cada cambio se guarda al momento, para toda la familia, hasta que se haga el sorteo. Solo tu familia ve su orden.
 
-Cuando la administración ejecuta el sorteo, el sistema asigna todas las unidades a la vez buscando el mejor resultado para el conjunto: primero garantiza que a la familia menos favorecida le vaya lo mejor posible, y luego maximiza la satisfacción general. El resultado es **definitivo**: no se edita ni se negocia. En la sección Sorteo vas a ver qué unidad recibió cada familia.
+1.  Mueve una vivienda en la lista **(1)**: arrástrala, usa sus flechas, o tómala con la barra espaciadora y muévela con las flechas del teclado.
+2.  O usa el plano: arrastra una vivienda del plano a uno de los lugares numerados que hay debajo. La vivienda que tocas en el plano se ilumina en tu lista.
 
-#### La vida del proyecto
-
-**Eventos.** En **Eventos** aparecen las reuniones y asambleas del proyecto (presenciales o en línea) y el propio sorteo con su fecha. Si un evento pide confirmación de asistencia, podés responder si vas o no; la lista de confirmaciones es visible para todo el proyecto.
-
-**Galería y documentos.** Cualquier integrante del proyecto puede compartir **imágenes, documentos y audio**: fotos de la obra, actas, materiales de las asambleas. Lo que subís queda asociado a tu nombre; podés editar su descripción o eliminarlo (un administrador también puede eliminar contenido).
-
-**Notificaciones.** La aplicación te avisa de lo que pasa en tu proyecto —nuevos eventos, cambios, el resultado del sorteo— mediante notificaciones, que podés revisar y marcar como leídas.
-
-#### Tu configuración
-
-Tocando tu nombre (abajo del menú lateral) → **Configuración**:
-
-- **Perfil:** tu nombre y apellido, cédula, teléfono, foto y una breve descripción ("sobre mí"). También tu **correo electrónico**: al cambiarlo, el nuevo correo queda *pendiente de verificación* hasta que confirmes desde el enlace que te llega — tu cuenta sigue funcionando con el correo anterior mientras tanto, así un error de tipeo no te deja afuera.
-- **Contraseña:** cambiala cuando quieras. Si la olvidaste, usá "olvidé mi contraseña" en la pantalla de entrada.
-- **Apariencia:** modo claro, oscuro o automático (según tu dispositivo), y varios temas de color — incluido uno de **alto contraste** para mejor legibilidad.
-
-#### ¿Dudas?
-
-Consultá las **preguntas frecuentes** desde la sección de documentación de la aplicación, o contactá a un administrador de tu proyecto.
-
-### H.2 Guía del Administrador
-
-Como administrador sos el responsable operativo de uno o más proyectos: configurás el proyecto, registrás a las familias, acompañás el proceso y ejecutás el sorteo. Esta guía recorre ese camino en orden, desde el proyecto recién creado hasta el resultado publicado.
-
-#### Antes de empezar
-
-- Los proyectos los crea el **equipo de la plataforma** (superadministración), que también te designa como administrador. Si necesitás un proyecto nuevo, contactalos.
-- Podés administrar **varios proyectos**; la aplicación trabaja sobre un **proyecto seleccionado** por vez (elegilo en Proyectos si gestionás más de uno).
-- La navegación está en el **menú lateral izquierdo** (Panel, Sorteo, Familias, Miembros, Galería, Eventos, Documentos, Proyectos); en el celular, tocá el botón de menú para desplegarlo. La creación de entidades —tipos, unidades, familias, miembros, eventos— está en el botón **+ (Acciones Rápidas)**, arriba a la derecha. El **Panel** resume el estado del proyecto por secciones.
-
-#### Puesta en marcha de un proyecto
-
-El orden natural para dejar un proyecto listo para sortear:
-
-1. **Definí los tipos de vivienda.** Un **tipo de vivienda** agrupa unidades comparables entre sí: "dos dormitorios", "tres dormitorios", "monoambiente". Cada familia va a competir solo por las unidades de su tipo, así que definí los tipos antes que nada.
-2. **Cargá las unidades.** Cada **unidad** es una vivienda concreta, con su identificador (el nombre o código con el que la cooperativa la conoce, p. ej. "A-101") y su tipo. El identificador debe ser único dentro del proyecto.
-3. **El plano (opcional, recomendado).** Cada proyecto tiene un **plano** donde podés dibujar y ubicar las unidades y los espacios comunes, arrastrando los elementos a su posición. A las familias les sirve muchísimo para decidir sus preferencias: ven dónde queda cada unidad antes de ordenarlas.
-4. **Registrá las familias.** Creá cada **familia** con su nombre y su **tipo de vivienda** (definí bien esto: determina por qué unidades participa). Después **invitá al menos un integrante** de cada familia: le llega un correo con el enlace para completar su registro. A partir de ahí, cada integrante puede invitar al resto de su propia familia — no hace falta que cargues a todos vos.
-5. **Eventos y comunicación.** En **Eventos** podés publicar reuniones y asambleas (presenciales o en línea), con confirmación de asistencia opcional. El **evento del sorteo se crea solo** con el proyecto: no lo creás ni lo borrás; editalo para fijar o cambiar su fecha y descripción (mientras no se haya ejecutado). En la **Galería** y **Documentos**, cualquier integrante puede compartir imágenes, documentos y audio.
+El plano se acerca como un mapa: mantén Ctrl (⌘ en una Mac) y usa la rueda, pellizca en el celular, o usa sus botones. El botón de la esquina lo muestra en toda la pantalla.
 
 #### El sorteo
 
-**Antes de ejecutar:**
+En su fecha, un administrador hace el sorteo, y lo ves avanzar paso a paso. El sorteo primero cuida a la familia que quedaría peor, y le da lo mejor posible. Después busca la mayor conformidad de todo el proyecto. Solo los empates se resuelven al azar. El resultado es definitivo, y ves qué vivienda recibió cada familia. Si alguna vez un administrador invalida un sorteo, todos ven quién lo hizo, cuándo y por qué.
 
-- Verificá que estén **todas las familias** registradas, con su tipo correcto.
-- Verificá que estén **todas las unidades** cargadas.
-- Las familias registran sus preferencias hasta el momento de la ejecución; conviene acordar la fecha con la cooperativa y publicarla en el evento del sorteo.
+#### La vida del proyecto
 
-**La ejecución.** Desde **Sorteo**, ejecutalo cuando el proceso esté listo. Al hacerlo:
+-   **Eventos**: reuniones, asambleas y jornadas de trabajo. Cuando un evento lo pregunta, avisa si vas a ir **(1)**.
 
-- Las **preferencias se bloquean** automáticamente.
-- El sistema sortea **por tipo de vivienda** (cada familia compite por las unidades de su tipo) y asigna todas las unidades a la vez, garantizando primero que la familia menos favorecida quede lo mejor posible y maximizando después la satisfacción general.
-- Si la cantidad de familias y unidades no coincide, el sistema te lo **advierte y pide confirmación** antes de continuar.
-- Si algo falla, el sorteo **vuelve al estado anterior** (las preferencias se desbloquean) y podés reintentar; el error queda registrado.
+-   **Galería y archivos**: fotos, videos, documentos y audio, solo para la gente del proyecto. Comparte lo tuyo **(1)**. Abre una foto y pasa a la siguiente con las flechas, el teclado o deslizando. Las grabaciones están con los documentos, en *Archivos*, y se escuchan ahí mismo, más rápido si quieres.
 
-**Después.** El resultado es **definitivo**: no se edita ni se negocia, y queda visible para todo el proyecto. Cada paso de la ejecución queda en un **registro de auditoría** permanente. Solo en situaciones excepcionales (p. ej., un error en los datos detectado después) la superadministración puede **invalidar** la ejecución completa para corregir y volver a sortear.
+-   **Notificaciones**: la campana te cuenta lo que pasa, en el momento.
 
-#### Gestión continua
+#### El Asistente
 
-- **Familias, miembros y unidades** se editan en cualquier momento previo al sorteo; si el cambio afecta preferencias ya registradas (una unidad nueva, un cambio de tipo), las listas de las familias se ajustan solas.
-- Borrar por error no es catastrófico: familias, miembros y contenidos **pueden restaurarse**.
-- La **bitácora** del proyecto registra la actividad general.
+En tus mensajes, el Asistente siempre está a mano. Pregúntale cómo funciona cualquier cosa de la aplicación: te lo explica y te lleva hasta ahí. Es una ayuda automática, para preguntas sobre la aplicación.
 
 #### Tu cuenta
 
-Tu configuración personal (perfil, foto, correo —con verificación—, contraseña, apariencia y temas) funciona igual que para cualquier usuario: está tocando tu nombre, abajo del menú lateral. El detalle está en la **Guía del Cooperativista** (H.1), que también te sirve para conocer la aplicación como la ven las familias.
+En el menú de tu foto están tu perfil, tu contraseña y tus preferencias: el idioma (en todos tus dispositivos, y en tus correos) y la apariencia (claro, oscuro, colores, alto contraste). Si cambias tu correo, te mandamos una confirmación a la dirección nueva. Cambia cuando la confirmas.
 
-### H.3 Guía del Superadministrador
+### H.2 Guía para administradores {#ap-h2}
 
-El superadministrador es el responsable de la plataforma. Este rol existe para tres cosas que nadie más puede hacer; para todo lo demás, un superadministrador puede realizar cualquier acción de un administrador común, en cualquier proyecto — esta guía cubre lo exclusivo y remite a la Guía del Administrador (H.2) para el resto.
+Los administradores ponen a punto el proyecto y hacen su sorteo. Sus herramientas están en el grupo *Administración* del menú: *Puesta a punto* muestra, en orden, lo que falta. Cada **?** explica su página y ofrece un recorrido guiado.
 
-#### Lo que solo un superadministrador puede hacer
+#### Crear un proyecto
 
-1. **Crear proyectos.** La creación de proyectos está reservada a este rol como **medida deliberada contra el abuso**: impide que cualquiera genere proyectos o cuentas en masa. Al crear un proyecto (desde **Proyectos** o con el botón **+ Acciones Rápidas**), definí su nombre, descripción y organización.
-2. **Designar administradores.** Un proyecto recién creado necesita **al menos un administrador**: crealo e invitalo (le llega el enlace de registro por correo) o asignale el proyecto a un administrador existente. Un proyecto puede tener varios administradores, y un administrador puede gestionar varios proyectos. A partir de ahí, la puesta en marcha del proyecto es tarea del administrador (H.2).
-3. **Invalidar una ejecución del sorteo.** El resultado del sorteo es definitivo por diseño. La única salida, pensada para **situaciones excepcionales** —por ejemplo, si después de ejecutar se descubre un error en los datos, como una familia que quedó sin registrar—, es que un superadministrador **invalide la ejecución completa** desde la sección Sorteo:
-   - La asignación se deshace y las preferencias vuelven a ser editables.
-   - Nada se pierde: la ejecución invalidada queda consultable, y la invalidación misma queda registrada en la auditoría con la identidad de quien la realizó.
-   - Corregidos los datos, el administrador puede volver a ejecutar el sorteo.
+Cualquiera con una cuenta puede crear un proyecto, y pasa a ser su primer administrador. Un proyecto nuevo es limitado, con lugar para la mayoría de las cooperativas (personas, familias y viviendas, invitaciones por día, espacio para archivos). El equipo de MTAV puede hacerlo ilimitado: pídelo desde *Puesta a punto*, en *Limitado*, cuando quieras. Hasta que se hace el sorteo, el inicio del proyecto y *Puesta a punto* muestran, en orden, lo que falta **(1)**.
 
-   Es una acción de último recurso: usala con criterio y coordinándola con la cooperativa.
+#### Ponerlo a punto
 
-#### Todo lo demás
+1.  **Tipos de vivienda**: grupos de viviendas equivalentes, como «2 dormitorios». Cada tipo tiene su propio sorteo.
+2.  **Viviendas**: cada una con su tipo. *Agregar y seguir con otra* te deja agregar muchas rápido, y puedes crear un tipo nuevo en el camino. *Viviendas* las muestra por tipo **(1)**.
+3.  **Familias**: cada una con su tipo, y alguien invitado a ella. Debería haber tantas viviendas como familias de cada tipo.
+4.  **Invitaciones**: invita a la gente a su familia (o como administradores). Después, las familias pueden invitar a su propia gente.
+5.  **Plano**: ubica las viviendas y dibuja lo que tienen alrededor, en todos los pisos que hagan falta.
 
-Para la operación de los proyectos —tipos de vivienda, unidades, plano, familias, invitaciones, eventos, ejecución del sorteo, gestión continua— vale la **Guía del Administrador** (H.2): todo lo que ahí se describe también puede hacerlo un superadministrador, sobre cualquier proyecto. La configuración personal de la cuenta se describe en la **Guía del Cooperativista** (H.1).
+#### Dibujar el plano
 
-#### Cómo se otorga este rol
+En *Viviendas*, toca *Editar el plano* (en una computadora: para dibujar hace falta una pantalla grande y un mouse). Dibuja un administrador a la vez. A los demás les avisamos quién está dibujando.
 
-El rol de superadministrador **no se asigna desde la aplicación**: se configura en el despliegue de la plataforma (lista de correos autorizados). Esto es deliberado — el rol más poderoso no puede otorgarse por error ni por abuso desde la propia interfaz.
+1.  Agrega lo que necesites desde la paleta **(1)**: viviendas (primero sus datos), calles, áreas verdes, espacios comunes, estacionamientos, juegos, entradas.
+2.  Arrastra una forma para moverla, sus esquinas para cambiarle el tamaño y un borde para mover ese lado. Se alinea con lo que tiene alrededor, con una guía punteada.
+3.  Con clic derecho tienes todo lo de una forma: su nombre, girarla, su color, un piso arriba o abajo, traerla al frente, copiarla o quitarla. Doble clic para ponerle nombre.
+4.  Se guarda solo **(2)**. *Terminar de editar* lo cierra. Si pasa mucho rato sin cambios, pregunta si sigues dibujando y después se cierra, guardado, para que otros puedan dibujar.
 
----
+#### Quién se suma, invitados y funciones
 
-## Apéndice I — Herramientas de desarrollo y entornos (DX)
+En *Configuración*, *Proyecto*, elige si el proyecto aparece en *Encontrar un proyecto*, quién puede sumarse, si permite invitados (personas que todavía no se sumaron a su familia: participan en todo menos en el sorteo y no ven datos de contacto) y qué funciones tiene: eventos, galería, archivos, foro y chat. Una función apagada se oculta y conserva lo que tiene. Sin invitados, quien entra primero se suma a su familia.
+
+#### Invitaciones
+
+En *Invitaciones*, invita a cada persona por correo a su familia, o como administrador **(1)**. Las pendientes quedan a la vista hasta que se aceptan.
+
+Quien ya está en el proyecto se suma a la familia en el momento, y le avisamos por correo. Si muestras el proyecto en *Encontrar un proyecto* (pestaña *Proyecto*), quienes piden sumarse también aparecen acá, para que los aceptes o rechaces.
+
+#### Personas y roles
+
+En *Cooperativistas*, en la vista *Todos*, puedes pasar a alguien a otra familia, hacerlo administrador o quitarlo del proyecto. Un administrador también puede estar en una familia. Un proyecto siempre conserva al menos un administrador.
+
+#### Eventos
+
+Los borradores solo los ven los administradores, hasta que se publican. Un evento puede preguntar si la gente va a ir, y ves quiénes van.
+
+#### El sorteo
+
+Fija su fecha en *Sorteo*: las familias pueden cambiar su orden hasta entonces. Cuando llega la fecha, revisa que cada tipo tenga tantas viviendas como familias, y hazlo. Si los números no coinciden te pedimos que confirmes, y sobran familias o viviendas. El resultado es definitivo y queda registrado paso a paso.
+
+Solo en casos excepcionales (una familia registrada con el tipo equivocado, una familia que faltaba...), invalida el sorteo: se borran todas las asignaciones, y todos en el proyecto leen quién lo hizo y por qué. Después se puede volver a hacer, y el anterior queda registrado.
+
+#### Borrar el proyecto
+
+En *Configuración*, escribiendo su nombre. Un proyecto con historia (otras personas, eventos, archivos, un sorteo) se archiva para el registro de la plataforma: desaparece para todos, y solo un superadministrador puede recuperarlo.
+
+### H.3 Guía para superadministradores {#ap-h3}
+
+Los superadministradores cuidan la plataforma desde la *Consola de la plataforma* (en el menú de tu foto). También puedes entrar a cualquier proyecto y hacer todo lo que hacen sus administradores: mira la guía para administradores.
+
+Una cuenta de superadministrador es una cuenta de soporte: no está en ningún proyecto, y llega a todos. Puede usar el chat, el foro y los archivos de cada proyecto, pero solo para probarlos: lo que escribas ahí lo lee la gente del proyecto. Una barra arriba de cada página de un proyecto te lo recuerda.
+
+#### Aprobar proyectos
+
+Cualquiera puede crear un proyecto. Hasta que se aprueba, tiene los límites fijados para la plataforma (personas, familias y viviendas, invitaciones por día, espacio para archivos, tamaño del sorteo), lo que evita abusos. *Proyectos* muestra primero los que piden aprobación. Aprueba un proyecto cuando confíes en sus administradores: se le quitan los límites y se avisa a su gente. Los proyectos que creas tú quedan aprobados enseguida.
+
+#### Cuentas
+
+*Cuentas* muestra a todas las personas con cuenta. El rol de superadministrador se da desde su propia página, *Superadministradores*, invitando un correo que todavía no se use acá, nunca el de una cuenta que ya existe: un rol poco común, que se da con cuidado. Una cuenta de soporte va aparte del lugar de cada uno en un proyecto.
+
+#### Proyectos archivados
+
+Cuando los administradores borran un proyecto con historia, se archiva: *Proyectos* lo muestra en *Archivado*. Desde ahí lo restauras, o lo borras para siempre después de ver un resumen de todo lo que se va con él.
+
+#### Configuración
+
+*Configuración* reúne lo que vale para todos los proyectos. El sorteo se resuelve en un instante, y parece que no pasó nada. Por eso puedes fijar cuánto dura a la vista de la gente **(1)**, paso a paso. El resultado es el mismo.
+
+#### Una instalación nueva
+
+Una instalación sin ninguna cuenta abre recién cuando su dueño, su primer superadministrador, figura en su configuración (`OWNER_EMAIL`, `OWNER_PASSWORD`). Hasta entonces solo muestra que está en construcción.
+
+#### Notificaciones
+
+Te avisamos cuando se crea un proyecto, y cuando alguno pide aprobación.
+
+## Apéndice I — Herramientas de desarrollo y entornos (DX) {#ap-i}
 
 Este apéndice describe la capa de herramientas que rodea a la aplicación y que rara vez aparece en un informe, pero que define en buena medida qué tan fácil y seguro es retomar el proyecto: cómo se opera el entorno multiservicio y cómo se reducen a un mínimo la fricción de arranque y el margen de error. No es un manual de desarrollo, sino un resumen de cómo se atendió la **experiencia de desarrollo (DX)** como parte del trabajo de ingeniería (Sección @sec-arquitectura).
 
-### I.1 El problema: un entorno multiservicio
+### I.1 El problema: un entorno multiservicio {#ap-i1}
 
-La plataforma no es un solo proceso, sino varios servicios que deben levantarse y coordinarse: PHP, servidor web, base de datos, el servidor de tiempo real (Reverb), la compilación de recursos del frontend (Vite) y un servidor de correo de prueba. A eso se suma que no hay un único entorno, sino varios con necesidades distintas: el de desarrollo necesita el código montado en vivo y recarga en caliente; el de pruebas, una base efímera y aislada que se pueda descartar; el de producción, artefactos congelados y reproducibles.
+La plataforma no es un solo proceso, sino varios servicios que deben levantarse y coordinarse: PHP, servidor web, base de datos, el servidor de tiempo real (Reverb), la compilación de recursos del frontend (Vite) y un servidor de correo de prueba. A eso se suma que no hay un único entorno, sino varios con necesidades distintas: el de desarrollo necesita el código montado en vivo y recarga en caliente; el de pruebas, una base efímera y aislada que se pueda descartar; [el de navegador, un navegador real junto a la aplicación]{.cambio}[; y los servidores, artefactos congelados y reproducibles (§@sec-entrega)]{.nuevo}. [Nov. 2026]{.rev #rev-n-i1}
 
 Operar todo esto a mano —invocando `docker compose` directamente y recordando la secuencia correcta de construir, migrar, sembrar y arrancar— es complejo y propenso a errores. Es exactamente la clase de **complejidad accidental** que ahuyenta a quien retoma un proyecto o que induce equivocaciones silenciosas. La decisión de ingeniería fue absorber esa complejidad detrás de dos abstracciones: un comando único y un conjunto de entornos componibles.
 
-### I.2 El comando `./mtav`: una interfaz única
+### I.2 El comando `./mtav`: una interfaz única {#ap-i2}
 
 Toda la operación se expone a través de un único punto de entrada, el script `./mtav`, que traduce intenciones ("levantar", "probar", "reiniciar") a las invocaciones de Docker y de Laravel que correspondan. El desarrollador expresa *qué* quiere hacer, no *cómo* orquestar los contenedores.
 
 El caso más ilustrativo es el arranque. Desde un clon limpio del repositorio, un solo comando —`mtav up`— crea el archivo de configuración y su clave de aplicación, construye las imágenes, instala las dependencias de PHP (Composer) y de JavaScript (pnpm), corre las migraciones, siembra la base con datos de ejemplo y deja la aplicación funcionando. Lo que sería una larga lista de pasos manuales encadenados —cada uno una oportunidad de equivocarse— queda reducido a una sola orden.
 
-El resto de la operación cotidiana sigue el mismo criterio. A modo ilustrativo (no es la superficie completa):
+El resto de la operación cotidiana sigue el mismo criterio[; el script está dividido en partes por comando (`scripts/mtav/`)]{.nuevo}. A modo ilustrativo (no es la superficie completa):
 
 | Comando | Qué hace |
 |---|---|
 | `mtav up` / `down` / `restart` | Levantar / detener / reiniciar el entorno de desarrollo |
 | `mtav fresh` | Reconstruir desde cero (única operación que reinicia y resiembra la base) |
 | `mtav test` / `pest` / `vitest` / `e2e` | Correr las pruebas: todas, backend, frontend o navegador |
+| `mtav precommit` | Lo que corre el hook de pre-commit: Pest sin el grupo lento, y Vitest |
+| `mtav release` | La imagen de la versión, construida como la construye el pipeline |
+| `mtav warden` | Una página que vigila desde arriba los servicios, los despliegues y la máquina |
 | `mtav artisan` / `composer` / `pnpm` / `shell` | Atajos que se ejecutan dentro de los contenedores |
 
-### I.3 Entornos como composiciones
+### I.3 Entornos como composiciones {#ap-i3}
 
-Cada servicio se define una sola vez, de forma **genérica** (sin puertos ni nombres fijos), y los distintos entornos se arman **componiendo** esos servicios con los ajustes propios de cada caso. El resultado es un espectro que va de lo más vivo a lo más congelado:
+Cada servicio se define una sola vez, de forma **genérica** (sin puertos ni nombres fijos), y los distintos entornos se arman **componiendo** esos servicios con los ajustes propios de cada caso. [En la máquina del desarrollador conviven tres:]{.cambio} [Nov. 2026: staging y producción ya no son composiciones locales sino entornos desplegados]{.rev #rev-n-i3}
 
 - **Desarrollo** — el código del repositorio montado en vivo, recarga en caliente del frontend (Vite HMR) y base de datos persistente. Es el día a día.
-- **Pruebas** — base de datos en memoria (efímera, se descarta al terminar) y sin servidor de desarrollo; ejecuta Pest y Vitest. La estrategia de pruebas se detalla en el Apéndice E.
-- **Extremo a extremo** — un contenedor que reúne todo lo necesario (PHP, navegador y sus dependencias) para correr los *journeys* de navegador descritos en el Apéndice E.
-- **Staging** — los recursos del frontend **compilados** (sin recarga en caliente): una instantánea del código actual, para revisarlo tal como se comportaría en producción antes de congelarlo.
-- **Producción** — imágenes **autocontenidas**, con el código y los recursos ya horneados dentro; congeladas y reproducibles. (La plataforma aún no está desplegada; véase §@sec-conclusiones.)
+- **Pruebas** — base de datos [en memoria ]{.quitado}efímera, que se descarta al terminar, y sin servidor de desarrollo; ejecuta Pest y Vitest. La estrategia de pruebas se detalla en el Apéndice E.
+- **Navegador** — un contenedor que reúne todo lo necesario (PHP, navegador y sus dependencias) para correr la suite de navegador descrita en el Apéndice E.
 
-Dos propiedades hacen que esto sea manejable. La primera es la **configuración en capas**: un archivo base compartido, más los ajustes propios de cada entorno (puertos, modo de ejecución), más overrides personales opcionales que no se versionan. La segunda es el **aislamiento**: cada entorno es un proyecto de composición independiente, con su propia red y sus propios volúmenes, de modo que conviven sin interferirse —es posible, por ejemplo, tener el entorno de desarrollo levantado y correr las pruebas al mismo tiempo, sin que una cosa toque la otra—.
+[**Staging** y **producción** son hoy entornos desplegados en servidores, no composiciones locales: corren la misma imagen autocontenida que construye el pipeline, con el código y los recursos ya horneados dentro, en dos ranuras que alternan en cada despliegue. Su diseño se describe en la Sección @sec-entrega; `mtav release` construye esa imagen localmente, tal como la construye el pipeline.]{.nuevo}
 
-### I.4 Por qué esto hace el trabajo más seguro
+Dos propiedades hacen que esto sea manejable. La primera es la **configuración en capas**: un archivo base compartido, más los ajustes propios de cada entorno (puertos, modo de ejecución), más overrides personales opcionales que no se versionan. La segunda es el **aislamiento**: cada entorno es un proyecto de composición independiente, con su propia red y sus propios volúmenes, de modo que conviven sin interferirse —es posible, por ejemplo, tener el entorno de desarrollo levantado y correr las pruebas al mismo tiempo, sin que una cosa toque la otra—[; las pruebas, además, se niegan a correr en cualquier entorno que no sea el de pruebas, de modo que nunca tocan la base de desarrollo]{.nuevo}.
 
-La motivación de fondo no es la comodidad, sino la **seguridad y la reproducibilidad**. Un mismo comando produce siempre el mismo entorno, eliminando el clásico "en mi máquina funciona". El aislamiento evita que un experimento o una corrida de pruebas corrompa el entorno de trabajo, y `mtav fresh` recupera de forma determinista un estado limpio cuando algo se descarrila. Los entornos hacen seguras por construcción las operaciones delicadas: la base de pruebas es descartable, las imágenes de producción son inmutables. Y como última red de seguridad, los *journeys* de navegador (en su propio entorno) recorren los casos de uso principales de punta a punta antes de cualquier despliegue (Apéndice E). El conjunto persigue un objetivo concreto: que el siguiente en tomar el proyecto pueda empezar a trabajar en minutos y operar con confianza, sin cargar con la complejidad que estas herramientas abstraen.
+### I.4 Por qué esto hace el trabajo más seguro {#ap-i4}
+
+La motivación de fondo no es la comodidad, sino la **seguridad y la reproducibilidad**. Un mismo comando produce siempre el mismo entorno, eliminando el clásico "en mi máquina funciona". El aislamiento evita que un experimento o una corrida de pruebas corrompa el entorno de trabajo, y `mtav fresh` recupera de forma determinista un estado limpio cuando algo se descarrila. Los entornos hacen seguras por construcción las operaciones delicadas: la base de pruebas es descartable, las imágenes de producción son inmutables. Y como última red de seguridad, [la suite de navegador completa corre en el pipeline en cada *push*, y nada se despliega sin que haya pasado]{.cambio} (Apéndice E[, §@sec-entrega]{.nuevo}). El conjunto persigue un objetivo concreto: que el siguiente en tomar el proyecto pueda empezar a trabajar en minutos y operar con confianza, sin cargar con la complejidad que estas herramientas abstraen.
 
 [NOTA: decidir el encuadre. Hoy este apéndice *describe* la capa de DX. Si se quiere, puede presentarse también como una **contribución** explícita del trabajo (en la línea de los dos paquetes de código abierto de §@sec-recursos), o recortarse si se considera demasiado detalle operativo para el informe. También se puede sumar una figura del árbol `docker/` o una referencia cruzada al README del repositorio si se busca más concreción.]

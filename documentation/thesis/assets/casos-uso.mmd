@@ -2,25 +2,29 @@ flowchart LR
     SA(["Superadministrador"])
     AD(["Administrador"])
     CO(["Cooperativista"])
+    VI(["Visitante"])
 
     subgraph MTAV["MTAV en línea"]
-        UC1(["Crear proyecto"])
-        UC2(["Designar administradores"])
-        UC3(["Invalidar ejecución del sorteo"])
-        UC4(["Definir tipos de vivienda y unidades"])
-        UC5(["Editar el plano del proyecto"])
-        UC6(["Registrar familias"])
-        UC7(["Invitar usuarios"])
-        UC8(["Publicar eventos y agendar el sorteo"])
-        UC9(["Ejecutar el sorteo"])
-        UC10(["Completar registro por invitación"])
-        UC11(["Ordenar preferencias de la familia"])
-        UC12(["Confirmar asistencia a eventos"])
-        UC13(["Compartir medios"])
-        UC14(["Consultar plano, resultado y notificaciones"])
-        UC1 ~~~ UC2 ~~~ UC3 ~~~ UC4 ~~~ UC5
-        UC6 ~~~ UC7 ~~~ UC8 ~~~ UC9 ~~~ UC10
-        UC11 ~~~ UC12 ~~~ UC13 ~~~ UC14
+        UC1(["Aprobar proyectos (ilimitados)"])
+        UC2(["Invitar superadministradores, bloquear cuentas"])
+        UC3(["Ver actividad y errores; restaurar o borrar proyectos"])
+        UC4(["Crear un proyecto y elegir sus funciones"])
+        UC5(["Definir tipos de vivienda y unidades"])
+        UC6(["Dibujar el plano del proyecto"])
+        UC7(["Registrar familias y responder pedidos de ingreso"])
+        UC8(["Invitar"])
+        UC9(["Publicar eventos y agendar el sorteo"])
+        UC10(["Ejecutar o invalidar el sorteo"])
+        UC11(["Registrarse o entrar por invitación"])
+        UC12(["Entrar desde el directorio y sumarse a su familia"])
+        UC13(["Ordenar preferencias de la familia"])
+        UC14(["Confirmar asistencia a eventos"])
+        UC15(["Compartir medios; foro y chat"])
+        UC16(["Consultar plano, acta del sorteo y notificaciones"])
+        UC1 ~~~ UC2 ~~~ UC3 ~~~ UC4
+        UC5 ~~~ UC6 ~~~ UC7 ~~~ UC8
+        UC9 ~~~ UC10 ~~~ UC11 ~~~ UC12
+        UC13 ~~~ UC14 ~~~ UC15 ~~~ UC16
     end
 
     SA --- UC1
@@ -32,10 +36,13 @@ flowchart LR
     AD --- UC7
     AD --- UC8
     AD --- UC9
-    AD --- UC13
-    CO --- UC7
-    CO --- UC10
-    CO --- UC11
+    AD --- UC10
+    AD --- UC15
+    CO --- UC8
     CO --- UC12
     CO --- UC13
     CO --- UC14
+    CO --- UC15
+    CO --- UC16
+    VI --- UC4
+    VI --- UC11

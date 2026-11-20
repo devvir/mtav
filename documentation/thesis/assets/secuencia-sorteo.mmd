@@ -2,35 +2,41 @@ sequenceDiagram
     autonumber
     actor Admin as Administrador
     participant HTTP as Controlador HTTP
-    participant Exec as Servicio de ejecución
+    participant Runs as LotteryRuns
     participant Audit as Auditoría
+    participant Cola as Cola (RunLottery)
     participant Orch as Orquestador
     participant Solver as Solver (búsqueda binaria + GLPK)
     participant BD as Base de datos
     actor Coop as Cooperativistas
 
     Admin->>HTTP: Ejecutar sorteo
-    HTTP->>Exec: execute(sorteo)
-    Exec->>BD: Reserva atómica (despublica el sorteo)
-    Note over BD: Preferencias bloqueadas
-    Exec->>Exec: Valida integridad y balance
-    alt familias ≠ unidades
-        Exec-->>Admin: Advertencia: requiere confirmación
+    HTTP->>Runs: start(proyecto)
+    Runs->>BD: Transacción: retiene el proyecto, valida (fecha, trabajador, familias, confirmaciones)
+    alt familias ≠ unidades sin confirmar
+        Runs-->>Admin: Advertencia: requiere confirmación
     end
-    Exec->>Audit: init (manifiesto congelado)
-    Exec->>Orch: Ejecutar con el manifiesto
+    Runs->>BD: Ejecución "en curso" (reveal_at = ahora + tiempo mínimo)
+    Runs->>Audit: init (manifiesto congelado)
+    Note over BD: Preferencias bloqueadas
+    Runs->>Cola: RunLottery(ejecución)
+    Cola->>Orch: Resolver el manifiesto registrado
     loop por cada tipo de vivienda
         Orch->>Solver: Resolver sub-sorteo
         Solver-->>Orch: Asignaciones del grupo
         Orch->>Audit: custom (solver) + group_execution
     end
     Orch->>Solver: Sorteo de remanentes (huérfanos)
-    Orch->>BD: Registrar asignaciones (unidad → familia)
-    Orch->>Audit: project_execution (consolidado)
-    Orch-->>Coop: Notificaciones + difusión en tiempo real
-    Note over Coop: Resultado visible para todo el proyecto
+    Orch-->>Runs: Resultado
+    Runs->>BD: Retiene el resultado hasta reveal_at
+    Note over Coop: Todos ven al sorteo trabajar
+    Runs->>BD: Al revelar: asignaciones (unidad → familia) y ejecución "completada", en una transacción
+    Runs->>Audit: project_execution (consolidado)
+    Runs-->>Coop: Notificaciones + difusión en tiempo real
+    Note over Coop: Acta y huella visibles para todo el proyecto
     alt falla la optimización
         Orch->>Audit: failure (error registrado)
-        Orch->>BD: Revierte la reserva (republica el sorteo)
-        Note over BD: Preferencias desbloqueadas — se puede reintentar
+        Runs->>BD: Ejecución "fallida": no decidió nada
+        Runs-->>Admin: Aviso: se puede ejecutar de nuevo
+        Note over BD: Preferencias desbloqueadas
     end
