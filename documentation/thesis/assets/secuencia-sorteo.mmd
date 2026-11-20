@@ -5,31 +5,30 @@ sequenceDiagram
     participant Runs as LotteryRuns
     participant Audit as Auditoría
     participant Cola as Cola (RunLottery)
-    participant Orch as Orquestador
+    participant Orch as Motor (LotteryOrchestrator)
     participant Solver as Solver (búsqueda binaria + GLPK)
     participant BD as Base de datos
     actor Coop as Cooperativistas
 
     Admin->>HTTP: Ejecutar sorteo
     HTTP->>Runs: start(proyecto)
-    Runs->>BD: Transacción: retiene el proyecto, valida (fecha, trabajador, familias, confirmaciones)
+    Runs->>BD: Transacción: retiene el proyecto, valida (fecha, trabajador, familias, confirmaciones) y escribe la ejecución "en curso" (reveal_at = ahora + tiempo mínimo)
     alt familias ≠ unidades sin confirmar
-        Runs-->>Admin: Advertencia: requiere confirmación
+        Runs-->>Admin: Advertencia: requiere confirmación (nada se escribe)
     end
-    Runs->>BD: Ejecución "en curso" (reveal_at = ahora + tiempo mínimo)
-    Runs->>Audit: init (manifiesto congelado)
+    Runs->>Audit: init (manifiesto congelado), en la misma transacción
     Note over BD: Preferencias bloqueadas
     Runs->>Cola: RunLottery(ejecución)
     Cola->>Orch: Resolver el manifiesto registrado
     loop por cada tipo de vivienda
-        Orch->>Solver: Resolver sub-sorteo
+        Orch->>Solver: Resolver subsorteo
         Solver-->>Orch: Asignaciones del grupo
         Orch->>Audit: custom (solver) + group_execution
     end
-    Orch->>Solver: Sorteo de remanentes (huérfanos)
+    Orch->>Solver: Sorteo de remanentes
     Orch-->>Runs: Resultado
     Runs->>BD: Retiene el resultado hasta reveal_at
-    Note over Coop: Todos ven al sorteo trabajar
+    Note over Coop: La página muestra el avance de la ejecución
     Runs->>BD: Al revelar: asignaciones (unidad → familia) y ejecución "completada", en una transacción
     Runs->>Audit: project_execution (consolidado)
     Runs-->>Coop: Notificaciones + difusión en tiempo real

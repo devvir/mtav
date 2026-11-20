@@ -115,7 +115,7 @@ for side in ('top', 'right', 'bottom', 'left'):
 for p in master.paragraphs:
     style = p.style.name if p.style is not None else ""
     t = p.text.strip()
-    if style.startswith("Heading") and (t in ("Resumen", "Cambios en esta versión") or t.startswith("Apéndice")):
+    if style.startswith("Heading") and (t == "Resumen" or t.startswith("Apéndice")):
         p.paragraph_format.page_break_before = True
 
 # 4) Marcas de revisión (revision.lua): el color va como formato directo sobre
@@ -135,27 +135,67 @@ MARKS = {
 SHD_SUCCESSORS = ("w:fitText", "w:vertAlign", "w:rtl", "w:cs", "w:em", "w:lang",
                   "w:eastAsianLayout", "w:specVanish", "w:oMath")
 style_ids = {s.style_id: s.name for s in master.styles}
-for r in body_el.iter(qn("w:r")):
-    rStyle = r.find(qn("w:rPr") + "/" + qn("w:rStyle"))
-    mark = MARKS.get(style_ids.get(rStyle.get(qn("w:val")), "")) if rStyle is not None else None
-    if mark is None:
-        continue
-    fill, color, strike, italic, size = mark
-    font = Run(r, None).font
-    if color:
-        font.color.rgb = RGBColor.from_string(color)
-    if strike:
-        font.strike = True
-    if italic:
-        font.italic = True
-    if size:
-        font.size = Pt(size)
-    rPr = r.get_or_add_rPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:color"), "auto")
-    shd.set(qn("w:fill"), fill)
-    rPr.insert_element_before(shd, *SHD_SUCCESSORS)
+
+def color_marks(root):
+    for r in root.iter(qn("w:r")):
+        rStyle = r.find(qn("w:rPr") + "/" + qn("w:rStyle"))
+        mark = MARKS.get(style_ids.get(rStyle.get(qn("w:val")), "")) if rStyle is not None else None
+        if mark is None:
+            continue
+        fill, color, strike, italic, size = mark
+        font = Run(r, None).font
+        if color:
+            font.color.rgb = RGBColor.from_string(color)
+        if strike:
+            font.strike = True
+        if italic:
+            font.italic = True
+        if size:
+            font.size = Pt(size)
+        rPr = r.get_or_add_rPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), fill)
+        rPr.insert_element_before(shd, *SHD_SUCCESSORS)
+
+color_marks(body_el)
+
+# Las notas al pie viven en otra parte del paquete (footnotes.xml), que
+# python-docx no modela: se recorre su XML con las mismas reglas.
+from docx.oxml import parse_xml
+from lxml import etree
+for rel in master.part.rels.values():
+    if rel.reltype.endswith("/footnotes"):
+        part = rel.target_part
+        root = parse_xml(part.blob)
+        color_marks(root)
+        part._blob = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
+
+# 5) "Cambios en esta versión" va primero de todo, antes de la carátula: es una
+#    nota temporal para el tutor, que no debe descubrirla por casualidad. No
+#    figura en el índice ({.unlisted} en cambios.md) y desaparece con --final.
+from docx.text.paragraph import Paragraph
+
+def heading1_text(el):
+    if el.tag != qn("w:p"):
+        return None
+    pStyle = el.find(qn("w:pPr") + "/" + qn("w:pStyle"))
+    if pStyle is None or style_ids.get(pStyle.get(qn("w:val"))) != "Heading 1":
+        return None
+    return "".join(t.text or "" for t in el.iter(qn("w:t"))).strip()
+
+children = list(body_el)
+start = next((i for i, el in enumerate(children) if heading1_text(el) == "Cambios en esta versión"), None)
+if start is not None:
+    end = next(i for i in range(start + 1, len(children)) if heading1_text(children[i]) is not None)
+    block = children[start:end]
+    for el in block:
+        body_el.remove(el)
+    for i, el in enumerate(block):
+        body_el.insert(i, el)
+    # La carátula arranca en hoja nueva, después de la nota.
+    Paragraph(body_el[len(block)], master).paragraph_format.page_break_before = True
 
 master.save(out_path)
 PY

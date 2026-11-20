@@ -5,12 +5,12 @@ erDiagram
     PROJECT ||--o{ UNIT_TYPE : tiene
     PROJECT ||--o{ FAMILY : tiene
     PROJECT ||--o{ UNIT : tiene
-    PROJECT ||--o{ INVITATION : envia
+    PROJECT ||--o{ INVITATION : "envía"
     PROJECT ||--o{ JOIN_REQUEST : recibe
     FAMILY ||--o{ FAMILY_JOIN_REQUEST : recibe
     UNIT_TYPE ||--o{ UNIT : clasifica
     UNIT_TYPE ||--o{ FAMILY : corresponde
-    FAMILY |o--o| UNIT : "asignacion (family_id, post-sorteo)"
+    FAMILY |o--o| UNIT : "asignación (family_id, post-sorteo)"
     FAMILY }o--o{ UNIT : "unit_preferences (rank)"
     PROJECT ||--|| PLAN : tiene
     PLAN ||--o{ PLAN_ITEM : compone
@@ -22,7 +22,7 @@ erDiagram
     PROJECT ||--o{ MEDIA : tiene
     PROJECT ||--o{ TOPIC : "foro"
     TOPIC ||--o{ POST : contiene
-    PROJECT ||--o{ CONVERSATION : "chat"
+    PROJECT |o--o{ CONVERSATION : "chat"
     CONVERSATION }o--o{ USER : "conversation_user (read_up_to)"
     CONVERSATION ||--o{ MESSAGE : contiene
     USER }o--o{ NOTIFICATION : "notification_reads"

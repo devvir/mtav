@@ -27,8 +27,8 @@ Structure:
 | `documentation/thesis/capitulo-3-el-sorteo.md` | Capítulo 3 — El sorteo. |
 | `documentation/thesis/capitulo-4-ingenieria.md` | Capítulo 4 — Ingeniería del sistema. |
 | `documentation/thesis/capitulo-5-conclusiones.md` | Capítulo 5 — Conclusiones y trabajo futuro. |
-| `documentation/thesis/bibliografia.md` | Bibliografía (top-level section, real entries; a few `[NOTA]`s for access dates / citation style). |
-| `documentation/thesis/apendices.md` | Apéndices A–H (A holds the data-model derivation; rest are placeholders). |
+| `documentation/thesis/bibliografia.md` | Bibliografía (top-level section; every entry is cited author-year somewhere in the text). |
+| `documentation/thesis/apendices.md` | Apéndices A–I (data model, authorization, GLPK models and audit record, plan format, tests, AI usage, analysis, guides, developer tooling). |
 | `documentation/thesis/referencias/antecedentes-y-bibliografia.md` | Distilled Fierro facts + citation list → feeds §2 and Appendix L. |
 | `app/Services/Lottery/`, `app/Models/`, migrations, `docker/` | Code = source of truth for any factual claim about the app. |
 | `documentation/thesis/cambios.md` | The current review round, as the tutor sees it: one line per comment (numbered after round 1's #1–14), linked to the change. Draft only. |
@@ -47,8 +47,9 @@ the `{=openxml}` page-break blocks before each chapter. Math uses LaTeX (`$...$`
 number: `assets/numeracion.lua` numbers them ("Capítulo 3 — …", "3.5", "3.5.2"). Every heading
 that is referenced has an id (`{#cap-sorteo}`, `{#sec-busqueda-binaria}`), and the text refers to it
 by id: `la Sección @sec-resultados`, `(§@sec-bb-monotonia)`; the filter writes the number and fails
-on an unknown id. Resumen, Bibliografía, Apéndices and `cambios.md` are `{.unnumbered}`; appendix
-letters (A, A.1) are written by hand.
+on an unknown id. Resumen, Bibliografía, Apéndices and `cambios.md` are `{.unnumbered}`; `cambios.md`
+is also `{.unlisted}` (kept out of the table of contents) and the export moves it to the very front,
+before the cover, so the tutor cannot miss it. Appendix letters (A, A.1) are written by hand.
 
 ## Rules (full detail in memory `feedback_thesis_rules`)
 
@@ -90,9 +91,22 @@ The thesis was updated to the rewritten app (React/Mantine, open sign-up, per-pr
 forum, chat, Assistant, AWS delivery): chapters 1–5 and appendices A–I follow the code as of
 2026-11-20; the three Mermaid diagrams were regenerated (`mmdc` from a local npm install, using
 the system Chrome). What was not touched: chapter 3's formulation and benchmarks, appendix C.3.
-The solver's real tie-break and unbalanced-type limits are stated as facts (§3.2, §3.7) with the
-fix in §5.2.6. Open `[NOTA]`s for Diego: how to present the autonomous rewrite (F.7), the
-conclusions' self-critique, the DX appendix's framing, the list of real projects (§1.2.2);
-plus §1.2.3's "la sección anterior". Rule: the body describes the current app only — no
-history, no transient state, AI only in Appendix F (memory `thesis-describes-current-state`). Each new or rewritten section carries a `[Sección nueva/reescrita …]{.rev}`
-note at its top, linked from `cambios.md`; whole sections are not coloured sentence by sentence.
+The solver's real tie-break and unbalanced-type limits are stated as facts (§3.2, §3.6) with the
+fix in the future work. No `[NOTA]` remains; the one open question for the tutor (the list of
+real projects, §1.2.2) is a `.rev` note. A final proofreading round (2026-11-21, four
+independent reviewers: form, correctness against the code, completeness, apparatus) fixed what
+the code contradicted, de-duplicated the chapters (each fact in full in one place, pointers
+elsewhere), unified terminology and typography, and regenerated Appendix C.2's sample from a
+real run. Rule: the body describes the current app only — no history, no transient state, AI
+only in Appendix F (memory `thesis-describes-current-state`). Each new or rewritten section
+carries a `[Sección nueva/reescrita …]{.rev}` note at its top, linked from `cambios.md`; whole
+sections are not coloured sentence by sentence; the proofreading round's edits inside kept text
+are coloured without a note.
+
+Conventions fixed in that round (keep them): cross-references "la Sección @sec-x" in prose and
+"(§@sec-x)" in parentheses, never "Subsección"; "tipo de vivienda"; the preference value is
+"rango" (Chapter 3 defines it); "corridas" for benchmark repetitions, "ejecución" for a lottery
+run; "subsorteo"; "el motor" (`LotteryOrchestrator`), never "orquestador"; "remanentes";
+"participante sin familia" for the role whose UI name is "Invitado"; *staging* in italics for
+pre-production, "entorno de pruebas" only for automated tests; "pruebas", never "testing";
+English loanwords in italics; unspaced, always-closed rayas; thousands "10 000".

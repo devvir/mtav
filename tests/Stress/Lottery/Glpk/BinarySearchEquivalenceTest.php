@@ -15,8 +15,9 @@ beforeEach(function () {
  * Tests that binary search Phase 1 produces identical minimum satisfaction (S)
  * as direct GLPK Phase 1 optimization.
  *
- * Uses problematic benchmark cases that historically took 5-120+ seconds with
- * direct GLPK, demonstrating binary search correctness on degenerate problems.
+ * Uses twenty fixed size-20 instances from the random benchmark scenario, picked among
+ * those direct GLPK Phase 1 took longest on (0.2 to 24 seconds), so that the equivalence
+ * is checked where the original method struggled.
  */
 describe('binary search equivalence', function () {
     test('direct GLPK and binary search produce identical minimum satisfaction S', function (array $specData) {

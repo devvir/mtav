@@ -15,8 +15,8 @@ MTAV en línea es una aplicación web y móvil que elimina esa dependencia. Impl
 
 Además de la plataforma en sí, este trabajo presenta una mejora original al algoritmo: la Fase 1 —históricamente resuelta mediante GLPK, con tiempos problemáticos en casos degenerados o con muchas familias y viviendas— es reemplazada por un algoritmo de búsqueda binaria que produce un resultado equivalente de forma eficiente. La Fase 2 continúa utilizando GLPK con los modelos originales.
 
-El sistema incluye, entre otras funcionalidades: gestión de proyectos, familias y cooperativistas; recolección de preferencias mediante una interfaz de arrastrar y soltar; un plano visual interactivo del proyecto; gestión de eventos y medios; [un foro, un chat y un asistente que explica la aplicación; ]{.nuevo}notificaciones en tiempo real[ y en los dispositivos]{.nuevo}; y un registro de auditoría completo de cada ejecución del sorteo[, con un acta que cualquier socio puede verificar]{.nuevo}.
+El sistema incluye, entre otras funcionalidades: gestión de proyectos, familias y cooperativistas; recolección de preferencias mediante una interfaz de arrastrar y soltar; un plano visual interactivo del proyecto; gestión de eventos y medios; [un foro, un chat y un Asistente que explica la aplicación; ]{.nuevo}notificaciones en tiempo real[ y en los dispositivos]{.nuevo}; y un registro de auditoría completo de cada ejecución del sorteo[, con un acta que cualquier socio puede verificar]{.nuevo}.
 
 La aplicación fue diseñada con accesibilidad como requisito de primer orden, pensada para perfiles de usuario que incluyen adultos mayores y personas con discapacidad, así como dispositivos de gama baja[, y funciona en cinco idiomas]{.nuevo}.
 
-**Palabras clave:** Asignación de Viviendas, Cooperativas de Vivienda, Housing Allocation, Programación Lineal Entera, GLPK, Aplicación Web, Proyecto de Grado, Computación.
+**Palabras clave:** asignación de viviendas, cooperativas de vivienda, programación lineal entera, GLPK, aplicación web, accesibilidad.
