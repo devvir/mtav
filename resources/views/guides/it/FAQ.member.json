@@ -1,11 +1,11 @@
 {
   "title": "Domande frequenti",
-  "description": "Risposte rapide per le persone di un progetto",
+  "description": "Risposte rapide per le persone del progetto",
   "guideText": "Leggi la guida completa",
   "questions": [
     {
       "question": "Come entro in un progetto?",
-      "answer": "Con l’invito che ricevi via email, da un amministratore o da qualcuno della tua famiglia. Se non hai un account, scegli una password. Se ce l’hai, accedi e accetti. Gli inviti in sospeso compaiono anche in I tuoi progetti. Puoi anche trovarne uno in Trova un progetto, se i suoi amministratori lo mostrano."
+      "answer": "Con l’invito che ricevi via email, da un amministratore o da qualcuno della tua famiglia. Se non hai un account, scegli una password. Se ce l’hai, accedi e accetti. Gli inviti in sospeso compaiono anche in I tuoi progetti. Puoi anche cercarne uno in Trova un progetto, se i suoi amministratori lo mostrano."
     },
     {
       "question": "Chi vede l’ordine di preferenza della mia famiglia?",
@@ -17,19 +17,35 @@
     },
     {
       "question": "Possiamo cambiare l’ordine in due?",
-      "answer": "Sì. È un solo ordine per tutta la famiglia, e ogni componente può cambiarlo fino al sorteggio. Conta l’ultima modifica."
+      "answer": "Sì. È un solo ordine per tutta la famiglia, e ogni componente può cambiarlo finché non si fa il sorteggio. Conta l’ultima modifica."
     },
     {
       "question": "Come decide il sorteggio?",
-      "answer": "Pensa prima alla famiglia che starebbe peggio e le dà il meglio possibile. Poi cerca la maggiore soddisfazione per tutto il progetto. Solo i casi di parità si decidono a sorte."
+      "answer": "Pensa prima alla famiglia che starebbe peggio, e le dà il meglio possibile. Poi cerca la maggiore soddisfazione per tutto il progetto. Solo i casi di parità si decidono a sorte."
     },
     {
       "question": "Il risultato può cambiare?",
-      "answer": "È definitivo. Solo in casi eccezionali un amministratore può annullare un sorteggio. Allora tutti vedono chi l’ha annullato, quando e perché, e il sorteggio si rifà."
+      "answer": "È definitivo. Solo in casi eccezionali un amministratore può annullare un sorteggio. Allora tutti vedono chi l’ha fatto, quando e perché, e si rifà."
+    },
+    {
+      "question": "Dov’è la chat?",
+      "answer": "Su un computer o un tablet, nel pulsante rotondo nell’angolo in basso a destra: apre la finestra sopra qualsiasi pagina. Sul telefono, in Messaggi, nel menu. Fuori da un progetto, la chat è soltanto l’Assistente."
+    },
+    {
+      "question": "Chi legge i miei messaggi?",
+      "answer": "Solo chi è nella conversazione. Né gli amministratori né il team della piattaforma leggono una chat in cui non sono. Un tuo messaggio si può modificare o eliminare per un’ora."
+    },
+    {
+      "question": "Cosa va nel forum, e cosa nella chat?",
+      "answer": "Il forum è per ciò che riguarda tutto il progetto: chiunque legge e risponde, e un argomento nuovo viene annunciato a tutti. La chat è per una persona o un gruppo."
+    },
+    {
+      "question": "Cos’è l’Assistente?",
+      "answer": "Un aiuto automatico per domande sull’app: la prima conversazione dei tuoi messaggi. Spiega come funziona qualcosa e ti porta lì. Non sa nulla delle altre persone, può sbagliare e ha un limite di domande al giorno."
     },
     {
       "question": "Chi vede i file che condivido?",
-      "answer": "Tutti nel progetto, e nessuno al di fuori. Puoi modificare la descrizione o togliere ciò che hai condiviso."
+      "answer": "Tutti nel progetto, e nessuno al di fuori. Puoi modificare la descrizione o togliere ciò che hai condiviso; anche gli amministratori possono toglierlo."
     },
     {
       "question": "Ho cambiato email e non è successo niente.",

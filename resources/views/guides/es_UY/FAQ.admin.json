@@ -4,8 +4,8 @@
   "guideText": "Leer la guía para administradores",
   "questions": [
     {
-      "question": "¿Por qué mi proyecto tiene límites?",
-      "answer": "Los proyectos nuevos tienen límites hasta que un superadministrador los aprueba, para evitar abusos. Pide la aprobación desde Puesta a punto."
+      "question": "¿Por qué mi proyecto es limitado?",
+      "answer": "Los proyectos nuevos tienen límites hasta que el equipo de la plataforma los hace ilimitados, para evitar abusos. Pídelo desde Puesta a punto, en Limitado."
     },
     {
       "question": "¿Qué es un tipo de vivienda?",
@@ -13,7 +13,7 @@
     },
     {
       "question": "¿Y si hay más viviendas que familias?",
-      "answer": "Igual puedes hacer el sorteo. Te pedimos que confirmes, y algunas viviendas quedan sin familia (o familias sin vivienda, al revés)."
+      "answer": "Igual puedes hacer el sorteo. Te pedimos que confirmes, y lo que sobra de cada tipo se sortea en una última ronda entre todos los que sobran: una familia puede recibir otro tipo, y solo quedan familias sin vivienda si son más que las viviendas."
     },
     {
       "question": "¿Cómo agrego muchas viviendas?",
@@ -25,7 +25,11 @@
     },
     {
       "question": "Alguien perdió su invitación.",
-      "answer": "Retírala en Invitaciones y manda una nueva. El enlace anterior deja de funcionar."
+      "answer": "Manda una nueva al mismo correo: reemplaza a la anterior. Hasta tres por hora a una misma dirección."
+    },
+    {
+      "question": "¿Puedo leer los chats del proyecto?",
+      "answer": "No. Una conversación la leen solo quienes están en ella. El foro, en cambio, lo lees y moderas: fijar, cerrar o quitar un tema, quitar un mensaje."
     },
     {
       "question": "¿Puedo deshacer el sorteo?",
@@ -34,6 +38,10 @@
     {
       "question": "¿Quién ve los borradores?",
       "answer": "Solo los administradores, hasta que los publicas."
+    },
+    {
+      "question": "Quité algo por error.",
+      "answer": "Los eventos, archivos y temas del foro quitados se archivan: en su página, Ver archivados los muestra y los restaura. Una familia vacía vuelve invitando a alguien a ella."
     }
   ]
 }

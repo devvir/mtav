@@ -4,36 +4,44 @@
   "guideText": "Lire le guide des administrateurs",
   "questions": [
     {
-      "question": "Pourquoi mon projet a-t-il des limites ?",
-      "answer": "Les nouveaux projets ont des limites tant qu’un superadministrateur ne les a pas approuvés, pour éviter les abus. Demandez l’approbation depuis Mise en place."
+      "question": "Pourquoi mon projet est-il limité ?",
+      "answer": "Les nouveaux projets ont des limites tant que l’équipe de la plateforme ne les rend pas illimités, pour éviter les abus. Demandez-le depuis Mise en place, sous Limité."
     },
     {
       "question": "Qu’est-ce qu’un type de logement ?",
-      "answer": "Un groupe de logements équivalents, comme 2 chambres. Chaque famille a un type et reçoit un logement de ce type."
+      "answer": "Un groupe de logements équivalents, comme 2 chambres. Chaque famille a un type, et reçoit un logement de ce type."
     },
     {
       "question": "Et s’il y a plus de logements que de familles ?",
-      "answer": "Vous pouvez quand même lancer le tirage. Nous vous demandons de confirmer, et des logements restent sans famille (ou des familles sans logement, dans l’autre sens)."
+      "answer": "Vous pouvez quand même lancer le tirage. On vous demande de confirmer, et ce qui reste de chaque type est tiré dans un dernier tour entre tous ceux qui restent : une famille peut recevoir un autre type, et des familles ne restent sans logement que si elles sont plus nombreuses que les logements."
     },
     {
       "question": "Comment ajouter beaucoup de logements ?",
-      "answer": "Utilisez Ajouter et passer au suivant : le formulaire reste prêt pour le logement suivant, du même type."
+      "answer": "Utilisez Ajouter et passer au suivant : le formulaire est prêt pour le suivant, avec le même type."
     },
     {
-      "question": "Un administrateur peut-il aussi faire partie d’une famille ?",
+      "question": "Un administrateur peut-il faire partie d’une famille ?",
       "answer": "Oui. Invitez-le comme administrateur et dans une famille, ou changez son rôle et sa famille dans Coopérateurs."
     },
     {
       "question": "Quelqu’un a perdu son invitation.",
-      "answer": "Retirez-la dans Invitations et envoyez-en une nouvelle. L’ancien lien cesse de fonctionner."
+      "answer": "Envoyez-en une nouvelle à la même adresse : elle remplace la précédente. Jusqu’à trois par heure vers une même adresse."
+    },
+    {
+      "question": "Puis-je lire les conversations du projet ?",
+      "answer": "Non. Une conversation n’est lue que par ceux qui en font partie. Le forum, en revanche, vous le lisez et le modérez : épingler, fermer ou retirer un sujet, retirer un message."
     },
     {
       "question": "Puis-je défaire le tirage ?",
-      "answer": "Seulement en l’annulant, avec un motif que tout le monde dans le projet peut lire. Le tirage reste dans les archives, et il peut être relancé."
+      "answer": "Seulement en l’invalidant, avec un motif que tout le monde dans le projet lit. Le tirage reste au registre, et il peut être relancé."
     },
     {
       "question": "Qui voit les brouillons ?",
       "answer": "Seulement les administrateurs, jusqu’à ce que vous les publiiez."
+    },
+    {
+      "question": "J’ai retiré quelque chose par erreur.",
+      "answer": "Les événements, fichiers et sujets du forum retirés sont archivés : sur leur page, Voir les archives les affiche et les restaure. Une famille vide revient en y invitant quelqu’un."
     }
   ]
 }

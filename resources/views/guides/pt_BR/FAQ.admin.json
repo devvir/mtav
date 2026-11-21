@@ -4,8 +4,8 @@
   "guideText": "Ler o guia do administrador",
   "questions": [
     {
-      "question": "Por que meu projeto tem limites?",
-      "answer": "Os projetos novos têm limites até um superadministrador aprovar, para evitar abusos. Peça a aprovação em Preparação."
+      "question": "Por que meu projeto é limitado?",
+      "answer": "Os projetos novos têm limites até a equipe da plataforma torná-los ilimitados, para evitar abusos. Peça em Preparação, em Limitado."
     },
     {
       "question": "O que é um tipo de moradia?",
@@ -13,19 +13,23 @@
     },
     {
       "question": "E se houver mais moradias que famílias?",
-      "answer": "Você ainda pode fazer o sorteio. Pedimos que você confirme, e algumas moradias ficam sem família (ou famílias sem moradia, no caso contrário)."
+      "answer": "Você ainda pode fazer o sorteio. Pedimos que você confirme, e o que sobra de cada tipo é sorteado em uma última rodada entre todos os que sobram: uma família pode receber outro tipo, e só ficam famílias sem moradia se elas forem mais que as moradias."
     },
     {
       "question": "Como adiciono muitas moradias?",
-      "answer": "Use Adicionar e continuar com outra: o formulário fica pronto para a próxima moradia, com o mesmo tipo."
+      "answer": "Use Adicionar e continuar com outra: o formulário fica pronto para a próxima, com o mesmo tipo."
     },
     {
-      "question": "Um administrador também pode estar em uma família?",
+      "question": "Um administrador pode estar em uma família?",
       "answer": "Sim. Convide a pessoa como administrador e para uma família, ou mude a função e a família dela em Cooperados."
     },
     {
       "question": "Alguém perdeu o convite.",
-      "answer": "Retire o convite em Convites e envie um novo. O link antigo deixa de funcionar."
+      "answer": "Envie um novo para o mesmo endereço: ele substitui o anterior. Até três por hora para um mesmo endereço."
+    },
+    {
+      "question": "Posso ler os chats do projeto?",
+      "answer": "Não. Uma conversa é lida só por quem está nela. O fórum, por outro lado, você lê e modera: fixar, fechar ou remover um tópico, remover uma mensagem."
     },
     {
       "question": "Posso desfazer o sorteio?",
@@ -33,7 +37,11 @@
     },
     {
       "question": "Quem vê os rascunhos?",
-      "answer": "Só os administradores, até você publicar."
+      "answer": "Só os administradores, até você publicá-los."
+    },
+    {
+      "question": "Removi algo por engano.",
+      "answer": "Os eventos, arquivos e tópicos do fórum removidos são arquivados: na página deles, Ver arquivados os mostra e os restaura. Uma família vazia volta convidando alguém para ela."
     }
   ]
 }

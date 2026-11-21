@@ -1,11 +1,11 @@
 {
   "title": "Questions fréquentes",
-  "description": "Réponses rapides pour les personnes d’un projet",
+  "description": "Réponses rapides pour les gens du projet",
   "guideText": "Lire le guide complet",
   "questions": [
     {
       "question": "Comment rejoindre un projet ?",
-      "answer": "Avec l’invitation que vous recevez par e-mail, d’un administrateur ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe. Avec un compte, vous vous connectez et vous acceptez. Les invitations en attente apparaissent aussi dans Vos projets. Vous pouvez aussi en trouver un dans Trouver un projet, si ses administrateurs l’y affichent."
+      "answer": "Avec l’invitation que vous recevez par e-mail, d’un administrateur ou de quelqu’un de votre famille. Sans compte, vous choisissez un mot de passe. Avec un compte, vous vous connectez et vous acceptez. Les invitations en attente apparaissent aussi dans Vos projets. Vous pouvez aussi en chercher un dans Trouver un projet, si ses administrateurs l’y affichent."
     },
     {
       "question": "Qui voit le classement de ma famille ?",
@@ -13,27 +13,43 @@
     },
     {
       "question": "Dois-je classer tous les logements ?",
-      "answer": "Non. Déplacez ceux qui comptent pour vous. Les autres gardent leur propre place à la fin de votre classement."
+      "answer": "Non. Déplacez ceux qui comptent pour vous. Les autres gardent une place à eux à la fin de votre classement."
     },
     {
       "question": "Pouvons-nous être deux à changer le classement ?",
-      "answer": "Oui. C’est un seul classement pour toute la famille, et chaque membre peut le changer jusqu’au tirage. C’est le dernier changement qui compte."
+      "answer": "Oui. C’est un seul classement pour toute la famille, et n’importe quel membre peut le changer jusqu’au tirage. C’est le dernier changement qui compte."
     },
     {
       "question": "Comment le tirage décide-t-il ?",
-      "answer": "Il donne d’abord le meilleur possible à la famille qui serait la moins bien lotie, puis rend l’ensemble du projet aussi satisfait que possible. Seules les égalités se règlent au hasard."
+      "answer": "Il s’occupe d’abord de la famille qui serait la moins bien lotie, et lui donne le meilleur possible. Puis il cherche la plus grande satisfaction de l’ensemble du projet. Seules les égalités se règlent au hasard."
     },
     {
       "question": "Le résultat peut-il changer ?",
-      "answer": "Il est définitif. Seulement dans des cas exceptionnels, un administrateur peut annuler un tirage. Tout le monde voit alors qui l’a annulé, quand et pourquoi, et le tirage est relancé."
+      "answer": "Il est définitif. Seulement dans des cas exceptionnels, un administrateur peut invalider un tirage. Tout le monde voit alors qui l’a fait, quand et pourquoi, et le tirage est refait."
+    },
+    {
+      "question": "Où est la messagerie ?",
+      "answer": "Sur un ordinateur ou une tablette, dans le bouton rond en bas à droite : il ouvre la fenêtre par-dessus n’importe quelle page. Sur le téléphone, dans Messages, dans le menu. Hors d’un projet, la messagerie n’est que l’Assistant."
+    },
+    {
+      "question": "Qui lit mes messages ?",
+      "answer": "Seulement ceux qui sont dans la conversation. Ni les administrateurs ni l’équipe de la plateforme ne lisent une conversation dont ils ne font pas partie. Un message à vous peut être modifié ou supprimé pendant une heure."
+    },
+    {
+      "question": "Qu’est-ce qui va dans le forum, et quoi dans la messagerie ?",
+      "answer": "Le forum est pour ce qui concerne tout le projet : n’importe qui le lit et y répond, et un nouveau sujet est annoncé à tout le monde. La messagerie est pour une personne ou un groupe."
+    },
+    {
+      "question": "Qu’est-ce que l’Assistant ?",
+      "answer": "Une aide automatique pour les questions sur l’application : la première conversation de vos messages. Il explique comment quelque chose fonctionne et vous y mène. Il ne sait rien des autres personnes, peut se tromper, et a une limite de questions par jour."
     },
     {
       "question": "Qui voit les fichiers que je partage ?",
-      "answer": "Tout le monde dans le projet, et personne en dehors. Vous pouvez modifier la description ou retirer ce que vous avez partagé."
+      "answer": "Tout le monde dans le projet, et personne en dehors. Vous pouvez modifier la description ou retirer ce que vous avez partagé ; les administrateurs peuvent aussi le retirer."
     },
     {
       "question": "J’ai changé mon e-mail et rien ne s’est passé.",
-      "answer": "Nous avons envoyé un lien de confirmation à la nouvelle adresse. Votre compte garde l’ancienne jusqu’à ce que vous ouvriez ce lien."
+      "answer": "Nous avons envoyé un lien de confirmation à la nouvelle adresse. Votre compte garde l’ancienne jusqu’à ce que vous l’ouvriez."
     }
   ]
 }

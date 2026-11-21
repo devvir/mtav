@@ -1,23 +1,23 @@
 {
   "title": "Perguntas frequentes",
-  "description": "Respostas rápidas para as pessoas de um projeto",
+  "description": "Respostas rápidas para as pessoas do projeto",
   "guideText": "Ler o guia completo",
   "questions": [
     {
       "question": "Como entro em um projeto?",
-      "answer": "Com o convite que você recebe por e-mail, de um administrador ou de alguém da sua família. Se não tiver conta, escolhe uma senha. Se tiver, entra e aceita. Os convites pendentes também aparecem em Seus projetos. Você também pode encontrar um projeto em Encontrar um projeto, se os administradores o mostrarem lá."
+      "answer": "Com o convite que você recebe por e-mail, de um administrador ou de alguém da sua família. Se não tiver conta, escolhe uma senha. Se tiver, entra e aceita. Os convites pendentes também aparecem em Seus projetos. Você também pode procurar um em Encontrar um projeto, se os administradores dele o mostrarem lá."
     },
     {
       "question": "Quem vê a ordem de preferência da minha família?",
-      "answer": "Só a sua família. As outras famílias nunca veem, nem antes nem depois do sorteio."
+      "answer": "Só a sua família. As outras famílias nunca a veem, nem antes nem depois do sorteio."
     },
     {
       "question": "Preciso ordenar todas as moradias?",
-      "answer": "Não. Mova as que importam para vocês. As demais ficam com um lugar próprio no fim da sua ordem."
+      "answer": "Não. Mova as que importam para você. As demais ficam com um lugar próprio no fim da sua ordem."
     },
     {
       "question": "Duas pessoas da família podem mudar a ordem?",
-      "answer": "Sim. É uma só ordem para a família inteira, e qualquer integrante pode mudar até o sorteio ser feito. Vale a última mudança."
+      "answer": "Sim. É uma só ordem para a família inteira, e qualquer integrante pode mudá-la até o sorteio ser feito. Vale a última mudança."
     },
     {
       "question": "Como o sorteio decide?",
@@ -28,8 +28,24 @@
       "answer": "É definitivo. Só em casos excepcionais um administrador pode anular um sorteio. Nesse caso, todos veem quem fez isso, quando e por quê, e o sorteio é feito de novo."
     },
     {
+      "question": "Onde está o chat?",
+      "answer": "No computador ou no tablet, no botão redondo do canto inferior direito: ele abre a janela sobre qualquer página. No celular, em Mensagens, no menu. Fora de um projeto, o chat é só o Assistente."
+    },
+    {
+      "question": "Quem lê as minhas mensagens?",
+      "answer": "Só quem está na conversa. Nem os administradores nem a equipe da plataforma leem um chat em que não estão. Uma mensagem sua pode ser editada ou excluída por uma hora."
+    },
+    {
+      "question": "O que vai no fórum, e o que vai no chat?",
+      "answer": "O fórum é para o que diz respeito a todo o projeto: qualquer pessoa lê e responde, e um tópico novo é anunciado a todos. O chat é para uma pessoa ou um grupo."
+    },
+    {
+      "question": "O que é o Assistente?",
+      "answer": "Uma ajuda automática para perguntas sobre o aplicativo: a primeira conversa das suas mensagens. Ele explica como algo funciona e leva você até lá. Não sabe nada sobre outras pessoas, pode errar e tem um limite de perguntas por dia."
+    },
+    {
       "question": "Quem vê os arquivos que eu compartilho?",
-      "answer": "Todos no projeto, e ninguém de fora. Você pode editar a descrição ou remover o que compartilhou."
+      "answer": "Todos no projeto, e ninguém de fora. Você pode editar a descrição ou remover o que compartilhou; os administradores também podem remover."
     },
     {
       "question": "Mudei meu e-mail e nada aconteceu.",

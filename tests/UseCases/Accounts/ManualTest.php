@@ -35,7 +35,7 @@ it('shows anyone the questions, each list ending where its guide is', function (
 
     $admins = $this->get(route('manual.admins.faq'), ['Accept-Language' => 'es-UY'])->assertOk();
     expect($admins->inertiaProps('content'))
-        ->toContain('¿Por qué mi proyecto tiene límites?')
+        ->toContain('¿Por qué mi proyecto es limitado?')
         ->toContain('href="' . route('manual', 'admins') . '"');
 });
 

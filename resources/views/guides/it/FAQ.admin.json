@@ -4,28 +4,32 @@
   "guideText": "Leggi la guida per gli amministratori",
   "questions": [
     {
-      "question": "Perché il mio progetto ha dei limiti?",
-      "answer": "I nuovi progetti hanno dei limiti finché un superamministratore non li approva, per evitare abusi. Chiedi l’approvazione da Preparazione."
+      "question": "Perché il mio progetto è limitato?",
+      "answer": "I progetti nuovi hanno dei limiti finché il team della piattaforma non li rende illimitati, per evitare abusi. Chiedilo da Preparazione, in Limitato."
     },
     {
       "question": "Cos’è un tipo di alloggio?",
-      "answer": "Un gruppo di alloggi equivalenti, come 2 camere. Ogni famiglia ha un tipo e riceve un alloggio di quel tipo."
+      "answer": "Un gruppo di alloggi equivalenti, come 2 camere. Ogni famiglia ha un tipo, e riceve un alloggio di quel tipo."
     },
     {
       "question": "E se ci sono più alloggi che famiglie?",
-      "answer": "Puoi comunque fare il sorteggio. Ti chiediamo di confermare, e alcuni alloggi restano senza famiglia (o famiglie senza alloggio, nel caso opposto)."
+      "answer": "Puoi comunque fare il sorteggio. Ti chiediamo di confermare, e ciò che avanza di ogni tipo si sorteggia in un ultimo turno tra tutti quelli che avanzano: una famiglia può ricevere un altro tipo, e delle famiglie restano senza alloggio solo se sono più degli alloggi."
     },
     {
       "question": "Come aggiungo molti alloggi?",
-      "answer": "Usa Aggiungi e passa al successivo: il modulo resta pronto per l’alloggio successivo, dello stesso tipo."
+      "answer": "Usa Aggiungi e passa al successivo: il modulo resta pronto per il prossimo, con lo stesso tipo."
     },
     {
-      "question": "Un amministratore può far parte anche di una famiglia?",
+      "question": "Un amministratore può far parte di una famiglia?",
       "answer": "Sì. Invitalo come amministratore e in una famiglia, oppure cambia il suo ruolo e la sua famiglia in Soci."
     },
     {
       "question": "Qualcuno ha perso il suo invito.",
-      "answer": "Ritiralo in Inviti e inviane uno nuovo. Il vecchio link smette di funzionare."
+      "answer": "Inviane uno nuovo allo stesso indirizzo: sostituisce il precedente. Fino a tre all’ora a uno stesso indirizzo."
+    },
+    {
+      "question": "Posso leggere le chat del progetto?",
+      "answer": "No. Una conversazione la leggono solo quelli che ne fanno parte. Il forum, invece, lo leggi e lo moderi: fissare, chiudere o togliere un argomento, togliere un messaggio."
     },
     {
       "question": "Posso disfare il sorteggio?",
@@ -34,6 +38,10 @@
     {
       "question": "Chi vede le bozze?",
       "answer": "Solo gli amministratori, finché non le pubblichi."
+    },
+    {
+      "question": "Ho tolto qualcosa per errore.",
+      "answer": "Gli eventi, i file e gli argomenti del forum tolti vengono archiviati: nella loro pagina, Mostra archiviati li mostra e li ripristina. Una famiglia vuota torna invitando qualcuno a farne parte."
     }
   ]
 }

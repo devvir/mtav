@@ -1,23 +1,30 @@
 <div class="prose max-w-none dark:prose-invert">
   <h1>Superadmin guide</h1>
   <p class="lead">
-    Superadmins look after the platform from the <em>Platform console</em> (in the menu of your
-    picture). You can also enter any project and do anything its admins can: see the admin guide.
+    Superadmins look after the platform from the <em>Platform console</em>: you land there when you
+    sign in, and reach it from the menu under your picture. You can also enter any project and do
+    what its admins do: see the admin guide.
   </p>
 
   <p>
     A superadmin account is a support account: it is in no project, and reaches every one. It can
     use each project's chat, forum and files, but only to try them out: what you write there, the
-    project's people read. A bar at the top of every project page reminds you.
+    project's people read. A bar above every page of a project reminds you. The personal stays out:
+    you do not rank units for a family, you do not answer an event, and you read a chat conversation
+    only if you are in it, like anyone.
   </p>
 
   <h2>Approving projects</h2>
   <p>
-    Anyone can start a project. Until approved, it has the limits set for the platform (people,
-    families and units, invitations a day, file storage, lottery size), which keeps abuse in check.
-    <em>Projects</em> lists those asking for approval first. Approve a project when you trust its
-    admins: its limits are lifted and its people are told. Projects you start yourself are approved
-    at once.
+    Anyone with a confirmed account can start a project (up to two unapproved at a time). Until it
+    is approved, it has the limits set for the platform (people, families and units, invitations a
+    day, size and storage of files, and the lottery up to the families limit), which prevents abuse;
+    its admins only see that it is "limited". <em>Projects</em> shows first those asking for
+    approval, with tabs for those awaiting, the approved and the archived. Approve a project once
+    you trust its admins: its limits are lifted, its people are told, and it can appear in
+    <em>Find a project</em> if they asked for it. Approval cannot be undone. The projects you start
+    yourself (<em>New project</em>) are approved at once, and you name their first admin by email:
+    you take no place in them.
   </p>
   <figure>
     <img
@@ -25,29 +32,61 @@
       alt="The platform's projects"
       loading="lazy"
     />
-    <figcaption>Projects asking for approval come first <strong>(1)</strong>.</figcaption>
+    <figcaption>First, those asking for approval <strong>(1)</strong>.</figcaption>
   </figure>
 
   <h2>Accounts</h2>
   <p>
-    <em>Accounts</em> lists everyone with an account. The superadmin role is given from a page of
-    its own, <em>Superadmins</em>, by inviting an email not in use here yet, never an existing
-    account's: a rare role, given with care. A support account is apart from anyone's own place in a
-    project.
+    <em>Accounts</em> shows everyone with an account, with a search by name or email
+    <strong>(1)</strong>. From each one's menu you can block it (they leave all their projects at
+    once and cannot sign in; their email stays taken, so they cannot join again) or delete it for
+    good (nothing stops them from signing up again, and it is refused while they are a project's
+    only admin). Not your own account, nor another superadmin's, nor the platform owner's. Deleting
+    asks for your password again.
   </p>
+  <figure>
+    <img src="/images/guide/en/superadmin-accounts.jpg" alt="The accounts" loading="lazy" />
+    <figcaption>Every account on the platform.</figcaption>
+  </figure>
+
+  <h2>Superadmins</h2>
+  <p>
+    The role is given from <em>Superadmins</em> <strong>(1)</strong>, by inviting an email address
+    that has no account yet, never an existing account: a rare role, given with care, and a support
+    account stays apart from each person's place in a project. The invitation is valid for two
+    weeks, stays in view while it waits and can be withdrawn; it lapses if whoever sent it stops
+    being a superadmin. <em>Remove the role</em> takes it away, except yours and the platform
+    owner's. Inviting and removing ask for your password again.
+  </p>
+  <figure>
+    <img src="/images/guide/en/superadmin-superadmins.jpg" alt="The superadmins" loading="lazy" />
+    <figcaption>Registering a new superadmin <strong>(1)</strong>.</figcaption>
+  </figure>
 
   <h2>Archived projects</h2>
   <p>
     When admins delete a project with a history, it is archived: <em>Projects</em> shows it under
-    <em>Archived</em>. Restore it from there, or delete it for good after a summary of what goes
-    with it.
+    <em>Archived</em>. From there you restore it, as it was for all its people, or delete it for
+    good, files included, after seeing a summary of everything that goes with it, by typing its name
+    and your password. That cannot be undone.
+  </p>
+
+  <h2>Activity, errors and reports</h2>
+  <p>
+    <em>Activity</em> records every change (what, who, when, in which project) and every sign-in,
+    never what people read. <em>Errors</em> shows each error of the app once, with how often it
+    happened; resolving it makes it disappear, and it comes back if it recurs. <em>Reports</em>
+    gathers what people tell the team through the Assistant, by person: problems and ideas, a few a
+    day each; what needs an answer is answered by email. The platform's owner gets every new error
+    and every report by email.
   </p>
 
   <h2>Settings</h2>
   <p>
-    <em>Settings</em> holds what applies to every project. The lottery is done in an instant, which
-    feels like nothing happened. So you can set how long it takes as people see it
-    <strong>(1)</strong>, step by step. The result is the same.
+    <em>Settings</em> gathers what holds for every project. The lottery is solved in an instant, and
+    it looks as if nothing happened. So you can set how long it takes, at least, as people see it
+    <strong>(1)</strong>, step by step: twenty seconds unless you change it, up to five minutes. The
+    result is the same.
   </p>
   <figure>
     <img
@@ -58,13 +97,37 @@
     <figcaption>How long a lottery takes.</figcaption>
   </figure>
 
-  <h2>A new deployment</h2>
+  <h2>The Assistant</h2>
   <p>
-    A deployment with no account at all opens only once its owner, its first superadmin, is set in
-    its settings (<code>OWNER_EMAIL</code>, <code>OWNER_PASSWORD</code>). Until then it shows only
-    that it is under construction.
+    The chat Assistant answers with a language model, only when the installation has one configured;
+    without it, it says it is not available and nothing leaves the server. What it knows is these
+    guides and a few facts about whoever asks, never about other people. It has limits per person
+    and per day (half in a limited project or outside any project) and per installation; after
+    failing several times in a row, it rests for a quarter of an hour. The reports it offers to send
+    reach the owner by email and <em>Reports</em>.
+  </p>
+
+  <h2>Deployments</h2>
+  <p>
+    <em>Deployments</em> appears only for the superadmins authorized in the installation's
+    configuration: deploy any branch to the development environment, deploy the main branch to
+    production, roll back to the release before, or start a test environment over with the demo
+    data. Each action asks for your password again.
+  </p>
+
+  <h2>A new installation</h2>
+  <p>
+    An installation with no account at all opens only once its owner, its first superadmin, is in
+    its configuration (<code>APP_OWNER</code>: name, email and hashed password). Until then it only
+    shows that it is under construction, except for the guides and the privacy page. The owner
+    always keeps their role and their account, and is the privacy page's contact when no other is
+    set. On test environments, the landing page lets the demo accounts in without a password; in
+    production, never.
   </p>
 
   <h2>Notifications</h2>
-  <p>You are told when a project is started, and when one asks for approval.</p>
+  <p>
+    You are told when a project is created, when one asks for approval, and when someone asks to
+    join a project that was left without admins.
+  </p>
 </div>

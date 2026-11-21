@@ -1,26 +1,29 @@
 <div class="prose max-w-none dark:prose-invert">
   <h1>Guide des administrateurs</h1>
   <p class="lead">
-    Les administrateurs mettent le projet en place et lancent son tirage. Leurs outils se trouvent
-    dans le groupe <em>Administration</em> du menu : <em>Mise en place</em> liste, dans l’ordre, ce
-    qu’il reste à faire. Chaque <strong>?</strong> explique sa page et propose une visite guidée.
+    Les administrateurs mettent le projet en place et lancent son tirage. Ils travaillent sur les
+    mêmes pages que tout le monde (c’est là qu’ils ajoutent logements, familles et événements,
+    dessinent le plan et lancent le tirage), plus <em>Paramètres</em>, à la fin du menu, avec trois
+    onglets : <em>Mise en place</em>, <em>Invitations</em> et <em>Projet</em>.
+    <em>Actions rapides</em>, en haut, réunit les plus fréquentes. Chaque
+    <strong>?</strong> explique sa page et, là où il y a une visite guidée, propose
+    <em>En savoir plus</em>. Ce guide complète le guide des coopérateurs, qui vaut aussi pour vous.
   </p>
 
   <h2>Créer un projet</h2>
   <p>
-    Toute personne ayant un compte peut créer un projet, et en devient le premier administrateur. Un
-    nouveau projet est limité, avec de la place pour la plupart des coopératives (personnes,
-    familles et logements, invitations par jour, espace pour les fichiers). L’équipe {app} peut le
-    rendre illimité : demandez-le depuis <em>Mise en place</em>, sous <em>Limité</em>, quand vous
-    voulez. Jusqu’au tirage, l’accueil du projet et <em>Mise en place</em> montrent, dans l’ordre,
-    ce qu’il reste à faire <strong>(1)</strong>.
+    Toute personne ayant un compte confirmé peut créer un projet (<em>Créer un projet</em>, dans le
+    menu des projets), et en devient le premier administrateur. Un nouveau projet est limité, avec
+    de la place pour la plupart des coopératives : personnes, familles et logements, invitations par
+    jour, taille et espace des fichiers, et un tirage d’autant de familles que la limite. L’équipe
+    de {app} peut le rendre illimité : demandez-le depuis <em>Mise en place</em>, sous
+    <em>Limité</em>, quand vous voulez ; vous êtes prévenu quand c’est fait. Jusqu’au tirage,
+    l’accueil du projet, <em>Mise en place</em> et <em>Tirage</em> montrent le chemin vers le
+    tirage, étape par étape <strong>(1)</strong> : les types de logement, les logements, les
+    familles invitées, la date du tirage et le tirage lui-même.
   </p>
   <figure>
-    <img
-      src="/images/guide/fr/admin-setup.jpg"
-      alt="Ce qu’il reste à mettre en place"
-      loading="lazy"
-    />
+    <img src="/images/guide/fr/admin-setup.jpg" alt="Ce qu’il reste à faire" loading="lazy" />
     <figcaption>Le chemin vers le tirage, étape par étape.</figcaption>
   </figure>
 
@@ -28,20 +31,28 @@
   <ol>
     <li>
       <strong>Types de logement</strong> : des groupes de logements équivalents, comme « 2 chambres
-      ». Chaque type a son propre tirage.
+      », avec une taille sur le plan si vous voulez. Chaque type a son propre tirage.
     </li>
     <li>
       <strong>Logements</strong> : chacun avec son type.
       <em>Ajouter et passer au suivant</em> permet d’en ajouter beaucoup rapidement, et vous pouvez
-      créer un nouveau type en chemin. <em>Logements</em> les affiche par type <strong>(1)</strong>.
+      créer un nouveau type en chemin ; on peut aussi les ajouter depuis la palette du plan.
+      <em>Logements</em> les affiche par type <strong>(1)</strong>, et de là vous modifiez ou
+      retirez types et logements : pas un type en usage, ni un logement qu’une famille a déjà reçu.
+      Une fois le tirage fait, le type d’un logement ou d’une famille ne change plus.
     </li>
     <li>
-      <strong>Familles</strong> : chacune avec son type, et quelqu’un invité à la rejoindre. Il
-      devrait y avoir autant de logements que de familles de chaque type.
+      <strong>Familles</strong> : chacune avec son type, et quelqu’un invité à la rejoindre (<em
+        >Ajouter et inviter</em
+      >). Il devrait y avoir autant de logements que de familles de chaque type. Aux demandes pour
+      rejoindre une famille, c’est la famille qui répond, pas les administrateurs. Une famille n’est
+      retirée que lorsqu’il n’y reste plus personne ; une famille qui se vide est archivée
+      d’elle-même et vous êtes prévenu : sous <em>Voir les archives</em>, vous voyez son histoire,
+      vous y invitez quelqu’un pour la faire revenir, ou vous la supprimez définitivement.
     </li>
     <li>
-      <strong>Invitations</strong> : invitez les personnes dans leur famille (ou comme
-      administrateurs). Les familles peuvent ensuite inviter leurs propres membres.
+      <strong>Invitations</strong> : invitez les personnes dans leur famille, comme invités ou comme
+      administrateurs. Ensuite, les familles peuvent inviter leurs propres membres.
     </li>
     <li>
       <strong>Plan</strong> : placez les logements et dessinez ce qui les entoure, sur autant
@@ -63,21 +74,28 @@
     <li>
       Ajoutez ce qu’il vous faut depuis la palette <strong>(1)</strong> : des logements (leurs
       informations d’abord), des rues, des espaces verts, des espaces communs, des parkings, des
-      aires de jeux, des entrées.
+      aires de jeux, des entrées et d’autres formes. Les logements ajoutés ailleurs attendent en
+      dessous, sous <em>À placer</em>.
     </li>
     <li>
-      Faites glisser une forme pour la déplacer, ses coins pour changer sa taille, un bord pour
-      déplacer ce côté. Elle s’aligne sur ce qui l’entoure, avec un guide en pointillés.
+      Faites glisser une forme pour la déplacer, ses coins pour changer sa taille et un bord pour
+      déplacer ce côté ; les poignées rondes déplacent un sommet, et un double clic sur un bord en
+      ajoute un. Elle s’aligne sur ce qui l’entoure, avec un guide en pointillés. Ctrl + glisser
+      fait une copie.
     </li>
     <li>
-      Faites un clic droit sur une forme pour voir tout ce que vous pouvez en faire : son nom, la
-      faire pivoter, sa couleur, un étage plus haut ou plus bas, la mettre au premier plan, la
-      copier ou la retirer. Double-cliquez dessus pour la nommer.
+      Un clic droit a tout ce qui concerne une forme : la nommer (un double clic aussi), la faire
+      pivoter, sa couleur, un étage plus haut ou plus bas, la mettre au premier plan ou l’envoyer à
+      l’arrière, la dupliquer, la copier et la coller, ou la retirer. Un logement se retire depuis
+      ses informations, pas depuis le plan. En haut se trouvent <em>Annuler</em> et
+      <em>Rétablir</em>, <em>Modifier la limite du terrain</em>, <em>Aligner sur la grille</em> et
+      les étages.
     </li>
     <li>
-      Le plan s’enregistre tout seul <strong>(2)</strong>. <em>Terminer la modification</em> le
-      ferme. Après un long moment sans changement, il demande si vous dessinez toujours, puis se
-      ferme, enregistré, pour que d’autres puissent dessiner.
+      Il s’enregistre tout seul <strong>(2)</strong> ; quand il n’y arrive pas, il dit
+      <em>Pas encore enregistré</em> et réessaie. <em>Terminer la modification</em> le ferme. Après
+      un long moment sans changement, il demande si vous dessinez toujours, puis se ferme,
+      enregistré, pour que d’autres puissent dessiner.
     </li>
   </ol>
   <figure>
@@ -88,29 +106,46 @@
   </figure>
   <figure>
     <img src="/images/guide/fr/admin-plan-menu.jpg" alt="Le menu d’une forme" loading="lazy" />
-    <figcaption>Le menu d’une forme : tout ce que vous pouvez en faire.</figcaption>
+    <figcaption>Le menu d’une forme : tout ce qu’on peut en faire.</figcaption>
   </figure>
 
   <h2>Qui peut rejoindre, invités et fonctions</h2>
   <p>
-    Dans <em>Paramètres</em>, <em>Projet</em>, choisissez si le projet s’affiche dans
-    <em>Trouver un projet</em>, qui peut le rejoindre, s’il accepte des invités (des personnes qui
-    n’ont pas rejoint leur famille : elles participent à tout sauf au tirage et ne voient pas les
-    coordonnées) et quelles fonctions il a : événements, galerie, fichiers, forum et messagerie. Une
-    fonction désactivée est masquée et garde son contenu. Sans invités, toute personne qui entre
-    rejoint d’abord sa famille.
+    Dans <em>Paramètres</em>, <em>Projet</em>, se trouvent son nom, sa description et son
+    organisation, et les choix du projet. <em>L’afficher dans Trouver un projet</em> permet à toute
+    personne ayant un compte de le trouver (seulement une fois le projet illimité), et vous
+    choisissez alors qui peut le rejoindre :
+    <em>Les personnes que les administrateurs acceptent</em> ou
+    <em>Tout le monde, tout de suite</em>. <em>Autoriser les invités</em> admet des personnes qui
+    n’ont pas encore rejoint leur famille : elles participent à tout sauf au tirage, n’invitent
+    personne et ne voient aucune coordonnée. Sans invités, toute personne qui entre rejoint d’abord
+    sa famille ; et les invités ne peuvent pas être désactivés tant qu’il y en a un, ou qu’une
+    invitation est en route vers l’un d’eux.
   </p>
+  <p>
+    <em>Ce qu’il comprend</em> <strong>(1)</strong> : événements, galerie, fichiers, forum,
+    messagerie et l’Assistant de la messagerie. Une fonction désactivée est masquée et garde ce
+    qu’elle contient ; le tirage est toujours là.
+  </p>
+  <figure>
+    <img src="/images/guide/fr/admin-features.jpg" alt="Les paramètres du projet" loading="lazy" />
+    <figcaption>Ce que le projet comprend <strong>(1)</strong>.</figcaption>
+  </figure>
 
   <h2>Invitations</h2>
   <p>
-    Dans <em>Invitations</em>, invitez chaque personne par e-mail dans sa famille, ou comme
-    administrateur <strong>(1)</strong>. Celles en attente restent affichées jusqu’à ce qu’elles
-    soient acceptées.
+    Dans <em>Invitations</em>, invitez chaque personne par e-mail dans sa famille, comme invité si
+    le projet les accepte, ou comme administrateur <strong>(1)</strong>. Une invitation est valable
+    deux semaines ; celles qui attendent une réponse restent affichées, avec leur date, et vous
+    pouvez les retirer. Une nouvelle à la même adresse remplace la précédente. Un projet limité
+    montre la place qu’il lui reste.
   </p>
   <p>
-    Une personne déjà dans le projet rejoint la famille tout de suite, et en est prévenue par
-    e-mail. Si vous affichez le projet dans <em>Trouver un projet</em> (onglet <em>Projet</em>), les
-    demandes pour le rejoindre apparaissent aussi ici : à vous de les accepter ou de les refuser.
+    Une personne déjà dans le projet sans famille, et qui n’est pas administrateur, rejoint la
+    famille tout de suite, et en est prévenue. Si vous affichez le projet dans
+    <em>Trouver un projet</em> et choisissez que les administrateurs décident, les demandes pour le
+    rejoindre apparaissent aussi ici, à vous de les accepter ou de les refuser ; une personne
+    refusée peut redemander au bout d’un mois.
   </p>
   <figure>
     <img src="/images/guide/fr/admin-invitations.jpg" alt="Invitations" loading="lazy" />
@@ -119,23 +154,58 @@
 
   <h2>Personnes et rôles</h2>
   <p>
-    Dans <em>Coopérateurs</em>, vue <em>Tout le monde</em>, vous pouvez changer quelqu’un de
-    famille, le nommer administrateur ou le retirer du projet. Un administrateur peut aussi faire
-    partie d’une famille. Un projet garde toujours au moins un administrateur.
+    Dans <em>Coopérateurs</em>, sous <em>Familles</em>, <em>Membres</em> ou
+    <em>Administrateurs</em>, ouvrez une personne : <em>Changer le rôle ou la famille</em> la
+    déplace dans une autre famille, la laisse sans famille (si le projet accepte des invités) ou en
+    fait un administrateur ; <em>Retirer du projet</em> la fait sortir, avec ses invitations en
+    attente. Personne ne peut être déplacé dans une famille qui l’a refusé. Un administrateur peut
+    aussi faire partie d’une famille. Un projet garde toujours au moins un administrateur. Les
+    administrateurs voient l’e-mail, le téléphone et le numéro de pièce d’identité de tout le monde.
   </p>
 
   <h2>Événements</h2>
   <p>
-    Seuls les administrateurs voient les brouillons, jusqu’à leur publication. Un événement peut
-    demander aux gens s’ils viendront, et vous voyez qui vient.
+    <em>Créer un événement</em> : sur place, avec son lieu, ou en ligne, avec son lien. Les
+    brouillons ne sont vus que par les administrateurs, jusqu’à leur publication ; publier prévient
+    tout le projet. Un événement peut demander si les gens viendront, et tout le monde voit qui
+    vient. Depuis l’événement, vous le modifiez ou l’annulez : un événement annulé est archivé et
+    peut être restauré. Le tirage a son propre événement, qui ne se modifie pas comme les autres.
+  </p>
+
+  <h2>Forum, messagerie et fichiers</h2>
+  <p>
+    Dans le forum, les administrateurs peuvent épingler un sujet tout en haut <strong>(1)</strong>,
+    le fermer <strong>(2)</strong> (il se lit, mais seuls les administrateurs peuvent continuer à
+    répondre) et le retirer, et retirer n’importe quel message. Un sujet retiré est archivé et peut
+    être restauré. Il en va de même pour les fichiers : vous pouvez en retirer n’importe lequel, et
+    le restaurer.
+  </p>
+  <figure>
+    <img src="/images/guide/fr/admin-forum-topic.jpg" alt="Un sujet du forum" loading="lazy" />
+    <figcaption>Épingler <strong>(1)</strong> et fermer <strong>(2)</strong> un sujet.</figcaption>
+  </figure>
+  <p>
+    La messagerie n’est pas modérée : une conversation n’est lue que par ceux qui en font partie,
+    administrateurs compris. Quand quelqu’un dit à l’Assistant quelque chose qui relève du projet,
+    il peut lui proposer d’écrire à un administrateur : une conversation ordinaire s’ouvre avec l’un
+    de vous. Ce que les gens envoient à l’équipe de {app} depuis l’Assistant ne passe pas par les
+    administrateurs.
   </p>
 
   <h2>Le tirage</h2>
   <p>
-    Fixez sa date dans <em>Tirage</em> : les familles peuvent changer leur classement jusque-là. Une
-    fois la date arrivée, vérifiez que chaque type a autant de logements que de familles, puis
-    lancez-le. Si les nombres diffèrent, nous vous demandons de confirmer, et des familles ou des
-    logements restent sans attribution. Le résultat est définitif et enregistré étape par étape.
+    Dans <em>Tirage</em>, fixez sa <em>Date</em>, à partir de laquelle il peut avoir lieu, et une
+    description que tout le monde lit en haut de la page. Les familles peuvent changer leur
+    classement jusqu’à ce que le tirage commence. <em>Préparation</em> montre, type par type, s’il y
+    a autant de logements que de familles. À partir de la date, <em>Lancer le tirage</em>
+    <strong>(2)</strong> : il faut au moins deux familles, et vous confirmez en tapant LANCER. Si
+    les nombres ne correspondent pas, on vous demande de confirmer : ce qui reste de chaque type va
+    dans un dernier tour entre tous ceux qui restent, si bien qu’une famille peut recevoir un
+    logement d’un autre type, et ce n’est que s’il y a plus de familles que de logements en tout
+    qu’une famille se retrouve sans logement. Tout le monde voit le tirage avancer, et tout le monde
+    est prévenu. Le résultat est définitif et enregistré étape par étape : sous <em>Tirages</em>,
+    <em>Son registre</em> le montre, et de là les administrateurs téléchargent le registre complet.
+    Si une exécution échoue, vous êtes prévenu et il peut être relancé.
   </p>
   <figure>
     <img src="/images/guide/fr/admin-lottery.jpg" alt="Lancer le tirage" loading="lazy" />
@@ -143,15 +213,24 @@
   </figure>
   <p>
     Seulement dans des cas exceptionnels (une famille inscrite avec le mauvais type, une famille
-    oubliée…), annulez le tirage : toutes les attributions sont effacées, et tout le monde dans le
-    projet peut lire qui l’a annulé et pourquoi. Le tirage peut alors être relancé, et le précédent
-    reste dans les archives.
+    oubliée…), invalidez le tirage, avec un motif : toutes les attributions sont effacées, et tout
+    le monde dans le projet lit qui l’a fait et pourquoi. Il peut alors être relancé, et le
+    précédent reste au registre.
+  </p>
+
+  <h2>Ses listes</h2>
+  <p>
+    Dans <em>Paramètres</em>, <em>Projet</em>, <em>Télécharger ses listes</em> donne les personnes,
+    les familles et les logements sous forme de tableurs, pour la coopérative ; celle des personnes,
+    avec ou sans e-mail, téléphone et numéro de pièce d’identité. Les données personnelles ne sont
+    jamais utilisées ni partagées sans le consentement des gens.
   </p>
 
   <h2>Supprimer le projet</h2>
   <p>
-    Dans <em>Paramètres</em>, en tapant son nom. Un projet qui a une histoire (d’autres personnes,
-    des événements, des fichiers, un tirage) est archivé pour les registres de la plateforme : il
-    disparaît pour tout le monde, et seul un superadministrateur peut le faire revenir.
+    Dans <em>Paramètres</em>, <em>Projet</em>, en tapant son nom ; pas pendant qu’un tirage tourne.
+    Un projet qui a une histoire (d’autres personnes, des invitations, des événements, des fichiers,
+    un tirage) est archivé pour les registres de la plateforme : il disparaît pour tout le monde, et
+    seul un superadministrateur peut le faire revenir.
   </p>
 </div>

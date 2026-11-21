@@ -28,8 +28,24 @@
       "answer": "Es definitivo. Solo en casos excepcionales un administrador puede invalidar un sorteo. Entonces todos ven quién lo hizo, cuándo y por qué, y se vuelve a hacer."
     },
     {
+      "question": "¿Dónde está el chat?",
+      "answer": "En una computadora o una tableta, en el botón redondo de la esquina inferior derecha: abre la ventana sobre cualquier página. En el celular, en Mensajes, en el menú. Fuera de un proyecto, el chat es solo el Asistente."
+    },
+    {
+      "question": "¿Quién lee mis mensajes?",
+      "answer": "Solo quienes están en la conversación. Ni los administradores ni el equipo de la plataforma leen un chat en el que no están. Un mensaje tuyo se puede editar o borrar durante una hora."
+    },
+    {
+      "question": "¿Qué va en el foro y qué en el chat?",
+      "answer": "El foro es para lo que concierne a todo el proyecto: cualquiera lo lee y responde, y un tema nuevo se avisa a todos. El chat es para una persona o un grupo."
+    },
+    {
+      "question": "¿Qué es el Asistente?",
+      "answer": "Una ayuda automática para preguntas sobre la aplicación: la primera conversación de tus mensajes. Explica cómo funciona algo y te lleva hasta ahí. No sabe nada de otras personas, puede equivocarse y tiene un límite de preguntas por día."
+    },
+    {
       "question": "¿Quién ve los archivos que comparto?",
-      "answer": "Todos en el proyecto, y nadie de afuera. Puedes editar la descripción o quitar lo que compartiste."
+      "answer": "Todos en el proyecto, y nadie de afuera. Puedes editar la descripción o quitar lo que compartiste; los administradores también pueden quitarlo."
     },
     {
       "question": "Cambié mi correo y no pasó nada.",

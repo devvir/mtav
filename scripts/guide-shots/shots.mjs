@@ -96,12 +96,24 @@ async function unmark(page) {
   );
 }
 
-/** The picture: the page, or the part of it around `selector` (with a margin) */
+/**
+ * The picture: the page, or the part of it around `selector` (with a margin; several
+ * selectors: the part that holds them all)
+ */
 async function shot(page, name, selector) {
   const path = `${OUT}/${name}.jpg`;
   if (selector) {
     // Cut from the whole page (in its coordinates), wherever the part is scrolled to
-    const box = await page.locator(selector).first().boundingBox();
+    const boxes = [];
+    for (const one of [selector].flat()) boxes.push(await page.locator(one).first().boundingBox());
+    const left = Math.min(...boxes.map((b) => b.x));
+    const top = Math.min(...boxes.map((b) => b.y));
+    const box = {
+      x: left,
+      y: top,
+      width: Math.max(...boxes.map((b) => b.x + b.width)) - left,
+      height: Math.max(...boxes.map((b) => b.y + b.height)) - top,
+    };
     const scrollY = await page.evaluate(() => window.scrollY);
     const margin = 24;
     const x = Math.max(0, box.x - margin);
@@ -161,6 +173,31 @@ const project = '/projects/1';
   await mark(page, '[data-tour="files.share"]', 1);
   await shot(page, 'member-files');
 
+  // The chat: the bubble at the corner, and the window that opens from it
+  await go(page, project);
+  await page.locator('.chat-launcher').click();
+  await page.locator('.chat-window [data-tour="chat.new"]').waitFor();
+  await page.waitForTimeout(600);
+  await mark(page, '.chat-launcher', 1);
+  await mark(page, '.chat-window [data-tour="chat.new"]', 2);
+  await shot(page, 'member-chat', ['.chat-window', '.chat-launcher']);
+  // The Assistant: its conversation, the first of the list
+  await page.locator('.chat-list-item:has(.assistant-face)').first().click();
+  await page.locator('.chat-window .chat-actions').first().waitFor();
+  await page.waitForTimeout(600);
+  await mark(page, '.chat-window .chat-actions', 1);
+  await shot(page, 'member-assistant', '.chat-window');
+
+  await go(page, `${project}/forum`);
+  await mark(page, '[data-tour="forum.open"]', 1);
+  await shot(page, 'member-forum');
+  // A topic anyone may still reply to (the first is the pinned welcome)
+  await page.locator('.forum-topic').nth(1).click();
+  await page.locator('form:has(textarea)').last().waitFor();
+  await page.waitForTimeout(400);
+  await mark(page, 'form:has(textarea) >> nth=-1', 1);
+  await shot(page, 'member-topic');
+
   await go(page, '/settings/profile');
   await page.locator('[role=tab] >> nth=2').click();
   await page.waitForTimeout(300);
@@ -203,6 +240,19 @@ const project = '/projects/1';
   await mark(page, '[data-tour="lottery.schedule"]', 1);
   await mark(page, 'button:has([data-tour="lottery.run"])', 2);
   await shot(page, 'admin-lottery');
+
+  await go(page, `${project}/manage/settings`);
+  await mark(page, '[data-tour="settings.features"]', 1);
+  await shot(page, 'admin-features', '[data-tour="settings.form"]');
+
+  // A topic as its admins see it: pinning it, closing it
+  await go(page, `${project}/forum`);
+  await page.locator('.forum-topic').nth(1).click();
+  await page.locator('button:has(svg.tabler-icon-lock)').waitFor();
+  await page.waitForTimeout(400);
+  await mark(page, 'button:has(svg.tabler-icon-pin)', 1);
+  await mark(page, 'button:has(svg.tabler-icon-lock)', 2);
+  await shot(page, 'admin-forum-topic');
   await page.close();
 }
 
@@ -217,6 +267,14 @@ const project = '/projects/1';
   await go(page, '/admin/settings');
   await mark(page, 'input[name="lottery_seconds"]', 1);
   await shot(page, 'superadmin-settings');
+
+  await go(page, '/admin/users');
+  await mark(page, '[data-tour="users.search"]', 1);
+  await shot(page, 'superadmin-accounts');
+
+  await go(page, '/admin/superadmins');
+  await mark(page, '[data-tour="superadmins.grant"]', 1);
+  await shot(page, 'superadmin-superadmins');
   await page.close();
 }
 
