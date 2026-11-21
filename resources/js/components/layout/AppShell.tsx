@@ -366,7 +366,7 @@ export function AppShell({
                   href={route('documentation.faq')}
                   leftSection={<IconMessageQuestion size={16} />}
                 >
-                  {_('Questions and answers')}
+                  {_('Frequently asked questions')}
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item leftSection={<IconLogout size={16} />} onClick={() => void signOut()}>

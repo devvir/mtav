@@ -232,7 +232,7 @@ defineTour('manage.plan', () => [
     target: 'plan.toolbar',
     title: _('Add shapes'),
     body: _(
-      'Units appear here by themselves. Add buildings, streets, green areas and other shapes to complete the picture.',
+      'Units added elsewhere wait here to be placed. Add streets, green areas, common spaces and other shapes to complete the picture.',
     ),
   },
   {

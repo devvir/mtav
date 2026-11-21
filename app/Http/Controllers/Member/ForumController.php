@@ -61,6 +61,7 @@ class ForumController extends Controller
                 'can' => [
                     'reply'  => $user->can('reply', $topic),
                     'manage' => $user->can('update', $topic),
+                    'rename' => $user->can('rename', $topic),
                 ],
             ],
             'posts' => JsonResource::collection($posts->through(fn (Post $post) => [

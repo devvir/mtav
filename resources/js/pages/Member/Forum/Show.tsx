@@ -11,7 +11,19 @@ import { route } from '@/lib/route';
 import { _ } from '@/lib/translations';
 import type { Paginated } from '@/types/models';
 import { router, useForm } from '@inertiajs/react';
-import { ActionIcon, Alert, Button, Card, Group, Menu, Stack, Text, Textarea } from '@mantine/core';
+import {
+  ActionIcon,
+  Alert,
+  Button,
+  Card,
+  Group,
+  Menu,
+  Modal,
+  Stack,
+  Text,
+  Textarea,
+  TextInput,
+} from '@mantine/core';
 import {
   IconDots,
   IconLock,
@@ -34,7 +46,7 @@ interface ForumPost {
 }
 
 interface Props {
-  topic: TopicSummary & { can: { reply: boolean; manage: boolean } };
+  topic: TopicSummary & { can: { reply: boolean; manage: boolean; rename: boolean } };
   posts: Paginated<ForumPost>;
 }
 
@@ -120,10 +132,34 @@ function PostCard({ post }: { post: ForumPost }) {
   );
 }
 
+/** A topic's new title, asked in a dialog: its writer's to change, as admins may */
+function RenameTopic({ topic, onDone }: { topic: TopicSummary; onDone: () => void }) {
+  const form = useForm({ title: topic.title });
+
+  return (
+    <Form
+      onSubmit={() =>
+        form.put(route('forum.update', { topic: topic.id }), {
+          preserveScroll: true,
+          onSuccess: onDone,
+        })
+      }
+    >
+      <TextInput label={_('Title')} withAsterisk data-autofocus {...field(form, 'title')} />
+      <FormActions submit={_('Save')} processing={form.processing} requiredNote={false}>
+        <Button variant="default" onClick={onDone}>
+          {_('Cancel')}
+        </Button>
+      </FormActions>
+    </Form>
+  );
+}
+
 /** A topic: its conversation, and a reply at its end */
 export default function ForumShow({ topic, posts }: Props) {
   useProjectChanges({ posts: ['posts', 'topic'], topics: ['topic'] });
   const reply = useForm({ body: '' });
+  const [renaming, setRenaming] = useState(false);
 
   // A post the address names (?post=12, from a notification): in view
   useEffect(() => {
@@ -153,35 +189,57 @@ export default function ForumShow({ topic, posts }: Props) {
         title={topic.title}
         back={{ href: route('forum.index'), label: _('Forum') }}
         actions={
-          topic.can.manage ? (
+          topic.can.manage || topic.can.rename ? (
             <Group gap="xs">
-              <Button
-                variant="default"
-                leftSection={topic.is_pinned ? <IconPinnedOff size={18} /> : <IconPin size={18} />}
-                onClick={() => set({ is_pinned: !topic.is_pinned })}
-              >
-                {topic.is_pinned ? _('Unpin') : _('Pin')}
-              </Button>
-              <Button
-                variant="default"
-                leftSection={topic.is_closed ? <IconLockOpen size={18} /> : <IconLock size={18} />}
-                onClick={() => set({ is_closed: !topic.is_closed })}
-              >
-                {topic.is_closed ? _('Reopen') : _('Close')}
-              </Button>
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                size="lg"
-                aria-label={_('Remove the topic')}
-                onClick={remove}
-              >
-                <IconTrash size={18} />
-              </ActionIcon>
+              {topic.can.rename ? (
+                <ActionIcon
+                  variant="subtle"
+                  size="lg"
+                  aria-label={_('Rename the topic')}
+                  onClick={() => setRenaming(true)}
+                >
+                  <IconPencil size={18} />
+                </ActionIcon>
+              ) : null}
+              {topic.can.manage ? (
+                <>
+                  <Button
+                    variant="default"
+                    leftSection={
+                      topic.is_pinned ? <IconPinnedOff size={18} /> : <IconPin size={18} />
+                    }
+                    onClick={() => set({ is_pinned: !topic.is_pinned })}
+                  >
+                    {topic.is_pinned ? _('Unpin') : _('Pin')}
+                  </Button>
+                  <Button
+                    variant="default"
+                    leftSection={
+                      topic.is_closed ? <IconLockOpen size={18} /> : <IconLock size={18} />
+                    }
+                    onClick={() => set({ is_closed: !topic.is_closed })}
+                  >
+                    {topic.is_closed ? _('Reopen') : _('Close')}
+                  </Button>
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    size="lg"
+                    aria-label={_('Remove the topic')}
+                    onClick={remove}
+                  >
+                    <IconTrash size={18} />
+                  </ActionIcon>
+                </>
+              ) : null}
             </Group>
           ) : null
         }
       />
+
+      <Modal opened={renaming} onClose={() => setRenaming(false)} title={_('Rename the topic')}>
+        {renaming ? <RenameTopic topic={topic} onDone={() => setRenaming(false)} /> : null}
+      </Modal>
 
       <Stack gap="sm">
         {posts.data.map((post) => (

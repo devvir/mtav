@@ -301,6 +301,12 @@ describe('A topic\'s writer', function () {
         ($this->change)($this->admin, ['title' => 'Assembly: the 14th'])->assertSessionHasNoErrors();
 
         expect($this->topic->fresh()->title)->toBe('Assembly: the 14th');
+
+        $offered = fn ($user) => $this->as($user, $this->project)->get(route('forum.show', [$this->project, $this->topic]))
+            ->inertiaProps('topic.can.rename');
+        expect($offered($this->ana))->toBeTrue()
+            ->and($offered($this->admin))->toBeTrue()
+            ->and($offered($this->beto))->toBeFalse();
     });
 
     it('changes nothing else of it, not even along with its title', function () {

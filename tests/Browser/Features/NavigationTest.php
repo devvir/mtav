@@ -24,7 +24,7 @@ it('opens the guide and the questions and answers from the account menu', functi
         ->click('[role="menu"] >> text=Guide')
         ->assertPathIs(pathOf('documentation.guide'))
         ->click('[aria-label="Your account"]')
-        ->click('[role="menu"] >> text=Questions and answers')
+        ->click('[role="menu"] >> text=Frequently asked questions')
         ->assertPathIs(pathOf('documentation.faq'))
         ->click('[aria-label="Your account"]')
         ->click('[role="menu"] >> text=Profile')
