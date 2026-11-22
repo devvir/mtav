@@ -1,6 +1,11 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { OrganizationField } from '@/components/forms/OrganizationField';
-import { optionsOf, ProjectOptions } from '@/components/forms/ProjectOptions';
+import {
+  AdvancedSettings,
+  optionsOf,
+  ProjectAccess,
+  ProjectFeatures,
+} from '@/components/forms/ProjectOptions';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Glyph } from '@/design';
@@ -84,12 +89,18 @@ export default function ProjectsCreate({
                 {...field(form, 'first_admin_email')}
               />
             ) : null}
-            <ProjectOptions
+            <ProjectFeatures
               values={form.data}
               onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}
-              errors={form.errors}
-              approved={Boolean(asksFirstAdmin)}
             />
+            <AdvancedSettings>
+              <ProjectAccess
+                values={form.data}
+                onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}
+                errors={form.errors}
+                approved={Boolean(asksFirstAdmin)}
+              />
+            </AdvancedSettings>
             <FormActions
               submit={_('Start the project')}
               processing={form.processing}

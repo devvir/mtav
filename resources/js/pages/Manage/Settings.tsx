@@ -1,6 +1,11 @@
 import { Form, FormActions } from '@/components/forms/Form';
 import { OrganizationField } from '@/components/forms/OrganizationField';
-import { optionsOf, ProjectOptions } from '@/components/forms/ProjectOptions';
+import {
+  AdvancedSettings,
+  optionsOf,
+  ProjectAccess,
+  ProjectFeatures,
+} from '@/components/forms/ProjectOptions';
 import { InfoTip } from '@/components/help/InfoTip';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SettingsTabs } from '@/components/layout/SettingsTabs';
@@ -51,7 +56,7 @@ export default function Settings({ settings: project }: { settings: Project }) {
           </InfoTip>
         }
         title={_('Project settings')}
-        description={_('Its name, what it is about, and whether others can find it.')}
+        description={_('Its name, what it is about, and what it has.')}
         tour="manage.settings"
       />
       <SettingsTabs />
@@ -70,12 +75,18 @@ export default function Settings({ settings: project }: { settings: Project }) {
             onChange={(organization) => form.setData('organization', organization)}
             error={form.errors.organization}
           />
-          <ProjectOptions
+          <ProjectFeatures
             values={form.data}
             onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}
-            errors={form.errors}
-            approved={project.is_approved}
           />
+          <AdvancedSettings tour="settings.advanced">
+            <ProjectAccess
+              values={form.data}
+              onChange={(key, value) => form.setData((data) => ({ ...data, [key]: value }))}
+              errors={form.errors}
+              approved={project.is_approved}
+            />
+          </AdvancedSettings>
           <FormActions submit={_('Save')} processing={form.processing} />
         </Form>
       </Card>

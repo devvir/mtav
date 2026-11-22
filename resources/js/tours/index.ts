@@ -463,17 +463,17 @@ defineTour('manage.settings', () => [
     body: _('Its name, description and organization appear to everyone in the project.'),
   },
   {
-    target: 'settings.listed',
-    title: _('Can be found'),
-    body: _(
-      'Listed, others can find the project and join it: at once, or when the admins accept them. Then they join their family.',
-    ),
-  },
-  {
     target: 'settings.features',
     title: _('What it has'),
     body: _(
       'Only what the project uses: the forum, the chat and its Assistant, the gallery, files and events. Change it any time.',
+    ),
+  },
+  {
+    target: 'settings.advanced',
+    title: _('Advanced settings'),
+    body: _(
+      'The rarer choices, kept apart: whether others can find the project and join it, at once or when the admins accept them, and whether it takes guests.',
     ),
   },
   {

@@ -79,6 +79,7 @@ it('lists a project from its settings, choosing who can join', function () {
     $this->as(anAdminOf($project));
 
     visit(route('manage.settings.edit', $project))
+        ->click('text=Advanced settings')
         ->assertDontSee('Who can join')
         ->click('label:has-text("Show it in Find a project")')
         ->assertSee('Who can join')

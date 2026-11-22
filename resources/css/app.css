@@ -2726,3 +2726,11 @@ html[data-carrying] * {
 [data-tour] {
   scroll-margin-top: 5rem;
 }
+
+/* The settings few need, folded at the end of a form (forms/ProjectOptions) */
+.advanced-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mantine-color-text);
+}
