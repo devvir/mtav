@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Project;
 use App\Models\User;
 use App\Services\ActivityLog;
 use App\Services\Assistant\Brain;
@@ -15,7 +16,9 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Mail\Markdown;
 use Illuminate\Queue\Events\Looping;
@@ -23,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use App\Queue\SteadyWorker;
@@ -73,6 +77,22 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::before(fn (User $user, string $ability) => $user->isSuperadmin()
             && ! in_array($ability, self::PERSONAL_ABILITIES) ?: null);
+
+        // A limited project is used at a bounded pace (config/limits.php), each person on their
+        // own counters, reads and writes apart; an approved project at any pace its routes allow
+        RateLimiter::for('project', function (Request $request) {
+            $project = $request->route('project');
+            $project = $project instanceof Project ? $project : Project::find($project);
+
+            if (! $project || $project->isApproved()) {
+                return Limit::none();
+            }
+
+            $kind = $request->isMethodSafe() ? 'requests' : 'writes';
+
+            return Limit::perMinute($project->limit("{$kind}_per_minute"))
+                ->by("project:{$project->id}:{$kind}:" . ($request->user()?->id ?? $request->ip()));
+        });
 
         // Superadmins listed as deployers, where GitHub is set up to deploy
         Gate::define('deploy', fn (User $user) => $user->isSuperadmin()

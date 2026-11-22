@@ -20,6 +20,14 @@ return [
         /** Structure */
         'units'    => (int) env('LIMIT_UNITS', 50),
         'families' => (int) env('LIMIT_FAMILIES', 50),
+
+        /**
+         * Pace: what one person may ask of the project a minute (pages and the like), and how
+         * many of those may change something (messages, posts, rankings...). Routes keep their
+         * own, stricter limits besides (routes/web.php).
+         */
+        'requests_per_minute' => (int) env('LIMIT_REQUESTS_PER_MINUTE', 180),
+        'writes_per_minute'   => (int) env('LIMIT_WRITES_PER_MINUTE', 40),
     ],
 
     /**

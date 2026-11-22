@@ -66,8 +66,10 @@ Anyone with a confirmed account starts projects (a few unapproved at once, those
 in the last day counting), becoming their first admin; a superadmin
 takes no place in a project, and names its first admin instead, by an invitation. A project
 is **limited** (`config/limits.php`: people, families, units, invitations a day, file
-size, storage) until the platform's team makes it **unlimited**, which its admins ask
-for; projects a superadmin starts are unlimited at once. Only "Limited" is ever shown.
+size, storage, and the pace each person uses it at: so many requests a minute, fewer of them
+writes, on the named `project` rate limiter) until the platform's team makes it
+**unlimited**, which its admins ask for; projects a superadmin starts are unlimited at once.
+Only "Limited" is ever shown.
 
 Admins are peers (`MembershipService`): one makes someone an admin or moves them between
 families, but none takes the role from another, nor removes one; a superadmin does, as a last

@@ -186,7 +186,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
          * The member app
          */
         Route::prefix('projects/{project}')
-            ->middleware(ResolveProject::class)
+            ->middleware(['throttle:project', ResolveProject::class])
             ->scopeBindings()
             ->group(function () {
                 Route::get('/', Member\DashboardController::class)->name('projects.show');
