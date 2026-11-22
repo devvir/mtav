@@ -2,11 +2,14 @@
 
 namespace App\Services\Lottery;
 
+use App\Models\Activity;
 use App\Models\Family;
 use App\Models\Unit;
+use App\Services\ActivityLog;
 use App\Services\Lottery\Exceptions\LotteryLockedException;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +20,9 @@ use Illuminate\Validation\ValidationException;
  * random but fixed for each family, so that families who do not rank are not all
  * pointed at the same units. Rankings of units that left the family's type (or the
  * project) are simply ignored.
+ *
+ * Each change is noted in the activity log (`ranked`), for the lottery's record: who left the
+ * family's ranking as what, and when. A sitting of changes by one person counts as one.
  */
 class PreferencesService
 {
@@ -91,10 +97,37 @@ class PreferencesService
                 throw ValidationException::withMessages(['preferences' => __('validation.preferences_foreign_units')]);
             }
 
+            $before = DB::table('unit_preferences')->where('family_id', $family->id)->orderBy('rank')->pluck('unit_id')->map(intval(...))->all();
+
             $family->preferences()->sync(
                 collect($unitIds)->mapWithKeys(fn (int $unitId, int $index) => [$unitId => ['rank' => $index + 1]])
             );
+
+            $before === $unitIds || $this->noteChange($family, $before, $unitIds);
         });
+    }
+
+    /**
+     * The change, for the record: a new entry, or the sitting's entry brought up to date when
+     * the same person saved the same family's ranking a little while ago
+     */
+    private function noteChange(Family $family, array $before, array $after): void
+    {
+        $sitting = Activity::where('action', 'ranked')
+            ->where('subject_type', 'family')
+            ->where('subject_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->where('created_at', '>=', now()->subMinutes((int) config('limits.ranking_change_minutes')))
+            ->latest('id')
+            ->first();
+
+        if ($sitting && Auth::id()) {
+            $sitting->update(['changes' => ['ranking' => [$sitting->changes['ranking'][0] ?? $before, $after], 'until' => now()->toIso8601String()]]);
+
+            return;
+        }
+
+        ActivityLog::record('ranked', $family, ['ranking' => [$before, $after], 'until' => now()->toIso8601String()]);
     }
 
     /** The units ranked, then the rest in the family's own order */

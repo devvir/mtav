@@ -8,6 +8,7 @@ use App\Models\Concerns\RecordsActivity;
 use App\Services\Lottery\Contracts\LotteryHost;
 use App\Services\LotteryService;
 use App\Services\OpenLotteryService;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -60,6 +61,25 @@ class LotteryRun extends Model
         $failure = json_decode((string) $this->failure, true);
 
         return is_array($failure) ? __($failure['key'], $failure['params']) : $this->failure;
+    }
+
+    /**
+     * When every family's ranking, and the whole record, become everyone's in the project:
+     * so many hours after a run completes (PlatformSetting::DISCLOSURE_HOURS), unless it is
+     * invalidated first. Null: never (a run that did not complete, or was invalidated)
+     */
+    public function disclosesAt(): ?Carbon
+    {
+        if ($this->status !== LotteryRunStatus::COMPLETED || ! $this->finished_at) {
+            return null;
+        }
+
+        return $this->finished_at->copy()->addHours((int) PlatformSetting::value(PlatformSetting::DISCLOSURE_HOURS));
+    }
+
+    public function disclosed(): bool
+    {
+        return (bool) $this->disclosesAt()?->isPast();
     }
 
     public function project(): BelongsTo

@@ -54,6 +54,12 @@ return [
     /** Minutes after sending in which a chat message can still be edited or deleted by whoever wrote it */
     'chat_changes_minutes' => (int) env('CHAT_CHANGES_MINUTES', 60),
 
+    /**
+     * Minutes within which one person's saves of a family's ranking count as one change in the
+     * record (each drag saves; the record keeps the sitting, not every move)
+     */
+    'ranking_change_minutes' => (int) env('RANKING_CHANGE_MINUTES', 30),
+
     /** The longest message between people (with the Assistant: assistant.message_chars) */
     'chat_message_chars' => 5000,
 

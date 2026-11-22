@@ -320,7 +320,7 @@ it('lets a family check the result: each family\'s place, its own ranking, the f
         ->assertDontSee('Download the full record')
         ->assertNoSmoke();
 
-    // The full record is the admins': theirs to download, refused to a member who asks for its address
+    // The full record is the admins' until the run is disclosed (two days later): refused to a member who asks for its address now
     $download = route('lottery.download', [$this->project, LotteryRun::latest('id')->first()]);
     $fetch = fn ($page) => $page->script(<<<JS
         async () => {

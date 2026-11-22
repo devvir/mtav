@@ -7,7 +7,9 @@ thesis, part 3; this guide follows the code.
 ## Rankings
 
 Each family ranks the units of its type, most wanted first (`PreferencesService`). Any
-member of the family changes the one ranking it has; every change is saved at once.
+member of the family changes the one ranking it has; every change is saved at once, and
+noted in the activity log (`ranked`: who left it as what, and when), one person's saves
+within half an hour (`limits.ranking_change_minutes`) counting as one sitting.
 A family may rank only some units, or none: the rest follow in an order fixed per family
 (a hash of the app's key, the family and the unit), random-looking but always the same,
 never written down. Rankings are locked while a run is running or completed; a ranking sent as a run starts waits for it (the project is locked), so it is in the manifest or refused.
@@ -67,10 +69,19 @@ manifest (`init`), each type's result (`group_execution`), the whole result
 
 From it, `RunRecord` gives each run's **record page**, for anyone in the project: every
 family with the unit it received and that unit's place in the family's ranking as
-recorded ("2nd of 12"), the worst place and the average, and the record's
-**fingerprint** (SHA-256 of the manifest and the result, as stored). Families see their
-own whole ranking there; nobody sees another family's. Admins download the whole trail
-as JSON, to keep or hand to an auditor.
+recorded ("2nd of 12"), the worst place and the average, how the lottery decides in plain
+words, the GLPK models for anyone to read, and the record's **fingerprint** (SHA-256 of
+the manifest and the result, as stored). Families see their own whole ranking there.
+
+A completed run is **disclosed** once the hours the platform's settings give admins to
+invalidate it have passed (`PlatformSetting::DISCLOSURE_HOURS`, two days by default; an
+invalidated run never is). From then on every family's ranking is on the page, so that
+anyone can check the result, and the whole record is anyone's to download; admins have
+it from the start. `AuditArchive` builds it as a zip: a README, the input and the result in
+the project's words (`input.json`, `result.csv`), how each ranking changed before the run
+(`ranking-changes.csv`), the models, each solve's model, data and solution files, and the
+raw trail (`record.json`). It names people and families, never an address: the run records
+who started it by name.
 
 ## Undoing a run
 

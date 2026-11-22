@@ -4,6 +4,7 @@ use App\Jobs\RunLottery;
 use App\Enums\LotteryRunStatus;
 use App\Models\Event;
 use App\Models\Notification;
+use App\Models\PlatformSetting;
 use App\Services\Lottery\Contracts\SolverInterface;
 use App\Services\Lottery\DataObjects\ExecutionResult;
 use App\Services\Lottery\DataObjects\LotteryManifest;
@@ -443,17 +444,118 @@ describe('Its record', function () {
             ->and($shown[$families[1]->id])->toBe($names[1]);
     });
 
-    it('lets admins download the whole record, and no one else', function () {
+    it('keeps every ranking with its family until the run is disclosed, then shows them all, for anyone to check the result', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $member = $families[0]->members()->first();
+        $record = fn () => $this->as($member, $this->project)->get(route('lottery.record', [$this->project, $run]))->assertOk()->inertiaProps();
+
+        $before = $record();
+        expect($before['run']['disclosed'])->toBeFalse()
+            ->and($before['run']['discloses_at'])->not->toBeNull()
+            ->and(collect($before['families'])->pluck('ranking')->all())->toBe([null, null])
+            ->and($before['own']['ranking'])->toBe([$units[0]->identifier, $units[1]->identifier])
+            ->and($before['canDownload'])->toBeFalse();
+
+        $this->travel(49)->hours();
+
+        $after = $record();
+        expect($after['run']['disclosed'])->toBeTrue()
+            ->and(collect($after['families'])->keyBy('id')->map->ranking->all())->toEqual([
+                $families[0]->id => [$units[0]->identifier, $units[1]->identifier],
+                $families[1]->id => [$units[1]->identifier, $units[0]->identifier],
+            ])
+            ->and($after['canDownload'])->toBeTrue();
+    });
+
+    it('discloses as soon as the platform says, and never an invalidated run', function () {
         [$families] = familiesRanking([[0, 1], [1, 0]]);
         lotteryIsDue();
         runLottery();
         $run = $this->project->lotteryRuns()->sole();
+        $member = $families[0]->members()->first();
+        $disclosed = fn () => $this->as($member, $this->project)->get(route('lottery.record', [$this->project, $run]))->inertiaProps('run.disclosed');
+
+        PlatformSetting::put(PlatformSetting::DISCLOSURE_HOURS, 0);
+        expect($disclosed())->toBeTrue();
+
+        $this->as($this->admin, $this->project)->post(route('manage.lottery.invalidate', $run), ['reason' => 'A family was missing from the draw'])->assertSessionHasNoErrors();
+        expect($disclosed())->toBeFalse()
+            ->and($this->as($member, $this->project)->get(route('lottery.download', [$this->project, $run])))->toBeDenied();
+    });
+
+    it('lets admins download the whole record from the start, and everyone once it is disclosed', function () {
+        [$families] = familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        $member = $families[0]->members()->first();
 
         $download = $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk();
         expect($download->json('trail.0.type'))->toBe('init')
             ->and($download->headers->get('Content-Disposition'))->toContain('attachment');
+        expect($this->as($member, $this->project)->get(route('lottery.download', [$this->project, $run])))->toBeDenied();
+        expect($this->as($member, $this->project)->get(route('lottery.audit', [$this->project, $run])))->toBeDenied();
 
-        expect($this->as($families[0]->members()->first(), $this->project)->get(route('lottery.download', [$this->project, $run])))->toBeDenied();
+        $this->travel(49)->hours();
+
+        $this->as($member, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk();
+        $this->as($member, $this->project)->get(route('lottery.audit', [$this->project, $run]))->assertOk();
+    });
+
+    it('names who ran it and never anyone\'s address, in the trail and in what is downloaded', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+        // A run recorded when admins were still written down by address
+        $init = $run->audits()->where('type', 'init')->sole();
+        expect($init->audit['admin'])->toBe(['id' => $this->admin->id, 'name' => $this->admin->name]);
+        $init->update(['audit' => [...$init->audit, 'admin' => ['id' => $this->admin->id, 'email' => $this->admin->email]]]);
+
+        $download = $this->as($this->admin, $this->project)->get(route('lottery.download', [$this->project, $run]))->assertOk();
+
+        expect($download->getContent())->not->toContain($this->admin->email)
+            ->and($download->json('trail.0.record.admin'))->toBe(['id' => $this->admin->id]);
+    });
+
+    it('archives the whole record: the input and result in plain words, the models, each solve\'s files, and how rankings changed', function () {
+        [$families, $units] = familiesRanking([[0, 1], [1, 0]]);
+        $this->travel(1)->hours();
+        $this->as($families[0]->members()->first(), $this->project)->put(route('lottery.preferences'), ['preferences' => [$units[1]->id, $units[0]->id]])->assertSessionHasNoErrors();
+        lotteryIsDue();
+        runLottery();
+        $run = $this->project->lotteryRuns()->sole();
+
+        $response = $this->as($this->admin, $this->project)->get(route('lottery.audit', [$this->project, $run]))->assertOk();
+        expect($response->headers->get('Content-Disposition'))->toContain("lottery-{$run->uuid}.zip");
+        $zip = new ZipArchive();
+        $zip->open($response->baseResponse->getFile()->getPathname());
+        $names = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i));
+        $input = json_decode($zip->getFromName('input.json'), true);
+        $result = $zip->getFromName('result.csv');
+        $changes = $zip->getFromName('ranking-changes.csv');
+        $everything = $names->map(fn ($name) => $zip->getFromName($name))->implode('');
+        $zip->close();
+        unlink($response->baseResponse->getFile()->getPathname());
+
+        expect($names->all())->toContain('README.txt', 'record.json', 'input.json', 'result.csv', 'ranking-changes.csv', 'models/phase1-max-min.mod', 'models/phase2-satisfaction.mod', 'solves/01/solve.json')
+            ->and($names->filter(fn ($name) => str_starts_with($name, 'solves/01/') && str_ends_with($name, '.mod'))->count())->toBeGreaterThan(0)
+            ->and($input[0]['unit_type'])->toBe($this->type->name)
+            ->and(collect($input[0]['families'])->firstWhere('id', $families[0]->id)['ranking'])->toBe([$units[1]->identifier, $units[0]->identifier])
+            ->and($result)->toContain($families[0]->name)
+            ->and(substr_count($changes, $families[0]->name))->toBe(2)
+            ->and($changes)->toContain($families[0]->members()->first()->name)
+            ->and($everything)->not->toContain($this->admin->email);
+    });
+
+    it('hands anyone the models the lottery is solved with', function () {
+        familiesRanking([[0, 1], [1, 0]]);
+
+        $this->as($this->project->families()->first()->members()->first(), $this->project)->get(route('lottery.models'))
+            ->assertOk()->assertSee('Phase 1', false)->assertSee('Phase 2', false);
     });
 
     it('has no record for a run that decided nothing', function () {

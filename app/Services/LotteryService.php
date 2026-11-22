@@ -70,7 +70,7 @@ class LotteryService implements LotteryHost
                 $this->ensureCanRun($project, $options);
             },
             attributes: ['options' => $options, 'started_by' => $admin->id],
-            init: ['admin' => $admin->only('id', 'email')],
+            init: ['admin' => $admin->only('id', 'name')],
         );
     }
 
@@ -159,7 +159,7 @@ class LotteryService implements LotteryHost
             ]);
 
             $this->audits->record($run->id, LotteryAuditType::INVALIDATE, [
-                'admin'  => $admin->only('id', 'email'),
+                'admin'  => $admin->only('id', 'name'),
                 'reason' => $reason,
             ]);
         });

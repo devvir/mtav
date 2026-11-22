@@ -26,8 +26,10 @@ and their role, goes to Anthropic to be answered. Nothing about anyone else does
 - People in a project see each other's name and picture. Email and phone, only if the
   person shares them; the project's admins see them always, and the ID number when given.
 - Everything in a project (files included, served privately) is seen only by its people.
-- Rankings stay with their families: the lottery's record shows each family's place,
-  never another family's ranking.
+- Rankings stay with their families until a run is **disclosed**: completed and past the
+  hours the platform's settings give admins to invalidate it (two days by default). Then
+  the record shows every family's ranking, for anyone to check the result; an invalidated
+  run never does.
 - Superadmins see what the platform needs: projects, accounts, the activity and errors.
 
 ## The activity log
@@ -66,7 +68,10 @@ A hosted service (Sentry, GlitchTip) can be added beside it later.
 - **Exports**: a project's admins download its people, families and units as
   spreadsheets (CSV, from Settings → Project), headings in their language; the people
   with or without their email, phone and ID number.
-- **The lottery's record**: anyone in the project reads it; admins download it whole.
+- **The lottery's record**: anyone in the project reads it; admins download it whole from
+  the start, everyone once the run is disclosed (`record.zip`: the input and result in plain
+  words, the models, each solve's files, how rankings changed, the raw trail). Names, never
+  addresses.
 - **Deleting an account**: the person does it from their profile, typing their email.
   They leave every project; what they gave (files, events, posts, lottery records) stays,
   without their name. A project's only admin must name another first; the deployment's

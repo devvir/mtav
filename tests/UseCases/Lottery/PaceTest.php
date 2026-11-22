@@ -102,11 +102,20 @@ it('keeps away the record of a run whose held result was never applied', functio
 });
 
 it('lets only superadmins set how long it takes, within bounds', function () {
-    $this->as($this->admin)->put(route('admin.settings.update'), ['lottery_seconds' => 5])->assertNotFound();
-    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 9999])
+    $this->as($this->admin)->put(route('admin.settings.update'), ['lottery_seconds' => 5, 'disclosure_hours' => 48])->assertNotFound();
+    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 9999, 'disclosure_hours' => 48])
         ->assertSessionHasErrors('lottery_seconds');
-    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 45])
+    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 45, 'disclosure_hours' => 48])
         ->assertSessionHasNoErrors();
 
     expect(PlatformSetting::value(PlatformSetting::LOTTERY_SECONDS))->toBe(45);
+});
+
+it('lets superadmins set how long after a run every ranking becomes public, up to a month', function () {
+    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 20, 'disclosure_hours' => 721])
+        ->assertSessionHasErrors('disclosure_hours');
+    $this->as(aSuperadmin())->put(route('admin.settings.update'), ['lottery_seconds' => 20, 'disclosure_hours' => 0])
+        ->assertSessionHasNoErrors();
+
+    expect(PlatformSetting::value(PlatformSetting::DISCLOSURE_HOURS))->toBe(0);
 });

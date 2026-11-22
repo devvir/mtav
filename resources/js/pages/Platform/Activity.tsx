@@ -34,6 +34,7 @@ const ACTIONS: Record<string, [() => string, Tone]> = {
   created: [() => _('Created'), 'positive'],
   updated: [() => _('Changed'), 'info'],
   deleted: [() => _('Deleted'), 'negative'],
+  ranked: [() => _('Ranked'), 'info'],
   signed_in: [() => _('Signed in'), 'neutral'],
   signed_out: [() => _('Signed out'), 'neutral'],
   sign_in_failed: [() => _('Failed sign-in'), 'warning'],

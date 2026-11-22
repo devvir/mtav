@@ -9,7 +9,7 @@
     },
     {
       "question": "Qui voit le classement de ma famille ?",
-      "answer": "Seulement votre famille. Les autres familles ne le voient jamais, ni avant ni après le tirage."
+      "answer": "Seulement votre famille, jusqu’au tirage. Un certain temps après (deux jours, sauf si l’équipe de la plateforme en décide autrement), le classement de chaque famille est visible par tout le projet, pour que chacun puisse vérifier le résultat ; un tirage invalidé ne les montre jamais."
     },
     {
       "question": "Dois-je classer tous les logements ?",

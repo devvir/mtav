@@ -59,6 +59,25 @@ it('rejects units of another type', function () {
     rank($this, $this->member, [...$this->units, $foreignUnit])->assertSessionHasErrors();
 });
 
+it('notes who left the ranking as what, a sitting of changes as one', function () {
+    [$a, $b, $c] = $this->units->all();
+    $noted = fn () => App\Models\Activity::where('action', 'ranked')->where('subject_id', $this->family->id)->orderBy('id')->get();
+
+    rank($this, $this->member, [$a, $b, $c]);
+    rank($this, $this->member, [$b, $a, $c]);
+    rank($this, $this->member, [$b, $a, $c]);
+
+    expect($noted())->toHaveCount(1)
+        ->and($noted()->first()->changes['ranking'])->toBe([[], [$b->id, $a->id, $c->id]])
+        ->and($noted()->first()->actor)->toBe($this->member->name);
+
+    $this->travel(31)->minutes();
+    rank($this, $this->member, [$c, $b, $a]);
+
+    expect($noted())->toHaveCount(2)
+        ->and($noted()->last()->changes['ranking'])->toBe([[$b->id, $a->id, $c->id], [$c->id, $b->id, $a->id]]);
+});
+
 it('never shows a family the ranking of another family', function () {
     $neighbour = aMemberOf(aFamily($this->project, $this->type));
     [$a, $b, $c] = $this->units->all();

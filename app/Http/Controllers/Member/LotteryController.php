@@ -12,6 +12,7 @@ use App\Models\Family;
 use App\Models\LotteryRun;
 use App\Models\Project;
 use App\Models\Unit;
+use App\Services\Lottery\AuditArchive;
 use App\Services\Lottery\Exceptions\LotteryExecutionException;
 use App\Services\Lottery\PreferencesService;
 use App\Services\Lottery\RunRecord;
@@ -20,6 +21,8 @@ use App\Services\Queue\Workers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -104,7 +107,8 @@ class LotteryController extends Controller
 
     /**
      * A run's record, for anyone in the project: each family's unit and its place in the
-     * family's ranking, and the record's fingerprint; a family also its own whole ranking
+     * family's ranking, and the record's fingerprint; a family also its own whole ranking.
+     * Once the run is disclosed, every family's ranking, so that anyone can check the result.
      */
     public function record(Request $request, Project $project, LotteryRun $lotteryRun): Response
     {
@@ -115,12 +119,14 @@ class LotteryController extends Controller
 
         return inertia('Member/LotteryRecord', [
             'run' => [
-                'id'          => $lotteryRun->id,
-                'status'      => $lotteryRun->status->value,
-                'started_at'  => $lotteryRun->started_at,
-                'finished_at' => $lotteryRun->finished_at,
-                'by'          => $lotteryRun->starter?->name,
-                'solver'      => $lotteryRun->solver,
+                'id'           => $lotteryRun->id,
+                'status'       => $lotteryRun->status->value,
+                'started_at'   => $lotteryRun->started_at,
+                'finished_at'  => $lotteryRun->finished_at,
+                'by'           => $lotteryRun->starter?->name,
+                'solver'       => $lotteryRun->solver,
+                'discloses_at' => $lotteryRun->disclosesAt(),
+                'disclosed'    => $record->disclosed(),
             ],
             ...$summary,
             'families' => Family::tellingApart($summary['families']),
@@ -129,17 +135,53 @@ class LotteryController extends Controller
                 'ranking' => Unit::whereIn('id', $ids = $record->rankingOf($family->id))->pluck('identifier', 'id')
                     ->sortBy(fn ($identifier, $id) => array_search($id, $ids, true))->values(),
             ] : null,
+            // The whole record: the admins' from the start, everyone's once disclosed
+            'canDownload' => $this->mayDownload($request, $project, $record),
         ]);
     }
 
-    /** Everything a run recorded, as written: for admins to keep or hand to an auditor */
-    public function download(Project $project, LotteryRun $lotteryRun): JsonResponse
+    /** Everything a run recorded, as written (addresses aside), as one JSON file */
+    public function download(Request $request, Project $project, LotteryRun $lotteryRun): JsonResponse
     {
-        $this->authorize('update', $project);
-        $record = new RunRecord($lotteryRun);
-        abort_unless($record->exists(), 404);
+        $record = $this->wholeRecord($request, $project, $lotteryRun);
 
         return response()->json($record->full(), options: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             ->header('Content-Disposition', "attachment; filename=\"lottery-{$lotteryRun->uuid}.json\"");
+    }
+
+    /** The whole record as an archive an auditor can work with: the input, the models, each solve's files, the result, how rankings changed */
+    public function audit(Request $request, Project $project, LotteryRun $lotteryRun): BinaryFileResponse
+    {
+        $this->wholeRecord($request, $project, $lotteryRun);
+
+        return response()->download((new AuditArchive($lotteryRun))->write(), "lottery-{$lotteryRun->uuid}.zip", ['Content-Type' => 'application/zip'])
+            ->deleteFileAfterSend();
+    }
+
+    /** The GLPK models the lottery is solved with, for anyone in the project, any time */
+    public function models(Project $project): HttpResponse
+    {
+        $models = RunRecord::models();
+        $text = collect($models)->map(fn (string $model, string $name) => "### {$name}\n\n{$model}")->implode("\n\n");
+
+        return response($text, headers: [
+            'Content-Type'        => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="lottery-models.txt"',
+        ]);
+    }
+
+    /** @throws \Symfony\Component\HttpKernel\Exception\HttpException when there is no record, or it is not theirs to have yet */
+    private function wholeRecord(Request $request, Project $project, LotteryRun $lotteryRun): RunRecord
+    {
+        $record = new RunRecord($lotteryRun);
+        abort_unless($record->exists(), 404);
+        abort_unless($this->mayDownload($request, $project, $record), 403);
+
+        return $record;
+    }
+
+    private function mayDownload(Request $request, Project $project, RunRecord $record): bool
+    {
+        return $request->user()->can('update', $project) || $record->disclosed();
     }
 }
