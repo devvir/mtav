@@ -152,7 +152,7 @@ El **administrador** es el responsable operativo de un proyecto cooperativo. Qui
 
 El **cooperativista** es un integrante de una familia de la cooperativa. Puede ver la información del proyecto, ordenar en privado las preferencias de su familia, consultar el plano para ubicar las unidades, participar del foro y del chat, recibir notificaciones sobre lo que ocurre en el proyecto e invitar a nuevos integrantes de su propia familia. Cada cooperativista ve únicamente las preferencias de su propia familia, nunca las preferencias de otras familias. Donde el proyecto lo permite, una persona puede ser **participante sin familia**, y participa en la parte social de la comunidad (foro, chat, multimedia) pero no en el sorteo.
 
-Para prevenir abusos, la plataforma no restringe quién crea proyectos, sino la capacidad de cada proyecto hasta que un superadministrador lo aprueba: un proyecto nuevo es **limitado**, por ejemplo en cantidad máxima de integrantes, familias y unidades, invitaciones por día, tamaño y almacenamiento de los archivos y consultas diarias al Asistente. Pasa a ser ilimitado a pedido de sus administradores (§@sec-configuracion).
+Para prevenir abusos, la plataforma no restringe quién crea proyectos, sino la capacidad y funcionalidades de cada proyecto (por ejemplo, tamaño máximo de archivos a subir) hasta que un superadministrador lo aprueba. Pasa a ser **ilimitado** a pedido de sus administradores (§@sec-configuracion).
 
 ### El ciclo de vida de un proyecto cooperativo en MTAV {#sec-ciclo-mtav}
 
