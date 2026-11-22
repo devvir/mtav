@@ -205,7 +205,8 @@ echo "✓ Exportado: $OUT"
 
 # Recordatorio: las notas de borrador [NOTA: ...] no deben sobrevivir a la
 # versión final. Avisar si quedan.
-NOTAS=$(grep -c "\[NOTA:" "${FILES[@]}" | awk -F: '{s+=$2} END {print s}')
+# (grep -c sale con 1 cuando no queda ninguna: no es un error)
+NOTAS=$({ grep -c "\[NOTA:" "${FILES[@]}" || true; } | awk -F: '{s+=$2} END {print s}')
 if [ "${NOTAS:-0}" -gt 0 ]; then
   echo "⚠  Quedan $NOTAS nota(s) de borrador [NOTA: ...] en el documento."
   echo "   (para la entrega final deben ser 0: grep -rn '\\[NOTA:' *.md)"
