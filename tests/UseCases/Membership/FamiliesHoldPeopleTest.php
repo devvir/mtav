@@ -467,14 +467,14 @@ describe('An admin moving or removing someone', function () {
             ->assertSessionHasNoErrors();
     });
 
-    it('refuses removing the only admin, who stays, even to a superadmin', function () {
+    it('lets a superadmin remove even the only admin: an emergency leaves the project to them, to name another', function () {
         $project = aProject();
         $only = anAdminOf($project);
 
-        $this->as(aSuperadmin(), $project)->delete(route('manage.people.destroy', $only))
-            ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
+        $this->as(aSuperadmin(), $project)->delete(route('manage.people.destroy', $only))->assertSessionHasNoErrors();
 
-        expect($only->fresh()->manages($project))->toBeTrue();
+        expect($only->fresh()->canAccess($project))->toBeFalse()
+            ->and($project->admins()->count())->toBe(0);
     });
 
     it('lets a superadmin remove an admin while another is left', function () {
@@ -681,12 +681,12 @@ describe('The only admin', function () {
         expect($this->only->fresh()->manages($this->alone))->toBeTrue();
     });
 
-    it('is not taken the role from, even by a superadmin', function () {
+    it('is taken the role from by a superadmin all the same', function () {
         $this->as(aSuperadmin(), $this->alone)
             ->put(route('manage.people.update', $this->only), ['family_id' => null, 'is_admin' => false])
-            ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
+            ->assertSessionHasNoErrors();
 
-        expect($this->only->fresh()->manages($this->alone))->toBeTrue();
+        expect($this->only->fresh()->manages($this->alone))->toBeFalse();
     });
 
     it('cannot leave the project', function () {

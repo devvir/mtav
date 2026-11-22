@@ -12,8 +12,10 @@ use Illuminate\Validation\ValidationException;
  * Admins placing someone in the project: moving them between families (or out of one, where
  * guests are welcome), granting the admin role, or removing them. Admins are peers: none takes
  * the role from another, nor removes one; only a superadmin does, as a last resort (an admin's
- * account taken over, say). An admin gives the role up themselves. A move or a removal holds the
- * lottery still: a run starting at the same moment has it, or it is refused.
+ * account taken over, say), even to the project's last admin: an emergency is an emergency, and
+ * the superadmin then names another. An admin gives the role up themselves, unless they are the
+ * last. A move or a removal holds the lottery still: a run starting at the same moment has it,
+ * or it is refused.
  */
 class MembershipService
 {
@@ -24,8 +26,7 @@ class MembershipService
     /**
      * @throws ValidationException when they would be left with neither a family nor a role
      *                             without guests, the family declined them, a run is being
-     *                             solved, an admin would take the role from another, or it
-     *                             would take the project's only admin away
+     *                             solved, or an admin would take the role from another
      */
     public function place(Project $project, User $person, ?int $familyId, bool $asAdmin, User $by): void
     {
@@ -44,12 +45,8 @@ class MembershipService
         $project->holdingLottery(function () use ($project, $person, $membership, $familyId, $asAdmin, $moved, $demoted) {
             $moved && $this->ensureCanMove($project, $person, $familyId);
 
-            $apply = function () use ($project, $person, $membership, $familyId, $asAdmin, $moved, $demoted) {
-                $membership->update(['family_id' => $familyId, 'is_admin' => $asAdmin]);
-                $this->dropInvitationsUndoing($project, $person, $moved, $demoted);
-            };
-
-            $demoted ? $project->keepingAnAdmin($person, 'member', $apply) : $apply();
+            $membership->update(['family_id' => $familyId, 'is_admin' => $asAdmin]);
+            $this->dropInvitationsUndoing($project, $person, $moved, $demoted);
         });
 
         if ($moved && $familyId) {
@@ -61,8 +58,7 @@ class MembershipService
      * Out of the project, and out of what they were invited to: an old invitation would bring
      * them back, role and all.
      *
-     * @throws ValidationException when a run is being solved, an admin would remove another,
-     *                             or they are its only admin
+     * @throws ValidationException when a run is being solved, or an admin would remove another
      */
     public function remove(Project $project, User $person, User $by): void
     {
@@ -73,7 +69,7 @@ class MembershipService
         $project->holdingLottery(function () use ($project, $person) {
             $project->ensureLotteryNotRunning();
 
-            $project->keepingAnAdmin($person, 'member', fn () => $this->takeOut($project, $person));
+            $this->takeOut($project, $person);
         });
     }
 
