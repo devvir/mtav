@@ -234,6 +234,8 @@ return [
     'only_admin_of'             => 'Você é o único administrador de :projects. Nomeie outro administrador primeiro, ou exclua o projeto.',
     'last_admin'                => 'Um projeto precisa de pelo menos um administrador.',
     'member_needs_family'       => 'Quem não é administrador precisa fazer parte de uma família.',
+    'admins_are_peers'          => 'Só um superadministrador pode tirar a função de um administrador, ou removê-lo do projeto. Um administrador renuncia à função na sua própria ficha.',
+    'role_means_leaving'        => 'Você não tem família aqui e o projeto não aceita convidados: renunciar à função é sair do projeto.',
     'preferences_foreign_units' => 'Você só pode ordenar moradias do tipo da sua família.',
     'unit_assigned'             => 'Esta moradia já foi dada a uma família no sorteio: não pode ser removida.',
     'plan_unit_items'           => 'Só a forma de uma moradia é uma moradia. Adicione moradias pela paleta da planta ou pela página de moradias.',

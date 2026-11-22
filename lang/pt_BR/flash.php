@@ -22,6 +22,7 @@ return [
     'project_updated'    => 'O projeto foi salvo.',
     'project_deleted'    => 'O projeto foi excluído.',
     'project_left'       => 'Você saiu de :project.',
+    'role_renounced'     => 'Você não é mais administrador aqui.',
     'approval_requested' => 'Pedimos à equipe do :app que torne o seu projeto ilimitado. Em breve você terá notícias.',
     'project_approved'   => ':project foi aprovado: não tem mais limites.',
     'project_restored'   => ':project voltou, como estava.',

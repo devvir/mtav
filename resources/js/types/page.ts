@@ -64,6 +64,8 @@ export interface SharedProps {
       upload: boolean;
       approve: boolean;
       chat: boolean;
+      /** An admin may give the role up, unless they are the only one */
+      renounce: boolean;
     };
   } | null;
   notifications: { unread: number } | null;

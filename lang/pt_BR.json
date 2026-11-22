@@ -1153,6 +1153,8 @@
   "Notifications could not start. Reload the page and try again.": "Não foi possível ativar as notificações. Recarregue a página e tente de novo.",
   "You are in the {family} family. Ask to join yours, or create it. You stay where you are until it is settled.": "Você está na família {family}. Peça para entrar na sua, ou crie a sua. Você fica onde está até isso se resolver.",
   "Everyone in {project} takes part as a family. If yours is already here, ask to join it. If not, create it.": "Em {project} todos participam em família. Se a sua já está aqui, peça para entrar. Se não está, crie a sua.",
+  "Give the admin role up": "Renunciar à função de administrador",
+  "Give the role up": "Renunciar à função",
   "You are the only one in it, so it is removed. You stay in the project.": "Você é a única pessoa, então a família é removida. Você continua no projeto.",
   "Not joined their family yet": "Ainda não entrou na família",
   "Invite people with an emailed link, valid for two weeks. Members can invite into their own family. Someone already in the project joins their family at once. If others can find the project, those asking to join appear here too.": "Convide com um link por e-mail, válido por duas semanas. Os cooperados podem convidar para a própria família. Quem já está no projeto entra na sua família na hora. Se outros podem encontrar o projeto, quem pede para entrar também aparece aqui.",
@@ -1167,5 +1169,11 @@
   "It goes from everyone's ranking.": "Some da ordem de todo mundo.",
   "{count} person will get nothing: there are too few to go round.": "{count} pessoa vai ficar sem nada: não dá para todos.",
   "One will be left over.": "Vai sobrar 1.",
-  "No {type} units yet": "Ainda não há moradias {type}"
+  "No {type} units yet": "Ainda não há moradias {type}",
+  "Only a superadmin takes the role from an admin; an admin gives it up from their own page.": "Só um superadministrador tira a função de um administrador; um administrador renuncia na sua própria ficha.",
+  "Stop being an admin of {project}?": "Deixar de ser administrador de {project}?",
+  "You are the only admin: make someone else an admin first.": "Você é o único administrador: antes, torne outra pessoa administradora.",
+  "You have no family here and the project takes no guests, so you would leave the project. Someone has to invite you again to come back.": "Você não tem família aqui e o projeto não aceita convidados, então sairia do projeto. Alguém precisa convidar você de novo para voltar.",
+  "You stay in the project, as a guest.": "Você continua no projeto, como convidado.",
+  "You stay in the project, in the {family} family.": "Você continua no projeto, na família {family}."
 }

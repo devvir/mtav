@@ -234,6 +234,8 @@ return [
     'only_admin_of'             => 'Vous êtes le seul administrateur de :projects : nommez d’abord un autre administrateur, ou supprimez le projet.',
     'last_admin'                => 'Un projet a besoin d’au moins un administrateur.',
     'member_needs_family'       => 'Une personne qui n’est pas administrateur doit faire partie d’une famille.',
+    'admins_are_peers'          => 'Seul un superadministrateur peut retirer le rôle à un administrateur, ou le retirer du projet. Un administrateur renonce au rôle depuis sa propre fiche.',
+    'role_means_leaving'        => 'Vous n’avez pas de famille ici et le projet n’accepte pas d’invités : renoncer au rôle, c’est quitter le projet.',
     'preferences_foreign_units' => 'Vous ne pouvez classer que des logements du type de votre famille.',
     'unit_assigned'             => 'Ce logement a déjà été attribué à une famille lors du tirage : il ne peut pas être retiré.',
     'plan_unit_items'           => 'Seule la forme d’un logement est un logement : ajoutez des logements depuis la palette du plan ou la page des logements.',

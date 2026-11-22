@@ -22,6 +22,7 @@ return [
     'project_updated'    => 'The project was saved.',
     'project_deleted'    => 'The project was deleted.',
     'project_left'       => 'You left :project.',
+    'role_renounced'     => 'You are no longer an admin here.',
     'approval_requested' => 'We asked the :app team to make your project unlimited. You will hear from us soon.',
     'project_approved'   => ':project is approved: its limits are lifted.',
     'project_restored'   => ':project is back, as it was.',

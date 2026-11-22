@@ -194,6 +194,7 @@ Route::middleware(['module:accounts', 'auth', 'verified'])->group(function () {
                 Route::get('people', [Member\PeopleController::class, 'index'])->name('people.index');
                 Route::get('people/{member}', [Member\PeopleController::class, 'show'])->name('people.show');
                 Route::delete('membership', [Member\PeopleController::class, 'leave'])->name('membership.leave');
+                Route::delete('membership/role', [Member\PeopleController::class, 'renounce'])->name('membership.renounce');
 
                 Route::get('families', [Member\FamilyController::class, 'index'])->name('families.index');
                 Route::get('family/new', [Member\FamilyController::class, 'create'])->name('family.create');

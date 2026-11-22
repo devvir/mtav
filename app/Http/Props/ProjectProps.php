@@ -15,7 +15,8 @@ class ProjectProps
     /** @return array<string, mixed> */
     public function of(Project $project, User $user): array
     {
-        $family = $user->familyIn($project);
+        $membership = $user->membershipIn($project);
+        $family = $membership?->family;
         $manages = $user->can('update', $project);
         // Without guests, until they have a family, finding it is all there is for them
         $inChat = ! $user->needsFamilyIn($project) && $project->hasFeature(ProjectFeature::CHAT) && ((bool) $user->membershipIn($project) || $user->isSuperadmin());
@@ -49,6 +50,8 @@ class ProjectProps
                     && $user->can('create', [Media::class, $project]),
                 'approve' => $user->can('approve', $project),
                 'chat'    => $inChat,
+                // An admin may give the role up, unless the project would be left without one
+                'renounce' => (bool) $membership?->is_admin && $project->admins()->count() > 1,
             ],
         ];
     }

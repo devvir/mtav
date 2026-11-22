@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\MemberResource;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\MembershipService;
 use App\Services\PeopleSearch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ use Inertia\Response;
 
 /**
  * Who takes part in the project; admins change someone's role or family, or remove them,
- * from their page.
+ * from their page. From their own page, anyone leaves the project, and an admin gives the
+ * role up.
  */
 class PeopleController extends Controller
 {
@@ -71,5 +73,21 @@ class PeopleController extends Controller
         });
 
         return to_route('home')->with('success', __('flash.project_left', ['project' => $project->name]));
+    }
+
+    /**
+     * An admin giving the role up (not the last one). With neither a family nor guests in the
+     * project, it means leaving it, which the request says it means (`leave`).
+     */
+    public function renounce(Request $request, Project $project, MembershipService $memberships): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user->membershipIn($project)?->is_admin, 404);
+
+        if ($memberships->renounce($project, $user, $request->boolean('leave'))) {
+            return to_route('home')->with('success', __('flash.project_left', ['project' => $project->name]));
+        }
+
+        return to_route('people.index', ['person' => $user->id])->with('success', __('flash.role_renounced'));
     }
 }

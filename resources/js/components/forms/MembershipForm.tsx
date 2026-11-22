@@ -20,7 +20,10 @@ export function MembershipForm({
     family_id: person.family ? String(person.family.id) : '',
     is_admin: person.is_admin,
   });
-  const allowsGuests = usePage().props.project?.allows_guests ?? false;
+  const { props } = usePage();
+  const allowsGuests = props.project?.allows_guests ?? false;
+  // Admins are peers: only a superadmin takes the role from one
+  const roleHeld = person.is_admin && !props.auth.user?.is_superadmin;
   /** "A project needs at least one admin", and the like */
   const roleError = (form.errors as Record<string, string | undefined>).member;
 
@@ -46,7 +49,14 @@ export function MembershipForm({
       />
       <Checkbox
         label={_('Admin of the project')}
-        description={_('Admins set up the project and run the lottery.')}
+        description={
+          roleHeld
+            ? _(
+                'Only a superadmin takes the role from an admin; an admin gives it up from their own page.',
+              )
+            : _('Admins set up the project and run the lottery.')
+        }
+        disabled={roleHeld}
         {...checkbox(form, 'is_admin')}
       />
       {roleError ? (

@@ -234,6 +234,8 @@ return [
     'only_admin_of'             => 'You are the only admin of :projects: name another admin first, or delete the project.',
     'last_admin'                => 'A project needs at least one admin.',
     'member_needs_family'       => 'Someone who is not an admin must belong to a family.',
+    'admins_are_peers'          => 'Only a superadmin can take the admin role from someone, or remove an admin from the project. An admin gives the role up from their own page.',
+    'role_means_leaving'        => 'You have no family here and the project takes no guests: giving the role up means leaving the project.',
     'preferences_foreign_units' => 'You can only rank units of your family\'s type.',
     'unit_assigned'             => 'This unit was already given to a family in the lottery: it cannot be removed.',
     'plan_unit_items'           => 'Only a unit\'s own shape is a unit: add units from the plan\'s palette or the units page.',

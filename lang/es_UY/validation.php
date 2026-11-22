@@ -234,6 +234,8 @@ return [
     'only_admin_of'             => 'Eres el único administrador de :projects. Nombra a otro administrador primero, o borra el proyecto.',
     'last_admin'                => 'Un proyecto necesita al menos un administrador.',
     'member_needs_family'       => 'Quien no es administrador debe pertenecer a una familia.',
+    'admins_are_peers'          => 'Solo un superadministrador puede quitarle el rol a un administrador, o quitarlo del proyecto. Quien es administrador renuncia al rol desde su propia ficha.',
+    'role_means_leaving'        => 'No tienes familia aquí y el proyecto no admite invitados: renunciar al rol es salir del proyecto.',
     'preferences_foreign_units' => 'Solo puedes ordenar viviendas del tipo de tu familia.',
     'unit_assigned'             => 'Esta vivienda ya fue asignada a una familia en el sorteo: no se puede quitar.',
     'plan_unit_items'           => 'Solo la forma de una vivienda es una vivienda. Agrega viviendas desde la paleta del plano o la página de viviendas.',

@@ -7,21 +7,23 @@ import { toast } from '@/lib/toasts';
 import { _ } from '@/lib/translations';
 import type { Person, Ref } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Anchor, Badge, Button, Divider, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Badge, Button, Divider, Group, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconId,
   IconLogout,
   IconMail,
   IconPhone,
   IconUserCog,
+  IconUserDown,
   IconUserMinus,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 
 /**
  * Someone in the project: their family and role, about them, how to reach them. Their own
- * details lead to their profile or out of the project; admins change their role or family,
- * or remove them.
+ * details lead to their profile or out of the project, and an admin gives the role up there;
+ * admins change people's role or family, or remove them. Admins are peers: only a superadmin
+ * takes the role from one, or removes one.
  */
 /** Why the server refused: nothing on the page holds a field for it */
 const showRefusal = (errors: Record<string, string>) =>
@@ -37,6 +39,7 @@ export function PersonDetails({
 }) {
   const { props } = usePage();
   const isMe = props.auth.user?.id === person.id;
+  const isSuperadmin = props.auth.user?.is_superadmin ?? false;
   const [editing, setEditing] = useState(false);
 
   const remove = async () => {
@@ -58,6 +61,29 @@ export function PersonDetails({
       danger: true,
     });
     if (ok) router.delete(route('membership.leave'), { onError: showRefusal });
+  };
+
+  // Giving the role up: they stay in their family, or as a guest; with neither, they leave
+  const renounce = async () => {
+    const project = props.project!;
+    const leaves = !person.family && !project.allows_guests;
+    const ok = await confirm({
+      title: _('Stop being an admin of {project}?', { project: project.name }),
+      message: person.family
+        ? _('You stay in the project, in the {family} family.', { family: person.family.name })
+        : leaves
+          ? _(
+              'You have no family here and the project takes no guests, so you would leave the project. Someone has to invite you again to come back.',
+            )
+          : _('You stay in the project, as a guest.'),
+      confirmLabel: leaves ? _('Leave') : _('Give the role up'),
+      danger: true,
+    });
+    if (ok)
+      router.delete(route('membership.renounce'), {
+        data: { leave: leaves },
+        onError: showRefusal,
+      });
   };
 
   // Editing replaces the details in the same dialog (one dialog at a time)
@@ -132,6 +158,24 @@ export function PersonDetails({
               <Button variant="default" component={Link} href={route('profile.edit')}>
                 {_('Edit your profile')}
               </Button>
+              {person.is_admin ? (
+                <Tooltip
+                  label={_('You are the only admin: make someone else an admin first.')}
+                  disabled={props.project?.can.renounce}
+                  events={{ hover: true, focus: true, touch: true }}
+                  withinPortal
+                >
+                  <Button
+                    variant="subtle"
+                    leftSection={<IconUserDown size={18} />}
+                    onClick={renounce}
+                    data-disabled={!props.project?.can.renounce || undefined}
+                    aria-disabled={!props.project?.can.renounce || undefined}
+                  >
+                    {_('Give the admin role up')}
+                  </Button>
+                </Tooltip>
+              ) : null}
               <Button
                 variant="subtle"
                 color="red"
@@ -155,7 +199,7 @@ export function PersonDetails({
             >
               {_('Change role or family')}
             </Button>
-            {!isMe ? (
+            {!isMe && (!person.is_admin || isSuperadmin) ? (
               <Button
                 variant="default"
                 color="red"

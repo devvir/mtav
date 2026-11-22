@@ -22,6 +22,7 @@ return [
     'project_updated'    => 'El proyecto quedó guardado.',
     'project_deleted'    => 'Se borró el proyecto.',
     'project_left'       => 'Saliste de :project.',
+    'role_renounced'     => 'Ya no eres administrador aquí.',
     'approval_requested' => 'Le pedimos al equipo de :app que haga ilimitado tu proyecto. Pronto vas a tener novedades.',
     'project_approved'   => ':project está aprobado: ya no tiene límites.',
     'project_restored'   => ':project volvió, tal como estaba.',

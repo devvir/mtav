@@ -234,6 +234,8 @@ return [
     'only_admin_of'             => 'Sei l’unico amministratore di :projects. Nomina prima un altro amministratore, o elimina il progetto.',
     'last_admin'                => 'Un progetto ha bisogno di almeno un amministratore.',
     'member_needs_family'       => 'Chi non è amministratore deve far parte di una famiglia.',
+    'admins_are_peers'          => 'Solo un superamministratore può togliere il ruolo a un amministratore, o toglierlo dal progetto. Un amministratore rinuncia al ruolo dalla propria scheda.',
+    'role_means_leaving'        => 'Non hai una famiglia qui e il progetto non ammette ospiti: rinunciare al ruolo significa uscire dal progetto.',
     'preferences_foreign_units' => 'Puoi mettere in ordine solo alloggi del tipo della tua famiglia.',
     'unit_assigned'             => 'Questo alloggio è già stato assegnato a una famiglia nel sorteggio: non si può togliere.',
     'plan_unit_items'           => 'Solo la forma di un alloggio è un alloggio. Aggiungi gli alloggi dalla tavolozza della planimetria o dalla pagina degli alloggi.',

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\MembershipService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * The people of a project: their families and roles.
@@ -15,7 +16,8 @@ use Illuminate\Http\RedirectResponse;
 class PeopleController extends Controller
 {
     /**
-     * Admins move people between families and grant or revoke the admin role.
+     * Admins move people between families and grant the admin role; only superadmins take it
+     * back, or remove an admin.
      */
     public function update(MembershipRequest $request, Project $project, User $member, MembershipService $memberships): RedirectResponse
     {
@@ -24,9 +26,9 @@ class PeopleController extends Controller
         return to_route('people.index', ['person' => $member->id])->with('success', __('flash.member_updated'));
     }
 
-    public function destroy(Project $project, User $member, MembershipService $memberships): RedirectResponse
+    public function destroy(Request $request, Project $project, User $member, MembershipService $memberships): RedirectResponse
     {
-        $memberships->remove($project, $member);
+        $memberships->remove($project, $member, $request->user());
 
         return to_route('people.index')->with('success', __('flash.member_removed'));
     }

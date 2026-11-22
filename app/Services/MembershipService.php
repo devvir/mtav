@@ -10,8 +10,10 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Admins placing someone in the project: moving them between families (or out of one, where
- * guests are welcome), granting or taking back the admin role, or removing them. A move or a
- * removal holds the lottery still: a run starting at the same moment has it, or it is refused.
+ * guests are welcome), granting the admin role, or removing them. Admins are peers: none takes
+ * the role from another, nor removes one; only a superadmin does, as a last resort (an admin's
+ * account taken over, say). An admin gives the role up themselves. A move or a removal holds the
+ * lottery still: a run starting at the same moment has it, or it is refused.
  */
 class MembershipService
 {
@@ -22,13 +24,18 @@ class MembershipService
     /**
      * @throws ValidationException when they would be left with neither a family nor a role
      *                             without guests, the family declined them, a run is being
-     *                             solved, or it would take the project's only admin away
+     *                             solved, an admin would take the role from another, or it
+     *                             would take the project's only admin away
      */
     public function place(Project $project, User $person, ?int $familyId, bool $asAdmin, User $by): void
     {
         $membership = $person->membershipIn($project);
         $moved = $familyId !== ($membership->family_id ? (int) $membership->family_id : null);
         $demoted = $membership->is_admin && ! $asAdmin;
+
+        if ($demoted && ! $by->isSuperadmin()) {
+            throw ValidationException::withMessages(['member' => __('validation.admins_are_peers')]);
+        }
 
         if (! $asAdmin && ! $familyId && ! $project->allows_guests) {
             throw ValidationException::withMessages(['family_id' => __('validation.member_needs_family')]);
@@ -54,19 +61,61 @@ class MembershipService
      * Out of the project, and out of what they were invited to: an old invitation would bring
      * them back, role and all.
      *
-     * @throws ValidationException when a run is being solved, or they are its only admin
+     * @throws ValidationException when a run is being solved, an admin would remove another,
+     *                             or they are its only admin
      */
-    public function remove(Project $project, User $person): void
+    public function remove(Project $project, User $person, User $by): void
     {
+        if ($person->membershipIn($project)?->is_admin && ! $by->isSuperadmin()) {
+            throw ValidationException::withMessages(['member' => __('validation.admins_are_peers')]);
+        }
+
         $project->holdingLottery(function () use ($project, $person) {
             $project->ensureLotteryNotRunning();
 
-            $project->keepingAnAdmin($person, 'member', function () use ($project, $person) {
-                $person->membershipIn($project)->delete();
-                // One by one: a family waiting only for one of them may have nobody left
-                $project->invitations()->pending()->where('email', $person->email)->get()->each->delete();
+            $project->keepingAnAdmin($person, 'member', fn () => $this->takeOut($project, $person));
+        });
+    }
+
+    /**
+     * An admin giving the role up. They stay as they were otherwise: in their family, or as a
+     * guest where the project has them; with neither, giving the role up is leaving the
+     * project, which they say they mean (`$leaving`).
+     *
+     * @return bool whether they left the project
+     *
+     * @throws ValidationException when they are its only admin, or would leave without saying so
+     */
+    public function renounce(Project $project, User $person, bool $leaving): bool
+    {
+        $membership = $person->membershipIn($project);
+        $leaves = ! $membership->family_id && ! $project->allows_guests;
+
+        if ($leaves && ! $leaving) {
+            throw ValidationException::withMessages(['role' => __('validation.role_means_leaving')]);
+        }
+
+        $project->holdingLottery(function () use ($project, $person, $membership, $leaves) {
+            $leaves && $project->ensureLotteryNotRunning();
+
+            $project->keepingAnAdmin($person, 'role', function () use ($project, $person, $membership, $leaves) {
+                if ($leaves) {
+                    $this->takeOut($project, $person);
+                } else {
+                    $membership->update(['is_admin' => false]);
+                    $this->dropInvitationsUndoing($project, $person, moved: false, demoted: true);
+                }
             });
         });
+
+        return $leaves;
+    }
+
+    private function takeOut(Project $project, User $person): void
+    {
+        $person->membershipIn($project)->delete();
+        // One by one: a family waiting only for one of them may have nobody left
+        $project->invitations()->pending()->where('email', $person->email)->get()->each->delete();
     }
 
     /** @throws ValidationException */

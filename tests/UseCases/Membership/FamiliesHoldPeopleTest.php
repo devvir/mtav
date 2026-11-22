@@ -467,22 +467,22 @@ describe('An admin moving or removing someone', function () {
             ->assertSessionHasNoErrors();
     });
 
-    it('refuses removing the only admin, who stays', function () {
+    it('refuses removing the only admin, who stays, even to a superadmin', function () {
         $project = aProject();
         $only = anAdminOf($project);
 
-        $this->as($only, $project)->delete(route('manage.people.destroy', $only))
+        $this->as(aSuperadmin(), $project)->delete(route('manage.people.destroy', $only))
             ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
 
         expect($only->fresh()->manages($project))->toBeTrue();
     });
 
-    it('removes an admin while another is left', function () {
+    it('lets a superadmin remove an admin while another is left', function () {
         $project = aProject();
-        $first = anAdminOf($project);
+        anAdminOf($project);
         $second = anAdminOf($project);
 
-        $this->as($first, $project)->delete(route('manage.people.destroy', $second))->assertSessionHasNoErrors();
+        $this->as(aSuperadmin(), $project)->delete(route('manage.people.destroy', $second))->assertSessionHasNoErrors();
 
         expect($second->fresh()->canAccess($project))->toBeFalse();
     });
@@ -499,7 +499,7 @@ describe('An admin moving or removing someone', function () {
         $other = anAdminOf($this->project);
         Invitation::create(['project_id' => $this->project->id, 'is_admin' => true, 'email' => $other->email, 'token_hash' => 'x', 'invited_by' => $this->admin->id, 'expires_at' => now()->addDay()]);
 
-        $this->as($this->admin, $this->project)->put(route('manage.people.update', $other), ['family_id' => null, 'is_admin' => false])->assertSessionHasNoErrors();
+        $this->as(aSuperadmin(), $this->project)->put(route('manage.people.update', $other), ['family_id' => null, 'is_admin' => false])->assertSessionHasNoErrors();
 
         expect(Invitation::where('email', $other->email)->exists())->toBeFalse();
     });
@@ -576,6 +576,98 @@ describe('An admin changing a role alone', function () {
     });
 });
 
+describe('Admins are peers', function () {
+    beforeEach(function () {
+        $this->other = anAdminOf($this->project);
+    });
+
+    it('none takes the role from another, nor removes one', function () {
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->other), ['family_id' => null, 'is_admin' => false])
+            ->assertSessionHasErrors(['member' => __('validation.admins_are_peers')]);
+        $this->as($this->admin, $this->project)->delete(route('manage.people.destroy', $this->other))
+            ->assertSessionHasErrors(['member' => __('validation.admins_are_peers')]);
+
+        expect($this->other->fresh()->manages($this->project))->toBeTrue();
+    });
+
+    it('a superadmin takes the role from one, as a last resort', function () {
+        $this->as(aSuperadmin(), $this->project)
+            ->put(route('manage.people.update', $this->other), ['family_id' => null, 'is_admin' => false])
+            ->assertSessionHasNoErrors();
+
+        expect($this->other->fresh()->manages($this->project))->toBeFalse()
+            ->and($this->other->fresh()->canAccess($this->project))->toBeTrue();
+    });
+
+    it('still lets an admin make someone an admin, and move one between families', function () {
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->member), ['family_id' => $this->family->id, 'is_admin' => true])
+            ->assertSessionHasNoErrors();
+        $this->as($this->admin, $this->project)
+            ->put(route('manage.people.update', $this->member), ['family_id' => null, 'is_admin' => true])
+            ->assertSessionHasNoErrors();
+
+        expect($this->member->fresh()->manages($this->project))->toBeTrue()
+            ->and($this->member->fresh()->familyIn($this->project))->toBeNull();
+    });
+});
+
+describe('Giving the admin role up', function () {
+    it('leaves them in their family', function () {
+        anAdminOf($this->project);
+        $this->project->memberships()->where('user_id', $this->admin->id)->update(['family_id' => $this->family->id]);
+
+        $this->as($this->admin, $this->project)->delete(route('membership.renounce'))
+            ->assertSessionHasNoErrors()->assertRedirect(route('people.index', [$this->project, 'person' => $this->admin->id]));
+
+        expect($this->admin->fresh()->manages($this->project))->toBeFalse()
+            ->and($this->admin->fresh()->familyIn($this->project)?->id)->toBe($this->family->id);
+    });
+
+    it('leaves them a guest where the project has guests', function () {
+        anAdminOf($this->project);
+
+        $this->as($this->admin, $this->project)->delete(route('membership.renounce'))->assertSessionHasNoErrors();
+
+        expect($this->admin->fresh()->isGuestIn($this->project))->toBeTrue();
+    });
+
+    it('means leaving a project without guests, which they say they mean', function () {
+        $this->project->update(['allows_guests' => false]);
+        anAdminOf($this->project);
+
+        $this->as($this->admin, $this->project)->delete(route('membership.renounce'))
+            ->assertSessionHasErrors(['role' => __('validation.role_means_leaving')]);
+        expect($this->admin->fresh()->manages($this->project))->toBeTrue();
+
+        $this->as($this->admin, $this->project)->delete(route('membership.renounce'), ['leave' => true])
+            ->assertSessionHasNoErrors()->assertRedirect(route('home'));
+        expect($this->admin->fresh()->canAccess($this->project))->toBeFalse();
+    });
+
+    it('withdraws an invitation that would give the role back', function () {
+        anAdminOf($this->project);
+        Invitation::create(['project_id' => $this->project->id, 'is_admin' => true, 'email' => $this->admin->email, 'token_hash' => 'x', 'invited_by' => $this->admin->id, 'expires_at' => now()->addDay()]);
+
+        $this->as($this->admin, $this->project)->delete(route('membership.renounce'))->assertSessionHasNoErrors();
+
+        expect(Invitation::where('email', $this->admin->email)->exists())->toBeFalse();
+    });
+
+    it('is offered to an admin with a peer, and to the only admin as disabled', function () {
+        $offered = fn () => inertiaProps($this->as($this->admin, $this->project)->get(route('people.index')))['project']['can']['renounce'];
+
+        expect($offered())->toBeFalse();
+        anAdminOf($this->project);
+        expect($offered())->toBeTrue();
+    });
+
+    it('is nobody else\'s to do', function () {
+        $this->as($this->member, $this->project)->delete(route('membership.renounce'))->assertNotFound();
+    });
+});
+
 describe('The only admin', function () {
     beforeEach(function () {
         $this->alone = aProject(['allows_guests' => true]);
@@ -583,7 +675,14 @@ describe('The only admin', function () {
     });
 
     it('cannot give the role up', function () {
-        $this->as($this->only, $this->alone)
+        $this->as($this->only, $this->alone)->delete(route('membership.renounce'))
+            ->assertSessionHasErrors(['role' => __('validation.last_admin')]);
+
+        expect($this->only->fresh()->manages($this->alone))->toBeTrue();
+    });
+
+    it('is not taken the role from, even by a superadmin', function () {
+        $this->as(aSuperadmin(), $this->alone)
             ->put(route('manage.people.update', $this->only), ['family_id' => null, 'is_admin' => false])
             ->assertSessionHasErrors(['member' => __('validation.last_admin')]);
 

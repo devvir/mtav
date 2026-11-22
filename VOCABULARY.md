@@ -11,7 +11,7 @@ person's language; only Uruguayan Spanish is shown here (`lang/` has the rest).
 | **Person** | Anyone with an account. One account serves every project. | `User` | persona |
 | **Superadmin** | Oversees the whole deployment: approves projects, and may do what an admin does in any project. A support account apart, invited on an address of its own: it takes part in no project. | `is_superadmin` | superadministrador |
 | **Owner** | The deployment's first superadmin. A deployment with no owner stays closed, showing only that it is under construction. | `is_owner` | |
-| **Admin** | Runs a project: sets it up, invites people, runs the lottery. May also be in a family. | `Membership.is_admin` | administrador |
+| **Admin** | Runs a project: sets it up, invites people, runs the lottery. May also be in a family. Admins are peers: none demotes or removes another (a superadmin does, as a last resort); an admin gives the role up. | `Membership.is_admin` | administrador |
 | **Member** | Someone taking part in a project, in a family. "Member of a family" is the same person seen from the family. | `Membership` with `family_id` | cooperativista, integrante |
 | **Guest** | Someone in a project that allows guests, who has not joined their family here. Takes part in everything but the lottery; cannot invite, rank or see contact details. | `Membership` with no family, `allows_guests` | invitado |
 | **Newcomer** | Someone let into a project that allows no guests, who has not joined their family yet. Finding it is all they can do until then. | `needsFamilyIn` | |

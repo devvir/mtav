@@ -69,6 +69,12 @@ is **limited** (`config/limits.php`: people, families, units, invitations a day,
 size, storage) until the platform's team makes it **unlimited**, which its admins ask
 for; projects a superadmin starts are unlimited at once. Only "Limited" is ever shown.
 
+Admins are peers (`MembershipService`): one makes someone an admin or moves them between
+families, but none takes the role from another, nor removes one; a superadmin does, as a last
+resort. An admin gives the role up from their own card: they stay in their family, or as a
+guest where the project has them, and otherwise leave the project, having said they mean to.
+The last admin can do none of it, and nobody takes the role from them either.
+
 Deleting a project (its admins, typing its name) archives it when it has a history,
 else deletes it for good. Superadmins restore archived projects, or delete them for good.
 

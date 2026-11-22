@@ -22,6 +22,7 @@ return [
     'project_updated'    => 'Le projet a été enregistré.',
     'project_deleted'    => 'Le projet a été supprimé.',
     'project_left'       => 'Vous avez quitté :project.',
+    'role_renounced'     => 'Vous n’êtes plus administrateur ici.',
     'approval_requested' => 'Nous avons demandé à l’équipe :app de rendre votre projet illimité. Vous aurez bientôt de nos nouvelles.',
     'project_approved'   => ':project est approuvé : ses limites sont levées.',
     'project_restored'   => ':project est de retour, tel qu’il était.',
