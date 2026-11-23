@@ -343,7 +343,7 @@ El registro `init` congela la entrada completa. El manifiesto tiene un bloque po
 
 ```json
 {
-    "admin": { "id": 2, "name": "Teresa Alcántar" },
+    "admin": { "id": 2, "name": "Andrés Silva" },
     "manifest": {
         "uuid": "9e5480af-33bd-4594-93e2-2d03ddf35ff6",
         "project_id": 1,
