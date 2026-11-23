@@ -90,7 +90,9 @@ reference, mobile-first); DevOps (containerization, quality gates).
 The thesis was updated to the rewritten app (React/Mantine, open sign-up, per-project roles,
 forum, chat, Assistant, AWS delivery): chapters 1–5 and appendices A–I follow the code as of
 2026-11-20; the three Mermaid diagrams were regenerated (`mmdc` from a local npm install, using
-the system Chrome). What was not touched: chapter 3's formulation and benchmarks, appendix C.3.
+the system Chrome). Chapter 3's formulation did not change; its benchmarks and appendix C.3 were re-measured on the
+current code (November 2026: the four scenarios and the original method, two or three series at a
+time on the same machine; `thesis_figures.py --tables` prints the tables).
 The solver's real tie-break and unbalanced-type limits are stated as facts (§3.2, §3.6) with the
 fix in the future work. No `[NOTA]` remains; the one open question for the tutor (the list of
 real projects, §1.2.2) is a `.rev` note. A final proofreading round (2026-11-21, four

@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Lottery\AuditService;
+use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
+use App\Services\Lottery\Solvers\Glpk\Glpk;
+use App\Services\Lottery\Solvers\Glpk\TaskRunners\TaskRunnerFactory;
 
 /**
  * Benchmark GLPK solver performance across problem sizes and preference scenarios.
@@ -13,12 +17,15 @@ use App\Services\Lottery\DataObjects\LotterySpec;
  * Usage:
  *   php artisan benchmark:glpk --size=5 --scenario=random --iterations=1000
  *   php artisan benchmark:glpk --size=20 --scenario=realistic --iterations=100 --timeout=60
+ *   php artisan benchmark:glpk --size=30 --scenario=random --iterations=10000 --original
+ *     (Phase 1 with GLPK, the original method, written to storage/benchmarks/original/)
  *
  * Scenarios:
  *   - identical: All families have identical preferences (worst-case for tie-breaking)
  *   - random: Completely random preference orderings
  *   - opposite: Families have opposing preferences (best-case for assignments)
- *   - realistic: Mix of popular and unpopular units (simulates real cooperative behavior)
+ *   - realistic: Units popular with (almost) everyone and units nobody wants, shared by all
+ *     families, each ranking with its own variation: what collides in a real project
  *
  * Output CSV format:
  *   size,scenario,iteration,time_ms,status,error,spec,result  (spec and result as JSON)
@@ -44,7 +51,8 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
                             {--size= : Problem size (NxN)}
                             {--scenario= : Scenario type (identical|random|opposite|realistic)}
                             {--iterations=1 : Number of iterations to run}
-                            {--timeout=30 : Solver timeout in seconds}';
+                            {--timeout=30 : Solver timeout in seconds}
+                            {--original : Solve Phase 1 with GLPK directly, the original method, with no fallback to the binary search}';
 
     protected $description = 'Benchmark GLPK solver performance across different problem sizes and scenarios';
 
@@ -60,10 +68,16 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
         $outputPath = $this->getOutputPath($size, $scenario);
 
         $this->configureSolver($timeout);
+
+        if ($this->option('original')) {
+            $this->useOriginalPhase1();
+        }
+
         $this->initializeSolver();
         $this->createOutputFile($outputPath);
 
-        $this->info("GLPK Benchmark: {$size}x{$size} {$scenario} x{$iterations} (timeout: {$timeout}s)");
+        $method = $this->option('original') ? 'original Phase 1 with GLPK' : 'binary search';
+        $this->info("GLPK Benchmark: {$size}x{$size} {$scenario} x{$iterations} (timeout: {$timeout}s, {$method})");
         $this->info("Output file: {$outputPath}");
         $this->newLine();
 
@@ -85,7 +99,25 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
             return $output;
         }
 
-        return storage_path("benchmarks/glpk_{$scenario}_{$size}.csv");
+        $folder = $this->option('original') ? 'benchmarks/original' : 'benchmarks';
+
+        return storage_path("{$folder}/glpk_{$scenario}_{$size}.csv");
+    }
+
+    /**
+     * The original method, as the thesis compares against it: Phase 1 solved by GLPK with
+     * the whole time budget and no fallback, so that a timeout is recorded as such.
+     */
+    private function useOriginalPhase1(): void
+    {
+        app()->bind(Glpk::class, fn ($app) => new class ($app->make(TaskRunnerFactory::class), $app->make(AuditService::class)) extends Glpk {
+            public function distributeItems(LotteryManifest $manifest, LotterySpec $spec): array
+            {
+                $this->phase1Timeout = $this->timeout;
+
+                return $this->glpkDistribution($manifest, $spec);
+            }
+        });
     }
 
     private function getRequiredOption(string $name): string
@@ -168,15 +200,24 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
                 fn ($i) => $i < $size / 2 ? $unitIds : array_reverse($unitIds),
                 array_keys($familyIds)
             ),
-            'realistic' => array_map(fn () => $this->generateRealisticPreferences($unitIds), $familyIds),
+            'realistic' => $this->generateRealisticPreferences($unitIds, count($familyIds)),
         };
     }
 
-    private function generateRealisticPreferences(array $unitIds): array
+    /**
+     * What a real project looks like: some units are attractive to nearly everyone (the
+     * garden, the corner away from the street), some to nearly no one, and each family
+     * still has its own order within that. The popular and unpopular sets are drawn ONCE
+     * per instance and shared by every family, so many families collide on the same top
+     * choices: the kind of instance that made the original Phase 1 take minutes.
+     *
+     * @return list<list<int>> one ranking per family
+     */
+    private function generateRealisticPreferences(array $unitIds, int $families): array
     {
         $size = count($unitIds);
 
-        // Determine popular (top 20%) and unpopular (bottom 20%) units
+        // Determine popular (top 20%) and unpopular (bottom 20%) units, the same for all families
         $popularCount = (int) ceil($size * 0.2);
         $unpopularCount = (int) ceil($size * 0.2);
 
@@ -184,6 +225,17 @@ class BenchmarkGlpkSolver extends BenchmarkGlpkBase
         $popular = array_slice($shuffled, 0, $popularCount);
         $neutral = array_slice($shuffled, $popularCount, $size - $popularCount - $unpopularCount);
         $unpopular = array_slice($shuffled, -$unpopularCount);
+
+        return array_map(
+            fn () => $this->rankWithBias($unitIds, $popular, $neutral, $unpopular),
+            range(1, $families),
+        );
+    }
+
+    /** One family's ranking: popular units tend to the top, unpopular ones to the bottom */
+    private function rankWithBias(array $unitIds, array $popular, array $neutral, array $unpopular): array
+    {
+        $size = count($unitIds);
 
         // Build weighted preference list
         // Popular units appear 3x as often in early positions

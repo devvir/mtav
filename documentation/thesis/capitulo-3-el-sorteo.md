@@ -128,7 +128,7 @@ Esta solución se desarrolló de forma independiente, a partir del método de do
 [Para cuantificar la mejora se ejecutaron *benchmarks* sobre cuatro escenarios de preferencias —**aleatorias**, **realistas** (mezcla de unidades populares e impopulares, que simula el comportamiento real), **idénticas** y **opuestas** (los dos casos degenerados)— en tamaños de 5 a 500 familias, con cientos a miles de repeticiones por configuración.]{.quitado}
 
 ::: cambio
-Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3. El escenario realista se corrigió para que las familias compartan unidades populares, como era la intención, y las cinco series se están volviendo a medir sobre el código actual: los números y la figura de esta sección son todavía los de julio (el escenario realista, con el generador anterior) y se actualizan en la próxima versión]{.rev #rev-23}
+Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3. El escenario realista se corrigió para que las familias compartan unidades populares, como era la intención, y las cinco series se volvieron a medir sobre el código actual en noviembre de 2026: los números, las figuras y las observaciones de esta sección y del Apéndice C.3 son los nuevos]{.rev #rev-23}
 
 - **Aleatorias:** cada familia ordena las unidades al azar —una permutación uniforme—, de forma independiente de las demás.
 - **Realistas:** en cada instancia, un 20 % de las unidades es popular y otro 20 % impopular, y esa división es la misma para todas las familias, como en un proyecto real, donde algunas unidades atraen a casi todos y otras a casi nadie. Cada familia arma su ranking con esa inclinación y con su propia variación, de modo que muchas familias coinciden en sus primeras opciones: la situación que degrada a la Fase 1 original (§@sec-cuello-fase1) y la que motivó este trabajo.
@@ -137,19 +137,23 @@ Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas
 
 Idénticas y opuestas son los dos casos degenerados descritos en la Sección @sec-cuello-fase1. La generación exacta de cada escenario se detalla en el Apéndice C.3.
 
-**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.4 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el *solver* hasta que devuelve la asignación.
+**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.5 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. Las cinco series se corrieron en noviembre de 2026, de a dos o tres a la vez en el mismo equipo, de modo que los tiempos absolutos incluyen esa competencia por el procesador: son, en ese sentido, conservadores. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el *solver* hasta que devuelve la asignación.
 :::
 
-**Solución original (GLPK en ambas fases).** En el escenario aleatorio, los *timeouts* aparecen ya en tamaños de 25 a 30 familias: con un límite de 30 segundos, en tamaño 30, 48 de cada 10 000 corridas no terminaron dentro del límite, y una instancia de tamaño 25, corrida sin límite de tiempo, tardó cerca de 120 segundos. Los escenarios degenerados resultan intratables, como se explicó en la Sección @sec-cuello-fase1.
+::: cambio
+**Solución original (GLPK en ambas fases).** En el escenario aleatorio, los *timeouts* aparecen ya en tamaños de 20 a 30 familias: con un límite de 30 segundos, 4, 8 y 18 de cada 10 000 corridas no terminaron dentro del límite en los tamaños 20, 25 y 30, y las más largas que sí terminaron rozaron el tope (22, 26 y 29 segundos), contra una mediana por debajo del segundo. En tamaño 30, casi tres de cada diez corridas superan el segundo y el percentil 99 llega a 3 segundos. Los escenarios degenerados resultan intratables, como se explicó en la Sección @sec-cuello-fase1.
+:::
 
 **Con búsqueda binaria.** El método propuesto resuelve **el 100 % de las instancias, sin un solo *timeout***, en los cuatro escenarios y en todos los tamaños hasta 500 familias —incluidos los casos idénticos y opuestos que la solución original no podía terminar—. Los tiempos medios de ejecución (resolución completa) son:
 
+::: cambio
 | Escenario | $N=75$ | $N=150$ | $N=300$ | $N=500$ |
 |---|---|---|---|---|
-| Aleatorias | 0,7 s | 2,8 s | 28 s | 56 s |
-| Realistas | 1,3 s | 4,4 s | 16 s | 75 s |
-| Idénticas | 1,5 s | 6,2 s | 25 s | 88 s |
-| Opuestas | 1,2 s | 4,6 s | 19 s | 85 s |
+| Aleatorias | 1,8 s | 8,2 s | 42 s | 152 s |
+| Realistas | 1,9 s | 9,7 s | 56 s | 221 s |
+| Idénticas | 1,9 s | 8,5 s | 37 s | 107 s |
+| Opuestas | 1,6 s | 7,1 s | 30 s | 95 s |
+:::
 
 Dos lecturas importantes de estos números:
 

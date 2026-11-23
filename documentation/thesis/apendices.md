@@ -437,19 +437,19 @@ Esta sección amplía los resultados de la Sección @sec-resultados con la metod
 [**Metodología.** Cada configuración (escenario × tamaño) se ejecutó de forma repetida e independiente —10 000 corridas por tamaño para la solución original; 1 000 corridas por tamaño hasta $N=150$ y 100 corridas para $N \ge 200$ con la búsqueda binaria—, midiendo el tiempo de resolución completa (ambas fases). Los cuatro escenarios de preferencias: **aleatorias** (cada familia ordena al azar), **realistas** (mezcla de unidades populares e impopulares que simula el comportamiento observado), **idénticas** (todas las familias con el mismo ranking: el peor caso para el desempate) y **opuestas** (rankings en espejo). Los datos crudos viven en `storage/benchmarks/` y las estadísticas se computan con `scripts/benchmark_analysis/`.]{.quitado}
 
 ::: cambio
-**Metodología.** Cada instancia tiene $N$ familias y $N$ unidades, identificadas por número, y para cada familia un ordenamiento completo de las unidades. Cada configuración (escenario × tamaño, con $N \in \{5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500\}$) se ejecutó de forma repetida e independiente, generando preferencias nuevas en cada corrida: 10 000 corridas por tamaño para la solución original; con la búsqueda binaria, 1 000 corridas por tamaño hasta $N=100$ (y en $N=150$ para el escenario aleatorio) y 100 corridas en los tamaños mayores. En cada corrida se mide el tiempo de resolución completa (ambas fases). Los datos crudos viven en `storage/benchmarks/` y las estadísticas se computan con `scripts/benchmark_analysis/`. [Se corrigió el número de corridas en $N=150$, que no coincidía con los datos.]{.rev}
+**Metodología.** Cada instancia tiene $N$ familias y $N$ unidades, identificadas por número, y para cada familia un ordenamiento completo de las unidades. Cada configuración (escenario × tamaño, con $N \in \{5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500\}$) se ejecutó de forma repetida e independiente, generando preferencias nuevas en cada corrida: 10 000 corridas por tamaño para la solución original, en los tamaños 5, 10, 20, 25 y 30 y con un tope de 30 s por corrida; con la búsqueda binaria, 1 000 corridas por tamaño hasta $N=100$ (y en $N=150$ para el escenario aleatorio) y 100 corridas en los tamaños mayores. En cada corrida se mide el tiempo de resolución completa (ambas fases). Los datos crudos viven en `storage/benchmarks/` y las estadísticas se computan con `scripts/benchmark_analysis/`. [Se corrigió el número de corridas en $N=150$, que no coincidía con los datos.]{.rev}
 
 Los escenarios se generan así:
 
 - **Aleatorias:** cada familia recibe una permutación uniforme de las unidades, sorteada de forma independiente de las demás.
-- **Realistas:** en cada instancia, las unidades se mezclan al azar una sola vez y se dividen en un 20 % popular, un 20 % impopular (ambos redondeados hacia arriba) y el resto, neutro; la división es la misma para todas las familias. Cada familia arma su ordenamiento en tres tramos. El primer tercio se sortea, de forma uniforme, de un conjunto en el que cada unidad popular aparece tres veces y cada neutra una; el tercio central, de uno en el que las populares y las impopulares aparecen una vez y las neutras dos; y el último tramo, de uno en el que cada neutra aparece una vez y cada impopular tres. Si una unidad sale más de una vez, cuenta solo su primera aparición, y las unidades que no salieron se agregan al final. Como la división es común, muchas familias coinciden en sus primeras opciones, con variaciones propias de cada una: es lo que ocurre en un proyecto real, donde algunas unidades atraen a casi todos, y lo que degrada a la Fase 1 original (§@sec-cuello-fase1). [#24: generación del escenario realista, reproducible. El generador anterior sorteaba la división popular/impopular para cada familia por separado, sin unidades populares comunes; se corrigió para que las familias coincidan, como era la intención, y las series se están volviendo a medir: los datos de este apéndice son todavía los de julio, con el generador anterior, y se actualizan en la próxima versión]{.rev #rev-24}
+- **Realistas:** en cada instancia, las unidades se mezclan al azar una sola vez y se dividen en un 20 % popular, un 20 % impopular (ambos redondeados hacia arriba) y el resto, neutro; la división es la misma para todas las familias. Cada familia arma su ordenamiento en tres tramos. El primer tercio se sortea, de forma uniforme, de un conjunto en el que cada unidad popular aparece tres veces y cada neutra una; el tercio central, de uno en el que las populares y las impopulares aparecen una vez y las neutras dos; y el último tramo, de uno en el que cada neutra aparece una vez y cada impopular tres. Si una unidad sale más de una vez, cuenta solo su primera aparición, y las unidades que no salieron se agregan al final. Como la división es común, muchas familias coinciden en sus primeras opciones, con variaciones propias de cada una: es lo que ocurre en un proyecto real, donde algunas unidades atraen a casi todos, y lo que degrada a la Fase 1 original (§@sec-cuello-fase1). [#24: generación del escenario realista, reproducible. El generador anterior sorteaba la división popular/impopular para cada familia por separado, sin unidades populares comunes; se corrigió para que las familias coincidan, como era la intención, y las cinco series se volvieron a medir en noviembre de 2026 sobre el código actual: los datos de este apéndice son los nuevos]{.rev #rev-24}
 - **Idénticas:** todas las familias tienen el mismo ordenamiento, un orden fijo de las unidades.
 - **Opuestas:** se fija un único orden de las unidades, que no se sortea. La primera mitad de las familias (la mitad más una si $N$ es impar) lo adopta tal cual, y el resto lo adopta invertido. [#25: qué significa "en espejo"]{.rev}
 
-**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo: procesador Intel Core i7-1195G7 (11.ª generación; 4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM. La aplicación corrió dentro de contenedores Docker, sobre la imagen oficial `php:8.4-fpm-alpine` (PHP 8.4, Alpine Linux) con GLPK 5.0 instalado desde los paquetes de Alpine, sin límites de CPU ni de memoria para los contenedores. GLPK resuelve cada problema en un único proceso, sin paralelizar. El tiempo registrado es el tiempo de reloj desde que se invoca el *solver* hasta que devuelve la asignación: incluye ambas fases, la escritura de los archivos del modelo y los datos, y el arranque de cada ejecución de GLPK. [#26: plataforma de las corridas]{.rev}
+**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo: procesador Intel Core i7-1195G7 (11.ª generación; 4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM. La aplicación corrió dentro de contenedores Docker, sobre la imagen oficial `php:8.5.12-fpm-alpine` (PHP 8.5.12, Alpine Linux 3.24) con GLPK 5.0 instalado desde los paquetes de Alpine, sin límites de CPU ni de memoria para los contenedores. GLPK resuelve cada problema en un único proceso, sin paralelizar. Las cinco series se corrieron en noviembre de 2026, de a dos o tres a la vez en el mismo equipo: los tiempos absolutos incluyen esa competencia por el procesador. El tiempo registrado es el tiempo de reloj desde que se invoca el *solver* hasta que devuelve la asignación: incluye ambas fases, la escritura de los archivos del modelo y los datos, y el arranque de cada ejecución de GLPK. [#26: plataforma de las corridas]{.rev}
 :::
 
-**La solución original solo tiene datos en el escenario aleatorio.** En los escenarios degenerados (idénticas, opuestas) la Fase 1 con GLPK directamente no terminaba en tiempos prácticos —ejecuciones de minutos a horas, con casos que se sospechan no terminantes—, por lo que no existe un "antes" medible contra el cual graficar: esa ausencia *es* el dato. En el escenario aleatorio, la degradación es visible ya en tamaños realistas: a $N=25$ una corrida [alcanzó los 117 s]{.cambio}, y a $N=30$, 48 de 10 000 corridas llegaron al tope de 30 s (p99 = 8,5 s, contra una mediana de 0,5 s: la distribución tiene una cola larga e impredecible, inaceptable para un sorteo en vivo).
+**La solución original solo tiene datos en el escenario aleatorio.** En los escenarios degenerados (idénticas, opuestas) la Fase 1 con GLPK directamente no terminaba en tiempos prácticos —ejecuciones de minutos a horas, con casos que se sospechan no terminantes—, por lo que no existe un "antes" medible contra el cual graficar: esa ausencia *es* el dato. [En el escenario aleatorio, la degradación es visible ya en tamaños realistas: con un tope de 30 s por corrida, 4 de 10 000 corridas lo alcanzaron a $N=20$, 8 a $N=25$ y 18 a $N=30$, y las más largas que terminaron tardaron 22, 26 y 29 s; a $N=30$ la mediana es de 0,7 s y el p99 de 3,0 s, con un 29 % de las corridas por encima del segundo: la distribución tiene una cola larga e impredecible, inaceptable para un sorteo en vivo.]{.cambio}
 
 **La búsqueda binaria, por escenario.** El tiempo medio crece con el tamaño de forma suave y comparable en los cuatro escenarios —la degeneración dejó de importar—, con 0 *timeouts* y 100 % de éxito en todas las configuraciones:
 
@@ -457,30 +457,32 @@ Los escenarios se generan así:
 
 **Percentiles por escenario** (resolución completa; 1 000 corridas por celda hasta $N=100$, 100 corridas en los tamaños mayores):
 
+::: cambio
 | Escenario | $N$ | p50 | p95 | p99 |
 |---|---|---|---|---|
-| Aleatorias | 30 | 519 ms | 528 ms | 537 ms |
-| | 100 | 1,4 s | 1,6 s | 1,7 s |
-| | 300 | 28,9 s | 35,0 s | 36,6 s |
-| | 500 | 56,3 s | 60,1 s | 61,8 s |
-| Realistas | 30 | 527 ms | 554 ms | 584 ms |
-| | 100 | 1,8 s | 2,8 s | 3,7 s |
-| | 300 | 16,4 s | 18,7 s | 19,8 s |
-| | 500 | 74,8 s | 92,5 s | 96,1 s |
-| Idénticas | 30 | 526 ms | 540 ms | 552 ms |
-| | 100 | 2,0 s | 2,7 s | 2,9 s |
-| | 300 | 24,5 s | 31,9 s | 33,2 s |
-| | 500 | 89,8 s | 118,4 s | 122,2 s |
-| Opuestas | 30 | 528 ms | 546 ms | 557 ms |
-| | 100 | 1,7 s | 2,0 s | 2,2 s |
-| | 300 | 18,4 s | 20,4 s | 50,8 s |
-| | 500 | 86,2 s | 112,4 s | 116,5 s |
+| Aleatorias | 30 | 291 ms | 465 ms | 839 ms |
+| | 100 | 3,5 s | 4,9 s | 6,0 s |
+| | 300 | 42,6 s | 51,2 s | 51,4 s |
+| | 500 | 151,0 s | 178,9 s | 189,8 s |
+| Realistas | 30 | 300 ms | 394 ms | 425 ms |
+| | 100 | 3,7 s | 5,2 s | 6,2 s |
+| | 300 | 56,4 s | 66,8 s | 69,2 s |
+| | 500 | 219,9 s | 269,5 s | 276,1 s |
+| Idénticas | 30 | 276 ms | 439 ms | 801 ms |
+| | 100 | 3,3 s | 4,5 s | 5,5 s |
+| | 300 | 37,5 s | 42,5 s | 45,4 s |
+| | 500 | 107,5 s | 126,5 s | 128,5 s |
+| Opuestas | 30 | 256 ms | 318 ms | 356 ms |
+| | 100 | 2,7 s | 3,2 s | 3,5 s |
+| | 300 | 29,5 s | 37,9 s | 41,4 s |
+| | 500 | 94,7 s | 117,4 s | 129,8 s |
+:::
 
 Tres observaciones:
 
-- **En el rango real, el sorteo es instantáneo a efectos prácticos.** A $N=30$ —el techo del tamaño típico de un subsorteo por tipo de vivienda— el p99 de *todos* los escenarios está por debajo de 0,6 s.
-- **Las colas son cortas.** La distancia entre p50 y p99 se mantiene acotada en todos los escenarios y tamaños[, con una sola excepción en los datos (opuestas, $N=300$: p99 de 50,8 s contra un p50 de 18,4 s)]{.cambio} (compárese con la cola de la solución original: p50 0,5 s → p99 8,5 s ya a $N=30$). La predictibilidad importa tanto como la velocidad: el sorteo se ejecuta en vivo, frente a la cooperativa.
-- **Los tamaños grandes son un margen de seguridad, no un requisito.** Incluso el peor caso medido (idénticas, $N=500$: p99 ≈ 2 minutos) es un tamaño un orden de magnitud mayor que cualquier proyecto cooperativo esperable, y aun así se resuelve de forma confiable.
+- **En el rango real, el sorteo es instantáneo a efectos prácticos.** A $N=30$ —el techo del tamaño típico de un subsorteo por tipo de vivienda— [la mediana de *todos* los escenarios está por debajo de 0,3 s, y el p99, por debajo de 0,9 s]{.cambio}.
+- **Las colas son cortas.** La distancia entre p50 y p99 se mantiene acotada en todos los escenarios y tamaños[: el p99 nunca llega al triple de la mediana, y en los tamaños grandes queda dentro de un 40 % por encima de ella]{.cambio} (compárese con la cola de la solución original[: p50 0,7 s → p99 3,0 s ya a $N=30$, con corridas de hasta 29 s y otras que no terminan]{.cambio}). La predictibilidad importa tanto como la velocidad: el sorteo se ejecuta en vivo, frente a la cooperativa.
+- **Los tamaños grandes son un margen de seguridad, no un requisito.** Incluso el peor caso medido ([realistas, $N=500$: p99 ≈ 4,6 minutos]{.cambio}) es un tamaño un orden de magnitud mayor que cualquier proyecto cooperativo esperable, y aun así se resuelve de forma confiable.
 
 ---
 

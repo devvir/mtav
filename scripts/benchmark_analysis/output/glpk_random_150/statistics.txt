@@ -1,18 +1,18 @@
 Benchmark Statistics: glpk_random_150.csv
-Generated: 2025-12-20 21:04:03
+Generated: 2026-11-23 01:22:56
 ======================================================================
 
-time_mean: 2839.9466104507455
-time_median: 2802.3064136505
-time_std: 172.7026111043436
-time_min: 2433.4559440613
-time_max: 3518.2058811188
-time_p25: 2704.28293943405
-time_p50: 2802.3064136505
-time_p75: 2938.736617565125
-time_p90: 3053.6521911621103
-time_p95: 3142.655742168405
-time_p99: 3384.969062805175
+time_mean: 8209.325075626373
+time_median: 8223.7025499344
+time_std: 1070.035817268366
+time_min: 4415.0309562683
+time_max: 12642.740011215
+time_p25: 7590.03150463105
+time_p50: 8223.7025499344
+time_p75: 8865.53072929385
+time_p90: 9384.23438072203
+time_p95: 9850.93588829043
+time_p99: 10995.837826728799
 success_rate: 1.0
 timeout_rate: 0.0
 failed_rate: 0.0
@@ -22,7 +22,7 @@ success_count: 1000
 timeout_count: 0
 failed_count: 0
 infeasible_count: 0
-time_cv: 0.06081192176951977
-time_iqr: 234.45367813107487
-time_skewness: 0.8573911239809342
-time_kurtosis: 0.6939467812711015
+time_cv: 0.13034394513689324
+time_iqr: 1275.4992246628008
+time_skewness: 0.04465314759969901
+time_kurtosis: 1.2703447161787391

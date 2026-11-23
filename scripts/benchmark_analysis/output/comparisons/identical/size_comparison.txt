@@ -1,5 +1,5 @@
 Benchmark Size Comparison - Identical Scenario
-Generated: 2025-12-20 21:05:08
+Generated: 2026-11-23 01:25:27
 ======================================================================
 
 Files analyzed: 11
@@ -7,121 +7,121 @@ Files analyzed: 11
 
 Size: 5x5
   Total runs: 1000
-  Mean time: 309.79 ms
-  Median time: 310.01 ms
-  Std dev: 9.39 ms
-  P95: 315.13 ms
-  P99: 321.81 ms
-  Max: 334.43 ms
+  Mean time: 42.23 ms
+  Median time: 40.30 ms
+  Std dev: 7.78 ms
+  P95: 56.94 ms
+  P99: 68.13 ms
+  Max: 82.80 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 10x10
   Total runs: 1000
-  Mean time: 413.69 ms
-  Median time: 412.47 ms
-  Std dev: 4.61 ms
-  P95: 422.52 ms
-  P99: 431.51 ms
-  Max: 449.45 ms
+  Mean time: 75.37 ms
+  Median time: 70.90 ms
+  Std dev: 17.96 ms
+  P95: 113.37 ms
+  P99: 137.11 ms
+  Max: 158.87 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 20x20
   Total runs: 1000
-  Mean time: 521.49 ms
-  Median time: 520.14 ms
-  Std dev: 6.18 ms
-  P95: 533.23 ms
-  P99: 543.62 ms
-  Max: 574.12 ms
+  Mean time: 162.82 ms
+  Median time: 158.81 ms
+  Std dev: 31.05 ms
+  P95: 219.38 ms
+  P99: 253.45 ms
+  Max: 310.81 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 30x30
   Total runs: 1000
-  Mean time: 527.35 ms
-  Median time: 525.75 ms
-  Std dev: 6.98 ms
-  P95: 539.61 ms
-  P99: 552.20 ms
-  Max: 579.56 ms
+  Mean time: 295.88 ms
+  Median time: 275.65 ms
+  Std dev: 124.92 ms
+  P95: 438.90 ms
+  P99: 800.77 ms
+  Max: 1674.20 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 50x50
   Total runs: 1000
-  Mean time: 663.02 ms
-  Median time: 660.42 ms
-  Std dev: 14.48 ms
-  P95: 681.95 ms
-  P99: 711.09 ms
-  Max: 792.97 ms
+  Mean time: 778.10 ms
+  Median time: 773.02 ms
+  Std dev: 139.01 ms
+  P95: 990.25 ms
+  P99: 1236.58 ms
+  Max: 1813.96 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 75x75
   Total runs: 1000
-  Mean time: 1540.14 ms
-  Median time: 1600.12 ms
-  Std dev: 178.94 ms
-  P95: 1631.93 ms
-  P99: 1714.90 ms
-  Max: 1789.57 ms
+  Mean time: 1886.05 ms
+  Median time: 1903.47 ms
+  Std dev: 315.98 ms
+  P95: 2344.90 ms
+  P99: 2659.93 ms
+  Max: 3029.53 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 100x100
   Total runs: 1000
-  Mean time: 2082.22 ms
-  Median time: 2033.95 ms
-  Std dev: 348.26 ms
-  P95: 2682.54 ms
-  P99: 2905.08 ms
-  Max: 3343.27 ms
+  Mean time: 3393.98 ms
+  Median time: 3314.47 ms
+  Std dev: 670.30 ms
+  P95: 4536.08 ms
+  P99: 5457.24 ms
+  Max: 6930.52 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 150x150
   Total runs: 100
-  Mean time: 6170.73 ms
-  Median time: 5885.73 ms
-  Std dev: 621.60 ms
-  P95: 7286.97 ms
-  P99: 7479.21 ms
-  Max: 7639.41 ms
+  Mean time: 8539.62 ms
+  Median time: 8428.07 ms
+  Std dev: 1391.60 ms
+  P95: 10480.28 ms
+  P99: 11569.18 ms
+  Max: 11769.05 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 200x200
   Total runs: 100
-  Mean time: 10596.38 ms
-  Median time: 10463.43 ms
-  Std dev: 1302.80 ms
-  P95: 12621.83 ms
-  P99: 12899.86 ms
-  Max: 12902.71 ms
+  Mean time: 14521.38 ms
+  Median time: 14419.42 ms
+  Std dev: 1590.83 ms
+  P95: 16859.35 ms
+  P99: 17958.61 ms
+  Max: 19681.71 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 300x300
   Total runs: 100
-  Mean time: 25186.14 ms
-  Median time: 24469.70 ms
-  Std dev: 3226.16 ms
-  P95: 31859.60 ms
-  P99: 33162.01 ms
-  Max: 33246.48 ms
+  Mean time: 37041.04 ms
+  Median time: 37475.73 ms
+  Std dev: 3853.99 ms
+  P95: 42503.96 ms
+  P99: 45394.33 ms
+  Max: 47076.92 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 Size: 500x500
   Total runs: 100
-  Mean time: 87869.83 ms
-  Median time: 89820.69 ms
-  Std dev: 22506.43 ms
-  P95: 118375.55 ms
-  P99: 122212.07 ms
-  Max: 123544.74 ms
+  Mean time: 107111.57 ms
+  Median time: 107455.30 ms
+  Std dev: 11799.05 ms
+  P95: 126516.83 ms
+  P99: 128483.93 ms
+  Max: 128779.60 ms
   Success rate: 100.00%
   Timeout rate: 0.00%

@@ -1,5 +1,5 @@
 Benchmark Scenario Comparison - Size 20x20
-Generated: 2025-12-20 21:06:03
+Generated: 2026-11-23 01:27:31
 ======================================================================
 
 Scenarios analyzed: 4
@@ -9,47 +9,47 @@ Scenario names: identical, opposite, random, realistic
 IDENTICAL
   File: glpk_identical_20.csv
   Total runs: 1000
-  Mean time: 521.49 ms
-  Median time: 520.14 ms
-  Std dev: 6.18 ms
-  P95: 533.23 ms
-  P99: 543.62 ms
-  Max: 574.12 ms
+  Mean time: 162.82 ms
+  Median time: 158.81 ms
+  Std dev: 31.05 ms
+  P95: 219.38 ms
+  P99: 253.45 ms
+  Max: 310.81 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 OPPOSITE
   File: glpk_opposite_20.csv
   Total runs: 1000
-  Mean time: 521.40 ms
-  Median time: 519.80 ms
-  Std dev: 5.22 ms
-  P95: 532.42 ms
-  P99: 539.59 ms
-  Max: 544.93 ms
+  Mean time: 138.02 ms
+  Median time: 135.11 ms
+  Std dev: 21.85 ms
+  P95: 179.76 ms
+  P99: 200.72 ms
+  Max: 227.50 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 RANDOM
   File: glpk_random_20.csv
   Total runs: 1000
-  Mean time: 475.27 ms
-  Median time: 512.93 ms
-  Std dev: 51.23 ms
-  P95: 523.17 ms
-  P99: 527.16 ms
-  Max: 538.85 ms
+  Mean time: 152.54 ms
+  Median time: 147.72 ms
+  Std dev: 32.52 ms
+  P95: 212.03 ms
+  P99: 244.25 ms
+  Max: 305.22 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
 
 REALISTIC
   File: glpk_realistic_20.csv
   Total runs: 1000
-  Mean time: 480.13 ms
-  Median time: 515.44 ms
-  Std dev: 53.32 ms
-  P95: 538.61 ms
-  P99: 561.97 ms
-  Max: 599.03 ms
+  Mean time: 126.52 ms
+  Median time: 126.89 ms
+  Std dev: 29.29 ms
+  P95: 173.02 ms
+  P99: 197.26 ms
+  Max: 233.52 ms
   Success rate: 100.00%
   Timeout rate: 0.00%
