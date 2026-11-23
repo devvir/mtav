@@ -229,7 +229,7 @@ Los modelos que siguen son los que la aplicación genera y entrega a GLPK, trans
 | $z$ | `var z, integer` | Peor rango recibido por familia alguna |
 | $S$ | `param S` | Cota de equidad que la Fase 1 le fija a la Fase 2 |
 
-**Fase 1 — equidad max-min.** Minimiza $z$, el peor rango que recibe cualquier familia, sujeta a que cada familia reciba una única unidad y cada unidad vaya a una única familia:
+**Fase 1 — equidad max-min.** Minimiza $z$, el peor rango que recibe cualquier familia, sujeta a que cada familia reciba una única unidad y ninguna unidad vaya a más de una familia:
 
 ```
 # MTAV Lottery - Phase 1: Maximize Minimum Satisfaction
@@ -253,9 +253,9 @@ s.t. z_menorIgual{p in P}:
 s.t. oneItemPerParticipant{p in P}:
     sum{i in I} x[p,i] = 1;
 
-# Each item assigned to exactly one participant
-s.t. oneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] = 1;
+# Each item goes to at most one participant: with more items than participants, some stay free
+s.t. atMostOneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 ```
@@ -287,53 +287,14 @@ s.t. satisfaccionMinima{p in P}:
 s.t. oneItemPerParticipant{p in P}:
     sum{i in I} x[p,i] = 1;
 
-# Each item assigned to exactly one participant
-s.t. oneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] = 1;
-
-end;
-```
-
-**Selección de unidades (desbalance con unidades excedentes).** Cuando hay más unidades que familias (§@sec-ejecucion), antes de sortear hay que decidir *qué* unidades participan. Este modelo elige $M$ unidades (= cantidad de familias) mediante las variables de uso $u_v$, de modo que la asignación resultante tenga el mejor peor-caso posible:
-
-```
-# MTAV Lottery - Item Selection: Identify Worst Items
-# Objective: Select M items that minimize worst-case satisfaction
-
-set P;              # Participants
-set I;              # Items (candidates)
-
-param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
-param M;                  # Number of items to select (= number of participants)
-
-var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
-var u{i in I}, binary;          # Item selection: 1 if item i is used
-var z, integer;                 # Worst satisfaction level (to minimize)
-
-minimize resultado: z;
-
-# z must be at least as large as each participant's satisfaction
-s.t. z_menorIgual{p in P}:
-    z >= sum{i in I} r[p,i] * x[p,i];
-
-# Each participant gets exactly one item
-s.t. participantGetsOne{p in P}:
-    sum{i in I} x[p,i] = 1;
-
-# Each item assigned to at most one participant
-s.t. itemGetsAtMostOne{i in I}:
+# Each item goes to at most one participant: with more items than participants, some stay free
+s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
 
-# Link assignment to usage: if participant gets item i, then u[i] = 1
-s.t. itemUsageLink{i in I}:
-    sum{p in P} x[p,i] <= u[i];
-
-# Select exactly M items
-s.t. exactlyMItemsUsed:
-    sum{i in I} u[i] = M;
-
 end;
 ```
+
+[Nov. 2026: cada unidad a lo sumo a una familia en ambos modelos (§@sec-formulacion); el modelo de selección de unidades ya no existe]{.rev}
 
 ### C.2 Formato del registro de auditoría {#ap-c2}
 
