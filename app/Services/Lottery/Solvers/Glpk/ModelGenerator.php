@@ -33,16 +33,20 @@ minimize resultado: z;
 s.t. z_menorIgual{p in P}:
     z >= sum{i in I} r[p,i] * x[p,i];
 
-# At most one item per participant, at most one participant per item, and as many pairs as the
-# smaller side allows: whichever side has more, some of it is left over
-s.t. atMostOneItemPerParticipant{p in P}:
+# Every one on the smaller side is paired, exactly once; on the larger side, at most once, so
+# whichever side has more, some of it is left over. Written as equalities where they hold,
+# the problem keeps the assignment structure GLPK solves fast.
+s.t. everyParticipantServed{p in P: card(P) <= card(I)}:
+    sum{i in I} x[p,i] = 1;
+
+s.t. atMostOneItemPerParticipant{p in P: card(P) > card(I)}:
     sum{i in I} x[p,i] <= 1;
 
-s.t. atMostOneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] <= 1;
+s.t. everyItemTaken{i in I: card(I) <= card(P)}:
+    sum{p in P} x[p,i] = 1;
 
-s.t. everyPairPossible:
-    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
+s.t. atMostOneParticipantPerItem{i in I: card(I) > card(P)}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 GMPL;
@@ -78,16 +82,20 @@ minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 s.t. satisfaccionMinima{p in P}:
     sum{i in I} r[p,i] * x[p,i] <= S;
 
-# At most one item per participant, at most one participant per item, and as many pairs as the
-# smaller side allows: whichever side has more, some of it is left over
-s.t. atMostOneItemPerParticipant{p in P}:
+# Every one on the smaller side is paired, exactly once; on the larger side, at most once, so
+# whichever side has more, some of it is left over. Written as equalities where they hold,
+# the problem keeps the assignment structure GLPK solves fast.
+s.t. everyParticipantServed{p in P: card(P) <= card(I)}:
+    sum{i in I} x[p,i] = 1;
+
+s.t. atMostOneItemPerParticipant{p in P: card(P) > card(I)}:
     sum{i in I} x[p,i] <= 1;
 
-s.t. atMostOneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] <= 1;
+s.t. everyItemTaken{i in I: card(I) <= card(P)}:
+    sum{p in P} x[p,i] = 1;
 
-s.t. everyPairPossible:
-    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
+s.t. atMostOneParticipantPerItem{i in I: card(I) > card(P)}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 GMPL;

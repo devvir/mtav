@@ -249,16 +249,20 @@ minimize resultado: z;
 s.t. z_menorIgual{p in P}:
     z >= sum{i in I} r[p,i] * x[p,i];
 
-# At most one item per participant, at most one participant per item, and as many pairs as the
-# smaller side allows: whichever side has more, some of it is left over
-s.t. atMostOneItemPerParticipant{p in P}:
+# Every one on the smaller side is paired, exactly once; on the larger side, at most once, so
+# whichever side has more, some of it is left over. Written as equalities where they hold,
+# the problem keeps the assignment structure GLPK solves fast.
+s.t. everyParticipantServed{p in P: card(P) <= card(I)}:
+    sum{i in I} x[p,i] = 1;
+
+s.t. atMostOneItemPerParticipant{p in P: card(P) > card(I)}:
     sum{i in I} x[p,i] <= 1;
 
-s.t. atMostOneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] <= 1;
+s.t. everyItemTaken{i in I: card(I) <= card(P)}:
+    sum{p in P} x[p,i] = 1;
 
-s.t. everyPairPossible:
-    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
+s.t. atMostOneParticipantPerItem{i in I: card(I) > card(P)}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 ```
@@ -286,21 +290,25 @@ minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 s.t. satisfaccionMinima{p in P}:
     sum{i in I} r[p,i] * x[p,i] <= S;
 
-# At most one item per participant, at most one participant per item, and as many pairs as the
-# smaller side allows: whichever side has more, some of it is left over
-s.t. atMostOneItemPerParticipant{p in P}:
+# Every one on the smaller side is paired, exactly once; on the larger side, at most once, so
+# whichever side has more, some of it is left over. Written as equalities where they hold,
+# the problem keeps the assignment structure GLPK solves fast.
+s.t. everyParticipantServed{p in P: card(P) <= card(I)}:
+    sum{i in I} x[p,i] = 1;
+
+s.t. atMostOneItemPerParticipant{p in P: card(P) > card(I)}:
     sum{i in I} x[p,i] <= 1;
 
-s.t. atMostOneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] <= 1;
+s.t. everyItemTaken{i in I: card(I) <= card(P)}:
+    sum{p in P} x[p,i] = 1;
 
-s.t. everyPairPossible:
-    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
+s.t. atMostOneParticipantPerItem{i in I: card(I) > card(P)}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 ```
 
-[Nov. 2026: asignación rectangular en ambos modelos (§@sec-formulacion); el modelo de selección de unidades ya no existe]{.rev}
+Las restricciones de asignación se escriben con igualdad en el lado más corto y desigualdad en el otro, lo que equivale a las tres de la Sección @sec-formulacion y conserva la estructura de problema de asignación, que GLPK resuelve mucho más rápido que su forma con una restricción de cardinalidad. [Nov. 2026: asignación rectangular en ambos modelos (§@sec-formulacion); el modelo de selección de unidades ya no existe]{.rev}
 
 ### C.2 Formato del registro de auditoría {#ap-c2}
 

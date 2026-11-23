@@ -58,16 +58,15 @@ describe('ModelGenerator', function () {
         test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('atMostOneItemPerParticipant{p in P}');
-            expect($model)->toContain('sum{i in I} x[p,i] <= 1');
-            expect($model)->toContain('sum{p in P, i in I} x[p,i] = min(card(P), card(I))');
+            expect($model)->toContain('everyParticipantServed{p in P: card(P) <= card(I)}');
+            expect($model)->toContain('atMostOneItemPerParticipant{p in P: card(P) > card(I)}');
         });
 
         test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('atMostOneParticipantPerItem{i in I}');
-            expect($model)->toContain('sum{p in P} x[p,i] <= 1');
+            expect($model)->toContain('everyItemTaken{i in I: card(I) <= card(P)}');
+            expect($model)->toContain('atMostOneParticipantPerItem{i in I: card(I) > card(P)}');
         });
 
         test('ends with end statement', function () {
@@ -122,16 +121,15 @@ describe('ModelGenerator', function () {
         test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('atMostOneItemPerParticipant{p in P}');
-            expect($model)->toContain('sum{i in I} x[p,i] <= 1');
-            expect($model)->toContain('sum{p in P, i in I} x[p,i] = min(card(P), card(I))');
+            expect($model)->toContain('everyParticipantServed{p in P: card(P) <= card(I)}');
+            expect($model)->toContain('atMostOneItemPerParticipant{p in P: card(P) > card(I)}');
         });
 
         test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('atMostOneParticipantPerItem{i in I}');
-            expect($model)->toContain('sum{p in P} x[p,i] <= 1');
+            expect($model)->toContain('everyItemTaken{i in I: card(I) <= card(P)}');
+            expect($model)->toContain('atMostOneParticipantPerItem{i in I: card(I) > card(P)}');
         });
 
         test('ends with end statement', function () {
