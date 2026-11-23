@@ -12,6 +12,8 @@ FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
 # PHP 8.5 (ondrej PPA — noble ships 8.3) + extensions matching the app image,
 # plus the real GLPK solver (lottery execution) and ffmpeg (media handling)
+# A mirror that fails once does not fail the build: apt tries again, five times
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common ca-certificates \
     && add-apt-repository -y ppa:ondrej/php \
