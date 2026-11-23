@@ -103,7 +103,8 @@ class DemoPeople
         return $from[mt_rand(0, count($from) - 1)];
     }
 
-    private function email(string $firstname, string $lastname): string
+    /** An address nobody in the demo has yet: the invitations take theirs here too, so that none goes to someone already in */
+    public function email(string $firstname, string $lastname): string
     {
         $base = Str::slug($firstname, '') . '.' . Str::slug($lastname, '');
         $email = "{$base}@example.com";

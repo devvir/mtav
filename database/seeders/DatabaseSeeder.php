@@ -21,7 +21,6 @@ use App\Services\LotteryService;
 use App\Services\ProjectService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -504,7 +503,7 @@ class DatabaseSeeder extends Seeder
     {
         foreach ($people as [$firstname, $lastname, $family]) {
             $this->invitations->invite($project, $admin, [
-                'email'     => Str::slug($firstname, '') . '.' . Str::slug($lastname, '') . '@example.com',
+                'email'     => $this->people->email($firstname, $lastname),
                 'firstname' => $firstname,
                 'lastname'  => $lastname,
             ], $family, false);
