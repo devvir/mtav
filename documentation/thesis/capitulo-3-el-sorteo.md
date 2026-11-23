@@ -58,6 +58,8 @@ $$\sum_{c \in C} \sum_{v \in V} x_{c,v} = \min(|C|, |V|) \qquad\text{(tantas asi
 
 [Nov. 2026: asignación rectangular —a lo sumo una unidad por familia y una familia por unidad, tantas asignaciones como permite el lado más corto—, con lo que la formulación cubre los tipos desbalanceados]{.rev #rev-n-rectangular}
 
+[La relajación es condicional: en cada subsorteo se aplica solo al lado que tiene elementos de más, mientras el otro conserva la igualdad del modelo original —cada familia recibe exactamente una unidad si hay al menos tantas unidades como familias, y cada unidad se asigna a exactamente una familia si hay al menos tantas familias como unidades—. Así el caso balanceado queda intacto, y la tercera restricción resulta implícita.]{.nuevo}
+
 **Fase 1 — Equidad max-min.** Se introduce una variable $z \in \mathbb{Z}$ que representa el peor rango recibido por alguna familia, y se minimiza:
 
 $$\min\ z \qquad\text{sujeto a}\qquad z \ge \sum_{v \in V} p_{c,v}\, x_{c,v} \quad \forall c \in C,$$
