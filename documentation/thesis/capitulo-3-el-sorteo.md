@@ -29,7 +29,7 @@ El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero
 **Propiedades.** El resultado de este esquema tiene propiedades deseables, analizadas formalmente desde la teoría del diseño de mercados: es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y trata **por igual a quienes son iguales** —dos familias con idénticas preferencias tienen la misma probabilidad ante un empate, que se resuelve al azar— (véase §@sec-mtav-original). La formalización de estos dos objetivos es el contenido de la sección siguiente.
 
 ::: nuevo
-La implementación actual no alcanza todavía esa última propiedad: no sortea los empates, sino que los decide el orden de los datos, como se explica en la Sección @sec-ejecucion.
+Cómo sortea los empates la implementación —de forma reproducible desde el acta— se explica en la Sección @sec-ejecucion.
 :::
 
 
@@ -187,7 +187,7 @@ Hasta aquí, la formulación asumió el caso balanceado (igual número de famili
 [Las dos limitaciones anteriores se circunscriben a los tipos desbalanceados: en un tipo con tantas familias como unidades, la formulación de la Sección @sec-formulacion se aplica sin reducción alguna y las garantías valen por completo. Resolver el caso desbalanceado como una asignación rectangular —cada unidad a lo sumo a una familia, cada familia una unidad o ninguna, sin poda previa ni unidades ficticias— queda como trabajo futuro (§@sec-tf-algoritmo).]{.nuevo}
 
 ::: nuevo
-**El desempate.** La implementación tampoco alcanza la propiedad de tratar por igual a quienes son iguales (§@sec-garantias). El *solver* recibe los rangos enteros de la Sección @sec-formulacion: el archivo de datos los escribe con tres decimales, y la pequeña cantidad aleatoria que el generador suma a los rangos de cada familia como desempate, de a lo sumo 0,0001, desaparece en el redondeo. Aun sin redondeo no desempataría, porque es una misma constante para todos los rangos de una familia y, como cada familia recibe una unidad, toda asignación se desplaza en el mismo total. GLPK es determinista, de modo que entre asignaciones igualmente óptimas decide el orden en que las familias y las unidades llegan al modelo, que es el orden de los datos. Dos familias con idénticas preferencias obtienen, por tanto, siempre el mismo resultado, y repetir el sorteo lo repite. El sorteo aleatorio de los empates —con una semilla por ejecución, registrada en la auditoría para que el resultado siga siendo reproducible— queda como trabajo futuro (§@sec-tf-algoritmo). [Nov. 2026: estado real del desempate]{.rev #rev-n-desempate-3}
+**El desempate.** GLPK es determinista: entre asignaciones igualmente óptimas se queda con la primera que encuentra, que depende del orden en que las familias y las unidades llegan al modelo. Ese orden es el dado del sorteo. Para cada subsorteo, la aplicación lo baraja con un generador pseudoaleatorio sembrado con el identificador de la ejecución —el UUID que el acta registra desde el `init`— y una marca del subsorteo. Así dos familias con idénticas preferencias tienen la misma probabilidad de obtener la unidad en disputa (§@sec-garantias), y una ejecución se reproduce exactamente a partir de su acta, sin guardar nada más. [Nov. 2026: el desempate, sorteado y reproducible]{.rev #rev-n-desempate-3}
 :::
 
 **Estrategias de *solver*.** El *solver* es intercambiable detrás de una interfaz común; el diseño de esa capa se describe en la Sección @sec-capa-sorteo.
