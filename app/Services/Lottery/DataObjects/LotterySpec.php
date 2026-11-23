@@ -128,26 +128,4 @@ class LotterySpec
         return $items;
     }
 
-    /**
-     * Sanitize array of item IDs (numeric or mock string IDs).
-     *
-     * @throws InvalidArgumentException if any value is invalid
-     *
-     * @deprecated No longer used - kept for backward compatibility
-     */
-    protected function sanitizeItemIdArray(array $values, string $fieldName): array
-    {
-        foreach ($values as $value) {
-            // Allow numeric IDs or string IDs starting with 'MOCK_'
-            if (is_numeric($value)) {
-                $sanitized[] = (int) $value;
-            } elseif (is_string($value) && str_starts_with($value, 'MOCK_')) {
-                $sanitized[] = $value;
-            } else {
-                throw new InvalidArgumentException("LotterySpec: {$fieldName} must contain only numeric IDs or MOCK_* strings. Got invalid value.");
-            }
-        }
-
-        return $sanitized ?? [];
-    }
 }

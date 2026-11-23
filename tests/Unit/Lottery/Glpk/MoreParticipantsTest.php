@@ -11,6 +11,21 @@ beforeEach(function () {
 });
 
 describe('Orchestrator with more participants than items', function () {
+    it('leaves out the families whose leaving serves the rest best, drawn among equals', function () {
+        // Three identical families and one with the opposite taste, for two units: the odd one gets
+        // its first choice, one of the three gets theirs, and the other two go on as leftovers
+        $manifest = mockManifest(1, [10 => ['participants' => [
+            100 => [200, 201], 101 => [200, 201], 102 => [200, 201], 103 => [201, 200],
+        ], 'items' => [200, 201]]]);
+
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
+
+        expect($result->picks[103])->toBe(201);
+        expect($result->picks)->toHaveCount(2);
+        expect(array_values($result->picks))->toContain(200);
+        expect($result->orphans['participants'])->toHaveCount(2)->each->toBeIn([100, 101, 102]);
+    });
+
     it('handles single group with orphan participants', function () {
         // 1 group: 5 participants, 3 items → 3 assigned, 2 orphaned
         $manifest = mockManifest(1, [

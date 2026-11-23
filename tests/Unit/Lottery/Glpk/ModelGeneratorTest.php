@@ -58,8 +58,9 @@ describe('ModelGenerator', function () {
         test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('oneItemPerParticipant{p in P}');
-            expect($model)->toContain('sum{i in I} x[p,i] = 1');
+            expect($model)->toContain('atMostOneItemPerParticipant{p in P}');
+            expect($model)->toContain('sum{i in I} x[p,i] <= 1');
+            expect($model)->toContain('sum{p in P, i in I} x[p,i] = min(card(P), card(I))');
         });
 
         test('contains item uniqueness constraints', function () {
@@ -121,8 +122,9 @@ describe('ModelGenerator', function () {
         test('contains participant uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('oneItemPerParticipant{p in P}');
-            expect($model)->toContain('sum{i in I} x[p,i] = 1');
+            expect($model)->toContain('atMostOneItemPerParticipant{p in P}');
+            expect($model)->toContain('sum{i in I} x[p,i] <= 1');
+            expect($model)->toContain('sum{p in P, i in I} x[p,i] = min(card(P), card(I))');
         });
 
         test('contains item uniqueness constraints', function () {

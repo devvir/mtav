@@ -33,13 +33,16 @@ minimize resultado: z;
 s.t. z_menorIgual{p in P}:
     z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each participant gets exactly one item
-s.t. oneItemPerParticipant{p in P}:
-    sum{i in I} x[p,i] = 1;
+# At most one item per participant, at most one participant per item, and as many pairs as the
+# smaller side allows: whichever side has more, some of it is left over
+s.t. atMostOneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] <= 1;
 
-# Each item goes to at most one participant: with more items than participants, some stay free
 s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
+
+s.t. everyPairPossible:
+    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
 
 end;
 GMPL;
@@ -75,13 +78,16 @@ minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 s.t. satisfaccionMinima{p in P}:
     sum{i in I} r[p,i] * x[p,i] <= S;
 
-# Each participant gets exactly one item
-s.t. oneItemPerParticipant{p in P}:
-    sum{i in I} x[p,i] = 1;
+# At most one item per participant, at most one participant per item, and as many pairs as the
+# smaller side allows: whichever side has more, some of it is left over
+s.t. atMostOneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] <= 1;
 
-# Each item goes to at most one participant: with more items than participants, some stay free
 s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
+
+s.t. everyPairPossible:
+    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
 
 end;
 GMPL;

@@ -8,7 +8,6 @@ use App\Services\Lottery\DataObjects\LotteryManifest;
 use App\Services\Lottery\DataObjects\LotterySpec;
 use App\Services\Lottery\Solvers\Glpk\Exceptions\GlpkException;
 use App\Services\Lottery\Solvers\Glpk\Glpk;
-use App\Services\Lottery\Solvers\Glpk\SpecBalancer;
 
 /**
  * Solver that uses local GLPK (GNU Linear Programming Kit) for optimal lottery assignments.
@@ -16,13 +15,16 @@ use App\Services\Lottery\Solvers\Glpk\SpecBalancer;
  * Implements max-min fairness optimization in two phases:
  * - Phase 1: Find minimum satisfaction level S (maximize worst-case satisfaction)
  * - Phase 2: Maximize overall satisfaction given constraint that no participant gets worse than S
+ *
+ * The models pair at most one item with each participant and at most one participant with each
+ * item, as many pairs as the smaller side allows: with items to spare, the ones nobody receives
+ * stay free; with participants to spare, which ones go without is decided by the same two
+ * criteria. Whoever and whatever is left over goes on as leftovers.
  */
 class GlpkSolver implements SolverInterface
 {
-    public function __construct(
-        protected Glpk $glpk,
-        protected SpecBalancer $balancer,
-    ) {
+    public function __construct(protected Glpk $glpk)
+    {
     }
 
     /**
@@ -32,47 +34,11 @@ class GlpkSolver implements SolverInterface
      */
     public function execute(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
     {
-        return $spec->participantCount() > $spec->itemCount()
-            ? $this->executeMoreParticipants($manifest, $spec)
-            : $this->executeAssignment($manifest, $spec);
-    }
-
-    /**
-     * As many items as participants, or more: the models give every participant one item and
-     * each item to at most one participant, so the items nobody receives stay free, as leftovers.
-     */
-    protected function executeAssignment(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
-    {
         $picks = $this->glpk->distributeItems($manifest, $spec);
 
         return new ExecutionResult($picks, [
-            'participants' => [],
+            'participants' => array_values(array_diff(array_keys($spec->participants), array_keys($picks))),
             'items'        => array_values(array_diff($spec->items, $picks)),
-        ]);
-    }
-
-    /**
-     * Execute scenario with more participants than items.
-     *
-     * Strategy: Add fake items to balance the problem, then filter them out.
-     */
-    protected function executeMoreParticipants(LotteryManifest $manifest, LotterySpec $spec): ExecutionResult
-    {
-        $balancedSpec = $this->balancer->addMockItems($spec);
-
-        $picks = $this->glpk->distributeItems($manifest, $balancedSpec);
-
-        foreach ($picks as $participantId => $itemId) {
-            if ($this->balancer->isMockItem($itemId)) {
-                $orphans[] = $participantId;
-            } else {
-                $realPicks[$participantId] = $itemId;
-            }
-        }
-
-        return new ExecutionResult($realPicks ?? [], [
-            'participants' => $orphans ?? [],
-            'items'        => [],
         ]);
     }
 }

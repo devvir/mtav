@@ -43,16 +43,15 @@ class SolutionParser
      *
      * @param  string  $solFile  Path to .sol file
      *
-     * @return array<int, string|int> Array of participant_id => item_id assignments (item_id can be string for mock items)
+     * @return array<int, string|int> Array of participant_id => item_id assignments
      */
     public function extractAssignments(string $solFile): array
     {
         $content = file_get_contents($solFile);
         $picks = [];
 
-        // Find all x[pN,iM] or x[pN,iMOCK_X] variables with Activity value of 1
+        // Find all x[pN,iM] variables with Activity value of 1
         // Example line: "     1 x[p1,i10]    *              1             0             1"
-        // Example line: "     1 x[p1,iMOCK_1]    *              1             0             1"
         // Format: column number, variable name, *, activity (multiple spaces between)
         preg_match_all('/x\[p(\d+),i([A-Za-z0-9_]+)\]\s+\*?\s+(\d+(?:\.\d+)?)/i', $content, $matches, PREG_SET_ORDER);
 
