@@ -1,5 +1,5 @@
-# Open Lottery: a page and a link to distribute things fairly in a group. No accounts, and no
-# app behind them. Copy to /mtav/<environment>/variant.yaml on its server.
+# The sorteo deployment (sorteo.mtav.uy): Open Lottery, a page and a link to distribute things
+# fairly in a group. No accounts, and no app behind them.
 # Every key is explained in variant.example.yaml at the root of the repository.
 modules:
   - open_lottery

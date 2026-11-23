@@ -95,9 +95,6 @@ next=blue
 say "Deploying $commit ($image) to $environment, slot $next (live: ${live_commit:-${live_image:-nothing yet}})"
 
 docker volume create "mtav-${environment}_files" > /dev/null
-# The environment's variant, mounted into every container of the release (slot.yml); an
-# empty file is MTAV, so a missing one is made empty rather than mounted as a directory
-[[ -e "$dir/variant.yaml" ]] || install -m 644 /dev/null "$dir/variant.yaml"
 
 say "The database"
 env_compose up -d --wait db

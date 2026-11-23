@@ -66,6 +66,8 @@ COPY lang/ lang/
 COPY public/ public/
 COPY resources/views/ resources/views/
 COPY routes/ routes/
+# Each deployment's variant, read by the containers of the environment it is named after
+COPY variants/ variants/
 COPY --from=assets /app/public/build public/build
 
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \

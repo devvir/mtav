@@ -5,15 +5,16 @@
 # holds the values of MTAV itself, the variant with everything, which is also what a
 # deployment gets when it has no file at all.
 #
-# To use it: copy this file, keep what you want, and put the copy where the app reads it:
-#   - on a server: /mtav/<environment>/variant.yaml, next to the environment's .env
-#     (deploy/host/deploy mounts it into every container of a release; an empty file means MTAV);
-#   - in development: variant.yaml at the root of the repository (ignored by git);
-#   - anywhere else: the path in MTAV_VARIANT_FILE.
+# To use it for a deployment: copy this file to variants/<environment>.yaml (the environment's
+# name: dev, staging, production, sorteo…), keep what you want, and commit it. The file goes in
+# the release image with the rest of the code, and every container of that environment reads its
+# own by name: nothing is written on a server. An environment with no file is MTAV.
+# In development: variant.yaml at the root of the repository (ignored by git). Anywhere: the
+# path in MTAV_VARIANT_FILE, which wins over both.
 # A key left out keeps MTAV's value for it. A key given replaces MTAV's value whole: list
 # every module, or every feature, you want. The app refuses to start on a file it cannot
 # read or that names something it does not know, saying what and where.
-# A ready-made copy for Open Lottery (no accounts, no app behind them) is in deploy/variants/.
+# variants/sorteo.yaml is a ready example: Open Lottery, no accounts and no app behind them.
 
 # The parts of the app that exist in this deployment. Every route belongs to one; where the
 # part is missing, its routes do not exist (404, not hidden). Known parts:

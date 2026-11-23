@@ -61,6 +61,38 @@ it('ships variant files the app reads, each with a landing page and a privacy pa
     }
 });
 
+it('names each deployment\'s variant after an environment the workflows deploy', function () {
+    $deployed = [];
+    foreach (glob(base_path('.github/workflows/*.yml')) as $workflow) {
+        $text = file_get_contents($workflow);
+        preg_match_all('/deploy\/ci\/deploy deploy ([a-z][a-z0-9-]*)/', $text, $named);
+        preg_match_all('/options:\s*\[([^\]]*)\]/', $text, $choices);
+        $deployed = [...$deployed, ...$named[1], ...array_map('trim', explode(',', implode(',', $choices[1])))];
+    }
+
+    foreach (glob(base_path('variants/*.yaml')) as $file) {
+        expect(basename($file, '.yaml'))->toBeIn(array_filter($deployed));
+    }
+});
+
+it('reads the environment\'s own variant, carried by the image, and MTAV where it has none', function (?string $environment, array $modules) {
+    $before = getenv('MTAV_ENV');
+    putenv($environment === null ? 'MTAV_ENV' : "MTAV_ENV={$environment}");
+    $_ENV['MTAV_ENV'] = $_SERVER['MTAV_ENV'] = $environment;
+
+    $variant = require base_path('config/variant.php');
+
+    putenv($before === false ? 'MTAV_ENV' : "MTAV_ENV={$before}");
+    unset($_ENV['MTAV_ENV'], $_SERVER['MTAV_ENV']);
+
+    expect($variant['modules'])->toBe($modules);
+})->with([
+    'sorteo'     => ['sorteo', ['open_lottery']],
+    'staging'    => ['staging', ['accounts', 'projects', 'platform', 'manual']],
+    'none'       => [null, ['accounts', 'projects', 'platform', 'manual']],
+    'not a name' => ['../sorteo', ['accounts', 'projects', 'platform', 'manual']],
+]);
+
 it('is MTAV out of the box: with no file, with an empty file, and as the example documents it', function () {
     $mtav = VariantFile::defaults();
 
@@ -116,7 +148,7 @@ it('starts MTAV projects with every feature, each of which they may turn off', f
 });
 
 it('is Open Lottery, and nothing else, from its file', function () {
-    variant('open-lottery');
+    variant('sorteo');
 
     expect(Variant::has('open_lottery'))->toBeTrue()
         ->and(collect(['accounts', 'projects', 'platform', 'manual'])->some(Variant::has(...)))->toBeFalse()

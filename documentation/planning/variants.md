@@ -8,16 +8,17 @@ whatever works for it works for anything in between.
 
 ## How a variant is told
 
-**A variant is a YAML file the deployment owns.** `variant.example.yaml`, at the root of the
-repository, documents every key and holds MTAV's values; `deploy/variants/` holds ready-made
-copies (Open Lottery). A server keeps its copy at `/mtav/<environment>/variant.yaml`, beside its
-`.env`, and each deploy mounts it into every container of the release (an empty file is MTAV; the
-deploy makes one if none is there). In development it is `variant.yaml` at the root, ignored by
-git; `MTAV_VARIANT_FILE` points anywhere else. `App\Support\VariantFile` reads it over MTAV's
-values when the configuration loads — a key left out keeps MTAV's, a key given replaces it whole —
-and refuses a file that names a module, a feature or a key the app does not have, saying what and
-where; `php artisan optimize` caches the result with the rest of the configuration, and
-`App\Support\Variant` answers every question from it, in constant time.
+**A variant is a YAML file, one per deployment that differs from MTAV.** `variant.example.yaml`,
+at the root of the repository, documents every key and holds MTAV's values. A deployment's own
+is `variants/<environment>.yaml` (today `variants/sorteo.yaml`, Open Lottery), committed like any
+file and carried by the release image: every container of that environment reads it by its name
+(`MTAV_ENV`, which the host already gives them), so a new flavour is a new file and nothing is
+written on a server. In development it is `variant.yaml` at the root, ignored by git;
+`MTAV_VARIANT_FILE` points anywhere else and wins over both. `App\Support\VariantFile` reads it
+over MTAV's values when the configuration loads — a key left out keeps MTAV's, a key given
+replaces it whole — and refuses a file that names a module, a feature or a key the app does not
+have, saying what and where; `php artisan optimize` caches the result with the rest of the
+configuration, and `App\Support\Variant` answers every question from it, in constant time.
 
 It says:
 - **modules**: the parts of the app that exist here (`accounts`, `projects`, `platform`,

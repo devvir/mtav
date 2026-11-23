@@ -17,8 +17,6 @@ x-app: &app
   restart: unless-stopped
   volumes:
     - files:/app/storage/app
-    # The environment's variant (variant.example.yaml); empty, the release is MTAV
-    - ./variant.yaml:/app/variant.yaml:ro
   logging:
     driver: json-file
     options:

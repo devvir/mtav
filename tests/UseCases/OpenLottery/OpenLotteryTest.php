@@ -40,7 +40,7 @@ function joined(OpenLottery $lottery, string $name): array
 }
 
 beforeEach(function () {
-    variant('open-lottery');
+    variant('sorteo');
     Workers::mark();
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
 });
