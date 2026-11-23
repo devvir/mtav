@@ -1,18 +1,14 @@
 <?php
 
 use App\Support\Variant;
+use App\Support\VariantFile;
 use Illuminate\Support\Facades\Route;
 
 /**
  * Every route belongs to one part of the app, so a variant without that part does not have it. A
- * new route is closed by this test until someone says what it belongs to.
+ * new route is closed by this test until someone says what it belongs to. And a deployment's
+ * variant file is read for what it says, refused for what the app does not know.
  */
-
-/** The modules routes may name */
-function knownModules(): array
-{
-    return ['accounts', 'projects', 'platform', 'manual', 'open_lottery'];
-}
 
 /** What a route declares of modules, leaving out what it opts out of */
 function modulesOf($route): array
@@ -21,6 +17,15 @@ function modulesOf($route): array
         ->diff($route->excludedMiddleware())
         ->map(fn (string $name) => substr($name, 7))
         ->values()->all();
+}
+
+/** A variant file with the given content, for one test */
+function variantFile(string $yaml): string
+{
+    $path = tempnam(sys_get_temp_dir(), 'variant-') . '.yaml';
+    file_put_contents($path, $yaml);
+
+    return $path;
 }
 
 it('knows what each route belongs to', function () {
@@ -41,43 +46,60 @@ it('knows what each route belongs to', function () {
 it('names modules that exist', function () {
     $unknown = collect(Route::getRoutes()->getRoutes())
         ->flatMap(fn ($route) => modulesOf($route))
-        ->unique()->diff(knownModules())->values();
+        ->unique()->diff(VariantFile::MODULES)->values();
 
     expect($unknown->all())->toBe([]);
 });
 
-it('has known modules and features in every variant', function () {
-    foreach (config('variants') as $name => $spec) {
-        expect($spec['modules'])->each->toBeIn(knownModules(), $name)
-            ->and(array_keys($spec['features']))->each->toBeIn(array_column(App\Enums\ProjectFeature::cases(), 'value'), $name);
+it('ships variant files the app reads, each with a landing page and a privacy page', function () {
+    foreach (shippedVariants() as $file) {
+        $variant = VariantFile::load($file);
+
+        expect($variant['file'])->toBe($file)
+            ->and(resource_path("js/pages/{$variant['landing']}.tsx"))->toBeFile()
+            ->and(resource_path("views/legal/en/{$variant['privacy']}"))->toBeFile();
     }
 });
 
+it('is MTAV out of the box: with no file, with an empty file, and as the example documents it', function () {
+    $mtav = VariantFile::defaults();
+
+    expect(VariantFile::load(null))->toBe($mtav)
+        ->and(VariantFile::load(base_path('no-such-variant.yaml')))->toBe($mtav)
+        ->and(VariantFile::load($empty = variantFile('')))->toBe([...$mtav, 'file' => $empty])
+        ->and(VariantFile::load($example = base_path('variant.example.yaml')))->toBe([...$mtav, 'file' => $example]);
+});
+
+it('keeps MTAV\'s value for a key the file leaves out, and replaces whole the one it gives', function () {
+    $variant = VariantFile::load($file = variantFile("modules: [projects, accounts]\nfeatures:\n  forum: { default: false, configurable: true }\n"));
+
+    expect($variant['modules'])->toBe(['projects', 'accounts'])
+        ->and($variant['features'])->toBe(['forum' => ['default' => false, 'configurable' => true]])
+        ->and($variant['landing'])->toBe('Welcome')
+        ->and($variant['privacy'])->toBe('privacy.html')
+        ->and($variant['file'])->toBe($file);
+});
+
+it('refuses a file that names what the app does not know, saying what and where', function (string $yaml, string $complaint) {
+    $file = variantFile($yaml);
+
+    expect(fn () => VariantFile::load($file))->toThrow(RuntimeException::class, $complaint)
+        ->and(fn () => VariantFile::load($file))->toThrow(RuntimeException::class, $file);
+})->with([
+    'an unknown key'      => ["theme: dark\n", 'names a key the app does not know: "theme"'],
+    'an unknown module'   => ["modules: [accounts, billing]\n", 'names a module the app does not have: "billing"'],
+    'an unknown feature'  => ["features:\n  wiki: { default: true, configurable: true }\n", 'names a feature the app does not have: "wiki"'],
+    'a half-said feature' => ["features:\n  forum: { default: true }\n", 'must give the feature "forum" as { default: true|false, configurable: true|false }'],
+    'modules not a list'  => ["modules: accounts\n", 'must give modules as a list'],
+    'an empty landing'    => ["landing: ''\n", 'must give landing as a non-empty string'],
+    'not YAML'            => ["modules: [accounts\n", 'is not valid YAML'],
+]);
+
 it('leaves MTAV with everything of the app, and without Open Lottery', function () {
-    expect(Variant::name())->toBe('mtav')
+    expect(Variant::file())->toBeNull()
         ->and(collect(['accounts', 'projects', 'platform', 'manual'])->every(Variant::has(...)))->toBeTrue()
         ->and(Variant::has('open_lottery'))->toBeFalse();
 });
-
-it('is MTAV out of the box, when the deployment says nothing or leaves it empty', function (?string $setting) {
-    $before = getenv('MTAV_VARIANT');
-    $set = function (string|false|null $value) {
-        putenv($value === null || $value === false ? 'MTAV_VARIANT' : "MTAV_VARIANT={$value}");
-        foreach (['_ENV', '_SERVER'] as $global) {
-            if ($value === null || $value === false) {
-                unset($GLOBALS[$global]['MTAV_VARIANT']);
-            } else {
-                $GLOBALS[$global]['MTAV_VARIANT'] = $value;
-            }
-        }
-    };
-
-    $set($setting);
-    $name = (require base_path('config/variant.php'))['name'];
-    $set($before);
-
-    expect($name)->toBe('mtav');
-})->with([null, '']);
 
 it('closes nothing of MTAV but Open Lottery', function () {
     $closed = collect(Route::getRoutes())->reject(Variant::opens(...))->map(fn ($route) => $route->getName());
@@ -93,8 +115,12 @@ it('starts MTAV projects with every feature, each of which they may turn off', f
     expect(Variant::landing())->toBe('Welcome');
 });
 
-it('says plainly when the deployment names no variant', function () {
-    config(['variant.name' => 'open-lottery']);
+it('is Open Lottery, and nothing else, from its file', function () {
+    variant('open-lottery');
 
-    expect(fn () => Variant::has('accounts'))->toThrow(RuntimeException::class, 'config/variants');
+    expect(Variant::has('open_lottery'))->toBeTrue()
+        ->and(collect(['accounts', 'projects', 'platform', 'manual'])->some(Variant::has(...)))->toBeFalse()
+        ->and(Variant::choices())->toBe([])
+        ->and(Variant::landing())->toBe('Open/Landing')
+        ->and(collect(Route::getRoutes())->filter(Variant::opens(...))->flatMap(modulesOf(...))->unique()->values()->all())->toBe(['open_lottery']);
 });

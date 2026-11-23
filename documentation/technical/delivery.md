@@ -74,7 +74,8 @@ An environment is two compose files over one directory of settings:
   uploaded files (the volume `mtav-<environment>_files`).
 
 Settings and secrets live in the environment's `.env` on the host (template:
-`deploy/env.example`), never in the repository. Each environment's ports are fixed, so
+`deploy/env.example`), never in the repository; its variant, in `variant.yaml` beside it
+(documented by `variant.example.yaml`; empty or absent, the environment is MTAV). Each environment's ports are fixed, so
 whatever is in front of it (a proxy terminating TLS, a load balancer) points at them
 once.
 

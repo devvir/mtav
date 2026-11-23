@@ -1,17 +1,23 @@
 # Variants
 
 A **variant** is what a deployment is made to be. All variants are one codebase and one release
-image; a deployment picks its variant with `MTAV_VARIANT`. MTAV is the variant with everything, and
-what a deployment is when it names none.
+image; a deployment composes its own in a file, `variant.yaml`, from the parts the code defines.
+MTAV is the variant with everything, and what a deployment is with no file.
 Open Lottery, the first other one, is the far end: no accounts and no app behind a login, so
 whatever works for it works for anything in between.
 
-## How a variant is told apart
+## How a variant is told
 
-**A variant is a plain PHP file, `config/variants/<name>.php`.** It is versioned, reviewed and
-tested like any code. There is nothing to parse: `php artisan optimize`, which each container
-runs on starting, caches it with the rest of the configuration. `App\Support\Variant` answers
-every question from it, in constant time.
+**A variant is a YAML file the deployment owns.** `variant.example.yaml`, at the root of the
+repository, documents every key and holds MTAV's values; `deploy/variants/` holds ready-made
+copies (Open Lottery). A server keeps its copy at `/mtav/<environment>/variant.yaml`, beside its
+`.env`, and each deploy mounts it into every container of the release (an empty file is MTAV; the
+deploy makes one if none is there). In development it is `variant.yaml` at the root, ignored by
+git; `MTAV_VARIANT_FILE` points anywhere else. `App\Support\VariantFile` reads it over MTAV's
+values when the configuration loads — a key left out keeps MTAV's, a key given replaces it whole —
+and refuses a file that names a module, a feature or a key the app does not have, saying what and
+where; `php artisan optimize` caches the result with the rest of the configuration, and
+`App\Support\Variant` answers every question from it, in constant time.
 
 It says:
 - **modules**: the parts of the app that exist here (`accounts`, `projects`, `platform`,

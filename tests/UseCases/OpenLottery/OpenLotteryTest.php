@@ -40,7 +40,7 @@ function joined(OpenLottery $lottery, string $name): array
 }
 
 beforeEach(function () {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
     Workers::mark();
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
 });
@@ -349,18 +349,18 @@ describe('The rest of the app', function () {
     });
 
     it('does not exist in MTAV either way round', function () {
-        config(['variant.name' => 'mtav']);
+        variant();
 
         $this->post('/l', ['name' => 'August', 'items_name' => 'Rooms'])->assertNotFound();
     });
 });
 
 it('never lets a feature a variant does not offer exist in a project', function () {
-    config(['variant.name' => 'mtav']);
+    variant();
     $project = aProject();
     expect($project->hasFeature('forum'))->toBeTrue();
 
-    config(['variants.mtav.features' => ['chat' => ['default' => true, 'configurable' => false]]]);
+    config(['variant.features' => ['chat' => ['default' => true, 'configurable' => false]]]);
 
     expect($project->hasFeature('forum'))->toBeFalse()
         ->and($project->features()['chat'])->toBeTrue();

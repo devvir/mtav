@@ -9,7 +9,7 @@ use App\Models\PlatformSetting;
  */
 
 it('goes from a landing page to a result, with nothing to sign in to', function () {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
 
     $page = visit('/')->assertSee('Share things out fairly');
@@ -59,7 +59,7 @@ function joins(string $link, string $name): object
 }
 
 it('lets people join, rank, come back and leave, the organizer change what is shared out, and keeps its record', function () {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
 
     $organizer = visit('/')
@@ -122,7 +122,7 @@ it('lets people join, rank, come back and leave, the organizer change what is sh
 /** A lottery made on the landing page, of these lines: the organizer's page */
 function createsLottery(string $lines): object
 {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
 
     return visit('/')
         ->fill('input[placeholder="Summer house, August"]', 'August')
@@ -156,7 +156,7 @@ it('says which line of what is shared out it refuses, counting the empty ones', 
 });
 
 it('says in its own words what is missing, never in the browser\'s', function () {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
     visit('/')->click('button:has-text("Create the lottery")')->assertSee('Fill in the name.');
 
     $share = linkOn(createsLottery('Blue room')->assertSee('Your organizer link'), 'share');

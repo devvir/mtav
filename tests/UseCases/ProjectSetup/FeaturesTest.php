@@ -164,7 +164,7 @@ it('leaves a home without what is off, asking for nothing of it', function () {
 describe('What the variant says', function () {
     function theSpec(array $features): void
     {
-        config(['variants.mtav.features' => $features]);
+        config(['variant.features' => $features]);
     }
 
     it('makes a feature off and not configurable not exist: no address, no setting, no way in', function () {

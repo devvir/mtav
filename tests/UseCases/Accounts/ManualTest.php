@@ -67,9 +67,10 @@ it('has whom to write about data without a contact set: the owner', function () 
 });
 
 it('has every variant\'s privacy page in every language it speaks', function () {
-    foreach (config('variants') as $variant) {
-        foreach (glob(lang_path('*.json')) as $file) {
-            expect(resource_path('views/legal/' . basename($file, '.json') . "/{$variant['privacy']}"))->toBeFile();
+    foreach (shippedVariants() as $file) {
+        $variant = App\Support\VariantFile::load($file);
+        foreach (glob(lang_path('*.json')) as $language) {
+            expect(resource_path('views/legal/' . basename($language, '.json') . "/{$variant['privacy']}"))->toBeFile();
         }
     }
 });

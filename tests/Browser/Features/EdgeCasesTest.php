@@ -67,7 +67,7 @@ it('holds a unit name with no spaces to break it at, on the plan and in a rankin
 });
 
 it('holds the longest names an open lottery takes, with no spaces to break them at', function () {
-    config(['variant.name' => 'open_lottery']);
+    variant('open-lottery');
     PlatformSetting::put(PlatformSetting::LOTTERY_SECONDS, 0);
     $lotteries = app(OpenLotteryService::class);
     // As long as each field takes, in one word

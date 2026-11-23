@@ -1,0 +1,51 @@
+# What this deployment of MTAV is made to be: its variant.
+#
+# All variants are one codebase and one release image. A deployment composes its own from
+# the parts below; nothing has to be defined in advance. This file documents every key and
+# holds the values of MTAV itself, the variant with everything, which is also what a
+# deployment gets when it has no file at all.
+#
+# To use it: copy this file, keep what you want, and put the copy where the app reads it:
+#   - on a server: /mtav/<environment>/variant.yaml, next to the environment's .env
+#     (deploy/host/deploy mounts it into every container of a release; an empty file means MTAV);
+#   - in development: variant.yaml at the root of the repository (ignored by git);
+#   - anywhere else: the path in MTAV_VARIANT_FILE.
+# A key left out keeps MTAV's value for it. A key given replaces MTAV's value whole: list
+# every module, or every feature, you want. The app refuses to start on a file it cannot
+# read or that names something it does not know, saying what and where.
+# A ready-made copy for Open Lottery (no accounts, no app behind them) is in deploy/variants/.
+
+# The parts of the app that exist in this deployment. Every route belongs to one; where the
+# part is missing, its routes do not exist (404, not hidden). Known parts:
+#   accounts      sign-up, sign-in, profiles, notifications: everything that needs a person
+#   projects      cooperatives' projects, with their families, units, lottery and features
+#   platform      the superadmins' console (approvals, settings, activity, errors, deploys)
+#   manual        the user guides and FAQ, also readable without an account
+#   open_lottery  a lottery from a shared link, with no accounts (needs none of the above)
+modules:
+  - accounts
+  - projects
+  - platform
+  - manual
+
+# What a project may offer, feature by feature. For each one:
+#   default       what a new project starts with (true: on)
+#   configurable  whether a project's admins may change it in the project's settings
+# Off and not configurable, or left out, the feature does not exist in this deployment,
+# exactly as if it had no code. Known features: forum, chat, assistant (lives in the chat,
+# so it needs the chat), gallery, files, events.
+features:
+  forum: { default: true, configurable: true }
+  chat: { default: true, configurable: true }
+  assistant: { default: true, configurable: true }
+  gallery: { default: true, configurable: true }
+  files: { default: true, configurable: true }
+  events: { default: true, configurable: true }
+
+# The page people arrive at: a page under resources/js/pages (Welcome for MTAV, Open/Landing
+# for Open Lottery)
+landing: Welcome
+
+# Its privacy page: a file under resources/views/legal/<locale>/, present in every language,
+# saying only what this deployment keeps
+privacy: privacy.html

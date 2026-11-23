@@ -53,3 +53,6 @@ Homestead.yaml
 
 # The warden page, built by ./mtav warden
 /dev/warden/dist
+
+# This deployment's variant (variant.example.yaml documents it)
+/variant.yaml
