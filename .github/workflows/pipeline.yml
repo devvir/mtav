@@ -116,6 +116,7 @@ jobs:
           version: v0.38.2
           driver-opts: image=moby/buildkit:v0.34.2@sha256:c5f8862f52499773af85bc07695b2379ef08e8002352b0df2c4864c91d78dabe
 
+      # The runner's own ids, for the image's user: the suite reads and writes the checkout
       - id: runner
         run: echo "uid=$(id -u)" >> "$GITHUB_OUTPUT" && echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
 
