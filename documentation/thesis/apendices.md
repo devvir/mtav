@@ -229,7 +229,7 @@ Los modelos que siguen son los que la aplicación genera y entrega a GLPK, trans
 | $z$ | `var z, integer` | Peor rango recibido por familia alguna |
 | $S$ | `param S` | Cota de equidad que la Fase 1 le fija a la Fase 2 |
 
-**Fase 1 — equidad max-min.** Minimiza $z$, el peor rango que recibe cualquier familia, sujeta a que cada familia reciba una única unidad y ninguna unidad vaya a más de una familia:
+**Fase 1 — equidad max-min.** Minimiza $z$, el peor rango que recibe cualquier familia, sujeta a que ninguna familia reciba más de una unidad, ninguna unidad vaya a más de una familia, y se asignen tantas como permite el lado más corto:
 
 ```
 # MTAV Lottery - Phase 1: Maximize Minimum Satisfaction
@@ -249,13 +249,16 @@ minimize resultado: z;
 s.t. z_menorIgual{p in P}:
     z >= sum{i in I} r[p,i] * x[p,i];
 
-# Each participant gets exactly one item
-s.t. oneItemPerParticipant{p in P}:
-    sum{i in I} x[p,i] = 1;
+# At most one item per participant, at most one participant per item, and as many pairs as the
+# smaller side allows: whichever side has more, some of it is left over
+s.t. atMostOneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] <= 1;
 
-# Each item goes to at most one participant: with more items than participants, some stay free
 s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
+
+s.t. everyPairPossible:
+    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
 
 end;
 ```
@@ -283,18 +286,21 @@ minimize resultado: sum{p in P, i in I} r[p,i] * x[p,i];
 s.t. satisfaccionMinima{p in P}:
     sum{i in I} r[p,i] * x[p,i] <= S;
 
-# Each participant gets exactly one item
-s.t. oneItemPerParticipant{p in P}:
-    sum{i in I} x[p,i] = 1;
+# At most one item per participant, at most one participant per item, and as many pairs as the
+# smaller side allows: whichever side has more, some of it is left over
+s.t. atMostOneItemPerParticipant{p in P}:
+    sum{i in I} x[p,i] <= 1;
 
-# Each item goes to at most one participant: with more items than participants, some stay free
 s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
+
+s.t. everyPairPossible:
+    sum{p in P, i in I} x[p,i] = min(card(P), card(I));
 
 end;
 ```
 
-[Nov. 2026: cada unidad a lo sumo a una familia en ambos modelos (§@sec-formulacion); el modelo de selección de unidades ya no existe]{.rev}
+[Nov. 2026: asignación rectangular en ambos modelos (§@sec-formulacion); el modelo de selección de unidades ya no existe]{.rev}
 
 ### C.2 Formato del registro de auditoría {#ap-c2}
 

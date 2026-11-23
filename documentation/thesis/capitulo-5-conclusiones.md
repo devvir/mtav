@@ -48,10 +48,6 @@ Quedan pendientes un histórico de proyectos con comparación entre sorteos; **e
 
 El trabajo previo sobre MTAV dejó planteadas varias extensiones al algoritmo, exploradas en el proyecto de grado de Marcos Fierro (2024): un **criterio adicional de equidad** basado en la desviación estándar de las satisfacciones, con la posibilidad de elegir sobre un frente de Pareto entre mayor equidad y mayor satisfacción global; la incorporación de **preferencias de vecindad** (que una familia valore quedar cerca de otra determinada); y las **preferencias "en bloque"** (igualar la prioridad de varias unidades indiferentes). A ellas se suman otras posibilidades: restricciones adicionales —por ejemplo, reservar unidades en planta baja para familias con necesidades de accesibilidad—, la ponderación de las preferencias por intensidad (no solo por orden), y la ejecución de sorteos parciales o por etapas. Estas mejoras se relacionan directamente con el Capítulo @cap-sorteo.
 
-::: nuevo
-Antes que cualquiera de ellas, una corrección al *solver* actual, descrita en la Sección @sec-ejecucion: la resolución de los **tipos con más familias que unidades** sin unidades ficticias, para que la garantía max-min valga también allí. [Nov. 2026: corrección pendiente del solver]{.rev #rev-n-tf-solver}
-:::
-
 ### Experiencia de usuario y accesibilidad avanzada {#sec-tf-ux}
 
 Queda pendiente el soporte completo de lectores de pantalla, y que los cambios hechos sin conexión se guarden en el dispositivo y se envíen al recuperarla, en lugar de retenerse (§@sec-implicancias-mobile). [Nov. 2026]{.rev #rev-n-tf-ux}
