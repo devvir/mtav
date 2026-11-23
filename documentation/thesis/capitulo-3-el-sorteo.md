@@ -28,14 +28,14 @@ El algoritmo persigue dos objetivos, en **orden de prioridad estricta**: primero
 
 **Propiedades.** El resultado de este esquema tiene propiedades deseables, analizadas formalmente desde la teoría del diseño de mercados: es **eficiente en el sentido de Pareto** —no existe otra asignación que mejore a una familia sin perjudicar a otra— y trata **por igual a quienes son iguales** —dos familias con idénticas preferencias tienen la misma probabilidad ante un empate, que se resuelve al azar— (véase §@sec-mtav-original). La formalización de estos dos objetivos es el contenido de la sección siguiente.
 
-::: nuevo
-Cómo sortea los empates la implementación —de forma reproducible desde el acta— se explica en la Sección @sec-ejecucion.
-:::
-
 
 ## Formulación matemática {#sec-formulacion}
 
-El problema se modela como un problema de **programación lineal entera** (con variables binarias de asignación), resuelto en dos fases encadenadas. Se presentan a continuación ambos modelos; los archivos de modelo completos en lenguaje GMPL (GNU MathProg) están en el Apéndice C.
+::: nuevo
+Un problema de optimización tiene tres partes: un conjunto de decisiones **admisibles** —las que cumplen ciertas restricciones—, un número que cada decisión admisible produce —la **función objetivo**— y el sentido en que ese número se prefiere, menor o mayor. Su **solución óptima** es, por definición, una decisión admisible cuyo objetivo no es superado por ninguna otra.
+:::
+
+El sorteo se modela como un problema de **programación lineal entera** (con variables binarias de asignación), resuelto en dos fases encadenadas. Se presentan a continuación ambos modelos; los archivos de modelo completos en lenguaje GMPL (GNU MathProg) están en el Apéndice C.
 
 **Conjuntos y parámetros.**
 
@@ -76,14 +76,14 @@ Una instancia es degenerada cuando existen muchas asignaciones distintas que alc
 - **Preferencias idénticas:** todas las familias ordenan las unidades de la misma manera. Cualquier permutación de la asignación produce exactamente el mismo multiconjunto de rangos, de modo que hay un número factorial de soluciones óptimas equivalentes. Aunque el valor óptimo es evidente, el *solver* debe recorrer una enorme cantidad de ramas simétricas para *demostrar* que no existe una mejor.
 - **Preferencias opuestas:** familias con ordenamientos espejados generan una simetría análoga.
 
-El efecto es real y medible. En los *benchmarks* de la solución original [(escenario aleatorio)]{.quitado}[—en el escenario aleatorio, en el que cada familia ordena las unidades al azar, de forma independiente de las demás—]{.nuevo} aparecen los primeros *timeouts* ya en tamaños de **pocas decenas de familias**, el tamaño de un proyecto real; las cifras, la plataforma y la generación de cada escenario se presentan en la Sección @sec-resultados. Los casos degenerados (idénticas y opuestas) mostraron resultados mucho peores —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, que recurría a imponer un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3). [#22: definición del escenario aleatorio; la plataforma de las mediciones se describe en la Sección @sec-resultados]{.rev #rev-22}
+El efecto es real y medible. En los *benchmarks* de la solución original [(escenario aleatorio)]{.quitado}[—en el escenario aleatorio, en el que cada familia ordena las unidades al azar, de forma independiente de las demás—]{.nuevo} aparecen los primeros *timeouts* ya con **pocas decenas de familias**, el tamaño de un proyecto real (las cifras, la plataforma y la generación de cada escenario se presentan en §@sec-resultados). Los casos degenerados (idénticas y opuestas) mostraron aún peores resultados —intratables en la práctica—, al punto que no fue posible relevarlos sistemáticamente. Esta dificultad ya había sido documentada en el trabajo previo sobre MTAV, donde se imponía un límite de tiempo a la Fase 1 para evitar que el sistema se estancara (Fierro, 2024, §2.3). [#22: definición del escenario aleatorio; la plataforma de las mediciones se describe en la Sección @sec-resultados]{.rev #rev-22}
 
 El diagnóstico es preciso: **el cuello de botella no es el problema de asignación en sí, sino la forma de resolver la Fase 1** —pedirle a GLPK que *minimice* $z$—. La Fase 2, que solo verifica una cota, no sufre esa degeneración. La mejora que se presenta a continuación explota esa asimetría.
 
 
-## La búsqueda binaria: contribución original {#sec-busqueda-binaria}
+## La búsqueda binaria {#sec-busqueda-binaria}
 
-La contribución algorítmica de este trabajo consiste en **no minimizar $z$ directamente**, sino en **buscar el menor valor de la cota $S$ para el cual el problema es factible**, usando la Fase 2 como prueba de factibilidad. Esto reemplaza la Fase 1 problemática por una serie corta de ejecuciones de la Fase 2, que es rápida y estable.
+La contribución algorítmica de este trabajo consiste en **no minimizar $z$ directamente**, sino en **buscar el menor valor de la cota $S$ para el cual el problema es factible**, usando la Fase 2 como prueba de factibilidad. Se reemplaza la Fase 1 problemática por una serie corta de ejecuciones de la Fase 2, que es rápida y estable.
 
 ### La idea {#sec-bb-idea}
 
@@ -119,7 +119,7 @@ La búsqueda binaria produce **el mismo resultado** que la Fase 1 original, por 
 Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la Fase 2**, que sigue resolviéndose con GLPK. Solo cambia la manera de resolver la Fase 1. El resultado es matemáticamente equivalente al método original, ya validado por su uso en proyectos cooperativos reales (§@sec-validacion), pero elimina su único punto de fragilidad.
 
 ::: nuevo
-Esta solución se desarrolló de forma independiente, a partir del método de dos fases y de sus modelos. Se constató después que el problema de la Fase 1 tomado por sí solo —minimizar el peor costo de una asignación— está estudiado en la investigación de operaciones como el *problema de asignación de cuello de botella* (*bottleneck assignment problem*), y que buscar la cota factible por bisección es uno de los métodos clásicos para resolverlo (Garfinkel, 1971; Burkard, Dell'Amico y Martello, 2009). Lo que aporta este trabajo es su aplicación al método de MTAV: usar la propia Fase 2 como prueba de factibilidad, de modo que la última prueba factible entrega la asignación final, y la demostración y verificación de que el resultado es el mismo que el del método original. [Nov. 2026: relación con la literatura, descubierta después]{.rev #rev-n-cuello-botella}
+El problema de la Fase 1 —minimizar el peor costo de una asignación— se conoce en la investigación de operaciones como el *problema de asignación de cuello de botella* (*bottleneck assignment problem*). Esta solución se desarrolló de forma independiente, a partir del método de dos fases del MTAV original y sus modelos, pero corresponde aclarar que, como descubrí más adelante, buscar la cota factible por bisección es uno de los métodos clásicos para resolver estos problemas (Garfinkel, 1971; Burkard, Dell'Amico y Martello, 2009). [Nov. 2026: relación con la literatura, descubierta después]{.rev #rev-n-cuello-botella}
 :::
 
 
@@ -131,13 +131,13 @@ Esta solución se desarrolló de forma independiente, a partir del método de do
 Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas artificialmente: $N$ familias y $N$ unidades, con $N$ entre 5 y 500, y un ordenamiento completo de las unidades para cada familia. Cada combinación de escenario y tamaño se repitió entre 100 y 1 000 veces (10 000 para la solución original), con preferencias nuevas en cada repetición. Los cuatro escenarios de preferencias son: [#23: cómo se generan los escenarios y en qué plataforma se midió; el detalle completo queda en el Apéndice C.3. El escenario realista se corrigió para que las familias compartan unidades populares, como era la intención, y las cinco series se volvieron a medir sobre el código actual en noviembre de 2026: los números, las figuras y las observaciones de esta sección y del Apéndice C.3 son los nuevos]{.rev #rev-23}
 
 - **Aleatorias:** cada familia ordena las unidades al azar —una permutación uniforme—, de forma independiente de las demás.
-- **Realistas:** en cada instancia, un 20 % de las unidades es popular y otro 20 % impopular, y esa división es la misma para todas las familias, como en un proyecto real, donde algunas unidades atraen a casi todos y otras a casi nadie. Cada familia arma su ranking con esa inclinación y con su propia variación, de modo que muchas familias coinciden en sus primeras opciones: la situación que degrada a la Fase 1 original (§@sec-cuello-fase1) y la que motivó este trabajo.
+- **Realistas:** en cada instancia, un 20 % de las unidades es popular y otro 20 % impopular, y esa división es la misma para todas las familias, como en un proyecto real, donde algunas unidades atraen a muchas familias y otras a muy pocas. Cada familia arma su ranking con esa inclinación y con su propia variación, de modo que muchas familias coinciden en sus primeras opciones: la situación que degrada la Fase 1 original (§@sec-cuello-fase1).
 - **Idénticas:** todas las familias ordenan las unidades igual; es el peor caso para el desempate.
 - **Opuestas:** se fija un único orden de las unidades; la mitad de las familias lo adopta tal cual y la otra mitad, exactamente invertido.
 
 Idénticas y opuestas son los dos casos degenerados descritos en la Sección @sec-cuello-fase1. La generación exacta de cada escenario se detalla en el Apéndice C.3.
 
-**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.5 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. Las cinco series se corrieron en noviembre de 2026, de a dos o tres a la vez, en un portátil personal en uso. Los tiempos absolutos dependen de esa máquina y de su carga; lo que importa es la comparación relativa —entre el método original y la búsqueda binaria, y entre escenarios—, medida en las mismas condiciones. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el *solver* hasta que devuelve la asignación.
+**Plataforma.** Todas las corridas se ejecutaron en un mismo equipo —procesador Intel Core i7-1195G7 (4 núcleos y 8 hilos, hasta 5,0 GHz) y 32 GB de RAM—, con la aplicación dentro de contenedores Docker (PHP 8.5 sobre Alpine Linux, con GLPK 5.0) y sin límites de CPU ni de memoria. GLPK resuelve cada problema en un único proceso, sin paralelizar. Las cinco series se corrieron en noviembre de 2026, de a dos o tres a la vez, en un portátil personal en uso. Los tiempos absolutos dependen de esa máquina y de su carga; lo relevante de los resultados obtenidos es la comparación relativa —entre el método original y la búsqueda binaria, y entre escenarios—, medida en condiciones similares. El tiempo medido es el tiempo de reloj de la resolución completa —ambas fases—, desde que se invoca el *solver* hasta que se devuelve la asignación.
 :::
 
 ::: cambio
@@ -167,15 +167,23 @@ La figura siguiente resume la comparación en el escenario aleatorio —el únic
 El detalle por escenario —incluidos los casos degenerados que la solución original no podía resolver— y las estadísticas completas (percentiles, tasas de éxito, metodología) se presentan en el Apéndice C.3.
 
 
+## Resolución de las preferencias {#sec-resolucion-preferencias}
+
+[Nov. 2026: cómo se resuelve el ranking de cada familia]{.rev #rev-n-preferencias-3}
+
+::: nuevo
+Las familias no están obligadas a establecer sus preferencias para cada unidad de su tipo; una familia puede incluso no preferir ninguna unidad en absoluto. Puede ocurrir también que una unidad se agregue al proyecto luego que una familia ya definió sus preferencias, y que la familia no asigne ningún lugar a esta unidad. Por otro lado, para cada familia, el sistema requiere que todas las unidades de su tipo tengan una preferencia definida. La solución es determinar una lista de preferencias completa por defecto.
+
+El problema que surge entonces es cuál debe ser este orden por defecto. Si elegimos una lista igual para todas las familias (por ejemplo, ordenada por id de la unidad) el problema que surge es un sesgo no deseado por las unidades que todos “prefieren” por defecto. Entonces una familia que realmente prefiera una vivienda del tope de la lista predeterminada estaría compitiendo de hecho con familias que en realidad no establecieron ninguna preferencia.
+
+La solución que implementa el sistema es un orden aleatorio pero anclado para cada familia, de forma que se resuelve el problema del sesgo pero se mantiene el carácter determinístico del sorteo.
+:::
+
 ## Ejecución, orquestación por tipos y redistribución de remanentes {#sec-ejecucion}
 
 Hasta aquí, la formulación asumió el caso balanceado (igual número de familias y unidades) y un único tipo de vivienda. La ejecución real de un sorteo de proyecto compone esos subproblemas y resuelve los desbalances.
 
-**Orquestación por tipos.** Siguiendo la descomposición establecida en la Sección @sec-problema-asignacion, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores. [El motor que lo hace trabaja sobre participantes e ítems agrupados, sin saber que son familias, unidades y tipos de vivienda; esa generalización se describe en la Sección @sec-capa-sorteo.]{.nuevo} [Nov. 2026: el motor se generalizó]{.rev #rev-n-orquestacion}
-
-::: nuevo
-**Resolución de las preferencias.** Lo que una familia guarda es el orden en que colocó las unidades que quiso ordenar; el ranking completo que recibe el sorteo se calcula en el momento, a partir de las unidades que su tipo tiene en ese instante. Las unidades que la familia ordenó van primero, en su orden; las que no ordenó siguen después, en un orden fijo y propio de cada familia —derivado de un *hash* de la familia y de la unidad—, para que las familias que no ordenan no apunten todas a las mismas unidades. Una unidad que dejó el tipo, o el proyecto, simplemente deja de contar; una unidad nueva entra en el bloque de las no ordenadas, en la posición que ese orden fijo le da; y si la familia cambia de tipo, su orden anterior deja de aplicarse y rige el orden fijo sobre las unidades del nuevo tipo hasta que vuelva a ordenar. Así la lista es siempre una permutación completa de las unidades del tipo (§@sec-problema-asignacion), sin intervención manual ante los cambios del proyecto. [Nov. 2026: cómo se resuelve el ranking de cada familia]{.rev #rev-n-preferencias-3}
-:::
+**Orquestación por tipos.** Siguiendo la descomposición establecida en la Sección @sec-problema-asignacion, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
 
 **Balanceo de subproblemas desbalanceados.** Cuando un subproblema no tiene igual número de familias que de unidades, se lo reduce al caso balanceado antes de resolverlo:
 
