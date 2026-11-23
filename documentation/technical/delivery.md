@@ -9,7 +9,7 @@ On GitHub Actions:
 
 | Workflow | When | What |
 |---|---|---|
-| `pipeline.yml` | every push | style, lint, types and static analysis; tests (Pest, Vitest); the browser suite; the release image |
+| `pipeline.yml` | every push | style, lint, types and static analysis; tests (Pest, Vitest); the browser suite (its image from the Actions cache, rebuilt only when it changes); the release image |
 | | `staging`, once all of that passes | the image published and attested, and staging deployed |
 | | `main`, once all of that passes | the image published and attested (and tagged `main`) |
 | `solver.yml` | every push that touches the lottery's solvers; by hand | the Stress suite: GLPK on hard instances. It reports on the commit and holds no release back |

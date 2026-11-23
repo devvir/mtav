@@ -145,7 +145,10 @@ run_e2e() {
 
     step "Starting e2e environment..."
     env_setup
-    if ! compose e2e up --build --detach --wait --wait-timeout 120 --quiet-pull; then
+    # The pipeline builds the image itself, from its cache, and says so: nothing to build here
+    local build=(--build)
+    [ -n "${MTAV_E2E_PREBUILT:-}" ] && build=()
+    if ! compose e2e up "${build[@]}" --detach --wait --wait-timeout 120 --quiet-pull; then
         fail "❌ the e2e environment did not start"
         compose e2e down || true
         return 1

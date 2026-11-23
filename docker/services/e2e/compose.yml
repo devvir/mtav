@@ -5,6 +5,8 @@
 # reverb can run inside this same container so ws://localhost works.
 services:
   e2e:
+    # Named, so that a build made elsewhere (the pipeline's, from its cache) is the one `up` uses
+    image: mtav-e2e-e2e
     build:
       context: ../../..
       dockerfile: docker/services/e2e/Dockerfile

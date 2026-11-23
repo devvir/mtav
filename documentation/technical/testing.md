@@ -16,6 +16,7 @@ would have caught what it fixes. The tests run in their own Docker environments
 ./mtav e2e --group=critical              # its quick part
 ./mtav e2e --filter='LotteryTest|PlanTest'
 ./mtav e2e --shard=1/3                   # a third of its files, as each of the pipeline's three parts
+# MTAV_E2E_PREBUILT=1 skips building the image (the pipeline builds it from its cache first)
 ./mtav precommit                         # Pest without the slow group, and Vitest
 ./mtav test --pest --filter=lottery --vitest plan   # all three, each with its own arguments
 ```
