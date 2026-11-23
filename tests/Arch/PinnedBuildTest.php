@@ -48,3 +48,17 @@ it('checks what the release build downloads', function () {
     expect($dockerfile)->toContain('sha256sum -c -')
         ->not->toMatch('/wget[^\n]*\|\s*tar/');
 });
+
+it('builds the browser suite from official images by digest, with the Chromium its Playwright drives', function () {
+    $dockerfile = file_get_contents(base_path('docker/services/e2e/Dockerfile'));
+    $playwright = json_decode(file_get_contents(base_path('package.json')), true)['devDependencies']['playwright'];
+
+    preg_match_all('/^\s*FROM\s+(\S+)/m', $dockerfile, $from);
+    preg_match_all('/--from=(\S+:\S+)/', $dockerfile, $copied);
+    foreach ([...$from[1], ...$copied[1]] as $image) {
+        expect($image)->toMatch('/@sha256:[0-9a-f]{64}$/');
+    }
+
+    expect($dockerfile)->toContain("playwright@{$playwright} install --with-deps chromium")
+        ->not->toContain('ppa:');
+});
