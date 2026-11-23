@@ -5,7 +5,7 @@
 # Introducción y contexto {#cap-intro}
 
 ::: nuevo
-*Este capítulo presenta el problema y la propuesta del trabajo: el cooperativismo de vivienda en Uruguay y por qué asignar las viviendas al terminar una obra es un problema difícil (Sección @sec-cooperativas); el método de asignación desarrollado en la Facultad de Ingeniería —MTAV—, su validación y la limitación operativa que lo restringe (Sección @sec-antecedentes); la motivación para llevarlo a una plataforma de autogestión (Sección @sec-motivacion); y una visión general de esa plataforma, MTAV en línea (Sección @sec-vision).* [#28: párrafo inicial del capítulo, como en los demás]{.rev #rev-28}
+*Este capítulo presenta el problema y la propuesta del trabajo: el cooperativismo de vivienda en Uruguay y por qué asignar las viviendas al terminar una obra es un problema difícil (§@sec-cooperativas); el método de asignación desarrollado en la Facultad de Ingeniería —MTAV—, su validación y la limitación operativa que lo restringe (§@sec-antecedentes); la motivación para llevarlo a una plataforma de autogestión (§@sec-motivacion); y una visión general de esa plataforma, MTAV en línea (§@sec-vision).* [#28: párrafo inicial del capítulo, como en los demás]{.rev #rev-28}
 :::
 
 
@@ -125,9 +125,9 @@ Eliminar la dependencia del intermediario técnico tiene [las siguientes]{.nuevo
 
 **Comunidad y naturaleza compartida.** El MTAV original vive en una sola máquina, operada por una persona, con la información concentrada en un único lugar. Una aplicación en línea es, por naturaleza, compartida: la información y la actividad del proyecto se distribuyen a todos sus usuarios en tiempo real, sea quién se sumó, quién publicó algo, un administrador que agrega unidades o una familia recién incorporada.
 
-Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto[,]{.nuevo} la gestión de eventos con confirmación de asistencia [y un foro y chat internos entre cooperativistas]{.nuevo} [y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (véase la Sección @sec-trabajo-futuro)]{.quitado}. [Nov. 2026: el canal interno ya existe (§@sec-foro-chat)]{.rev #rev-n-comunidad} Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
+Esto habilita capacidades que un programa de escritorio no puede ofrecer: una galería de imágenes compartida, el intercambio de documentos del proyecto[,]{.nuevo} la gestión de eventos con confirmación de asistencia [y un foro y chat internos entre cooperativistas]{.nuevo} [y, como trabajo futuro, un canal de comunicación interno entre cooperativistas (§@sec-trabajo-futuro)]{.quitado}. [Nov. 2026: el canal interno ya existe (§@sec-foro-chat)]{.rev #rev-n-comunidad} Estas capacidades evitan, además, que la comunidad tenga que dispersarse en herramientas externas de propósito general (WhatsApp, Google Drive y similares). Así, MTAV puede convertirse en el espacio propio de cada comunidad cooperativa, y no solo en la herramienta que ejecuta el sorteo.
 
-**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas extensiones al propio algoritmo, que exceden el alcance de esta tesis y se recogen como trabajo futuro (Fierro, 2024; Sección @sec-tf-algoritmo).
+**Extensibilidad.** Con los datos de los proyectos digitalizados, se abren posibilidades inexistentes en el flujo manual: histórico de proyectos, estadísticas, reportes e integraciones. En esta línea, el trabajo académico previo dejó planteadas extensiones al propio algoritmo, que exceden el alcance de esta tesis y se recogen como trabajo futuro (Fierro, 2024; §@sec-tf-algoritmo).
 
 
 ## MTAV: visión general del sistema {#sec-vision}
