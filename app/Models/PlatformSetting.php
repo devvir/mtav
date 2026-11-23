@@ -22,7 +22,7 @@ class PlatformSetting extends Model
     public const DISCLOSURE_HOURS = 'disclosure_hours';
 
     public const DEFAULTS = [
-        self::LOTTERY_SECONDS  => 20,
+        self::LOTTERY_SECONDS  => 8,
         self::DISCLOSURE_HOURS => 48,
     ];
 

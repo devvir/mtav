@@ -29,7 +29,7 @@ same for an open lottery, is `LotteryRuns`):
    loop (`Services/Queue/Workers`); without one, the page says the lottery is held.
 3. The solver's assignment is **held** until the run's `reveal_at`: everyone watches the
    lottery work for at least the time the platform's settings say (superadmins set it;
-   20 seconds by default). `PublishLotteryRun` writes it then, all units at once, in one
+   8 seconds by default). `PublishLotteryRun` writes it then, all units at once, in one
    transaction (`completed`). The time changes when the result shows, never what it is.
 4. Everyone is notified. A run that fails is closed as `failed`, its admin is told, and
    the lottery can run again.
