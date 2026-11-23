@@ -23,8 +23,8 @@
 
 ## Marco legal y contexto cooperativo {.unlisted}
 
-- FUCVAM. (s.f.). *Historia*. Federación Uruguaya de Cooperativas de Vivienda por Ayuda Mutua. https://www.fucvam.org.uy/quienes-somos/historia (último acceso: 3 de julio de 2026)
 - FECOVI. (s.f.). *Quiénes somos*. Federación de Cooperativas de Vivienda de Usuarios por Ahorro Previo. https://fecovi.coop/web/quienes-somos/ (último acceso: 12 de julio de 2026)
+- FUCVAM. (s.f.). *Historia*. Federación Uruguaya de Cooperativas de Vivienda por Ayuda Mutua. https://www.fucvam.org.uy/quienes-somos/historia (último acceso: 3 de julio de 2026)
 - Uruguay. Ley N.º 13.728 de 1968, Plan Nacional de Vivienda (17 de diciembre de 1968). https://www.impo.com.uy/bases/leyes/13728-1968 (último acceso: 12 de julio de 2026)
 - Uruguay. Ley N.º 18.407 de 2008, Sistema Cooperativo: regulación general de su funcionamiento (24 de octubre de 2008). https://www.impo.com.uy/bases/leyes/18407-2008 (último acceso: 12 de julio de 2026)
 
