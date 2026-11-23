@@ -41,7 +41,7 @@ Quien entra a un proyecto sin estar todavía en su familia la busca desde adentr
 
 Los administradores pueden mover personas entre familias, nombrar otros administradores y remover del proyecto a un usuario no administrador. [Un superadministrador puede, como último recurso —por ejemplo una cuenta usurpada—, remover el rol de administrador de una cuenta. Un administrador puede renunciar a su rol; si no pertenece a una familia del proyecto, queda como invitado si el proyecto los admite, y si no, sale del proyecto. Para asegurar que un proyecto no pueda quedar huérfano, el último administrador no puede renunciar (si así lo desea, puede invitar o promover a otro usuario y luego renunciar).]{.nuevo} [Nov. 2026: los administradores son pares; la renuncia al rol]{.rev #rev-n-pares}
 
-El **correo y el teléfono** de cada persona, opcionales, son privados salvo que ella decida mostrarlos a su proyecto; los administradores los ven siempre. El número de documento solo es visible para administradores, en caso que un usuario decida ingresarlo (por ejemplo para facilitar gestiones de la administración del proyecto cooperativo).
+El **correo** y el **teléfono** (opcional) de cada persona son privados salvo que ella decida mostrarlos a su proyecto; los administradores los ven siempre. El número de documento solo es visible para administradores, en caso que un usuario decida ingresarlo (por ejemplo para facilitar gestiones de la administración del proyecto cooperativo).
 
 ### El plano del proyecto {#sec-plano}
 
@@ -125,7 +125,7 @@ Llegada la fecha del sorteo, el administrador lo ejecuta. Cada ejecución es un 
 
 La resolución ocurre en segundo plano. Mientras tanto, la página muestra el sorteo en curso como una secuencia de cuatro etapas —leer las preferencias, ponderar las unidades, buscar la mejor asignación, verificar el resultado— que progresa en tiempo real para todos los usuarios que estén mirando la página del sorteo.
 
-El algoritmo rara vez toma más de un segundo en completar los sub-sorteos. Basado en devoluciones de usuarios del sistema, MTAV en línea simula un proceso más lento, con un tiempo mínimo fijado por un superadministrador (veinte segundos por defecto), independiente del progreso real del algoritmo. Si el *solver* termina antes, la asignación **se retiene** hasta cumplirse ese tiempo; si termina después, se escribe al terminar.
+El algoritmo rara vez toma más de un segundo en completar los sub-sorteos. Basado en devoluciones de usuarios del sistema, MTAV en línea simula un proceso más lento, con un tiempo mínimo fijado por un superadministrador (ocho segundos por defecto), independiente del progreso real del algoritmo. Si el *solver* termina antes, la asignación **se retiene** hasta cumplirse ese tiempo; si termina después, se escribe al terminar.
 
 El resultado aparece para todos a la vez, con todas las unidades asignadas de una sola vez. Si la ejecución falla, se marca como fallida, el administrador es avisado y el sorteo puede ejecutarse de nuevo. El resultado es **definitivo**: no se edita ni se negocia.
 
