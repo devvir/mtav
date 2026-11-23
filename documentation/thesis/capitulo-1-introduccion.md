@@ -150,7 +150,7 @@ El **superadministrador** es el responsable de la plataforma. Es una cuenta de s
 
 El **administrador** es el responsable operativo de un proyecto cooperativo. Quien crea un proyecto es asignado automáticamente como su primer administrador. Define los tipos de vivienda y carga las unidades, registra las familias e invita a sus integrantes, dibuja el plano, crea y publica eventos, decide qué funcionalidades tiene el proyecto y quién puede entrar, y es quien ejecuta el sorteo cuando el proceso está listo. Un mismo administrador puede gestionar cualquier número de proyectos, un proyecto puede tener uno o más administradores, y un administrador puede a la vez integrar una familia del proyecto.
 
-El **cooperativista** es un integrante de una familia de la cooperativa. Puede ver la información del proyecto, ordenar en privado las preferencias de su familia, consultar el plano para ubicar las unidades, participar del foro y del chat, recibir notificaciones sobre lo que ocurre en el proyecto e invitar a nuevos integrantes de su propia familia. Cada cooperativista ve únicamente las preferencias de su propia familia, nunca las preferencias de otras familias. Donde el proyecto lo permite, una persona puede ser **participante sin familia**, y participa en la parte social de la comunidad (foro, chat, multimedia) pero no en el sorteo.
+El **cooperativista** es un integrante de una familia de la cooperativa. Puede ver la información del proyecto, ordenar en privado las preferencias de su familia, consultar el plano para ubicar las unidades, participar del foro y del chat, recibir notificaciones sobre lo que ocurre en el proyecto e invitar a nuevos integrantes de su propia familia. Hasta el sorteo, cada cooperativista ve únicamente las preferencias de su propia familia. Donde el proyecto lo permite, una persona puede ser **participante sin familia**, y participa en la parte social de la comunidad (foro, chat, multimedia) pero no en el sorteo.
 
 Para prevenir abusos, la plataforma no restringe quién crea proyectos, sino la capacidad y funcionalidades de cada proyecto (por ejemplo, tamaño máximo de archivos a subir) hasta que un superadministrador lo aprueba. Pasa a ser **ilimitado** a pedido de sus administradores (§@sec-configuracion).
 
@@ -170,7 +170,7 @@ La forma más clara de entender MTAV en línea es seguir el ciclo de vida de un 
 
 **El sorteo.** Llegada la fecha, el administrador ejecuta el sorteo. El sistema corre el algoritmo de optimización y asigna todas las unidades a la vez, y el resultado aparece para todos en el mismo momento. El resultado es definitivo: no se edita ni se negocia. Solo en situaciones excepcionales, como un error en los datos detectado más tarde, un administrador puede invalidar la ejecución completa para volver a ejecutar el sorteo cuando corresponda.
 
-**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia y leer el acta de la ejecución. El registro de la ejecución se guarda de forma permanente.
+**Resultado y transparencia.** Ejecutado el sorteo, todos los cooperativistas pueden ver qué unidad recibió cada familia y leer el acta de la ejecución; pasado un plazo, también las preferencias de todas las familias, para verificar el resultado. El registro de la ejecución se guarda de forma permanente.
 
 ### Organización del documento {#sec-organizacion}
 

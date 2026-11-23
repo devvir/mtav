@@ -41,7 +41,7 @@ El sorteo se modela como un problema de **programación lineal entera** (con var
 
 **Conjuntos y parámetros.**
 
-- $C$: conjunto de familias; $V$: conjunto de unidades; en el caso balanceado $|C| = |V| = N$.
+- $C$: conjunto de familias; $V$: conjunto de unidades; $N = |V|$ es el número de unidades, que en el caso balanceado es también el de familias.
 - $p_{c,v} \in \{1, \dots, N\}$: rango que la familia $c \in C$ asigna a la unidad $v \in V$ (menor es mejor).
 
 **Variables de decisión.**
@@ -72,7 +72,7 @@ $$\min\ \sum_{c \in C} \sum_{v \in V} p_{c,v}\, x_{c,v} \qquad\text{sujeto a}\qq
 
 junto con las restricciones de asignación. El resultado es la asignación de máxima satisfacción agregada entre todas las que respetan la equidad de la Fase 1.
 
-En conjunto, las dos fases implementan una **optimización lexicográfica**: se optimiza primero el criterio de equidad y, dentro del conjunto de soluciones que lo alcanzan, el de satisfacción global. Esta formulación es la desarrollada en el trabajo previo sobre MTAV (§@sec-antecedentes) y es la que MTAV en línea implementa fielmente. La mejora que introduce este trabajo no cambia el modelo, sino la forma de resolver la Fase 1, como se explica a continuación.
+En conjunto, las dos fases implementan una **optimización lexicográfica**: se optimiza primero el criterio de equidad y, dentro del conjunto de soluciones que lo alcanzan, el de satisfacción global. Esta formulación es la desarrollada en el trabajo previo sobre MTAV (§@sec-antecedentes) ; MTAV en línea la implementa con la única diferencia de las restricciones de asignación ya descritas. La mejora de rendimiento que introduce este trabajo no cambia el modelo, sino la forma de resolver la Fase 1, como se explica a continuación.
 
 
 ## El cuello de botella de la Fase 1: casos degenerados {#sec-cuello-fase1}
@@ -124,7 +124,7 @@ La búsqueda binaria produce **el mismo resultado** que la Fase 1 original, por 
 - **Argumento teórico.** Por la monotonía de $F$, el menor $S$ factible hallado por la búsqueda es exactamente $S^\ast$, el óptimo max-min que minimiza $z$ en la Fase 1. Fijado ese $S^\ast$, la Fase 2 —idéntica en ambos métodos— optimiza la satisfacción global. Ambos caminos conducen, por tanto, al mismo par (cota de equidad, asignación).
 - **Verificación empírica.** La Fase 1 original con GLPK se conserva en el código como referencia; una prueba de estrés ejecuta *ambos* métodos sobre [las instancias históricamente problemáticas (las que tardaban desde 5 hasta más de 120 segundos con GLPK directo)]{.quitado}[un conjunto fijo de veinte instancias de tamaño 20 del escenario aleatorio, elegidas entre las que más tiempo demandaron a la Fase 1 original —entre 0,2 y 24 segundos—,]{.cambio} y verifica que el $S$ hallado coincide exactamente.
 
-Cabe subrayar el alcance de la contribución: **no se modifica el modelo ni la Fase 2**, que sigue resolviéndose con GLPK. Solo cambia la manera de resolver la Fase 1. El resultado es matemáticamente equivalente al método original, ya validado por su uso en proyectos cooperativos reales (§@sec-validacion), pero elimina su único punto de fragilidad.
+Cabe subrayar el alcance de la contribución: **la búsqueda binaria no modifica el modelo ni la Fase 2**, que sigue resolviéndose con GLPK. Solo cambia la manera de resolver la Fase 1. El resultado es matemáticamente equivalente al método original, ya validado por su uso en proyectos cooperativos reales (§@sec-validacion), pero elimina su único punto de fragilidad.
 
 ::: nuevo
 El problema de la Fase 1 —minimizar el peor costo de una asignación— se conoce en la investigación de operaciones como el *problema de asignación de cuello de botella* (*bottleneck assignment problem*). Esta solución se desarrolló de forma independiente, a partir del método de dos fases del MTAV original y sus modelos, pero corresponde aclarar que buscar la cota factible por bisección es uno de los métodos clásicos para resolver estos problemas (Garfinkel, 1971; Burkard, Dell'Amico y Martello, 2009). [Nov. 2026: relación con la literatura, descubierta después]{.rev #rev-n-cuello-botella}
@@ -141,7 +141,7 @@ Para cuantificar la mejora se ejecutaron *benchmarks* sobre instancias generadas
 - **Aleatorias:** cada familia ordena las unidades al azar —una permutación uniforme—, de forma independiente de las demás.
 - **Realistas:** en cada instancia, un 20 % de las unidades es popular y otro 20 % impopular, y esa división es la misma para todas las familias, como en un proyecto real, donde algunas unidades atraen a muchas familias y otras a muy pocas. Cada familia arma su ranking con esa inclinación y con su propia variación, de modo que muchas familias coinciden en sus primeras opciones: la situación que degrada la Fase 1 original (§@sec-cuello-fase1).
 - **Idénticas:** todas las familias ordenan las unidades igual; es el peor caso para el desempate.
-- **Opuestas:** se fija un único orden de las unidades; la mitad de las familias lo adopta tal cual y la otra mitad, exactamente invertido.
+- **Opuestas:** se fija un único orden de las unidades; la mitad de las familias lo adopta sin cambios y la otra mitad, exactamente invertido.
 
 Idénticas y opuestas son los dos casos degenerados descritos en la Sección @sec-cuello-fase1. La generación exacta de cada escenario se detalla en el Apéndice C.3.
 
@@ -182,14 +182,14 @@ El detalle por escenario —incluidos los casos degenerados que la solución ori
 ::: nuevo
 Las familias no están obligadas a establecer sus preferencias para cada unidad de su tipo; una familia puede incluso no preferir ninguna unidad en absoluto. Puede ocurrir también que una unidad se agregue al proyecto luego que una familia ya definió sus preferencias, y que la familia no asigne ningún lugar a esta unidad. Sin embargo, para cada familia, el sistema requiere que todas las unidades de su tipo tengan una preferencia definida. La solución es determinar una lista de preferencias completa por defecto.
 
-El problema que surge entonces es cuál debe ser este orden por defecto. Si elegimos una lista igual para todas las familias (por ejemplo, ordenada por id de la unidad) el problema que surge es un sesgo no deseado para las unidades que todos “prefieren” por defecto. Una familia que realmente prefiera una vivienda del tope de la lista predeterminada estaría compitiendo de hecho con familias que en realidad no establecieron ninguna preferencia.
+El problema que surge entonces es cuál debe ser este orden por defecto. Si elegimos una lista igual para todas las familias (por ejemplo, ordenada por el identificador de la unidad), el problema que surge es un sesgo no deseado hacia las unidades que todos "prefieren" por defecto. Una familia que realmente prefiera una vivienda del tope de la lista predeterminada estaría compitiendo de hecho con familias que en realidad no establecieron ninguna preferencia.
 
-La solución implementada es un orden aleatorio pero anclado para cada familia, de forma que se resuelve el problema del sesgo a la vez que se mantiene el carácter determinístico del sorteo.
+La solución implementada es un orden aleatorio pero anclado para cada familia, de forma que se resuelve el problema del sesgo a la vez que se mantiene el carácter determinista del sorteo.
 :::
 
 ## Ejecución, orquestación por tipos y redistribución de remanentes {#sec-ejecucion}
 
-Hasta aquí, la formulación asumió el caso balanceado (igual número de familias y unidades) y un único tipo de vivienda. La ejecución real de un sorteo compone esos subproblemas y resuelve los desbalances.
+Hasta aquí, la formulación trató un único tipo de vivienda. La ejecución real de un sorteo compone esos subproblemas, y resuelve lo que queda sin asignar en cada uno.
 
 **Orquestación por tipos.** Siguiendo la descomposición establecida en la Sección @sec-problema-asignacion, el sorteo se ejecuta como una colección de subproblemas independientes, uno por tipo de vivienda, cada uno resuelto con el método de las secciones anteriores.
 

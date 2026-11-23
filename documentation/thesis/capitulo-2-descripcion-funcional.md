@@ -65,7 +65,7 @@ Un detalle de diseño relevante es que **el sorteo mismo se modela como un event
 
 [Sección reescrita (noviembre de 2026): galería y archivos, privacidad de los archivos, archivo y restauración]{.rev #rev-n-medios}
 
-Cualquier integrante del proyecto puede compartir **medios**, en dos lugares: la **galería**, con las fotos y los videos, y los **archivos**, con los documentos y las grabaciones de audio —actas leídas en voz alta, un mensaje de una comisión—. Cada archivo queda asociado a quien lo subió y a la fecha en que se publicó; una vez publicado, el archivo no puede modificarse: solo puede editarse su descripción o eliminarse por completo. Si quien lo compartió lo quita dentro de la primera hora, se elimina. Pasado ese plazo, en cambio, deja de estar disponible pero se conserva fuera de la vista, archivado.
+Cualquier integrante del proyecto puede compartir **medios**, en dos lugares: la **galería**, con las fotos y los videos, y los **archivos**, con los documentos y las grabaciones de audio —actas leídas en voz alta, un mensaje de una comisión—. Cada archivo queda asociado a quien lo subió y a la fecha en que se publicó; una vez publicado, el archivo no puede modificarse: solo puede editarse su descripción o quitarse. Si quien lo compartió lo quita dentro de la primera hora, se elimina. Pasado ese plazo, en cambio, deja de estar disponible pero se conserva fuera de la vista, archivado.
 
 Los archivos son **privados del proyecto**: solo quienes participan en él pueden abrirlos, y no hay direcciones públicas. Se aceptan imágenes, videos, audio y documentos; lo que podría resultar peligroso o imposible de abrir se rechaza al subirlo. En un proyecto limitado rigen los topes de tamaño por archivo y por proyecto de la Sección @sec-configuracion.
 
@@ -125,7 +125,7 @@ Llegada la fecha del sorteo, el administrador lo ejecuta. Cada ejecución es un 
 
 La resolución ocurre en segundo plano. Mientras tanto, la página muestra el sorteo en curso como una secuencia de cuatro etapas —leer las preferencias, ponderar las unidades, buscar la mejor asignación, verificar el resultado— que progresa en tiempo real para todos los usuarios que estén mirando la página del sorteo.
 
-El algoritmo rara vez toma más de un segundo en completar los sub-sorteos. Basado en devoluciones de usuarios del sistema, MTAV en línea simula un proceso más lento, con un tiempo mínimo fijado por un superadministrador (ocho segundos por defecto), independiente del progreso real del algoritmo. Si el *solver* termina antes, la asignación **se retiene** hasta cumplirse ese tiempo; si termina después, se escribe al terminar.
+El algoritmo rara vez toma más de un segundo en completar los subsorteos. Basado en devoluciones de usuarios del sistema, MTAV en línea simula un proceso más lento, con un tiempo mínimo fijado por un superadministrador (ocho segundos por defecto), independiente del progreso real del algoritmo. Si el *solver* termina antes, la asignación **se retiene** hasta cumplirse ese tiempo; si termina después, se escribe al terminar.
 
 El resultado aparece para todos a la vez, con todas las unidades asignadas de una sola vez. Si la ejecución falla, se marca como fallida, el administrador es avisado y el sorteo puede ejecutarse de nuevo. El resultado es **definitivo**: no se edita ni se negocia.
 
