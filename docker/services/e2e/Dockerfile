@@ -12,12 +12,14 @@ FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
 # PHP 8.5 (ondrej PPA — noble ships 8.3) + extensions matching the app image,
 # plus the real GLPK solver (lottery execution) and ffmpeg (media handling)
-# A mirror that fails once does not fail the build: apt tries again, five times
-RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
-RUN apt-get update \
+# A mirror that fails does not fail the build quietly: a failed index download is an error
+# (not a warning that leaves apt with no package to install), each fetch is retried, and the
+# update itself is tried three times
+RUN printf 'Acquire::Retries "5";\nAPT::Update::Error-Mode "any";\n' > /etc/apt/apt.conf.d/80-retries
+RUN for i in 1 2 3; do apt-get update && break; sleep 15; done \
     && apt-get install -y --no-install-recommends software-properties-common ca-certificates \
     && add-apt-repository -y ppa:ondrej/php \
-    && apt-get update \
+    && for i in 1 2 3; do apt-get update && break; sleep 15; done \
     && apt-get install -y --no-install-recommends \
         php8.5-cli \
         php8.5-bcmath \
