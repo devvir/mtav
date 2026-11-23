@@ -4,7 +4,7 @@
 
 # Ingeniería del sistema {#cap-ingenieria}
 
-*Este capítulo profundiza en las decisiones de ingeniería que sostienen la aplicación: con qué tecnologías está construida y por qué, cómo está organizada y qué principios de diseño la atraviesan, cómo se mantiene el sorteo como una pieza independiente, cómo se resuelven la autorización y el aislamiento entre cooperativas, y cómo los datos cruzan del *backend* al *frontend*[; cómo la misma aplicación se entrega en variantes, cómo está construido el Asistente, cómo se prueba, cómo llega cada versión a los servidores y qué registros guarda la plataforma]{.nuevo}. Los Capítulos @cap-intro y @cap-funcional se dirigen a cualquier lector; este se dirige a quien quiera entender cómo está construida la aplicación. El detalle de referencia (el esquema de datos, los modelos matemáticos, los diagramas) se remite a los apéndices.*
+_Este capítulo profundiza en las decisiones de ingeniería que sostienen la aplicación: con qué tecnologías está construida y por qué, cómo está organizada y qué principios de diseño la atraviesan, cómo se mantiene el sorteo como una pieza independiente, cómo se resuelven la autorización y el aislamiento entre cooperativas, y cómo los datos cruzan del *backend* al *frontend*[; cómo la misma aplicación se entrega en variantes, cómo está construido el Asistente, cómo se prueba, cómo llega cada versión a los servidores y qué registros guarda la plataforma]{.nuevo}. Los Capítulos @cap-intro y @cap-funcional se dirigen a cualquier lector; este se dirige a quien quiera entender cómo está construida la aplicación. El detalle de referencia (el esquema de datos, los modelos matemáticos, los diagramas) se remite a los apéndices._
 
 
 ## El stack tecnológico {#sec-stack}
