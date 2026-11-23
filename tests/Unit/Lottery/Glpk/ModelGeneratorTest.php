@@ -65,8 +65,8 @@ describe('ModelGenerator', function () {
         test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase1Model();
 
-            expect($model)->toContain('oneParticipantPerItem{i in I}');
-            expect($model)->toContain('sum{p in P} x[p,i] = 1');
+            expect($model)->toContain('atMostOneParticipantPerItem{i in I}');
+            expect($model)->toContain('sum{p in P} x[p,i] <= 1');
         });
 
         test('ends with end statement', function () {
@@ -128,8 +128,8 @@ describe('ModelGenerator', function () {
         test('contains item uniqueness constraints', function () {
             $model = $this->generator->generatePhase2Model();
 
-            expect($model)->toContain('oneParticipantPerItem{i in I}');
-            expect($model)->toContain('sum{p in P} x[p,i] = 1');
+            expect($model)->toContain('atMostOneParticipantPerItem{i in I}');
+            expect($model)->toContain('sum{p in P} x[p,i] <= 1');
         });
 
         test('ends with end statement', function () {

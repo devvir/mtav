@@ -20,7 +20,8 @@ class HybridDistribution extends TaskRunner
     public function execute(LotterySpec $spec, float $timeout): TaskResult
     {
         // Sum of step timeouts tends to $timeout * 2 (worst case, highly unlikely).
-        $iterations = (int) ceil(log($spec->participantCount(), 2)) + 1;
+        // The search runs over S from 1 to the number of items
+        $iterations = (int) ceil(log($spec->itemCount(), 2)) + 1;
         $stepTimeout = 2 * $timeout / $iterations;
 
         $startTime = microtime(true);

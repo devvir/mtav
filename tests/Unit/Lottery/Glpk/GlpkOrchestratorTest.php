@@ -105,29 +105,4 @@ describe('Glpk Orchestrator', function () {
         expect($result)->toBeArray();
         expect($result)->toHaveCount(2);
     });
-
-    test('identifyWorstItems calls WorstItemsPruning runner', function () {
-        config()->set('lottery.solvers.glpk.config.timeout', 10);
-
-        // Mock Glpk to capture auditTask calls
-        $glpkMock = mockGlpkWithAuditCapture();
-
-        // Spec with more items than participants
-        $spec = new LotterySpec(
-            participants: [1 => [10, 20, 30, 40, 50], 2 => [20, 30, 10, 40, 50]],
-            items: [10, 20, 30, 40, 50]
-        );
-
-        $result = $glpkMock->identifyWorstItems(mockManifest(), $spec);
-
-        // Should have called auditTask once
-        expect(count($glpkMock->auditCalls))->toBe(1);
-
-        // Should have used WorstItemsPruning
-        $taskResult = $glpkMock->auditCalls[0];
-        expect($taskResult->task->value)->toBe('worst_items_pruning');
-
-        // Should have worst_items array
-        expect($result)->toBeArray();
-    });
 });

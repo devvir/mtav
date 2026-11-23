@@ -55,18 +55,6 @@ GMPL;
         return $this->withParam($this->generateData($spec), 'S', $minSatisfaction);
     }
 
-    /**
-     * Generate data file for item selection model with M parameter.
-     *
-     * @param  LotterySpec  $spec  Contains participants (with preferences) and items
-     * @param  int  $itemCount  The M value (number of items to select)
-     *
-     * @return string GMPL data section
-     */
-    public function generateDataWithItemCount(LotterySpec $spec, int $itemCount): string
-    {
-        return $this->withParam($this->generateData($spec), 'M', $itemCount);
-    }
 
     /** The data with one more parameter, before its closing "end;" */
     protected function withParam(string $data, string $name, int $value): string

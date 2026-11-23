@@ -173,7 +173,6 @@ class RunRecord
         return [
             'phase1-max-min.mod'      => $generator->generatePhase1Model(),
             'phase2-satisfaction.mod' => $generator->generatePhase2Model(),
-            'item-selection.mod'      => $generator->generateItemSelectionModel(),
         ];
     }
 

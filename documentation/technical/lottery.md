@@ -56,8 +56,9 @@ written for each solve (`ModelGenerator`, `DataGenerator`):
   participants and items reach the solver, seeded with the run's uuid
   (`LotteryOrchestrator::drawn`), so equals are equally likely to win and a run reads back
   the same from its record. The lottery is a lottery only where the rankings leave it open.
-- **Uneven counts**: with more items than participants, the least wanted items are set
-  aside first (`WorstItemsPruning`); with more participants, placeholder items balance it.
+- **Uneven counts**: each item goes to at most one participant, so with more items than
+  participants the ones nobody receives stay free, as leftovers; with more participants,
+  placeholder items balance it.
 
 The solvers work on plain data (`LotteryManifest`, `LotterySpec`), never on models.
 `config/lottery.php` names the solver (`glpk`; `random` and `test` exist for development)

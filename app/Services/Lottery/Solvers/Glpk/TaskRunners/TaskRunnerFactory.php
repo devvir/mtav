@@ -13,9 +13,8 @@ class TaskRunnerFactory
             /**
              * Atomic runners
              */
-            Task::MIN_SATISFACTION    => app(MinSatisfaction::class),
-            Task::ITEM_DISTRIBUTION   => app(ItemDistribution::class),
-            Task::WORST_ITEMS_PRUNING => app(WorstItemsPruning::class),
+            Task::MIN_SATISFACTION  => app(MinSatisfaction::class),
+            Task::ITEM_DISTRIBUTION => app(ItemDistribution::class),
 
             /**
              * Composite runners

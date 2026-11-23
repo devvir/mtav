@@ -37,8 +37,7 @@ describe('Orchestrator with more items than participants', function () {
         expect($allParticipants)->toBe([100, 101, 102]);
     });
 
-    it('prunes worst items maintaining fairness', function () {
-        // Participants prefer first 3 items, item 40 is universally least preferred
+    it('leaves the item nobody wants free, everyone with their first choice', function () {
         $manifest = mockManifest(1, [
             10 => [
                 'participants' => [
@@ -56,15 +55,23 @@ describe('Orchestrator with more items than participants', function () {
         expect($result->picks)->toHaveCount(3);
         expect($result->orphans['items'])->toHaveCount(1);
 
-        // Item 203 (least preferred) should be orphaned
         expect($result->orphans['items'])->toBe([203]);
+        expect($result->picks)->toEqual([100 => 200, 101 => 201, 102 => 202]);
+    });
 
-        // All participants should get top-3 choices
-        foreach ($result->picks as $participantId => $itemId) {
-            $participants = $manifest->data[10]['participants'];
-            $rank = array_search($itemId, $participants[$participantId]);
-            expect($rank)->toBeLessThanOrEqual(2); // Index 0-2 = top 3
-        }
+    it('keeps the max-min guarantee that pruning the surplus used to lose', function () {
+        // Three families want 1 2 3 4 5 in that order, a fourth wants the reverse. Keeping only the
+        // units in someone's top two (1 2 4 5) would leave a family its 4th choice; with every unit
+        // on offer the worst-off family gets its 3rd, the best any assignment can do.
+        $rankings = [100 => [1, 2, 3, 4, 5], 101 => [1, 2, 3, 4, 5], 102 => [1, 2, 3, 4, 5], 103 => [5, 4, 3, 2, 1]];
+        $manifest = mockManifest(1, [10 => ['participants' => $rankings, 'items' => [1, 2, 3, 4, 5]]]);
+
+        $result = orchestrator(app(GlpkSolver::class))->execute($manifest);
+
+        $ranks = array_map(fn ($id, $item) => array_search($item, $rankings[$id]) + 1, array_keys($result->picks), $result->picks);
+        expect(max($ranks))->toBe(3);
+        expect($result->picks[103])->toBe(5);
+        expect($result->orphans['items'])->toBe([4]);
     });
 
     it('handles multiple groups with orphan redistribution', function () {

@@ -37,9 +37,9 @@ s.t. z_menorIgual{p in P}:
 s.t. oneItemPerParticipant{p in P}:
     sum{i in I} x[p,i] = 1;
 
-# Each item assigned to exactly one participant
-s.t. oneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] = 1;
+# Each item goes to at most one participant: with more items than participants, some stay free
+s.t. atMostOneParticipantPerItem{i in I}:
+    sum{p in P} x[p,i] <= 1;
 
 end;
 GMPL;
@@ -79,68 +79,12 @@ s.t. satisfaccionMinima{p in P}:
 s.t. oneItemPerParticipant{p in P}:
     sum{i in I} x[p,i] = 1;
 
-# Each item assigned to exactly one participant
-s.t. oneParticipantPerItem{i in I}:
-    sum{p in P} x[p,i] = 1;
-
-end;
-GMPL;
-    }
-
-    /**
-     * Generate item selection model for surplus items scenario.
-     *
-     * This model selects exactly M items from a larger set while minimizing the worst rank any
-     * participant receives. Used before phase 1 when the pruning by top choices
-     * (SpecBalancer) still leaves more items than participants.
-     *
-     * Variables:
-     * - x[p,i]: Assignment of participant p to item i (binary)
-     * - u[i]: Whether item i is used (binary)
-     * - z: The worst rank any participant receives (integer)
-     *
-     * The model finds which M items to keep such that the assignment has the best
-     * worst-case outcome (max-min fairness).
-     */
-    public function generateItemSelectionModel(): string
-    {
-        return <<<'GMPL'
-# MTAV Lottery - Item Selection: Identify Worst Items
-# Objective: Select M items that minimize worst-case satisfaction
-
-set P;              # Participants
-set I;              # Items (candidates)
-
-param r{p in P, i in I};  # Rank (lower = better: 1 = first choice)
-param M;                  # Number of items to select (= number of participants)
-
-var x{p in P, i in I}, binary;  # Assignment decision: 1 if participant p gets item i
-var u{i in I}, binary;          # Item selection: 1 if item i is used
-var z, integer;                 # Worst satisfaction level (to minimize)
-
-minimize resultado: z;
-
-# z must be at least as large as each participant's satisfaction
-s.t. z_menorIgual{p in P}:
-    z >= sum{i in I} r[p,i] * x[p,i];
-
-# Each participant gets exactly one item
-s.t. participantGetsOne{p in P}:
-    sum{i in I} x[p,i] = 1;
-
-# Each item assigned to at most one participant
-s.t. itemGetsAtMostOne{i in I}:
+# Each item goes to at most one participant: with more items than participants, some stay free
+s.t. atMostOneParticipantPerItem{i in I}:
     sum{p in P} x[p,i] <= 1;
 
-# Link assignment to usage: if participant gets item i, then u[i] = 1
-s.t. itemUsageLink{i in I}:
-    sum{p in P} x[p,i] <= u[i];
-
-# Select exactly M items
-s.t. exactlyMItemsUsed:
-    sum{i in I} u[i] = M;
-
 end;
 GMPL;
     }
+
 }

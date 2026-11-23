@@ -51,18 +51,6 @@ class Glpk
         }
     }
 
-    /**
-     * Identify worst items among candidates.
-     */
-    public function identifyWorstItems(LotteryManifest $manifest, LotterySpec $spec): array
-    {
-        $pruningRunner = $this->taskRunnerFactory->make(Task::WORST_ITEMS_PRUNING);
-        $taskResult = $pruningRunner->execute($spec, $this->timeout);
-
-        $this->auditTask($manifest, $taskResult, 'success');
-
-        return $taskResult->get('worst_items');
-    }
 
     /**
      * Execute GLPK distribution strategy (GLPK phase1 + GLPK phase2).
