@@ -43,5 +43,5 @@ it('keeps a refusal for the visit that shows it, so that the form does not take 
     expect(loadInTheBackground($this)[1])->toBe([]);
 
     [, $errors] = saidBy($this->get(route('people.index', $this->project)));
-    expect($errors)->toBe(['member' => __('validation.last_admin')]);
+    expect($errors)->toBe(['member' => __('validation.admins_are_peers')]);
 });

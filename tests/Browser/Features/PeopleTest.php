@@ -176,15 +176,16 @@ it('changes someone\'s family and role, keeping at least one admin', function ()
         ->family_id->toBe($other->id)
         ->is_admin->toBeTrue();
 
+    // Admins are peers: the role is given up from one's own page, and never by the last admin
     $this->as($member->fresh());
-    $member->membershipIn($this->project)->update(['is_admin' => true]);
     $this->admin->membershipIn($this->project)->delete();
 
     visit(route('people.show', [$this->project, $member]))
-        ->click('Change role or family')
-        ->uncheck('is_admin')
-        ->click(inDialog('Save'))
-        ->assertSee('A project needs at least one admin.');
+        ->assertSee('Give the admin role up')
+        ->assertPresent('button[aria-disabled="true"]:has-text("Give the admin role up")')
+        ->assertNoSmoke();
+
+    expect($member->fresh()->membershipIn($this->project)->is_admin)->toBeTrue();
 });
 
 it('removes someone from the project', function () {
