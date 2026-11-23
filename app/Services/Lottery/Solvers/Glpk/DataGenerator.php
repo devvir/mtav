@@ -91,10 +91,8 @@ GMPL;
 
     /**
      * The rank each participant gives each item (param r), 1 for the most wanted; an item a
-     * participant did not rank counts as 999.
-     *
-     * Each participant's ranks all get one same random amount (at most 0.0001), meant as a
-     * tie-breaker; ranks are written with three decimals.
+     * participant did not rank counts as 999. Ties are not broken here: the orchestrator draws
+     * the order participants and items come in (`LotteryOrchestrator::drawn`).
      *
      * @param  array  $participants  Participant ID => preferences array
      * @param  array  $items  Array of item IDs
@@ -109,16 +107,14 @@ GMPL;
         foreach ($participants as $participantId => $preferences) {
             $matrix .= "p{$participantId}";
 
-            // One amount for all of this participant's ranks: 1 becomes 1.00004751, 2 becomes 2.00004751…
-            $tieBreaker = mt_rand(0, 10000) / 100000000.0;
             $preferenceMap = [];
             foreach ($preferences as $rank => $itemId) {
-                $preferenceMap[$itemId] = ($rank + 1) + $tieBreaker;
+                $preferenceMap[$itemId] = $rank + 1;
             }
 
             foreach ($items as $itemId) {
                 $rank = $preferenceMap[$itemId] ?? 999;
-                $matrix .= ' ' . str_pad(sprintf('%.3f', $rank), 7);
+                $matrix .= ' ' . str_pad((string) $rank, 3);
             }
 
             $matrix .= "\n";

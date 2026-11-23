@@ -85,15 +85,12 @@ describe('DataGenerator', function () {
 
             $data = $this->generator->generateData($spec);
 
-            // Tie-breaker decimals (0.000-0.999) are added to prevent GLPK degeneracy
-            // but DO NOT change outcomes - integer ranks still determine optimization
-            // Participant 1 should have ranks: 10→1.xxx, 20→2.xxx, 30→3.xxx
+            // Participant 1 should have ranks: 10→1, 20→2, 30→3
             expect($data)->toContain('p1');
 
             preg_match('/p1\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/', $data, $matches);
             expect($matches)->toHaveCount(4); // Full match + 3 groups
 
-            // Verify integer parts of ranks (outcome-determining part)
             $ranks = [(int)$matches[1], (int)$matches[2], (int)$matches[3]];
             expect($ranks)->toContain(1);
             expect($ranks)->toContain(2);

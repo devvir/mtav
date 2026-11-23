@@ -52,8 +52,10 @@ written for each solve (`ModelGenerator`, `DataGenerator`):
   worst-placed participant can get. Large instances use a binary search over that rank
   (`HybridDistribution`), which finds the same answer as solving it directly.
 - **Phase 2** keeps that bound and makes everyone as satisfied as possible together.
-- **Ties** (several equally good assignments) are broken by a tiny random term on each
-  rank, so the lottery is a lottery only where the rankings leave it open.
+- **Ties** (several equally good assignments) are drawn: the orchestrator shuffles the order
+  participants and items reach the solver, seeded with the run's uuid
+  (`LotteryOrchestrator::drawn`), so equals are equally likely to win and a run reads back
+  the same from its record. The lottery is a lottery only where the rankings leave it open.
 - **Uneven counts**: with more items than participants, the least wanted items are set
   aside first (`WorstItemsPruning`); with more participants, placeholder items balance it.
 
