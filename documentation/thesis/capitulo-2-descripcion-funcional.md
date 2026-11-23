@@ -115,7 +115,7 @@ Las preferencias pueden modificarse en cualquier momento hasta la ejecución del
 
 El algoritmo encuentra una asignación **óptima** según dos criterios, en orden de prioridad estricta. Primero, la **equidad**: procura que la familia con el peor resultado quede lo mejor posible, evitando que una familia reciba un resultado desproporcionadamente malo respecto de las demás. Segundo, y sin ceder esa equidad, maximiza la **satisfacción global**: entre todas las asignaciones igualmente equitativas, elige la que deja al conjunto lo más conforme posible; en términos intuitivos, favorece las asignaciones con muchas primeras y segundas opciones.
 
-El resultado es **reproducible dadas las preferencias** —[solo los empates se resuelven al azar, de forma imparcial]{.quitado}[a diferencia del MTAV original, los empates los decide el orden de los datos, no un sorteo (§@sec-garantias)]{.nuevo}— y **verificable** [Nov. 2026: desempate]{.rev #rev-n-desempate} (puede auditarse mostrando las preferencias y la asignación). La definición precisa de estos criterios, su formulación matemática y sus propiedades se desarrollan en el Capítulo @cap-sorteo.
+El resultado es **reproducible dadas las preferencias** —solo los empates se resuelven al azar, de forma imparcial— y **verificable** (puede auditarse mostrando las preferencias y la asignación). La definición precisa de estos criterios, su formulación matemática y sus propiedades se desarrollan en el Capítulo @cap-sorteo.
 
 ### Ejecución e inmutabilidad {#sec-ejecucion-funcional}
 
